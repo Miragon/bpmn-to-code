@@ -1,12 +1,12 @@
 # bpmn-to-code Skills Plugin
 
-Claude Code plugin with AI skills for setting up and using the [bpmn-to-code](https://github.com/emaarco/bpmn-to-code) Gradle/Maven plugin.
+Claude Code plugin with AI skills for setting up and using the [bpmn-to-code](https://github.com/Miragon/bpmn-to-code) Gradle/Maven plugin.
 
 ## Installation
 
 ```bash
 # 1. Register the marketplace (one-time)
-/plugin marketplace add emaarco/bpmn-to-code
+/plugin marketplace add Miragon/bpmn-to-code
 
 # 2. Install the plugin
 /plugin install bpmn-to-code@bpmn-to-code

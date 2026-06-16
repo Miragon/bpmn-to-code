@@ -108,7 +108,7 @@ git push origin v2.0.1
 ```
 
 Create a GitHub release:
-1. Go to: https://github.com/emaarco/bpmn-to-code/releases
+1. Go to: https://github.com/Miragon/bpmn-to-code/releases
 2. Click "Draft a new release"
 3. Select tag `v2.0.1`
 4. Add release notes

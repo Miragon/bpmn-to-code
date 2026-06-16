@@ -41,7 +41,7 @@ Then open `http://localhost:8080`.
 The web app exposes `POST /api/generate` for programmatic access — call it from CI/CD pipelines, scripts, or any HTTP client. This is a valid option for projects that don't use Gradle or Maven.
 
 ::: info
-The REST API works but hasn't seen wide adoption yet. If you run into issues, please [open a GitHub issue](https://github.com/emaarco/bpmn-to-code/issues).
+The REST API works but hasn't seen wide adoption yet. If you run into issues, please [open a GitHub issue](https://github.com/Miragon/bpmn-to-code/issues).
 :::
 
 ### Request

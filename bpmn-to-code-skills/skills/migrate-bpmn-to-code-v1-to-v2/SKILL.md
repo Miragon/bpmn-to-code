@@ -188,5 +188,5 @@ For each approved change:
 3. Suggest the user verify compilation:
    - Gradle: `./gradlew compileKotlin` or `./gradlew compileJava`
    - Maven: `mvn compile`
-4. Point the user to the [v2.0.0 changelog](https://emaarco.github.io/bpmn-to-code/changelog/v2) for the full list of breaking changes and new features. The "Directional Variables via typed wrappers" section at the top of the changelog explains how direction moved into the wrapper type and how `toString()` makes `.value` optional in most contexts.
-5. Link to [ADR 015](https://emaarco.github.io/bpmn-to-code/contributing/adr/015-directional-variable-extraction) for the rationale behind removing `additionalVariables` and always splitting `Variables.<Element>`.
+4. Point the user to the [v2.0.0 changelog](https://miragon.github.io/bpmn-to-code/changelog/v2) for the full list of breaking changes and new features. The "Directional Variables via typed wrappers" section at the top of the changelog explains how direction moved into the wrapper type and how `toString()` makes `.value` optional in most contexts.
+5. Link to [ADR 015](https://miragon.github.io/bpmn-to-code/contributing/adr/015-directional-variable-extraction) for the rationale behind removing `additionalVariables` and always splitting `Variables.<Element>`.

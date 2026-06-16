@@ -23,7 +23,7 @@ export default defineConfig({
       {
         text: 'Links',
         items: [
-          { text: 'GitHub', link: 'https://github.com/emaarco/bpmn-to-code' },
+          { text: 'GitHub', link: 'https://github.com/Miragon/bpmn-to-code' },
           { text: 'Maven Central', link: 'https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven' },
           { text: 'Gradle Plugin Portal', link: 'https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle' },
         ],
@@ -120,7 +120,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/emaarco/bpmn-to-code' },
+      { icon: 'github', link: 'https://github.com/Miragon/bpmn-to-code' },
     ],
 
     search: {
@@ -128,12 +128,12 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/emaarco/bpmn-to-code/edit/main/docs/:path',
+      pattern: 'https://github.com/Miragon/bpmn-to-code/edit/main/docs/:path',
     },
 
     footer: {
-      message: 'Open source under the <a href="https://github.com/emaarco/bpmn-to-code?tab=MIT-1-ov-file#readme" target="_blank">MIT License</a>. Contributions welcome!',
-      copyright: 'Created with ♥ by <a href="https://www.linkedin.com/in/schaeckm" target="_blank">Marco Schäck</a> · <a href="https://www.linkedin.com/in/schaeckm" target="_blank">LinkedIn</a> · <a href="https://medium.com/@emaarco" target="_blank">Medium</a>',
+      message: 'Open source under the <a href="https://github.com/Miragon/bpmn-to-code?tab=MIT-1-ov-file#readme" target="_blank">MIT License</a>. Contributions welcome!',
+      copyright: 'Created with ♥ by <a href="https://www.linkedin.com/in/schaeckm" target="_blank">Marco Schäck</a> at <a href="https://miragon.io" target="_blank">Miragon</a> · <a href="https://www.linkedin.com/in/schaeckm" target="_blank">LinkedIn</a> · <a href="https://medium.com/@emaarco" target="_blank">Medium</a>',
     },
   },
 })

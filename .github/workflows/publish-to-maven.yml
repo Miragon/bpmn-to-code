@@ -43,8 +43,8 @@ jobs:
       - name: Build & Test
         run: ./gradlew build --warning-mode all
 
-      # Only the real io.miragon artifacts here. The io.github.emaarco relocation POMs are published
-      # separately (publish-to-maven-relocation.yml) with the personal token that owns that namespace.
+      # The three publishable io.miragon modules. The old io.github.emaarco coordinates are published
+      # from the legacy emaarco/bpmn-to-code repo, not here.
       - name: Publish to Maven Central
         if: inputs.dry_run != true
         run: >-

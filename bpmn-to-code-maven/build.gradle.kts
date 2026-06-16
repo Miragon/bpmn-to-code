@@ -62,7 +62,7 @@ mavenPublishing {
         name.set("bpmn-to-code-maven")
         description.set("Maven plugin that bridges gaps between BPMN and code - fostering the creation of clean process-automation solutions")
         inceptionYear.set("2025")
-        url.set("https://github.com/emaarco/bpmn-to-code")
+        url.set("https://github.com/Miragon/bpmn-to-code")
         licenses {
             license {
                 name.set("MIT License")
@@ -75,12 +75,14 @@ mavenPublishing {
                 id.set("emaarco")
                 name.set("Marco Schaeck")
                 url.set("https://github.com/emaarco")
+                organization.set("Miragon")
+                organizationUrl.set("https://miragon.io")
             }
         }
         scm {
-            url.set("https://github.com/emaarco/bpmn-to-code")
-            connection.set("scm:git:git://github.com/emaarco/bpmn-to-code.git")
-            developerConnection.set("scm:git:ssh://git@github.com/emaarco/bpmn-to-code.git")
+            url.set("https://github.com/Miragon/bpmn-to-code")
+            connection.set("scm:git:git://github.com/Miragon/bpmn-to-code.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Miragon/bpmn-to-code.git")
         }
     }
 }

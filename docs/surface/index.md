@@ -1,7 +1,7 @@
 # 🤖 Surface — AI-Ready by Design
 
 ::: warning Beta
-JSON Export is in beta. The output format may change in a future release. [Leave feedback](https://github.com/emaarco/bpmn-to-code/issues) if you're using it.
+JSON Export is in beta. The output format may change in a future release. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you're using it.
 :::
 
 The Surface pillar makes your process structure accessible to AI agents, code reviewers, and your build toolchain — deterministically, on every run.

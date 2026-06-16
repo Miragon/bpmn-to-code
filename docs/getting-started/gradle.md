@@ -95,8 +95,8 @@ Using [Claude Code](https://docs.anthropic.com/en/docs/claude-code)? The `setup-
 After setup, use the `migrate-to-bpmn-to-code-apis` skill to replace hardcoded BPMN strings across your codebase with references to the generated Process API.
 
 ```bash
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-gradle
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/.claude/skills/migrate-to-bpmn-to-code-apis
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-gradle
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/migrate-to-bpmn-to-code-apis
 ```
 
 See [AI Skills](/skills/) for all available skills.

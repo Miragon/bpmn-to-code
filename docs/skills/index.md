@@ -1,7 +1,7 @@
 # 🧠 AI Agent Skills
 
 ::: warning Beta
-Agent skills are in beta. Skill names and instructions may change in a future release. [Leave feedback](https://github.com/emaarco/bpmn-to-code/issues) if you're using them.
+Agent skills are in beta. Skill names and instructions may change in a future release. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you're using them.
 :::
 
 bpmn-to-code ships with reusable skills for AI coding assistants. Skills work with [Claude Code](https://docs.anthropic.com/en/docs/claude-code) out of the box.
@@ -22,7 +22,7 @@ bpmn-to-code ships with reusable skills for AI coding assistants. Skills work wi
 Install as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin:
 
 ```bash
-/plugin marketplace add emaarco/bpmn-to-code
+/plugin marketplace add Miragon/bpmn-to-code
 /plugin install bpmn-to-code@bpmn-to-code
 ```
 
@@ -32,13 +32,13 @@ Install skills using [`npx skills`](https://github.com/vercel-labs/skills):
 
 ```bash
 # Install all skills at once
-npx skills add https://github.com/emaarco/bpmn-to-code
+npx skills add https://github.com/Miragon/bpmn-to-code
 
 # Or pick only what you need
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-gradle
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-maven
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/.claude/skills/migrate-to-bpmn-to-code-apis
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/migrate-bpmn-to-code-v1-to-v2
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-gradle
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-maven
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/migrate-to-bpmn-to-code-apis
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/migrate-bpmn-to-code-v1-to-v2
 ```
 
 ## How Skills Work

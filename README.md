@@ -2,7 +2,7 @@
 > The four pillars — Generate, Validate, Surface, Ship — are taking shape, but expect rough edges.
 > Feedback and contributions are very welcome.
 
-[![Documentation](https://img.shields.io/badge/docs-bpmn--to--code-blue?style=flat-square)](https://emaarco.github.io/bpmn-to-code/)
+[![Documentation](https://img.shields.io/badge/docs-bpmn--to--code-blue?style=flat-square)](https://miragon.github.io/bpmn-to-code/)
 [![Web App](https://img.shields.io/badge/web--app-try%20in%20browser-brightgreen?style=flat-square)](https://bpmn-to-code.miragon.io/static/index.html)
 [![Maven Central](https://img.shields.io/maven-central/v/io.miragon/bpmn-to-code-maven?style=flat-square&label=maven)](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven)
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.miragon.bpmn-to-code-gradle?style=flat-square&label=gradle)](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle)
@@ -72,7 +72,7 @@ The result is a compact, deterministic representation that AI agents can reason 
 Drop-in agent skills that automate the entire setup workflow. Integrate the plugin into your project in one prompt, scaffold a complete process service from a BPMN file, and migrate hardcoded strings to the generated API — without touching any config manually.
 
 ```bash
-/plugin marketplace add emaarco/bpmn-to-code
+/plugin marketplace add Miragon/bpmn-to-code
 /plugin install bpmn-to-code@bpmn-to-code
 ```
 
@@ -161,4 +161,4 @@ dependencies {
 
 ## Contributing
 
-Community contributions are welcome. Submit issues, open pull requests, or start a discussion on [GitHub](https://github.com/emaarco/bpmn-to-code).
+Community contributions are welcome. Submit issues, open pull requests, or start a discussion on [GitHub](https://github.com/Miragon/bpmn-to-code).
