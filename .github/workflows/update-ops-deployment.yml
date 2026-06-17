@@ -1,0 +1,105 @@
+name: Update ops deployment
+
+# Bumps the bpmn-to-code-web image in Miragon/ops after a release has pushed a new
+# image to Docker Hub. Opens a PR against ops/main updating
+# workloads/bpmn-to-code-web/deployment.yaml to the released version.
+#
+# Auth: a token is minted from the release-please GitHub App, scoped to Miragon/ops
+# (the App must be installed on that repo with Contents + Pull requests write).
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (with or without leading 'v', e.g. 3.0.0)"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry run (show diff only, no PR)"
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to deploy (with or without leading 'v')"
+        type: string
+      dry_run:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  OPS_REPO: Miragon/ops
+  IMAGE: miragon/bpmn-to-code-web
+  DEPLOYMENT_FILE: workloads/bpmn-to-code-web/deployment.yaml
+
+jobs:
+  update-ops:
+    name: Bump bpmn-to-code-web deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve version
+        id: resolve-version
+        run: |
+          version="${{ inputs.version }}"
+          version="${version#v}"   # strip leading 'v' (release-please tag is vX.Y.Z)
+          if [ -z "$version" ]; then
+            echo "No version provided — using placeholder (PR creation is disabled)."
+            version="0.0.0-dryrun"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Mint ops-scoped token
+        uses: actions/create-github-app-token@v2
+        id: ops-token
+        with:
+          app-id: ${{ vars.RELEASE_PLEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+          owner: Miragon
+          repositories: ops
+
+      - name: Check out ops repository
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.OPS_REPO }}
+          token: ${{ steps.ops-token.outputs.token }}
+          path: ops
+
+      - name: Update image reference
+        run: |
+          set -euo pipefail
+          file="ops/${DEPLOYMENT_FILE}"
+          target="${IMAGE}:${{ steps.resolve-version.outputs.version }}"
+          # Replace the full image value (registry + tag) so we also repoint emaarco -> miragon.
+          sed -i -E "s#^([[:space:]]*image:[[:space:]]*).*bpmn-to-code-web:.*#\1${target}#" "$file"
+          echo "Resulting image line:"
+          grep -nE "image:.*bpmn-to-code-web" "$file"
+
+      - name: Show diff
+        run: git -C ops --no-pager diff
+
+      - name: Open pull request
+        if: ${{ inputs.dry_run != true }}
+        working-directory: ops
+        env:
+          GH_TOKEN: ${{ steps.ops-token.outputs.token }}
+          VERSION: ${{ steps.resolve-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Deployment already at ${VERSION} — nothing to do."
+            exit 0
+          fi
+          branch="chore/bump-bpmn-to-code-web-${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -am "chore: bump bpmn-to-code-web to ${VERSION}"
+          git push --force origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "chore: bump bpmn-to-code-web to ${VERSION}" \
+            --body "Automated deployment bump triggered by the bpmn-to-code release pipeline.
+
+          Updates \`${DEPLOYMENT_FILE}\` to \`${IMAGE}:${VERSION}\`." \
+            || echo "A pull request for ${branch} already exists — pushed the update to it."
