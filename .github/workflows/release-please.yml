@@ -87,6 +87,18 @@ jobs:
     with:
       dry_run: ${{ inputs.dry_run == true }}
 
+  # After the image is on Docker Hub, bump the deployment in Miragon/ops so the new
+  # version gets rolled out. needs publish-docker so the image exists before ops points at it.
+  update-ops:
+    name: Bump ops deployment
+    needs: [release-please, publish-docker]
+    if: ${{ needs.release-please.outputs.release_created == 'true' || inputs.dry_run == true }}
+    uses: ./.github/workflows/update-ops-deployment.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.release-please.outputs.tag_name }}
+      dry_run: ${{ inputs.dry_run == true }}
+
   deploy-docs:
     name: Deploy Documentation
     needs: gate
