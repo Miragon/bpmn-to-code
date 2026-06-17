@@ -1,6 +1,6 @@
 # 🚀 Gradle Setup
 
-The bpmn-to-code Gradle plugin generates type-safe Process API files from your BPMN models as part of your Gradle build. It's available on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.emaarco.bpmn-to-code-gradle) and takes just a few minutes to set up.
+The bpmn-to-code Gradle plugin generates type-safe Process API files from your BPMN models as part of your Gradle build. It's available on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle) and takes just a few minutes to set up.
 
 ## 1. Apply the plugin
 
@@ -8,13 +8,13 @@ The bpmn-to-code Gradle plugin generates type-safe Process API files from your B
 
 ```kotlin [build.gradle.kts]
 plugins {
-    id("io.github.emaarco.bpmn-to-code-gradle") version "2.0.1"
+    id("io.miragon.bpmn-to-code-gradle") version "3.0.0"
 }
 ```
 
 ```groovy [build.gradle]
 plugins {
-    id 'io.github.emaarco.bpmn-to-code-gradle' version '2.0.1'
+    id 'io.miragon.bpmn-to-code-gradle' version '3.0.0'
 }
 ```
 
@@ -47,9 +47,9 @@ pluginManagement {
 ::: code-group
 
 ```kotlin [build.gradle.kts]
-import io.github.emaarco.bpmn.adapter.GenerateBpmnModelsTask
-import io.github.emaarco.bpmn.domain.shared.OutputLanguage
-import io.github.emaarco.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
+import io.miragon.bpmn.domain.shared.OutputLanguage
+import io.miragon.bpmn.domain.shared.ProcessEngine
 
 tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
     baseDir = projectDir.toString()
@@ -62,9 +62,9 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 ```
 
 ```groovy [build.gradle]
-import io.github.emaarco.bpmn.adapter.GenerateBpmnModelsTask
-import io.github.emaarco.bpmn.domain.shared.OutputLanguage
-import io.github.emaarco.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
+import io.miragon.bpmn.domain.shared.OutputLanguage
+import io.miragon.bpmn.domain.shared.ProcessEngine
 
 tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask) {
     baseDir = projectDir.toString()
@@ -95,8 +95,8 @@ Using [Claude Code](https://docs.anthropic.com/en/docs/claude-code)? The `setup-
 After setup, use the `migrate-to-bpmn-to-code-apis` skill to replace hardcoded BPMN strings across your codebase with references to the generated Process API.
 
 ```bash
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-gradle
-npx skills add https://github.com/emaarco/bpmn-to-code/tree/main/.claude/skills/migrate-to-bpmn-to-code-apis
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-gradle
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/migrate-to-bpmn-to-code-apis
 ```
 
 See [AI Skills](/skills/) for all available skills.

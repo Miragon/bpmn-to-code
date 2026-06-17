@@ -5,7 +5,7 @@ plugins {
     jacoco
 }
 
-group = "io.github.emaarco"
+group = "io.miragon"
 version = property("projectVersion").toString()
 
 repositories {
@@ -41,13 +41,13 @@ mavenPublishing {
 
     publishToMavenCentral()
     if (project.hasProperty("signArtifacts")) signAllPublications()
-    coordinates("io.github.emaarco", "bpmn-to-code-testing", version.toString())
+    coordinates("io.miragon", "bpmn-to-code-testing", version.toString())
 
     pom {
         name.set("bpmn-to-code-testing")
         description.set("Test utilities for validating BPMN process models — like ArchUnit but for BPMN")
         inceptionYear.set("2026")
-        url.set("https://github.com/emaarco/bpmn-to-code")
+        url.set("https://github.com/Miragon/bpmn-to-code")
         licenses {
             license {
                 name.set("MIT License")
@@ -60,12 +60,14 @@ mavenPublishing {
                 id.set("emaarco")
                 name.set("Marco Schaeck")
                 url.set("https://github.com/emaarco")
+                organization.set("Miragon")
+                organizationUrl.set("https://miragon.io")
             }
         }
         scm {
-            url.set("https://github.com/emaarco/bpmn-to-code")
-            connection.set("scm:git:git://github.com/emaarco/bpmn-to-code.git")
-            developerConnection.set("scm:git:ssh://git@github.com/emaarco/bpmn-to-code.git")
+            url.set("https://github.com/Miragon/bpmn-to-code")
+            connection.set("scm:git:git://github.com/Miragon/bpmn-to-code.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Miragon/bpmn-to-code.git")
         }
     }
 }

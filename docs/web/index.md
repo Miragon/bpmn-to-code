@@ -19,13 +19,13 @@ The fastest way to try bpmn-to-code. Visit the live web app, upload your BPMN fi
 For teams that want the web app on their own infrastructure — no data leaves your environment.
 
 ```bash
-docker pull emaarco/bpmn-to-code-web:latest
-docker run -p 8080:8080 emaarco/bpmn-to-code-web:latest
+docker pull miragon/bpmn-to-code-web:latest
+docker run -p 8080:8080 miragon/bpmn-to-code-web:latest
 ```
 
 Then open `http://localhost:8080`.
 
-**Docker Hub:** [emaarco/bpmn-to-code-web](https://hub.docker.com/r/emaarco/bpmn-to-code-web)
+**Docker Hub:** [miragon/bpmn-to-code-web](https://hub.docker.com/r/miragon/bpmn-to-code-web)
 
 ### Environment Variables
 
@@ -41,7 +41,7 @@ Then open `http://localhost:8080`.
 The web app exposes `POST /api/generate` for programmatic access — call it from CI/CD pipelines, scripts, or any HTTP client. This is a valid option for projects that don't use Gradle or Maven.
 
 ::: info
-The REST API works but hasn't seen wide adoption yet. If you run into issues, please [open a GitHub issue](https://github.com/emaarco/bpmn-to-code/issues).
+The REST API works but hasn't seen wide adoption yet. If you run into issues, please [open a GitHub issue](https://github.com/Miragon/bpmn-to-code/issues).
 :::
 
 ### Request

@@ -5,7 +5,7 @@ const version = ref('')
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://api.github.com/repos/emaarco/bpmn-to-code/releases/latest')
+    const res = await fetch('https://api.github.com/repos/Miragon/bpmn-to-code/releases/latest')
     if (res.ok) {
       const data = await res.json()
       version.value = data.tag_name
@@ -17,7 +17,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a v-if="version" class="version-badge" href="https://github.com/emaarco/bpmn-to-code/releases" target="_blank" rel="noopener">
+  <a v-if="version" class="version-badge" href="https://github.com/Miragon/bpmn-to-code/releases" target="_blank" rel="noopener">
     <span class="v-dot"></span>{{ version }}
   </a>
 </template>
