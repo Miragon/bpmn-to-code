@@ -1,0 +1,13 @@
+{
+  "name": "bpmn-to-code-tooling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dev tooling for bpmn-to-code: BPMN linting via bpmnlint.",
+  "scripts": {
+    "lint:bpmn": "bpmnlint \"../shared/bpmn/*.bpmn\" \"../bpmn-to-code-web/src/main/resources/samples/*.bpmn\"",
+    "lint:bpmn:di": "bpmnlint -c .bpmnlintrc-di \"../bpmn-to-code-testing/src/test/resources/bpmn/*.bpmn\""
+  },
+  "devDependencies": {
+    "bpmnlint": "11.12.1"
+  }
+}
