@@ -48,9 +48,8 @@ jobs:
           echo "Total: $(find ../shared/bpmn ../bpmn-to-code-web/src/main/resources/samples -name '*.bpmn' | wc -l | tr -d ' ') model(s)"
           npm run lint:bpmn
 
-      # Step 6: Lint testing-module fixtures with DI-only rules. They are
-      # intentionally semantically invalid in places, so only the
-      # diagram-interchange aspect (shapes present, no overlaps) is enforced.
+      # Step 6: Lint testing-module fixtures with DI-only rules 
+      # (relevant for models with bpmn-to-code-testing scope)
       - name: Lint BPMN testing fixtures (DI only)
         working-directory: tools
         run: |
