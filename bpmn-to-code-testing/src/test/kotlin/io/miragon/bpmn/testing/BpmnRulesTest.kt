@@ -49,4 +49,18 @@ class BpmnRulesTest {
             BpmnRules.COLLISION_DETECTION,
         )
     }
+
+    @Test
+    fun `optional rules are not part of all()`() {
+        assertThat(BpmnRules.all()).doesNotContain(
+            BpmnRules.TIMER_CRON_SYNTAX,
+            BpmnRules.TIMER_ISO8601_SYNTAX,
+        )
+    }
+
+    @Test
+    fun `optional rule constants have the expected ids`() {
+        assertThat(BpmnRules.TIMER_CRON_SYNTAX.id).isEqualTo("timer-cron-syntax")
+        assertThat(BpmnRules.TIMER_ISO8601_SYNTAX.id).isEqualTo("timer-iso8601-syntax")
+    }
 }

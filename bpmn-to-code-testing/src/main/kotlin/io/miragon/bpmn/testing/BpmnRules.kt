@@ -12,6 +12,8 @@ import io.miragon.bpmn.domain.validation.rules.MissingProcessIdRule
 import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
 import io.miragon.bpmn.domain.validation.rules.MissingSignalNameRule
 import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
+import io.miragon.bpmn.domain.validation.rules.TimerCronSyntaxRule
+import io.miragon.bpmn.domain.validation.rules.TimerIso8601SyntaxRule
 
 /**
  * Provides access to all built-in BPMN validation rules.
@@ -99,8 +101,27 @@ object BpmnRules {
     @JvmField
     val COLLISION_DETECTION: BpmnValidationRule = CollisionDetectionRule()
 
+    // --- Optional rules (opt-in) ------------------------------------------------------------------
+    // Not part of [all]. Enable explicitly via BpmnValidator.withRules(...) to enforce a timer-format
+    // convention. Cron and ISO are mutually exclusive for timeCycle timers, so enable one of the two.
+
     /**
-     * Returns all built-in BPMN validation rules.
+     * Opt-in: enforces that `timeCycle` timers use a valid cron expression. Not part of [all].
+     */
+    @JvmField
+    val TIMER_CRON_SYNTAX: BpmnValidationRule = TimerCronSyntaxRule()
+
+    /**
+     * Opt-in: enforces that timer values are valid ISO-8601 for their type
+     * (Date -> date/time, Duration -> duration, Cycle -> repeating interval). Not part of [all].
+     */
+    @JvmField
+    val TIMER_ISO8601_SYNTAX: BpmnValidationRule = TimerIso8601SyntaxRule()
+
+    /**
+     * Returns all built-in BPMN validation rules that are enabled by default.
+     * Opt-in rules such as [TIMER_CRON_SYNTAX] and [TIMER_ISO8601_SYNTAX] are not included — add them
+     * explicitly via [BpmnValidator.withRules].
      */
     @JvmStatic
     fun all(): List<BpmnValidationRule> {
