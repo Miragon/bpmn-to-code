@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "no-bpmndi": "error",
+    "no-overlapping-elements": "error"
+  }
+}

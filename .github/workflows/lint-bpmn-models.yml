@@ -39,7 +39,7 @@ jobs:
         working-directory: tools
         run: npm ci
 
-      # Step 5: Lint BPMN models (fails the build on any error)
+      # Step 5: Lint shipped models with the full rule set (fails on any error)
       - name: Lint BPMN models
         working-directory: tools
         run: |
@@ -47,3 +47,13 @@ jobs:
           find ../shared/bpmn ../bpmn-to-code-web/src/main/resources/samples -name '*.bpmn'
           echo "Total: $(find ../shared/bpmn ../bpmn-to-code-web/src/main/resources/samples -name '*.bpmn' | wc -l | tr -d ' ') model(s)"
           npm run lint:bpmn
+
+      # Step 6: Lint testing-module fixtures with DI-only rules. They are
+      # intentionally semantically invalid in places, so only the
+      # diagram-interchange aspect (shapes present, no overlaps) is enforced.
+      - name: Lint BPMN testing fixtures (DI only)
+        working-directory: tools
+        run: |
+          echo "BPMN testing fixtures under DI check:"
+          find ../bpmn-to-code-testing/src/test/resources/bpmn -name '*.bpmn'
+          npm run lint:bpmn:di
