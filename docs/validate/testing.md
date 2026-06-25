@@ -132,6 +132,26 @@ result.assertNoViolations("invalid-identifier")  // custom: this rule is allowed
 | Element ID produces invalid identifier | `INVALID_IDENTIFIER` | WARN | ID that cannot be converted to valid UPPER_SNAKE_CASE |
 | Variable name collision | `COLLISION_DETECTION` | ERROR | Two different IDs normalize to the same constant name |
 
+## Optional Rules (opt-in)
+
+These rules are **not** part of `BpmnRules.all()` — they are off by default. Enable them explicitly via `withRules(...)` when you want to enforce a timer-format convention. They report as `ERROR` when enabled.
+
+| Rule | `BpmnRules` constant | Severity | Trigger |
+|------|---------------------|----------|---------|
+| Timer cycle is not valid cron | `TIMER_CRON_SYNTAX` | ERROR | A `timeCycle` timer whose value is not a valid cron expression |
+| Timer value is not valid ISO-8601 | `TIMER_ISO8601_SYNTAX` | ERROR | A timer value that is not valid ISO-8601 for its type (Date → date/time, Duration → duration, Cycle → repeating interval) |
+
+```kotlin
+BpmnValidator
+    .fromClasspath("bpmn/")
+    .engine(ProcessEngine.ZEEBE)
+    .withRules(*BpmnRules.all().toTypedArray(), BpmnRules.TIMER_CRON_SYNTAX)
+    .validate()
+    .assertNoViolations()
+```
+
+Cron and ISO-8601 are mutually exclusive for `timeCycle` timers, so enable **one** of the two depending on your scheduling convention. Dynamic timer expressions (Camunda `${...}`, Zeebe FEEL `=...`) are skipped, since their value is only known at runtime.
+
 ## Writing Custom Rules
 
 Implement the `BpmnValidationRule` interface to add project-specific checks:
