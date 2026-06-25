@@ -41,7 +41,7 @@
         <bpmn:outgoing>Flow_3</bpmn:outgoing>
         <bpmn:messageEventDefinition messageRef="Message_2" />
       </bpmn:startEvent>
-      <bpmn:endEvent id="EndEvent_Cancelled">
+      <bpmn:endEvent id="EndEvent_Cancelled" name="Order cancelled">
         <bpmn:incoming>Flow_3</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="Flow_3" sourceRef="StartEvent_OrderCancelled" targetRef="EndEvent_Cancelled" />

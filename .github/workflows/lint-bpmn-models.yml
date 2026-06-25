@@ -1,0 +1,49 @@
+name: Lint BPMN models
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**/*.bpmn'
+      - 'tools/**'
+      - '.github/workflows/lint-bpmn-models.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-bpmn:
+    name: Lint BPMN models
+    runs-on: ubuntu-24.04
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      # Step 2: Fail the build if any npm dependency is not pinned to an exact version
+      - name: Verify Pinned Dependencies
+        uses: miragon/pin-npm-dependencies@v1
+
+      # Step 3: Set up Node.js (npm tooling lives in tools/)
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tools/package-lock.json
+
+      # Step 4: Install dependencies (bpmnlint)
+      - name: Install Dependencies
+        working-directory: tools
+        run: npm ci
+
+      # Step 5: Lint BPMN models (fails the build on any error)
+      - name: Lint BPMN models
+        working-directory: tools
+        run: |
+          echo "BPMN models under test:"
+          find ../shared/bpmn ../bpmn-to-code-web/src/main/resources/samples -name '*.bpmn'
+          echo "Total: $(find ../shared/bpmn ../bpmn-to-code-web/src/main/resources/samples -name '*.bpmn' | wc -l | tr -d ' ') model(s)"
+          npm run lint:bpmn

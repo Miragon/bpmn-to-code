@@ -11,6 +11,7 @@ target
 .claude/logs/
 .claude/scheduled_tasks.lock
 docs/node_modules
+tools/node_modules
 docs/.vitepress/dist
 docs/.vitepress/cache
 .gstack/
