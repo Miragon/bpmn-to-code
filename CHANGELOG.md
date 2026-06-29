@@ -1,8 +1,7 @@
 # Changelog
 
 All notable changes to this project are documented here.
-This file was bootstrapped from git history with [git-cliff](https://git-cliff.org);
-new entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
+New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
 ## [3.0.0](https://github.com/Miragon/bpmn-to-code/compare/v2.3.0...v3.0.0) (2026-06-17)
 
