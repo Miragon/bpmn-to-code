@@ -3,13 +3,41 @@ name: Documentation Build
 on:
   pull_request:
     branches: [ main ]
-    paths:
-      - 'docs/**'
-      - '.github/workflows/build-docs.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect Documentation Changes
+    runs-on: ubuntu-latest
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # Step 2: Check if documentation files changed
+      - name: Check for documentation changes
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
+            'docs/' \
+            '.github/workflows/build-docs.yml')
+          if [ -n "$CHANGED" ]; then
+            echo "docs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build Documentation
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
 
     steps:
