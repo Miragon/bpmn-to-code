@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [3.1.0](https://github.com/Miragon/bpmn-to-code/compare/v3.0.0...v3.1.0) (2026-06-29)
+
+
+### Features
+
+* **testing:** opt-in timer cron & ISO-8601 validation rules ([#6](https://github.com/Miragon/bpmn-to-code/issues/6)) ([c60acfd](https://github.com/Miragon/bpmn-to-code/commit/c60acfddfa246520d84946868a1bf870227d37a3))
+
 ## [3.0.0](https://github.com/Miragon/bpmn-to-code/compare/v2.3.0...v3.0.0) (2026-06-17)
 
 
