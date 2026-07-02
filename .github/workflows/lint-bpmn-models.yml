@@ -20,15 +20,15 @@ jobs:
     steps:
       # Step 1: Checkout code
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       # Step 2: Fail the build if any npm dependency is not pinned to an exact version
       - name: Verify Pinned Dependencies
-        uses: miragon/pin-npm-dependencies@v1
+        uses: miragon/pin-npm-dependencies@58fe24377aef66748a1444ff69ab05e3f938a798 # v1
 
       # Step 3: Set up Node.js (npm tooling lives in tools/)
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '22'
           cache: 'npm'

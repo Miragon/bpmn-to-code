@@ -51,7 +51,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Mint ops-scoped token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: ops-token
         with:
           client-id: ${{ vars.RELEASE_PLEASE_APP_CLIENT_ID }}
@@ -60,7 +60,7 @@ jobs:
           repositories: ops
 
       - name: Check out ops repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           repository: ${{ env.OPS_REPO }}
           token: ${{ steps.ops-token.outputs.token }}
