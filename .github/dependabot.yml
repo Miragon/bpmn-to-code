@@ -37,8 +37,6 @@ updates:
       interval: "monthly"
     labels:
       - "dependencies"
-    assignees:
-      - "emaarco"
     groups:
       github-actions:
         patterns:
