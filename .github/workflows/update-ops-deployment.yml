@@ -98,6 +98,7 @@ jobs:
           git commit -am "chore: bump bpmn-to-code-web to ${VERSION}"
           git push --force origin "$branch"
           gh pr create --base main --head "$branch" \
+            --reviewer emaarco \
             --title "chore: bump bpmn-to-code-web to ${VERSION}" \
             --body "Automated deployment bump triggered by the bpmn-to-code release pipeline.
 
