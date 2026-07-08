@@ -15,6 +15,9 @@ import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 class GenerateProcessApiService(
     private val codeGenerator: GenerateApiCodePort = CodeGenerationAdapter(),
@@ -28,7 +31,13 @@ class GenerateProcessApiService(
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
-        val models = inputFiles.map { bpmnService.extract(it, command.engine) }
+        val executable = inputFiles.map { it to bpmnService.extract(it, command.engine) }
+            .filter { (file, model) ->
+                val keep = model.isExecutable
+                if (!keep) logger.info { "Skipping '${model.processId}' (${file.fileName}): process is marked non-executable" }
+                keep
+            }
+        val models = executable.map { (_, model) -> model }
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(models)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
@@ -36,7 +45,7 @@ class GenerateProcessApiService(
             .flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
             .distinctBy { it.packagePath to it.fileName }
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
-        val filesByProcessId = inputFiles.zip(models)
+        val filesByProcessId = executable
             .groupBy({ (_, model) -> model.processId }, { (file, _) -> file.fileName })
         return mergedModels.map { model ->
             BpmnFileResult(

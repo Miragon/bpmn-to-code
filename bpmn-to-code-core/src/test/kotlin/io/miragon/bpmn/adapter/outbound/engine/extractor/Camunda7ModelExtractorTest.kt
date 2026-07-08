@@ -323,4 +323,25 @@ class Camunda7ModelExtractorTest {
         assertThat(callActivity.propagateAllInputVariables).isNull()
         assertThat(callActivity.propagateAllOutputVariables).isNull()
     }
+
+    @Test
+    fun `extract marks a process with isExecutable false as non-executable`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-non-executable.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+        assertThat(bpmnModel.isExecutable).isFalse()
+    }
+
+    @Test
+    fun `extract marks a process with isExecutable true as executable`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+        assertThat(bpmnModel.isExecutable).isTrue()
+    }
+
+    @Test
+    fun `extract treats an absent isExecutable attribute as executable`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-no-executable-attr.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+        assertThat(bpmnModel.isExecutable).isTrue()
+    }
 }

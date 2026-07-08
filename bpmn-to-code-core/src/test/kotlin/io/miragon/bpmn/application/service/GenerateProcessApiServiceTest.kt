@@ -72,12 +72,92 @@ class GenerateProcessApiServiceTest {
         assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("dummy.bpmn"))))
     }
 
+    @Test
+    fun `generateProcessApi skips a non-executable process`() {
+
+        // given: a single non-executable model
+        val draftResource = BpmnResource(fileName = "draft.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
+        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(draftResource)
+        every { bpmnService.extract(any(), any()) } returns nonExecutableModel
+
+        // when: generateProcessApi is invoked
+        val results = underTest.generateProcessApi(command())
+
+        // then: nothing is generated, written or reported
+        assertThat(results).isEmpty()
+        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify { fileSystemOutput.writeFiles(emptyList(), "outputFolder") }
+    }
+
+    @Test
+    fun `generateProcessApi generates only the executable process when mixed`() {
+
+        // given: one executable and one non-executable model
+        val keepResource = BpmnResource(fileName = "keep.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
+        val draftResource = BpmnResource(fileName = "draft.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
+        val expectedGeneratedFile = GeneratedApiFile(
+            fileName = "NewsletterSubscriptionProcessApi.kt",
+            packagePath = "de.emaarco.example",
+            content = "// generated code",
+            language = OutputLanguage.KOTLIN,
+            processId = "newsletterSubscription",
+        )
+        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(keepResource, draftResource)
+        every { bpmnService.extract(keepResource, any()) } returns dummyModel
+        every { bpmnService.extract(draftResource, any()) } returns nonExecutableModel
+        every { codeGenerator.generateCode(any()) } returns listOf(expectedGeneratedFile)
+
+        // when: generateProcessApi is invoked
+        val results = underTest.generateProcessApi(command())
+
+        // then: only the executable process is generated and reported
+        verify(exactly = 1) { codeGenerator.generateCode(getExpectedModelApi()) }
+        verify { fileSystemOutput.writeFiles(listOf(expectedGeneratedFile), "outputFolder") }
+        assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("keep.bpmn"))))
+    }
+
+    @Test
+    fun `generateProcessApi produces no output when all processes are non-executable`() {
+
+        // given: only non-executable models
+        val draftOne = BpmnResource(fileName = "draft-1.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
+        val draftTwo = BpmnResource(fileName = "draft-2.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
+        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(draftOne, draftTwo)
+        every { bpmnService.extract(any(), any()) } returns nonExecutableModel
+
+        // when: generateProcessApi is invoked
+        val results = underTest.generateProcessApi(command())
+
+        // then: generation completes with no output and no crash
+        assertThat(results).isEmpty()
+        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify { fileSystemOutput.writeFiles(emptyList(), "outputFolder") }
+    }
+
     private val dummyModel = BpmnModel(
         processId = "newsletterSubscription",
         flowNodes = emptyList(),
         messages = emptyList(),
         signals = emptyList(),
         errors = emptyList(),
+    )
+
+    private val nonExecutableModel = BpmnModel(
+        processId = "draftProcess",
+        flowNodes = emptyList(),
+        messages = emptyList(),
+        signals = emptyList(),
+        errors = emptyList(),
+        isExecutable = false,
+    )
+
+    private fun command() = GenerateProcessApiFromFilesystemUseCase.Command(
+        baseDir = "baseDir",
+        filePattern = "*.bpmn",
+        engine = ProcessEngine.ZEEBE,
+        outputFolderPath = "outputFolder",
+        outputLanguage = OutputLanguage.KOTLIN,
+        packagePath = "de.emaarco.example",
     )
 
     private fun getExpectedModelApi() = testBpmnModelApi(

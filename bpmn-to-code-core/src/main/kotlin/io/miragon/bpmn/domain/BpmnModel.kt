@@ -25,6 +25,7 @@ data class BpmnModel(
     override val escalations: List<EscalationDefinition> = emptyList(),
     override val compensations: List<CompensationDefinition> = emptyList(),
     val detectedEngine: ProcessEngine? = null,
+    val isExecutable: Boolean = true,
 ) : ProcessModel {
     override val serviceTasks: List<ServiceTaskDefinition>
         get() = flowNodes.mapNotNull { (it.properties as? FlowNodeProperties.ServiceTask)?.definition }

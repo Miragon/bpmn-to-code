@@ -39,6 +39,12 @@ object ModelInstanceUtils {
         return processId
     }
 
+    fun ModelInstance.isExecutable(): Boolean {
+        val process = this.findProcess()
+        val raw = process.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_IS_EXECUTABLE)
+        return raw?.toBoolean() ?: true
+    }
+
     fun ModelInstance.extractVariantName(): String? {
         val process = this.findProcess()
         val extensions = process.findExtensionElements()

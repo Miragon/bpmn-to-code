@@ -257,4 +257,18 @@ class OperatonModelExtractorTest {
         )
     }
 
+    @Test
+    fun `extract marks a process with isExecutable false as non-executable`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/operaton-non-executable.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+        assertThat(bpmnModel.isExecutable).isFalse()
+    }
+
+    @Test
+    fun `extract marks a process with isExecutable true as executable`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/operaton-subscribe-newsletter.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+        assertThat(bpmnModel.isExecutable).isTrue()
+    }
+
 }
