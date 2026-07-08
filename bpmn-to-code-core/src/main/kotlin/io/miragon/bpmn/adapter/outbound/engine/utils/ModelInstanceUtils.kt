@@ -30,6 +30,7 @@ import org.camunda.bpm.model.xml.ModelInstance
  * Utility functions for extracting BPMN elements that are common across process engines.
  * Use this only if you have a method that can be used by multiple extractors.
  */
+@Suppress("TooManyFunctions")
 object ModelInstanceUtils {
 
     fun ModelInstance.getProcessId(): String {
@@ -37,6 +38,12 @@ object ModelInstanceUtils {
         val processId = process.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_ID)
         requireNotNull(processId) { "Process element is missing an 'id' attribute" }
         return processId
+    }
+
+    fun ModelInstance.isExecutable(): Boolean {
+        val process = this.findProcess()
+        val raw = process.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_IS_EXECUTABLE)
+        return raw?.toBoolean() ?: true
     }
 
     fun ModelInstance.extractVariantName(): String? {

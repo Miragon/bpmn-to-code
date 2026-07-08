@@ -17,6 +17,7 @@ import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findSign
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findTimerEventDefinition
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.extractVariantName
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.getProcessId
+import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.isExecutable
 import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.CallActivityMapping
@@ -70,6 +71,7 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             escalations = allEscalationEvents,
             compensations = allCompensationEvents,
             detectedEngine = EngineDetector.detect(bytes.decodeToString()),
+            isExecutable = modelInstance.isExecutable(),
         )
     }
 

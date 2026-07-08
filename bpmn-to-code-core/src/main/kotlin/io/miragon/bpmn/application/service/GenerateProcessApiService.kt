@@ -10,11 +10,14 @@ import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.application.port.outbound.SaveProcessApiPort
+import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.BpmnModelApi
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class GenerateProcessApiService(
     private val codeGenerator: GenerateApiCodePort = CodeGenerationAdapter(),
@@ -23,12 +26,15 @@ class GenerateProcessApiService(
     private val fileSystemOutput: SaveProcessApiPort = ProcessApiFileSaver(),
 ) : GenerateProcessApiFromFilesystemUseCase {
 
+    private val logger = KotlinLogging.logger {}
     private val modelMergerService = ModelMergerService()
 
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
-        val models = inputFiles.map { bpmnService.extract(it, command.engine) }
+        val extractedModels = inputFiles.map { it to bpmnService.extract(it, command.engine) }
+        val executableModels = filterExecutableProcesses(extractedModels)
+        val models = executableModels.map { (_, model) -> model }
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(models)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
@@ -36,13 +42,23 @@ class GenerateProcessApiService(
             .flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
             .distinctBy { it.packagePath to it.fileName }
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
-        val filesByProcessId = inputFiles.zip(models)
+        val filesByProcessId = executableModels
             .groupBy({ (_, model) -> model.processId }, { (file, _) -> file.fileName })
         return mergedModels.map { model ->
             BpmnFileResult(
                 processId = model.processId,
                 sourceFiles = filesByProcessId[model.processId] ?: emptyList(),
             )
+        }
+    }
+
+    private fun filterExecutableProcesses(
+        extractedModels: List<Pair<BpmnResource, BpmnModel>>,
+    ): List<Pair<BpmnResource, BpmnModel>> {
+        return extractedModels.filter { (file, model) ->
+            val keep = model.isExecutable
+            if (!keep) logger.info { "Skipping '${model.processId}' (${file.fileName}): process is marked non-executable" }
+            keep
         }
     }
 

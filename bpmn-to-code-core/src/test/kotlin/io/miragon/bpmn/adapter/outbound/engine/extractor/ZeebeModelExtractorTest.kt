@@ -257,4 +257,18 @@ class ZeebeModelExtractorTest {
         assertThat(bpmnModel.detectedEngine).isEqualTo(ProcessEngine.CAMUNDA_7)
     }
 
+    @Test
+    fun `extract marks a process with isExecutable false as non-executable`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c8-non-executable.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+        assertThat(bpmnModel.isExecutable).isFalse()
+    }
+
+    @Test
+    fun `extract marks a process with isExecutable true as executable`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+        assertThat(bpmnModel.isExecutable).isTrue()
+    }
+
 }
