@@ -3,6 +3,18 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [3.2.0](https://github.com/Miragon/bpmn-to-code/compare/v3.1.0...v3.2.0) (2026-07-08)
+
+
+### Features
+
+* **core:** skip non-executable BPMN processes ([#15](https://github.com/Miragon/bpmn-to-code/issues/15)) ([3fb6026](https://github.com/Miragon/bpmn-to-code/commit/3fb60267bd0f25a2a33c474a630221eb3692ab02))
+
+
+### Bug Fixes
+
+* **ci:** bump create-github-app-token to v3 and SHA-pin all actions ([#11](https://github.com/Miragon/bpmn-to-code/issues/11)) ([713d281](https://github.com/Miragon/bpmn-to-code/commit/713d281546fbc6072d584475bb73f7951dd4dda5))
+
 ## [3.1.0](https://github.com/Miragon/bpmn-to-code/compare/v3.0.0...v3.1.0) (2026-06-29)
 
 
