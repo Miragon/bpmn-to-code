@@ -1,0 +1,23 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+setup = "npm --prefix docs ci"
+archive = "./gradlew --stop"
+run_mode = "nonconcurrent"
+
+[scripts.run.web]
+command = "./gradlew :bpmn-to-code-web:run"
+default = true
+icon = "globe"
+
+[scripts.run.docs]
+command = "npm --prefix docs run dev"
+icon = "book-open"
+
+[scripts.run.test]
+command = "./gradlew test"
+icon = "test-tube"
+
+[scripts.run.build]
+command = "./gradlew build"
+icon = "hammer"
