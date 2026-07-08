@@ -30,6 +30,7 @@ import org.camunda.bpm.model.xml.ModelInstance
  * Utility functions for extracting BPMN elements that are common across process engines.
  * Use this only if you have a method that can be used by multiple extractors.
  */
+@Suppress("TooManyFunctions")
 object ModelInstanceUtils {
 
     fun ModelInstance.getProcessId(): String {
