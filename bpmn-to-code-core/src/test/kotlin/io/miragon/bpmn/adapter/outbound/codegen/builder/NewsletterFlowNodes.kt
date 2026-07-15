@@ -46,7 +46,10 @@ internal fun buildSubscribeNewsletterFlowNodes(
         id = "Activity_SendWelcomeMail",
         elementType = BpmnElementType.SERVICE_TASK,
         properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_SendWelcomeMail", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to welcomeMailImpl))),
-        variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT)),
+        variables = listOf(
+            VariableDefinition("subscriptionId", VariableDirection.INPUT),
+            VariableDefinition("subscriptionId", VariableDirection.OUTPUT),
+        ),
         previousElements = listOf("SubProcess_Confirmation"),
         followingElements = listOf("EndEvent_RegistrationCompleted"),
     ),

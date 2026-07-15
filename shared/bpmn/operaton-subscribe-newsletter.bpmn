@@ -81,6 +81,7 @@
       <bpmn:extensionElements>
         <operaton:inputOutput>
           <operaton:inputParameter name="subscriptionId">${subscriptionId}</operaton:inputParameter>
+          <operaton:outputParameter name="subscriptionId">${subscriptionId}</operaton:outputParameter>
         </operaton:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_09cuvzp</bpmn:incoming>

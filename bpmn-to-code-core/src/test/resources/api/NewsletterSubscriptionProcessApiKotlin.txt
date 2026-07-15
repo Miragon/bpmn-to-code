@@ -133,7 +133,7 @@ object NewsletterSubscriptionProcessApi {
     }
 
     object ActivitySendWelcomeMail {
-      val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId")
+      val SUBSCRIPTION_ID: VariableName.InOut = VariableName.InOut("subscriptionId")
     }
 
     object CallActivityAbortRegistration {

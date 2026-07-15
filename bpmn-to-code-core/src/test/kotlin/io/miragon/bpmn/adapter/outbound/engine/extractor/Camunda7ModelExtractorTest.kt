@@ -82,7 +82,10 @@ class Camunda7ModelExtractorTest {
                     FlowNodeDefinition("Activity_SendWelcomeMail", BpmnElementType.SERVICE_TASK,
                         displayName = "Send Welcome-Mail",
                         properties = FlowNodeProperties.ServiceTask(c7ServiceTaskById["Activity_SendWelcomeMail"]!!),
-                        variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "\${subscriptionId}")),
+                        variables = listOf(
+                            VariableDefinition("subscriptionId", VariableDirection.INPUT, "\${subscriptionId}"),
+                            VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "\${subscriptionId}"),
+                        ),
                         previousElements = listOf("SubProcess_Confirmation"),
                         followingElements = listOf("EndEvent_RegistrationCompleted"),
                         engineSpecificProperties = mapOf(ASYNC_BEFORE_KEY to true, ASYNC_AFTER_KEY to true, EXCLUSIVE_KEY to false)),
