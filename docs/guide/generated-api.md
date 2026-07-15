@@ -11,7 +11,7 @@ The generated Process API is an `object` (Kotlin) or `class` (Java) with nested 
 | `PROCESS_ID` | The process identifier from the BPMN model |
 | `PROCESS_ENGINE` | The engine the API was generated for, as a typed `BpmnEngine` enum (`ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
 | `Elements` | All flow node IDs (tasks, events, gateways, subprocesses) |
-| `CallActivities` | Called process IDs for call activity elements |
+| `CallActivities` | Per call activity: the called `PROCESS_ID` plus `Inputs` / `Outputs` variable mappings (`InputOutputMapping`) |
 | `Messages` | Message names from message events and receive tasks |
 | `ServiceTasks` | Worker types / topics / delegate expressions from service tasks |
 | `Timers` | Timer configurations with type and value (`BpmnTimer`) |
@@ -41,6 +41,8 @@ import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnFlow
 import io.miragon.bpmn.runtime.BpmnRelations
 import io.miragon.bpmn.runtime.BpmnTimer
+import io.miragon.bpmn.runtime.InputOutputMapping
+import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.VariableName
 
 object NewsletterSubscriptionProcessApi {
@@ -61,7 +63,17 @@ object NewsletterSubscriptionProcessApi {
   }
 
   object CallActivities {
-    const val CALL_ACTIVITY_ABORT_REGISTRATION: String = "abort-registration"
+    object CallActivityAbortRegistration {
+      val PROCESS_ID: ProcessId = ProcessId("abort-registration")
+
+      object Inputs {
+        val CHILD_SUBSCRIPTION_ID: InputOutputMapping = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
+      }
+
+      object Outputs {
+        val ABORT_RESULT: InputOutputMapping = InputOutputMapping(target = "abortResult", source = "childAbortResult")
+      }
+    }
   }
 
   object Messages {
@@ -210,6 +222,46 @@ object Variables {
 ```
 
 A sub-object is only emitted when it contains at least one variable — one-sided splits (`Inputs` only or `Outputs` only) are legal. An element without any directional variables is omitted from `Variables` entirely.
+
+## Call-Activity Variable Mappings
+
+Call activities map variables between the parent process and the called child process. Unlike the plain `Variables` section — which only carries the parent-scope variable name — `CallActivities` exposes the **full mapping**: the `target` (the name the variable gets in the receiving scope) together with its `source` / `sourceExpression` (the origin). Each call activity becomes a nested object holding the called `PROCESS_ID` plus `Inputs` (variables passed **into** the child) and `Outputs` (variables returned **to** the parent):
+
+```kotlin
+object CallActivities {
+    object CallActivityAbortRegistration {
+        val PROCESS_ID: ProcessId = ProcessId("abort-registration")
+
+        object Inputs {
+            val CHILD_SUBSCRIPTION_ID: InputOutputMapping = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
+            val CHILD_REASON_CODE: InputOutputMapping = InputOutputMapping(target = "childReasonCode", sourceExpression = "\${reasonCode}")
+        }
+
+        object Outputs {
+            val ABORT_RESULT: InputOutputMapping = InputOutputMapping(target = "abortResult", source = "childAbortResult")
+        }
+    }
+}
+```
+
+Each mapping is an `InputOutputMapping`; constant names are derived from the `target`. `Inputs` / `Outputs` are only emitted when non-empty.
+
+```kotlin
+data class InputOutputMapping(
+    val target: String,            // destination variable name (always present)
+    val source: String? = null,    // origin variable (plain name, or a FEEL expression on Zeebe)
+    val sourceExpression: String? = null, // origin expression — Camunda 7 / Operaton only
+)
+```
+
+::: tip Engine differences
+The `target` is populated the same way for every engine. The origin differs:
+
+- **Camunda 7 / Operaton** (`camunda:in` / `camunda:out`): `source` holds a plain variable name, `sourceExpression` a `${...}` expression.
+- **Zeebe** (`zeebe:input` / `zeebe:output`): `source` holds a FEEL expression (e.g. `=orderId`) and `sourceExpression` is always `null`.
+
+The "pass all variables" mode (`variables="all"` / `propagateAll{Parent,Child}Variables`) is not surfaced as constants.
+:::
 
 ## Variable Extraction
 

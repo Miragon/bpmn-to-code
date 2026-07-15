@@ -15,11 +15,14 @@ import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.MergedBpmnModel
 import io.miragon.bpmn.domain.MergedBpmnModel.VariantData
 import io.miragon.bpmn.domain.shared.ApiObjectType
+import io.miragon.bpmn.domain.shared.CallActivityDefinition
+import io.miragon.bpmn.domain.shared.CallActivityMapping
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableMapping
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
+import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
 /**
  * Generates the type-safe API contract for a single BPMN process as a Kotlin object file.
@@ -248,12 +251,49 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
         override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.callActivities.isNotEmpty()
 
         override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val processIdClass = ClassName(RUNTIME_PACKAGE, "ProcessId")
             val callActivitiesBuilder = TypeSpec.objectBuilder("CallActivities")
-            modelApi.model.callActivities.forEach { callActivity ->
-                callActivitiesBuilder.addProperty(createTypedAttribute(callActivity, processIdClass))
-            }
+                .addKdoc(
+                    "Call activities grouped by element. Each nested object exposes the called `PROCESS_ID` plus " +
+                        "the variable mappings passed into (`Inputs`) and returned from (`Outputs`) the called process.\n"
+                )
+            modelApi.model.callActivities
+                .sortedBy { it.getRawName() }
+                .forEach { callActivity -> callActivitiesBuilder.addType(buildCallActivityObject(callActivity)) }
             builder.addType(callActivitiesBuilder.build())
+        }
+
+        private fun buildCallActivityObject(callActivity: CallActivityDefinition): TypeSpec {
+            val processIdClass = ClassName(RUNTIME_PACKAGE, "ProcessId")
+            val objectBuilder = TypeSpec.objectBuilder(callActivity.getRawName().toCamelCase())
+            objectBuilder.addProperty(
+                PropertySpec.builder("PROCESS_ID", processIdClass)
+                    .initializer("%T(%L)", processIdClass, stringLiteral(callActivity.getValue()))
+                    .build()
+            )
+            buildMappingsObject("Inputs", callActivity.inputMappings)?.let { objectBuilder.addType(it) }
+            buildMappingsObject("Outputs", callActivity.outputMappings)?.let { objectBuilder.addType(it) }
+            return objectBuilder.build()
+        }
+
+        private fun buildMappingsObject(objectName: String, mappings: List<CallActivityMapping>): TypeSpec? {
+            val withTarget = mappings
+                .filter { !it.target.isNullOrBlank() }
+                .sortedBy { it.target!!.toUpperSnakeCase() }
+            if (withTarget.isEmpty()) return null
+            val mappingClass = ClassName(RUNTIME_PACKAGE, "InputOutputMapping")
+            val mappingsBuilder = TypeSpec.objectBuilder(objectName)
+            withTarget.forEach { mapping -> mappingsBuilder.addProperty(buildMappingProperty(mapping, mappingClass)) }
+            return mappingsBuilder.build()
+        }
+
+        private fun buildMappingProperty(mapping: CallActivityMapping, mappingClass: ClassName): PropertySpec {
+            val target = mapping.target!!
+            val args = CodeBlock.builder().add("target = %L", stringLiteral(target))
+            if (mapping.source != null) args.add(", source = %L", stringLiteral(mapping.source))
+            if (mapping.sourceExpression != null) args.add(", sourceExpression = %L", stringLiteral(mapping.sourceExpression))
+            return PropertySpec.builder(target.toUpperSnakeCase(), mappingClass)
+                .initializer("%T(%L)", mappingClass, args.build())
+                .build()
         }
     }
 

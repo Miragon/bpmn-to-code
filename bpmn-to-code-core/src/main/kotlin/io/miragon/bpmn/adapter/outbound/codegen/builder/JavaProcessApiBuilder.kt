@@ -13,11 +13,14 @@ import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.MergedBpmnModel
 import io.miragon.bpmn.domain.MergedBpmnModel.VariantData
 import io.miragon.bpmn.domain.shared.ApiObjectType
+import io.miragon.bpmn.domain.shared.CallActivityDefinition
+import io.miragon.bpmn.domain.shared.CallActivityMapping
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableMapping
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
+import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
@@ -255,12 +258,55 @@ class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<Ty
         override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.callActivities.isNotEmpty()
 
         override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
             val callActivitiesBuilder = TypeSpec.classBuilder("CallActivities").addModifiers(PUBLIC, STATIC, FINAL)
-            modelApi.model.callActivities.forEach { callActivity ->
-                callActivitiesBuilder.addField(createTypedAttribute(callActivity, processIdClass))
-            }
+                .addJavadoc(
+                    "Call activities grouped by element. Each nested class exposes the called {@code PROCESS_ID} plus " +
+                        "the variable mappings passed into ({@code Inputs}) and returned from ({@code Outputs}) the called process.\n"
+                )
+            modelApi.model.callActivities
+                .sortedBy { it.getRawName() }
+                .forEach { callActivity -> callActivitiesBuilder.addType(buildCallActivityClass(callActivity)) }
             builder.addType(callActivitiesBuilder.build())
+        }
+
+        private fun buildCallActivityClass(callActivity: CallActivityDefinition): TypeSpec {
+            val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
+            val classBuilder = TypeSpec.classBuilder(callActivity.getRawName().toCamelCase()).addModifiers(PUBLIC, STATIC, FINAL)
+            classBuilder.addField(
+                FieldSpec.builder(processIdClass, "PROCESS_ID").addModifiers(PUBLIC, STATIC, FINAL)
+                    .initializer("new \$T(\$S)", processIdClass, callActivity.getValue())
+                    .build()
+            )
+            buildMappingsClass("Inputs", callActivity.inputMappings)?.let { classBuilder.addType(it) }
+            buildMappingsClass("Outputs", callActivity.outputMappings)?.let { classBuilder.addType(it) }
+            return classBuilder.build()
+        }
+
+        private fun buildMappingsClass(className: String, mappings: List<CallActivityMapping>): TypeSpec? {
+            val withTarget = mappings
+                .filter { !it.target.isNullOrBlank() }
+                .sortedBy { it.target!!.toUpperSnakeCase() }
+            if (withTarget.isEmpty()) return null
+            val mappingClass = ClassName.get(RUNTIME_PACKAGE, "InputOutputMapping")
+            val mappingsBuilder = TypeSpec.classBuilder(className).addModifiers(PUBLIC, STATIC, FINAL)
+            withTarget.forEach { mapping -> mappingsBuilder.addField(buildMappingField(mapping, mappingClass)) }
+            return mappingsBuilder.build()
+        }
+
+        private fun buildMappingField(mapping: CallActivityMapping, mappingClass: ClassName): FieldSpec {
+            val target = mapping.target!!
+            val sourceBlock = if (mapping.source != null) CodeBlock.of("\$S", mapping.source) else CodeBlock.of("null")
+            val sourceExpressionBlock = if (mapping.sourceExpression != null) CodeBlock.of("\$S", mapping.sourceExpression) else CodeBlock.of("null")
+            val initializer = CodeBlock.builder()
+                .add("new \$T(\$S, ", mappingClass, target)
+                .add(sourceBlock)
+                .add(", ")
+                .add(sourceExpressionBlock)
+                .add(")")
+                .build()
+            return FieldSpec.builder(mappingClass, target.toUpperSnakeCase()).addModifiers(PUBLIC, STATIC, FINAL)
+                .initializer(initializer)
+                .build()
         }
     }
 

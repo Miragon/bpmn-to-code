@@ -79,4 +79,25 @@ class RuntimeTypesTest {
         assertThat(BpmnError("NotFound", "E_404").code).isEqualTo("E_404")
         assertThat(BpmnEscalation("OutOfHours", "E_HRS").name).isEqualTo("OutOfHours")
     }
+
+    @Test
+    fun `InputOutputMapping keeps target plus source or sourceExpression`() {
+        val plain = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
+        val expression = InputOutputMapping(target = "childReasonCode", sourceExpression = "\${reasonCode}")
+
+        assertThat(plain.target).isEqualTo("childSubscriptionId")
+        assertThat(plain.source).isEqualTo("subscriptionId")
+        assertThat(plain.sourceExpression).isNull()
+
+        assertThat(expression.sourceExpression).isEqualTo("\${reasonCode}")
+        assertThat(expression.source).isNull()
+    }
+
+    @Test
+    fun `InputOutputMapping defaults source and sourceExpression to null and exposes target via toString`() {
+        val mapping = InputOutputMapping(target = "abortResult")
+        assertThat(mapping.source).isNull()
+        assertThat(mapping.sourceExpression).isNull()
+        assertThat(mapping.toString()).isEqualTo("abortResult")
+    }
 }

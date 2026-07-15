@@ -248,6 +248,10 @@ For a rule that should behave the same across engines, test `!= true` to mean "d
 variables" (this treats Camunda's "not declared" and Zeebe's explicit `false` alike).
 :::
 
+::: tip Also available in the generated API
+The same mappings are surfaced in the [generated Process API](/guide/generated-api#call-activity-variable-mappings) under `CallActivities.<CallActivity>.Inputs` / `.Outputs` as `InputOutputMapping` constants, so production code can reference them type-safely too — not just validation rules.
+:::
+
 ::: tip ValidationContext
 `context.model` gives you the full `BpmnModel` — flow nodes, service tasks, call activities, messages, signals, errors, timers, and variables. `context.engine` tells you which engine was selected, so you can write engine-specific rules.
 :::
