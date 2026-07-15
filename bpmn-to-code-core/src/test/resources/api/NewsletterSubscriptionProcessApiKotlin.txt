@@ -9,6 +9,7 @@ import io.miragon.bpmn.runtime.BpmnFlow
 import io.miragon.bpmn.runtime.BpmnRelations
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.InputOutputMapping
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.SignalName
@@ -72,8 +73,26 @@ object NewsletterSubscriptionProcessApi {
     val TIMER_EVERY_DAY: ElementId = ElementId("Timer_EveryDay")
   }
 
+  /**
+   * Call activities grouped by element. Each nested object exposes the called `PROCESS_ID` plus the variable mappings passed into (`Inputs`) and returned from (`Outputs`) the called process.
+   */
   object CallActivities {
-    val CALL_ACTIVITY_ABORT_REGISTRATION: ProcessId = ProcessId("abort-registration")
+    object CallActivityAbortRegistration {
+      val PROCESS_ID: ProcessId = ProcessId("abort-registration")
+
+      object Inputs {
+        val CHILD_REASON_CODE: InputOutputMapping =
+            InputOutputMapping(target = "childReasonCode", sourceExpression = $$"""${reasonCode}""")
+
+        val CHILD_SUBSCRIPTION_ID: InputOutputMapping =
+            InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
+      }
+
+      object Outputs {
+        val ABORT_RESULT: InputOutputMapping =
+            InputOutputMapping(target = "abortResult", source = "childAbortResult")
+      }
+    }
   }
 
   /**

@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder
 
 import io.miragon.bpmn.domain.shared.BpmnElementType
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
+import io.miragon.bpmn.domain.shared.CallActivityMapping
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
@@ -19,7 +20,17 @@ internal fun buildSubscribeNewsletterFlowNodes(
     FlowNodeDefinition(
         id = "CallActivity_AbortRegistration",
         elementType = BpmnElementType.CALL_ACTIVITY,
-        properties = FlowNodeProperties.CallActivity(CallActivityDefinition("CallActivity_AbortRegistration", "abort-registration")),
+        properties = FlowNodeProperties.CallActivity(
+            CallActivityDefinition(
+                id = "CallActivity_AbortRegistration",
+                calledElement = "abort-registration",
+                mappings = listOf(
+                    CallActivityMapping(direction = VariableDirection.INPUT, source = "subscriptionId", target = "childSubscriptionId"),
+                    CallActivityMapping(direction = VariableDirection.INPUT, sourceExpression = "\${reasonCode}", target = "childReasonCode"),
+                    CallActivityMapping(direction = VariableDirection.OUTPUT, source = "childAbortResult", target = "abortResult"),
+                ),
+            ),
+        ),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT)),
         previousElements = listOf("Timer_After3Days"),
         followingElements = listOf("CompensationEndEvent_RegistrationAborted"),
