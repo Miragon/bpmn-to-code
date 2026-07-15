@@ -18,6 +18,7 @@
         <zeebe:taskDefinition type="newsletter.sendWelcomeMail" />
         <zeebe:ioMapping>
           <zeebe:input source="=subscriptionId" target="subscriptionId" />
+          <zeebe:output source="=subscriptionId" target="subscriptionId" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_09cuvzp</bpmn:incoming>

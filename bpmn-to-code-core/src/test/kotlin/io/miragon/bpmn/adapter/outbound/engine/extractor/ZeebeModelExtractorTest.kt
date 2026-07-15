@@ -78,7 +78,10 @@ class ZeebeModelExtractorTest {
                     FlowNodeDefinition("Activity_SendWelcomeMail", BpmnElementType.SERVICE_TASK,
                         displayName = "Send Welcome-Mail",
                         properties = FlowNodeProperties.ServiceTask(zeebeServiceTasks[1]),
-                        variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "=subscriptionId")),
+                        variables = listOf(
+                            VariableDefinition("subscriptionId", VariableDirection.INPUT, "=subscriptionId"),
+                            VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "=subscriptionId"),
+                        ),
                         previousElements = listOf("SubProcess_Confirmation"),
                         followingElements = listOf("EndEvent_RegistrationCompleted")),
                     FlowNodeDefinition("CompensationEndEvent_RegistrationAborted", BpmnElementType.END_EVENT,

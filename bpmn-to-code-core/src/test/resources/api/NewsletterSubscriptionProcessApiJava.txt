@@ -118,7 +118,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class ActivitySendWelcomeMail {
-      public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
+      public static final VariableName.InOut SUBSCRIPTION_ID = new VariableName.InOut("subscriptionId");
     }
 
     public static final class CallActivityAbortRegistration {
