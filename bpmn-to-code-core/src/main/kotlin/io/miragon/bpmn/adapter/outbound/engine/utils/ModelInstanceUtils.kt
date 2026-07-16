@@ -2,23 +2,30 @@ package io.miragon.bpmn.adapter.outbound.engine.utils
 
 import io.miragon.bpmn.adapter.outbound.engine.constants.BpmnExtensionConstants
 import io.miragon.bpmn.adapter.outbound.engine.utils.BaseElementUtils.findExtensionElements
-import io.miragon.bpmn.domain.shared.BpmnElementType
+import io.miragon.bpmn.domain.shared.BpmnNodeType
 import io.miragon.bpmn.domain.shared.CompensationDefinition
 import io.miragon.bpmn.domain.shared.CompensationType
 import io.miragon.bpmn.domain.shared.ErrorDefinition
 import io.miragon.bpmn.domain.shared.EscalationDefinition
+import io.miragon.bpmn.domain.shared.EventDefinitionType
+import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.SignalDefinition
+import io.miragon.bpmn.domain.shared.SubProcessKind
+import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.TimerDefinition
 import org.camunda.bpm.model.bpmn.impl.BpmnModelConstants
 import org.camunda.bpm.model.bpmn.instance.BoundaryEvent
 import org.camunda.bpm.model.bpmn.instance.CompensateEventDefinition
 import org.camunda.bpm.model.bpmn.instance.ErrorEventDefinition
 import org.camunda.bpm.model.bpmn.instance.EscalationEventDefinition
+import org.camunda.bpm.model.bpmn.instance.EventDefinition
 import org.camunda.bpm.model.bpmn.instance.ExclusiveGateway
 import org.camunda.bpm.model.bpmn.instance.FlowNode
 import org.camunda.bpm.model.bpmn.instance.InclusiveGateway
+import org.camunda.bpm.model.bpmn.instance.MessageEventDefinition
 import org.camunda.bpm.model.bpmn.instance.Process
 import org.camunda.bpm.model.bpmn.instance.SequenceFlow
 import org.camunda.bpm.model.bpmn.instance.SignalEventDefinition
@@ -68,7 +75,7 @@ object ModelInstanceUtils {
         return flowNodes.map {
             val id = it.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_ID)
             val name = it.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_NAME)?.normalizeWhitespace()
-            val elementType = it.resolveElementType()
+            val nodeType = it.resolveNodeType()
             val attachedToRef = if (it is BoundaryEvent) it.attachedTo?.id else null
             val parentId = (it.parentElement as? SubProcess)?.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_ID)
             val previousElements = it.incoming.mapNotNull { flow -> flow.source?.id }
@@ -76,7 +83,7 @@ object ModelInstanceUtils {
             FlowNodeDefinition(
                 id = id,
                 displayName = name,
-                elementType = elementType,
+                nodeType = nodeType,
                 attachedToRef = attachedToRef,
                 parentId = parentId,
                 previousElements = previousElements,
@@ -175,12 +182,63 @@ object ModelInstanceUtils {
 
     private fun String.normalizeWhitespace(): String = this.replace(Regex("\\s+"), " ").trim()
 
-    private fun FlowNode.resolveElementType(): BpmnElementType {
+    private val nonEventNodeTypes: Map<String, BpmnNodeType> = mapOf(
+        "serviceTask" to BpmnNodeType.Activity.Task(TaskKind.SERVICE),
+        "userTask" to BpmnNodeType.Activity.Task(TaskKind.USER),
+        "receiveTask" to BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
+        "sendTask" to BpmnNodeType.Activity.Task(TaskKind.SEND),
+        "scriptTask" to BpmnNodeType.Activity.Task(TaskKind.SCRIPT),
+        "manualTask" to BpmnNodeType.Activity.Task(TaskKind.MANUAL),
+        "businessRuleTask" to BpmnNodeType.Activity.Task(TaskKind.BUSINESS_RULE),
+        "task" to BpmnNodeType.Activity.Task(TaskKind.NONE),
+        "exclusiveGateway" to BpmnNodeType.Gateway(GatewayKind.EXCLUSIVE),
+        "parallelGateway" to BpmnNodeType.Gateway(GatewayKind.PARALLEL),
+        "inclusiveGateway" to BpmnNodeType.Gateway(GatewayKind.INCLUSIVE),
+        "eventBasedGateway" to BpmnNodeType.Gateway(GatewayKind.EVENT_BASED),
+        "complexGateway" to BpmnNodeType.Gateway(GatewayKind.COMPLEX),
+        "subProcess" to BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),
+        "callActivity" to BpmnNodeType.Activity.CallActivity,
+        "transaction" to BpmnNodeType.Activity.SubProcess(SubProcessKind.TRANSACTION),
+    )
+
+    private fun FlowNode.resolveNodeType(): BpmnNodeType {
+        val eventShape = resolveEventShape()
         return if (this is SubProcess && this.triggeredByEvent()) {
-            BpmnElementType.EVENT_SUB_PROCESS
+            BpmnNodeType.Activity.SubProcess(SubProcessKind.EVENT)
+        } else if (eventShape != null) {
+            BpmnNodeType.Event(eventShape, resolveEventDefinitionType())
         } else {
-            BpmnElementType.fromTypeName(this.elementType.typeName)
+            nonEventNodeTypes[this.elementType.typeName] ?: BpmnNodeType.Unknown
         }
+    }
+
+    private fun FlowNode.resolveEventShape(): EventShape? = when (this.elementType.typeName) {
+        "startEvent" -> EventShape.START_EVENT
+        "endEvent" -> EventShape.END_EVENT
+        "intermediateCatchEvent" -> EventShape.INTERMEDIATE_CATCH_EVENT
+        "intermediateThrowEvent" -> EventShape.INTERMEDIATE_THROW_EVENT
+        "boundaryEvent" -> EventShape.BOUNDARY_EVENT
+        else -> null
+    }
+
+    /**
+     * Resolves the event's definition kind from its child `<…EventDefinition>` element. Catch events
+     * (start/intermediate-catch/boundary) are *triggered* by it; throw events (intermediate-throw/end)
+     * describe a *result* with it. Non-events simply have no such child and resolve to NONE.
+     */
+    private fun FlowNode.resolveEventDefinitionType(): EventDefinitionType {
+        return getChildElementsByType(EventDefinition::class.java)
+            .firstNotNullOfOrNull { it.toEventDefinitionType() } ?: EventDefinitionType.NONE
+    }
+
+    private fun EventDefinition.toEventDefinitionType(): EventDefinitionType? = when (this) {
+        is TimerEventDefinition -> EventDefinitionType.TIMER
+        is MessageEventDefinition -> EventDefinitionType.MESSAGE
+        is ErrorEventDefinition -> EventDefinitionType.ERROR
+        is SignalEventDefinition -> EventDefinitionType.SIGNAL
+        is EscalationEventDefinition -> EventDefinitionType.ESCALATION
+        is CompensateEventDefinition -> EventDefinitionType.COMPENSATION
+        else -> null
     }
 
 }

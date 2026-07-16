@@ -1,6 +1,9 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
-import io.miragon.bpmn.domain.shared.BpmnElementType
+import io.miragon.bpmn.domain.shared.SubProcessKind
+import io.miragon.bpmn.domain.shared.BpmnNodeType
+import io.miragon.bpmn.domain.shared.EventShape
+import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.CallActivityMapping
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
@@ -19,7 +22,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
 ) = listOf(
     FlowNodeDefinition(
         id = "CallActivity_AbortRegistration",
-        elementType = BpmnElementType.CALL_ACTIVITY,
+        nodeType = BpmnNodeType.Activity.CallActivity,
         properties = FlowNodeProperties.CallActivity(
             CallActivityDefinition(
                 id = "CallActivity_AbortRegistration",
@@ -38,7 +41,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
     FlowNodeDefinition(
         id = "Activity_ConfirmRegistration",
         displayName = "Confirm registration",
-        elementType = BpmnElementType.RECEIVE_TASK,
+        nodeType = BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
         attachedElements = listOf("Timer_EveryDay"),
         parentId = "SubProcess_Confirmation",
         previousElements = listOf("Activity_SendConfirmationMail"),
@@ -46,7 +49,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
     ),
     FlowNodeDefinition(
         id = "Activity_SendConfirmationMail",
-        elementType = BpmnElementType.SERVICE_TASK,
+        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
         properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_SendConfirmationMail", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to confirmationMailImpl))),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT)) + extraVariables,
         parentId = "SubProcess_Confirmation",
@@ -55,7 +58,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
     ),
     FlowNodeDefinition(
         id = "Activity_SendWelcomeMail",
-        elementType = BpmnElementType.SERVICE_TASK,
+        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
         properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_SendWelcomeMail", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to welcomeMailImpl))),
         variables = listOf(
             VariableDefinition("subscriptionId", VariableDirection.INPUT),
@@ -66,45 +69,45 @@ internal fun buildSubscribeNewsletterFlowNodes(
     ),
     FlowNodeDefinition(
         id = "CompensationEndEvent_RegistrationAborted",
-        elementType = BpmnElementType.END_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.END_EVENT),
         previousElements = listOf("CallActivity_AbortRegistration"),
     ),
     FlowNodeDefinition(
         id = "CompensationEvent_OnSubscriptionCounter",
-        elementType = BpmnElementType.BOUNDARY_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT),
         attachedToRef = "serviceTask_incrementSubscriptionCounter",
     ),
     FlowNodeDefinition(
         id = "CompensationTask_DecrementSubscriptionCounter",
-        elementType = BpmnElementType.TASK,
+        nodeType = BpmnNodeType.Activity.Task(TaskKind.NONE),
     ),
     FlowNodeDefinition(
         id = "EndEvent_RegistrationCompleted",
-        elementType = BpmnElementType.END_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.END_EVENT),
         properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("EndEvent_RegistrationCompleted", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to registrationCompletedImpl))),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
         previousElements = listOf("Activity_SendWelcomeMail"),
     ),
     FlowNodeDefinition(
         id = "EndEvent_RegistrationNotPossible",
-        elementType = BpmnElementType.END_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.END_EVENT),
         previousElements = listOf("ErrorEvent_InvalidMail"),
     ),
     FlowNodeDefinition(
         id = "EndEvent_SubscriptionConfirmed",
-        elementType = BpmnElementType.END_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.END_EVENT),
         parentId = "SubProcess_Confirmation",
         previousElements = listOf("Activity_ConfirmRegistration"),
     ),
     FlowNodeDefinition(
         id = "ErrorEvent_InvalidMail",
-        elementType = BpmnElementType.BOUNDARY_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT),
         attachedToRef = "SubProcess_Confirmation",
         followingElements = listOf("EndEvent_RegistrationNotPossible"),
     ),
     FlowNodeDefinition(
         id = "serviceTask_incrementSubscriptionCounter",
-        elementType = BpmnElementType.SERVICE_TASK,
+        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
         properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("serviceTask_incrementSubscriptionCounter", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "counterClass"))),
         attachedElements = listOf("CompensationEvent_OnSubscriptionCounter"),
         previousElements = listOf("StartEvent_SubmitRegistrationForm"),
@@ -112,34 +115,34 @@ internal fun buildSubscribeNewsletterFlowNodes(
     ),
     FlowNodeDefinition(
         id = "StartEvent_RequestReceived",
-        elementType = BpmnElementType.START_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.START_EVENT),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
         parentId = "SubProcess_Confirmation",
         followingElements = listOf("Activity_SendConfirmationMail"),
     ),
     FlowNodeDefinition(
         id = "StartEvent_SubmitRegistrationForm",
-        elementType = BpmnElementType.START_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.START_EVENT),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
         followingElements = listOf("serviceTask_incrementSubscriptionCounter"),
     ),
     FlowNodeDefinition(
         id = "SubProcess_Confirmation",
-        elementType = BpmnElementType.SUB_PROCESS,
+        nodeType = BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),
         attachedElements = listOf("ErrorEvent_InvalidMail", "Timer_After3Days"),
         previousElements = listOf("serviceTask_incrementSubscriptionCounter"),
         followingElements = listOf("Activity_SendWelcomeMail"),
     ),
     FlowNodeDefinition(
         id = "Timer_After3Days",
-        elementType = BpmnElementType.BOUNDARY_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT),
         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_After3Days", "Duration", "\${testVariable}")),
         attachedToRef = "SubProcess_Confirmation",
         followingElements = listOf("CallActivity_AbortRegistration"),
     ),
     FlowNodeDefinition(
         id = "Timer_EveryDay",
-        elementType = BpmnElementType.BOUNDARY_EVENT,
+        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT),
         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_EveryDay", "Duration", "PT1M")),
         attachedToRef = "Activity_ConfirmRegistration",
         parentId = "SubProcess_Confirmation",

@@ -16,8 +16,3 @@ data class CompensationDefinition(
         const val WAIT_FOR_COMPLETION_KEY = "waitForCompletion"
     }
 }
-
-enum class CompensationType {
-    CATCHING,
-    THROWING,
-}

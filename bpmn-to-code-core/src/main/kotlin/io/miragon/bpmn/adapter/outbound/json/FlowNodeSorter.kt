@@ -1,7 +1,9 @@
 package io.miragon.bpmn.adapter.outbound.json
 
-import io.miragon.bpmn.domain.shared.BpmnElementType
+import io.miragon.bpmn.domain.shared.BpmnNodeType
+import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.SubProcessKind
 
 /**
  * Sorts BPMN flow nodes in process-flow order using DFS:
@@ -27,10 +29,10 @@ object FlowNodeSorter {
             visited.add(node.id)
             result.add(node)
 
-            if (node.elementType == BpmnElementType.SUB_PROCESS) {
+            if (node.nodeType.isSubProcess()) {
                 val children = childrenByParent[node.id] ?: emptyList()
                 val childStarts = children
-                    .filter { it.elementType == BpmnElementType.START_EVENT && it.attachedToRef == null && it.previousElements.isEmpty() }
+                    .filter { it.nodeType.isStartEvent() && it.attachedToRef == null && it.previousElements.isEmpty() }
                     .sortedBy { it.id ?: "" }
                 childStarts.forEach { visit(it) }
                 children.filter { it.id !in visited && it.attachedToRef == null }
@@ -59,7 +61,7 @@ object FlowNodeSorter {
         }
 
         val topLevel = nodes.filter { it.parentId == null && it.attachedToRef == null }
-        topLevel.filter { it.elementType == BpmnElementType.START_EVENT && it.previousElements.isEmpty() }
+        topLevel.filter { it.nodeType.isStartEvent() && it.previousElements.isEmpty() }
             .sortedBy { it.id ?: "" }
             .forEach { visit(it) }
         topLevel.filter { it.id !in visited }
@@ -68,4 +70,10 @@ object FlowNodeSorter {
 
         return result
     }
+
+    private fun BpmnNodeType.isSubProcess(): Boolean =
+        this is BpmnNodeType.Activity.SubProcess && kind == SubProcessKind.PLAIN
+
+    private fun BpmnNodeType.isStartEvent(): Boolean =
+        this is BpmnNodeType.Event && shape == EventShape.START_EVENT
 }

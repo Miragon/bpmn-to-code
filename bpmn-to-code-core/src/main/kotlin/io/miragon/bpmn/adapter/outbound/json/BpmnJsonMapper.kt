@@ -70,7 +70,7 @@ class BpmnJsonMapper {
         return FlowNodeJson(
             id = id ?: "",
             displayName = displayName,
-            elementType = elementType.name,
+            elementType = LegacyElementType.of(nodeType),
             parentId = parentId,
             attachedToRef = attachedToRef,
             attachedElements = attachedElements,
