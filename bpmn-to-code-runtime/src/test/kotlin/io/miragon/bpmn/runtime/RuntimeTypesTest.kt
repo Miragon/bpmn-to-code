@@ -58,10 +58,12 @@ class RuntimeTypesTest {
             parentId = null,
             attachedToRef = null,
             attachedElements = listOf("boundary-timer"),
+            elementType = "USER_TASK",
         )
         assertThat(relations.previousElements).containsExactly("start")
         assertThat(relations.followingElements).containsExactly("end")
         assertThat(relations.attachedElements).containsExactly("boundary-timer")
+        assertThat(relations.elementType).isEqualTo("USER_TASK")
     }
 
     @Test

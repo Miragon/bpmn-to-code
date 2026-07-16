@@ -9,6 +9,7 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
+import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
 import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -209,7 +210,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
         val bpmnRelationsClass = ClassName(RUNTIME_PACKAGE, "BpmnRelations")
         val relationsBuilder = TypeSpec.objectBuilder("Relations")
             .addKdoc(
-                "Per-element graph metadata (previousElements / followingElements / parentId / boundary attachments).\n" +
+                "Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).\n" +
                     "Intended for tooling and tests, not worker runtime code."
             )
         flowNodes
@@ -232,6 +233,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
             add("parentId = %L,\n", nullableStringLiteral(node.parentId))
             add("attachedToRef = %L,\n", nullableStringLiteral(node.attachedToRef))
             add("attachedElements = %L,\n", listLiteral(node.attachedElements))
+            add("elementType = %S,\n", ElementTypeName.of(node.nodeType))
             unindent()
             add(")")
         }.build()

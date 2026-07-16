@@ -10,6 +10,7 @@ import io.miragon.bpmn.adapter.outbound.json.model.MessageJson
 import io.miragon.bpmn.adapter.outbound.json.model.SequenceFlowJson
 import io.miragon.bpmn.adapter.outbound.json.model.SignalJson
 import io.miragon.bpmn.adapter.outbound.json.model.VariantJson
+import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
 import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.MergedBpmnModel
 import io.miragon.bpmn.domain.ProcessModel

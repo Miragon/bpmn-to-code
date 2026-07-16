@@ -221,7 +221,7 @@ object SendNewsletterProcessApi {
       }
 
       /**
-       * Per-element graph metadata (previousElements / followingElements / parentId / boundary attachments).
+       * Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).
        * Intended for tooling and tests, not worker runtime code.
        */
       object Relations {
@@ -231,6 +231,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "END_EVENT",
             )
 
         val END_EVENT_ISSUE_RESOLVED: BpmnRelations = BpmnRelations(
@@ -239,6 +240,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "END_EVENT",
             )
 
         val END_EVENT_NO_SUBSCRIBERS: BpmnRelations = BpmnRelations(
@@ -247,6 +249,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "END_EVENT",
             )
 
         val ESCALATION_END_EVENT_NOFITY_SUPPORT: BpmnRelations = BpmnRelations(
@@ -255,6 +258,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "ESCALATION_END_EVENT",
             )
 
         val ESCALATION_END_EVENT_NOFITY_SUPPORT_AFTER_REPEATED_ERROR: BpmnRelations =
@@ -264,6 +268,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "END_EVENT",
             )
 
         val EVENT_GATEWAY_AFTER_SENDING_AGAIN: BpmnRelations = BpmnRelations(
@@ -272,6 +277,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "EVENT_BASED_GATEWAY",
             )
 
         val EVENT_SUB_PROCESS_ERROR_HANDLING: BpmnRelations = BpmnRelations(
@@ -280,6 +286,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "SUB_PROCESS",
             )
 
         val EVENT_MAIL_REJECTED: BpmnRelations = BpmnRelations(
@@ -288,6 +295,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "MESSAGE_START_EVENT",
             )
 
         val EVENT_MAIL_REJECTED_AGAIN: BpmnRelations = BpmnRelations(
@@ -296,6 +304,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
             )
 
         val GATEWAY_CAN_SEND_AGAIN: BpmnRelations = BpmnRelations(
@@ -304,6 +313,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "EXCLUSIVE_GATEWAY",
             )
 
         val GATEWAY_HAS_SUBSCRIBERS: BpmnRelations = BpmnRelations(
@@ -312,6 +322,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "EXCLUSIVE_GATEWAY",
             )
 
         val SERVICE_TASK_ANALYZE_ERROR: BpmnRelations = BpmnRelations(
@@ -320,6 +331,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "SERVICE_TASK",
             )
 
         val SERVICE_TASK_LOAD_SUBSCRIBERS: BpmnRelations = BpmnRelations(
@@ -328,6 +340,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "SERVICE_TASK",
             )
 
         val SERVICE_TASK_NOTIFY_AUTHOR: BpmnRelations = BpmnRelations(
@@ -336,6 +349,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "SERVICE_TASK",
             )
 
         val SERVICE_TASK_SEND_MAIL_AGAIN: BpmnRelations = BpmnRelations(
@@ -344,6 +358,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "SERVICE_TASK",
             )
 
         val SERVICE_TASK_SEND_TO_SUBSCRIBER: BpmnRelations = BpmnRelations(
@@ -352,6 +367,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "SERVICE_TASK",
             )
 
         val START_EVENT_EDITION_CREATED: BpmnRelations = BpmnRelations(
@@ -360,6 +376,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "START_EVENT",
             )
 
         val TIMER_NO_REJECTION_FOR_ONE_DAY: BpmnRelations = BpmnRelations(
@@ -368,6 +385,7 @@ object SendNewsletterProcessApi {
               parentId = "eventSubProcess_errorHandling",
               attachedToRef = null,
               attachedElements = emptyList(),
+              elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
             )
       }
     }

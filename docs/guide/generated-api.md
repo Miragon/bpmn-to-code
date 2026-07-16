@@ -20,7 +20,7 @@ The generated Process API is an `object` (Kotlin) or `class` (Java) with nested 
 | `Signals` | Signal names from signal events |
 | `Variables` | Per-element variables, split into `Inputs` / `Outputs` sub-objects by direction |
 | `Flows` | Sequence flows with `sourceRef`, `targetRef`, `conditionExpression`, `isDefault` |
-| `Relations` | Per-element topology: `incoming`, `outgoing`, `parentId`, `attachedToRef`, `attachedElements` |
+| `Relations` | Per-element topology: `elementType`, `previousElements`, `followingElements`, `parentId`, `attachedToRef`, `attachedElements` |
 
 Sections are only included when the BPMN model contains matching elements.
 
@@ -128,11 +128,13 @@ object NewsletterSubscriptionProcessApi {
 
   object Relations {
     val ACTIVITY_CONFIRM_REGISTRATION: BpmnRelations = BpmnRelations(
-      incoming = listOf("Activity_SendConfirmationMail"),
-      outgoing = listOf("EndEvent_SubscriptionConfirmed"),
+      name = "Confirm registration",
+      previousElements = listOf("Activity_SendConfirmationMail"),
+      followingElements = listOf("EndEvent_SubscriptionConfirmed"),
       parentId = "SubProcess_Confirmation",
       attachedToRef = null,
       attachedElements = listOf("Timer_EveryDay"),
+      elementType = "RECEIVE_TASK",
     )
     // ... all elements
   }
@@ -191,11 +193,13 @@ The `Relations` section maps every flow node to its topology information via `Bp
 
 ```kotlin
 data class BpmnRelations(
-    val incoming: List<String>,      // IDs of incoming sequence flows or elements
-    val outgoing: List<String>,      // IDs of outgoing sequence flows or elements
-    val parentId: String?,           // parent subprocess ID, if any
-    val attachedToRef: String?,      // element this boundary event is attached to
-    val attachedElements: List<String>, // boundary events attached to this element
+    val name: String? = null,            // display name of the element, if set
+    val previousElements: List<String>,  // element IDs of preceding flow nodes
+    val followingElements: List<String>, // element IDs of following flow nodes
+    val parentId: String?,               // parent subprocess ID, if any
+    val attachedToRef: String?,          // element this boundary event is attached to
+    val attachedElements: List<String>,  // boundary events attached to this element
+    val elementType: String = "UNKNOWN", // BPMN type, e.g. SERVICE_TASK, TIMER_BOUNDARY_EVENT
 )
 ```
 
