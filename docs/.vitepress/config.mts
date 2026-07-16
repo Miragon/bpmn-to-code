@@ -100,6 +100,7 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Release Notes', link: '/changelog/' },
+              { text: 'v4 Migration Guide', link: '/changelog/v4' },
               { text: 'v3 Migration Guide', link: '/changelog/v3' },
               { text: 'v2 Migration Guide', link: '/changelog/v2' },
             ],
