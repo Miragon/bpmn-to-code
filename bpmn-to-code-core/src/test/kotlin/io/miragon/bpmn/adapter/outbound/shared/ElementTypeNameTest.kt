@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.json
+package io.miragon.bpmn.adapter.outbound.shared
 
 import io.miragon.bpmn.domain.shared.BpmnNodeType
 import io.miragon.bpmn.domain.shared.EventShape

@@ -9,6 +9,8 @@ package io.miragon.bpmn.runtime
  * @param parentId Id of the containing subprocess, or null if top-level.
  * @param attachedToRef For boundary events: id of the host element; null otherwise.
  * @param attachedElements Ids of boundary events attached to this element; empty when none.
+ * @param elementType The element's BPMN type, e.g. `SERVICE_TASK`, `EXCLUSIVE_GATEWAY`,
+ *   `TIMER_BOUNDARY_EVENT`; matches the value in the JSON export. `UNKNOWN` if unresolved.
  */
 data class BpmnRelations(
     val name: String? = null,
@@ -17,4 +19,5 @@ data class BpmnRelations(
     val parentId: String?,
     val attachedToRef: String?,
     val attachedElements: List<String>,
+    val elementType: String = "UNKNOWN",
 )

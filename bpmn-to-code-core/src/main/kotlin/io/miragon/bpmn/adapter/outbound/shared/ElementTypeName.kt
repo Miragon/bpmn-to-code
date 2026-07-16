@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.json
+package io.miragon.bpmn.adapter.outbound.shared
 
 import io.miragon.bpmn.domain.shared.BpmnNodeType
 import io.miragon.bpmn.domain.shared.EventDefinitionType
@@ -7,10 +7,10 @@ import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
 
 /**
- * Renders the two-axis [BpmnNodeType] domain model into the flat `elementType` string used by the
- * generated JSON.
+ * Renders the two-axis [BpmnNodeType] domain model into the flat `elementType` string shared by the
+ * outbound representations — the generated JSON export and the generated Process API.
  *
- * This is the single boundary between the internal node-type model and the JSON output vocabulary.
+ * This is the single boundary between the internal node-type model and that output vocabulary.
  * Tasks, gateways and activities map to their flat name; event nodes surface their concrete
  * [definitionType][BpmnNodeType.Event.definitionType] as a prefix on the shape
  * (e.g. `ERROR_BOUNDARY_EVENT`), so consumers can tell a timer from an error without cross-referencing.

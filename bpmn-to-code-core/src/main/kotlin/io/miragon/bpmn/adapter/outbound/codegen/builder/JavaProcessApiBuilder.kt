@@ -7,6 +7,7 @@ import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
+import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
 import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -204,7 +205,7 @@ class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<Ty
         val bpmnRelationsClass = ClassName.get(RUNTIME_PACKAGE, "BpmnRelations")
         val relationsBuilder = TypeSpec.classBuilder("Relations").addModifiers(PUBLIC, STATIC, FINAL)
             .addJavadoc(
-                "Per-element graph metadata (previousElements / followingElements / parentId / boundary attachments).\n" +
+                "Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).\n" +
                     "Intended for tooling and tests, not worker runtime code.\n"
             )
         flowNodes
@@ -235,6 +236,8 @@ class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<Ty
             .add(attachedToRefBlock)
             .add(", ")
             .add(javaListLiteral(node.attachedElements))
+            .add(", ")
+            .add("\$S", ElementTypeName.of(node.nodeType))
             .add(")")
             .build()
     }

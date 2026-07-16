@@ -145,45 +145,45 @@ public final class SendNewsletterProcessApi {
       }
 
       /**
-       * Per-element graph metadata (previousElements / followingElements / parentId / boundary attachments).
+       * Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).
        * Intended for tooling and tests, not worker runtime code.
        */
       public static final class Relations {
-        public static final BpmnRelations END_EVENT_EDITION_SENT = new BpmnRelations(null, List.of("serviceTask_notifyAuthor"), List.of(), null, null, List.of());
+        public static final BpmnRelations END_EVENT_EDITION_SENT = new BpmnRelations(null, List.of("serviceTask_notifyAuthor"), List.of(), null, null, List.of(), "END_EVENT");
 
-        public static final BpmnRelations END_EVENT_ISSUE_RESOLVED = new BpmnRelations(null, List.of("timer_noRejectionForOneDay"), List.of(), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations END_EVENT_ISSUE_RESOLVED = new BpmnRelations(null, List.of("timer_noRejectionForOneDay"), List.of(), "eventSubProcess_errorHandling", null, List.of(), "END_EVENT");
 
-        public static final BpmnRelations END_EVENT_NO_SUBSCRIBERS = new BpmnRelations(null, List.of("gateway_hasSubscribers"), List.of(), null, null, List.of());
+        public static final BpmnRelations END_EVENT_NO_SUBSCRIBERS = new BpmnRelations(null, List.of("gateway_hasSubscribers"), List.of(), null, null, List.of(), "END_EVENT");
 
-        public static final BpmnRelations ESCALATION_END_EVENT_NOFITY_SUPPORT = new BpmnRelations(null, List.of("gateway_canSendAgain"), List.of(), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations ESCALATION_END_EVENT_NOFITY_SUPPORT = new BpmnRelations(null, List.of("gateway_canSendAgain"), List.of(), "eventSubProcess_errorHandling", null, List.of(), "ESCALATION_END_EVENT");
 
-        public static final BpmnRelations ESCALATION_END_EVENT_NOFITY_SUPPORT_AFTER_REPEATED_ERROR = new BpmnRelations(null, List.of("event_mailRejectedAgain"), List.of(), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations ESCALATION_END_EVENT_NOFITY_SUPPORT_AFTER_REPEATED_ERROR = new BpmnRelations(null, List.of("event_mailRejectedAgain"), List.of(), "eventSubProcess_errorHandling", null, List.of(), "END_EVENT");
 
-        public static final BpmnRelations EVENT_GATEWAY_AFTER_SENDING_AGAIN = new BpmnRelations(null, List.of("serviceTask_sendMailAgain"), List.of("timer_noRejectionForOneDay", "event_mailRejectedAgain"), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations EVENT_GATEWAY_AFTER_SENDING_AGAIN = new BpmnRelations(null, List.of("serviceTask_sendMailAgain"), List.of("timer_noRejectionForOneDay", "event_mailRejectedAgain"), "eventSubProcess_errorHandling", null, List.of(), "EVENT_BASED_GATEWAY");
 
-        public static final BpmnRelations EVENT_SUB_PROCESS_ERROR_HANDLING = new BpmnRelations(null, List.of(), List.of(), null, null, List.of());
+        public static final BpmnRelations EVENT_SUB_PROCESS_ERROR_HANDLING = new BpmnRelations(null, List.of(), List.of(), null, null, List.of(), "SUB_PROCESS");
 
-        public static final BpmnRelations EVENT_MAIL_REJECTED = new BpmnRelations(null, List.of(), List.of("serviceTask_analyzeError"), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations EVENT_MAIL_REJECTED = new BpmnRelations(null, List.of(), List.of("serviceTask_analyzeError"), "eventSubProcess_errorHandling", null, List.of(), "MESSAGE_START_EVENT");
 
-        public static final BpmnRelations EVENT_MAIL_REJECTED_AGAIN = new BpmnRelations(null, List.of("eventGateway_afterSendingAgain"), List.of("escalationEndEvent_nofitySupportAfterRepeatedError"), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations EVENT_MAIL_REJECTED_AGAIN = new BpmnRelations(null, List.of("eventGateway_afterSendingAgain"), List.of("escalationEndEvent_nofitySupportAfterRepeatedError"), "eventSubProcess_errorHandling", null, List.of(), "MESSAGE_INTERMEDIATE_CATCH_EVENT");
 
-        public static final BpmnRelations GATEWAY_CAN_SEND_AGAIN = new BpmnRelations(null, List.of("serviceTask_analyzeError"), List.of("serviceTask_sendMailAgain", "escalationEndEvent_nofitySupport"), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations GATEWAY_CAN_SEND_AGAIN = new BpmnRelations(null, List.of("serviceTask_analyzeError"), List.of("serviceTask_sendMailAgain", "escalationEndEvent_nofitySupport"), "eventSubProcess_errorHandling", null, List.of(), "EXCLUSIVE_GATEWAY");
 
-        public static final BpmnRelations GATEWAY_HAS_SUBSCRIBERS = new BpmnRelations(null, List.of("serviceTask_loadSubscribers"), List.of("serviceTask_sendToSubscriber", "endEvent_noSubscribers"), null, null, List.of());
+        public static final BpmnRelations GATEWAY_HAS_SUBSCRIBERS = new BpmnRelations(null, List.of("serviceTask_loadSubscribers"), List.of("serviceTask_sendToSubscriber", "endEvent_noSubscribers"), null, null, List.of(), "EXCLUSIVE_GATEWAY");
 
-        public static final BpmnRelations SERVICE_TASK_ANALYZE_ERROR = new BpmnRelations(null, List.of("event_mailRejected"), List.of("gateway_canSendAgain"), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations SERVICE_TASK_ANALYZE_ERROR = new BpmnRelations(null, List.of("event_mailRejected"), List.of("gateway_canSendAgain"), "eventSubProcess_errorHandling", null, List.of(), "SERVICE_TASK");
 
-        public static final BpmnRelations SERVICE_TASK_LOAD_SUBSCRIBERS = new BpmnRelations(null, List.of("startEvent_editionCreated"), List.of("gateway_hasSubscribers"), null, null, List.of());
+        public static final BpmnRelations SERVICE_TASK_LOAD_SUBSCRIBERS = new BpmnRelations(null, List.of("startEvent_editionCreated"), List.of("gateway_hasSubscribers"), null, null, List.of(), "SERVICE_TASK");
 
-        public static final BpmnRelations SERVICE_TASK_NOTIFY_AUTHOR = new BpmnRelations(null, List.of("serviceTask_sendToSubscriber"), List.of("endEvent_editionSent"), null, null, List.of());
+        public static final BpmnRelations SERVICE_TASK_NOTIFY_AUTHOR = new BpmnRelations(null, List.of("serviceTask_sendToSubscriber"), List.of("endEvent_editionSent"), null, null, List.of(), "SERVICE_TASK");
 
-        public static final BpmnRelations SERVICE_TASK_SEND_MAIL_AGAIN = new BpmnRelations(null, List.of("gateway_canSendAgain"), List.of("eventGateway_afterSendingAgain"), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations SERVICE_TASK_SEND_MAIL_AGAIN = new BpmnRelations(null, List.of("gateway_canSendAgain"), List.of("eventGateway_afterSendingAgain"), "eventSubProcess_errorHandling", null, List.of(), "SERVICE_TASK");
 
-        public static final BpmnRelations SERVICE_TASK_SEND_TO_SUBSCRIBER = new BpmnRelations(null, List.of("gateway_hasSubscribers"), List.of("serviceTask_notifyAuthor"), null, null, List.of());
+        public static final BpmnRelations SERVICE_TASK_SEND_TO_SUBSCRIBER = new BpmnRelations(null, List.of("gateway_hasSubscribers"), List.of("serviceTask_notifyAuthor"), null, null, List.of(), "SERVICE_TASK");
 
-        public static final BpmnRelations START_EVENT_EDITION_CREATED = new BpmnRelations(null, List.of(), List.of("serviceTask_loadSubscribers"), null, null, List.of());
+        public static final BpmnRelations START_EVENT_EDITION_CREATED = new BpmnRelations(null, List.of(), List.of("serviceTask_loadSubscribers"), null, null, List.of(), "START_EVENT");
 
-        public static final BpmnRelations TIMER_NO_REJECTION_FOR_ONE_DAY = new BpmnRelations(null, List.of("eventGateway_afterSendingAgain"), List.of("endEvent_issueResolved"), "eventSubProcess_errorHandling", null, List.of());
+        public static final BpmnRelations TIMER_NO_REJECTION_FOR_ONE_DAY = new BpmnRelations(null, List.of("eventGateway_afterSendingAgain"), List.of("endEvent_issueResolved"), "eventSubProcess_errorHandling", null, List.of(), "TIMER_INTERMEDIATE_CATCH_EVENT");
       }
     }
   }
