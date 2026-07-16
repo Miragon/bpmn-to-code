@@ -4,7 +4,7 @@
         {
             "id": "StartEvent_SubmitRegistrationForm",
             "displayName": "Submit newsletter form",
-            "elementType": "START_EVENT",
+            "elementType": "MESSAGE_START_EVENT",
             "followingElements": [
                 "serviceTask_incrementSubscriptionCounter"
             ],
@@ -33,7 +33,7 @@
         {
             "id": "CompensationEvent_OnSubscriptionCounter",
             "displayName": "Registration aborted",
-            "elementType": "BOUNDARY_EVENT",
+            "elementType": "COMPENSATION_BOUNDARY_EVENT",
             "attachedToRef": "serviceTask_incrementSubscriptionCounter"
         },
         {
@@ -101,7 +101,7 @@
         {
             "id": "Timer_EveryDay",
             "displayName": "Every day",
-            "elementType": "BOUNDARY_EVENT",
+            "elementType": "TIMER_BOUNDARY_EVENT",
             "parentId": "SubProcess_Confirmation",
             "attachedToRef": "Activity_ConfirmRegistration",
             "followingElements": [
@@ -125,7 +125,7 @@
         {
             "id": "ErrorEvent_InvalidMail",
             "displayName": "Invalid Mail",
-            "elementType": "BOUNDARY_EVENT",
+            "elementType": "ERROR_BOUNDARY_EVENT",
             "attachedToRef": "SubProcess_Confirmation",
             "followingElements": [
                 "EndEvent_RegistrationNotPossible"
@@ -134,7 +134,7 @@
         {
             "id": "EndEvent_RegistrationNotPossible",
             "displayName": "Registration not possible",
-            "elementType": "END_EVENT",
+            "elementType": "SIGNAL_END_EVENT",
             "previousElements": [
                 "ErrorEvent_InvalidMail"
             ]
@@ -142,7 +142,7 @@
         {
             "id": "Timer_After3Days",
             "displayName": "After 3 days",
-            "elementType": "BOUNDARY_EVENT",
+            "elementType": "TIMER_BOUNDARY_EVENT",
             "attachedToRef": "SubProcess_Confirmation",
             "followingElements": [
                 "CallActivity_AbortRegistration"
@@ -174,7 +174,7 @@
         {
             "id": "CompensationEndEvent_RegistrationAborted",
             "displayName": "Registration aborted",
-            "elementType": "END_EVENT",
+            "elementType": "COMPENSATION_END_EVENT",
             "previousElements": [
                 "CallActivity_AbortRegistration"
             ]

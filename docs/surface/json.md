@@ -17,7 +17,7 @@ For the newsletter subscription process:
         {
             "id": "StartEvent_SubmitRegistrationForm",
             "displayName": "Submit newsletter form",
-            "elementType": "START_EVENT",
+            "elementType": "MESSAGE_START_EVENT",
             "outgoing": ["serviceTask_incrementSubscriptionCounter"],
             "variables": ["subscriptionId"]
         },
@@ -94,7 +94,7 @@ Boundary events appear immediately after the element they are attached to.
 |-------|---------------|-------------|
 | `id` | yes | The BPMN element ID |
 | `displayName` | yes | The element's label or name from the modeler |
-| `elementType` | yes | One of: `START_EVENT`, `END_EVENT`, `SERVICE_TASK`, `USER_TASK`, `GATEWAY`, `SUB_PROCESS`, `CALL_ACTIVITY`, `BOUNDARY_EVENT`, `TASK`, … |
+| `elementType` | yes | The element's BPMN type, e.g. `SERVICE_TASK`, `USER_TASK`, `SUB_PROCESS`, `CALL_ACTIVITY`, `TASK`, … For event nodes the concrete event subtype is prefixed — see [Event subtypes](#event-subtypes). |
 | `incoming` | no | IDs of incoming elements (sequence flow sources or parent subprocess) |
 | `outgoing` | no | IDs of outgoing elements |
 | `parentId` | no | Parent subprocess ID, if nested |
@@ -103,6 +103,32 @@ Boundary events appear immediately after the element they are attached to.
 | `variables` | no | Variable names extracted from I/O mappings |
 | `properties` | no | Engine-specific implementation details (task type, calledElement, timer config) |
 | `engineSpecificProperties` | no | Camunda 7 / Operaton async markers (`asyncBefore`, `asyncAfter`, `exclusive`) |
+
+## Event subtypes
+
+For event nodes, `elementType` carries the concrete event subtype directly, so you can tell a timer
+from an error from a message without cross-referencing the `errors` / `messages` / `signals` /
+`escalations` / `compensations` lists. The value is the subtype prefixed onto the BPMN shape:
+
+| Value | Meaning |
+|-------|---------|
+| `TIMER_BOUNDARY_EVENT` | boundary timer event |
+| `ERROR_BOUNDARY_EVENT` | boundary error event |
+| `MESSAGE_START_EVENT` | message start event |
+| `SIGNAL_END_EVENT` | signal end event |
+| `ESCALATION_END_EVENT` | escalation end event |
+| `COMPENSATION_BOUNDARY_EVENT` | compensation boundary event |
+
+The pattern is `<SUBTYPE>_<SHAPE>` where `<SUBTYPE>` is one of `TIMER`, `MESSAGE`, `ERROR`, `SIGNAL`,
+`ESCALATION`, `COMPENSATION`, and `<SHAPE>` is `START_EVENT`, `END_EVENT`, `BOUNDARY_EVENT`,
+`INTERMEDIATE_CATCH_EVENT`, or `INTERMEDIATE_THROW_EVENT`. Plain events with no definition keep their
+bare shape (e.g. `END_EVENT`). The top-level `errors` / `messages` / … lists still carry the extra
+detail (error `code`, message `name`, …).
+
+::: warning Breaking change
+Before this was introduced, event nodes always reported their bare shape (e.g. `BOUNDARY_EVENT`).
+Consumers that match on the old shape-only values must be updated.
+:::
 
 ## Configuring the JSON Task
 

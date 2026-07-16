@@ -9,10 +9,10 @@ import io.miragon.bpmn.domain.shared.TaskKind
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class LegacyElementTypeTest {
+class ElementTypeNameTest {
 
     @Test
-    fun `maps every task kind to its legacy string`() {
+    fun `maps every task kind to its element-type string`() {
         val expected = mapOf(
             TaskKind.SERVICE to "SERVICE_TASK",
             TaskKind.USER to "USER_TASK",
@@ -23,14 +23,14 @@ class LegacyElementTypeTest {
             TaskKind.BUSINESS_RULE to "BUSINESS_RULE_TASK",
             TaskKind.NONE to "TASK",
         )
-        expected.forEach { (kind, legacy) ->
-            assertThat(LegacyElementType.of(BpmnNodeType.Activity.Task(kind))).isEqualTo(legacy)
+        expected.forEach { (kind, expectedName) ->
+            assertThat(ElementTypeName.of(BpmnNodeType.Activity.Task(kind))).isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*TaskKind.entries.toTypedArray())
     }
 
     @Test
-    fun `maps every gateway kind to its legacy string`() {
+    fun `maps every gateway kind to its element-type string`() {
         val expected = mapOf(
             GatewayKind.EXCLUSIVE to "EXCLUSIVE_GATEWAY",
             GatewayKind.PARALLEL to "PARALLEL_GATEWAY",
@@ -38,32 +38,32 @@ class LegacyElementTypeTest {
             GatewayKind.EVENT_BASED to "EVENT_BASED_GATEWAY",
             GatewayKind.COMPLEX to "COMPLEX_GATEWAY",
         )
-        expected.forEach { (kind, legacy) ->
-            assertThat(LegacyElementType.of(BpmnNodeType.Gateway(kind))).isEqualTo(legacy)
+        expected.forEach { (kind, expectedName) ->
+            assertThat(ElementTypeName.of(BpmnNodeType.Gateway(kind))).isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*GatewayKind.entries.toTypedArray())
     }
 
     @Test
-    fun `maps every subprocess kind to its legacy string`() {
+    fun `maps every subprocess kind to its element-type string`() {
         val expected = mapOf(
             SubProcessKind.PLAIN to "SUB_PROCESS",
             SubProcessKind.EVENT to "EVENT_SUB_PROCESS",
             SubProcessKind.TRANSACTION to "TRANSACTION",
         )
-        expected.forEach { (kind, legacy) ->
-            assertThat(LegacyElementType.of(BpmnNodeType.Activity.SubProcess(kind))).isEqualTo(legacy)
+        expected.forEach { (kind, expectedName) ->
+            assertThat(ElementTypeName.of(BpmnNodeType.Activity.SubProcess(kind))).isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*SubProcessKind.entries.toTypedArray())
     }
 
     @Test
-    fun `maps call activity to its legacy string`() {
-        assertThat(LegacyElementType.of(BpmnNodeType.Activity.CallActivity)).isEqualTo("CALL_ACTIVITY")
+    fun `maps call activity to its element-type string`() {
+        assertThat(ElementTypeName.of(BpmnNodeType.Activity.CallActivity)).isEqualTo("CALL_ACTIVITY")
     }
 
     @Test
-    fun `maps every event shape to its legacy string`() {
+    fun `maps every event shape to its element-type string`() {
         val expected = mapOf(
             EventShape.START_EVENT to "START_EVENT",
             EventShape.END_EVENT to "END_EVENT",
@@ -71,22 +71,32 @@ class LegacyElementTypeTest {
             EventShape.INTERMEDIATE_THROW_EVENT to "INTERMEDIATE_THROW_EVENT",
             EventShape.BOUNDARY_EVENT to "BOUNDARY_EVENT",
         )
-        expected.forEach { (shape, legacy) ->
-            assertThat(LegacyElementType.of(BpmnNodeType.Event(shape))).isEqualTo(legacy)
+        expected.forEach { (shape, expectedName) ->
+            assertThat(ElementTypeName.of(BpmnNodeType.Event(shape))).isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*EventShape.entries.toTypedArray())
     }
 
     @Test
-    fun `event definition type does not affect the legacy string`() {
-        EventDefinitionType.entries.forEach { definitionType ->
-            assertThat(LegacyElementType.of(BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, definitionType)))
-                .isEqualTo("BOUNDARY_EVENT")
+    fun `prefixes the concrete event definition onto the shape`() {
+        val expected = mapOf(
+            EventDefinitionType.TIMER to "TIMER_BOUNDARY_EVENT",
+            EventDefinitionType.MESSAGE to "MESSAGE_BOUNDARY_EVENT",
+            EventDefinitionType.ERROR to "ERROR_BOUNDARY_EVENT",
+            EventDefinitionType.SIGNAL to "SIGNAL_BOUNDARY_EVENT",
+            EventDefinitionType.ESCALATION to "ESCALATION_BOUNDARY_EVENT",
+            EventDefinitionType.COMPENSATION to "COMPENSATION_BOUNDARY_EVENT",
+            EventDefinitionType.NONE to "BOUNDARY_EVENT",
+        )
+        expected.forEach { (definitionType, expectedName) ->
+            assertThat(ElementTypeName.of(BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, definitionType)))
+                .isEqualTo(expectedName)
         }
+        assertThat(expected.keys).containsExactlyInAnyOrder(*EventDefinitionType.entries.toTypedArray())
     }
 
     @Test
-    fun `maps unknown to its legacy string`() {
-        assertThat(LegacyElementType.of(BpmnNodeType.Unknown)).isEqualTo("UNKNOWN")
+    fun `maps unknown to its element-type string`() {
+        assertThat(ElementTypeName.of(BpmnNodeType.Unknown)).isEqualTo("UNKNOWN")
     }
 }
