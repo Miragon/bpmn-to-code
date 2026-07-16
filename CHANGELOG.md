@@ -3,6 +3,22 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [4.0.0](https://github.com/Miragon/bpmn-to-code/compare/v3.2.0...v4.0.0) (2026-07-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **runtime:** remove deprecated io.github.emaarco runtime types ([#27](https://github.com/Miragon/bpmn-to-code/issues/27))
+* **core:** surface concrete event subtype in JSON elementType ([#21](https://github.com/Miragon/bpmn-to-code/issues/21)) (#26)
+* **core:** surface call-activity input/output variable mappings in the generated API ([#23](https://github.com/Miragon/bpmn-to-code/issues/23))
+
+### Features
+
+* **core:** expose element type in generated BpmnRelations ([#22](https://github.com/Miragon/bpmn-to-code/issues/22)) ([#28](https://github.com/Miragon/bpmn-to-code/issues/28)) ([2dc6e15](https://github.com/Miragon/bpmn-to-code/commit/2dc6e15fd38b98653bca51887871c6a3dc77f559))
+* **core:** surface call-activity input/output variable mappings in the generated API ([#23](https://github.com/Miragon/bpmn-to-code/issues/23)) ([beac06c](https://github.com/Miragon/bpmn-to-code/commit/beac06c26ccb5daee2d416ad2afb87f9144f8f71))
+* **core:** surface concrete event subtype in JSON elementType ([#21](https://github.com/Miragon/bpmn-to-code/issues/21)) ([#26](https://github.com/Miragon/bpmn-to-code/issues/26)) ([9f7594b](https://github.com/Miragon/bpmn-to-code/commit/9f7594bd995e58a5a2cb33468a8c32e574dea5ea))
+* **runtime:** remove deprecated io.github.emaarco runtime types ([#27](https://github.com/Miragon/bpmn-to-code/issues/27)) ([7a9f667](https://github.com/Miragon/bpmn-to-code/commit/7a9f667ee5f172c440828f0ade0b573860b6023e))
+
 ## [3.2.0](https://github.com/Miragon/bpmn-to-code/compare/v3.1.0...v3.2.0) (2026-07-08)
 
 
