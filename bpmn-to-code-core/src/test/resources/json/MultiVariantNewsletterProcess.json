@@ -107,7 +107,7 @@
                 },
                 {
                     "id": "event_mailRejected",
-                    "elementType": "START_EVENT",
+                    "elementType": "MESSAGE_START_EVENT",
                     "parentId": "eventSubProcess_errorHandling",
                     "followingElements": [
                         "serviceTask_analyzeError"
@@ -142,7 +142,7 @@
                 },
                 {
                     "id": "escalationEndEvent_nofitySupport",
-                    "elementType": "END_EVENT",
+                    "elementType": "ESCALATION_END_EVENT",
                     "parentId": "eventSubProcess_errorHandling",
                     "previousElements": [
                         "gateway_canSendAgain"
@@ -177,7 +177,7 @@
                 },
                 {
                     "id": "event_mailRejectedAgain",
-                    "elementType": "INTERMEDIATE_CATCH_EVENT",
+                    "elementType": "MESSAGE_INTERMEDIATE_CATCH_EVENT",
                     "parentId": "eventSubProcess_errorHandling",
                     "previousElements": [
                         "eventGateway_afterSendingAgain"
@@ -196,7 +196,7 @@
                 },
                 {
                     "id": "timer_noRejectionForOneDay",
-                    "elementType": "INTERMEDIATE_CATCH_EVENT",
+                    "elementType": "TIMER_INTERMEDIATE_CATCH_EVENT",
                     "parentId": "eventSubProcess_errorHandling",
                     "previousElements": [
                         "eventGateway_afterSendingAgain"
