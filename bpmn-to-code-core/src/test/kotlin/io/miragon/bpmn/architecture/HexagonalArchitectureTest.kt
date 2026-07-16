@@ -94,6 +94,20 @@ class HexagonalArchitectureTest {
     }
 
     @Nested
+    inner class FileStructureTests {
+
+        @Test
+        fun `each source file declares at most one top-level type`() {
+            Konsist
+                .scopeFromProject()
+                .files
+                .assertTrue(testName = "files should declare at most one top-level type to follow SRP") { file ->
+                    file.classesAndInterfacesAndObjects(includeNested = false, includeLocal = false).size <= 1
+                }
+        }
+    }
+
+    @Nested
     inner class InAdapterTests {
 
         @Test

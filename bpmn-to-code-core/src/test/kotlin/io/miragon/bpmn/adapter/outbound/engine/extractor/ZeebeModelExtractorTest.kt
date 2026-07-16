@@ -1,6 +1,10 @@
 package io.miragon.bpmn.adapter.outbound.engine.extractor
 
-import io.miragon.bpmn.domain.shared.BpmnElementType
+import io.miragon.bpmn.domain.shared.SubProcessKind
+import io.miragon.bpmn.domain.shared.BpmnNodeType
+import io.miragon.bpmn.domain.shared.EventShape
+import io.miragon.bpmn.domain.shared.EventDefinitionType
+import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.CallActivityMapping
 import io.miragon.bpmn.domain.shared.CompensationDefinition
@@ -49,7 +53,7 @@ class ZeebeModelExtractorTest {
                 variantName = "withApproval",
                 detectedEngine = ProcessEngine.ZEEBE,
                 flowNodes = listOf(
-                    FlowNodeDefinition("CallActivity_AbortRegistration", BpmnElementType.CALL_ACTIVITY,
+                    FlowNodeDefinition("CallActivity_AbortRegistration", BpmnNodeType.Activity.CallActivity,
                         displayName = "Abort registration",
                         properties = FlowNodeProperties.CallActivity(CallActivityDefinition("CallActivity_AbortRegistration", "abort-registration",
                             mappings = listOf(
@@ -62,20 +66,20 @@ class ZeebeModelExtractorTest {
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "=subscriptionId")),
                         previousElements = listOf("Timer_After3Days"),
                         followingElements = listOf("CompensationEndEvent_RegistrationAborted")),
-                    FlowNodeDefinition("Activity_ConfirmRegistration", BpmnElementType.RECEIVE_TASK,
+                    FlowNodeDefinition("Activity_ConfirmRegistration", BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
                         displayName = "Confirm subscription",
                         attachedElements = listOf("Timer_EveryDay"),
                         parentId = "SubProcess_Confirmation",
                         previousElements = listOf("Activity_SendConfirmationMail"),
                         followingElements = listOf("EndEvent_SubscriptionConfirmed")),
-                    FlowNodeDefinition("Activity_SendConfirmationMail", BpmnElementType.SERVICE_TASK,
+                    FlowNodeDefinition("Activity_SendConfirmationMail", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
                         displayName = "Send confirmation mail",
                         properties = FlowNodeProperties.ServiceTask(zeebeServiceTasks[0]),
                         variables = listOf(VariableDefinition("testVariable", VariableDirection.INPUT, "=\"123\""), VariableDefinition("subscriptionId", VariableDirection.INPUT, "=subscriptionId")),
                         parentId = "SubProcess_Confirmation",
                         previousElements = listOf("StartEvent_RequestReceived", "Timer_EveryDay"),
                         followingElements = listOf("Activity_ConfirmRegistration")),
-                    FlowNodeDefinition("Activity_SendWelcomeMail", BpmnElementType.SERVICE_TASK,
+                    FlowNodeDefinition("Activity_SendWelcomeMail", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
                         displayName = "Send Welcome-Mail",
                         properties = FlowNodeProperties.ServiceTask(zeebeServiceTasks[1]),
                         variables = listOf(
@@ -84,58 +88,58 @@ class ZeebeModelExtractorTest {
                         ),
                         previousElements = listOf("SubProcess_Confirmation"),
                         followingElements = listOf("EndEvent_RegistrationCompleted")),
-                    FlowNodeDefinition("CompensationEndEvent_RegistrationAborted", BpmnElementType.END_EVENT,
+                    FlowNodeDefinition("CompensationEndEvent_RegistrationAborted", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.COMPENSATION),
                         displayName = "Registration aborted",
                         previousElements = listOf("CallActivity_AbortRegistration")),
-                    FlowNodeDefinition("CompensationEvent_OnSubscriptionCounter", BpmnElementType.BOUNDARY_EVENT,
+                    FlowNodeDefinition("CompensationEvent_OnSubscriptionCounter", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.COMPENSATION),
                         displayName = "Registration aborted",
                         attachedToRef = "serviceTask_incrementSubscriptionCounter"),
-                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnElementType.TASK,
+                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.NONE),
                         displayName = "Decrement subscription counter",
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "=subscriptionId"))),
-                    FlowNodeDefinition("EndEvent_RegistrationCompleted", BpmnElementType.END_EVENT,
+                    FlowNodeDefinition("EndEvent_RegistrationCompleted", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.MESSAGE),
                         displayName = "Registration completed",
                         properties = FlowNodeProperties.ServiceTask(zeebeServiceTasks[2]),
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "=subscriptionId")),
                         previousElements = listOf("Activity_SendWelcomeMail")),
-                    FlowNodeDefinition("EndEvent_RegistrationNotPossible", BpmnElementType.END_EVENT,
+                    FlowNodeDefinition("EndEvent_RegistrationNotPossible", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.SIGNAL),
                         displayName = "Registration not possible",
                         previousElements = listOf("ErrorEvent_InvalidMail")),
-                    FlowNodeDefinition("EndEvent_SubscriptionConfirmed", BpmnElementType.END_EVENT,
+                    FlowNodeDefinition("EndEvent_SubscriptionConfirmed", BpmnNodeType.Event(EventShape.END_EVENT),
                         displayName = "Subscription confirmed",
                         parentId = "SubProcess_Confirmation",
                         previousElements = listOf("Activity_ConfirmRegistration")),
-                    FlowNodeDefinition("ErrorEvent_InvalidMail", BpmnElementType.BOUNDARY_EVENT,
+                    FlowNodeDefinition("ErrorEvent_InvalidMail", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.ERROR),
                         displayName = "Invalid Mail",
                         attachedToRef = "SubProcess_Confirmation",
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "=subscriptionId")),
                         followingElements = listOf("EndEvent_RegistrationNotPossible")),
-                    FlowNodeDefinition("serviceTask_incrementSubscriptionCounter", BpmnElementType.SERVICE_TASK,
+                    FlowNodeDefinition("serviceTask_incrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
                         displayName = "Increment subscription counter",
                         properties = FlowNodeProperties.ServiceTask(zeebeServiceTasks[3]),
                         attachedElements = listOf("CompensationEvent_OnSubscriptionCounter"),
                         previousElements = listOf("StartEvent_SubmitRegistrationForm"),
                         followingElements = listOf("SubProcess_Confirmation")),
-                    FlowNodeDefinition("StartEvent_RequestReceived", BpmnElementType.START_EVENT,
+                    FlowNodeDefinition("StartEvent_RequestReceived", BpmnNodeType.Event(EventShape.START_EVENT),
                         displayName = "Subscription requested",
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "=subscriptionId")),
                         parentId = "SubProcess_Confirmation",
                         followingElements = listOf("Activity_SendConfirmationMail")),
-                    FlowNodeDefinition("StartEvent_SubmitRegistrationForm", BpmnElementType.START_EVENT,
+                    FlowNodeDefinition("StartEvent_SubmitRegistrationForm", BpmnNodeType.Event(EventShape.START_EVENT, EventDefinitionType.MESSAGE),
                         displayName = "Submit newsletter form",
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "=subscriptionId")),
                         followingElements = listOf("serviceTask_incrementSubscriptionCounter")),
-                    FlowNodeDefinition("SubProcess_Confirmation", BpmnElementType.SUB_PROCESS,
+                    FlowNodeDefinition("SubProcess_Confirmation", BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),
                         displayName = "Subscription Confirmation",
                         attachedElements = listOf("ErrorEvent_InvalidMail", "Timer_After3Days"),
                         previousElements = listOf("serviceTask_incrementSubscriptionCounter"),
                         followingElements = listOf("Activity_SendWelcomeMail")),
-                    FlowNodeDefinition("Timer_After3Days", BpmnElementType.BOUNDARY_EVENT,
+                    FlowNodeDefinition("Timer_After3Days", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
                         displayName = "After 3 days",
                         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_After3Days", "Duration", "=testVariable")),
                         attachedToRef = "SubProcess_Confirmation",
                         followingElements = listOf("CallActivity_AbortRegistration")),
-                    FlowNodeDefinition("Timer_EveryDay", BpmnElementType.BOUNDARY_EVENT,
+                    FlowNodeDefinition("Timer_EveryDay", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
                         displayName = "Every day",
                         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_EveryDay", "Duration", "PT1M")),
                         attachedToRef = "Activity_ConfirmRegistration",
@@ -221,7 +225,7 @@ class ZeebeModelExtractorTest {
         val bpmnModel = underTest.extract(file.readBytes())
 
         val eventSubProcess = bpmnModel.flowNodes.first { it.id == "eventSubProcess_errorHandling" }
-        assertThat(eventSubProcess.elementType).isEqualTo(BpmnElementType.EVENT_SUB_PROCESS)
+        assertThat(eventSubProcess.nodeType).isEqualTo(BpmnNodeType.Activity.SubProcess(SubProcessKind.EVENT))
 
         assertThat(bpmnModel.escalations).containsExactlyInAnyOrder(
             EscalationDefinition("escalationEndEvent_nofitySupport", "escalation_notifySupport", "200"),

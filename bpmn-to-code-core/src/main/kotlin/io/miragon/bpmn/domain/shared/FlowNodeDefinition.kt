@@ -4,7 +4,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
 data class FlowNodeDefinition(
     val id: String?,
-    val elementType: BpmnElementType = BpmnElementType.UNKNOWN,
+    val nodeType: BpmnNodeType = BpmnNodeType.Unknown,
     val displayName: String? = null,
     val properties: FlowNodeProperties = FlowNodeProperties.None,
     val variables: List<VariableDefinition> = emptyList(),
