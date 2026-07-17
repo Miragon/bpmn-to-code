@@ -5,7 +5,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import io.miragon.bpmn.domain.validation.rules.CollisionDetectionRule
@@ -36,7 +36,7 @@ class BpmnValidationService(
             .filterNot { it.id in config.disabledRules }
 
         return models.flatMap { model ->
-            val ctx = ValidationContext(model, engine)
+            val ctx = SingleModelValidationContext(model, engine)
             activeRules.flatMap { it.validate(ctx) }
         }
     }

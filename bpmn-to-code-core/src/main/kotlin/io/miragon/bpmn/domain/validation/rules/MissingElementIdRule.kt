@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
@@ -16,7 +16,7 @@ class MissingElementIdRule : BpmnValidationRule {
     override val id = "missing-element-id"
     override val severity = Severity.ERROR
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val model = context.model
         return model.flowNodes
             .filter { it.id == null }

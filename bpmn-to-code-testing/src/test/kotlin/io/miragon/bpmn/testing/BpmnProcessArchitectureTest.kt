@@ -3,7 +3,7 @@ package io.miragon.bpmn.testing
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.Assertions.assertThat
@@ -23,7 +23,7 @@ class BpmnProcessArchitectureTest {
         override val severity = Severity.WARN
         override val phase = ValidationPhase.PRE_MERGE
 
-        override fun validate(context: ValidationContext): List<ValidationViolation> {
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
             return context.model.serviceTasks
                 .filter { task ->
                     val name = task.id ?: ""

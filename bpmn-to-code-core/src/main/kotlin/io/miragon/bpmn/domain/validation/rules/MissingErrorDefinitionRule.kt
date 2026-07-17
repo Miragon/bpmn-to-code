@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 class MissingErrorDefinitionRule : BpmnValidationRule {
@@ -10,7 +10,7 @@ class MissingErrorDefinitionRule : BpmnValidationRule {
     override val id = "missing-error-definition"
     override val severity = Severity.ERROR
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         return context.model.errors
             .filter { !it.hasRequiredFields() }
             .map { error ->

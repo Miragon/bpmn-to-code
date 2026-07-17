@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 class MissingSignalNameRule : BpmnValidationRule {
@@ -10,7 +10,7 @@ class MissingSignalNameRule : BpmnValidationRule {
     override val id = "missing-signal-name"
     override val severity = Severity.ERROR
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         return context.model.signals
             .filter { !it.hasName() }
             .map {
