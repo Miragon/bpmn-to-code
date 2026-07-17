@@ -6,7 +6,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.TimerDefinition
 import io.miragon.bpmn.domain.testBpmnModel
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -68,6 +68,6 @@ class TimerIso8601SyntaxRuleTest {
                 ),
             ),
         )
-        return underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        return underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
     }
 }

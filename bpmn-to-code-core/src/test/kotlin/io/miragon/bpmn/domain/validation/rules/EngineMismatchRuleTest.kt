@@ -3,7 +3,7 @@ package io.miragon.bpmn.domain.validation.rules
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.testBpmnModel
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -18,7 +18,7 @@ class EngineMismatchRuleTest {
         val model = testBpmnModel(detectedEngine = ProcessEngine.CAMUNDA_7)
 
         // when / then: a single engine-mismatch ERROR is produced
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.OPERATON))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.OPERATON))
         assertThat(violations).hasSize(1)
         assertThat(violations[0].ruleId).isEqualTo("engine-mismatch")
         assertThat(violations[0].severity).isEqualTo(Severity.ERROR)
@@ -32,7 +32,7 @@ class EngineMismatchRuleTest {
         val model = testBpmnModel(detectedEngine = ProcessEngine.ZEEBE)
 
         // when / then: no violation is reported
-        assertThat(underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))).isEmpty()
+        assertThat(underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))).isEmpty()
     }
 
     @Test
@@ -42,7 +42,7 @@ class EngineMismatchRuleTest {
         val model = testBpmnModel(detectedEngine = null)
 
         // when / then: a single engine-mismatch WARN is produced
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.CAMUNDA_7))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.CAMUNDA_7))
         assertThat(violations).hasSize(1)
         assertThat(violations[0].ruleId).isEqualTo("engine-mismatch")
         assertThat(violations[0].severity).isEqualTo(Severity.WARN)

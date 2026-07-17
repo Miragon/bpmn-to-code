@@ -4,7 +4,7 @@ import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.testBpmnModel
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,7 +30,7 @@ class CollisionDetectionRuleTest {
         )
 
         // when: validating
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
 
         // then: one error violation referencing conflicting IDs
         assertThat(violations).hasSize(1)
@@ -50,7 +50,7 @@ class CollisionDetectionRuleTest {
         )
 
         // when / then: no violations
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
         assertThat(violations).isEmpty()
     }
 }

@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
@@ -17,7 +17,7 @@ class TimerCronSyntaxRule : BpmnValidationRule {
     override val id = "timer-cron-syntax"
     override val severity = Severity.ERROR
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         return context.model.timers.mapNotNull { timer ->
             val (type, value) = timer.getValue()
             if (type != "Cycle") return@mapNotNull null

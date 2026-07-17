@@ -3,7 +3,7 @@ package io.miragon.bpmn.domain.validation.rules
 import io.miragon.bpmn.domain.shared.VariableMapping
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
@@ -16,7 +16,7 @@ class InvalidIdentifierRule : BpmnValidationRule {
 
     private val validIdentifier = Regex("^[A-Z_][A-Z0-9_]*$")
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val model = context.model
         val violations = mutableListOf<ValidationViolation>()
         checkMappings(violations, model.processId, model.flowNodes, "FlowNode")

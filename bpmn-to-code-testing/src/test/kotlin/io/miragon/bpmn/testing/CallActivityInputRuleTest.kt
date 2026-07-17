@@ -3,7 +3,7 @@ package io.miragon.bpmn.testing
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ class CallActivityInputRuleTest {
         override val id = "call-activity-required-inputs"
         override val severity = Severity.ERROR
 
-        override fun validate(context: ValidationContext): List<ValidationViolation> {
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
             return context.model.callActivities.flatMap { callActivity ->
                 val declaredTargets = callActivity.inputMappings.mapNotNull { it.target }.toSet()
                 (required - declaredTargets).map { missing ->
@@ -34,7 +34,7 @@ class CallActivityInputRuleTest {
         override val id = "call-activity-required-outputs"
         override val severity = Severity.ERROR
 
-        override fun validate(context: ValidationContext): List<ValidationViolation> {
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
             return context.model.callActivities.flatMap { callActivity ->
                 val declaredTargets = callActivity.outputMappings.mapNotNull { it.target }.toSet()
                 (required - declaredTargets).map { missing ->

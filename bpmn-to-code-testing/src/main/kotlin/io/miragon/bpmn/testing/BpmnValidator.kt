@@ -7,7 +7,7 @@ import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -112,7 +112,7 @@ class BpmnValidator private constructor(
         val postMergeRules = activeRules.filter { it.phase == ValidationPhase.POST_MERGE }
 
         val preMergeViolations = models.flatMap { model ->
-            val ctx = ValidationContext(model, engine)
+            val ctx = SingleModelValidationContext(model, engine)
             val violations = preMergeRules.flatMap { it.validate(ctx) }
             applyPolicy(violations)
         }
@@ -123,7 +123,7 @@ class BpmnValidator private constructor(
 
         val mergedModels = ModelMergerService().mergeModels(models)
         val postMergeViolations = mergedModels.flatMap { merged ->
-            val ctx = ValidationContext(merged, engine)
+            val ctx = SingleModelValidationContext(merged, engine)
             val violations = postMergeRules.flatMap { it.validate(ctx) }
             applyPolicy(violations)
         }

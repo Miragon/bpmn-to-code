@@ -4,7 +4,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ class OutputExpressionRuleTest {
         override val severity = Severity.ERROR
         private val allowed = Regex("""\$\{(null|true|false|execution\.getVariable\('[^']+'\))}""")
 
-        override fun validate(context: ValidationContext): List<ValidationViolation> {
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
             return context.model.flowNodes
                 .flatMap { node -> node.variables.map { node to it } }
                 .filter { (_, variable) -> variable.direction == VariableDirection.OUTPUT }

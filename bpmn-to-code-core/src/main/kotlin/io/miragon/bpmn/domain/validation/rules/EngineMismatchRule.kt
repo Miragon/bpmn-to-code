@@ -4,7 +4,7 @@ import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
@@ -24,7 +24,7 @@ class EngineMismatchRule : BpmnValidationRule {
     override val id = "engine-mismatch"
     override val severity = Severity.ERROR
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val detected = (context.model as? BpmnModel)?.detectedEngine
         val selected = context.engine
         val violation = when {
@@ -35,7 +35,7 @@ class EngineMismatchRule : BpmnValidationRule {
         return listOfNotNull(violation)
     }
 
-    private fun violation(context: ValidationContext, severity: Severity, message: String): ValidationViolation {
+    private fun violation(context: SingleModelValidationContext, severity: Severity, message: String): ValidationViolation {
         return ValidationViolation(
             ruleId = id,
             severity = severity,

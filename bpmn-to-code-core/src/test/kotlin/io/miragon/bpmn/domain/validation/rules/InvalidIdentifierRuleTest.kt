@@ -9,7 +9,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.TimerDefinition
 import io.miragon.bpmn.domain.testBpmnModel
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -26,7 +26,7 @@ class InvalidIdentifierRuleTest {
         )
 
         // when: validating
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
 
         // then: a WARN violation mentioning "invalid identifier"
         assertThat(violations).hasSize(1)
@@ -48,7 +48,7 @@ class InvalidIdentifierRuleTest {
         )
 
         // when: validating
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
 
         // then: two WARN violations — one for FlowNode, one for Timer (same underlying id)
         assertThat(violations).hasSize(2)
@@ -65,7 +65,7 @@ class InvalidIdentifierRuleTest {
         )
 
         // when: validating
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
 
         // then: a WARN violation mentioning "invalid identifier"
         assertThat(violations).hasSize(1)
@@ -82,7 +82,7 @@ class InvalidIdentifierRuleTest {
         )
 
         // when: validating
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
 
         // then: a WARN violation mentioning "invalid identifier"
         assertThat(violations).hasSize(1)
@@ -99,7 +99,7 @@ class InvalidIdentifierRuleTest {
         )
 
         // when / then: no violations
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
         assertThat(violations).isEmpty()
     }
 
@@ -117,7 +117,7 @@ class InvalidIdentifierRuleTest {
         )
 
         // when / then: no violations
-        val violations = underTest.validate(ValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
         assertThat(violations).isEmpty()
     }
 }

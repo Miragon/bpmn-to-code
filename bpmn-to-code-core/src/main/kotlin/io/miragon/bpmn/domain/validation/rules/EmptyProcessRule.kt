@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.validation.BpmnValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationContext
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 class EmptyProcessRule : BpmnValidationRule {
@@ -10,7 +10,7 @@ class EmptyProcessRule : BpmnValidationRule {
     override val id = "empty-process"
     override val severity = Severity.WARN
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         if (context.model.flowNodes.isEmpty()) {
             return listOf(
                 ValidationViolation(
