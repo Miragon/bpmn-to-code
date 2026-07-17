@@ -39,9 +39,9 @@ class CrossModelValidationRuleTest {
     @Test
     fun `flags a call activity whose called process is absent from the loaded models`() {
 
-        // when: validating with the cross-process rule (only the parent process is loaded)
+        // when: validating with the cross-process rule (only order-fulfillment is loaded, not its payment subprocess)
         val result = BpmnValidator
-            .fromClasspath("crossmodel/parent-process.bpmn")
+            .fromClasspath("crossmodel/order-fulfillment.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(CallActivityTargetExistsRule())
             .validate()
@@ -51,14 +51,14 @@ class CrossModelValidationRuleTest {
         assertThat(result.violations).hasSize(1)
         val violation = result.violations.single()
         assertThat(violation.ruleId).isEqualTo("call-activity-target-exists")
-        assertThat(violation.elementId).isEqualTo("CallActivity_Child")
-        assertThat(violation.message).contains("childProcess")
+        assertThat(violation.elementId).isEqualTo("CallActivity_ProcessPayment")
+        assertThat(violation.message).contains("paymentProcessing")
     }
 
     @Test
     fun `passes when the called process is present among the loaded models`() {
 
-        // when: validating with the cross-process rule (both parent and child processes are loaded)
+        // when: validating with the cross-process rule (both order-fulfillment and payment-processing are loaded)
         val result = BpmnValidator
             .fromClasspath("crossmodel/")
             .engine(ProcessEngine.CAMUNDA_7)
@@ -106,7 +106,7 @@ class CrossModelValidationRuleTest {
 
         // when: a pre-merge single-model rule reports an ERROR
         val result = BpmnValidator
-            .fromClasspath("crossmodel/parent-process.bpmn")
+            .fromClasspath("crossmodel/order-fulfillment.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(AlwaysFailingPreMergeRule(), crossModelRule)
             .validate()
@@ -122,7 +122,7 @@ class CrossModelValidationRuleTest {
 
         // when: mixing a built-in single-model rule with a cross-model rule
         val validationAssert = BpmnValidator
-            .fromClasspath("crossmodel/parent-process.bpmn")
+            .fromClasspath("crossmodel/order-fulfillment.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_MESSAGE_NAME, CallActivityTargetExistsRule())
             .validate()

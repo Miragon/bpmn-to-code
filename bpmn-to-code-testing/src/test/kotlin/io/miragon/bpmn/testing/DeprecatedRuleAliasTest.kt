@@ -37,12 +37,12 @@ class DeprecatedRuleAliasTest {
     @Test
     fun `a rule implementing the deprecated alias still runs through the validator`() {
         val result = BpmnValidator
-            .fromClasspath("crossmodel/child-process.bpmn")
+            .fromClasspath("crossmodel/payment-processing.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(LegacyServiceTaskRule())
             .validate()
             .result()
 
-        assertThat(result.violations.map { it.elementId }).contains("Task_DoWork")
+        assertThat(result.violations.map { it.elementId }).contains("ServiceTask_ChargeCreditCard")
     }
 }
