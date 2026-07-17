@@ -3,6 +3,22 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [4.1.0](https://github.com/Miragon/bpmn-to-code/compare/v4.0.0...v4.1.0) (2026-07-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **testing:** cross-process (multi-model) validation rules ([#30](https://github.com/Miragon/bpmn-to-code/issues/30))
+
+### Features
+
+* **testing:** cross-process (multi-model) validation rules ([#30](https://github.com/Miragon/bpmn-to-code/issues/30)) ([889cd83](https://github.com/Miragon/bpmn-to-code/commit/889cd83318d3adccbfb855f4075389e7e4b3082f))
+
+
+### Documentation
+
+* **testing:** mark cross-process rules available since 4.1.0 ([#35](https://github.com/Miragon/bpmn-to-code/issues/35)) ([9e436f0](https://github.com/Miragon/bpmn-to-code/commit/9e436f0e4f3edf5c63e6d6feafd4055ec04af985))
+
 ## [4.0.0](https://github.com/Miragon/bpmn-to-code/compare/v3.2.0...v4.0.0) (2026-07-16)
 
 
