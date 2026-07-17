@@ -13,7 +13,10 @@ data class SingleModelValidationContext(
     val engine: ProcessEngine,
 )
 
-// Backward-compatibility alias for the pre-v5 name. Scheduled for removal in v6.0.0.
+/*
+ * Backward-compatibility alias for the previous type name. Kept as a temporary migration aid;
+ * scheduled for removal in v6.0.0. Migrate to [SingleModelValidationContext].
+ */
 @Deprecated(
     message = "Renamed to SingleModelValidationContext; this alias will be removed in v6.0.0",
     replaceWith = ReplaceWith("SingleModelValidationContext"),
