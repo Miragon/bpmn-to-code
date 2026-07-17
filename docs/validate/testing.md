@@ -263,6 +263,8 @@ The same mappings are surfaced in the [generated Process API](/guide/generated-a
 
 ## Cross-Process (Multi-Model) Rules
 
+_Available since 4.1.0._
+
 A [`SingleModelValidationRule`](#writing-custom-rules) sees one process at a time — it can never reason
 about the relationship *between* two processes. For checks that span files — for example whether a call
 activity's called process actually exists among your models — implement `CrossModelValidationRule`
