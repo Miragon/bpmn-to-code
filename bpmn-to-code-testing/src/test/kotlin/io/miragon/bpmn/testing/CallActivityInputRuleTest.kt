@@ -1,7 +1,7 @@
 package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 class CallActivityInputRuleTest {
 
-    private class RequireCallActivityInputsRule(private val required: Set<String>) : BpmnValidationRule {
+    private class RequireCallActivityInputsRule(private val required: Set<String>) : SingleModelValidationRule {
         override val id = "call-activity-required-inputs"
         override val severity = Severity.ERROR
 
@@ -30,7 +30,7 @@ class CallActivityInputRuleTest {
         }
     }
 
-    private class RequireCallActivityOutputsRule(private val required: Set<String>) : BpmnValidationRule {
+    private class RequireCallActivityOutputsRule(private val required: Set<String>) : SingleModelValidationRule {
         override val id = "call-activity-required-outputs"
         override val severity = Severity.ERROR
 

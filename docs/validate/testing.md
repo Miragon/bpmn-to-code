@@ -154,15 +154,23 @@ Cron and ISO-8601 are mutually exclusive for `timeCycle` timers, so enable **one
 
 ## Writing Custom Rules
 
-Implement the `BpmnValidationRule` interface to add project-specific checks:
+Implement the `SingleModelValidationRule` interface to add project-specific checks. Each rule is
+invoked once per process model and sees a single model through its `SingleModelValidationContext`:
+
+::: warning Renamed in v5
+`BpmnValidationRule` → `SingleModelValidationRule` and `ValidationContext` → `SingleModelValidationContext`
+(to contrast with the new [`CrossModelValidationRule`](#cross-process-multi-model-rules) /
+`CrossModelValidationContext`). The old names remain as deprecated typealiases, so existing rules keep
+compiling — update the type references at your convenience. See the [v5 migration guide](/changelog/v5).
+:::
 
 ```kotlin
-class RequireElementPrefixRule : BpmnValidationRule {
+class RequireElementPrefixRule : SingleModelValidationRule {
 
     override val id = "require-element-prefix"
     override val severity = Severity.WARN
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         return context.model.flowNodes
             .filter { !it.id.contains("_") }
             .map { node ->
@@ -198,12 +206,12 @@ variable gets inside the called process. For example, requiring every call activ
 `businessKey` and `correlationKey`:
 
 ```kotlin
-class RequireCallActivityInputsRule(private val required: Set<String>) : BpmnValidationRule {
+class RequireCallActivityInputsRule(private val required: Set<String>) : SingleModelValidationRule {
 
     override val id = "call-activity-required-inputs"
     override val severity = Severity.ERROR
 
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         return context.model.callActivities.flatMap { callActivity ->
             val declaredTargets = callActivity.inputMappings.mapNotNull { it.target }.toSet()
             (required - declaredTargets).map { missing ->
@@ -252,6 +260,71 @@ variables" (this treats Camunda's "not declared" and Zeebe's explicit `false` al
 The same mappings are surfaced in the [generated Process API](/guide/generated-api#call-activity-variable-mappings) under `CallActivities.<CallActivity>.Inputs` / `.Outputs` as `InputOutputMapping` constants, so production code can reference them type-safely too — not just validation rules.
 :::
 
-::: tip ValidationContext
+## Cross-Process (Multi-Model) Rules
+
+A [`SingleModelValidationRule`](#writing-custom-rules) sees one process at a time — it can never reason
+about the relationship *between* two processes. For checks that span files — for example whether a call
+activity's called process actually exists among your models — implement `CrossModelValidationRule`
+instead. It is invoked **once** with a `CrossModelValidationContext` that carries *all* loaded models
+and can resolve cross-process references:
+
+- `context.models` — every loaded process model.
+- `context.findProcess(processId)` — look up a model by its process id.
+- `context.resolveCalledModel(callActivity)` — resolve a call activity's called element to the model of
+  the called process, or `null` if it has none or references an unknown process.
+
+The example below flags any call activity that references a process not present among the loaded models
+(a dangling call activity — a runtime failure that no single-model rule can catch, because the parent
+and called process have different ids and never appear together):
+
+```kotlin
+class CallActivityTargetExistsRule : CrossModelValidationRule {
+
+    override val id = "call-activity-target-exists"
+    override val severity = Severity.ERROR
+
+    override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
+        return context.models.flatMap { model ->
+            model.callActivities
+                .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }
+                .map { callActivity ->
+                    ValidationViolation(
+                        ruleId = id,
+                        severity = severity,
+                        elementId = callActivity.id,
+                        processId = model.processId,
+                        message = "Call activity '${callActivity.id}' references unknown process '${callActivity.getValue()}'.",
+                    )
+                }
+        }
+    }
+}
+```
+
+Cross-model rules go through the same `.withRules(...)` flow and can be mixed freely with single-model
+rules in one run — the validator routes each to the right execution phase:
+
+```kotlin
+BpmnValidator
+    .fromClasspath("bpmn/")
+    .engine(ProcessEngine.CAMUNDA_7)
+    .withRules(*BpmnRules.all().toTypedArray(), CallActivityTargetExistsRule())
+    .validate()
+    .assertNoViolations()
+```
+
+::: tip Load the whole set
+Cross-process rules only pay off when **all** related files are loaded together — point
+`fromClasspath` / `fromDirectory` at the folder holding both the parent and the called processes so
+`resolveCalledModel` can find them. Cross-model rules run after models are merged; if a **pre-merge**
+single-model rule reports an `ERROR`, validation stops before the merge and the cross-model phase never
+runs (post-merge rules like `COLLISION_DETECTION` do not short-circuit it).
+:::
+
+Other cross-process checks you can write with the same building blocks: input-coverage ("does every
+caller pass the variables the called process reads?"), output-consumption, message/signal correlation
+across processes, and process-id uniqueness across the whole fileset.
+
+::: tip SingleModelValidationContext
 `context.model` gives you the full `BpmnModel` — flow nodes, service tasks, call activities, messages, signals, errors, timers, and variables. `context.engine` tells you which engine was selected, so you can write engine-specific rules.
 :::

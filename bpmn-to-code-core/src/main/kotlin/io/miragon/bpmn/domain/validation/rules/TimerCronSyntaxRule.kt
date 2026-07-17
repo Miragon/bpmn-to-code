@@ -1,6 +1,6 @@
 package io.miragon.bpmn.domain.validation.rules
 
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -12,7 +12,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
  * [MissingTimerDefinitionRule]). The check is syntactic (field count + allowed characters), not a
  * full engine-specific cron evaluation.
  */
-class TimerCronSyntaxRule : BpmnValidationRule {
+class TimerCronSyntaxRule : SingleModelValidationRule {
 
     override val id = "timer-cron-syntax"
     override val severity = Severity.ERROR

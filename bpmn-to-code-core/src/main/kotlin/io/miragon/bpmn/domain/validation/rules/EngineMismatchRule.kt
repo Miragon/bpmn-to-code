@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -19,7 +19,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
  *
  * Reported like any other rule, so it is collected together with the rest of the findings.
  */
-class EngineMismatchRule : BpmnValidationRule {
+class EngineMismatchRule : SingleModelValidationRule {
 
     override val id = "engine-mismatch"
     override val severity = Severity.ERROR

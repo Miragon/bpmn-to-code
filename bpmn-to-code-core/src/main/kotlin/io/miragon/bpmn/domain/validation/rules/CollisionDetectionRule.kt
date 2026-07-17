@@ -1,7 +1,7 @@
 package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.service.CollisionDetectionService
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
@@ -9,7 +9,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 class CollisionDetectionRule(
     private val collisionDetectionService: CollisionDetectionService = CollisionDetectionService(),
-) : BpmnValidationRule {
+) : SingleModelValidationRule {
 
     override val id = "collision-detection"
     override val severity = Severity.ERROR

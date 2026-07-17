@@ -1,13 +1,13 @@
 ---
 name: generate-rule-to-enforce-bpmn-styleguide
 argument-hint: "[rule-slug]"
-description: "Generate a Kotlin BpmnValidationRule implementation for ONE rule from BPMN_STYLE_GUIDE.md. Use when drafting / iterating on a single rule, or when the user asks to 'generate a rule for <slug>', 'create the element-id-format rule', or 'add just this one rule to the test module'. For all rules at once, use generate-rules-to-enforce-bpmn-styleguide."
+description: "Generate a Kotlin SingleModelValidationRule implementation for ONE rule from BPMN_STYLE_GUIDE.md. Use when drafting / iterating on a single rule, or when the user asks to 'generate a rule for <slug>', 'create the element-id-format rule', or 'add just this one rule to the test module'. For all rules at once, use generate-rules-to-enforce-bpmn-styleguide."
 allowed-tools: Read, Write, Glob, Grep, Bash(./gradlew *)
 ---
 
 # Skill: generate-rule-to-enforce-bpmn-styleguide
 
-Generate a single Kotlin `BpmnValidationRule` implementation for one entry in `BPMN_STYLE_GUIDE.md`. Same template, conventions and output directory as the bulk variant — use this when you're drafting a rule or iterating on one without regenerating the full file.
+Generate a single Kotlin `SingleModelValidationRule` implementation for one entry in `BPMN_STYLE_GUIDE.md`. Same template, conventions and output directory as the bulk variant — use this when you're drafting a rule or iterating on one without regenerating the full file.
 
 ## IMPORTANT
 
@@ -76,7 +76,7 @@ One Kotlin file, one class. Class name is PascalCase of the slug (e.g. `element-
  * element-id-format (deterministic)
  * Category: technical-configuration
  */
-class ElementIdFormatRule : BpmnValidationRule {
+class ElementIdFormatRule : SingleModelValidationRule {
     override val id = "element-id-format"
     override val severity = Severity.ERROR
 
@@ -110,7 +110,7 @@ class ElementIdFormatRule : BpmnValidationRule {
  * This rule covers the deterministic shape check. The semantic half
  * is enforced by /validate-bpmn-style using the rule's prose as the brief.
  */
-class ServiceTaskTopicRule : BpmnValidationRule { /* ... */ }
+class ServiceTaskTopicRule : SingleModelValidationRule { /* ... */ }
 ```
 
 ### Step 4 — Scan for an Existing Version of This Rule

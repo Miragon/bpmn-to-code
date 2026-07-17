@@ -1,6 +1,6 @@
 package io.miragon.bpmn.domain.validation.rules
 
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -11,7 +11,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
  * Dynamic expressions and blank values are skipped (the latter is the domain of
  * [MissingTimerDefinitionRule]); timers with an unknown/absent type are ignored.
  */
-class TimerIso8601SyntaxRule : BpmnValidationRule {
+class TimerIso8601SyntaxRule : SingleModelValidationRule {
 
     override val id = "timer-iso8601-syntax"
     override val severity = Severity.ERROR
