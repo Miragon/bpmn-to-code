@@ -9,8 +9,9 @@ interface SingleModelValidationRule : ValidationRule {
     fun validate(context: SingleModelValidationContext): List<ValidationViolation>
 }
 
+// Backward-compatibility alias for the pre-v5 name. Scheduled for removal in v6.0.0.
 @Deprecated(
-    message = "Renamed to SingleModelValidationRule",
+    message = "Renamed to SingleModelValidationRule; this alias will be removed in v6.0.0",
     replaceWith = ReplaceWith("SingleModelValidationRule"),
 )
 typealias BpmnValidationRule = SingleModelValidationRule
