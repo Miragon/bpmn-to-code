@@ -157,11 +157,12 @@ Cron and ISO-8601 are mutually exclusive for `timeCycle` timers, so enable **one
 Implement the `SingleModelValidationRule` interface to add project-specific checks. Each rule is
 invoked once per process model and sees a single model through its `SingleModelValidationContext`:
 
-::: warning Renamed in v5
+::: warning Renamed (deprecated since 4.1.0)
 `BpmnValidationRule` → `SingleModelValidationRule` and `ValidationContext` → `SingleModelValidationContext`
 (to contrast with the new [`CrossModelValidationRule`](#cross-process-multi-model-rules) /
-`CrossModelValidationContext`). The old names remain as deprecated typealiases, so existing rules keep
-compiling — update the type references at your convenience. See the [v5 migration guide](/changelog/v5).
+`CrossModelValidationContext`). The old names remain as deprecated typealiases — source-compatible, so
+existing rules keep compiling — and are **scheduled for removal in 5.0.0**. Update the type references at
+your convenience; see the [v5 migration guide](/changelog/v5).
 :::
 
 ```kotlin

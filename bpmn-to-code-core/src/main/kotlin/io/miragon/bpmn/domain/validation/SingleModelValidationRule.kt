@@ -11,10 +11,10 @@ interface SingleModelValidationRule : ValidationRule {
 
 /*
  * Backward-compatibility alias for the previous type name. Kept as a temporary migration aid;
- * scheduled for removal in v6.0.0. Migrate to [SingleModelValidationRule].
+ * scheduled for removal in v5.0.0. Migrate to [SingleModelValidationRule].
  */
 @Deprecated(
-    message = "Renamed to SingleModelValidationRule; this alias will be removed in v6.0.0",
+    message = "Renamed to SingleModelValidationRule; this alias will be removed in v5.0.0",
     replaceWith = ReplaceWith("SingleModelValidationRule"),
 )
 typealias BpmnValidationRule = SingleModelValidationRule
