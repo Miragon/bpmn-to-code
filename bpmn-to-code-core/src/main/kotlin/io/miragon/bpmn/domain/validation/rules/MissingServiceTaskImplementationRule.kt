@@ -1,12 +1,12 @@
 package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
-class MissingServiceTaskImplementationRule : BpmnValidationRule {
+class MissingServiceTaskImplementationRule : SingleModelValidationRule {
 
     override val id = "missing-service-task-implementation"
     override val severity = Severity.ERROR

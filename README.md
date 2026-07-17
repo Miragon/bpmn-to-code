@@ -43,7 +43,7 @@ BpmnValidator
     .assertNoViolations()
 ```
 
-11 built-in rules cover missing implementations, undefined timers, empty processes, naming violations, and variable collisions. Add custom rules by implementing `BpmnValidationRule`.
+11 built-in rules cover missing implementations, undefined timers, empty processes, naming violations, and variable collisions. Add custom rules by implementing `SingleModelValidationRule` (per-process) or `CrossModelValidationRule` (across all loaded models).
 
 ### Surface — Process Structure in Code _(beta)_
 

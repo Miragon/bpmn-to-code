@@ -1,7 +1,7 @@
 package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.VariableMapping
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -9,7 +9,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 /**
  * Checks that BPMN element IDs produce valid SCREAMING_SNAKE_CASE identifiers for the generated API.
  */
-class InvalidIdentifierRule : BpmnValidationRule {
+class InvalidIdentifierRule : SingleModelValidationRule {
 
     override val id = "invalid-identifier"
     override val severity = Severity.WARN

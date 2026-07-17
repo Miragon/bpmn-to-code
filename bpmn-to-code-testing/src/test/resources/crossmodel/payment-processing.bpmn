@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_PaymentProcessing"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="paymentProcessing" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_PaymentRequested" name="Payment requested">
+      <bpmn:outgoing>Flow_ToCharge</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="ServiceTask_ChargeCreditCard" name="Charge credit card" camunda:delegateExpression="${chargeCreditCardDelegate}">
+      <bpmn:incoming>Flow_ToCharge</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToCaptured</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_PaymentCaptured" name="Payment captured">
+      <bpmn:incoming>Flow_ToCaptured</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToCharge" sourceRef="StartEvent_PaymentRequested" targetRef="ServiceTask_ChargeCreditCard" />
+    <bpmn:sequenceFlow id="Flow_ToCaptured" sourceRef="ServiceTask_ChargeCreditCard" targetRef="EndEvent_PaymentCaptured" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="paymentProcessing">
+      <bpmndi:BPMNShape id="StartEvent_PaymentRequested_di" bpmnElement="StartEvent_PaymentRequested">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_ChargeCreditCard_di" bpmnElement="ServiceTask_ChargeCreditCard">
+        <dc:Bounds x="240" y="60" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_PaymentCaptured_di" bpmnElement="EndEvent_PaymentCaptured">
+        <dc:Bounds x="392" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToCharge_di" bpmnElement="Flow_ToCharge">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="240" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToCaptured_di" bpmnElement="Flow_ToCaptured">
+        <di:waypoint x="340" y="100" />
+        <di:waypoint x="392" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

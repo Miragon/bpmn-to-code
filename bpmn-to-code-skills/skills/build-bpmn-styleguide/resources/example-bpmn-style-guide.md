@@ -14,7 +14,7 @@ The guide is divided into three parts:
 Each rule block is annotated with a machine-readable YAML stanza so tooling can enforce it automatically. The annotations live inside HTML comments (`<!-- rule:slug -->`) and fenced code blocks — they are invisible when the guide is rendered but survive in source. Two companion skills consume them:
 
 - `/validate-bpmn-style` — lints live BPMN files against this guide (advisory, not a CI gate).
-- `/generate-rules-to-enforce-bpmn-styleguide` — generates Kotlin `BpmnValidationRule` implementations for the deterministic rules, usable with `bpmn-to-code-testing`.
+- `/generate-rules-to-enforce-bpmn-styleguide` — generates Kotlin `SingleModelValidationRule` implementations for the deterministic rules, usable with `bpmn-to-code-testing`.
 
 ---
 
@@ -119,7 +119,7 @@ validation: llm
 ## 🔧 Technical Configuration
 
 These rules govern how automation-relevant elements are identified and configured.
-They're mostly deterministic and can be enforced by either the LLM via `/validate-bpmn-style` or by the generated `BpmnValidationRule`s in your test suite.
+They're mostly deterministic and can be enforced by either the LLM via `/validate-bpmn-style` or by the generated `SingleModelValidationRule`s in your test suite.
 
 ### Element IDs
 

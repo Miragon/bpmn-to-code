@@ -5,7 +5,10 @@ import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.CrossModelValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
+import io.miragon.bpmn.domain.validation.ValidationRule
+import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
@@ -30,7 +33,7 @@ class BpmnValidator private constructor(
 ) {
 
     private var engine: ProcessEngine? = null
-    private var rules: List<BpmnValidationRule>? = null
+    private var rules: List<ValidationRule>? = null
     private var disabledRuleIds: Set<String> = emptySet()
     private var failOnWarning: Boolean = false
 
@@ -43,17 +46,19 @@ class BpmnValidator private constructor(
     }
 
     /**
-     * Sets the validation rules to use. Defaults to [BpmnRules.all] if not called.
+     * Sets the validation rules to use. Accepts both [SingleModelValidationRule] and
+     * [CrossModelValidationRule]. Defaults to [BpmnRules.all] if not called.
      */
-    fun withRules(vararg rules: BpmnValidationRule): BpmnValidator {
+    fun withRules(vararg rules: ValidationRule): BpmnValidator {
         this.rules = rules.toList()
         return this
     }
 
     /**
-     * Sets the validation rules to use. Defaults to [BpmnRules.all] if not called.
+     * Sets the validation rules to use. Accepts both [SingleModelValidationRule] and
+     * [CrossModelValidationRule]. Defaults to [BpmnRules.all] if not called.
      */
-    fun withRules(rules: List<BpmnValidationRule>): BpmnValidator {
+    fun withRules(rules: List<ValidationRule>): BpmnValidator {
         this.rules = rules
         return this
     }
@@ -98,7 +103,7 @@ class BpmnValidator private constructor(
         }
     }
 
-    private fun resolveRules(): List<BpmnValidationRule> {
+    private fun resolveRules(): List<ValidationRule> {
         val base = rules ?: BpmnRules.all()
         return base.filterNot { it.id in disabledRuleIds }
     }
@@ -106,10 +111,12 @@ class BpmnValidator private constructor(
     private fun runValidation(
         models: List<BpmnModel>,
         engine: ProcessEngine,
-        activeRules: List<BpmnValidationRule>,
+        activeRules: List<ValidationRule>,
     ): ValidationResult {
-        val preMergeRules = activeRules.filter { it.phase == ValidationPhase.PRE_MERGE }
-        val postMergeRules = activeRules.filter { it.phase == ValidationPhase.POST_MERGE }
+        val singleModelRules = activeRules.filterIsInstance<SingleModelValidationRule>()
+        val crossModelRules = activeRules.filterIsInstance<CrossModelValidationRule>()
+        val preMergeRules = singleModelRules.filter { it.phase == ValidationPhase.PRE_MERGE }
+        val postMergeRules = singleModelRules.filter { it.phase == ValidationPhase.POST_MERGE }
 
         val preMergeViolations = models.flatMap { model ->
             val ctx = SingleModelValidationContext(model, engine)
@@ -128,7 +135,10 @@ class BpmnValidator private constructor(
             applyPolicy(violations)
         }
 
-        return ValidationResult(preMergeViolations + postMergeViolations)
+        val crossModelContext = CrossModelValidationContext(mergedModels, engine)
+        val crossModelViolations = applyPolicy(crossModelRules.flatMap { it.validate(crossModelContext) })
+
+        return ValidationResult(preMergeViolations + postMergeViolations + crossModelViolations)
     }
 
     companion object {

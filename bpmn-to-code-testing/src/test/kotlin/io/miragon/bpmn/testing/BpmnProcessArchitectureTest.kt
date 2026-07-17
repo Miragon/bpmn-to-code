@@ -1,7 +1,7 @@
 package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
@@ -18,7 +18,7 @@ class BpmnProcessArchitectureTest {
     /**
      * Custom rule: all service tasks must have an ID that starts with a known prefix.
      */
-    private val serviceTaskNamingRule = object : BpmnValidationRule {
+    private val serviceTaskNamingRule = object : SingleModelValidationRule {
         override val id = "service-task-naming"
         override val severity = Severity.WARN
         override val phase = ValidationPhase.PRE_MERGE

@@ -2,7 +2,7 @@ package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.VariableDirection
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -10,13 +10,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 /**
- * Demonstrates that a custom [BpmnValidationRule] can inspect the value expression (right-hand side)
+ * Demonstrates that a custom [SingleModelValidationRule] can inspect the value expression (right-hand side)
  * of a variable mapping via `VariableDefinition.valueExpression` (see issue #348).
  */
 class OutputExpressionRuleTest {
 
     /** Allows ${null}, ${true}, ${false} and ${execution.getVariable('...')} as output expressions. */
-    private class OutputExpressionAllowListRule : BpmnValidationRule {
+    private class OutputExpressionAllowListRule : SingleModelValidationRule {
         override val id = "output-expression-allow-list"
         override val severity = Severity.ERROR
         private val allowed = Regex("""\$\{(null|true|false|execution\.getVariable\('[^']+'\))}""")

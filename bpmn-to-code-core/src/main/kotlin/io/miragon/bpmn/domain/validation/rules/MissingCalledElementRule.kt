@@ -1,11 +1,11 @@
 package io.miragon.bpmn.domain.validation.rules
 
-import io.miragon.bpmn.domain.validation.BpmnValidationRule
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
-class MissingCalledElementRule : BpmnValidationRule {
+class MissingCalledElementRule : SingleModelValidationRule {
 
     override val id = "missing-called-element"
     override val severity = Severity.ERROR

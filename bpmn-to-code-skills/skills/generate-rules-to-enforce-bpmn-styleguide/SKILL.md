@@ -1,12 +1,12 @@
 ---
 name: generate-rules-to-enforce-bpmn-styleguide
-description: "Generate Kotlin BpmnValidationRule implementations for every deterministic (or hybrid) rule in BPMN_STYLE_GUIDE.md, so they can be enforced at test time by the bpmn-to-code-testing module. llm-only rules stay in the style guide for /validate-bpmn-style. Use when the user asks to 'generate validation rules from the style guide', 'enforce BPMN conventions in CI', or 'automate style checks in tests'. For a single rule, use generate-rule-to-enforce-bpmn-styleguide."
+description: "Generate Kotlin SingleModelValidationRule implementations for every deterministic (or hybrid) rule in BPMN_STYLE_GUIDE.md, so they can be enforced at test time by the bpmn-to-code-testing module. llm-only rules stay in the style guide for /validate-bpmn-style. Use when the user asks to 'generate validation rules from the style guide', 'enforce BPMN conventions in CI', or 'automate style checks in tests'. For a single rule, use generate-rule-to-enforce-bpmn-styleguide."
 allowed-tools: Read, Write, Glob, Grep, Bash(./gradlew *)
 ---
 
 # Skill: generate-rules-to-enforce-bpmn-styleguide
 
-Generate Kotlin `BpmnValidationRule` implementations for the deterministic rules in `BPMN_STYLE_GUIDE.md`. The output is a single file that plugs into `bpmn-to-code-testing`'s `BpmnValidator`.
+Generate Kotlin `SingleModelValidationRule` implementations for the deterministic rules in `BPMN_STYLE_GUIDE.md`. The output is a single file that plugs into `bpmn-to-code-testing`'s `BpmnValidator`.
 
 ## IMPORTANT
 
@@ -100,7 +100,7 @@ Produce a single Kotlin file: one class per generated rule + an aggregator.
  * element-id-format (deterministic)
  * Category: technical-configuration
  */
-class ElementIdFormatRule : BpmnValidationRule {
+class ElementIdFormatRule : SingleModelValidationRule {
     override val id = "element-id-format"
     override val severity = Severity.ERROR
 
@@ -135,7 +135,7 @@ class ElementIdFormatRule : BpmnValidationRule {
  * ('<elementIdWithoutPrefix>' actually matches the element ID minus
  * 'serviceTask_') is enforced by /validate-bpmn-style.
  */
-class ServiceTaskTopicRule : BpmnValidationRule { /* ... */ }
+class ServiceTaskTopicRule : SingleModelValidationRule { /* ... */ }
 ```
 
 **Aggregator:**
@@ -147,7 +147,7 @@ object BpmnStyleGuideRules {
     // …
 
     @JvmStatic
-    fun all(): List<BpmnValidationRule> = listOf(
+    fun all(): List<SingleModelValidationRule> = listOf(
         ELEMENT_ID_FORMAT,
         SERVICE_TASK_TOPIC,
         // …
@@ -160,7 +160,7 @@ object BpmnStyleGuideRules {
 Before asking for an output location, see what the project already has:
 
 1. Glob `**/src/test/kotlin/**/architecture/bpmn/**/*.kt`, plus a broader `**/src/test/kotlin/**/*Rule.kt` to catch alternative layouts.
-2. Grep the matches for `: BpmnValidationRule` (class declarations) and for each slug from the style guide (as the `override val id = "<slug>"` literal).
+2. Grep the matches for `ValidationRule` (class declarations — matches both `SingleModelValidationRule` and the deprecated `BpmnValidationRule` alias from older generated files) and for each slug from the style guide (as the `override val id = "<slug>"` literal).
 3. Use what you find:
    - If a `BpmnStyleGuideRules.kt` file already exists at the expected path, read it. Show the user the rules that are already implemented and ask whether to **overwrite**, **merge** (add the new rules and keep existing ones that aren't in the style guide), or **abort**.
    - If rules with the same `id` exist in different files or under different class names, list them and ask the user how to resolve: **replace**, **skip** (don't regenerate this rule), or **write alongside** (let the user deduplicate manually).

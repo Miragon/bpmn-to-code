@@ -4,7 +4,9 @@ import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 
 /**
- * Context handed to a validation rule. Carries the single process model under validation.
+ * Context handed to a [io.miragon.bpmn.domain.validation.SingleModelValidationRule]. Carries the single
+ * process model under validation. For rules that reason across processes, see
+ * [io.miragon.bpmn.domain.validation.model.CrossModelValidationContext].
  */
 data class SingleModelValidationContext(
     val model: ProcessModel,
