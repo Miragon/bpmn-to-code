@@ -31,6 +31,7 @@ jobs:
             'bpmn-to-code-maven/' \
             'bpmn-to-code-testing/' \
             'bpmn-to-code-web/' \
+            'bpmn-to-code-architecture-tests/' \
             'build.gradle.kts' \
             'settings.gradle.kts' \
             'gradle/libs.versions.toml' \

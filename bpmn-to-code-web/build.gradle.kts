@@ -26,7 +26,6 @@ dependencies {
     // Testing
     testImplementation(libs.bundles.testing)
     testImplementation(libs.ktorServerTestHost)
-    testImplementation(testFixtures(project(":bpmn-to-code-core")))
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
