@@ -6,6 +6,9 @@ import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Flags service tasks with no implementation, with an engine-specific hint on what to configure.
+ */
 class MissingServiceTaskImplementationRule : SingleModelValidationRule {
 
     override val id = "missing-service-task-implementation"

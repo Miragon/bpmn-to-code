@@ -5,6 +5,9 @@ import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Flags call activities that reference no target process (missing 'calledElement' / 'processId').
+ */
 class MissingCalledElementRule : SingleModelValidationRule {
 
     override val id = "missing-called-element"

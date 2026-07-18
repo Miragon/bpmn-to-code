@@ -5,6 +5,9 @@ import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Flags timer events that have no resolvable type (Date, Duration, or Cycle).
+ */
 class MissingTimerDefinitionRule : SingleModelValidationRule {
 
     override val id = "missing-timer-definition"

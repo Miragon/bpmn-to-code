@@ -5,6 +5,9 @@ import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Flags signal events whose definition is missing a 'name' attribute.
+ */
 class MissingSignalNameRule : SingleModelValidationRule {
 
     override val id = "missing-signal-name"

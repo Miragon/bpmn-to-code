@@ -5,6 +5,9 @@ import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Flags a model with a blank process ID, which is required to identify the generated API.
+ */
 class MissingProcessIdRule : SingleModelValidationRule {
 
     override val id = "missing-process-id"

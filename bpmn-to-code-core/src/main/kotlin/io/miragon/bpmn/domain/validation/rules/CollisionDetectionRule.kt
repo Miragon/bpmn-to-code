@@ -7,6 +7,10 @@ import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Flags when distinct BPMN elements collapse to the same generated constant name, causing ID clashes.
+ * Runs post-merge, so it also catches collisions introduced by combining models.
+ */
 class CollisionDetectionRule(
     private val collisionDetectionService: CollisionDetectionService = CollisionDetectionService(),
 ) : SingleModelValidationRule {

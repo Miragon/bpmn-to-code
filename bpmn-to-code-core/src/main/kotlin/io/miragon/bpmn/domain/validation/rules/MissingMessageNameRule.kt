@@ -5,6 +5,9 @@ import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Flags message elements that are missing a 'name' attribute.
+ */
 class MissingMessageNameRule : SingleModelValidationRule {
 
     override val id = "missing-message-name"
