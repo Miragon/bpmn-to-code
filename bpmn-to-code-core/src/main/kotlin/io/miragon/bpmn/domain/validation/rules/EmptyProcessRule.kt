@@ -5,6 +5,9 @@ import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
+/**
+ * Warns when a process contains no flow nodes, so no meaningful API can be generated from it.
+ */
 class EmptyProcessRule : SingleModelValidationRule {
 
     override val id = "empty-process"
