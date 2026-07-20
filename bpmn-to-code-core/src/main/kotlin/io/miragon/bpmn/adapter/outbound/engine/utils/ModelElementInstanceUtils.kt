@@ -16,4 +16,12 @@ object ModelElementInstanceUtils {
         return mapNotNull { it.domElement.getAttribute(attributeName) }
     }
 
+    fun ModelElementInstance.nonBlankAttribute(name: String): String? {
+        return getAttributeValue(name)?.takeIf { it.isNotBlank() }
+    }
+
+    fun ModelElementInstance.nonBlankAttributeNs(namespace: String, name: String): String? {
+        return getAttributeValueNs(namespace, name)?.takeIf { it.isNotBlank() }
+    }
+
 }
