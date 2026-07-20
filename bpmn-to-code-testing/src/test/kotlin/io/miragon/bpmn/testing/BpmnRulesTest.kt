@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test
 class BpmnRulesTest {
 
     @Test
-    fun `all() returns all 11 built-in rules`() {
+    fun `all() returns all 10 built-in rules`() {
         val rules = BpmnRules.all()
-        assertThat(rules).hasSize(11)
+        assertThat(rules).hasSize(10)
     }
 
     @Test
@@ -26,7 +26,6 @@ class BpmnRulesTest {
         assertThat(BpmnRules.MISSING_TIMER_DEFINITION.id).isEqualTo("missing-timer-definition")
         assertThat(BpmnRules.MISSING_CALLED_ELEMENT.id).isEqualTo("missing-called-element")
         assertThat(BpmnRules.MISSING_ELEMENT_ID.id).isEqualTo("missing-element-id")
-        assertThat(BpmnRules.INVALID_IDENTIFIER.id).isEqualTo("invalid-identifier")
         assertThat(BpmnRules.EMPTY_PROCESS.id).isEqualTo("empty-process")
         assertThat(BpmnRules.MISSING_PROCESS_ID.id).isEqualTo("missing-process-id")
         assertThat(BpmnRules.COLLISION_DETECTION.id).isEqualTo("collision-detection")
@@ -43,7 +42,6 @@ class BpmnRulesTest {
             BpmnRules.MISSING_TIMER_DEFINITION,
             BpmnRules.MISSING_CALLED_ELEMENT,
             BpmnRules.MISSING_ELEMENT_ID,
-            BpmnRules.INVALID_IDENTIFIER,
             BpmnRules.EMPTY_PROCESS,
             BpmnRules.MISSING_PROCESS_ID,
             BpmnRules.COLLISION_DETECTION,

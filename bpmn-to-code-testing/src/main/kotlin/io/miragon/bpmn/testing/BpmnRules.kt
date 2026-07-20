@@ -3,7 +3,6 @@ package io.miragon.bpmn.testing
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.rules.CollisionDetectionRule
 import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
-import io.miragon.bpmn.domain.validation.rules.InvalidIdentifierRule
 import io.miragon.bpmn.domain.validation.rules.MissingCalledElementRule
 import io.miragon.bpmn.domain.validation.rules.MissingElementIdRule
 import io.miragon.bpmn.domain.validation.rules.MissingErrorDefinitionRule
@@ -72,14 +71,6 @@ object BpmnRules {
     val MISSING_ELEMENT_ID: SingleModelValidationRule = MissingElementIdRule()
 
     /**
-     * Element IDs that can't be converted to valid SCREAMING_SNAKE_CASE produce malformed or
-     * missing constants — the generated API becomes inconsistent.
-     * Reported as WARN to allow gradual migration of existing processes.
-     */
-    @JvmField
-    val INVALID_IDENTIFIER: SingleModelValidationRule = InvalidIdentifierRule()
-
-    /**
      * A process with no flow nodes produces an empty generated API, which is almost always
      * a modeling mistake. Reported as WARN since it is technically valid BPMN.
      */
@@ -133,7 +124,6 @@ object BpmnRules {
             MISSING_TIMER_DEFINITION,
             MISSING_CALLED_ELEMENT,
             MISSING_ELEMENT_ID,
-            INVALID_IDENTIFIER,
             EMPTY_PROCESS,
             MISSING_PROCESS_ID,
             COLLISION_DETECTION,

@@ -39,6 +39,23 @@ class StringUtilsTest {
     }
 
     @Test
+    fun `toUpperSnakeCase sanitizes connector task types containing colons`() {
+        assertThat("io.camunda:http-json:1".toUpperSnakeCase()).isEqualTo("IO_CAMUNDA_HTTP_JSON_1")
+        assertThat("io.camunda:webhook:1".toUpperSnakeCase()).isEqualTo("IO_CAMUNDA_WEBHOOK_1")
+    }
+
+    @Test
+    fun `toUpperSnakeCase collapses runs of non-identifier characters into a single underscore`() {
+        assertThat("foo::bar".toUpperSnakeCase()).isEqualTo("FOO_BAR")
+        assertThat("foo -. bar".toUpperSnakeCase()).isEqualTo("FOO_BAR")
+    }
+
+    @Test
+    fun `toUpperSnakeCase prefixes an underscore when the result would start with a digit`() {
+        assertThat("1st-task".toUpperSnakeCase()).isEqualTo("_1_ST_TASK")
+    }
+
+    @Test
     fun `toUpperSnakeCase handles already uppercase strings`() {
         assertThat("ALREADY_UPPERCASE".toUpperSnakeCase()).isEqualTo("ALREADY_UPPERCASE")
         assertThat("SEND_MAIL".toUpperSnakeCase()).isEqualTo("SEND_MAIL")

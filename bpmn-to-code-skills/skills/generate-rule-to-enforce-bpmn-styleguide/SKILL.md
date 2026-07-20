@@ -16,7 +16,7 @@ Generate a single Kotlin `SingleModelValidationRule` implementation for one entr
 - For `hybrid` rules, generate the deterministic half and note in a comment that the semantic half stays for `/validate-bpmn-style`.
 - Don't touch the aggregator (`BpmnStyleGuideRules.kt`) owned by the bulk variant. This skill writes its own per-rule file; the user can run the bulk skill later to regenerate the aggregator.
 - Use `requireNotNull()` instead of `!!`.
-- Use `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/validation/rules/InvalidIdentifierRule.kt` as the structural template.
+- Use `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/validation/rules/MissingElementIdRule.kt` as the structural template.
 
 ## Domain Model
 
@@ -69,7 +69,7 @@ One Kotlin file, one class. Class name is PascalCase of the slug (e.g. `element-
 // Re-run the skill after editing the rule in the style guide.
 ```
 
-**Class for a `deterministic` rule** (follow `InvalidIdentifierRule.kt` for shape):
+**Class for a `deterministic` rule** (follow `MissingElementIdRule.kt` for shape):
 
 ```kotlin
 /**

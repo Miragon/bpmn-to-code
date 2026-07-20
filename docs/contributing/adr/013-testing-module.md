@@ -26,7 +26,7 @@ BpmnValidator
     .fromClasspath("bpmn/")
     .engine(ProcessEngine.ZEEBE)
     .withRules(BpmnRules.all())
-    .disableRules("invalid-identifier")
+    .disableRules("empty-process")
     .failOnWarning()
     .validate()
     .assertNoViolations()
