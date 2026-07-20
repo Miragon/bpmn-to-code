@@ -158,11 +158,18 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             val id = node.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_ID)
             val type = taskDefinition.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_TYPE)
                 ?.takeIf { it.isNotBlank() }
+            val modelerTemplate = node
+                .getAttributeValueNs(ZeebeModelConstants.NAMESPACE, ZeebeModelConstants.ATTRIBUTE_MODELER_TEMPLATE)
+                ?.takeIf { it.isNotBlank() }
+            val kind = when {
+                modelerTemplate != null -> ZeebeImplementationKind.CONNECTOR
+                else -> ZeebeImplementationKind.JOB_WORKER
+            }
             ServiceTaskDefinition(
                 id = id,
                 engineSpecificProperties = buildMap {
                     put(implValueKey, type)
-                    put(implKindKey, ZeebeImplementationKind.JOB_WORKER.name)
+                    put(implKindKey, kind.name)
                 }
             )
         }

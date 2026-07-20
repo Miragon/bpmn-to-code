@@ -42,7 +42,7 @@
       </bpmn:multiInstanceLoopCharacteristics>
     </bpmn:serviceTask>
     <bpmn:endEvent id="endEvent_editionSent" name="Newsletter edition send">
-      <bpmn:incoming>Flow_0v2v55n</bpmn:incoming>
+      <bpmn:incoming>Flow_1conn0</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1ruayvl" sourceRef="serviceTask_sendToSubscriber" targetRef="serviceTask_notifyAuthor" />
     <bpmn:serviceTask id="serviceTask_notifyAuthor" name="Notify authors">
@@ -60,7 +60,20 @@
         </bpmn:extensionElements>
       </bpmn:multiInstanceLoopCharacteristics>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_0v2v55n" sourceRef="serviceTask_notifyAuthor" targetRef="endEvent_editionSent" />
+    <bpmn:sequenceFlow id="Flow_0v2v55n" sourceRef="serviceTask_notifyAuthor" targetRef="serviceTask_publishNewsletter" />
+    <bpmn:serviceTask id="serviceTask_publishNewsletter" name="Publish newsletter online" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="POST" target="method" />
+          <zeebe:input source="https://api.example.com/newsletter" target="url" />
+          <zeebe:output source="=response" target="apiResponse" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0v2v55n</bpmn:incoming>
+      <bpmn:outgoing>Flow_1conn0</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1conn0" sourceRef="serviceTask_publishNewsletter" targetRef="endEvent_editionSent" />
     <bpmn:subProcess id="eventSubProcess_errorHandling" name="Error handling" triggeredByEvent="true">
       <bpmn:startEvent id="event_mailRejected" name="Mail rejected">
         <bpmn:outgoing>Flow_0vtppnk</bpmn:outgoing>
@@ -164,14 +177,17 @@
         <dc:Bounds x="510" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1nlgapd_di" bpmnElement="endEvent_editionSent">
-        <dc:Bounds x="812" y="102" width="36" height="36" />
+        <dc:Bounds x="982" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="677" y="145" width="88" height="27" />
+          <dc:Bounds x="847" y="145" width="88" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0o94zo3_di" bpmnElement="serviceTask_notifyAuthor">
         <dc:Bounds x="650" y="80" width="100" height="80" />
         <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_publishNewsletter_di" bpmnElement="serviceTask_publishNewsletter">
+        <dc:Bounds x="810" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1f48jdy_di" bpmnElement="eventSubProcess_errorHandling" isExpanded="true">
         <dc:Bounds x="165" y="350" width="910" height="290" />
@@ -301,7 +317,11 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0v2v55n_di" bpmnElement="Flow_0v2v55n">
         <di:waypoint x="750" y="120" />
-        <di:waypoint x="812" y="120" />
+        <di:waypoint x="810" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1conn0_di" bpmnElement="Flow_1conn0">
+        <di:waypoint x="910" y="120" />
+        <di:waypoint x="982" y="120" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

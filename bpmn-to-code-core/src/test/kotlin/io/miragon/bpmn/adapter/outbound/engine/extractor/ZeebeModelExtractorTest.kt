@@ -215,7 +215,23 @@ class ZeebeModelExtractorTest {
             VariableDefinition("subscriber", VariableDirection.INPUT, "subscriber"),
             VariableDefinition("results", VariableDirection.OUTPUT, "results"),
             VariableDefinition("result", VariableDirection.OUTPUT, "=result"),
+            VariableDefinition("method", VariableDirection.INPUT, "POST"),
+            VariableDefinition("url", VariableDirection.INPUT, "https://api.example.com/newsletter"),
+            VariableDefinition("apiResponse", VariableDirection.OUTPUT, "=response"),
         )
+    }
+
+    @Test
+    fun `extract classifies element-template service tasks as connectors`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c8-send-newsletter.bpmn")).toURI())
+        val bpmnModel = underTest.extract(file.readBytes())
+
+        val kindByType = bpmnModel.serviceTasks.associate {
+            it.engineSpecificProperties[IMPL_VALUE_KEY] to it.engineSpecificProperties[IMPL_KIND_KEY]
+        }
+        assertThat(kindByType["io.camunda:http-json:1"]).isEqualTo("CONNECTOR")
+        assertThat(kindByType["newsletter.loadSubscribers"]).isEqualTo("JOB_WORKER")
+        assertThat(kindByType["newsletter.notifyAuthors"]).isEqualTo("JOB_WORKER")
     }
 
     @Test
