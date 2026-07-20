@@ -4,17 +4,22 @@ object StringUtils {
 
     /**
      * Converts a string to UPPER_SNAKE_CASE following Kotlin/Java constant naming conventions.
-     * Strips expression language syntax (e.g., #{...}, ${...}) and special characters.
+     * Strips expression language syntax (e.g., #{...}, ${...}) and replaces any remaining
+     * non-identifier characters so the result is always a valid identifier. This includes
+     * connector task types like `io.camunda:http-json:1`, whose colons would otherwise leak
+     * into the generated constant name and break code generation.
      * @sample toUpperSnakeCase will convert timerAfter3Days to TIMER_AFTER_3_DAYS
      * @sample toUpperSnakeCase will convert #{sendMailDelegate} to SEND_MAIL_DELEGATE
+     * @sample toUpperSnakeCase will convert io.camunda:http-json:1 to IO_CAMUNDA_HTTP_JSON_1
      */
     fun String.toUpperSnakeCase(): String {
         return this
-            .replace(Regex("[#\${}]"), "") // Strip expression language syntax and special chars
-            .replace(Regex("[-.]"), "_")
-            .replace(Regex("(?<=[a-zA-Z])(?=[0-9])"), "_")
-            .replace(Regex("(?<=[0-9])(?=[a-zA-Z])"), "_")
-            .replace(Regex("(?<=[a-z])(?=[A-Z])"), "_")
+            .replace(Regex("[#\${}]"), "") // Strip expression language syntax
+            .replace(Regex("(?<=[a-zA-Z])(?=[0-9])"), "_") // Boundary between a letter and a digit
+            .replace(Regex("(?<=[0-9])(?=[a-zA-Z])"), "_") // Boundary between a digit and a letter
+            .replace(Regex("(?<=[a-z])(?=[A-Z])"), "_") // camelCase word boundary
+            .replace(Regex("[^A-Za-z0-9]+"), "_") // Collapse runs of non-identifier chars (e.g. . - :) into a single _
+            .let { if (it.firstOrNull()?.isDigit() == true) "_$it" else it } // Identifiers must not start with a digit
             .uppercase()
     }
 
