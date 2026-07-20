@@ -77,7 +77,7 @@ Or pass a list:
 BpmnValidator
     .fromClasspath("bpmn/")
     .engine(ProcessEngine.ZEEBE)
-    .disableRules("invalid-identifier")
+    .disableRules("empty-process")
     .validate()
     .assertNoViolations()
 ```
@@ -113,7 +113,7 @@ val result = BpmnValidator
     .validate()
 
 result.assertNoErrors()
-result.assertNoViolations("invalid-identifier")  // custom: this rule is allowed to warn
+result.assertNoViolations("empty-process")  // custom: assert a specific rule produced no violations
 ```
 
 ## Built-in Rules Reference
@@ -129,7 +129,6 @@ result.assertNoViolations("invalid-identifier")  // custom: this rule is allowed
 | Flow node has no ID | `MISSING_ELEMENT_ID` | ERROR | Any flow node missing an `id` attribute |
 | Process has no ID | `MISSING_PROCESS_ID` | ERROR | Process element missing the `id` attribute |
 | Process is empty | `EMPTY_PROCESS` | ERROR | Process with no flow nodes |
-| Element ID produces invalid identifier | `INVALID_IDENTIFIER` | WARN | ID that cannot be converted to valid UPPER_SNAKE_CASE |
 | Variable name collision | `COLLISION_DETECTION` | ERROR | Two different IDs normalize to the same constant name |
 
 ## Optional Rules (opt-in)

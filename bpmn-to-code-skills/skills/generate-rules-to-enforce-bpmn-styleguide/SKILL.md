@@ -15,7 +15,7 @@ Generate Kotlin `SingleModelValidationRule` implementations for the deterministi
 - Never modify existing source files — only create new files.
 - Always present the classification table to the user before generating anything.
 - Use `requireNotNull()` instead of `!!` (project convention).
-- Use `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/validation/rules/InvalidIdentifierRule.kt` as the structural template.
+- Use `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/validation/rules/MissingElementIdRule.kt` as the structural template.
 - After generating, verify compilation with `./gradlew compileKotlin` (or the user's module-specific task).
 
 ## Domain Model
@@ -93,7 +93,7 @@ Produce a single Kotlin file: one class per generated rule + an aggregator.
 // Re-run the skill after editing the style guide to keep this file in sync.
 ```
 
-**Per-rule class** (template — follow `InvalidIdentifierRule.kt` for shape):
+**Per-rule class** (template — follow `MissingElementIdRule.kt` for shape):
 
 ```kotlin
 /**

@@ -19,7 +19,6 @@ bpmn-to-code can validate your BPMN models against a set of built-in rules — i
 | `missing-element-id` | ERROR | Flow node with no ID |
 | `missing-process-id` | ERROR | Process with no `id` attribute |
 | `empty-process` | ERROR | Process with no flow nodes |
-| `invalid-identifier` | WARN | Element ID that produces an invalid UPPER_SNAKE_CASE identifier in the generated API |
 | `collision-detection` | ERROR | Two different element IDs that normalize to the same constant name (post-merge) |
 | `engine-mismatch` | ERROR / WARN | Model's target engine (from its XML namespace) differs from the selected one |
 
@@ -33,7 +32,7 @@ tasks.named("validateBpmnModels", ValidateBpmnModelsTask::class) {
     filePattern = "src/main/resources/**/*.bpmn"
     processEngine = ProcessEngine.ZEEBE
     failOnWarning = false                          // optional — treat warnings as errors
-    disabledRules = setOf("invalid-identifier")   // optional — skip specific rules
+    disabledRules = setOf("empty-process")   // optional — skip specific rules
 }
 ```
 
@@ -78,7 +77,7 @@ BPMN validation failed: 1 error(s), 1 warning(s)
                 <failOnWarning>false</failOnWarning>
                 <!-- optional: disable specific rules -->
                 <disabledRules>
-                    <disabledRule>invalid-identifier</disabledRule>
+                    <disabledRule>empty-process</disabledRule>
                 </disabledRules>
             </configuration>
         </execution>
@@ -112,13 +111,13 @@ Pass rule IDs to `disabledRules` to skip specific checks:
 
 ```kotlin [Gradle]
 tasks.named("validateBpmnModels", ValidateBpmnModelsTask::class) {
-    disabledRules = setOf("invalid-identifier", "empty-process")
+    disabledRules = setOf("collision-detection", "empty-process")
 }
 ```
 
 ```xml [Maven]
 <disabledRules>
-    <disabledRule>invalid-identifier</disabledRule>
+    <disabledRule>collision-detection</disabledRule>
     <disabledRule>empty-process</disabledRule>
 </disabledRules>
 ```

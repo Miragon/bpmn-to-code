@@ -11,7 +11,6 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import io.miragon.bpmn.domain.validation.rules.CollisionDetectionRule
 import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
 import io.miragon.bpmn.domain.validation.rules.EngineMismatchRule
-import io.miragon.bpmn.domain.validation.rules.InvalidIdentifierRule
 import io.miragon.bpmn.domain.validation.rules.MissingCalledElementRule
 import io.miragon.bpmn.domain.validation.rules.MissingElementIdRule
 import io.miragon.bpmn.domain.validation.rules.MissingErrorDefinitionRule
@@ -78,7 +77,6 @@ class BpmnValidationService(
             MissingTimerDefinitionRule(),
             MissingCalledElementRule(),
             MissingElementIdRule(),
-            InvalidIdentifierRule(),
             EmptyProcessRule(),
             MissingProcessIdRule(),
             CollisionDetectionRule(),
