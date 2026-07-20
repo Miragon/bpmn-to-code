@@ -3,6 +3,27 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [5.0.0](https://github.com/Miragon/bpmn-to-code/compare/v4.1.0...v5.0.0) (2026-07-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **validation:** remove deprecated BpmnValidationRule/ValidationContext aliases ([#36](https://github.com/Miragon/bpmn-to-code/issues/36))
+
+### Features
+
+* **engine:** detect Camunda 8 connector service tasks ([#42](https://github.com/Miragon/bpmn-to-code/issues/42)) ([#44](https://github.com/Miragon/bpmn-to-code/issues/44)) ([57e0c83](https://github.com/Miragon/bpmn-to-code/commit/57e0c8311a6608004c9623f210f73901e620dd3c))
+
+
+### Bug Fixes
+
+* **codegen:** sanitize connector task types with colons ([#43](https://github.com/Miragon/bpmn-to-code/issues/43)) ([db6bfbb](https://github.com/Miragon/bpmn-to-code/commit/db6bfbbf796331929b79530099b626d937233091))
+
+
+### Code Refactoring
+
+* **validation:** remove deprecated BpmnValidationRule/ValidationContext aliases ([#36](https://github.com/Miragon/bpmn-to-code/issues/36)) ([86eeb38](https://github.com/Miragon/bpmn-to-code/commit/86eeb38fa84bea1fa3b5a2b8512e2c4e9ef269c4))
+
 ## [4.1.0](https://github.com/Miragon/bpmn-to-code/compare/v4.0.0...v4.1.0) (2026-07-17)
 
 
