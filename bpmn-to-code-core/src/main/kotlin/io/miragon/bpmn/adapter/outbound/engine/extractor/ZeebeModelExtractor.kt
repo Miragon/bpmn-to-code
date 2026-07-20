@@ -7,6 +7,8 @@ import io.miragon.bpmn.adapter.outbound.engine.utils.BaseElementUtils.findExtens
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelElementInstanceUtils.extractAttribute
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelElementInstanceUtils.filterByType
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelElementInstanceUtils.findFirstByType
+import io.miragon.bpmn.adapter.outbound.engine.utils.ModelElementInstanceUtils.nonBlankAttribute
+import io.miragon.bpmn.adapter.outbound.engine.utils.ModelElementInstanceUtils.nonBlankAttributeNs
 import io.miragon.bpmn.adapter.outbound.engine.utils.MessageUtils.findAllMessagesWithSource
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findCompensateEventDefinitions
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findErrorEventDefinition
@@ -156,13 +158,16 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             val taskDefinition = extensionElements.findFirstByType(ZeebeModelConstants.ELEMENT_TASK_DEFINITION)
                 ?: return@mapNotNull null
             val id = node.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_ID)
-            val type = taskDefinition.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_TYPE)
-                ?.takeIf { it.isNotBlank() }
+            val type = taskDefinition.nonBlankAttribute(BpmnModelConstants.BPMN_ATTRIBUTE_TYPE)
+            val modelerTemplate = node.nonBlankAttributeNs(ZeebeModelConstants.NAMESPACE, ZeebeModelConstants.ATTRIBUTE_MODELER_TEMPLATE)
             ServiceTaskDefinition(
                 id = id,
                 engineSpecificProperties = buildMap {
                     put(implValueKey, type)
-                    put(implKindKey, ZeebeImplementationKind.JOB_WORKER.name)
+                    put(implKindKey, when {
+                        modelerTemplate != null -> ZeebeImplementationKind.CONNECTOR.name
+                        else -> ZeebeImplementationKind.JOB_WORKER.name
+                    })
                 }
             )
         }

@@ -6,6 +6,8 @@ package io.miragon.bpmn.adapter.outbound.engine.constants
  */
 object ZeebeModelConstants {
 
+    const val NAMESPACE = "http://camunda.org/schema/zeebe/1.0"
+
     const val ELEMENT_TASK_DEFINITION = "taskDefinition"
     const val ELEMENT_IO_MAPPING = "ioMapping"
     const val ELEMENT_INPUT = "input"
@@ -23,4 +25,5 @@ object ZeebeModelConstants {
     const val ATTRIBUTE_INPUT_COLLECTION = "inputCollection"
     const val ATTRIBUTE_OUTPUT_ELEMENT = "outputElement"
     const val ATTRIBUTE_OUTPUT_COLLECTION = "outputCollection"
+    const val ATTRIBUTE_MODELER_TEMPLATE = "modelerTemplate"
 }
