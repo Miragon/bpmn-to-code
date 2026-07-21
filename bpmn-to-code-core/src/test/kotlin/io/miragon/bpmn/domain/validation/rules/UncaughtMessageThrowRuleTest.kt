@@ -36,7 +36,7 @@ class UncaughtMessageThrowRuleTest {
         // given: a single model that throws a message no one catches
         val thrower = model("orderPlacement", throwNode("throw1", "OrderShipped"))
 
-        // when
+        // when: the rule validates the model
         val violations = validate(thrower)
 
         // then: a single WARN naming the uncaught message and its throwing element
@@ -53,10 +53,10 @@ class UncaughtMessageThrowRuleTest {
         // given: the throw and a matching catch live in one model
         val model = model("orderPlacement", throwNode("throw1", "OrderShipped"), catchNode("catch1", "OrderShipped"))
 
-        // when
+        // when: the rule validates the model
         val violations = validate(model)
 
-        // then
+        // then: no violation is reported
         assertThat(violations).isEmpty()
     }
 
@@ -67,10 +67,10 @@ class UncaughtMessageThrowRuleTest {
         val thrower = model("orderPlacement", throwNode("throw1", "OrderShipped"))
         val catcher = model("shipping", catchNode("catch1", "OrderShipped"))
 
-        // when
+        // when: the rule validates both models together
         val violations = validate(thrower, catcher)
 
-        // then
+        // then: no violation is reported
         assertThat(violations).isEmpty()
     }
 
@@ -81,7 +81,7 @@ class UncaughtMessageThrowRuleTest {
         val thrower = model("orderPlacement", throwNode("throw1", "OrderShipped"), throwNode("throw2", "OrderCancelled"))
         val catcher = model("shipping", catchNode("catch1", "OrderShipped"))
 
-        // when
+        // when: the rule validates both models together
         val violations = validate(thrower, catcher)
 
         // then: only the uncaught message is reported
