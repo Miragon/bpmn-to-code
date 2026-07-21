@@ -54,7 +54,7 @@ fun `BPMN models should have no violations`() {
 
 ## Selecting Rules
 
-By default, `validate()` runs all 11 built-in rules. You can override the rule set:
+By default, `validate()` runs all 10 built-in rules. You can override the rule set:
 
 ```kotlin
 BpmnValidator
@@ -133,12 +133,15 @@ result.assertNoViolations("empty-process")  // custom: assert a specific rule pr
 
 ## Optional Rules (opt-in)
 
-These rules are **not** part of `BpmnRules.all()` — they are off by default. Enable them explicitly via `withRules(...)` when you want to enforce a timer-format convention. They report as `ERROR` when enabled.
+These rules are **not** part of `BpmnRules.all()` — they are off by default. Enable them explicitly via `withRules(...)` when you want to enforce the corresponding convention. They report as `ERROR` when enabled.
 
 | Rule | `BpmnRules` constant | Severity | Trigger |
 |------|---------------------|----------|---------|
 | Timer cycle is not valid cron | `TIMER_CRON_SYNTAX` | ERROR | A `timeCycle` timer whose value is not a valid cron expression |
 | Timer value is not valid ISO-8601 | `TIMER_ISO8601_SYNTAX` | ERROR | A timer value that is not valid ISO-8601 for its type (Date → date/time, Duration → duration, Cycle → repeating interval) |
+| Call activity target is missing | `CALL_ACTIVITY_TARGET_EXISTS` | ERROR | A call activity references a process that is not among the loaded models (a dangling call activity) |
+
+`CALL_ACTIVITY_TARGET_EXISTS` is a [cross-model rule](#cross-process-multi-model-rules): it only holds when the **whole** related fileset is loaded together, which is exactly why it is opt-in rather than part of `all()` — see the tip on loading the whole set below.
 
 ```kotlin
 BpmnValidator
@@ -272,7 +275,13 @@ and can resolve cross-process references:
 - `context.resolveCalledModel(callActivity)` — resolve a call activity's called element to the model of
   the called process, or `null` if it has none or references an unknown process.
 
-The example below flags any call activity that references a process not present among the loaded models
+::: tip Already built-in
+The dangling-call-activity check below **ships built-in** as the opt-in rule
+`BpmnRules.CALL_ACTIVITY_TARGET_EXISTS` (see [Optional Rules](#optional-rules-opt-in)) — you don't have to
+write it yourself. It is reproduced here as a template for your own cross-model rules.
+:::
+
+The example flags any call activity that references a process not present among the loaded models
 (a dangling call activity — a runtime failure that no single-model rule can catch, because the parent
 and called process have different ids and never appear together):
 
@@ -301,13 +310,15 @@ class CallActivityTargetExistsRule : CrossModelValidationRule {
 ```
 
 Cross-model rules go through the same `.withRules(...)` flow and can be mixed freely with single-model
-rules in one run — the validator routes each to the right execution phase:
+rules in one run — the validator routes each to the right execution phase. Here the built-in
+`CALL_ACTIVITY_TARGET_EXISTS` is added on top of the default rule set (swap it for your own rule to use
+a custom one):
 
 ```kotlin
 BpmnValidator
     .fromClasspath("bpmn/")
     .engine(ProcessEngine.CAMUNDA_7)
-    .withRules(*BpmnRules.all().toTypedArray(), CallActivityTargetExistsRule())
+    .withRules(*BpmnRules.all().toTypedArray(), BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
     .validate()
     .assertNoViolations()
 ```

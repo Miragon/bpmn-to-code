@@ -1,6 +1,8 @@
 package io.miragon.bpmn.testing
 
+import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
+import io.miragon.bpmn.domain.validation.rules.CallActivityTargetExistsRule
 import io.miragon.bpmn.domain.validation.rules.CollisionDetectionRule
 import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
 import io.miragon.bpmn.domain.validation.rules.MissingCalledElementRule
@@ -108,6 +110,14 @@ object BpmnRules {
      */
     @JvmField
     val TIMER_ISO8601_SYNTAX: SingleModelValidationRule = TimerIso8601SyntaxRule()
+
+    /**
+     * Opt-in: flags call activities whose called element references a process that is not among the
+     * loaded models (a dangling call activity). Cross-model — only meaningful when the whole related
+     * fileset is loaded together, so it is not part of [all].
+     */
+    @JvmField
+    val CALL_ACTIVITY_TARGET_EXISTS: CrossModelValidationRule = CallActivityTargetExistsRule()
 
     /**
      * Returns all built-in BPMN validation rules that are enabled by default.

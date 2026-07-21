@@ -17,10 +17,10 @@ class CrossModelRuleTest {
         BpmnValidator
             .fromClasspath("bpmn/order-fulfillment/order-fulfillment.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(TestRules.callActivityTargetExists())
+            .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
             .validate()
             .assertViolation(
-                ruleId = TestRules.CALL_ACTIVITY_TARGET_EXISTS,
+                ruleId = BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id,
                 elementId = "CallActivity_ProcessPayment",
                 messageContains = "paymentProcessing",
             )
@@ -31,7 +31,7 @@ class CrossModelRuleTest {
         BpmnValidator
             .fromClasspath("bpmn/order-fulfillment/")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(TestRules.callActivityTargetExists())
+            .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
             .validate()
             .assertNoViolations()
     }
