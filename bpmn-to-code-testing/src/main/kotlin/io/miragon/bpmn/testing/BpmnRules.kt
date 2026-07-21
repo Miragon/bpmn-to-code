@@ -15,6 +15,7 @@ import io.miragon.bpmn.domain.validation.rules.MissingSignalNameRule
 import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
 import io.miragon.bpmn.domain.validation.rules.TimerCronSyntaxRule
 import io.miragon.bpmn.domain.validation.rules.TimerIso8601SyntaxRule
+import io.miragon.bpmn.domain.validation.rules.UncaughtMessageThrowRule
 
 /**
  * Provides access to all built-in BPMN validation rules.
@@ -118,6 +119,15 @@ object BpmnRules {
      */
     @JvmField
     val CALL_ACTIVITY_TARGET_EXISTS: CrossModelValidationRule = CallActivityTargetExistsRule()
+
+    /**
+     * Opt-in: warns when a message is thrown (message end / intermediate throw event) but never caught
+     * anywhere in the loaded fileset. Cross-model — only meaningful when the whole related fileset is
+     * loaded together, so it is not part of [all]. Reported as WARN, since a consumer outside the
+     * fileset is possible.
+     */
+    @JvmField
+    val UNCAUGHT_MESSAGE_THROW: CrossModelValidationRule = UncaughtMessageThrowRule()
 
     /**
      * Returns all built-in BPMN validation rules that are enabled by default.

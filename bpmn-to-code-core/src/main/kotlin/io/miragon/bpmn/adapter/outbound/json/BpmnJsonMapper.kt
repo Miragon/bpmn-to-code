@@ -110,6 +110,11 @@ class BpmnJsonMapper {
                 timerValue = value.takeIf { it.isNotEmpty() },
             )
         }
+        is FlowNodeProperties.MessageEvent -> FlowNodePropertiesJson(
+            type = "MessageEvent",
+            messageName = name,
+            messageDirection = direction.name,
+        )
     }
 
     private fun SequenceFlowDefinition.toJson(): SequenceFlowJson {

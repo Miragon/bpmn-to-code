@@ -111,7 +111,12 @@
                     "parentId": "eventSubProcess_errorHandling",
                     "followingElements": [
                         "serviceTask_analyzeError"
-                    ]
+                    ],
+                    "properties": {
+                        "type": "MessageEvent",
+                        "messageName": "Message_MailRejected",
+                        "messageDirection": "CATCH"
+                    }
                 },
                 {
                     "id": "serviceTask_analyzeError",
@@ -184,7 +189,12 @@
                     ],
                     "followingElements": [
                         "escalationEndEvent_nofitySupportAfterRepeatedError"
-                    ]
+                    ],
+                    "properties": {
+                        "type": "MessageEvent",
+                        "messageName": "Message_MailRejectedAgain",
+                        "messageDirection": "CATCH"
+                    }
                 },
                 {
                     "id": "escalationEndEvent_nofitySupportAfterRepeatedError",

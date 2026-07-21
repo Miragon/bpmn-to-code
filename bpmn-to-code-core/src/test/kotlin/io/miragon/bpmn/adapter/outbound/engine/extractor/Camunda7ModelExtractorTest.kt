@@ -15,6 +15,7 @@ import io.miragon.bpmn.domain.shared.FlowNodeDefinition.Companion.ASYNC_AFTER_KE
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition.Companion.ASYNC_BEFORE_KEY
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition.Companion.EXCLUSIVE_KEY
 import io.miragon.bpmn.domain.shared.FlowNodeProperties
+import io.miragon.bpmn.domain.shared.MessageDirection
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition.Companion.IMPL_KIND_KEY
@@ -134,6 +135,7 @@ class Camunda7ModelExtractorTest {
                         engineSpecificProperties = mapOf(ASYNC_BEFORE_KEY to true)),
                     FlowNodeDefinition("StartEvent_SubmitRegistrationForm", BpmnNodeType.Event(EventShape.START_EVENT, EventDefinitionType.MESSAGE),
                         displayName = "Submit newsletter form",
+                        properties = FlowNodeProperties.MessageEvent("Message_FormSubmitted", MessageDirection.CATCH),
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "\${subscriptionId}")),
                         followingElements = listOf("serviceTask_incrementSubscriptionCounter")),
                     FlowNodeDefinition("SubProcess_Confirmation", BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),

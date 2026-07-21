@@ -13,6 +13,7 @@ import io.miragon.bpmn.domain.shared.EscalationDefinition
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.shared.MessageDefinition
+import io.miragon.bpmn.domain.shared.MessageDirection
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition.Companion.IMPL_KIND_KEY
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition.Companion.IMPL_VALUE_KEY
@@ -68,6 +69,7 @@ class ZeebeModelExtractorTest {
                         followingElements = listOf("CompensationEndEvent_RegistrationAborted")),
                     FlowNodeDefinition("Activity_ConfirmRegistration", BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
                         displayName = "Confirm subscription",
+                        properties = FlowNodeProperties.MessageEvent("Message_SubscriptionConfirmed", MessageDirection.CATCH),
                         attachedElements = listOf("Timer_EveryDay"),
                         parentId = "SubProcess_Confirmation",
                         previousElements = listOf("Activity_SendConfirmationMail"),
@@ -127,6 +129,7 @@ class ZeebeModelExtractorTest {
                         followingElements = listOf("Activity_SendConfirmationMail")),
                     FlowNodeDefinition("StartEvent_SubmitRegistrationForm", BpmnNodeType.Event(EventShape.START_EVENT, EventDefinitionType.MESSAGE),
                         displayName = "Submit newsletter form",
+                        properties = FlowNodeProperties.MessageEvent("Message_FormSubmitted", MessageDirection.CATCH),
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "=subscriptionId")),
                         followingElements = listOf("serviceTask_incrementSubscriptionCounter")),
                     FlowNodeDefinition("SubProcess_Confirmation", BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),

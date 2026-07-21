@@ -133,15 +133,16 @@ result.assertNoViolations("empty-process")  // custom: assert a specific rule pr
 
 ## Optional Rules (opt-in)
 
-These rules are **not** part of `BpmnRules.all()` — they are off by default. Enable them explicitly via `withRules(...)` when you want to enforce the corresponding convention. They report as `ERROR` when enabled.
+These rules are **not** part of `BpmnRules.all()` — they are off by default. Enable them explicitly via `withRules(...)` when you want to enforce the corresponding convention. Each rule's severity is listed below.
 
 | Rule | `BpmnRules` constant | Severity | Trigger |
 |------|---------------------|----------|---------|
 | Timer cycle is not valid cron | `TIMER_CRON_SYNTAX` | ERROR | A `timeCycle` timer whose value is not a valid cron expression |
 | Timer value is not valid ISO-8601 | `TIMER_ISO8601_SYNTAX` | ERROR | A timer value that is not valid ISO-8601 for its type (Date → date/time, Duration → duration, Cycle → repeating interval) |
 | Call activity target is missing | `CALL_ACTIVITY_TARGET_EXISTS` | ERROR | A call activity references a process that is not among the loaded models (a dangling call activity) |
+| Thrown message has no catcher | `UNCAUGHT_MESSAGE_THROW` | WARN | A message is thrown (message end / intermediate throw event) but no catching event exists among the loaded models |
 
-`CALL_ACTIVITY_TARGET_EXISTS` is a [cross-model rule](#cross-process-multi-model-rules): it only holds when the **whole** related fileset is loaded together, which is exactly why it is opt-in rather than part of `all()` — see the tip on loading the whole set below.
+`CALL_ACTIVITY_TARGET_EXISTS` and `UNCAUGHT_MESSAGE_THROW` are [cross-model rules](#cross-process-multi-model-rules): they only hold when the **whole** related fileset is loaded together, which is exactly why they are opt-in rather than part of `all()` — see the tip on loading the whole set below. `UNCAUGHT_MESSAGE_THROW` reports as **WARN** rather than ERROR because a legitimate consumer may live outside the loaded fileset; a catcher is any message start / intermediate-catch / boundary event or receive task, in any loaded model.
 
 ```kotlin
 BpmnValidator
@@ -331,8 +332,12 @@ single-model rule reports an `ERROR`, validation stops before the merge and the 
 runs (post-merge rules like `COLLISION_DETECTION` do not short-circuit it).
 :::
 
+Message correlation across processes already ships built-in as the opt-in `UNCAUGHT_MESSAGE_THROW` rule
+(see [Optional Rules](#optional-rules-opt-in)) — it collects every thrown message name across all loaded
+models and warns when one has no catching event anywhere in the set.
+
 Other cross-process checks you can write with the same building blocks: input-coverage ("does every
-caller pass the variables the called process reads?"), output-consumption, message/signal correlation
+caller pass the variables the called process reads?"), output-consumption, signal correlation
 across processes, and process-id uniqueness across the whole fileset.
 
 ::: tip SingleModelValidationContext
