@@ -115,6 +115,11 @@ class BpmnJsonMapper {
             messageName = name,
             messageDirection = direction.name,
         )
+        is FlowNodeProperties.SignalEvent -> FlowNodePropertiesJson(
+            type = "SignalEvent",
+            signalName = name,
+            signalDirection = direction.name,
+        )
     }
 
     private fun SequenceFlowDefinition.toJson(): SequenceFlowJson {

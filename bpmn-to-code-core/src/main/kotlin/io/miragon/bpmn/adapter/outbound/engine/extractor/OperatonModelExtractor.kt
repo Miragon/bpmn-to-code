@@ -14,6 +14,7 @@ import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findEsca
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findFlowNodes
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findSequenceFlows
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findSignalEventDefinitions
+import io.miragon.bpmn.adapter.outbound.engine.utils.SignalUtils.findSignalEventProperties
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findTimerEventDefinition
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.extractVariantName
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.getProcessId
@@ -71,14 +72,15 @@ class OperatonModelExtractor : EngineSpecificExtractor {
         val variablesPerNode = extractVariablesPerNode(modelInstance)
 
         val asyncPerNode = extractAsyncPerNode(modelInstance)
-        val messageEvents = modelInstance.findMessageEventProperties()
+        val eventProperties: Map<String, FlowNodeProperties> =
+            modelInstance.findMessageEventProperties() + modelInstance.findSignalEventProperties()
         val allServiceTasks = serviceTasks + messageSendEvents
         val enrichedFlowNodes = enrichFlowNodes(
             flowNodes = flowNodes,
             serviceTasks = allServiceTasks,
             callActivities = callActivities,
             timers = timers,
-            messageEvents = messageEvents,
+            eventProperties = eventProperties,
             variablesPerNode = variablesPerNode,
             asyncPerNode = asyncPerNode,
         )
@@ -103,7 +105,7 @@ class OperatonModelExtractor : EngineSpecificExtractor {
         serviceTasks: List<ServiceTaskDefinition>,
         callActivities: List<CallActivityDefinition>,
         timers: List<TimerDefinition>,
-        messageEvents: Map<String, FlowNodeProperties.MessageEvent>,
+        eventProperties: Map<String, FlowNodeProperties>,
         variablesPerNode: Map<String?, List<VariableDefinition>>,
         asyncPerNode: Map<String?, Map<String, Any?>>,
     ): List<FlowNodeDefinition> {
@@ -115,7 +117,7 @@ class OperatonModelExtractor : EngineSpecificExtractor {
             .groupBy { it.attachedToRef!! }
             .mapValues { (_, nodes) -> nodes.mapNotNull { it.id } }
         return flowNodes.map { node ->
-            val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById, messageEvents)
+            val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById, eventProperties)
             val variables = variablesPerNode[node.id] ?: emptyList()
             val attachedElements = attachedElementsById[node.id] ?: emptyList()
             val engineSpecificProperties = asyncPerNode[node.id] ?: emptyMap()
@@ -144,12 +146,12 @@ class OperatonModelExtractor : EngineSpecificExtractor {
         serviceTasks: Map<String?, ServiceTaskDefinition>,
         callActivities: Map<String?, CallActivityDefinition>,
         timers: Map<String?, TimerDefinition>,
-        messageEvents: Map<String, FlowNodeProperties.MessageEvent>,
+        eventProperties: Map<String, FlowNodeProperties>,
     ): FlowNodeProperties {
         serviceTasks[nodeId]?.let { return FlowNodeProperties.ServiceTask(it) }
         callActivities[nodeId]?.let { return FlowNodeProperties.CallActivity(it) }
         timers[nodeId]?.let { return FlowNodeProperties.Timer(it) }
-        return nodeId?.let { messageEvents[it] } ?: FlowNodeProperties.None
+        return nodeId?.let { eventProperties[it] } ?: FlowNodeProperties.None
     }
 
     private fun findMessages(modelInstance: ModelInstance): List<MessageDefinition> {

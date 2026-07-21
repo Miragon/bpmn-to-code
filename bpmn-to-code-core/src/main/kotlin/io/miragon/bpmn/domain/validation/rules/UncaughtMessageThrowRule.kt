@@ -3,7 +3,7 @@ package io.miragon.bpmn.domain.validation.rules
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.FlowNodeProperties
-import io.miragon.bpmn.domain.shared.MessageDirection
+import io.miragon.bpmn.domain.shared.EventDirection
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
@@ -44,19 +44,19 @@ class UncaughtMessageThrowRule : CrossModelValidationRule {
         context: CrossModelValidationContext,
     ): List<Triple<ProcessModel, FlowNodeDefinition, FlowNodeProperties.MessageEvent>> {
         return context.models.flatMap { model ->
-            model.messageEvents(MessageDirection.THROW).map { (node, message) -> Triple(model, node, message) }
+            model.messageEvents(EventDirection.THROW).map { (node, message) -> Triple(model, node, message) }
         }
     }
 
     private fun caughtMessageNames(context: CrossModelValidationContext): Set<String> {
         return context.models
-            .flatMap { model -> model.messageEvents(MessageDirection.CATCH) }
+            .flatMap { model -> model.messageEvents(EventDirection.CATCH) }
             .map { (_, message) -> message.name }
             .toSet()
     }
 
     private fun ProcessModel.messageEvents(
-        direction: MessageDirection,
+        direction: EventDirection,
     ): List<Pair<FlowNodeDefinition, FlowNodeProperties.MessageEvent>> {
         return flowNodes
             .mapNotNull { node -> node.messageEvent()?.let { node to it } }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_RegistrationMonitor"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:signal id="Signal_RegistrationBlocked" name="RegistrationBlocked" />
+  <bpmn:process id="registrationMonitor" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_RegistrationBlocked" name="Registration blocked">
+      <bpmn:outgoing>Flow_ToNotify</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_RegistrationBlockedCatch" signalRef="Signal_RegistrationBlocked" />
+    </bpmn:startEvent>
+    <bpmn:endEvent id="EndEvent_OperationsNotified" name="Operations notified">
+      <bpmn:incoming>Flow_ToNotify</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToNotify" sourceRef="StartEvent_RegistrationBlocked" targetRef="EndEvent_OperationsNotified" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="registrationMonitor">
+      <bpmndi:BPMNShape id="StartEvent_RegistrationBlocked_di" bpmnElement="StartEvent_RegistrationBlocked">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_OperationsNotified_di" bpmnElement="EndEvent_OperationsNotified">
+        <dc:Bounds x="292" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToNotify_di" bpmnElement="Flow_ToNotify">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="292" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
