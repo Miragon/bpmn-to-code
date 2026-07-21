@@ -73,7 +73,15 @@ class OperatonModelExtractor : EngineSpecificExtractor {
         val asyncPerNode = extractAsyncPerNode(modelInstance)
         val messageEvents = modelInstance.findMessageEventProperties()
         val allServiceTasks = serviceTasks + messageSendEvents
-        val enrichedFlowNodes = enrichFlowNodes(flowNodes, allServiceTasks, callActivities, timers, messageEvents, variablesPerNode, asyncPerNode)
+        val enrichedFlowNodes = enrichFlowNodes(
+            flowNodes = flowNodes,
+            serviceTasks = allServiceTasks,
+            callActivities = callActivities,
+            timers = timers,
+            messageEvents = messageEvents,
+            variablesPerNode = variablesPerNode,
+            asyncPerNode = asyncPerNode,
+        )
 
         return BpmnModel(
             processId = processId,

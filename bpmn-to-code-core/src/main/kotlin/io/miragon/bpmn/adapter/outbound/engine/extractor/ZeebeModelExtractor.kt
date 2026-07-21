@@ -62,7 +62,14 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         val variablesPerNode = extractVariablesPerNode(modelInstance)
         val messageEvents = modelInstance.findMessageEventProperties()
 
-        val enrichedFlowNodes = enrichFlowNodes(allFlowNodes, allServiceTasks, allCallActivities, allTimerEvents, messageEvents, variablesPerNode)
+        val enrichedFlowNodes = enrichFlowNodes(
+            flowNodes = allFlowNodes,
+            serviceTasks = allServiceTasks,
+            callActivities = allCallActivities,
+            timers = allTimerEvents,
+            messageEvents = messageEvents,
+            variablesPerNode = variablesPerNode,
+        )
 
         return BpmnModel(
             processId = processId,
