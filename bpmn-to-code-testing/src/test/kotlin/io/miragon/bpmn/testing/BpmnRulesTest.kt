@@ -54,11 +54,13 @@ class BpmnRulesTest {
             BpmnRules.TIMER_CRON_SYNTAX,
             BpmnRules.TIMER_ISO8601_SYNTAX,
         )
+        assertThat(BpmnRules.all().map { it.id }).doesNotContain(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id)
     }
 
     @Test
     fun `optional rule constants have the expected ids`() {
         assertThat(BpmnRules.TIMER_CRON_SYNTAX.id).isEqualTo("timer-cron-syntax")
         assertThat(BpmnRules.TIMER_ISO8601_SYNTAX.id).isEqualTo("timer-iso8601-syntax")
+        assertThat(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id).isEqualTo("call-activity-target-exists")
     }
 }

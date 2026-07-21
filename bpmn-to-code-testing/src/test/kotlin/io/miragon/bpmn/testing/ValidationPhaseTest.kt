@@ -37,10 +37,10 @@ class ValidationPhaseTest {
         BpmnValidator
             .fromClasspath("bpmn/order-fulfillment/order-fulfillment.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.MISSING_MESSAGE_NAME, TestRules.callActivityTargetExists())
+            .withRules(BpmnRules.MISSING_MESSAGE_NAME, BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
             .validate()
             .assertNoViolations("missing-message-name")
-            .assertViolation(ruleId = TestRules.CALL_ACTIVITY_TARGET_EXISTS)
+            .assertViolation(ruleId = BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id)
     }
 
     private class AlwaysFailingPreMergeRule : SingleModelValidationRule {
