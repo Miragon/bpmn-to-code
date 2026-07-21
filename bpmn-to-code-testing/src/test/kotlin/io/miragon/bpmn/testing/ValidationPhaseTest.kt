@@ -21,7 +21,7 @@ class ValidationPhaseTest {
         val crossModelRule = RecordingCrossModelRule()
 
         BpmnValidator
-            .fromClasspath("order-fulfillment/order-fulfillment.bpmn")
+            .fromClasspath("bpmn/order-fulfillment/order-fulfillment.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(AlwaysFailingPreMergeRule(), crossModelRule)
             .validate()
@@ -35,7 +35,7 @@ class ValidationPhaseTest {
     @Test
     fun `runs cross-model and built-in single-model rules together in one chain`() {
         BpmnValidator
-            .fromClasspath("order-fulfillment/order-fulfillment.bpmn")
+            .fromClasspath("bpmn/order-fulfillment/order-fulfillment.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_MESSAGE_NAME, TestRules.callActivityTargetExists())
             .validate()

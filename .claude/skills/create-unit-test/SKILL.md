@@ -109,7 +109,7 @@ builder are **integration-style** tests, not mock-based unit tests. The `underTe
 @Test
 fun `flags a call activity whose called process is absent`() {
     BpmnValidator
-        .fromClasspath("order-fulfillment/order-fulfillment.bpmn")
+        .fromClasspath("bpmn/order-fulfillment/order-fulfillment.bpmn")
         .engine(ProcessEngine.CAMUNDA_7)
         .withRules(TestRules.callActivityTargetExists())
         .validate()
