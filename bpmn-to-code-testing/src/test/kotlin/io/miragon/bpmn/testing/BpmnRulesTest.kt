@@ -54,7 +54,10 @@ class BpmnRulesTest {
             BpmnRules.TIMER_CRON_SYNTAX,
             BpmnRules.TIMER_ISO8601_SYNTAX,
         )
-        assertThat(BpmnRules.all().map { it.id }).doesNotContain(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id)
+        assertThat(BpmnRules.all().map { it.id }).doesNotContain(
+            BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id,
+            BpmnRules.UNCAUGHT_MESSAGE_THROW.id,
+        )
     }
 
     @Test
@@ -62,5 +65,6 @@ class BpmnRulesTest {
         assertThat(BpmnRules.TIMER_CRON_SYNTAX.id).isEqualTo("timer-cron-syntax")
         assertThat(BpmnRules.TIMER_ISO8601_SYNTAX.id).isEqualTo("timer-iso8601-syntax")
         assertThat(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id).isEqualTo("call-activity-target-exists")
+        assertThat(BpmnRules.UNCAUGHT_MESSAGE_THROW.id).isEqualTo("uncaught-message-throw")
     }
 }

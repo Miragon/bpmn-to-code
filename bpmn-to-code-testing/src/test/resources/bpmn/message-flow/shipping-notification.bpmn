@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_ShippingNotification"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:message id="Message_OrderShipped" name="OrderShipped" />
+  <bpmn:process id="shippingNotification" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_OrderShipped" name="Order shipped">
+      <bpmn:outgoing>Flow_ToNotify</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_OrderShippedCatch" messageRef="Message_OrderShipped" />
+    </bpmn:startEvent>
+    <bpmn:endEvent id="EndEvent_CustomerNotified" name="Customer notified">
+      <bpmn:incoming>Flow_ToNotify</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToNotify" sourceRef="StartEvent_OrderShipped" targetRef="EndEvent_CustomerNotified" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="shippingNotification">
+      <bpmndi:BPMNShape id="StartEvent_OrderShipped_di" bpmnElement="StartEvent_OrderShipped">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_CustomerNotified_di" bpmnElement="EndEvent_CustomerNotified">
+        <dc:Bounds x="292" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToNotify_di" bpmnElement="Flow_ToNotify">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="292" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -7,6 +7,7 @@ import io.miragon.bpmn.adapter.outbound.engine.utils.DomElementUtils.withElement
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelElementInstanceUtils.extractAttribute
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelElementInstanceUtils.filterByType
 import io.miragon.bpmn.adapter.outbound.engine.utils.MessageUtils.findAllMessagesWithSource
+import io.miragon.bpmn.adapter.outbound.engine.utils.MessageUtils.findMessageEventProperties
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findCompensateEventDefinitions
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findErrorEventDefinition
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findEscalationEventDefinitions
@@ -66,8 +67,9 @@ class Camunda7ModelExtractor : EngineSpecificExtractor {
         val variablesPerNode = extractVariablesPerNode(modelInstance)
 
         val asyncPerNode = extractAsyncPerNode(modelInstance)
+        val messageEvents = modelInstance.findMessageEventProperties()
         val allServiceTasks = serviceTasks + messageSendEvents
-        val enrichedFlowNodes = enrichFlowNodes(allFlowNodes, allServiceTasks, callActivities, timers, variablesPerNode, asyncPerNode)
+        val enrichedFlowNodes = enrichFlowNodes(allFlowNodes, allServiceTasks, callActivities, timers, messageEvents, variablesPerNode, asyncPerNode)
 
         return BpmnModel(
             processId = processId,
@@ -89,6 +91,7 @@ class Camunda7ModelExtractor : EngineSpecificExtractor {
         serviceTasks: List<ServiceTaskDefinition>,
         callActivities: List<CallActivityDefinition>,
         timers: List<TimerDefinition>,
+        messageEvents: Map<String, FlowNodeProperties.MessageEvent>,
         variablesPerNode: Map<String?, List<VariableDefinition>>,
         asyncPerNode: Map<String?, Map<String, Any?>>,
     ): List<FlowNodeDefinition> {
@@ -100,7 +103,7 @@ class Camunda7ModelExtractor : EngineSpecificExtractor {
             .groupBy { it.attachedToRef!! }
             .mapValues { (_, nodes) -> nodes.mapNotNull { it.id } }
         return flowNodes.map { node ->
-            val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById)
+            val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById, messageEvents)
             val variables = variablesPerNode[node.id] ?: emptyList()
             val attachedElements = attachedElementsById[node.id] ?: emptyList()
             val engineSpecificProperties = asyncPerNode[node.id] ?: emptyMap()
@@ -130,11 +133,12 @@ class Camunda7ModelExtractor : EngineSpecificExtractor {
         serviceTasks: Map<String?, ServiceTaskDefinition>,
         callActivities: Map<String?, CallActivityDefinition>,
         timers: Map<String?, TimerDefinition>,
+        messageEvents: Map<String, FlowNodeProperties.MessageEvent>,
     ): FlowNodeProperties {
         serviceTasks[nodeId]?.let { return FlowNodeProperties.ServiceTask(it) }
         callActivities[nodeId]?.let { return FlowNodeProperties.CallActivity(it) }
         timers[nodeId]?.let { return FlowNodeProperties.Timer(it) }
-        return FlowNodeProperties.None
+        return nodeId?.let { messageEvents[it] } ?: FlowNodeProperties.None
     }
 
     private fun findMessages(modelInstance: ModelInstance): List<MessageDefinition> {

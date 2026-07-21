@@ -35,4 +35,28 @@ class CrossModelRuleTest {
             .validate()
             .assertNoViolations()
     }
+
+    @Test
+    fun `warns when a thrown message has no catcher among the loaded models`() {
+        BpmnValidator
+            .fromClasspath("bpmn/message-flow/order-shipping.bpmn")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(BpmnRules.UNCAUGHT_MESSAGE_THROW)
+            .validate()
+            .assertViolation(
+                ruleId = BpmnRules.UNCAUGHT_MESSAGE_THROW.id,
+                elementId = "EndEvent_OrderShipped",
+                messageContains = "OrderShipped",
+            )
+    }
+
+    @Test
+    fun `passes when the thrown message is caught by another loaded model`() {
+        BpmnValidator
+            .fromClasspath("bpmn/message-flow/")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(BpmnRules.UNCAUGHT_MESSAGE_THROW)
+            .validate()
+            .assertNoViolations()
+    }
 }

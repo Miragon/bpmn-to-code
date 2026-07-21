@@ -10,7 +10,12 @@
             ],
             "variables": [
                 "subscriptionId"
-            ]
+            ],
+            "properties": {
+                "type": "MessageEvent",
+                "messageName": "Message_FormSubmitted",
+                "messageDirection": "CATCH"
+            }
         },
         {
             "id": "serviceTask_incrementSubscriptionCounter",

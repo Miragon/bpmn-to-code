@@ -10,4 +10,6 @@ data class FlowNodePropertiesJson(
     val calledElement: String? = null,
     val timerType: String? = null,
     val timerValue: String? = null,
+    val messageName: String? = null,
+    val messageDirection: String? = null,
 )
