@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_RegistrationBlocked"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:signal id="Signal_RegistrationBlocked" name="RegistrationBlocked" />
+  <bpmn:process id="registrationBlocked" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_RegistrationRejected" name="Registration rejected">
+      <bpmn:outgoing>Flow_ToBlocked</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="EndEvent_RegistrationBlocked" name="Registration blocked">
+      <bpmn:incoming>Flow_ToBlocked</bpmn:incoming>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_RegistrationBlocked" signalRef="Signal_RegistrationBlocked" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToBlocked" sourceRef="StartEvent_RegistrationRejected" targetRef="EndEvent_RegistrationBlocked" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="registrationBlocked">
+      <bpmndi:BPMNShape id="StartEvent_RegistrationRejected_di" bpmnElement="StartEvent_RegistrationRejected">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_RegistrationBlocked_di" bpmnElement="EndEvent_RegistrationBlocked">
+        <dc:Bounds x="292" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToBlocked_di" bpmnElement="Flow_ToBlocked">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="292" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

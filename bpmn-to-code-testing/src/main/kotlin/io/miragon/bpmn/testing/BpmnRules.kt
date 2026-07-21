@@ -16,6 +16,8 @@ import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
 import io.miragon.bpmn.domain.validation.rules.TimerCronSyntaxRule
 import io.miragon.bpmn.domain.validation.rules.TimerIso8601SyntaxRule
 import io.miragon.bpmn.domain.validation.rules.UncaughtMessageThrowRule
+import io.miragon.bpmn.domain.validation.rules.UncaughtSignalThrowRule
+import io.miragon.bpmn.domain.validation.rules.UnpublishedSignalCatchRule
 
 /**
  * Provides access to all built-in BPMN validation rules.
@@ -128,6 +130,25 @@ object BpmnRules {
      */
     @JvmField
     val UNCAUGHT_MESSAGE_THROW: CrossModelValidationRule = UncaughtMessageThrowRule()
+
+    /**
+     * Opt-in: warns when a signal is thrown (signal end / intermediate throw event) but no catching
+     * event subscribes to it anywhere in the loaded fileset. Cross-model — only meaningful when the
+     * whole related fileset is loaded together, so it is not part of [all]. Reported as WARN, since
+     * signals are broadcast and a subscriber outside the fileset is possible.
+     */
+    @JvmField
+    val UNCAUGHT_SIGNAL_THROW: CrossModelValidationRule = UncaughtSignalThrowRule()
+
+    /**
+     * Opt-in: warns when a signal is caught (signal start / intermediate catch / boundary event) but no
+     * throwing event publishes it anywhere in the loaded fileset — an orphaned subscriber, the mirror of
+     * [UNCAUGHT_SIGNAL_THROW]. Cross-model — only meaningful when the whole related fileset is loaded
+     * together, so it is not part of [all]. Reported as WARN, since signals are broadcast and a publisher
+     * outside the fileset is possible.
+     */
+    @JvmField
+    val UNPUBLISHED_SIGNAL_CATCH: CrossModelValidationRule = UnpublishedSignalCatchRule()
 
     /**
      * Returns all built-in BPMN validation rules that are enabled by default.

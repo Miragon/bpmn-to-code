@@ -57,6 +57,8 @@ class BpmnRulesTest {
         assertThat(BpmnRules.all().map { it.id }).doesNotContain(
             BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id,
             BpmnRules.UNCAUGHT_MESSAGE_THROW.id,
+            BpmnRules.UNCAUGHT_SIGNAL_THROW.id,
+            BpmnRules.UNPUBLISHED_SIGNAL_CATCH.id,
         )
     }
 
@@ -66,5 +68,7 @@ class BpmnRulesTest {
         assertThat(BpmnRules.TIMER_ISO8601_SYNTAX.id).isEqualTo("timer-iso8601-syntax")
         assertThat(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id).isEqualTo("call-activity-target-exists")
         assertThat(BpmnRules.UNCAUGHT_MESSAGE_THROW.id).isEqualTo("uncaught-message-throw")
+        assertThat(BpmnRules.UNCAUGHT_SIGNAL_THROW.id).isEqualTo("uncaught-signal-throw")
+        assertThat(BpmnRules.UNPUBLISHED_SIGNAL_CATCH.id).isEqualTo("unpublished-signal-catch")
     }
 }

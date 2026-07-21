@@ -141,8 +141,10 @@ These rules are **not** part of `BpmnRules.all()` — they are off by default. E
 | Timer value is not valid ISO-8601 | `TIMER_ISO8601_SYNTAX` | ERROR | A timer value that is not valid ISO-8601 for its type (Date → date/time, Duration → duration, Cycle → repeating interval) |
 | Call activity target is missing | `CALL_ACTIVITY_TARGET_EXISTS` | ERROR | A call activity references a process that is not among the loaded models (a dangling call activity) |
 | Thrown message has no catcher | `UNCAUGHT_MESSAGE_THROW` | WARN | A message is thrown (message end / intermediate throw event) but no catching event exists among the loaded models |
+| Thrown signal has no subscriber | `UNCAUGHT_SIGNAL_THROW` | WARN | A signal is thrown (signal end / intermediate throw event) but no catching event subscribes to it among the loaded models |
+| Caught signal is never thrown | `UNPUBLISHED_SIGNAL_CATCH` | WARN | A signal is caught (signal start / intermediate catch / boundary event) but no throwing event publishes it among the loaded models |
 
-`CALL_ACTIVITY_TARGET_EXISTS` and `UNCAUGHT_MESSAGE_THROW` are [cross-model rules](#cross-process-multi-model-rules): they only hold when the **whole** related fileset is loaded together, which is exactly why they are opt-in rather than part of `all()` — see the tip on loading the whole set below. `UNCAUGHT_MESSAGE_THROW` reports as **WARN** rather than ERROR because a legitimate consumer may live outside the loaded fileset; a catcher is any message start / intermediate-catch / boundary event or receive task, in any loaded model.
+`CALL_ACTIVITY_TARGET_EXISTS`, `UNCAUGHT_MESSAGE_THROW`, and `UNCAUGHT_SIGNAL_THROW` are [cross-model rules](#cross-process-multi-model-rules): they only hold when the **whole** related fileset is loaded together, which is exactly why they are opt-in rather than part of `all()` — see the tip on loading the whole set below. `UNCAUGHT_MESSAGE_THROW` reports as **WARN** rather than ERROR because a legitimate consumer may live outside the loaded fileset; a catcher is any message start / intermediate-catch / boundary event or receive task, in any loaded model. `UNCAUGHT_SIGNAL_THROW` is likewise **WARN**: signals are broadcast, so a subscriber may live outside the loaded fileset; a subscriber is any signal start / intermediate-catch / boundary event, in any loaded model. `UNPUBLISHED_SIGNAL_CATCH` is the mirror of `UNCAUGHT_SIGNAL_THROW` — it flags an orphaned subscriber (a caught signal that no loaded model throws) and is **WARN** for the same reason: a publisher may live outside the loaded fileset.
 
 ```kotlin
 BpmnValidator
@@ -332,13 +334,14 @@ single-model rule reports an `ERROR`, validation stops before the merge and the 
 runs (post-merge rules like `COLLISION_DETECTION` do not short-circuit it).
 :::
 
-Message correlation across processes already ships built-in as the opt-in `UNCAUGHT_MESSAGE_THROW` rule
-(see [Optional Rules](#optional-rules-opt-in)) — it collects every thrown message name across all loaded
-models and warns when one has no catching event anywhere in the set.
+Message and signal correlation across processes already ship built-in as the opt-in
+`UNCAUGHT_MESSAGE_THROW` and `UNCAUGHT_SIGNAL_THROW` rules (see [Optional Rules](#optional-rules-opt-in))
+— each collects every thrown message/signal name across all loaded models and warns when one has no
+catching event anywhere in the set.
 
 Other cross-process checks you can write with the same building blocks: input-coverage ("does every
-caller pass the variables the called process reads?"), output-consumption, signal correlation
-across processes, and process-id uniqueness across the whole fileset.
+caller pass the variables the called process reads?"), output-consumption, and process-id uniqueness
+across the whole fileset.
 
 ::: tip SingleModelValidationContext
 `context.model` gives you the full `BpmnModel` — flow nodes, service tasks, call activities, messages, signals, errors, timers, and variables. `context.engine` tells you which engine was selected, so you can write engine-specific rules.

@@ -5,5 +5,6 @@ sealed interface FlowNodeProperties {
     data class ServiceTask(val definition: ServiceTaskDefinition) : FlowNodeProperties
     data class Timer(val definition: TimerDefinition) : FlowNodeProperties
     data class CallActivity(val definition: CallActivityDefinition) : FlowNodeProperties
-    data class MessageEvent(val name: String, val direction: MessageDirection) : FlowNodeProperties
+    data class MessageEvent(val name: String, val direction: EventDirection) : FlowNodeProperties
+    data class SignalEvent(val name: String, val direction: EventDirection) : FlowNodeProperties
 }

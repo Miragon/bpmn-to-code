@@ -59,4 +59,52 @@ class CrossModelRuleTest {
             .validate()
             .assertNoViolations()
     }
+
+    @Test
+    fun `warns when a thrown signal has no subscriber among the loaded models`() {
+        BpmnValidator
+            .fromClasspath("bpmn/signal-flow/registration-blocked.bpmn")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW)
+            .validate()
+            .assertViolation(
+                ruleId = BpmnRules.UNCAUGHT_SIGNAL_THROW.id,
+                elementId = "EndEvent_RegistrationBlocked",
+                messageContains = "RegistrationBlocked",
+            )
+    }
+
+    @Test
+    fun `passes when the thrown signal is caught by another loaded model`() {
+        BpmnValidator
+            .fromClasspath("bpmn/signal-flow/")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW)
+            .validate()
+            .assertNoViolations()
+    }
+
+    @Test
+    fun `warns when a caught signal is never thrown among the loaded models`() {
+        BpmnValidator
+            .fromClasspath("bpmn/signal-flow/registration-monitor.bpmn")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH)
+            .validate()
+            .assertViolation(
+                ruleId = BpmnRules.UNPUBLISHED_SIGNAL_CATCH.id,
+                elementId = "StartEvent_RegistrationBlocked",
+                messageContains = "RegistrationBlocked",
+            )
+    }
+
+    @Test
+    fun `passes when the caught signal is thrown by another loaded model`() {
+        BpmnValidator
+            .fromClasspath("bpmn/signal-flow/")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH)
+            .validate()
+            .assertNoViolations()
+    }
 }

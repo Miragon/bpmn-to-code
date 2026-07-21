@@ -17,6 +17,7 @@ import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findEsca
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findFlowNodes
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findSequenceFlows
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findSignalEventDefinitions
+import io.miragon.bpmn.adapter.outbound.engine.utils.SignalUtils.findSignalEventProperties
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.findTimerEventDefinition
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.extractVariantName
 import io.miragon.bpmn.adapter.outbound.engine.utils.ModelInstanceUtils.getProcessId
@@ -60,14 +61,15 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         val allServiceTasks = findServiceTasks(modelInstance)
         val allCallActivities = findCallActivities(modelInstance)
         val variablesPerNode = extractVariablesPerNode(modelInstance)
-        val messageEvents = modelInstance.findMessageEventProperties()
+        val eventProperties: Map<String, FlowNodeProperties> =
+            modelInstance.findMessageEventProperties() + modelInstance.findSignalEventProperties()
 
         val enrichedFlowNodes = enrichFlowNodes(
             flowNodes = allFlowNodes,
             serviceTasks = allServiceTasks,
             callActivities = allCallActivities,
             timers = allTimerEvents,
-            messageEvents = messageEvents,
+            eventProperties = eventProperties,
             variablesPerNode = variablesPerNode,
         )
 
@@ -91,7 +93,7 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         serviceTasks: List<ServiceTaskDefinition>,
         callActivities: List<CallActivityDefinition>,
         timers: List<io.miragon.bpmn.domain.shared.TimerDefinition>,
-        messageEvents: Map<String, FlowNodeProperties.MessageEvent>,
+        eventProperties: Map<String, FlowNodeProperties>,
         variablesPerNode: Map<String?, List<VariableDefinition>>,
     ): List<FlowNodeDefinition> {
         val serviceTaskById = serviceTasks.associateBy { it.id }
@@ -102,7 +104,7 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             .groupBy { it.attachedToRef!! }
             .mapValues { (_, nodes) -> nodes.mapNotNull { it.id } }
         return flowNodes.map { node ->
-            val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById, messageEvents)
+            val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById, eventProperties)
             val variables = variablesPerNode[node.id] ?: emptyList()
             val attachedElements = attachedElementsById[node.id] ?: emptyList()
             node.copy(properties = properties, variables = variables, attachedElements = attachedElements)
@@ -114,12 +116,12 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         serviceTasks: Map<String?, ServiceTaskDefinition>,
         callActivities: Map<String?, CallActivityDefinition>,
         timers: Map<String?, io.miragon.bpmn.domain.shared.TimerDefinition>,
-        messageEvents: Map<String, FlowNodeProperties.MessageEvent>,
+        eventProperties: Map<String, FlowNodeProperties>,
     ): FlowNodeProperties {
         serviceTasks[nodeId]?.let { return FlowNodeProperties.ServiceTask(it) }
         callActivities[nodeId]?.let { return FlowNodeProperties.CallActivity(it) }
         timers[nodeId]?.let { return FlowNodeProperties.Timer(it) }
-        return nodeId?.let { messageEvents[it] } ?: FlowNodeProperties.None
+        return nodeId?.let { eventProperties[it] } ?: FlowNodeProperties.None
     }
 
     private fun findCallActivities(modelInstance: ModelInstance): List<CallActivityDefinition> {

@@ -12,4 +12,6 @@ data class FlowNodePropertiesJson(
     val timerValue: String? = null,
     val messageName: String? = null,
     val messageDirection: String? = null,
+    val signalName: String? = null,
+    val signalDirection: String? = null,
 )

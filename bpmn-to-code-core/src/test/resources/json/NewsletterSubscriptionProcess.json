@@ -142,7 +142,12 @@
             "elementType": "SIGNAL_END_EVENT",
             "previousElements": [
                 "ErrorEvent_InvalidMail"
-            ]
+            ],
+            "properties": {
+                "type": "SignalEvent",
+                "signalName": "Signal_RegistrationNotPossible",
+                "signalDirection": "THROW"
+            }
         },
         {
             "id": "Timer_After3Days",

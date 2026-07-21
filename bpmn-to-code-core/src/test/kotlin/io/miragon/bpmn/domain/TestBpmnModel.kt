@@ -17,7 +17,7 @@ import io.miragon.bpmn.domain.shared.FlowNodeDefinition.Companion.ASYNC_BEFORE_K
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition.Companion.EXCLUSIVE_KEY
 import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.shared.MessageDefinition
-import io.miragon.bpmn.domain.shared.MessageDirection
+import io.miragon.bpmn.domain.shared.EventDirection
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
@@ -105,6 +105,7 @@ fun testSubscribeNewsletterBpmnModel(
             previousElements = listOf("Activity_SendWelcomeMail")),
         FlowNodeDefinition("EndEvent_RegistrationNotPossible", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.SIGNAL),
             displayName = "Registration not possible",
+            properties = FlowNodeProperties.SignalEvent("Signal_RegistrationNotPossible", EventDirection.THROW),
             previousElements = listOf("ErrorEvent_InvalidMail")),
         FlowNodeDefinition("EndEvent_SubscriptionConfirmed", BpmnNodeType.Event(EventShape.END_EVENT),
             displayName = "Subscription confirmed",
@@ -126,7 +127,7 @@ fun testSubscribeNewsletterBpmnModel(
             followingElements = listOf("Activity_SendConfirmationMail")),
         FlowNodeDefinition("StartEvent_SubmitRegistrationForm", BpmnNodeType.Event(EventShape.START_EVENT, EventDefinitionType.MESSAGE),
             displayName = "Submit newsletter form",
-            properties = FlowNodeProperties.MessageEvent("Message_FormSubmitted", MessageDirection.CATCH),
+            properties = FlowNodeProperties.MessageEvent("Message_FormSubmitted", EventDirection.CATCH),
             variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
             followingElements = listOf("serviceTask_incrementSubscriptionCounter")),
         FlowNodeDefinition("SubProcess_Confirmation", BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),
@@ -212,7 +213,7 @@ fun testSendNewsletterBpmnModel(
         // Event subprocess: error handling
         FlowNodeDefinition("eventSubProcess_errorHandling", BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN)),
         FlowNodeDefinition("event_mailRejected", BpmnNodeType.Event(EventShape.START_EVENT, EventDefinitionType.MESSAGE),
-            properties = FlowNodeProperties.MessageEvent("Message_MailRejected", MessageDirection.CATCH),
+            properties = FlowNodeProperties.MessageEvent("Message_MailRejected", EventDirection.CATCH),
             parentId = "eventSubProcess_errorHandling",
             followingElements = listOf("serviceTask_analyzeError")),
         FlowNodeDefinition("serviceTask_analyzeError", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
@@ -237,7 +238,7 @@ fun testSendNewsletterBpmnModel(
             parentId = "eventSubProcess_errorHandling",
             previousElements = listOf("gateway_canSendAgain")),
         FlowNodeDefinition("event_mailRejectedAgain", BpmnNodeType.Event(EventShape.INTERMEDIATE_CATCH_EVENT, EventDefinitionType.MESSAGE),
-            properties = FlowNodeProperties.MessageEvent("Message_MailRejectedAgain", MessageDirection.CATCH),
+            properties = FlowNodeProperties.MessageEvent("Message_MailRejectedAgain", EventDirection.CATCH),
             parentId = "eventSubProcess_errorHandling",
             previousElements = listOf("eventGateway_afterSendingAgain"), followingElements = listOf("escalationEndEvent_nofitySupportAfterRepeatedError")),
         FlowNodeDefinition("escalationEndEvent_nofitySupportAfterRepeatedError", BpmnNodeType.Event(EventShape.END_EVENT),
