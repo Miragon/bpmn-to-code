@@ -18,7 +18,7 @@ class BpmnProcessArchitectureTest {
     /**
      * Custom rule: all service tasks must have an ID that starts with a known prefix.
      */
-    private val serviceTaskNamingRule = object : SingleModelValidationRule {
+    private class ServiceTaskNamingRule : SingleModelValidationRule {
         override val id = "service-task-naming"
         override val severity = Severity.WARN
         override val phase = ValidationPhase.PRE_MERGE
@@ -43,10 +43,6 @@ class BpmnProcessArchitectureTest {
 
     @Test
     fun `validate shared bpmn files with Camunda 7 using built-in and custom rules`() {
-
-        // given: a Camunda 7 BPMN file validated with built-in and custom rules
-
-        // when: running validation
         val assert = BpmnValidator
             .fromClasspath("bpmn/c7-subscribe-newsletter.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
@@ -54,11 +50,10 @@ class BpmnProcessArchitectureTest {
                 BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION,
                 BpmnRules.MISSING_MESSAGE_NAME,
                 BpmnRules.MISSING_ELEMENT_ID,
-                serviceTaskNamingRule,
+                ServiceTaskNamingRule(),
             )
             .validate()
 
-        // then: no errors or violations for the relevant rules
         assert.assertNoErrors()
         assert.assertNoViolations("missing-service-task-implementation")
         assert.assertNoViolations("missing-message-name")
@@ -67,9 +62,7 @@ class BpmnProcessArchitectureTest {
 
     @Test
     fun `validate shared bpmn files with Zeebe`() {
-
-        // when: running validation on a Zeebe BPMN file
-        val assert = BpmnValidator
+        BpmnValidator
             .fromClasspath("bpmn/c8-subscribe-newsletter.bpmn")
             .engine(ProcessEngine.ZEEBE)
             .withRules(
@@ -78,54 +71,39 @@ class BpmnProcessArchitectureTest {
                 BpmnRules.MISSING_ELEMENT_ID,
             )
             .validate()
-
-        // then: no errors
-        assert.assertNoErrors()
+            .assertNoErrors()
     }
 
     @Test
     fun `disableRules filters violations and assertNoViolations confirms`() {
-
-        // given: an invalid BPMN file with the implementation rule disabled
-
-        // when: running validation
-        val assert = BpmnValidator
+        BpmnValidator
             .fromClasspath("bpmn/invalid-process.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION, BpmnRules.MISSING_MESSAGE_NAME)
             .disableRules("missing-service-task-implementation")
             .validate()
-
-        // then: the disabled rule produces no violations
-        assert.assertNoViolations("missing-service-task-implementation")
+            .assertNoViolations("missing-service-task-implementation")
     }
 
     @Test
     fun `compose built-in and custom rules in single validation`() {
-
-        // when: running all built-in and custom rules against a valid process
-        val assert = BpmnValidator
+        BpmnValidator
             .fromClasspath("bpmn/valid-process.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.all() + serviceTaskNamingRule)
+            .withRules(BpmnRules.all() + ServiceTaskNamingRule())
             .validate()
-
-        // then: no errors
-        assert.assertNoErrors()
+            .assertNoErrors()
     }
 
     @Test
     fun `result escape hatch provides raw ValidationResult`() {
-
-        // when: validating a valid process and accessing the raw result
-        val assert = BpmnValidator
+        val result = BpmnValidator
             .fromClasspath("bpmn/valid-process.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION)
             .validate()
+            .result()
 
-        // then: raw result reports as valid
-        val result = assert.result()
         assertThat(result.isValid).isTrue()
     }
 }

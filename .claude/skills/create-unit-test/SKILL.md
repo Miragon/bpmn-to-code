@@ -86,6 +86,41 @@ class FooServiceTest {
 - Always use multiline style: `/** \n * description\n */`
 - Never use single-line: `/** description */`
 
+## Validation-Rule Tests
+
+Tests in `bpmn-to-code-testing` that exercise validation rules through the `BpmnValidator` fluent
+builder are **integration-style** tests, not mock-based unit tests. The `underTest` / mockk /
+`confirmVerified` pattern above does **not** apply to them. Use these conventions instead:
+
+- **Assert through the fluent API — never drop to `.result().violations`** for standard checks. Use
+  `assertNoViolations()` / `assertNoViolations(ruleId)` / `assertHasViolations()` for absence/presence,
+  and `assertViolation(ruleId, elementId?, messageContains?)` / `assertViolationCount(n)` for positive
+  checks. `.result()` is an escape hatch reserved for assertions the fluent API genuinely cannot express.
+- **Custom rules are named `private class`** declared *below* the tests, with members ordered
+  `id → severity → phase → validate`. Never an anonymous `object : Rule val`.
+- **Reusable rules go in `TestRules`** — a rule used by more than one suite is defined once there and
+  exposed via a factory (`TestRules.callActivityTargetExists()`) plus an id constant
+  (`TestRules.CALL_ACTIVITY_TARGET_EXISTS`). One-off, behaviour-specific rules stay local to their class.
+- **No given/when/then comments** for these short fluent chains — the chain already reads as when/then.
+  Never leave an empty `// given:` / `// when:` section, and no leading blank line after `@Test`.
+- Prefer a rule's `.id` constant (e.g. `BpmnRules.TIMER_CRON_SYNTAX.id`) over a magic string.
+
+```kotlin
+@Test
+fun `flags a call activity whose called process is absent`() {
+    BpmnValidator
+        .fromClasspath("order-fulfillment/order-fulfillment.bpmn")
+        .engine(ProcessEngine.CAMUNDA_7)
+        .withRules(TestRules.callActivityTargetExists())
+        .validate()
+        .assertViolation(
+            ruleId = TestRules.CALL_ACTIVITY_TARGET_EXISTS,
+            elementId = "CallActivity_ProcessPayment",
+            messageContains = "paymentProcessing",
+        )
+}
+```
+
 ## Implementation Checklist
 
 - [ ] Class name ends in `Test`
