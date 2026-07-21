@@ -92,6 +92,67 @@ class BpmnValidationAssertTest {
     }
 
     @Nested
+    inner class AssertViolation {
+
+        @Test
+        fun `passes when exactly one violation matches the rule`() {
+            val result = ValidationResult(listOf(error))
+            assertThatCode {
+                BpmnValidationAssert.assertThat(result)
+                    .assertViolation("test-rule", elementId = "Task_1", messageContains = "wrong")
+            }.doesNotThrowAnyException()
+        }
+
+        @Test
+        fun `fails when no violation matches the rule`() {
+            val result = ValidationResult(listOf(error))
+            assertThatThrownBy {
+                BpmnValidationAssert.assertThat(result).assertViolation("other-rule")
+            }.isInstanceOf(AssertionError::class.java)
+                .hasMessageContaining("Expected exactly one violation for rule 'other-rule' but found 0")
+        }
+
+        @Test
+        fun `fails when the element does not match`() {
+            val result = ValidationResult(listOf(error))
+            assertThatThrownBy {
+                BpmnValidationAssert.assertThat(result).assertViolation("test-rule", elementId = "Task_2")
+            }.isInstanceOf(AssertionError::class.java)
+                .hasMessageContaining("on element 'Task_2'")
+        }
+
+        @Test
+        fun `fails when the message does not contain the fragment`() {
+            val result = ValidationResult(listOf(error))
+            assertThatThrownBy {
+                BpmnValidationAssert.assertThat(result).assertViolation("test-rule", messageContains = "missing")
+            }.isInstanceOf(AssertionError::class.java)
+                .hasMessageContaining("to contain 'missing'")
+        }
+    }
+
+    @Nested
+    inner class AssertViolationCount {
+
+        @Test
+        fun `passes when the count matches`() {
+            val result = ValidationResult(listOf(error, warning))
+            assertThatCode {
+                BpmnValidationAssert.assertThat(result).assertViolationCount(2)
+            }.doesNotThrowAnyException()
+        }
+
+        @Test
+        fun `fails when the count differs`() {
+            val result = ValidationResult(listOf(error))
+            assertThatThrownBy {
+                BpmnValidationAssert.assertThat(result).assertViolationCount(2)
+            }.isInstanceOf(AssertionError::class.java)
+                .hasMessageContaining("Expected 2 violation(s) but found 1")
+        }
+    }
+
+    @Nested
     inner class AssertNoErrors {
 
         @Test

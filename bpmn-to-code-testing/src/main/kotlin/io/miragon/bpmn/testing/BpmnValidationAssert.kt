@@ -55,6 +55,52 @@ class BpmnValidationAssert(
     }
 
     /**
+     * Asserts that exactly one violation was produced for the given rule (optionally narrowed to a
+     * specific element), and that its message contains the expected fragment when one is given.
+     */
+    fun assertViolation(
+        ruleId: String,
+        elementId: String? = null,
+        messageContains: String? = null,
+    ): BpmnValidationAssert {
+        val matching = violationsFor(ruleId, elementId)
+        if (matching.size != 1) {
+            failWithMessage(
+                "Expected exactly one violation for rule '%s'%s but found %d:\n%s",
+                ruleId,
+                if (elementId != null) " on element '$elementId'" else "",
+                matching.size,
+                formatViolations(actual.violations),
+            )
+        }
+        val message = matching.single().message
+        if (messageContains != null && !message.contains(messageContains)) {
+            failWithMessage(
+                "Expected violation for rule '%s' to contain '%s' but was:\n%s",
+                ruleId,
+                messageContains,
+                message,
+            )
+        }
+        return this
+    }
+
+    /**
+     * Asserts that the validation produced exactly the given number of violations.
+     */
+    fun assertViolationCount(expected: Int): BpmnValidationAssert {
+        if (actual.violations.size != expected) {
+            failWithMessage(
+                "Expected %d violation(s) but found %d:\n%s",
+                expected,
+                actual.violations.size,
+                formatViolations(actual.violations),
+            )
+        }
+        return this
+    }
+
+    /**
      * Asserts that the validation produced no ERROR-severity violations.
      */
     fun assertNoErrors(): BpmnValidationAssert {
@@ -87,6 +133,17 @@ class BpmnValidationAssert(
      */
     fun result(): ValidationResult {
         return actual
+    }
+
+    /**
+     * Returns the violations for the given rule, optionally narrowed to a specific element.
+     */
+    private fun violationsFor(ruleId: String, elementId: String?): List<ValidationViolation> {
+        val violationsForRule = actual.violations.filter { it.ruleId == ruleId }
+        return when (elementId) {
+            null -> violationsForRule
+            else -> violationsForRule.filter { it.elementId == elementId }
+        }
     }
 
     companion object {
