@@ -6,7 +6,6 @@ package de.emaarco.example
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnFlow
-import io.miragon.bpmn.runtime.BpmnRelations
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.InputOutputMapping
@@ -37,12 +36,6 @@ object NewsletterSubscriptionProcessApi {
         ElementId("Activity_SendConfirmationMail")
 
     val ACTIVITY_SEND_WELCOME_MAIL: ElementId = ElementId("Activity_SendWelcomeMail")
-
-    val ACTIVITY_NOTIFY_COMMUNITY: ElementId = ElementId("Activity_NotifyCommunity")
-
-    val GATEWAY_SPLIT_NOTIFICATIONS: ElementId = ElementId("Gateway_SplitNotifications")
-
-    val GATEWAY_JOIN_NOTIFICATIONS: ElementId = ElementId("Gateway_JoinNotifications")
 
     val COMPENSATION_END_EVENT_REGISTRATION_ABORTED: ElementId =
         ElementId("CompensationEndEvent_RegistrationAborted")
@@ -119,8 +112,6 @@ object NewsletterSubscriptionProcessApi {
 
     const val COUNTER_CLASS: String = "counterClass"
 
-    const val NEWSLETTER_NOTIFY_COMMUNITY: String = "newsletter.notifyCommunity"
-
     const val NEWSLETTER_REGISTRATION_COMPLETED: String = "newsletter.registrationCompleted"
   }
 
@@ -195,7 +186,7 @@ object NewsletterSubscriptionProcessApi {
     val FLOW_09_CUVZP: BpmnFlow = BpmnFlow(
           id = "Flow_09cuvzp",
           sourceRef = "SubProcess_Confirmation",
-          targetRef = "Gateway_SplitNotifications",
+          targetRef = "Activity_SendWelcomeMail",
         )
 
     val FLOW_0_I_2_CTUV: BpmnFlow = BpmnFlow(
@@ -214,18 +205,6 @@ object NewsletterSubscriptionProcessApi {
           id = "Flow_0zdmt0t",
           sourceRef = "serviceTask_incrementSubscriptionCounter",
           targetRef = "SubProcess_Confirmation",
-        )
-
-    val FLOW_16_HUB_0_N: BpmnFlow = BpmnFlow(
-          id = "Flow_16hub0n",
-          sourceRef = "Gateway_SplitNotifications",
-          targetRef = "Activity_SendWelcomeMail",
-        )
-
-    val FLOW_1862_JD_8: BpmnFlow = BpmnFlow(
-          id = "Flow_1862jd8",
-          sourceRef = "Gateway_JoinNotifications",
-          targetRef = "EndEvent_RegistrationCompleted",
         )
 
     val FLOW_1_BCKM_43: BpmnFlow = BpmnFlow(
@@ -252,16 +231,10 @@ object NewsletterSubscriptionProcessApi {
           targetRef = "serviceTask_incrementSubscriptionCounter",
         )
 
-    val FLOW_1_DUWY_83: BpmnFlow = BpmnFlow(
-          id = "Flow_1duwy83",
-          sourceRef = "Activity_NotifyCommunity",
-          targetRef = "Gateway_JoinNotifications",
-        )
-
     val FLOW_1_I_7_HJID: BpmnFlow = BpmnFlow(
           id = "Flow_1i7hjid",
           sourceRef = "Activity_SendWelcomeMail",
-          targetRef = "Gateway_JoinNotifications",
+          targetRef = "EndEvent_RegistrationCompleted",
         )
 
     val FLOW_1_L_1_LJ_4_M: BpmnFlow = BpmnFlow(
@@ -269,198 +242,275 @@ object NewsletterSubscriptionProcessApi {
           sourceRef = "Timer_After3Days",
           targetRef = "CallActivity_AbortRegistration",
         )
-
-    val FLOW_1_P_5_T_47_Z: BpmnFlow = BpmnFlow(
-          id = "Flow_1p5t47z",
-          sourceRef = "Gateway_SplitNotifications",
-          targetRef = "Activity_NotifyCommunity",
-        )
   }
 
   /**
-   * Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).
-   * Intended for tooling and tests, not worker runtime code.
+   * Typed navigation over the process flow.
+   * Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements reachable from it as named properties — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested `Inner` scope.
+   * Intended for tooling, tests, and reasoning about the process shape.
    */
   object Relations {
-    val ACTIVITY_CONFIRM_REGISTRATION: BpmnRelations = BpmnRelations(
-          name = "Confirm registration",
-          previousElements = listOf("Activity_SendConfirmationMail"),
-          followingElements = listOf("EndEvent_SubscriptionConfirmed"),
-          parentId = "SubProcess_Confirmation",
-          attachedToRef = null,
-          attachedElements = listOf("Timer_EveryDay"),
-          elementType = "RECEIVE_TASK",
-        )
+    val activitySendWelcomeMail: ActivitySendWelcomeMail
+      get() = ActivitySendWelcomeMail
 
-    val ACTIVITY_NOTIFY_COMMUNITY: BpmnRelations = BpmnRelations(
-          previousElements = listOf("Gateway_SplitNotifications"),
-          followingElements = listOf("Gateway_JoinNotifications"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "SERVICE_TASK",
-        )
+    val callActivityAbortRegistration: CallActivityAbortRegistration
+      get() = CallActivityAbortRegistration
 
-    val ACTIVITY_SEND_CONFIRMATION_MAIL: BpmnRelations = BpmnRelations(
-          previousElements = listOf("StartEvent_RequestReceived", "Timer_EveryDay"),
-          followingElements = listOf("Activity_ConfirmRegistration"),
-          parentId = "SubProcess_Confirmation",
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "SERVICE_TASK",
-        )
+    val compensationEndEventRegistrationAborted: CompensationEndEventRegistrationAborted
+      get() = CompensationEndEventRegistrationAborted
 
-    val ACTIVITY_SEND_WELCOME_MAIL: BpmnRelations = BpmnRelations(
-          previousElements = listOf("Gateway_SplitNotifications"),
-          followingElements = listOf("Gateway_JoinNotifications"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "SERVICE_TASK",
-        )
+    val compensationEventOnSubscriptionCounter: CompensationEventOnSubscriptionCounter
+      get() = CompensationEventOnSubscriptionCounter
 
-    val CALL_ACTIVITY_ABORT_REGISTRATION: BpmnRelations = BpmnRelations(
-          previousElements = listOf("Timer_After3Days"),
-          followingElements = listOf("CompensationEndEvent_RegistrationAborted"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "CALL_ACTIVITY",
-        )
+    val compensationTaskDecrementSubscriptionCounter:
+        CompensationTaskDecrementSubscriptionCounter
+      get() = CompensationTaskDecrementSubscriptionCounter
 
-    val COMPENSATION_END_EVENT_REGISTRATION_ABORTED: BpmnRelations = BpmnRelations(
-          previousElements = listOf("CallActivity_AbortRegistration"),
-          followingElements = emptyList(),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "COMPENSATION_END_EVENT",
-        )
+    val endEventRegistrationCompleted: EndEventRegistrationCompleted
+      get() = EndEventRegistrationCompleted
 
-    val COMPENSATION_EVENT_ON_SUBSCRIPTION_COUNTER: BpmnRelations = BpmnRelations(
-          previousElements = emptyList(),
-          followingElements = emptyList(),
-          parentId = null,
-          attachedToRef = "serviceTask_incrementSubscriptionCounter",
-          attachedElements = emptyList(),
-          elementType = "COMPENSATION_BOUNDARY_EVENT",
-        )
+    val endEventRegistrationNotPossible: EndEventRegistrationNotPossible
+      get() = EndEventRegistrationNotPossible
 
-    val COMPENSATION_TASK_DECREMENT_SUBSCRIPTION_COUNTER: BpmnRelations = BpmnRelations(
-          previousElements = emptyList(),
-          followingElements = emptyList(),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "TASK",
-        )
+    val errorEventInvalidMail: ErrorEventInvalidMail
+      get() = ErrorEventInvalidMail
 
-    val END_EVENT_REGISTRATION_COMPLETED: BpmnRelations = BpmnRelations(
-          previousElements = listOf("Gateway_JoinNotifications"),
-          followingElements = emptyList(),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "END_EVENT",
-        )
+    val serviceTaskIncrementSubscriptionCounter: ServiceTaskIncrementSubscriptionCounter
+      get() = ServiceTaskIncrementSubscriptionCounter
 
-    val END_EVENT_REGISTRATION_NOT_POSSIBLE: BpmnRelations = BpmnRelations(
-          previousElements = listOf("ErrorEvent_InvalidMail"),
-          followingElements = emptyList(),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "SIGNAL_END_EVENT",
-        )
+    val startEventSubmitRegistrationForm: StartEventSubmitRegistrationForm
+      get() = StartEventSubmitRegistrationForm
 
-    val END_EVENT_SUBSCRIPTION_CONFIRMED: BpmnRelations = BpmnRelations(
-          previousElements = listOf("Activity_ConfirmRegistration"),
-          followingElements = emptyList(),
-          parentId = "SubProcess_Confirmation",
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "END_EVENT",
-        )
+    val subProcessConfirmation: SubProcessConfirmation
+      get() = SubProcessConfirmation
 
-    val ERROR_EVENT_INVALID_MAIL: BpmnRelations = BpmnRelations(
-          previousElements = emptyList(),
-          followingElements = listOf("EndEvent_RegistrationNotPossible"),
-          parentId = null,
-          attachedToRef = "SubProcess_Confirmation",
-          attachedElements = emptyList(),
-          elementType = "ERROR_BOUNDARY_EVENT",
-        )
+    val timerAfter3Days: TimerAfter3Days
+      get() = TimerAfter3Days
 
-    val GATEWAY_JOIN_NOTIFICATIONS: BpmnRelations = BpmnRelations(
-          previousElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity"),
-          followingElements = listOf("EndEvent_RegistrationCompleted"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "PARALLEL_GATEWAY",
-        )
+    fun then(): Next = Next
 
-    val GATEWAY_SPLIT_NOTIFICATIONS: BpmnRelations = BpmnRelations(
-          previousElements = listOf("SubProcess_Confirmation"),
-          followingElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "PARALLEL_GATEWAY",
-        )
+    object Next {
+      val startEventSubmitRegistrationForm: StartEventSubmitRegistrationForm
+        get() = StartEventSubmitRegistrationForm
+    }
 
-    val START_EVENT_REQUEST_RECEIVED: BpmnRelations = BpmnRelations(
-          previousElements = emptyList(),
-          followingElements = listOf("Activity_SendConfirmationMail"),
-          parentId = "SubProcess_Confirmation",
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "START_EVENT",
-        )
+    object ActivitySendWelcomeMail {
+      val id: ElementId = ElementId("Activity_SendWelcomeMail")
 
-    val START_EVENT_SUBMIT_REGISTRATION_FORM: BpmnRelations = BpmnRelations(
-          previousElements = emptyList(),
-          followingElements = listOf("serviceTask_incrementSubscriptionCounter"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = emptyList(),
-          elementType = "MESSAGE_START_EVENT",
-        )
+      val elementType: String = "SERVICE_TASK"
 
-    val SUB_PROCESS_CONFIRMATION: BpmnRelations = BpmnRelations(
-          previousElements = listOf("serviceTask_incrementSubscriptionCounter"),
-          followingElements = listOf("Gateway_SplitNotifications"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = listOf("ErrorEvent_InvalidMail", "Timer_After3Days"),
-          elementType = "SUB_PROCESS",
-        )
+      fun then(): Next = Next
 
-    val TIMER_AFTER_3_DAYS: BpmnRelations = BpmnRelations(
-          previousElements = emptyList(),
-          followingElements = listOf("CallActivity_AbortRegistration"),
-          parentId = null,
-          attachedToRef = "SubProcess_Confirmation",
-          attachedElements = emptyList(),
-          elementType = "TIMER_BOUNDARY_EVENT",
-        )
+      object Next {
+        val endEventRegistrationCompleted: EndEventRegistrationCompleted
+          get() = EndEventRegistrationCompleted
+      }
+    }
 
-    val TIMER_EVERY_DAY: BpmnRelations = BpmnRelations(
-          previousElements = emptyList(),
-          followingElements = listOf("Activity_SendConfirmationMail"),
-          parentId = "SubProcess_Confirmation",
-          attachedToRef = "Activity_ConfirmRegistration",
-          attachedElements = emptyList(),
-          elementType = "TIMER_BOUNDARY_EVENT",
-        )
+    object CallActivityAbortRegistration {
+      val id: ElementId = ElementId("CallActivity_AbortRegistration")
 
-    val SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER: BpmnRelations = BpmnRelations(
-          previousElements = listOf("StartEvent_SubmitRegistrationForm"),
-          followingElements = listOf("SubProcess_Confirmation"),
-          parentId = null,
-          attachedToRef = null,
-          attachedElements = listOf("CompensationEvent_OnSubscriptionCounter"),
-          elementType = "SERVICE_TASK",
-        )
+      val elementType: String = "CALL_ACTIVITY"
+
+      val calledProcess: ProcessId = ProcessId("abort-registration")
+
+      fun then(): Next = Next
+
+      object Next {
+        val compensationEndEventRegistrationAborted: CompensationEndEventRegistrationAborted
+          get() = CompensationEndEventRegistrationAborted
+      }
+    }
+
+    object CompensationEndEventRegistrationAborted {
+      val id: ElementId = ElementId("CompensationEndEvent_RegistrationAborted")
+
+      val elementType: String = "COMPENSATION_END_EVENT"
+    }
+
+    object CompensationEventOnSubscriptionCounter {
+      val id: ElementId = ElementId("CompensationEvent_OnSubscriptionCounter")
+
+      val elementType: String = "COMPENSATION_BOUNDARY_EVENT"
+    }
+
+    object CompensationTaskDecrementSubscriptionCounter {
+      val id: ElementId = ElementId("CompensationTask_DecrementSubscriptionCounter")
+
+      val elementType: String = "TASK"
+    }
+
+    object EndEventRegistrationCompleted {
+      val id: ElementId = ElementId("EndEvent_RegistrationCompleted")
+
+      val elementType: String = "END_EVENT"
+    }
+
+    object EndEventRegistrationNotPossible {
+      val id: ElementId = ElementId("EndEvent_RegistrationNotPossible")
+
+      val elementType: String = "SIGNAL_END_EVENT"
+    }
+
+    object ErrorEventInvalidMail {
+      val id: ElementId = ElementId("ErrorEvent_InvalidMail")
+
+      val elementType: String = "ERROR_BOUNDARY_EVENT"
+
+      fun then(): Next = Next
+
+      object Next {
+        val endEventRegistrationNotPossible: EndEventRegistrationNotPossible
+          get() = EndEventRegistrationNotPossible
+      }
+    }
+
+    object ServiceTaskIncrementSubscriptionCounter {
+      val id: ElementId = ElementId("serviceTask_incrementSubscriptionCounter")
+
+      val elementType: String = "SERVICE_TASK"
+
+      fun then(): Next = Next
+
+      object Next {
+        val compensationEventOnSubscriptionCounter: CompensationEventOnSubscriptionCounter
+          get() = CompensationEventOnSubscriptionCounter
+
+        val subProcessConfirmation: SubProcessConfirmation
+          get() = SubProcessConfirmation
+      }
+    }
+
+    object StartEventSubmitRegistrationForm {
+      val id: ElementId = ElementId("StartEvent_SubmitRegistrationForm")
+
+      val elementType: String = "MESSAGE_START_EVENT"
+
+      fun then(): Next = Next
+
+      object Next {
+        val serviceTaskIncrementSubscriptionCounter: ServiceTaskIncrementSubscriptionCounter
+          get() = ServiceTaskIncrementSubscriptionCounter
+      }
+    }
+
+    object SubProcessConfirmation {
+      val id: ElementId = ElementId("SubProcess_Confirmation")
+
+      val elementType: String = "SUB_PROCESS"
+
+      fun then(): Next = Next
+
+      object Next {
+        val activitySendWelcomeMail: ActivitySendWelcomeMail
+          get() = ActivitySendWelcomeMail
+
+        val errorEventInvalidMail: ErrorEventInvalidMail
+          get() = ErrorEventInvalidMail
+
+        val timerAfter3Days: TimerAfter3Days
+          get() = TimerAfter3Days
+      }
+
+      object Inner {
+        val activityConfirmRegistration: ActivityConfirmRegistration
+          get() = ActivityConfirmRegistration
+
+        val activitySendConfirmationMail: ActivitySendConfirmationMail
+          get() = ActivitySendConfirmationMail
+
+        val endEventSubscriptionConfirmed: EndEventSubscriptionConfirmed
+          get() = EndEventSubscriptionConfirmed
+
+        val startEventRequestReceived: StartEventRequestReceived
+          get() = StartEventRequestReceived
+
+        val timerEveryDay: TimerEveryDay
+          get() = TimerEveryDay
+
+        fun then(): Next = Next
+
+        object Next {
+          val startEventRequestReceived: StartEventRequestReceived
+            get() = StartEventRequestReceived
+        }
+
+        object ActivityConfirmRegistration {
+          val id: ElementId = ElementId("Activity_ConfirmRegistration")
+
+          val elementType: String = "RECEIVE_TASK"
+
+          val name: String = "Confirm registration"
+
+          fun then(): Next = Next
+
+          object Next {
+            val endEventSubscriptionConfirmed: EndEventSubscriptionConfirmed
+              get() = EndEventSubscriptionConfirmed
+
+            val timerEveryDay: TimerEveryDay
+              get() = TimerEveryDay
+          }
+        }
+
+        object ActivitySendConfirmationMail {
+          val id: ElementId = ElementId("Activity_SendConfirmationMail")
+
+          val elementType: String = "SERVICE_TASK"
+
+          fun then(): Next = Next
+
+          object Next {
+            val activityConfirmRegistration: ActivityConfirmRegistration
+              get() = ActivityConfirmRegistration
+          }
+        }
+
+        object EndEventSubscriptionConfirmed {
+          val id: ElementId = ElementId("EndEvent_SubscriptionConfirmed")
+
+          val elementType: String = "END_EVENT"
+        }
+
+        object StartEventRequestReceived {
+          val id: ElementId = ElementId("StartEvent_RequestReceived")
+
+          val elementType: String = "START_EVENT"
+
+          fun then(): Next = Next
+
+          object Next {
+            val activitySendConfirmationMail: ActivitySendConfirmationMail
+              get() = ActivitySendConfirmationMail
+          }
+        }
+
+        object TimerEveryDay {
+          val id: ElementId = ElementId("Timer_EveryDay")
+
+          val elementType: String = "TIMER_BOUNDARY_EVENT"
+
+          fun then(): Next = Next
+
+          object Next {
+            val activitySendConfirmationMail: ActivitySendConfirmationMail
+              get() = ActivitySendConfirmationMail
+          }
+        }
+      }
+    }
+
+    object TimerAfter3Days {
+      val id: ElementId = ElementId("Timer_After3Days")
+
+      val elementType: String = "TIMER_BOUNDARY_EVENT"
+
+      fun then(): Next = Next
+
+      object Next {
+        val callActivityAbortRegistration: CallActivityAbortRegistration
+          get() = CallActivityAbortRegistration
+      }
+    }
   }
 }

@@ -4,7 +4,6 @@ package de.emaarco.example;
 import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnError;
 import io.miragon.bpmn.runtime.BpmnFlow;
-import io.miragon.bpmn.runtime.BpmnRelations;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.InputOutputMapping;
@@ -13,7 +12,6 @@ import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SignalName;
 import io.miragon.bpmn.runtime.VariableName;
 import java.lang.String;
-import java.util.List;
 
 public final class NewsletterSubscriptionProcessApi {
   public static final ProcessId PROCESS_ID = new ProcessId("newsletterSubscription");
@@ -33,12 +31,6 @@ public final class NewsletterSubscriptionProcessApi {
     public static final ElementId ACTIVITY_SEND_CONFIRMATION_MAIL = new ElementId("Activity_SendConfirmationMail");
 
     public static final ElementId ACTIVITY_SEND_WELCOME_MAIL = new ElementId("Activity_SendWelcomeMail");
-
-    public static final ElementId ACTIVITY_NOTIFY_COMMUNITY = new ElementId("Activity_NotifyCommunity");
-
-    public static final ElementId GATEWAY_SPLIT_NOTIFICATIONS = new ElementId("Gateway_SplitNotifications");
-
-    public static final ElementId GATEWAY_JOIN_NOTIFICATIONS = new ElementId("Gateway_JoinNotifications");
 
     public static final ElementId COMPENSATION_END_EVENT_REGISTRATION_ABORTED = new ElementId("CompensationEndEvent_RegistrationAborted");
 
@@ -104,8 +96,6 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final String COUNTER_CLASS = "counterClass";
 
-    public static final String NEWSLETTER_NOTIFY_COMMUNITY = "newsletter.notifyCommunity";
-
     public static final String NEWSLETTER_REGISTRATION_COMPLETED = "newsletter.registrationCompleted";
   }
 
@@ -170,17 +160,13 @@ public final class NewsletterSubscriptionProcessApi {
   public static final class Flows {
     public static final BpmnFlow FLOW_05_I_3_X_1_Y = new BpmnFlow("Flow_05i3x1y", null, "StartEvent_RequestReceived", "Activity_SendConfirmationMail", null, false);
 
-    public static final BpmnFlow FLOW_09_CUVZP = new BpmnFlow("Flow_09cuvzp", null, "SubProcess_Confirmation", "Gateway_SplitNotifications", null, false);
+    public static final BpmnFlow FLOW_09_CUVZP = new BpmnFlow("Flow_09cuvzp", null, "SubProcess_Confirmation", "Activity_SendWelcomeMail", null, false);
 
     public static final BpmnFlow FLOW_0_I_2_CTUV = new BpmnFlow("Flow_0i2ctuv", null, "ErrorEvent_InvalidMail", "EndEvent_RegistrationNotPossible", null, false);
 
     public static final BpmnFlow FLOW_0_X_4_EWVB = new BpmnFlow("Flow_0x4ewvb", null, "Timer_EveryDay", "Activity_SendConfirmationMail", null, false);
 
     public static final BpmnFlow FLOW_0_ZDMT_0_T = new BpmnFlow("Flow_0zdmt0t", null, "serviceTask_incrementSubscriptionCounter", "SubProcess_Confirmation", null, false);
-
-    public static final BpmnFlow FLOW_16_HUB_0_N = new BpmnFlow("Flow_16hub0n", null, "Gateway_SplitNotifications", "Activity_SendWelcomeMail", null, false);
-
-    public static final BpmnFlow FLOW_1862_JD_8 = new BpmnFlow("Flow_1862jd8", null, "Gateway_JoinNotifications", "EndEvent_RegistrationCompleted", null, false);
 
     public static final BpmnFlow FLOW_1_BCKM_43 = new BpmnFlow("Flow_1bckm43", null, "Activity_SendConfirmationMail", "Activity_ConfirmRegistration", null, false);
 
@@ -190,58 +176,344 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final BpmnFlow FLOW_1_CSFYYZ = new BpmnFlow("Flow_1csfyyz", null, "StartEvent_SubmitRegistrationForm", "serviceTask_incrementSubscriptionCounter", null, false);
 
-    public static final BpmnFlow FLOW_1_DUWY_83 = new BpmnFlow("Flow_1duwy83", null, "Activity_NotifyCommunity", "Gateway_JoinNotifications", null, false);
-
-    public static final BpmnFlow FLOW_1_I_7_HJID = new BpmnFlow("Flow_1i7hjid", null, "Activity_SendWelcomeMail", "Gateway_JoinNotifications", null, false);
+    public static final BpmnFlow FLOW_1_I_7_HJID = new BpmnFlow("Flow_1i7hjid", null, "Activity_SendWelcomeMail", "EndEvent_RegistrationCompleted", null, false);
 
     public static final BpmnFlow FLOW_1_L_1_LJ_4_M = new BpmnFlow("Flow_1l1lj4m", null, "Timer_After3Days", "CallActivity_AbortRegistration", null, false);
-
-    public static final BpmnFlow FLOW_1_P_5_T_47_Z = new BpmnFlow("Flow_1p5t47z", null, "Gateway_SplitNotifications", "Activity_NotifyCommunity", null, false);
   }
 
   /**
-   * Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).
-   * Intended for tooling and tests, not worker runtime code.
+   * Typed navigation over the process flow.
+   * Each element is a node exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it as named accessors — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested {@code Inner} scope.
+   * Intended for tooling, tests, and reasoning about the process shape.
    */
   public static final class Relations {
-    public static final BpmnRelations ACTIVITY_CONFIRM_REGISTRATION = new BpmnRelations("Confirm registration", List.of("Activity_SendConfirmationMail"), List.of("EndEvent_SubscriptionConfirmed"), "SubProcess_Confirmation", null, List.of("Timer_EveryDay"), "RECEIVE_TASK");
+    public static ActivitySendWelcomeMail activitySendWelcomeMail() {
+      return new ActivitySendWelcomeMail();
+    }
 
-    public static final BpmnRelations ACTIVITY_NOTIFY_COMMUNITY = new BpmnRelations(null, List.of("Gateway_SplitNotifications"), List.of("Gateway_JoinNotifications"), null, null, List.of(), "SERVICE_TASK");
+    public static CallActivityAbortRegistration callActivityAbortRegistration() {
+      return new CallActivityAbortRegistration();
+    }
 
-    public static final BpmnRelations ACTIVITY_SEND_CONFIRMATION_MAIL = new BpmnRelations(null, List.of("StartEvent_RequestReceived", "Timer_EveryDay"), List.of("Activity_ConfirmRegistration"), "SubProcess_Confirmation", null, List.of(), "SERVICE_TASK");
+    public static CompensationEndEventRegistrationAborted compensationEndEventRegistrationAborted(
+        ) {
+      return new CompensationEndEventRegistrationAborted();
+    }
 
-    public static final BpmnRelations ACTIVITY_SEND_WELCOME_MAIL = new BpmnRelations(null, List.of("Gateway_SplitNotifications"), List.of("Gateway_JoinNotifications"), null, null, List.of(), "SERVICE_TASK");
+    public static CompensationEventOnSubscriptionCounter compensationEventOnSubscriptionCounter() {
+      return new CompensationEventOnSubscriptionCounter();
+    }
 
-    public static final BpmnRelations CALL_ACTIVITY_ABORT_REGISTRATION = new BpmnRelations(null, List.of("Timer_After3Days"), List.of("CompensationEndEvent_RegistrationAborted"), null, null, List.of(), "CALL_ACTIVITY");
+    public static CompensationTaskDecrementSubscriptionCounter compensationTaskDecrementSubscriptionCounter(
+        ) {
+      return new CompensationTaskDecrementSubscriptionCounter();
+    }
 
-    public static final BpmnRelations COMPENSATION_END_EVENT_REGISTRATION_ABORTED = new BpmnRelations(null, List.of("CallActivity_AbortRegistration"), List.of(), null, null, List.of(), "COMPENSATION_END_EVENT");
+    public static EndEventRegistrationCompleted endEventRegistrationCompleted() {
+      return new EndEventRegistrationCompleted();
+    }
 
-    public static final BpmnRelations COMPENSATION_EVENT_ON_SUBSCRIPTION_COUNTER = new BpmnRelations(null, List.of(), List.of(), null, "serviceTask_incrementSubscriptionCounter", List.of(), "COMPENSATION_BOUNDARY_EVENT");
+    public static EndEventRegistrationNotPossible endEventRegistrationNotPossible() {
+      return new EndEventRegistrationNotPossible();
+    }
 
-    public static final BpmnRelations COMPENSATION_TASK_DECREMENT_SUBSCRIPTION_COUNTER = new BpmnRelations(null, List.of(), List.of(), null, null, List.of(), "TASK");
+    public static ErrorEventInvalidMail errorEventInvalidMail() {
+      return new ErrorEventInvalidMail();
+    }
 
-    public static final BpmnRelations END_EVENT_REGISTRATION_COMPLETED = new BpmnRelations(null, List.of("Gateway_JoinNotifications"), List.of(), null, null, List.of(), "END_EVENT");
+    public static ServiceTaskIncrementSubscriptionCounter serviceTaskIncrementSubscriptionCounter(
+        ) {
+      return new ServiceTaskIncrementSubscriptionCounter();
+    }
 
-    public static final BpmnRelations END_EVENT_REGISTRATION_NOT_POSSIBLE = new BpmnRelations(null, List.of("ErrorEvent_InvalidMail"), List.of(), null, null, List.of(), "SIGNAL_END_EVENT");
+    public static StartEventSubmitRegistrationForm startEventSubmitRegistrationForm() {
+      return new StartEventSubmitRegistrationForm();
+    }
 
-    public static final BpmnRelations END_EVENT_SUBSCRIPTION_CONFIRMED = new BpmnRelations(null, List.of("Activity_ConfirmRegistration"), List.of(), "SubProcess_Confirmation", null, List.of(), "END_EVENT");
+    public static SubProcessConfirmation subProcessConfirmation() {
+      return new SubProcessConfirmation();
+    }
 
-    public static final BpmnRelations ERROR_EVENT_INVALID_MAIL = new BpmnRelations(null, List.of(), List.of("EndEvent_RegistrationNotPossible"), null, "SubProcess_Confirmation", List.of(), "ERROR_BOUNDARY_EVENT");
+    public static TimerAfter3Days timerAfter3Days() {
+      return new TimerAfter3Days();
+    }
 
-    public static final BpmnRelations GATEWAY_JOIN_NOTIFICATIONS = new BpmnRelations(null, List.of("Activity_SendWelcomeMail", "Activity_NotifyCommunity"), List.of("EndEvent_RegistrationCompleted"), null, null, List.of(), "PARALLEL_GATEWAY");
+    public static Next then() {
+      return new Next();
+    }
 
-    public static final BpmnRelations GATEWAY_SPLIT_NOTIFICATIONS = new BpmnRelations(null, List.of("SubProcess_Confirmation"), List.of("Activity_SendWelcomeMail", "Activity_NotifyCommunity"), null, null, List.of(), "PARALLEL_GATEWAY");
+    public static final class Next {
+      public StartEventSubmitRegistrationForm startEventSubmitRegistrationForm() {
+        return new StartEventSubmitRegistrationForm();
+      }
+    }
 
-    public static final BpmnRelations START_EVENT_REQUEST_RECEIVED = new BpmnRelations(null, List.of(), List.of("Activity_SendConfirmationMail"), "SubProcess_Confirmation", null, List.of(), "START_EVENT");
+    public static final class ActivitySendWelcomeMail {
+      public final ElementId id = new ElementId("Activity_SendWelcomeMail");
 
-    public static final BpmnRelations START_EVENT_SUBMIT_REGISTRATION_FORM = new BpmnRelations(null, List.of(), List.of("serviceTask_incrementSubscriptionCounter"), null, null, List.of(), "MESSAGE_START_EVENT");
+      public final String elementType = "SERVICE_TASK";
 
-    public static final BpmnRelations SUB_PROCESS_CONFIRMATION = new BpmnRelations(null, List.of("serviceTask_incrementSubscriptionCounter"), List.of("Gateway_SplitNotifications"), null, null, List.of("ErrorEvent_InvalidMail", "Timer_After3Days"), "SUB_PROCESS");
+      public Next then() {
+        return new Next();
+      }
 
-    public static final BpmnRelations TIMER_AFTER_3_DAYS = new BpmnRelations(null, List.of(), List.of("CallActivity_AbortRegistration"), null, "SubProcess_Confirmation", List.of(), "TIMER_BOUNDARY_EVENT");
+      public static final class Next {
+        public EndEventRegistrationCompleted endEventRegistrationCompleted() {
+          return new EndEventRegistrationCompleted();
+        }
+      }
+    }
 
-    public static final BpmnRelations TIMER_EVERY_DAY = new BpmnRelations(null, List.of(), List.of("Activity_SendConfirmationMail"), "SubProcess_Confirmation", "Activity_ConfirmRegistration", List.of(), "TIMER_BOUNDARY_EVENT");
+    public static final class CallActivityAbortRegistration {
+      public final ElementId id = new ElementId("CallActivity_AbortRegistration");
 
-    public static final BpmnRelations SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER = new BpmnRelations(null, List.of("StartEvent_SubmitRegistrationForm"), List.of("SubProcess_Confirmation"), null, null, List.of("CompensationEvent_OnSubscriptionCounter"), "SERVICE_TASK");
+      public final String elementType = "CALL_ACTIVITY";
+
+      public final ProcessId calledProcess = new ProcessId("abort-registration");
+
+      public Next then() {
+        return new Next();
+      }
+
+      public static final class Next {
+        public CompensationEndEventRegistrationAborted compensationEndEventRegistrationAborted() {
+          return new CompensationEndEventRegistrationAborted();
+        }
+      }
+    }
+
+    public static final class CompensationEndEventRegistrationAborted {
+      public final ElementId id = new ElementId("CompensationEndEvent_RegistrationAborted");
+
+      public final String elementType = "COMPENSATION_END_EVENT";
+    }
+
+    public static final class CompensationEventOnSubscriptionCounter {
+      public final ElementId id = new ElementId("CompensationEvent_OnSubscriptionCounter");
+
+      public final String elementType = "COMPENSATION_BOUNDARY_EVENT";
+    }
+
+    public static final class CompensationTaskDecrementSubscriptionCounter {
+      public final ElementId id = new ElementId("CompensationTask_DecrementSubscriptionCounter");
+
+      public final String elementType = "TASK";
+    }
+
+    public static final class EndEventRegistrationCompleted {
+      public final ElementId id = new ElementId("EndEvent_RegistrationCompleted");
+
+      public final String elementType = "END_EVENT";
+    }
+
+    public static final class EndEventRegistrationNotPossible {
+      public final ElementId id = new ElementId("EndEvent_RegistrationNotPossible");
+
+      public final String elementType = "SIGNAL_END_EVENT";
+    }
+
+    public static final class ErrorEventInvalidMail {
+      public final ElementId id = new ElementId("ErrorEvent_InvalidMail");
+
+      public final String elementType = "ERROR_BOUNDARY_EVENT";
+
+      public Next then() {
+        return new Next();
+      }
+
+      public static final class Next {
+        public EndEventRegistrationNotPossible endEventRegistrationNotPossible() {
+          return new EndEventRegistrationNotPossible();
+        }
+      }
+    }
+
+    public static final class ServiceTaskIncrementSubscriptionCounter {
+      public final ElementId id = new ElementId("serviceTask_incrementSubscriptionCounter");
+
+      public final String elementType = "SERVICE_TASK";
+
+      public Next then() {
+        return new Next();
+      }
+
+      public static final class Next {
+        public CompensationEventOnSubscriptionCounter compensationEventOnSubscriptionCounter() {
+          return new CompensationEventOnSubscriptionCounter();
+        }
+
+        public SubProcessConfirmation subProcessConfirmation() {
+          return new SubProcessConfirmation();
+        }
+      }
+    }
+
+    public static final class StartEventSubmitRegistrationForm {
+      public final ElementId id = new ElementId("StartEvent_SubmitRegistrationForm");
+
+      public final String elementType = "MESSAGE_START_EVENT";
+
+      public Next then() {
+        return new Next();
+      }
+
+      public static final class Next {
+        public ServiceTaskIncrementSubscriptionCounter serviceTaskIncrementSubscriptionCounter() {
+          return new ServiceTaskIncrementSubscriptionCounter();
+        }
+      }
+    }
+
+    public static final class SubProcessConfirmation {
+      public final ElementId id = new ElementId("SubProcess_Confirmation");
+
+      public final String elementType = "SUB_PROCESS";
+
+      public Next then() {
+        return new Next();
+      }
+
+      public Inner inner() {
+        return new Inner();
+      }
+
+      public static final class Next {
+        public ActivitySendWelcomeMail activitySendWelcomeMail() {
+          return new ActivitySendWelcomeMail();
+        }
+
+        public ErrorEventInvalidMail errorEventInvalidMail() {
+          return new ErrorEventInvalidMail();
+        }
+
+        public TimerAfter3Days timerAfter3Days() {
+          return new TimerAfter3Days();
+        }
+      }
+
+      public static final class Inner {
+        public ActivityConfirmRegistration activityConfirmRegistration() {
+          return new ActivityConfirmRegistration();
+        }
+
+        public ActivitySendConfirmationMail activitySendConfirmationMail() {
+          return new ActivitySendConfirmationMail();
+        }
+
+        public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
+          return new EndEventSubscriptionConfirmed();
+        }
+
+        public StartEventRequestReceived startEventRequestReceived() {
+          return new StartEventRequestReceived();
+        }
+
+        public TimerEveryDay timerEveryDay() {
+          return new TimerEveryDay();
+        }
+
+        public Next then() {
+          return new Next();
+        }
+
+        public static final class Next {
+          public StartEventRequestReceived startEventRequestReceived() {
+            return new StartEventRequestReceived();
+          }
+        }
+
+        public static final class ActivityConfirmRegistration {
+          public final ElementId id = new ElementId("Activity_ConfirmRegistration");
+
+          public final String elementType = "RECEIVE_TASK";
+
+          public final String name = "Confirm registration";
+
+          public Next then() {
+            return new Next();
+          }
+
+          public static final class Next {
+            public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
+              return new EndEventSubscriptionConfirmed();
+            }
+
+            public TimerEveryDay timerEveryDay() {
+              return new TimerEveryDay();
+            }
+          }
+        }
+
+        public static final class ActivitySendConfirmationMail {
+          public final ElementId id = new ElementId("Activity_SendConfirmationMail");
+
+          public final String elementType = "SERVICE_TASK";
+
+          public Next then() {
+            return new Next();
+          }
+
+          public static final class Next {
+            public ActivityConfirmRegistration activityConfirmRegistration() {
+              return new ActivityConfirmRegistration();
+            }
+          }
+        }
+
+        public static final class EndEventSubscriptionConfirmed {
+          public final ElementId id = new ElementId("EndEvent_SubscriptionConfirmed");
+
+          public final String elementType = "END_EVENT";
+        }
+
+        public static final class StartEventRequestReceived {
+          public final ElementId id = new ElementId("StartEvent_RequestReceived");
+
+          public final String elementType = "START_EVENT";
+
+          public Next then() {
+            return new Next();
+          }
+
+          public static final class Next {
+            public ActivitySendConfirmationMail activitySendConfirmationMail() {
+              return new ActivitySendConfirmationMail();
+            }
+          }
+        }
+
+        public static final class TimerEveryDay {
+          public final ElementId id = new ElementId("Timer_EveryDay");
+
+          public final String elementType = "TIMER_BOUNDARY_EVENT";
+
+          public Next then() {
+            return new Next();
+          }
+
+          public static final class Next {
+            public ActivitySendConfirmationMail activitySendConfirmationMail() {
+              return new ActivitySendConfirmationMail();
+            }
+          }
+        }
+      }
+    }
+
+    public static final class TimerAfter3Days {
+      public final ElementId id = new ElementId("Timer_After3Days");
+
+      public final String elementType = "TIMER_BOUNDARY_EVENT";
+
+      public Next then() {
+        return new Next();
+      }
+
+      public static final class Next {
+        public CallActivityAbortRegistration callActivityAbortRegistration() {
+          return new CallActivityAbortRegistration();
+        }
+      }
+    }
   }
 }

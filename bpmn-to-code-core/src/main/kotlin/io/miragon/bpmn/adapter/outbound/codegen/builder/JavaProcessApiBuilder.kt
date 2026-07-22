@@ -4,10 +4,13 @@ import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.CodeBlock
 import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.JavaFile
+import com.palantir.javapoet.MethodSpec
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavGraph
+import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavGraph.NavNode
+import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraphFactory
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
-import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
 import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -121,6 +124,77 @@ class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<Ty
         }
     }
 
+    private fun addNavScope(builder: TypeSpec.Builder, graph: NavGraph, staticAccessors: Boolean) {
+        graph.nodes.forEach { node -> builder.addMethod(navAccessorMethod(node.propertyName, node.objectName, staticAccessors)) }
+        // A scope's `then()` yields its start event(s) — the same "reachable next" meaning as a node's then(),
+        // so you enter the process (or a subprocess interior via `inner()`) the same way you step through it.
+        val starts = graph.nodes.filter { it.isStart }
+        if (starts.isNotEmpty()) {
+            val nextClass = ClassName.get("", "Next")
+            val thenBuilder = MethodSpec.methodBuilder("then").addModifiers(PUBLIC).returns(nextClass).addStatement("return new \$T()", nextClass)
+            if (staticAccessors) {
+                thenBuilder.addModifiers(STATIC)
+            }
+            builder.addMethod(thenBuilder.build())
+            val nextBuilder = TypeSpec.classBuilder("Next").addModifiers(PUBLIC, STATIC, FINAL)
+            starts.forEach { node -> nextBuilder.addMethod(navAccessorMethod(node.propertyName, node.objectName, static = false)) }
+            builder.addType(nextBuilder.build())
+        }
+        graph.nodes.forEach { node -> builder.addType(buildNavNodeClass(node)) }
+    }
+
+    private fun buildNavNodeClass(node: NavNode): TypeSpec {
+        val elementIdClass = ClassName.get(RUNTIME_PACKAGE, "ElementId")
+        val stringClass = ClassName.get("java.lang", "String")
+        val classBuilder = TypeSpec.classBuilder(node.objectName).addModifiers(PUBLIC, STATIC, FINAL)
+        classBuilder.addField(
+            FieldSpec.builder(elementIdClass, "id", PUBLIC, FINAL).initializer("new \$T(\$S)", elementIdClass, node.id).build()
+        )
+        classBuilder.addField(
+            FieldSpec.builder(stringClass, "elementType", PUBLIC, FINAL).initializer("\$S", node.elementType).build()
+        )
+        if (node.name != null) {
+            classBuilder.addField(
+                FieldSpec.builder(stringClass, "name", PUBLIC, FINAL).initializer("\$S", node.name).build()
+            )
+        }
+        if (node.calledProcessId != null) {
+            val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
+            classBuilder.addField(
+                FieldSpec.builder(processIdClass, "calledProcess", PUBLIC, FINAL).initializer("new \$T(\$S)", processIdClass, node.calledProcessId).build()
+            )
+        }
+        // Transitions live behind `then()` in a nested `Next` holder — so the node itself carries only metadata,
+        // and `then()` autocompletes exactly the reachable next steps. Terminal nodes have no `then()`.
+        if (node.successors.isNotEmpty()) {
+            val nextClass = ClassName.get("", "Next")
+            classBuilder.addMethod(
+                MethodSpec.methodBuilder("then").addModifiers(PUBLIC).returns(nextClass).addStatement("return new \$T()", nextClass).build()
+            )
+            val nextBuilder = TypeSpec.classBuilder("Next").addModifiers(PUBLIC, STATIC, FINAL)
+            node.successors.forEach { edge -> nextBuilder.addMethod(navAccessorMethod(edge.propertyName, edge.objectName, static = false)) }
+            classBuilder.addType(nextBuilder.build())
+        }
+        node.inner?.let { inner ->
+            classBuilder.addMethod(navAccessorMethod("inner", "Inner", static = false))
+            val innerBuilder = TypeSpec.classBuilder("Inner").addModifiers(PUBLIC, STATIC, FINAL)
+            addNavScope(innerBuilder, inner, staticAccessors = false)
+            classBuilder.addType(innerBuilder.build())
+        }
+        return classBuilder.build()
+    }
+
+    /** A `X x() { return new X(); }` accessor — a fresh node each call, so forward references and loops (cycles) resolve. */
+    private fun navAccessorMethod(methodName: String, returnObjectName: String, static: Boolean): MethodSpec {
+        val returnType = ClassName.get("", returnObjectName)
+        val methodBuilder = MethodSpec.methodBuilder(methodName).returns(returnType).addStatement("return new \$T()", returnType)
+        methodBuilder.addModifiers(PUBLIC)
+        if (static) {
+            methodBuilder.addModifiers(STATIC)
+        }
+        return methodBuilder.build()
+    }
+
     private inner class FlowsWriter : ObjectWriter<TypeSpec.Builder> {
 
         override val objectType = ApiObjectType.FLOWS
@@ -201,58 +275,23 @@ class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<Ty
             .build()
     }
 
+    /**
+     * Renders the process as a typed navigation graph: one nested class per element exposing its {@code id},
+     * {@code elementType} and display {@code name}, plus its reachable successors as accessor methods. A
+     * subprocess's interior is its nested {@code Inner} scope.
+     */
     private fun buildRelationsClass(flowNodes: List<FlowNodeDefinition>): TypeSpec {
-        val bpmnRelationsClass = ClassName.get(RUNTIME_PACKAGE, "BpmnRelations")
+        val graph = NavigationGraphFactory.build(flowNodes)
         val relationsBuilder = TypeSpec.classBuilder("Relations").addModifiers(PUBLIC, STATIC, FINAL)
             .addJavadoc(
-                "Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).\n" +
-                    "Intended for tooling and tests, not worker runtime code.\n"
+                "Typed navigation over the process flow.\n" +
+                    "Each element is a node exposing its {@code id}, {@code elementType} and display {@code name}, " +
+                    "plus the elements reachable from it as named accessors — so a full path is verified by the " +
+                    "compiler and offered by autocomplete. A subprocess's interior is its nested {@code Inner} scope.\n" +
+                    "Intended for tooling, tests, and reasoning about the process shape.\n"
             )
-        flowNodes
-            .filter { it.id != null }
-            .sortedBy { it.getRawName() }
-            .forEach { node ->
-                val initCode = buildRelationsInitializer(bpmnRelationsClass, node)
-                val fieldBuilder = FieldSpec.builder(bpmnRelationsClass, node.getName()).addModifiers(PUBLIC, STATIC, FINAL)
-                relationsBuilder.addField(fieldBuilder.initializer(initCode).build())
-            }
+        addNavScope(relationsBuilder, graph, staticAccessors = true)
         return relationsBuilder.build()
-    }
-
-    private fun buildRelationsInitializer(bpmnRelationsClass: ClassName, node: FlowNodeDefinition): CodeBlock {
-        val nameBlock = if (node.displayName != null) CodeBlock.of("\$S", node.displayName) else CodeBlock.of("null")
-        val parentIdBlock = if (node.parentId != null) CodeBlock.of("\$S", node.parentId) else CodeBlock.of("null")
-        val attachedToRefBlock = if (node.attachedToRef != null) CodeBlock.of("\$S", node.attachedToRef) else CodeBlock.of("null")
-        return CodeBlock.builder()
-            .add("new \$T(", bpmnRelationsClass)
-            .add(nameBlock)
-            .add(", ")
-            .add(javaListLiteral(node.previousElements))
-            .add(", ")
-            .add(javaListLiteral(node.followingElements))
-            .add(", ")
-            .add(parentIdBlock)
-            .add(", ")
-            .add(attachedToRefBlock)
-            .add(", ")
-            .add(javaListLiteral(node.attachedElements))
-            .add(", ")
-            .add("\$S", ElementTypeName.of(node.nodeType))
-            .add(")")
-            .build()
-    }
-
-    private val listClass = ClassName.get("java.util", "List")
-
-    private fun javaListLiteral(items: List<String>): CodeBlock {
-        if (items.isEmpty()) return CodeBlock.of("\$T.of()", listClass)
-        val builder = CodeBlock.builder().add("\$T.of(", listClass)
-        items.forEachIndexed { i, item ->
-            if (i > 0) builder.add(", ")
-            builder.add("\$S", item)
-        }
-        builder.add(")")
-        return builder.build()
     }
 
     private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {
