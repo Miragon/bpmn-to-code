@@ -78,7 +78,7 @@ Tests are organized by layer:
 - Integration tests for adapters and extractors
 - Test resources include sample BPMN files and expected API outputs
 
-The project uses JUnit 5, AssertJ, and MockK for testing.
+The project uses JUnit 5, AssertJ, and MockK for testing. Use [`testBpmnModel()`](bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/domain/TestBpmnModel.kt) or domain-specific builders like [`buildSubscribeNewsletterFlowNodes()`](bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/adapter/outbound/codegen/builder/NewsletterFlowNodes.kt) to programmatically construct test models instead of parsing BPMN files or hand-building domain objects.
 
 ## Best Practices
 
