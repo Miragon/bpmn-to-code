@@ -29,10 +29,14 @@ class BpmnValidationService(
 
     private val allRules = builtInRules()
 
+    init {
+        warnOnDisabledMandatoryRules()
+    }
+
     fun collectViolations(models: List<ProcessModel>, engine: ProcessEngine, phase: ValidationPhase): List<ValidationViolation> {
         val activeRules = allRules
             .filter { it.phase == phase }
-            .filterNot { it.id in config.disabledRules }
+            .filterNot { it.id in config.disabledRules && !it.mandatory }
 
         return models.flatMap { model ->
             val ctx = SingleModelValidationContext(model, engine)
@@ -64,6 +68,19 @@ class BpmnValidationService(
         if (failingViolations.isNotEmpty()) {
             throw BpmnValidationException(failingViolations)
         }
+    }
+
+    /**
+     * Mandatory rules are integrity-critical: they stay active on every path and cannot be disabled
+     * via [ValidationConfig.disabledRules]. When a caller tries anyway, the attempt is surfaced as a
+     * warning rather than silently ignored — the rule is kept active regardless.
+     */
+    private fun warnOnDisabledMandatoryRules() {
+        allRules
+            .filter { it.mandatory && it.id in config.disabledRules }
+            .forEach { rule ->
+                logger.warn { "[BPMN VALIDATION] Rule '${rule.id}' is mandatory and cannot be disabled; keeping it active." }
+            }
     }
 
     companion object {

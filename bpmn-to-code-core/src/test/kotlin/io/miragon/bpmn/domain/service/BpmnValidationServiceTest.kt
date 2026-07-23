@@ -134,4 +134,47 @@ class BpmnValidationServiceTest {
         // then: the collision-detection rule fires
         assertThat(exception.violations).anyMatch { it.ruleId == "collision-detection" }
     }
+
+    @Test
+    fun `mandatory collision-detection rule stays active even when disabled`() {
+
+        // given: a service that tries to disable the mandatory collision-detection rule
+        val underTest = BpmnValidationService(
+            ValidationConfig(disabledRules = setOf("collision-detection"))
+        )
+        val model = testBpmnModel(
+            flowNodes = listOf(
+                FlowNodeDefinition(id = "endEvent_complete"),
+                FlowNodeDefinition(id = "endEvent-complete"),
+            )
+        )
+
+        // when: validating post-merge
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+        }
+
+        // then: the collision-detection rule still fires despite being disabled
+        assertThat(exception.violations).anyMatch { it.ruleId == "collision-detection" }
+    }
+
+    @Test
+    fun `mandatory missing-element-id rule stays active even when disabled`() {
+
+        // given: a service that tries to disable the mandatory missing-element-id rule
+        val underTest = BpmnValidationService(
+            ValidationConfig(disabledRules = setOf("missing-element-id"))
+        )
+        val model = testBpmnModel(
+            flowNodes = listOf(FlowNodeDefinition(id = null))
+        )
+
+        // when: validating pre-merge
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE)
+        }
+
+        // then: the missing-element-id rule still fires despite being disabled
+        assertThat(exception.violations).anyMatch { it.ruleId == "missing-element-id" }
+    }
 }

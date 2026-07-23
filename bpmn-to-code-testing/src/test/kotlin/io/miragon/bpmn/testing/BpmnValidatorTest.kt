@@ -1,6 +1,10 @@
 package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
+import io.miragon.bpmn.domain.validation.model.Severity
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
+import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -51,6 +55,17 @@ class BpmnValidatorTest {
     }
 
     @Test
+    fun `disableRules switches off a mandatory rule since no code is generated`() {
+        BpmnValidator
+            .fromClasspath("bpmn/valid-process.bpmn")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(AlwaysFailingMandatoryRule())
+            .disableRules("always-failing-mandatory")
+            .validate()
+            .assertNoViolations("always-failing-mandatory")
+    }
+
+    @Test
     fun `missing engine throws clear error`() {
         assertThatThrownBy {
             BpmnValidator
@@ -83,5 +98,23 @@ class BpmnValidatorTest {
             .engine(ProcessEngine.CAMUNDA_7)
             .validate()
             .assertNoErrors()
+    }
+
+    private class AlwaysFailingMandatoryRule : SingleModelValidationRule {
+        override val id = "always-failing-mandatory"
+        override val severity = Severity.ERROR
+        override val mandatory = true
+
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
+            return listOf(
+                ValidationViolation(
+                    ruleId = id,
+                    severity = severity,
+                    elementId = null,
+                    processId = context.model.processId,
+                    message = "always fails",
+                ),
+            )
+        }
     }
 }
