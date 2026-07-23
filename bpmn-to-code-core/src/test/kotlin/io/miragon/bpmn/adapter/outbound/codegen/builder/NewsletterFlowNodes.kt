@@ -4,6 +4,7 @@ import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.BpmnNodeType
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.EventDefinitionType
+import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.CallActivityMapping
@@ -19,6 +20,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
     confirmationMailImpl: String,
     welcomeMailImpl: String,
     registrationCompletedImpl: String,
+    notifyCommunityImpl: String,
     extraVariables: List<VariableDefinition> = emptyList(),
 ) = listOf(
     FlowNodeDefinition(
@@ -65,7 +67,26 @@ internal fun buildSubscribeNewsletterFlowNodes(
             VariableDefinition("subscriptionId", VariableDirection.INPUT),
             VariableDefinition("subscriptionId", VariableDirection.OUTPUT),
         ),
+        previousElements = listOf("Gateway_SplitNotifications"),
+        followingElements = listOf("Gateway_JoinNotifications"),
+    ),
+    FlowNodeDefinition(
+        id = "Activity_NotifyCommunity",
+        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
+        properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_NotifyCommunity", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to notifyCommunityImpl))),
+        previousElements = listOf("Gateway_SplitNotifications"),
+        followingElements = listOf("Gateway_JoinNotifications"),
+    ),
+    FlowNodeDefinition(
+        id = "Gateway_SplitNotifications",
+        nodeType = BpmnNodeType.Gateway(GatewayKind.PARALLEL),
         previousElements = listOf("SubProcess_Confirmation"),
+        followingElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity"),
+    ),
+    FlowNodeDefinition(
+        id = "Gateway_JoinNotifications",
+        nodeType = BpmnNodeType.Gateway(GatewayKind.PARALLEL),
+        previousElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity"),
         followingElements = listOf("EndEvent_RegistrationCompleted"),
     ),
     FlowNodeDefinition(
@@ -87,7 +108,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         nodeType = BpmnNodeType.Event(EventShape.END_EVENT),
         properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("EndEvent_RegistrationCompleted", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to registrationCompletedImpl))),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
-        previousElements = listOf("Activity_SendWelcomeMail"),
+        previousElements = listOf("Gateway_JoinNotifications"),
     ),
     FlowNodeDefinition(
         id = "EndEvent_RegistrationNotPossible",
@@ -132,7 +153,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         nodeType = BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),
         attachedElements = listOf("ErrorEvent_InvalidMail", "Timer_After3Days"),
         previousElements = listOf("serviceTask_incrementSubscriptionCounter"),
-        followingElements = listOf("Activity_SendWelcomeMail"),
+        followingElements = listOf("Gateway_SplitNotifications"),
     ),
     FlowNodeDefinition(
         id = "Timer_After3Days",
