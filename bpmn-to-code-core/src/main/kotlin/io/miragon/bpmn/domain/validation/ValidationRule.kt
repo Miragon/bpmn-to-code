@@ -11,12 +11,5 @@ import io.miragon.bpmn.domain.validation.model.Severity
 interface ValidationRule {
     val id: String
     val severity: Severity
-
-    /**
-     * Marks a rule as integrity-critical for code generation — it guarantees the generated code can
-     * emit a valid, unique constant name. Such rules cannot be turned off via `disabledRules` on the
-     * generation/validation path. The testing module generates no code and ignores this flag, so
-     * every rule stays disableable there.
-     */
     val mandatory: Boolean get() = false
 }
