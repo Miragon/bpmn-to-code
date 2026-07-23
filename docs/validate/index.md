@@ -16,11 +16,13 @@ bpmn-to-code can validate your BPMN models against a set of built-in rules — i
 | `missing-signal-name` | ERROR | Signal event with no signal name |
 | `missing-timer-definition` | ERROR | Timer event with no timer type or value |
 | `missing-called-element` | ERROR | Call activity with no `calledElement` reference |
-| `missing-element-id` | ERROR | Flow node with no ID |
-| `missing-process-id` | ERROR | Process with no `id` attribute |
+| `missing-element-id` | ERROR | Flow node with no ID · **mandatory** |
+| `missing-process-id` | ERROR | Process with no `id` attribute · **mandatory** |
 | `empty-process` | ERROR | Process with no flow nodes |
-| `collision-detection` | ERROR | Two different element IDs that normalize to the same constant name (post-merge) |
+| `collision-detection` | ERROR | Two different element IDs that normalize to the same constant name (post-merge) · **mandatory** |
 | `engine-mismatch` | ERROR / WARN | Model's target engine (from its XML namespace) differs from the selected one |
+
+**Mandatory** rules are integrity-critical — they guarantee the generated code can emit a valid, unique constant name. Because they protect code generation, they stay active during both generation and build-time validation and **cannot be turned off** via `disabledRules`; listing one has no effect (a warning is logged). The [Testing Module](/validate/testing) generates no code, so it does not enforce this.
 
 ## Gradle
 
@@ -105,19 +107,19 @@ mvn bpmn-to-code:validate-bpmn
 
 ## Disabling Rules
 
-Pass rule IDs to `disabledRules` to skip specific checks:
+Pass rule IDs to `disabledRules` to skip specific checks. Mandatory rules (see the table above) cannot be disabled — listing one has no effect and logs a warning.
 
 ::: code-group
 
 ```kotlin [Gradle]
 tasks.named("validateBpmnModels", ValidateBpmnModelsTask::class) {
-    disabledRules = setOf("collision-detection", "empty-process")
+    disabledRules = setOf("missing-timer-definition", "empty-process")
 }
 ```
 
 ```xml [Maven]
 <disabledRules>
-    <disabledRule>collision-detection</disabledRule>
+    <disabledRule>missing-timer-definition</disabledRule>
     <disabledRule>empty-process</disabledRule>
 </disabledRules>
 ```

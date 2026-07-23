@@ -12,6 +12,7 @@ class MissingProcessIdRule : SingleModelValidationRule {
 
     override val id = "missing-process-id"
     override val severity = Severity.ERROR
+    override val mandatory = true
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         if (context.model.processId.isBlank()) {

@@ -18,6 +18,7 @@ class CollisionDetectionRule(
     override val id = "collision-detection"
     override val severity = Severity.ERROR
     override val phase = ValidationPhase.POST_MERGE
+    override val mandatory = true
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val collisions = collisionDetectionService.findCollisions(context.model)

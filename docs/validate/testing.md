@@ -82,6 +82,8 @@ BpmnValidator
     .assertNoViolations()
 ```
 
+Any rule can be disabled here, including integrity-critical ones like `collision-detection`. The testing module generates no code, so the mandatory-rule protection that applies to [build-time validation](/validate/) does not restrict test authoring.
+
 ## Treating Warnings as Failures
 
 ```kotlin

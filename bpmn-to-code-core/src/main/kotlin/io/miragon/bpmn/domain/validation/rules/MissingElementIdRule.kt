@@ -15,6 +15,7 @@ class MissingElementIdRule : SingleModelValidationRule {
 
     override val id = "missing-element-id"
     override val severity = Severity.ERROR
+    override val mandatory = true
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val model = context.model
