@@ -4,13 +4,10 @@ import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
-import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavGraph
-import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavGraph.NavNode
 import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraphFactory
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModel
@@ -224,64 +221,8 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
                     "by autocomplete. A subprocess's interior is its nested `Inner` scope.\n" +
                     "Intended for tooling, tests, and reasoning about the process shape."
             )
-        addNavScope(relationsBuilder, graph)
+        KotlinNavigationWriter().write(relationsBuilder, graph)
         return relationsBuilder.build()
-    }
-
-    private fun addNavScope(builder: TypeSpec.Builder, graph: NavGraph) {
-        graph.nodes.forEach { node -> builder.addProperty(navAccessor(node.propertyName, node.objectName)) }
-        // A scope's `then()` yields its start event(s) — the same "reachable next" meaning as a node's then(),
-        // so you enter the process (or a subprocess interior via `Inner`) the same way you step through it.
-        val starts = graph.nodes.filter { it.isStart }
-        if (starts.isNotEmpty()) {
-            builder.addFunction(
-                FunSpec.builder("then").returns(ClassName("", "Next")).addStatement("return %N", "Next").build()
-            )
-            val nextBuilder = TypeSpec.objectBuilder("Next")
-            starts.forEach { node -> nextBuilder.addProperty(navAccessor(node.propertyName, node.objectName)) }
-            builder.addType(nextBuilder.build())
-        }
-        graph.nodes.forEach { node -> builder.addType(buildNavNodeObject(node)) }
-    }
-
-    private fun buildNavNodeObject(node: NavNode): TypeSpec {
-        val elementIdClass = ClassName(RUNTIME_PACKAGE, "ElementId")
-        val stringClass = ClassName("kotlin", "String")
-        val nodeBuilder = TypeSpec.objectBuilder(node.objectName)
-        nodeBuilder.addProperty(PropertySpec.builder("id", elementIdClass).initializer("ElementId(%S)", node.id).build())
-        nodeBuilder.addProperty(PropertySpec.builder("elementType", stringClass).initializer("%S", node.elementType).build())
-        if (node.name != null) {
-            nodeBuilder.addProperty(PropertySpec.builder("name", stringClass).initializer("%S", node.name).build())
-        }
-        if (node.calledProcessId != null) {
-            val processIdClass = ClassName(RUNTIME_PACKAGE, "ProcessId")
-            nodeBuilder.addProperty(
-                PropertySpec.builder("calledProcess", processIdClass).initializer("ProcessId(%S)", node.calledProcessId).build()
-            )
-        }
-        // Transitions live behind `then()` in a nested `Next` holder — so the node itself carries only metadata,
-        // and `then()` autocompletes exactly the reachable next steps. Terminal nodes have no `then()`.
-        if (node.successors.isNotEmpty()) {
-            nodeBuilder.addFunction(
-                FunSpec.builder("then").returns(ClassName("", "Next")).addStatement("return %N", "Next").build()
-            )
-            val nextBuilder = TypeSpec.objectBuilder("Next")
-            node.successors.forEach { edge -> nextBuilder.addProperty(navAccessor(edge.propertyName, edge.objectName)) }
-            nodeBuilder.addType(nextBuilder.build())
-        }
-        node.inner?.let { inner ->
-            val innerBuilder = TypeSpec.objectBuilder("Inner")
-            addNavScope(innerBuilder, inner)
-            nodeBuilder.addType(innerBuilder.build())
-        }
-        return nodeBuilder.build()
-    }
-
-    /** A lazy `val <name> get() = <Object>` accessor — lazy so forward references and loops (cycles) resolve. */
-    private fun navAccessor(propertyName: String, objectName: String): PropertySpec {
-        return PropertySpec.builder(propertyName, ClassName("", objectName))
-            .getter(FunSpec.getterBuilder().addStatement("return %N", objectName).build())
-            .build()
     }
 
     private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {

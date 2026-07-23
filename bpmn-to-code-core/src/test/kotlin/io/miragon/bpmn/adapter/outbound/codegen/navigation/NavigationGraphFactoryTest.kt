@@ -1,11 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.navigation
 
 import io.miragon.bpmn.adapter.outbound.codegen.builder.buildSubscribeNewsletterFlowNodes
-import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavGraph.NavNode
-import io.miragon.bpmn.domain.shared.BpmnNodeType
-import io.miragon.bpmn.domain.shared.EventShape
-import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.TaskKind
+import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraph.NavigationNode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -15,6 +11,7 @@ class NavigationGraphFactoryTest {
         confirmationMailImpl = "#{sendConfirmation}",
         welcomeMailImpl = "#{sendWelcome}",
         registrationCompletedImpl = "newsletter.completed",
+        notifyCommunityImpl = "newsletter.notifyCommunity",
     )
 
     @Test
@@ -42,9 +39,9 @@ class NavigationGraphFactoryTest {
     fun `sequence-flow and boundary edges are unified as target-named successors`() {
         val graph = NavigationGraphFactory.build(flowNodes)
 
-        // given: SubProcess_Confirmation follows into SendWelcomeMail and has two boundary events attached
+        // given: SubProcess_Confirmation follows into the notification split gateway and has two boundary events attached
         assertThat(graph.node("subProcessConfirmation").successors.map { it.propertyName })
-            .containsExactly("activitySendWelcomeMail", "errorEventInvalidMail", "timerAfter3Days")
+            .containsExactly("errorEventInvalidMail", "gatewaySplitNotifications", "timerAfter3Days")
 
         // and: the service task follows into the subprocess and carries a compensation boundary
         assertThat(graph.node("serviceTaskIncrementSubscriptionCounter").successors.map { it.propertyName })
@@ -93,24 +90,7 @@ class NavigationGraphFactoryTest {
         assertThat(confirm.name).isEqualTo("Confirm registration")
     }
 
-    @Test
-    fun `colliding normalized names are disambiguated deterministically and idempotently`() {
-        // given: two distinct ids that normalize to the same constant name
-        val nodes = listOf(
-            FlowNodeDefinition(id = "the-task", nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE)),
-            FlowNodeDefinition(id = "the_task", nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE)),
-            FlowNodeDefinition(id = "start", nodeType = BpmnNodeType.Event(EventShape.START_EVENT)),
-        )
-
-        val first = NavigationGraphFactory.build(nodes).nodes.map { it.objectName }
-        val second = NavigationGraphFactory.build(nodes).nodes.map { it.objectName }
-
-        assertThat(first).doesNotHaveDuplicates()
-        assertThat(first).isEqualTo(second)
-        assertThat(first).contains("TheTask", "TheTask2")
-    }
-
-    private fun NavGraph.node(propertyName: String): NavNode {
+    private fun NavigationGraph.node(propertyName: String): NavigationNode {
         return nodes.single { it.propertyName == propertyName }
     }
 }

@@ -3,12 +3,16 @@
 
 package de.emaarco.example
 
+import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnEscalation
 import io.miragon.bpmn.runtime.BpmnFlow
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.HasInner
 import io.miragon.bpmn.runtime.MessageName
+import io.miragon.bpmn.runtime.Navigable
+import io.miragon.bpmn.runtime.NavigationScope
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.VariableName
 import kotlin.String
@@ -256,24 +260,15 @@ object SendNewsletterProcessApi {
             get() = StartEventEditionCreated
         }
 
-        object EndEventEditionSent {
-          val id: ElementId = ElementId("endEvent_editionSent")
+        object EndEventEditionSent : AbstractFlowNode(ElementId("endEvent_editionSent"), "END_EVENT")
 
-          val elementType: String = "END_EVENT"
-        }
+        object EndEventNoSubscribers : AbstractFlowNode(ElementId("endEvent_noSubscribers"), "END_EVENT")
 
-        object EndEventNoSubscribers {
-          val id: ElementId = ElementId("endEvent_noSubscribers")
+        object EventSubProcessErrorHandling : AbstractFlowNode(ElementId("eventSubProcess_errorHandling"), "SUB_PROCESS"),
+            HasInner<EventSubProcessErrorHandling.Inner> {
+          override fun `inner`(): EventSubProcessErrorHandling.Inner = EventSubProcessErrorHandling.Inner
 
-          val elementType: String = "END_EVENT"
-        }
-
-        object EventSubProcessErrorHandling {
-          val id: ElementId = ElementId("eventSubProcess_errorHandling")
-
-          val elementType: String = "SUB_PROCESS"
-
-          object Inner {
+          object Inner : NavigationScope<EventSubProcessErrorHandling.Inner.Next> {
             val endEventIssueResolved: EndEventIssueResolved
               get() = EndEventIssueResolved
 
@@ -305,38 +300,22 @@ object SendNewsletterProcessApi {
             val timerNoRejectionForOneDay: TimerNoRejectionForOneDay
               get() = TimerNoRejectionForOneDay
 
-            fun then(): Next = Next
+            override fun then(): Next = Next
 
             object Next {
               val eventMailRejected: EventMailRejected
                 get() = EventMailRejected
             }
 
-            object EndEventIssueResolved {
-              val id: ElementId = ElementId("endEvent_issueResolved")
+            object EndEventIssueResolved : AbstractFlowNode(ElementId("endEvent_issueResolved"), "END_EVENT")
 
-              val elementType: String = "END_EVENT"
-            }
+            object EscalationEndEventNofitySupport : AbstractFlowNode(ElementId("escalationEndEvent_nofitySupport"), "ESCALATION_END_EVENT")
 
-            object EscalationEndEventNofitySupport {
-              val id: ElementId = ElementId("escalationEndEvent_nofitySupport")
+            object EscalationEndEventNofitySupportAfterRepeatedError : AbstractFlowNode(ElementId("escalationEndEvent_nofitySupportAfterRepeatedError"), "END_EVENT")
 
-              val elementType: String = "ESCALATION_END_EVENT"
-            }
-
-            object EscalationEndEventNofitySupportAfterRepeatedError {
-              val id: ElementId =
-                  ElementId("escalationEndEvent_nofitySupportAfterRepeatedError")
-
-              val elementType: String = "END_EVENT"
-            }
-
-            object EventGatewayAfterSendingAgain {
-              val id: ElementId = ElementId("eventGateway_afterSendingAgain")
-
-              val elementType: String = "EVENT_BASED_GATEWAY"
-
-              fun then(): Next = Next
+            object EventGatewayAfterSendingAgain : AbstractFlowNode(ElementId("eventGateway_afterSendingAgain"), "EVENT_BASED_GATEWAY"),
+                Navigable<EventGatewayAfterSendingAgain.Next> {
+              override fun then(): Next = Next
 
               object Next {
                 val eventMailRejectedAgain: EventMailRejectedAgain
@@ -347,12 +326,9 @@ object SendNewsletterProcessApi {
               }
             }
 
-            object EventMailRejected {
-              val id: ElementId = ElementId("event_mailRejected")
-
-              val elementType: String = "MESSAGE_START_EVENT"
-
-              fun then(): Next = Next
+            object EventMailRejected : AbstractFlowNode(ElementId("event_mailRejected"), "MESSAGE_START_EVENT"),
+                Navigable<EventMailRejected.Next> {
+              override fun then(): Next = Next
 
               object Next {
                 val serviceTaskAnalyzeError: ServiceTaskAnalyzeError
@@ -360,12 +336,9 @@ object SendNewsletterProcessApi {
               }
             }
 
-            object EventMailRejectedAgain {
-              val id: ElementId = ElementId("event_mailRejectedAgain")
-
-              val elementType: String = "MESSAGE_INTERMEDIATE_CATCH_EVENT"
-
-              fun then(): Next = Next
+            object EventMailRejectedAgain : AbstractFlowNode(ElementId("event_mailRejectedAgain"), "MESSAGE_INTERMEDIATE_CATCH_EVENT"),
+                Navigable<EventMailRejectedAgain.Next> {
+              override fun then(): Next = Next
 
               object Next {
                 val escalationEndEventNofitySupportAfterRepeatedError:
@@ -374,12 +347,9 @@ object SendNewsletterProcessApi {
               }
             }
 
-            object GatewayCanSendAgain {
-              val id: ElementId = ElementId("gateway_canSendAgain")
-
-              val elementType: String = "EXCLUSIVE_GATEWAY"
-
-              fun then(): Next = Next
+            object GatewayCanSendAgain : AbstractFlowNode(ElementId("gateway_canSendAgain"), "EXCLUSIVE_GATEWAY"),
+                Navigable<GatewayCanSendAgain.Next> {
+              override fun then(): Next = Next
 
               object Next {
                 val escalationEndEventNofitySupport: EscalationEndEventNofitySupport
@@ -390,12 +360,9 @@ object SendNewsletterProcessApi {
               }
             }
 
-            object ServiceTaskAnalyzeError {
-              val id: ElementId = ElementId("serviceTask_analyzeError")
-
-              val elementType: String = "SERVICE_TASK"
-
-              fun then(): Next = Next
+            object ServiceTaskAnalyzeError : AbstractFlowNode(ElementId("serviceTask_analyzeError"), "SERVICE_TASK"),
+                Navigable<ServiceTaskAnalyzeError.Next> {
+              override fun then(): Next = Next
 
               object Next {
                 val gatewayCanSendAgain: GatewayCanSendAgain
@@ -403,12 +370,9 @@ object SendNewsletterProcessApi {
               }
             }
 
-            object ServiceTaskSendMailAgain {
-              val id: ElementId = ElementId("serviceTask_sendMailAgain")
-
-              val elementType: String = "SERVICE_TASK"
-
-              fun then(): Next = Next
+            object ServiceTaskSendMailAgain : AbstractFlowNode(ElementId("serviceTask_sendMailAgain"), "SERVICE_TASK"),
+                Navigable<ServiceTaskSendMailAgain.Next> {
+              override fun then(): Next = Next
 
               object Next {
                 val eventGatewayAfterSendingAgain: EventGatewayAfterSendingAgain
@@ -416,12 +380,9 @@ object SendNewsletterProcessApi {
               }
             }
 
-            object TimerNoRejectionForOneDay {
-              val id: ElementId = ElementId("timer_noRejectionForOneDay")
-
-              val elementType: String = "TIMER_INTERMEDIATE_CATCH_EVENT"
-
-              fun then(): Next = Next
+            object TimerNoRejectionForOneDay : AbstractFlowNode(ElementId("timer_noRejectionForOneDay"), "TIMER_INTERMEDIATE_CATCH_EVENT"),
+                Navigable<TimerNoRejectionForOneDay.Next> {
+              override fun then(): Next = Next
 
               object Next {
                 val endEventIssueResolved: EndEventIssueResolved
@@ -431,12 +392,9 @@ object SendNewsletterProcessApi {
           }
         }
 
-        object GatewayHasSubscribers {
-          val id: ElementId = ElementId("gateway_hasSubscribers")
-
-          val elementType: String = "EXCLUSIVE_GATEWAY"
-
-          fun then(): Next = Next
+        object GatewayHasSubscribers : AbstractFlowNode(ElementId("gateway_hasSubscribers"), "EXCLUSIVE_GATEWAY"),
+            Navigable<GatewayHasSubscribers.Next> {
+          override fun then(): Next = Next
 
           object Next {
             val endEventNoSubscribers: EndEventNoSubscribers
@@ -447,12 +405,9 @@ object SendNewsletterProcessApi {
           }
         }
 
-        object ServiceTaskLoadSubscribers {
-          val id: ElementId = ElementId("serviceTask_loadSubscribers")
-
-          val elementType: String = "SERVICE_TASK"
-
-          fun then(): Next = Next
+        object ServiceTaskLoadSubscribers : AbstractFlowNode(ElementId("serviceTask_loadSubscribers"), "SERVICE_TASK"),
+            Navigable<ServiceTaskLoadSubscribers.Next> {
+          override fun then(): Next = Next
 
           object Next {
             val gatewayHasSubscribers: GatewayHasSubscribers
@@ -460,12 +415,9 @@ object SendNewsletterProcessApi {
           }
         }
 
-        object ServiceTaskNotifyAuthor {
-          val id: ElementId = ElementId("serviceTask_notifyAuthor")
-
-          val elementType: String = "SERVICE_TASK"
-
-          fun then(): Next = Next
+        object ServiceTaskNotifyAuthor : AbstractFlowNode(ElementId("serviceTask_notifyAuthor"), "SERVICE_TASK"),
+            Navigable<ServiceTaskNotifyAuthor.Next> {
+          override fun then(): Next = Next
 
           object Next {
             val endEventEditionSent: EndEventEditionSent
@@ -473,12 +425,9 @@ object SendNewsletterProcessApi {
           }
         }
 
-        object ServiceTaskSendToSubscriber {
-          val id: ElementId = ElementId("serviceTask_sendToSubscriber")
-
-          val elementType: String = "SERVICE_TASK"
-
-          fun then(): Next = Next
+        object ServiceTaskSendToSubscriber : AbstractFlowNode(ElementId("serviceTask_sendToSubscriber"), "SERVICE_TASK"),
+            Navigable<ServiceTaskSendToSubscriber.Next> {
+          override fun then(): Next = Next
 
           object Next {
             val serviceTaskNotifyAuthor: ServiceTaskNotifyAuthor
@@ -486,12 +435,9 @@ object SendNewsletterProcessApi {
           }
         }
 
-        object StartEventEditionCreated {
-          val id: ElementId = ElementId("startEvent_editionCreated")
-
-          val elementType: String = "START_EVENT"
-
-          fun then(): Next = Next
+        object StartEventEditionCreated : AbstractFlowNode(ElementId("startEvent_editionCreated"), "START_EVENT"),
+            Navigable<StartEventEditionCreated.Next> {
+          override fun then(): Next = Next
 
           object Next {
             val serviceTaskLoadSubscribers: ServiceTaskLoadSubscribers

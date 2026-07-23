@@ -1,60 +1,36 @@
 package io.miragon.bpmn.adapter.outbound.codegen.navigation
 
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 
 /**
  * Derives the navigation identifiers for elements.
  *
- * Names are derived from the element's sanitized constant name (`FlowNodeDefinition.getName()`, the same
- * UPPER_SNAKE basis used for the flat `Elements` constants and checked by `CollisionDetectionService`), so
- * navigation names carry no new collision surface beyond the existing constants:
+ * Names come from the element id's [toCamelCase] form — the same basis the `CallActivities` / `Variables`
+ * nested objects use, and the one guarded by the mandatory `collision-detection` rule. That rule rejects any
+ * model whose ids collapse to the same name before generation runs, so within a scope the names are already
+ * guaranteed unique and no disambiguation is needed here.
  *
- * - object name = PascalCase of the constant name (`SERVICE_TASK_INCREMENT` -> `ServiceTaskIncrement`)
+ * - object name = PascalCase of the id (`serviceTask_increment` -> `ServiceTaskIncrement`)
  * - property/accessor name = the same, first letter lowercased (`serviceTaskIncrement`)
- *
- * Within a single scope, names must be unique. On the rare event that two distinct ids normalize to the same
- * name, they are disambiguated deterministically (ordered by id, numeric suffix), so regeneration is idempotent.
  */
 object NavigationNaming {
 
-    /** Stable object/property names for one node, unique within its scope. */
+    /**
+     * Object/property names for one node.
+     */
     data class Names(val objectName: String, val propertyName: String)
 
     /**
-     * Assigns unique [Names] to every node in a scope, keyed by element id.
-     * Ordered by id and suffixed deterministically on collision so the result is stable across regenerations.
+     * Assigns [Names] to every node in a scope, keyed by element id.
      */
     fun assignScope(nodes: List<FlowNodeDefinition>): Map<String, Names> {
-        val taken = mutableSetOf<String>()
-        val result = mutableMapOf<String, Names>()
-        nodes
+        return nodes
             .filter { it.id != null }
-            .sortedBy { it.id }
-            .forEach { node ->
-                val objectName = uniqueName(pascalCase(node.getName()), taken)
-                taken.add(objectName)
-                result[node.id!!] = Names(objectName, decapitalize(objectName))
+            .associate { node ->
+                val objectName = node.getRawName().toCamelCase()
+                node.id!! to Names(objectName, decapitalize(objectName))
             }
-        return result
-    }
-
-    private fun uniqueName(base: String, taken: Set<String>): String {
-        val candidate = base.ifEmpty { "Element" }
-        if (candidate !in taken) {
-            return candidate
-        }
-        var index = 2
-        while ("$candidate$index" in taken) {
-            index++
-        }
-        return "$candidate$index"
-    }
-
-    private fun pascalCase(upperSnake: String): String {
-        return upperSnake
-            .split("_")
-            .filter { it.isNotEmpty() }
-            .joinToString("") { segment -> segment.lowercase().replaceFirstChar { it.uppercaseChar() } }
     }
 
     private fun decapitalize(name: String): String {
