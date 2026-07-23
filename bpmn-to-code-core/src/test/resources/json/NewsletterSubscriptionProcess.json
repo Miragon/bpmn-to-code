@@ -53,7 +53,7 @@
                 "serviceTask_incrementSubscriptionCounter"
             ],
             "followingElements": [
-                "Activity_SendWelcomeMail"
+                "Gateway_SplitNotifications"
             ]
         },
         {
@@ -190,14 +190,71 @@
             ]
         },
         {
-            "id": "Activity_SendWelcomeMail",
-            "displayName": "Send Welcome-Mail",
-            "elementType": "SERVICE_TASK",
+            "id": "Gateway_SplitNotifications",
+            "elementType": "PARALLEL_GATEWAY",
             "previousElements": [
                 "SubProcess_Confirmation"
             ],
             "followingElements": [
+                "Activity_SendWelcomeMail",
+                "Activity_NotifyCommunity"
+            ]
+        },
+        {
+            "id": "Activity_NotifyCommunity",
+            "displayName": "Notify community",
+            "elementType": "SERVICE_TASK",
+            "previousElements": [
+                "Gateway_SplitNotifications"
+            ],
+            "followingElements": [
+                "Gateway_JoinNotifications"
+            ],
+            "properties": {
+                "type": "ServiceTask",
+                "implementationValue": "newsletter.notifyCommunity"
+            },
+            "engineSpecificProperties": {
+                "asyncBefore": true,
+                "asyncAfter": true,
+                "exclusive": false
+            }
+        },
+        {
+            "id": "Gateway_JoinNotifications",
+            "elementType": "PARALLEL_GATEWAY",
+            "previousElements": [
+                "Activity_SendWelcomeMail",
+                "Activity_NotifyCommunity"
+            ],
+            "followingElements": [
                 "EndEvent_RegistrationCompleted"
+            ]
+        },
+        {
+            "id": "EndEvent_RegistrationCompleted",
+            "displayName": "Registration completed",
+            "elementType": "END_EVENT",
+            "previousElements": [
+                "Gateway_JoinNotifications"
+            ],
+            "variables": [
+                "subscriptionId"
+            ],
+            "properties": {
+                "type": "ServiceTask",
+                "implementationValue": "newsletter.registrationCompleted"
+            }
+        },
+        {
+            "id": "Activity_SendWelcomeMail",
+            "displayName": "Send Welcome-Mail",
+            "elementType": "SERVICE_TASK",
+            "previousElements": [
+                "Gateway_SplitNotifications"
+            ],
+            "followingElements": [
+                "Gateway_JoinNotifications"
             ],
             "variables": [
                 "subscriptionId"
@@ -210,21 +267,6 @@
                 "asyncBefore": true,
                 "asyncAfter": true,
                 "exclusive": false
-            }
-        },
-        {
-            "id": "EndEvent_RegistrationCompleted",
-            "displayName": "Registration completed",
-            "elementType": "END_EVENT",
-            "previousElements": [
-                "Activity_SendWelcomeMail"
-            ],
-            "variables": [
-                "subscriptionId"
-            ],
-            "properties": {
-                "type": "ServiceTask",
-                "implementationValue": "newsletter.registrationCompleted"
             }
         },
         {
@@ -272,7 +314,7 @@
         {
             "id": "Flow_09cuvzp",
             "sourceRef": "SubProcess_Confirmation",
-            "targetRef": "Activity_SendWelcomeMail",
+            "targetRef": "Gateway_SplitNotifications",
             "isDefault": false
         },
         {
@@ -291,6 +333,18 @@
             "id": "Flow_0zdmt0t",
             "sourceRef": "serviceTask_incrementSubscriptionCounter",
             "targetRef": "SubProcess_Confirmation",
+            "isDefault": false
+        },
+        {
+            "id": "Flow_16hub0n",
+            "sourceRef": "Gateway_SplitNotifications",
+            "targetRef": "Activity_SendWelcomeMail",
+            "isDefault": false
+        },
+        {
+            "id": "Flow_1862jd8",
+            "sourceRef": "Gateway_JoinNotifications",
+            "targetRef": "EndEvent_RegistrationCompleted",
             "isDefault": false
         },
         {
@@ -318,15 +372,27 @@
             "isDefault": false
         },
         {
+            "id": "Flow_1duwy83",
+            "sourceRef": "Activity_NotifyCommunity",
+            "targetRef": "Gateway_JoinNotifications",
+            "isDefault": false
+        },
+        {
             "id": "Flow_1i7hjid",
             "sourceRef": "Activity_SendWelcomeMail",
-            "targetRef": "EndEvent_RegistrationCompleted",
+            "targetRef": "Gateway_JoinNotifications",
             "isDefault": false
         },
         {
             "id": "Flow_1l1lj4m",
             "sourceRef": "Timer_After3Days",
             "targetRef": "CallActivity_AbortRegistration",
+            "isDefault": false
+        },
+        {
+            "id": "Flow_1p5t47z",
+            "sourceRef": "Gateway_SplitNotifications",
+            "targetRef": "Activity_NotifyCommunity",
             "isDefault": false
         }
     ]

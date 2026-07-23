@@ -34,6 +34,12 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final ElementId ACTIVITY_SEND_WELCOME_MAIL = new ElementId("Activity_SendWelcomeMail");
 
+    public static final ElementId ACTIVITY_NOTIFY_COMMUNITY = new ElementId("Activity_NotifyCommunity");
+
+    public static final ElementId GATEWAY_SPLIT_NOTIFICATIONS = new ElementId("Gateway_SplitNotifications");
+
+    public static final ElementId GATEWAY_JOIN_NOTIFICATIONS = new ElementId("Gateway_JoinNotifications");
+
     public static final ElementId COMPENSATION_END_EVENT_REGISTRATION_ABORTED = new ElementId("CompensationEndEvent_RegistrationAborted");
 
     public static final ElementId COMPENSATION_EVENT_ON_SUBSCRIPTION_COUNTER = new ElementId("CompensationEvent_OnSubscriptionCounter");
@@ -97,6 +103,8 @@ public final class NewsletterSubscriptionProcessApi {
     public static final String NEWSLETTER_SEND_WELCOME_MAIL = "${newsletterSendWelcomeMail}";
 
     public static final String COUNTER_CLASS = "counterClass";
+
+    public static final String NEWSLETTER_NOTIFY_COMMUNITY = "newsletter.notifyCommunity";
 
     public static final String NEWSLETTER_REGISTRATION_COMPLETED = "newsletter.registrationCompleted";
   }
@@ -162,13 +170,17 @@ public final class NewsletterSubscriptionProcessApi {
   public static final class Flows {
     public static final BpmnFlow FLOW_05_I_3_X_1_Y = new BpmnFlow("Flow_05i3x1y", null, "StartEvent_RequestReceived", "Activity_SendConfirmationMail", null, false);
 
-    public static final BpmnFlow FLOW_09_CUVZP = new BpmnFlow("Flow_09cuvzp", null, "SubProcess_Confirmation", "Activity_SendWelcomeMail", null, false);
+    public static final BpmnFlow FLOW_09_CUVZP = new BpmnFlow("Flow_09cuvzp", null, "SubProcess_Confirmation", "Gateway_SplitNotifications", null, false);
 
     public static final BpmnFlow FLOW_0_I_2_CTUV = new BpmnFlow("Flow_0i2ctuv", null, "ErrorEvent_InvalidMail", "EndEvent_RegistrationNotPossible", null, false);
 
     public static final BpmnFlow FLOW_0_X_4_EWVB = new BpmnFlow("Flow_0x4ewvb", null, "Timer_EveryDay", "Activity_SendConfirmationMail", null, false);
 
     public static final BpmnFlow FLOW_0_ZDMT_0_T = new BpmnFlow("Flow_0zdmt0t", null, "serviceTask_incrementSubscriptionCounter", "SubProcess_Confirmation", null, false);
+
+    public static final BpmnFlow FLOW_16_HUB_0_N = new BpmnFlow("Flow_16hub0n", null, "Gateway_SplitNotifications", "Activity_SendWelcomeMail", null, false);
+
+    public static final BpmnFlow FLOW_1862_JD_8 = new BpmnFlow("Flow_1862jd8", null, "Gateway_JoinNotifications", "EndEvent_RegistrationCompleted", null, false);
 
     public static final BpmnFlow FLOW_1_BCKM_43 = new BpmnFlow("Flow_1bckm43", null, "Activity_SendConfirmationMail", "Activity_ConfirmRegistration", null, false);
 
@@ -178,9 +190,13 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final BpmnFlow FLOW_1_CSFYYZ = new BpmnFlow("Flow_1csfyyz", null, "StartEvent_SubmitRegistrationForm", "serviceTask_incrementSubscriptionCounter", null, false);
 
-    public static final BpmnFlow FLOW_1_I_7_HJID = new BpmnFlow("Flow_1i7hjid", null, "Activity_SendWelcomeMail", "EndEvent_RegistrationCompleted", null, false);
+    public static final BpmnFlow FLOW_1_DUWY_83 = new BpmnFlow("Flow_1duwy83", null, "Activity_NotifyCommunity", "Gateway_JoinNotifications", null, false);
+
+    public static final BpmnFlow FLOW_1_I_7_HJID = new BpmnFlow("Flow_1i7hjid", null, "Activity_SendWelcomeMail", "Gateway_JoinNotifications", null, false);
 
     public static final BpmnFlow FLOW_1_L_1_LJ_4_M = new BpmnFlow("Flow_1l1lj4m", null, "Timer_After3Days", "CallActivity_AbortRegistration", null, false);
+
+    public static final BpmnFlow FLOW_1_P_5_T_47_Z = new BpmnFlow("Flow_1p5t47z", null, "Gateway_SplitNotifications", "Activity_NotifyCommunity", null, false);
   }
 
   /**
@@ -190,9 +206,11 @@ public final class NewsletterSubscriptionProcessApi {
   public static final class Relations {
     public static final BpmnRelations ACTIVITY_CONFIRM_REGISTRATION = new BpmnRelations("Confirm registration", List.of("Activity_SendConfirmationMail"), List.of("EndEvent_SubscriptionConfirmed"), "SubProcess_Confirmation", null, List.of("Timer_EveryDay"), "RECEIVE_TASK");
 
+    public static final BpmnRelations ACTIVITY_NOTIFY_COMMUNITY = new BpmnRelations(null, List.of("Gateway_SplitNotifications"), List.of("Gateway_JoinNotifications"), null, null, List.of(), "SERVICE_TASK");
+
     public static final BpmnRelations ACTIVITY_SEND_CONFIRMATION_MAIL = new BpmnRelations(null, List.of("StartEvent_RequestReceived", "Timer_EveryDay"), List.of("Activity_ConfirmRegistration"), "SubProcess_Confirmation", null, List.of(), "SERVICE_TASK");
 
-    public static final BpmnRelations ACTIVITY_SEND_WELCOME_MAIL = new BpmnRelations(null, List.of("SubProcess_Confirmation"), List.of("EndEvent_RegistrationCompleted"), null, null, List.of(), "SERVICE_TASK");
+    public static final BpmnRelations ACTIVITY_SEND_WELCOME_MAIL = new BpmnRelations(null, List.of("Gateway_SplitNotifications"), List.of("Gateway_JoinNotifications"), null, null, List.of(), "SERVICE_TASK");
 
     public static final BpmnRelations CALL_ACTIVITY_ABORT_REGISTRATION = new BpmnRelations(null, List.of("Timer_After3Days"), List.of("CompensationEndEvent_RegistrationAborted"), null, null, List.of(), "CALL_ACTIVITY");
 
@@ -202,7 +220,7 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final BpmnRelations COMPENSATION_TASK_DECREMENT_SUBSCRIPTION_COUNTER = new BpmnRelations(null, List.of(), List.of(), null, null, List.of(), "TASK");
 
-    public static final BpmnRelations END_EVENT_REGISTRATION_COMPLETED = new BpmnRelations(null, List.of("Activity_SendWelcomeMail"), List.of(), null, null, List.of(), "END_EVENT");
+    public static final BpmnRelations END_EVENT_REGISTRATION_COMPLETED = new BpmnRelations(null, List.of("Gateway_JoinNotifications"), List.of(), null, null, List.of(), "END_EVENT");
 
     public static final BpmnRelations END_EVENT_REGISTRATION_NOT_POSSIBLE = new BpmnRelations(null, List.of("ErrorEvent_InvalidMail"), List.of(), null, null, List.of(), "SIGNAL_END_EVENT");
 
@@ -210,11 +228,15 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final BpmnRelations ERROR_EVENT_INVALID_MAIL = new BpmnRelations(null, List.of(), List.of("EndEvent_RegistrationNotPossible"), null, "SubProcess_Confirmation", List.of(), "ERROR_BOUNDARY_EVENT");
 
+    public static final BpmnRelations GATEWAY_JOIN_NOTIFICATIONS = new BpmnRelations(null, List.of("Activity_SendWelcomeMail", "Activity_NotifyCommunity"), List.of("EndEvent_RegistrationCompleted"), null, null, List.of(), "PARALLEL_GATEWAY");
+
+    public static final BpmnRelations GATEWAY_SPLIT_NOTIFICATIONS = new BpmnRelations(null, List.of("SubProcess_Confirmation"), List.of("Activity_SendWelcomeMail", "Activity_NotifyCommunity"), null, null, List.of(), "PARALLEL_GATEWAY");
+
     public static final BpmnRelations START_EVENT_REQUEST_RECEIVED = new BpmnRelations(null, List.of(), List.of("Activity_SendConfirmationMail"), "SubProcess_Confirmation", null, List.of(), "START_EVENT");
 
     public static final BpmnRelations START_EVENT_SUBMIT_REGISTRATION_FORM = new BpmnRelations(null, List.of(), List.of("serviceTask_incrementSubscriptionCounter"), null, null, List.of(), "MESSAGE_START_EVENT");
 
-    public static final BpmnRelations SUB_PROCESS_CONFIRMATION = new BpmnRelations(null, List.of("serviceTask_incrementSubscriptionCounter"), List.of("Activity_SendWelcomeMail"), null, null, List.of("ErrorEvent_InvalidMail", "Timer_After3Days"), "SUB_PROCESS");
+    public static final BpmnRelations SUB_PROCESS_CONFIRMATION = new BpmnRelations(null, List.of("serviceTask_incrementSubscriptionCounter"), List.of("Gateway_SplitNotifications"), null, null, List.of("ErrorEvent_InvalidMail", "Timer_After3Days"), "SUB_PROCESS");
 
     public static final BpmnRelations TIMER_AFTER_3_DAYS = new BpmnRelations(null, List.of(), List.of("CallActivity_AbortRegistration"), null, "SubProcess_Confirmation", List.of(), "TIMER_BOUNDARY_EVENT");
 

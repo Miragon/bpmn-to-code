@@ -40,6 +40,7 @@ class KotlinProcessApiBuilderTest {
                     confirmationMailImpl = "#{newsletterSendConfirmationMail}",
                     welcomeMailImpl = "\${newsletterSendWelcomeMail}",
                     registrationCompletedImpl = "newsletter.registrationCompleted",
+                    notifyCommunityImpl = "newsletter.notifyCommunity",
                     extraVariables = listOf(VariableDefinition("testVariable", VariableDirection.INPUT)),
                 ),
             )

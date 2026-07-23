@@ -4,6 +4,7 @@ import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.BpmnNodeType
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.EventDefinitionType
+import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.CallActivityMapping
@@ -91,9 +92,21 @@ class OperatonModelExtractorTest {
                             VariableDefinition("subscriptionId", VariableDirection.INPUT, "\${subscriptionId}"),
                             VariableDefinition("subscriptionId", VariableDirection.OUTPUT, "\${subscriptionId}"),
                         ),
-                        previousElements = listOf("SubProcess_Confirmation"),
-                        followingElements = listOf("EndEvent_RegistrationCompleted"),
+                        previousElements = listOf("Gateway_SplitNotifications"),
+                        followingElements = listOf("Gateway_JoinNotifications"),
                         engineSpecificProperties = mapOf(ASYNC_BEFORE_KEY to true, ASYNC_AFTER_KEY to true, EXCLUSIVE_KEY to false)),
+                    FlowNodeDefinition("Activity_NotifyCommunity", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
+                        displayName = "Notify community",
+                        properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_NotifyCommunity", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "newsletter.notifyCommunity", IMPL_KIND_KEY to "DELEGATE_EXPRESSION"))),
+                        previousElements = listOf("Gateway_SplitNotifications"),
+                        followingElements = listOf("Gateway_JoinNotifications"),
+                        engineSpecificProperties = mapOf(ASYNC_BEFORE_KEY to true, ASYNC_AFTER_KEY to true, EXCLUSIVE_KEY to false)),
+                    FlowNodeDefinition("Gateway_SplitNotifications", BpmnNodeType.Gateway(GatewayKind.PARALLEL),
+                        previousElements = listOf("SubProcess_Confirmation"),
+                        followingElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity")),
+                    FlowNodeDefinition("Gateway_JoinNotifications", BpmnNodeType.Gateway(GatewayKind.PARALLEL),
+                        previousElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity"),
+                        followingElements = listOf("EndEvent_RegistrationCompleted")),
                     FlowNodeDefinition("CompensationEndEvent_RegistrationAborted", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.COMPENSATION),
                         displayName = "Registration aborted",
                         previousElements = listOf("CallActivity_AbortRegistration")),
@@ -107,7 +120,7 @@ class OperatonModelExtractorTest {
                         displayName = "Registration completed",
                         properties = FlowNodeProperties.ServiceTask(opServiceTaskById["EndEvent_RegistrationCompleted"]!!),
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "\${subscriptionId}")),
-                        previousElements = listOf("Activity_SendWelcomeMail")),
+                        previousElements = listOf("Gateway_JoinNotifications")),
                     FlowNodeDefinition("EndEvent_RegistrationNotPossible", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.SIGNAL),
                         displayName = "Registration not possible",
                         properties = FlowNodeProperties.SignalEvent("Signal_RegistrationNotPossible", EventDirection.THROW),
@@ -142,7 +155,7 @@ class OperatonModelExtractorTest {
                         displayName = "Subscription Confirmation",
                         attachedElements = listOf("ErrorEvent_InvalidMail", "Timer_After3Days"),
                         previousElements = listOf("serviceTask_incrementSubscriptionCounter"),
-                        followingElements = listOf("Activity_SendWelcomeMail")),
+                        followingElements = listOf("Gateway_SplitNotifications")),
                     FlowNodeDefinition("Timer_After3Days", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
                         displayName = "After 3 days",
                         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_After3Days", "Duration", "\${testVariable}")),
@@ -157,16 +170,20 @@ class OperatonModelExtractorTest {
                 ),
                 sequenceFlows = listOf(
                     SequenceFlowDefinition("Flow_05i3x1y", "StartEvent_RequestReceived", "Activity_SendConfirmationMail"),
-                    SequenceFlowDefinition("Flow_09cuvzp", "SubProcess_Confirmation", "Activity_SendWelcomeMail"),
+                    SequenceFlowDefinition("Flow_09cuvzp", "SubProcess_Confirmation", "Gateway_SplitNotifications"),
                     SequenceFlowDefinition("Flow_0i2ctuv", "ErrorEvent_InvalidMail", "EndEvent_RegistrationNotPossible"),
                     SequenceFlowDefinition("Flow_0x4ewvb", "Timer_EveryDay", "Activity_SendConfirmationMail"),
                     SequenceFlowDefinition("Flow_0zdmt0t", "serviceTask_incrementSubscriptionCounter", "SubProcess_Confirmation"),
+                    SequenceFlowDefinition("Flow_16hub0n", "Gateway_SplitNotifications", "Activity_SendWelcomeMail"),
+                    SequenceFlowDefinition("Flow_1862jd8", "Gateway_JoinNotifications", "EndEvent_RegistrationCompleted"),
                     SequenceFlowDefinition("Flow_1bckm43", "Activity_SendConfirmationMail", "Activity_ConfirmRegistration"),
                     SequenceFlowDefinition("Flow_1bsb8no", "CallActivity_AbortRegistration", "CompensationEndEvent_RegistrationAborted"),
                     SequenceFlowDefinition("Flow_1cpwe57", "Activity_ConfirmRegistration", "EndEvent_SubscriptionConfirmed"),
                     SequenceFlowDefinition("Flow_1csfyyz", "StartEvent_SubmitRegistrationForm", "serviceTask_incrementSubscriptionCounter"),
-                    SequenceFlowDefinition("Flow_1i7hjid", "Activity_SendWelcomeMail", "EndEvent_RegistrationCompleted"),
+                    SequenceFlowDefinition("Flow_1duwy83", "Activity_NotifyCommunity", "Gateway_JoinNotifications"),
+                    SequenceFlowDefinition("Flow_1i7hjid", "Activity_SendWelcomeMail", "Gateway_JoinNotifications"),
                     SequenceFlowDefinition("Flow_1l1lj4m", "Timer_After3Days", "CallActivity_AbortRegistration"),
+                    SequenceFlowDefinition("Flow_1p5t47z", "Gateway_SplitNotifications", "Activity_NotifyCommunity"),
                 ),
                 compensations = listOf(
                     CompensationDefinition("CompensationEndEvent_RegistrationAborted", CompensationType.THROWING, engineSpecificProperties = mapOf("activityRef" to "serviceTask_incrementSubscriptionCounter", "waitForCompletion" to false)),

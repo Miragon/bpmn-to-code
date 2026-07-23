@@ -84,20 +84,38 @@
           <operaton:outputParameter name="subscriptionId">${subscriptionId}</operaton:outputParameter>
         </operaton:inputOutput>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_09cuvzp</bpmn:incoming>
+      <bpmn:incoming>Flow_16hub0n</bpmn:incoming>
       <bpmn:outgoing>Flow_1i7hjid</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_09cuvzp" sourceRef="SubProcess_Confirmation" targetRef="Activity_SendWelcomeMail" />
+    <bpmn:sequenceFlow id="Flow_09cuvzp" sourceRef="SubProcess_Confirmation" targetRef="Gateway_SplitNotifications" />
+    <bpmn:parallelGateway id="Gateway_SplitNotifications">
+      <bpmn:incoming>Flow_09cuvzp</bpmn:incoming>
+      <bpmn:outgoing>Flow_16hub0n</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1p5t47z</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_16hub0n" sourceRef="Gateway_SplitNotifications" targetRef="Activity_SendWelcomeMail" />
+    <bpmn:serviceTask id="Activity_NotifyCommunity" name="Notify community" operaton:asyncBefore="true" operaton:asyncAfter="true" operaton:exclusive="false" operaton:delegateExpression="newsletter.notifyCommunity">
+      <bpmn:incoming>Flow_1p5t47z</bpmn:incoming>
+      <bpmn:outgoing>Flow_1duwy83</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1p5t47z" sourceRef="Gateway_SplitNotifications" targetRef="Activity_NotifyCommunity" />
+    <bpmn:parallelGateway id="Gateway_JoinNotifications">
+      <bpmn:incoming>Flow_1i7hjid</bpmn:incoming>
+      <bpmn:incoming>Flow_1duwy83</bpmn:incoming>
+      <bpmn:outgoing>Flow_1862jd8</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_1duwy83" sourceRef="Activity_NotifyCommunity" targetRef="Gateway_JoinNotifications" />
     <bpmn:endEvent id="EndEvent_RegistrationCompleted" name="Registration completed">
       <bpmn:extensionElements>
         <operaton:inputOutput>
           <operaton:inputParameter name="subscriptionId">${subscriptionId}</operaton:inputParameter>
         </operaton:inputOutput>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1i7hjid</bpmn:incoming>
+      <bpmn:incoming>Flow_1862jd8</bpmn:incoming>
       <bpmn:messageEventDefinition operaton:type="external" operaton:topic="newsletter.registrationCompleted" />
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1i7hjid" sourceRef="Activity_SendWelcomeMail" targetRef="EndEvent_RegistrationCompleted" />
+    <bpmn:sequenceFlow id="Flow_1i7hjid" sourceRef="Activity_SendWelcomeMail" targetRef="Gateway_JoinNotifications" />
+    <bpmn:sequenceFlow id="Flow_1862jd8" sourceRef="Gateway_JoinNotifications" targetRef="EndEvent_RegistrationCompleted" />
     <bpmn:boundaryEvent id="ErrorEvent_InvalidMail" name="Invalid Mail" attachedToRef="SubProcess_Confirmation">
       <bpmn:outgoing>Flow_0i2ctuv</bpmn:outgoing>
       <bpmn:errorEventDefinition errorRef="Error_0uxgmyc" />
@@ -207,13 +225,23 @@
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_105q7u2_di" bpmnElement="Activity_SendWelcomeMail">
-        <dc:Bounds x="820" y="280" width="100" height="80" />
+        <dc:Bounds x="890" y="240" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SplitNotifications_di" bpmnElement="Gateway_SplitNotifications">
+        <dc:Bounds x="795" y="295" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_NotifyCommunity_di" bpmnElement="Activity_NotifyCommunity">
+        <dc:Bounds x="890" y="360" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_JoinNotifications_di" bpmnElement="Gateway_JoinNotifications">
+        <dc:Bounds x="1045" y="295" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1fyeli8_di" bpmnElement="EndEvent_RegistrationCompleted">
-        <dc:Bounds x="982" y="302" width="36" height="36" />
+        <dc:Bounds x="1152" y="302" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="971" y="345" width="59" height="27" />
+          <dc:Bounds x="1141" y="345" width="59" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0l6q4ul_di" bpmnElement="EndEvent_RegistrationNotPossible">
@@ -264,11 +292,31 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_09cuvzp_di" bpmnElement="Flow_09cuvzp">
         <di:waypoint x="770" y="320" />
-        <di:waypoint x="820" y="320" />
+        <di:waypoint x="795" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16hub0n_di" bpmnElement="Flow_16hub0n">
+        <di:waypoint x="820" y="295" />
+        <di:waypoint x="820" y="280" />
+        <di:waypoint x="890" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1p5t47z_di" bpmnElement="Flow_1p5t47z">
+        <di:waypoint x="820" y="345" />
+        <di:waypoint x="820" y="400" />
+        <di:waypoint x="890" y="400" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1i7hjid_di" bpmnElement="Flow_1i7hjid">
-        <di:waypoint x="920" y="320" />
-        <di:waypoint x="982" y="320" />
+        <di:waypoint x="990" y="280" />
+        <di:waypoint x="1070" y="280" />
+        <di:waypoint x="1070" y="295" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1duwy83_di" bpmnElement="Flow_1duwy83">
+        <di:waypoint x="990" y="400" />
+        <di:waypoint x="1070" y="400" />
+        <di:waypoint x="1070" y="345" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1862jd8_di" bpmnElement="Flow_1862jd8">
+        <di:waypoint x="1095" y="320" />
+        <di:waypoint x="1152" y="320" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0i2ctuv_di" bpmnElement="Flow_0i2ctuv">
         <di:waypoint x="710" y="456" />
