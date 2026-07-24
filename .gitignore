@@ -17,3 +17,6 @@ docs/.vitepress/cache
 .gstack/
 sandbox/
 detekt-baseline.xml
+
+# Graphify outputs
+graphify-out/
