@@ -146,6 +146,70 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
+    fun `findCollisions detects folding collision that UPPER_SNAKE misses`() {
+
+        // given: two flow nodes whose ids keep distinct constants (FOO, _FOO) but fold to the
+        // same PascalCase object name (Foo) used for Variables/CallActivities objects
+        val model = testBpmnModel(
+            processId = "TestProcess",
+            flowNodes = listOf(
+                FlowNodeDefinition(id = "foo"),
+                FlowNodeDefinition(id = "-foo"),
+            ),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findCollisions(model)
+
+        // then: one collision is reported on the folded object-name basis
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].variableType).isEqualTo("FlowNode")
+        assertThat(collisions[0].constantName).isEqualTo("Foo")
+        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("-foo", "foo")
+    }
+
+    @Test
+    fun `findCollisions does not double-report a collision that surfaces on both bases`() {
+
+        // given: two flow nodes that collide in UPPER_SNAKE and in PascalCase folding
+        val model = testBpmnModel(
+            processId = "TestProcess",
+            flowNodes = listOf(
+                FlowNodeDefinition(id = "endEvent_complete"),
+                FlowNodeDefinition(id = "endEvent-complete"),
+            ),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findCollisions(model)
+
+        // then: exactly one collision, keeping the UPPER_SNAKE constant name
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].constantName).isEqualTo("END_EVENT_COMPLETE")
+    }
+
+    @Test
+    fun `findCollisions detects UPPER_SNAKE collision that folding misses`() {
+
+        // given: two flow nodes that share a constant (FOO_BAR) but keep distinct PascalCase names
+        val model = testBpmnModel(
+            processId = "TestProcess",
+            flowNodes = listOf(
+                FlowNodeDefinition(id = "fooBar"),
+                FlowNodeDefinition(id = "fooBAR"),
+            ),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findCollisions(model)
+
+        // then: still reported once on the UPPER_SNAKE basis
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].constantName).isEqualTo("FOO_BAR")
+        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("fooBAR", "fooBar")
+    }
+
+    @Test
     fun `findCollisions detects collisions in Messages`() {
 
         // given: two messages that normalize to the same constant

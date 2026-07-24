@@ -25,7 +25,14 @@ Implement comprehensive collision detection that:
 ### Implementation
 
 - Created `CollisionDetectionService` as a dedicated domain service following hexagonal architecture to detect collisions and throw errors
-  
+
+### Identifier-folding basis (flow nodes)
+Flow nodes additionally generate **PascalCase** object names (`Variables`, `CallActivities`) via `StringUtils.toCamelCase()`, which folds away empty segments from leading/trailing/collapsed separators. Ids such as `foo` and `-foo` keep distinct `UPPER_SNAKE` constants (`FOO` / `_FOO`) but fold to the same object name `Foo`, which would emit two `object Foo` and fail to compile. Flow-node collision detection therefore checks **both** bases:
+- the `UPPER_SNAKE` constant basis (`Elements`), and
+- the PascalCase object-name basis (`getRawName().toCamelCase()`).
+
+Neither basis subsumes the other (`fooBar` / `fooBAR` collide only in `UPPER_SNAKE`; `foo` / `-foo` only in folding), so both are needed. Collisions surfacing on both bases are de-duplicated and reported once, preferring the `UPPER_SNAKE` name. Call-activity ids are a subset of flow-node ids, so a single flow-node check covers `CallActivities` objects too.
+
 ## Consequences
 
 ### Positive

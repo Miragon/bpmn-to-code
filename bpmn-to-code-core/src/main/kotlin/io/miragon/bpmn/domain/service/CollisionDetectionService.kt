@@ -2,6 +2,7 @@ package io.miragon.bpmn.domain.service
 
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.VariableMapping
+import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 import io.miragon.bpmn.domain.validation.model.CollisionDetail
 
 /**
@@ -26,16 +27,19 @@ class CollisionDetectionService {
         collisions.addAll(findCollisionsIn(modelId, model.errors, "Error"))
         collisions.addAll(findCollisionsIn(modelId, model.timers, "Timer"))
         collisions.addAll(findCollisionsIn(modelId, model.variables, "Variable"))
-        return collisions
+        collisions.addAll(findCollisionsIn(modelId, model.flowNodes, "FlowNode") { it.getRawName().toCamelCase() })
+        return collisions.distinctBy { Triple(it.processId, it.variableType, it.conflictingIds) }
     }
 
     private fun <T : VariableMapping<*>> findCollisionsIn(
         processId: String,
         items: List<T>,
         variableType: String,
+        nameSelector: (T) -> String = { it.getName() },
     ): List<CollisionDetail> {
         val distinctItems = items.filter { it.getRawName().isNotEmpty() }.distinctBy { it.getRawName() }
-        val itemsPerVariableName = distinctItems.groupBy { it.getName() }
+        val relevantItems = distinctItems.filter { nameSelector(it).isNotEmpty() }
+        val itemsPerVariableName = relevantItems.groupBy(nameSelector)
         val collisions = itemsPerVariableName.filterValues { it.size > 1 }
         return collisions.mapNotNull { (constantName, itemsWithSameName) ->
             val rawNames = itemsWithSameName.map { it.getRawName() }
