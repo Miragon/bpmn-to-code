@@ -117,6 +117,7 @@ export default defineConfig({
           { text: 'AI Skills Architecture', link: '/contributing/ai-skills' },
           { text: 'Docker Deployment', link: '/contributing/docker-hub-deployment' },
           { text: 'Best Practices', link: '/contributing/best-practices' },
+          { text: 'Publishing Snapshots', link: '/contributing/publishing-snapshots' },
           { text: 'Architecture Decisions', link: '/contributing/adr/' },
         ],
       },
