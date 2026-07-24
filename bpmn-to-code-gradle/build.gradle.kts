@@ -69,6 +69,8 @@ tasks.named<Test>("test") {
     systemProperty("kotlinVersion", libs.versions.kotlin.get())
 }
 
+val isSnapshot = version.toString().endsWith("-SNAPSHOT")
+
 publishing {
     publications {
         create<MavenPublication>("pluginMaven") {
@@ -78,6 +80,20 @@ publishing {
     }
     repositories {
         mavenLocal()
+        // The Gradle Plugin Portal cannot host SNAPSHOTs, so snapshot builds of the plugin
+        // (including its auto-generated plugin-marker publication) are published to Central
+        // Snapshots instead. Guarded so release versions never land here - the Portal stays
+        // the release channel.
+        if (isSnapshot) {
+            maven {
+                name = "centralSnapshots"
+                url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+                credentials {
+                    username = providers.gradleProperty("mavenCentralUsername").orNull
+                    password = providers.gradleProperty("mavenCentralPassword").orNull
+                }
+            }
+        }
     }
 }
 
