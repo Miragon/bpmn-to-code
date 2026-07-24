@@ -9,9 +9,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 /**
- * Unit test of the [ProcessPath] step operators over a tiny hand-built graph (Start -> Mid -> End), so the
- * builder mechanics are covered in the runtime module itself. The integration test over a real generated API
- * lives alongside in [ProcessPathIntegrationTest].
+ * Unit test of the [ProcessPath] step operators over a tiny hand-built graph, so the builder mechanics are
+ * covered in the runtime module itself. The integration test over a real generated API lives alongside in
+ * [ProcessPathIntegrationTest].
  */
 class ProcessPathTest {
 
@@ -27,42 +27,21 @@ class ProcessPathTest {
     }
 
     @Test
-    fun `via advances without recording`() {
+    fun `then with repeatTimes records the same node several times`() {
         val path = ProcessPath.from(Start)
-            .via { it.mid }
+            .then(repeatTimes = 3) { it.mid }
+
+        assertThat(path.ids).containsExactly("Start", "Mid", "Mid", "Mid")
+        assertThat(path.current).isEqualTo(Mid)
+    }
+
+    @Test
+    fun `skip advances without recording`() {
+        val path = ProcessPath.from(Start)
+            .skip { it.mid }
             .then { it.end }
 
         assertThat(path.ids).containsExactly("Start", "End")
-    }
-
-    @Test
-    fun `then(node) records a re-anchor and back(node) re-anchors without recording`() {
-        val path = ProcessPath.from(Start)
-            .then { it.mid }
-            .back(Start)
-            .then(End)
-
-        assertThat(path.ids).containsExactly("Start", "Mid", "End")
-        assertThat(path.current).isEqualTo(End)
-    }
-
-    @Test
-    fun `back braces form re-anchors without recording`() {
-        val path = ProcessPath.from(Start)
-            .then { it.mid }
-            .back { Start }
-
-        assertThat(path.ids).containsExactly("Start", "Mid")
-        assertThat(path.current).isEqualTo(Start)
-    }
-
-    @Test
-    fun `passedNodes unions branches into a deduplicated set`() {
-        val branchA = ProcessPath.from(Start).then { it.mid }.nodes
-        val branchB = ProcessPath.from(Start).then { it.mid }.then { it.end }.nodes
-
-        assertThat(passedNodes(branchA, branchB).map { it.id.value })
-            .containsExactly("Start", "Mid", "End")
     }
 
     @Test
@@ -83,13 +62,23 @@ class ProcessPathTest {
     }
 
     @Test
-    fun `exit re-anchors to the subprocess continuation and records the successor`() {
+    fun `continueAfter re-anchors to the subprocess continuation and records the successor`() {
         val path = ProcessPath.from(Sub)
             .enter { it.innerStart }
-            .exit(Sub) { it.end }
+            .continueAfter(Sub) { it.end }
 
         assertThat(path.ids).containsExactly("Sub", "InnerStart", "End")
         assertThat(path.current).isEqualTo(End)
+    }
+
+    @Test
+    fun `interruptedBy leaves through a boundary event and records it`() {
+        val path = ProcessPath.from(Sub)
+            .enter { it.innerStart }
+            .interruptedBy(Sub) { it.boundary }
+
+        assertThat(path.ids).containsExactly("Sub", "InnerStart", "Boundary")
+        assertThat(path.current).isEqualTo(Boundary)
     }
 
     @Test
@@ -104,7 +93,29 @@ class ProcessPathTest {
         assertThat(path.current).isEqualTo(End)
     }
 
+    @Test
+    fun `nodesOf unions branches into a deduplicated set`() {
+        val branchA = ProcessPath.from(Start).then { it.mid }.nodes
+        val branchB = ProcessPath.from(Start).then { it.mid }.then { it.end }.nodes
+
+        assertThat(nodesOf(branchA, branchB).map { it.id.value })
+            .containsExactly("Start", "Mid", "End")
+    }
+
+    @OptIn(RiskyNavigation::class)
+    @Test
+    fun `jumpTo re-anchors without recording`() {
+        val path = ProcessPath.from(Start)
+            .then { it.mid }
+            .jumpTo(Start)
+
+        assertThat(path.ids).containsExactly("Start", "Mid")
+        assertThat(path.current).isEqualTo(Start)
+    }
+
     private object End : AbstractFlowNode(ElementId("End"), "END_EVENT")
+
+    private object Boundary : AbstractFlowNode(ElementId("Boundary"), "TIMER_BOUNDARY_EVENT")
 
     private object Mid : AbstractFlowNode(ElementId("Mid"), "TASK"), Navigable<Mid.Next> {
         override fun then(): Next = Next
@@ -127,6 +138,7 @@ class ProcessPathTest {
         override fun inner(): Inner = Inner
         object Next {
             val end: End get() = End
+            val boundary: Boundary get() = Boundary
         }
         object Inner : NavigationScope<Inner.Next> {
             override fun then(): Next = Next

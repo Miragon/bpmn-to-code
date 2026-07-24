@@ -14,15 +14,15 @@ import org.junit.jupiter.api.Test
 class ProcessPathIntegrationTest {
 
     @Test
-    fun `sequential path exits a subprocess via exit(node) and records the passed elements in order`() {
-        val path = ProcessPath.from(Newsletter.then().startEventSubmitRegistrationForm)
+    fun `sequential path leaves a subprocess via continueAfter and records the passed elements in order`() {
+        val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
-            .via { it.subProcessConfirmation }
+            .skip { it.subProcessConfirmation }
             .enter { it.startEventRequestReceived }
             .then { it.activitySendConfirmationMail }
             .then { it.activityConfirmRegistration }
             .then { it.endEventSubscriptionConfirmed }
-            .exit(Newsletter.SubProcessConfirmation) { it.gatewaySplitNotifications }
+            .continueAfter(Newsletter.SubProcessConfirmation) { it.gatewaySplitNotifications }
             .then { it.activitySendWelcomeMail }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
@@ -43,10 +43,9 @@ class ProcessPathIntegrationTest {
 
     @Test
     fun `inside walks the subprocess interior then continues on the subprocess node`() {
-
-        val path = ProcessPath.from(Newsletter.then().startEventSubmitRegistrationForm)
+        val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
-            .via { it.subProcessConfirmation }
+            .skip { it.subProcessConfirmation }
             .inside {
                 enter { it.startEventRequestReceived }
                     .then { it.activitySendConfirmationMail }
@@ -73,10 +72,33 @@ class ProcessPathIntegrationTest {
     }
 
     @Test
-    fun `back re-anchors to the parallel fork to walk the second branch in one chain`() {
+    fun `interruptedBy leaves the subprocess through a boundary timer and records it`() {
+        val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
+            .then { it.serviceTaskIncrementSubscriptionCounter }
+            .skip { it.subProcessConfirmation }
+            .enter { it.startEventRequestReceived }
+            .then { it.activitySendConfirmationMail }
+            .then { it.activityConfirmRegistration }
+            .interruptedBy(Newsletter.SubProcessConfirmation) { it.timerAfter3Days }
+            .then { it.callActivityAbortRegistration }
+
+        assertThat(path.ids).containsExactly(
+            "StartEvent_SubmitRegistrationForm",
+            "serviceTask_incrementSubscriptionCounter",
+            "StartEvent_RequestReceived",
+            "Activity_SendConfirmationMail",
+            "Activity_ConfirmRegistration",
+            "Timer_After3Days",
+            "CallActivity_AbortRegistration",
+        )
+    }
+
+    @OptIn(RiskyNavigation::class)
+    @Test
+    fun `jumpTo re-anchors to the parallel fork to walk the second branch in one chain`() {
         val passed = ProcessPath.from(Newsletter.gatewaySplitNotifications)
             .then { it.activitySendWelcomeMail }
-            .back { Newsletter.GatewaySplitNotifications }
+            .jumpTo(Newsletter.GatewaySplitNotifications)
             .then { it.activityNotifyCommunity }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
@@ -92,7 +114,7 @@ class ProcessPathIntegrationTest {
     }
 
     @Test
-    fun `passedNodes unions the parallel branches into a deduplicated set`() {
+    fun `nodesOf unions the parallel branches into a deduplicated set`() {
         val welcomeBranch = ProcessPath.from(Newsletter.gatewaySplitNotifications)
             .then { it.activitySendWelcomeMail }
             .then { it.gatewayJoinNotifications }
@@ -104,7 +126,7 @@ class ProcessPathIntegrationTest {
             .then { it.endEventRegistrationCompleted }
             .nodes
 
-        val passed = passedNodes(welcomeBranch, notifyBranch).map { it.id.value }
+        val passed = nodesOf(welcomeBranch, notifyBranch).map { it.id.value }
 
         assertThat(passed)
             .contains("Activity_SendWelcomeMail", "Activity_NotifyCommunity", "Gateway_JoinNotifications")

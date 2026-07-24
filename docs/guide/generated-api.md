@@ -248,18 +248,19 @@ assertion — the expected path is verified against the model instead of a hand-
 ```kotlin
 import io.miragon.bpmn.runtime.path.ProcessPath
 import io.miragon.bpmn.runtime.path.then
-import io.miragon.bpmn.runtime.path.via
-import io.miragon.bpmn.runtime.path.back
+import io.miragon.bpmn.runtime.path.skip
+import io.miragon.bpmn.runtime.path.enter
+import io.miragon.bpmn.runtime.path.continueAfter
 import de.myapp.NewsletterSubscriptionProcessApi.Relations
 
-val path = ProcessPath.from(Relations.then().startEventSubmitRegistrationForm)
+val path = ProcessPath.from(Relations.startEventSubmitRegistrationForm)
     .then { it.serviceTaskIncrementSubscriptionCounter }
-    .via { it.subProcessConfirmation }                                            // marker, not asserted
+    .skip { it.subProcessConfirmation }                                          // marker, not asserted
     .enter { it.startEventRequestReceived }                                      // descend into the subprocess
     .then { it.activitySendConfirmationMail }
     .then { it.activityConfirmRegistration }
     .then { it.endEventSubscriptionConfirmed }
-    .exit(Relations.SubProcessConfirmation) { it.gatewaySplitNotifications }     // come back out to the continuation
+    .continueAfter(Relations.SubProcessConfirmation) { it.gatewaySplitNotifications }  // normal exit
     .then { it.activitySendWelcomeMail }
     .then { it.gatewayJoinNotifications }
     .then { it.endEventRegistrationCompleted }
@@ -267,38 +268,45 @@ val path = ProcessPath.from(Relations.then().startEventSubmitRegistrationForm)
 assertThat(instance).isEnded.hasPassedInOrder(*path.ids.toTypedArray())
 ```
 
-- **Edge steps** — `then { it.successor }` / `via { it.successor }` — the lambda's `it` is the current node's
+Start with `ProcessPath.from(Relations.<node>)` — any node is reachable flat, so the start event needs no
+`.then()` accessor.
+
+- **Edge steps** — `then { it.successor }` / `skip { it.successor }` — the lambda's `it` is the current node's
   `Next`, so `it.` autocompletes exactly the reachable successors and only a **real successor** compiles.
-  `then` records the node; `via` does the same compile-checked
-  hop but **doesn't** record it. Use `via` only when you deliberately want a node left out of the asserted
-  path — e.g. a subprocess *container*, whose position relative to its interior isn't cleanly defined.
-  Gateways *are* passed at runtime, so record them with `then`.
-- **Re-anchor steps** — `then(node)` / `back(node)` — the visible, syntactically distinct opt-outs used to
-  **cross a subprocess scope** or **step back to a parallel fork**; they don't check adjacency (scope crossing),
-  so every order-check opt-out is obvious in review. `back` also accepts a braces form for a consistent read —
-  `back { Relations.GatewaySplitNotifications }` (fully qualified, no `Next` receiver). `then` has **no** braces overload on
-  purpose: it would be ambiguous with the edge-step `then { it.successor }`, so recording re-anchors stay
-  `then(node)`.
+  `then` records the node; `skip` does the same compile-checked hop but **doesn't** record it. Use `skip` only
+  when you deliberately want a node left out of the asserted path — e.g. a subprocess *container*, whose
+  position relative to its interior isn't cleanly defined. Gateways *are* passed at runtime, so record them
+  with `then`. `then(repeatTimes = n) { it.x }` records the same node `n` times in a row — for a sequential
+  multi-instance activity or a consecutive self-repeat.
 - **Descend into / out of a subprocess** — on a subprocess node, `then { … }` continues *after* it while
-  `enter { it.start }` goes *inside* (its `it` is the interior's start `Next`). To come back out,
-  `exit(Relations.SubProcess) { it.continuation }` re-anchors to the subprocess's continuation — typed and
-  checked, so use it instead of a qualified `then { … }` escape hatch. From a position where the subprocess
-  isn't the current node, descend explicitly with `enter(Relations.SubProcess.Inner) { it.start }`. As a flat
-  chain alternative, wrap the interior in a block — `inside { enter { it.start } … }` — after which you are back
-  on the subprocess node, so the following `then { it.continuation }` needs no subprocess name (and it nests).
+  `enter { it.start }` goes *inside* (its `it` is the interior's start `Next`). To come back out through the
+  **normal** end, `continueAfter(Relations.SubProcess) { it.continuation }` re-anchors to the subprocess's
+  continuation — the picked successor is checked, only the subprocess reference is named freely. To leave
+  through an attached **boundary** event, use `interruptedBy(Relations.SubProcess) { it.timerAfter3Days }`
+  (same mechanics, reader-clear intent — covers interrupting timers and error boundaries). From a position where
+  the subprocess isn't the current node, descend explicitly with `enter(Relations.SubProcess.Inner) { it.start }`.
+  As a flat-chain alternative, wrap the interior in a block — `inside { enter { it.start } … }` — after which you
+  are back on the subprocess node, so the following `then { it.continuation }` needs no subprocess name (and it
+  nests).
+- **Escape hatch** — `jumpTo(node)` re-anchors to any node without checking adjacency and without recording it
+  (e.g. stepping back to a parallel fork). It is gated behind `@RiskyNavigation` (`@OptIn` required), so it
+  stands out in code and review; prefer the checked steps above.
 - **Parallel (AND) branches**: `hasPassedInOrder` is only meaningful **within one sequential branch**. For
-  concurrent branches, walk each branch (using `back(fork)` to return to the split) and assert the **unordered
-  set** with `passedNodes(...)` + `hasPassed`:
+  concurrent branches, walk each branch separately and assert the **unordered set** with `nodesOf(...)` +
+  `hasPassed`:
 
 ```kotlin
-val passed = ProcessPath.from(Relations.gatewaySplitNotifications)
-    .then { it.activitySendWelcomeMail }                   // branch A
-    .back { Relations.GatewaySplitNotifications }        // step back to the fork
-    .then { it.activityNotifyCommunity }                   // branch B
+val welcomeBranch = ProcessPath.from(Relations.gatewaySplitNotifications)
+    .then { it.activitySendWelcomeMail }
     .then { it.gatewayJoinNotifications }
     .then { it.endEventRegistrationCompleted }
     .nodes
-assertThat(pi).hasPassed(*passed.map { it.id.value }.toTypedArray())
+val notifyBranch = ProcessPath.from(Relations.gatewaySplitNotifications)
+    .then { it.activityNotifyCommunity }
+    .then { it.gatewayJoinNotifications }
+    .then { it.endEventRegistrationCompleted }
+    .nodes
+assertThat(pi).hasPassed(*nodesOf(welcomeBranch, notifyBranch).map { it.id.value }.toTypedArray())
 ```
 
 > The guarantee is **structural single-step adjacency**, not token-accurate reachability (a valid path is one
