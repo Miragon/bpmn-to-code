@@ -136,6 +136,27 @@ class BpmnValidationServiceTest {
     }
 
     @Test
+    fun `post-merge collision detection detects folding collisions`() {
+
+        // given: two flow nodes whose ids keep distinct constants but fold to the same
+        // PascalCase object name — previously emitted non-compiling generated code
+        val model = testBpmnModel(
+            flowNodes = listOf(
+                FlowNodeDefinition(id = "foo"),
+                FlowNodeDefinition(id = "-foo"),
+            )
+        )
+
+        // when: validating post-merge
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+        }
+
+        // then: the collision-detection rule fires
+        assertThat(exception.violations).anyMatch { it.ruleId == "collision-detection" }
+    }
+
+    @Test
     fun `mandatory collision-detection rule stays active even when disabled`() {
 
         // given: a service that tries to disable the mandatory collision-detection rule
