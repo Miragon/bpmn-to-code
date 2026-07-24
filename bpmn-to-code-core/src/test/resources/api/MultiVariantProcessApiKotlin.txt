@@ -3,13 +3,16 @@
 
 package de.emaarco.example
 
+import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnEscalation
 import io.miragon.bpmn.runtime.BpmnFlow
-import io.miragon.bpmn.runtime.BpmnRelations
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.HasInner
 import io.miragon.bpmn.runtime.MessageName
+import io.miragon.bpmn.runtime.Navigable
+import io.miragon.bpmn.runtime.NavigationScope
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.VariableName
 import kotlin.String
@@ -221,172 +224,226 @@ object SendNewsletterProcessApi {
       }
 
       /**
-       * Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).
-       * Intended for tooling and tests, not worker runtime code.
+       * Typed navigation over the process flow.
+       * Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements reachable from it as named properties — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested `Inner` scope.
+       * Intended for tooling, tests, and reasoning about the process shape.
        */
       object Relations {
-        val END_EVENT_EDITION_SENT: BpmnRelations = BpmnRelations(
-              previousElements = listOf("serviceTask_notifyAuthor"),
-              followingElements = emptyList(),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "END_EVENT",
-            )
+        val endEventEditionSent: EndEventEditionSent
+          get() = EndEventEditionSent
 
-        val END_EVENT_ISSUE_RESOLVED: BpmnRelations = BpmnRelations(
-              previousElements = listOf("timer_noRejectionForOneDay"),
-              followingElements = emptyList(),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "END_EVENT",
-            )
+        val endEventNoSubscribers: EndEventNoSubscribers
+          get() = EndEventNoSubscribers
 
-        val END_EVENT_NO_SUBSCRIBERS: BpmnRelations = BpmnRelations(
-              previousElements = listOf("gateway_hasSubscribers"),
-              followingElements = emptyList(),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "END_EVENT",
-            )
+        val eventSubProcessErrorHandling: EventSubProcessErrorHandling
+          get() = EventSubProcessErrorHandling
 
-        val ESCALATION_END_EVENT_NOFITY_SUPPORT: BpmnRelations = BpmnRelations(
-              previousElements = listOf("gateway_canSendAgain"),
-              followingElements = emptyList(),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "ESCALATION_END_EVENT",
-            )
+        val gatewayHasSubscribers: GatewayHasSubscribers
+          get() = GatewayHasSubscribers
 
-        val ESCALATION_END_EVENT_NOFITY_SUPPORT_AFTER_REPEATED_ERROR: BpmnRelations =
-            BpmnRelations(
-              previousElements = listOf("event_mailRejectedAgain"),
-              followingElements = emptyList(),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "END_EVENT",
-            )
+        val serviceTaskLoadSubscribers: ServiceTaskLoadSubscribers
+          get() = ServiceTaskLoadSubscribers
 
-        val EVENT_GATEWAY_AFTER_SENDING_AGAIN: BpmnRelations = BpmnRelations(
-              previousElements = listOf("serviceTask_sendMailAgain"),
-              followingElements = listOf("timer_noRejectionForOneDay", "event_mailRejectedAgain"),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "EVENT_BASED_GATEWAY",
-            )
+        val serviceTaskNotifyAuthor: ServiceTaskNotifyAuthor
+          get() = ServiceTaskNotifyAuthor
 
-        val EVENT_SUB_PROCESS_ERROR_HANDLING: BpmnRelations = BpmnRelations(
-              previousElements = emptyList(),
-              followingElements = emptyList(),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "SUB_PROCESS",
-            )
+        val serviceTaskSendToSubscriber: ServiceTaskSendToSubscriber
+          get() = ServiceTaskSendToSubscriber
 
-        val EVENT_MAIL_REJECTED: BpmnRelations = BpmnRelations(
-              previousElements = emptyList(),
-              followingElements = listOf("serviceTask_analyzeError"),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "MESSAGE_START_EVENT",
-            )
+        val startEventEditionCreated: StartEventEditionCreated
+          get() = StartEventEditionCreated
 
-        val EVENT_MAIL_REJECTED_AGAIN: BpmnRelations = BpmnRelations(
-              previousElements = listOf("eventGateway_afterSendingAgain"),
-              followingElements = listOf("escalationEndEvent_nofitySupportAfterRepeatedError"),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
-            )
+        fun then(): Next = Next
 
-        val GATEWAY_CAN_SEND_AGAIN: BpmnRelations = BpmnRelations(
-              previousElements = listOf("serviceTask_analyzeError"),
-              followingElements = listOf("serviceTask_sendMailAgain", "escalationEndEvent_nofitySupport"),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "EXCLUSIVE_GATEWAY",
-            )
+        object Next {
+          val startEventEditionCreated: StartEventEditionCreated
+            get() = StartEventEditionCreated
+        }
 
-        val GATEWAY_HAS_SUBSCRIBERS: BpmnRelations = BpmnRelations(
-              previousElements = listOf("serviceTask_loadSubscribers"),
-              followingElements = listOf("serviceTask_sendToSubscriber", "endEvent_noSubscribers"),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "EXCLUSIVE_GATEWAY",
-            )
+        object EndEventEditionSent : AbstractFlowNode(ElementId("endEvent_editionSent"), "END_EVENT")
 
-        val SERVICE_TASK_ANALYZE_ERROR: BpmnRelations = BpmnRelations(
-              previousElements = listOf("event_mailRejected"),
-              followingElements = listOf("gateway_canSendAgain"),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "SERVICE_TASK",
-            )
+        object EndEventNoSubscribers : AbstractFlowNode(ElementId("endEvent_noSubscribers"), "END_EVENT")
 
-        val SERVICE_TASK_LOAD_SUBSCRIBERS: BpmnRelations = BpmnRelations(
-              previousElements = listOf("startEvent_editionCreated"),
-              followingElements = listOf("gateway_hasSubscribers"),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "SERVICE_TASK",
-            )
+        object EventSubProcessErrorHandling : AbstractFlowNode(ElementId("eventSubProcess_errorHandling"), "SUB_PROCESS"),
+            HasInner<EventSubProcessErrorHandling.Inner> {
+          override fun `inner`(): EventSubProcessErrorHandling.Inner = EventSubProcessErrorHandling.Inner
 
-        val SERVICE_TASK_NOTIFY_AUTHOR: BpmnRelations = BpmnRelations(
-              previousElements = listOf("serviceTask_sendToSubscriber"),
-              followingElements = listOf("endEvent_editionSent"),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "SERVICE_TASK",
-            )
+          object Inner : NavigationScope<EventSubProcessErrorHandling.Inner.Next> {
+            val endEventIssueResolved: EndEventIssueResolved
+              get() = EndEventIssueResolved
 
-        val SERVICE_TASK_SEND_MAIL_AGAIN: BpmnRelations = BpmnRelations(
-              previousElements = listOf("gateway_canSendAgain"),
-              followingElements = listOf("eventGateway_afterSendingAgain"),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "SERVICE_TASK",
-            )
+            val escalationEndEventNofitySupport: EscalationEndEventNofitySupport
+              get() = EscalationEndEventNofitySupport
 
-        val SERVICE_TASK_SEND_TO_SUBSCRIBER: BpmnRelations = BpmnRelations(
-              previousElements = listOf("gateway_hasSubscribers"),
-              followingElements = listOf("serviceTask_notifyAuthor"),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "SERVICE_TASK",
-            )
+            val escalationEndEventNofitySupportAfterRepeatedError:
+                EscalationEndEventNofitySupportAfterRepeatedError
+              get() = EscalationEndEventNofitySupportAfterRepeatedError
 
-        val START_EVENT_EDITION_CREATED: BpmnRelations = BpmnRelations(
-              previousElements = emptyList(),
-              followingElements = listOf("serviceTask_loadSubscribers"),
-              parentId = null,
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "START_EVENT",
-            )
+            val eventGatewayAfterSendingAgain: EventGatewayAfterSendingAgain
+              get() = EventGatewayAfterSendingAgain
 
-        val TIMER_NO_REJECTION_FOR_ONE_DAY: BpmnRelations = BpmnRelations(
-              previousElements = listOf("eventGateway_afterSendingAgain"),
-              followingElements = listOf("endEvent_issueResolved"),
-              parentId = "eventSubProcess_errorHandling",
-              attachedToRef = null,
-              attachedElements = emptyList(),
-              elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
-            )
+            val eventMailRejected: EventMailRejected
+              get() = EventMailRejected
+
+            val eventMailRejectedAgain: EventMailRejectedAgain
+              get() = EventMailRejectedAgain
+
+            val gatewayCanSendAgain: GatewayCanSendAgain
+              get() = GatewayCanSendAgain
+
+            val serviceTaskAnalyzeError: ServiceTaskAnalyzeError
+              get() = ServiceTaskAnalyzeError
+
+            val serviceTaskSendMailAgain: ServiceTaskSendMailAgain
+              get() = ServiceTaskSendMailAgain
+
+            val timerNoRejectionForOneDay: TimerNoRejectionForOneDay
+              get() = TimerNoRejectionForOneDay
+
+            override fun then(): Next = Next
+
+            object Next {
+              val eventMailRejected: EventMailRejected
+                get() = EventMailRejected
+            }
+
+            object EndEventIssueResolved : AbstractFlowNode(ElementId("endEvent_issueResolved"), "END_EVENT")
+
+            object EscalationEndEventNofitySupport : AbstractFlowNode(ElementId("escalationEndEvent_nofitySupport"), "ESCALATION_END_EVENT")
+
+            object EscalationEndEventNofitySupportAfterRepeatedError : AbstractFlowNode(ElementId("escalationEndEvent_nofitySupportAfterRepeatedError"), "END_EVENT")
+
+            object EventGatewayAfterSendingAgain : AbstractFlowNode(ElementId("eventGateway_afterSendingAgain"), "EVENT_BASED_GATEWAY"),
+                Navigable<EventGatewayAfterSendingAgain.Next> {
+              override fun then(): Next = Next
+
+              object Next {
+                val eventMailRejectedAgain: EventMailRejectedAgain
+                  get() = EventMailRejectedAgain
+
+                val timerNoRejectionForOneDay: TimerNoRejectionForOneDay
+                  get() = TimerNoRejectionForOneDay
+              }
+            }
+
+            object EventMailRejected : AbstractFlowNode(ElementId("event_mailRejected"), "MESSAGE_START_EVENT"),
+                Navigable<EventMailRejected.Next> {
+              override fun then(): Next = Next
+
+              object Next {
+                val serviceTaskAnalyzeError: ServiceTaskAnalyzeError
+                  get() = ServiceTaskAnalyzeError
+              }
+            }
+
+            object EventMailRejectedAgain : AbstractFlowNode(ElementId("event_mailRejectedAgain"), "MESSAGE_INTERMEDIATE_CATCH_EVENT"),
+                Navigable<EventMailRejectedAgain.Next> {
+              override fun then(): Next = Next
+
+              object Next {
+                val escalationEndEventNofitySupportAfterRepeatedError:
+                    EscalationEndEventNofitySupportAfterRepeatedError
+                  get() = EscalationEndEventNofitySupportAfterRepeatedError
+              }
+            }
+
+            object GatewayCanSendAgain : AbstractFlowNode(ElementId("gateway_canSendAgain"), "EXCLUSIVE_GATEWAY"),
+                Navigable<GatewayCanSendAgain.Next> {
+              override fun then(): Next = Next
+
+              object Next {
+                val escalationEndEventNofitySupport: EscalationEndEventNofitySupport
+                  get() = EscalationEndEventNofitySupport
+
+                val serviceTaskSendMailAgain: ServiceTaskSendMailAgain
+                  get() = ServiceTaskSendMailAgain
+              }
+            }
+
+            object ServiceTaskAnalyzeError : AbstractFlowNode(ElementId("serviceTask_analyzeError"), "SERVICE_TASK"),
+                Navigable<ServiceTaskAnalyzeError.Next> {
+              override fun then(): Next = Next
+
+              object Next {
+                val gatewayCanSendAgain: GatewayCanSendAgain
+                  get() = GatewayCanSendAgain
+              }
+            }
+
+            object ServiceTaskSendMailAgain : AbstractFlowNode(ElementId("serviceTask_sendMailAgain"), "SERVICE_TASK"),
+                Navigable<ServiceTaskSendMailAgain.Next> {
+              override fun then(): Next = Next
+
+              object Next {
+                val eventGatewayAfterSendingAgain: EventGatewayAfterSendingAgain
+                  get() = EventGatewayAfterSendingAgain
+              }
+            }
+
+            object TimerNoRejectionForOneDay : AbstractFlowNode(ElementId("timer_noRejectionForOneDay"), "TIMER_INTERMEDIATE_CATCH_EVENT"),
+                Navigable<TimerNoRejectionForOneDay.Next> {
+              override fun then(): Next = Next
+
+              object Next {
+                val endEventIssueResolved: EndEventIssueResolved
+                  get() = EndEventIssueResolved
+              }
+            }
+          }
+        }
+
+        object GatewayHasSubscribers : AbstractFlowNode(ElementId("gateway_hasSubscribers"), "EXCLUSIVE_GATEWAY"),
+            Navigable<GatewayHasSubscribers.Next> {
+          override fun then(): Next = Next
+
+          object Next {
+            val endEventNoSubscribers: EndEventNoSubscribers
+              get() = EndEventNoSubscribers
+
+            val serviceTaskSendToSubscriber: ServiceTaskSendToSubscriber
+              get() = ServiceTaskSendToSubscriber
+          }
+        }
+
+        object ServiceTaskLoadSubscribers : AbstractFlowNode(ElementId("serviceTask_loadSubscribers"), "SERVICE_TASK"),
+            Navigable<ServiceTaskLoadSubscribers.Next> {
+          override fun then(): Next = Next
+
+          object Next {
+            val gatewayHasSubscribers: GatewayHasSubscribers
+              get() = GatewayHasSubscribers
+          }
+        }
+
+        object ServiceTaskNotifyAuthor : AbstractFlowNode(ElementId("serviceTask_notifyAuthor"), "SERVICE_TASK"),
+            Navigable<ServiceTaskNotifyAuthor.Next> {
+          override fun then(): Next = Next
+
+          object Next {
+            val endEventEditionSent: EndEventEditionSent
+              get() = EndEventEditionSent
+          }
+        }
+
+        object ServiceTaskSendToSubscriber : AbstractFlowNode(ElementId("serviceTask_sendToSubscriber"), "SERVICE_TASK"),
+            Navigable<ServiceTaskSendToSubscriber.Next> {
+          override fun then(): Next = Next
+
+          object Next {
+            val serviceTaskNotifyAuthor: ServiceTaskNotifyAuthor
+              get() = ServiceTaskNotifyAuthor
+          }
+        }
+
+        object StartEventEditionCreated : AbstractFlowNode(ElementId("startEvent_editionCreated"), "START_EVENT"),
+            Navigable<StartEventEditionCreated.Next> {
+          override fun then(): Next = Next
+
+          object Next {
+            val serviceTaskLoadSubscribers: ServiceTaskLoadSubscribers
+              get() = ServiceTaskLoadSubscribers
+          }
+        }
       }
     }
   }
