@@ -30,6 +30,9 @@ public class BpmnJsonMojo extends AbstractMojo {
 	@Parameter(property = "processEngine")
 	private String processEngine;
 
+	/**
+	 * Default constructor for maven purposes
+	 */
 	@SuppressWarnings("unused")
 	public BpmnJsonMojo() {
 	}
