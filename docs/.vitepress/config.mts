@@ -58,6 +58,7 @@ export default defineConfig({
           },
           { text: 'Generated API', link: '/guide/generated-api' },
           { text: 'Configuration', link: '/guide/configuration' },
+          { text: 'Verify in CI', link: '/guide/verify-in-ci' },
         ],
       },
       {
