@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [5.1.0](https://github.com/Miragon/bpmn-to-code/compare/v5.0.0...v5.1.0) (2026-07-24)
+
+
+### Features
+
+* **testing:** add opt-in call-activity-target-exists rule ([#46](https://github.com/Miragon/bpmn-to-code/issues/46)) ([c1fbca1](https://github.com/Miragon/bpmn-to-code/commit/c1fbca1cab867c1a244c940a9cdd29c5e6ecf7f7))
+* **testing:** add opt-in signal cross-model rules ([#53](https://github.com/Miragon/bpmn-to-code/issues/53)) ([b8ead07](https://github.com/Miragon/bpmn-to-code/commit/b8ead0702b6ac6f5becfc93f78b9281e5691cd83))
+* **testing:** add opt-in uncaught-message-throw cross-model rule ([#52](https://github.com/Miragon/bpmn-to-code/issues/52)) ([f4c2ebf](https://github.com/Miragon/bpmn-to-code/commit/f4c2ebf44f0dedb55c59fad5771928bb5896b120))
+* **validation:** make integrity-critical rules non-disableable ([#60](https://github.com/Miragon/bpmn-to-code/issues/60)) ([7b56b45](https://github.com/Miragon/bpmn-to-code/commit/7b56b45b72b25ba265780e7672541da5a6d3e3d5))
+
+
+### Bug Fixes
+
+* **validation:** detect identifier-folding collisions in flow nodes ([#63](https://github.com/Miragon/bpmn-to-code/issues/63)) ([14328e7](https://github.com/Miragon/bpmn-to-code/commit/14328e79910db19c24980f91b4d1a04dbd045c31))
+
 ## [5.0.0](https://github.com/Miragon/bpmn-to-code/compare/v4.1.0...v5.0.0) (2026-07-20)
 
 
