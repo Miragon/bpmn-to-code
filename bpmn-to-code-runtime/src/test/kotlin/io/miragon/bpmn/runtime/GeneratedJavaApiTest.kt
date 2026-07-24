@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
  * Exercises the *generated Java* navigation API (compiled here as a Java test source) so the Java code path —
  * `extends AbstractFlowNode implements Navigable<Next>`, the `super(...)` constructor, and the nested `Next`
  * `then()` accessors — is compiled and executed, not just parsed. The Kotlin generator output is covered by
- * `ProcessPathTest`; nothing else compiles generated Java against the runtime interfaces.
+ * `ProcessPathIntegrationTest`; nothing else compiles generated Java against the runtime interfaces.
  */
 class GeneratedJavaApiTest {
 

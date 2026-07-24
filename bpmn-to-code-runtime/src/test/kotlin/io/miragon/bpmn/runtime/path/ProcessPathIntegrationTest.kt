@@ -1,14 +1,6 @@
-package io.miragon.bpmn.testing.path
+package io.miragon.bpmn.runtime.path
 
-import io.miragon.bpmn.runtime.path.ProcessPath
-import io.miragon.bpmn.runtime.path.back
-import io.miragon.bpmn.runtime.path.enter
-import io.miragon.bpmn.runtime.path.exit
-import io.miragon.bpmn.runtime.path.inside
-import io.miragon.bpmn.runtime.path.passedNodes
-import io.miragon.bpmn.runtime.path.then
-import io.miragon.bpmn.runtime.path.via
-import io.miragon.bpmn.testing.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
+import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -16,9 +8,10 @@ import org.junit.jupiter.api.Test
  * Exercises [ProcessPath] over the *actually generated* Newsletter API (compiled here as a test source) —
  * which also proves the generated `: Navigable<Next>` / `: FlowNode` code compiles against the runtime
  * interfaces. Newsletter is the single navigation fixture: subprocess, boundary events, call activity and a
- * parallel (AND) split/join around the notification tasks.
+ * parallel (AND) split/join around the notification tasks. The [ProcessPathTest] sibling covers the same step
+ * operators over hand-built stubs.
  */
-class ProcessPathTest {
+class ProcessPathIntegrationTest {
 
     @Test
     fun `sequential path exits a subprocess via exit(node) and records the passed elements in order`() {

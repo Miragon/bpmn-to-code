@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 /**
  * Unit test of the [ProcessPath] step operators over a tiny hand-built graph (Start -> Mid -> End), so the
  * builder mechanics are covered in the runtime module itself. The integration test over a real generated API
- * lives in `bpmn-to-code-testing`.
+ * lives alongside in [ProcessPathIntegrationTest].
  */
 class ProcessPathTest {
 
