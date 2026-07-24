@@ -35,3 +35,23 @@ This installs a `pre-push` hook that runs `:bpmn-to-code-core:jacocoTestCoverage
 ```bash
 git push --no-verify  # bypasses lefthook; CI still enforces
 ```
+
+## Exploring the codebase (optional)
+
+The core follows a hexagonal architecture across several modules
+(`domain` → `application` → `adapter`). To navigate the relationships
+instead of grepping, some contributors use
+[Graphify](https://github.com/Graphify-Labs/graphify), which builds a
+local knowledge graph from the source (Kotlin included, AST-only, no API
+key required):
+
+```bash
+uv tool install graphifyy   # or: pipx install graphifyy
+graphify extract . --code-only   # local, ~5s, writes graphify-out/
+graphify god-nodes               # most-connected architectural hubs
+graphify affected "SomeType"     # what a change would impact
+```
+
+This is purely an optional exploration aid — it is **not** a build or
+contribution requirement, and its output (`graphify-out/`) is
+git-ignored.
