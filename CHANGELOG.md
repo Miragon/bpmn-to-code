@@ -3,6 +3,18 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [5.2.0](https://github.com/Miragon/bpmn-to-code/compare/v5.1.0...v5.2.0) (2026-07-24)
+
+
+### Features
+
+* **ci:** publish SNAPSHOT versions to Maven Central Snapshots ([#70](https://github.com/Miragon/bpmn-to-code/issues/70)) ([42ed3f3](https://github.com/Miragon/bpmn-to-code/commit/42ed3f31e174cff202bf9a618c9ebe9ce1029e2c))
+
+
+### Bug Fixes
+
+* **maven:** add missing Javadoc to BpmnJsonMojo constructor ([#72](https://github.com/Miragon/bpmn-to-code/issues/72)) ([44f23bf](https://github.com/Miragon/bpmn-to-code/commit/44f23bf59928e4c83fa33bf7f0ead8c17a149fa8))
+
 ## [5.1.0](https://github.com/Miragon/bpmn-to-code/compare/v5.0.0...v5.1.0) (2026-07-24)
 
 
