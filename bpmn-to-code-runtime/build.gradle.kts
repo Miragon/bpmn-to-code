@@ -21,6 +21,12 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
+// The checked-in generated sample API (ProcessPath test fixture) is generated code, not hand-written —
+// exclude it from detekt, as a consumer would exclude their own generated output.
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    exclude("**/io/miragon/bpmn/runtime/path/example/**")
+}
+
 mavenPublishing {
 
     publishToMavenCentral()

@@ -11,12 +11,11 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
-import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
+import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraphFactory
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessGraph
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
@@ -184,47 +183,22 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }.build()
     }
 
+    /**
+     * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
+     * `elementType` and display `name`, plus its reachable successors as named accessors. Boundary events and
+     * subprocess continuations are plain successors; a subprocess's interior is its nested `Inner` scope.
+     */
     private fun buildRelationsObject(graph: ProcessGraph): TypeSpec {
-        val bpmnRelationsClass = ClassName(RUNTIME_PACKAGE, "BpmnRelations")
         val relationsBuilder = TypeSpec.objectBuilder("Relations")
             .addKdoc(
-                "Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).\n" +
-                    "Intended for tooling and tests, not worker runtime code."
+                "Typed navigation over the process flow.\n" +
+                    "Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements " +
+                    "reachable from it as named properties — so a full path is verified by the compiler and offered " +
+                    "by autocomplete. A subprocess's interior is its nested `Inner` scope.\n" +
+                    "Intended for tooling, tests, and reasoning about the process shape."
             )
-        graph.allFlowNodes
-            .filter { it.id != null }
-            .sortedBy { it.getRawName() }
-            .forEach { node ->
-                val initStr = buildRelationsInitializer(node, graph)
-                relationsBuilder.addProperty(PropertySpec.builder(node.getName(), bpmnRelationsClass).initializer(initStr).build())
-            }
+        KotlinNavigationWriter().write(relationsBuilder, NavigationGraphFactory.build(graph))
         return relationsBuilder.build()
-    }
-
-    private fun buildRelationsInitializer(node: FlowNodeDefinition, graph: ProcessGraph): CodeBlock {
-        return CodeBlock.builder().apply {
-            add("BpmnRelations(\n")
-            indent()
-            if (node.displayName != null) add("name = %S,\n", node.displayName)
-            add("previousElements = %L,\n", listLiteral(graph.previousElementsOf(node)))
-            add("followingElements = %L,\n", listLiteral(graph.followingElementsOf(node)))
-            add("parentId = %L,\n", nullableStringLiteral(graph.parentIdOf(node.id)))
-            add("attachedToRef = %L,\n", nullableStringLiteral(node.attachedToRef()))
-            add("attachedElements = %L,\n", listLiteral(graph.attachedElementsOf(node)))
-            add("elementType = %S,\n", ElementTypeName.of(node))
-            unindent()
-            add(")")
-        }.build()
-    }
-
-    private fun FlowNodeDefinition.attachedToRef(): String? = (this as? FlowNodeDefinition.Event)?.attachedToRef
-
-    private fun listLiteral(items: List<String>): String {
-        return if (items.isEmpty()) "emptyList()" else "listOf(${items.joinToString { "\"$it\"" }})"
-    }
-
-    private fun nullableStringLiteral(value: String?): String {
-        return if (value != null) "\"$value\"" else "null"
     }
 
     private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {

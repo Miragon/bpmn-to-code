@@ -21,6 +21,8 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(kotlin("compiler-embeddable"))
     testImplementation(libs.jsonSchemaValidator)
+    // Lets the codegen tests compile generated output for real (not just parse) against the runtime interfaces.
+    testImplementation(project(":bpmn-to-code-runtime"))
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 

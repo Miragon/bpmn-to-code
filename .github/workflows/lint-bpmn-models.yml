@@ -54,5 +54,5 @@ jobs:
         working-directory: tools
         run: |
           echo "BPMN testing fixtures under DI check:"
-          find ../bpmn-to-code-testing/src/test/resources/bpmn -name '*.bpmn'
+          find ../bpmn-to-code-testing/src/test/resources/bpmn ../bpmn-to-code-core/src/test/resources/bpmn -name '*.bpmn'
           npm run lint:bpmn:di
