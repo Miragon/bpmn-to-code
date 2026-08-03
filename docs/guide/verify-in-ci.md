@@ -12,7 +12,7 @@ Because generation is **deterministic**, a CI job can regenerate the API and fai
   Your `outputFolderPath` points at a tracked source directory (e.g. `$projectDir/src/main/kotlin`), so there's a reference state to diff against.
   See [Configuration](/guide/configuration).
 - **Generation is deterministic.**
-  bpmn-to-code produces byte-identical output for the same input, so a re-run only changes files when the models actually changed.
+  bpmn-to-code produces byte-identical output for the same input — the generated code is a function of the `.bpmn` inputs alone, independent of the operating system and filesystem that read them. So a re-run only changes files when the models actually changed, and a macOS developer and a Linux CI runner produce the same result.
 
 ## GitHub Actions
 
