@@ -45,9 +45,6 @@ class ModelMergerService {
             "Multiple BPMN files share process ID '$processId' but not all define a variantName. " +
                 "Add a variantName extension property to each process."
         }
-        // Sort variants by name so generation is a deterministic function of the inputs, independent
-        // of the order in which files happened to be read from the filesystem. This also fixes the
-        // base-node selection in [mergeFlowNodes], which takes attributes from the first model.
         val sortedModels = models.sortedBy { requireNotNull(it.variantName) }
         return MergedBpmnModel(
             processId = processId,

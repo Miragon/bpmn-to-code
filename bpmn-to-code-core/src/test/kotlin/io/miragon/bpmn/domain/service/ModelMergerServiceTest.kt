@@ -372,21 +372,21 @@ class ModelMergerServiceTest {
             variantName = name,
             flowNodes = listOf(FlowNodeDefinition(id = "Task_Shared", displayName = "name-from-$name")),
         )
-        val default = variant("default")
-        val kronstorf = variant("kronstorf")
-        val waghaeusel = variant("waghaeusel")
+        val dev = variant("dev")
+        val prod = variant("prod")
+        val staging = variant("staging")
 
         // when: merging the same set in two different input orders
-        val forward = underTest.mergeModels(listOf(default, kronstorf, waghaeusel)).first() as MergedBpmnModel
-        val shuffled = underTest.mergeModels(listOf(waghaeusel, default, kronstorf)).first() as MergedBpmnModel
+        val forward = underTest.mergeModels(listOf(dev, prod, staging)).first() as MergedBpmnModel
+        val shuffled = underTest.mergeModels(listOf(staging, dev, prod)).first() as MergedBpmnModel
 
         // then: variants are emitted sorted by variantName, independent of input order
-        assertThat(forward.variants.map { it.variantName }).containsExactly("default", "kronstorf", "waghaeusel")
-        assertThat(shuffled.variants.map { it.variantName }).containsExactly("default", "kronstorf", "waghaeusel")
+        assertThat(forward.variants.map { it.variantName }).containsExactly("dev", "prod", "staging")
+        assertThat(shuffled.variants.map { it.variantName }).containsExactly("dev", "prod", "staging")
 
-        // and: the merged base node takes its attributes from the first variant by name ("default")
-        assertThat(forward.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-default")
-        assertThat(shuffled.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-default")
+        // and: the merged base node takes its attributes from the first variant by name ("dev")
+        assertThat(forward.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-dev")
+        assertThat(shuffled.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-dev")
     }
 
     @Test

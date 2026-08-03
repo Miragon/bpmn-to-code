@@ -31,7 +31,7 @@ class GenerateProcessApiDeterministicOrderTest {
 
     // Three variants of one process. Same shape, distinct variant names + a distinct node label so the
     // emitted variant blocks and the merged base node differ — a reorder would change bytes if unfixed.
-    private val variantNames = listOf("waghaeusel", "default", "kronstorf")
+    private val variantNames = listOf("staging", "dev", "prod")
 
     private val modelsByName: Map<String, BpmnModel> = variantNames.associateWith { name ->
         testSendNewsletterBpmnModel(processId = "sendNewsletter", variantName = name)
@@ -51,8 +51,8 @@ class GenerateProcessApiDeterministicOrderTest {
         val inputOrders = listOf(
             variantNames,
             variantNames.reversed(),
-            listOf("default", "waghaeusel", "kronstorf"),
-            listOf("kronstorf", "default", "waghaeusel"),
+            listOf("dev", "staging", "prod"),
+            listOf("prod", "dev", "staging"),
         )
 
         // when: generating from each order
