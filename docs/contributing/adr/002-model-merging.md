@@ -24,9 +24,14 @@ All elements from variants are combined using `distinctBy { it.getName() }` to c
 - **Simpler integration**: One import instead of environment-specific APIs
 
 ### Negative
-- **Element conflicts**: If variants define the same element ID differently, last-seen wins silently
+- **Element conflicts**: If variants define the same element ID differently, one variant's attributes win silently
 - **API bloat**: Generated API may include elements not used in all environments
-- **Non-deterministic**: File processing order determines conflict resolution
+
+> **Update (2026-08):** Merging is now order-independent. Files are loaded in relative-path order and
+> variants are merged in `variantName` order, so the generated output is a deterministic function of
+> the `.bpmn` inputs — byte-identical across machines and filesystems. On an element conflict, the
+> base attributes come from the variant whose `variantName` sorts first (still ambiguous by design,
+> but no longer dependent on filesystem read order).
 
 ## Future Improvements
 - Detect and warn about element conflicts across variants

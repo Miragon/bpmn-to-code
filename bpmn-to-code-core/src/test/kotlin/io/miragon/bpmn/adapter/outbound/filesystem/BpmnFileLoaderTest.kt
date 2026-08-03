@@ -135,4 +135,29 @@ class BpmnFileLoaderTest {
         assertThat(result).hasSize(1)
         assertThat(result[0].fileName).isEqualTo("target.bpmn")
     }
+
+    @Test
+    fun `loadFrom returns files ordered by relative path independent of filesystem order`(@TempDir tempDir: Path) {
+
+        // given: variant files that share a file name across sibling directories, plus siblings whose
+        // relative-path order differs from their file-name order
+        val folders = listOf("waghaeusel", "default", "kronstorf", "karlsruhe")
+        folders.forEach { folder ->
+            val dir = Files.createDirectory(tempDir.resolve(folder))
+            // content encodes the relative path so we can identify each resource regardless of file name
+            Files.write(dir.resolve("qualitaetssicherung.bpmn"), "$folder/qualitaetssicherung.bpmn".toByteArray())
+        }
+
+        // when: we load all of them
+        val result = underTest.loadFrom(tempDir.toString(), "**/*.bpmn")
+
+        // then: they come back sorted by their relative path (readdir order cannot be forced, so we
+        // assert the invariant, not a specific shuffle)
+        assertThat(result.map { String(it.content) }).containsExactly(
+            "default/qualitaetssicherung.bpmn",
+            "karlsruhe/qualitaetssicherung.bpmn",
+            "kronstorf/qualitaetssicherung.bpmn",
+            "waghaeusel/qualitaetssicherung.bpmn",
+        )
+    }
 }

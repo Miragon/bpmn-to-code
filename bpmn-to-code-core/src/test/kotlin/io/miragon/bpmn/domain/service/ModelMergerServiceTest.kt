@@ -364,6 +364,32 @@ class ModelMergerServiceTest {
     }
 
     @Test
+    fun `orders variants and base node selection deterministically regardless of input order`() {
+
+        // given: three variants of one process, each providing a different name for the shared node
+        fun variant(name: String) = testBpmnModel(
+            processId = "order-process",
+            variantName = name,
+            flowNodes = listOf(FlowNodeDefinition(id = "Task_Shared", displayName = "name-from-$name")),
+        )
+        val default = variant("default")
+        val kronstorf = variant("kronstorf")
+        val waghaeusel = variant("waghaeusel")
+
+        // when: merging the same set in two different input orders
+        val forward = underTest.mergeModels(listOf(default, kronstorf, waghaeusel)).first() as MergedBpmnModel
+        val shuffled = underTest.mergeModels(listOf(waghaeusel, default, kronstorf)).first() as MergedBpmnModel
+
+        // then: variants are emitted sorted by variantName, independent of input order
+        assertThat(forward.variants.map { it.variantName }).containsExactly("default", "kronstorf", "waghaeusel")
+        assertThat(shuffled.variants.map { it.variantName }).containsExactly("default", "kronstorf", "waghaeusel")
+
+        // and: the merged base node takes its attributes from the first variant by name ("default")
+        assertThat(forward.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-default")
+        assertThat(shuffled.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-default")
+    }
+
+    @Test
     fun `returns single model as BpmnModel`() {
 
         // given: a single model

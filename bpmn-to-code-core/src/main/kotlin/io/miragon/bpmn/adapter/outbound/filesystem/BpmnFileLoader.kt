@@ -25,6 +25,7 @@ class BpmnFileLoader : LoadBpmnFilesPort {
             .filter { Files.isRegularFile(it) }
             .filter { matcher.matches(searchDir.relativize(it)) }
             .toList()
+            .sortedBy { relativeSortKey(searchDir, it) }
 
         logger.info { "Found ${files.size} files matching pattern $pattern in directory $searchDir" }
 
@@ -34,6 +35,20 @@ class BpmnFileLoader : LoadBpmnFilesPort {
                 content = file.readBytes(),
             )
         }
+    }
+
+    /**
+     * Builds a deterministic sort key from a file's path relative to [searchDir].
+     *
+     * `Files.walk` returns entries in filesystem-dependent order (APFS vs ext4/overlayfs differ),
+     * which would leak into the generated code. We sort by the **relative path** rather than the
+     * file name because variant files legitimately share a file name across directories
+     * (e.g. `default/qualitaetssicherung.bpmn`, `karlsruhe/qualitaetssicherung.bpmn`), so file-name
+     * sorting is not a total order. Segments are joined with `/` so the key is identical across
+     * operating systems, and plain [String] ordering keeps it locale-independent.
+     */
+    private fun relativeSortKey(searchDir: Path, file: Path): String {
+        return searchDir.relativize(file).joinToString("/") { it.toString() }
     }
 
     private fun createMatcher(pattern: String): PathMatcher {

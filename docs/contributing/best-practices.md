@@ -141,7 +141,7 @@ OrderProcessApi (merged elements from both variants)
 **Be aware:**
 - Generated API contains the **superset** of all elements across variants
 - API may include elements not used in all environments
-- If variants define the same element ID differently, the behavior is non-deterministic (last-seen wins)
+- If variants define the same element ID differently, the merged base attributes come from the variant whose `variantName` sorts first alphabetically — a deterministic choice, but still ambiguous by design, so avoid it
 
 **Avoid:**
 - Defining the same element ID with different semantics across variants
