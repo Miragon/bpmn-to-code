@@ -109,6 +109,7 @@
                     "id": "event_mailRejected",
                     "elementType": "MESSAGE_START_EVENT",
                     "parentId": "eventSubProcess_errorHandling",
+                    "interrupting": true,
                     "followingElements": [
                         "serviceTask_analyzeError"
                     ],

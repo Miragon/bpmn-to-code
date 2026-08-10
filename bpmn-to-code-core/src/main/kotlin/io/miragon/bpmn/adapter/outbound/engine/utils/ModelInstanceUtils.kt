@@ -29,6 +29,7 @@ import org.camunda.bpm.model.bpmn.instance.MessageEventDefinition
 import org.camunda.bpm.model.bpmn.instance.Process
 import org.camunda.bpm.model.bpmn.instance.SequenceFlow
 import org.camunda.bpm.model.bpmn.instance.SignalEventDefinition
+import org.camunda.bpm.model.bpmn.instance.StartEvent
 import org.camunda.bpm.model.bpmn.instance.SubProcess
 import org.camunda.bpm.model.bpmn.instance.TimerEventDefinition
 import org.camunda.bpm.model.xml.ModelInstance
@@ -77,6 +78,7 @@ object ModelInstanceUtils {
             val name = it.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_NAME)?.normalizeWhitespace()
             val nodeType = it.resolveNodeType()
             val attachedToRef = if (it is BoundaryEvent) it.attachedTo?.id else null
+            val interrupting = it.resolveInterrupting()
             val parentId = (it.parentElement as? SubProcess)?.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_ID)
             val previousElements = it.incoming.mapNotNull { flow -> flow.source?.id }
             val followingElements = it.outgoing.mapNotNull { flow -> flow.target?.id }
@@ -85,6 +87,7 @@ object ModelInstanceUtils {
                 displayName = name,
                 nodeType = nodeType,
                 attachedToRef = attachedToRef,
+                interrupting = interrupting,
                 parentId = parentId,
                 previousElements = previousElements,
                 followingElements = followingElements,
@@ -210,6 +213,17 @@ object ModelInstanceUtils {
         } else {
             nonEventNodeTypes[this.elementType.typeName] ?: BpmnNodeType.Unknown
         }
+    }
+
+    /**
+     * Whether the event interrupts its enclosing scope, defaulting to `true` per the BPMN spec
+     * when the attribute is absent. Meaningful only for boundary events (`cancelActivity`) and
+     * event sub-process start events (`isInterrupting`); `null` for every other node.
+     */
+    private fun FlowNode.resolveInterrupting(): Boolean? = when {
+        this is BoundaryEvent -> cancelActivity()
+        this is StartEvent && (parentElement as? SubProcess)?.triggeredByEvent() == true -> isInterrupting
+        else -> null
     }
 
     private fun FlowNode.resolveEventShape(): EventShape? = when (this.elementType.typeName) {

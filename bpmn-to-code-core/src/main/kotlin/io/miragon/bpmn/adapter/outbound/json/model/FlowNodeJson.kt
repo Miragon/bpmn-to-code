@@ -10,6 +10,7 @@ data class FlowNodeJson(
     val elementType: String,
     val parentId: String? = null,
     val attachedToRef: String? = null,
+    val interrupting: Boolean? = null,
     val attachedElements: List<String> = emptyList(),
     val previousElements: List<String> = emptyList(),
     val followingElements: List<String> = emptyList(),

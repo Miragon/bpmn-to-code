@@ -39,7 +39,8 @@
             "id": "CompensationEvent_OnSubscriptionCounter",
             "displayName": "Registration aborted",
             "elementType": "COMPENSATION_BOUNDARY_EVENT",
-            "attachedToRef": "serviceTask_incrementSubscriptionCounter"
+            "attachedToRef": "serviceTask_incrementSubscriptionCounter",
+            "interrupting": true
         },
         {
             "id": "SubProcess_Confirmation",
@@ -109,6 +110,7 @@
             "elementType": "TIMER_BOUNDARY_EVENT",
             "parentId": "SubProcess_Confirmation",
             "attachedToRef": "Activity_ConfirmRegistration",
+            "interrupting": false,
             "followingElements": [
                 "Activity_SendConfirmationMail"
             ],
@@ -132,6 +134,7 @@
             "displayName": "Invalid Mail",
             "elementType": "ERROR_BOUNDARY_EVENT",
             "attachedToRef": "SubProcess_Confirmation",
+            "interrupting": true,
             "followingElements": [
                 "EndEvent_RegistrationNotPossible"
             ]
@@ -154,6 +157,7 @@
             "displayName": "After 3 days",
             "elementType": "TIMER_BOUNDARY_EVENT",
             "attachedToRef": "SubProcess_Confirmation",
+            "interrupting": true,
             "followingElements": [
                 "CallActivity_AbortRegistration"
             ],

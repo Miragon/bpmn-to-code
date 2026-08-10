@@ -74,6 +74,7 @@ class BpmnJsonMapper {
             elementType = ElementTypeName.of(nodeType),
             parentId = parentId,
             attachedToRef = attachedToRef,
+            interrupting = interrupting,
             attachedElements = attachedElements,
             previousElements = previousElements,
             followingElements = followingElements,

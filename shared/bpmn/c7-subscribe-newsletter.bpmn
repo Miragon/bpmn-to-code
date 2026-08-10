@@ -41,7 +41,7 @@
         <bpmn:incoming>Flow_0x4ewvb</bpmn:incoming>
         <bpmn:outgoing>Flow_1bckm43</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:boundaryEvent id="Timer_EveryDay" name="Every day" attachedToRef="Activity_ConfirmRegistration">
+      <bpmn:boundaryEvent id="Timer_EveryDay" name="Every day" cancelActivity="false" attachedToRef="Activity_ConfirmRegistration">
         <bpmn:outgoing>Flow_0x4ewvb</bpmn:outgoing>
         <bpmn:timerEventDefinition>
           <bpmn:timeDuration>PT1M</bpmn:timeDuration>
