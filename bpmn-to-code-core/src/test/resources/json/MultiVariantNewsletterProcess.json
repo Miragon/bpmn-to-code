@@ -116,7 +116,10 @@
                     "properties": {
                         "type": "MessageEvent",
                         "messageName": "Message_MailRejected",
-                        "messageDirection": "CATCH"
+                        "messageDirection": "CATCH",
+                        "engineSpecificProperties": {
+                            "customExtension": "customValue"
+                        }
                     }
                 },
                 {

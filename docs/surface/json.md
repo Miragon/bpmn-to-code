@@ -126,6 +126,19 @@ The pattern is `<SUBTYPE>_<SHAPE>` where `<SUBTYPE>` is one of `TIMER`, `MESSAGE
 bare shape (e.g. `END_EVENT`). The top-level `errors` / `messages` / … lists still carry the extra
 detail (error `code`, message `name`, …).
 
+Message events and receive tasks may carry engine-specific message details under a nested
+`properties.engineSpecificProperties` object. For Zeebe this holds the `zeebe:subscription`
+`correlationKey` (the FEEL expression, verbatim), present only where a subscription defines one:
+
+```json
+"properties": {
+    "type": "MessageEvent",
+    "messageName": "orderPlaced",
+    "messageDirection": "CATCH",
+    "engineSpecificProperties": { "correlationKey": "=orderId" }
+}
+```
+
 ::: warning Breaking change
 Before this was introduced, event nodes always reported their bare shape (e.g. `BOUNDARY_EVENT`).
 Consumers that match on the old shape-only values must be updated.

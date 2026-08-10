@@ -37,9 +37,10 @@ class BpmnJsonMapper {
     }
 
     private fun toFlatJson(model: BpmnModel): BpmnModelJson {
+        val messageEngineProperties = model.messages.messageEnginePropertiesByNode()
         return BpmnModelJson(
             processId = model.processId,
-            flowNodes = FlowNodeSorter.sort(model.flowNodes).map { it.toJson() },
+            flowNodes = FlowNodeSorter.sort(model.flowNodes).map { it.toJson(messageEngineProperties) },
             sequenceFlows = model.sequenceFlows.map { it.toJson() },
             messages = model.messages.mapNotNull { it.toJson() },
             signals = model.signals.mapNotNull { it.toJson() },
@@ -50,6 +51,7 @@ class BpmnJsonMapper {
     }
 
     private fun toVariantJson(model: MergedBpmnModel): BpmnModelJson {
+        val messageEngineProperties = model.messages.messageEnginePropertiesByNode()
         return BpmnModelJson(
             processId = model.processId,
             messages = model.messages.mapNotNull { it.toJson() },
@@ -60,14 +62,18 @@ class BpmnJsonMapper {
             variants = model.variants.map { variant ->
                 VariantJson(
                     variantName = variant.variantName,
-                    flowNodes = FlowNodeSorter.sort(variant.flowNodes).map { it.toJson() },
+                    flowNodes = FlowNodeSorter.sort(variant.flowNodes).map { it.toJson(messageEngineProperties) },
                     sequenceFlows = variant.sequenceFlows.map { it.toJson() },
                 )
             },
         )
     }
 
-    private fun FlowNodeDefinition.toJson(): FlowNodeJson {
+    private fun List<MessageDefinition>.messageEnginePropertiesByNode(): Map<String?, Map<String, Any?>> {
+        return associate { it.id to it.engineSpecificProperties }
+    }
+
+    private fun FlowNodeDefinition.toJson(messageEngineProperties: Map<String?, Map<String, Any?>>): FlowNodeJson {
         return FlowNodeJson(
             id = id ?: "",
             displayName = displayName,
@@ -79,7 +85,7 @@ class BpmnJsonMapper {
             previousElements = previousElements,
             followingElements = followingElements,
             variables = variables.map { it.getRawName() },
-            properties = properties.toJson(),
+            properties = properties.toJson(messageEngineProperties[id].orEmpty()),
             engineSpecificProperties = engineSpecificProperties.mapValues { (_, v) -> v.toJsonElement() },
         )
     }
@@ -92,7 +98,7 @@ class BpmnJsonMapper {
         else -> JsonPrimitive(this.toString())
     }
 
-    private fun FlowNodeProperties.toJson(): FlowNodePropertiesJson? = when (this) {
+    private fun FlowNodeProperties.toJson(messageEngineProperties: Map<String, Any?>): FlowNodePropertiesJson? = when (this) {
         is FlowNodeProperties.None -> null
         is FlowNodeProperties.ServiceTask -> FlowNodePropertiesJson(
             type = "ServiceTask",
@@ -115,6 +121,7 @@ class BpmnJsonMapper {
             type = "MessageEvent",
             messageName = name,
             messageDirection = direction.name,
+            engineSpecificProperties = messageEngineProperties.mapValues { (_, v) -> v.toJsonElement() },
         )
         is FlowNodeProperties.SignalEvent -> FlowNodePropertiesJson(
             type = "SignalEvent",
