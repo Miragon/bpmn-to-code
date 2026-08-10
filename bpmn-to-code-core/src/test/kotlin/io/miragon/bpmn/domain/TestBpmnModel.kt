@@ -281,7 +281,7 @@ fun testSendNewsletterBpmnModel(
         SequenceFlowDefinition("Flow_0338xzf", "timer_noRejectionForOneDay", "endEvent_issueResolved"),
     ),
     messages: List<MessageDefinition> = listOf(
-        MessageDefinition("event_mailRejected", "Message_MailRejected"),
+        MessageDefinition("event_mailRejected", "Message_MailRejected", engineSpecificProperties = mapOf("customExtension" to "customValue")),
         MessageDefinition("event_mailRejectedAgain", "Message_MailRejectedAgain"),
     ),
     signals: List<SignalDefinition> = emptyList(),

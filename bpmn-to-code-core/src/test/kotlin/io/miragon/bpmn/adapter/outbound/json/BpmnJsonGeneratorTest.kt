@@ -2,7 +2,6 @@ package io.miragon.bpmn.adapter.outbound.json
 
 import io.miragon.bpmn.domain.MergedBpmnModel
 import io.miragon.bpmn.domain.MergedBpmnModel.VariantData
-import io.miragon.bpmn.domain.shared.MessageDefinition
 import io.miragon.bpmn.domain.testSendNewsletterBpmnModel
 import io.miragon.bpmn.domain.testSubscribeNewsletterBpmnModel
 import kotlinx.serialization.json.Json
@@ -18,12 +17,8 @@ class BpmnJsonGeneratorTest {
     @Test
     fun `generates correct JSON for single model`() {
 
-        // given: the subscribe newsletter BPMN model, whose message carries a zeebe correlation key
-        val model = testSubscribeNewsletterBpmnModel(
-            messages = listOf(
-                MessageDefinition("StartEvent_SubmitRegistrationForm", "Message_FormSubmitted", engineSpecificProperties = mapOf("correlationKey" to "=subscriptionId")),
-            ),
-        )
+        // given: the subscribe newsletter BPMN model
+        val model = testSubscribeNewsletterBpmnModel()
 
         // when: generating JSON
         val result = underTest.generate(model)

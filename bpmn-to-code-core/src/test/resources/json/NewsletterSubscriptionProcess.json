@@ -14,10 +14,7 @@
             "properties": {
                 "type": "MessageEvent",
                 "messageName": "Message_FormSubmitted",
-                "messageDirection": "CATCH",
-                "engineSpecificProperties": {
-                    "correlationKey": "=subscriptionId"
-                }
+                "messageDirection": "CATCH"
             }
         },
         {
