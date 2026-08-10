@@ -70,7 +70,8 @@ class ZeebeModelExtractorTest {
                         followingElements = listOf("CompensationEndEvent_RegistrationAborted")),
                     FlowNodeDefinition("Activity_ConfirmRegistration", BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
                         displayName = "Confirm subscription",
-                        properties = FlowNodeProperties.MessageEvent("Message_SubscriptionConfirmed", EventDirection.CATCH, correlationKey = "=subscriptionId"),
+                        properties = FlowNodeProperties.MessageEvent("Message_SubscriptionConfirmed", EventDirection.CATCH),
+                        engineSpecificProperties = mapOf("correlationKey" to "=subscriptionId"),
                         attachedElements = listOf("Timer_EveryDay"),
                         parentId = "SubProcess_Confirmation",
                         previousElements = listOf("Activity_SendConfirmationMail"),
@@ -181,7 +182,7 @@ class ZeebeModelExtractorTest {
                 ),
                 messages = listOf(
                     MessageDefinition("StartEvent_SubmitRegistrationForm", "Message_FormSubmitted"),
-                    MessageDefinition("Activity_ConfirmRegistration", "Message_SubscriptionConfirmed", correlationKey = "=subscriptionId"),
+                    MessageDefinition("Activity_ConfirmRegistration", "Message_SubscriptionConfirmed", engineSpecificProperties = mapOf("correlationKey" to "=subscriptionId")),
                 ),
                 compensations = listOf(
                     CompensationDefinition("CompensationEndEvent_RegistrationAborted", CompensationType.THROWING, engineSpecificProperties = mapOf("activityRef" to "serviceTask_incrementSubscriptionCounter", "waitForCompletion" to false)),

@@ -5,7 +5,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 data class MessageDefinition(
     val id: String?,
     private val name: String?,
-    val correlationKey: String? = null,
+    val engineSpecificProperties: Map<String, Any?> = emptyMap(),
 ) : VariableMapping<String> {
     override fun getName() = name?.toUpperSnakeCase() ?: ""
     override fun getValue() = name ?: ""

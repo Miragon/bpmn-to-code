@@ -61,11 +61,14 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         val allServiceTasks = findServiceTasks(modelInstance)
         val allCallActivities = findCallActivities(modelInstance)
         val variablesPerNode = extractVariablesPerNode(modelInstance)
-        val correlationKeysByNode = allMessages.associate { it.id to it.correlationKey }
         val eventProperties: Map<String, FlowNodeProperties> =
-            modelInstance.findMessageEventProperties()
-                .mapValues { (id, event) -> event.copy(correlationKey = correlationKeysByNode[id]) } +
-                modelInstance.findSignalEventProperties()
+            modelInstance.findMessageEventProperties() + modelInstance.findSignalEventProperties()
+        val correlationKeysByNode = allMessages
+            .mapNotNull { message ->
+                (message.engineSpecificProperties[ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY] as? String)
+                    ?.let { message.id to it }
+            }
+            .toMap()
 
         val enrichedFlowNodes = enrichFlowNodes(
             flowNodes = allFlowNodes,
@@ -74,6 +77,7 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             timers = allTimerEvents,
             eventProperties = eventProperties,
             variablesPerNode = variablesPerNode,
+            correlationKeysByNode = correlationKeysByNode,
         )
 
         return BpmnModel(
@@ -98,6 +102,7 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         timers: List<io.miragon.bpmn.domain.shared.TimerDefinition>,
         eventProperties: Map<String, FlowNodeProperties>,
         variablesPerNode: Map<String?, List<VariableDefinition>>,
+        correlationKeysByNode: Map<String?, String>,
     ): List<FlowNodeDefinition> {
         val serviceTaskById = serviceTasks.associateBy { it.id }
         val callActivityById = callActivities.associateBy { it.id }
@@ -110,7 +115,15 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById, eventProperties)
             val variables = variablesPerNode[node.id] ?: emptyList()
             val attachedElements = attachedElementsById[node.id] ?: emptyList()
-            node.copy(properties = properties, variables = variables, attachedElements = attachedElements)
+            val engineSpecificProperties = correlationKeysByNode[node.id]
+                ?.let { node.engineSpecificProperties + (ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY to it) }
+                ?: node.engineSpecificProperties
+            node.copy(
+                properties = properties,
+                variables = variables,
+                attachedElements = attachedElements,
+                engineSpecificProperties = engineSpecificProperties,
+            )
         }
     }
 
@@ -191,14 +204,17 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
 
     private fun extractZeebeMessages(modelInstance: ModelInstance): List<MessageDefinition> {
         return modelInstance.findAllMessagesWithSource().map { (elementId, name, message) ->
-            MessageDefinition(id = elementId, name = name, correlationKey = message?.correlationKey())
+            val engineSpecificProperties = message?.zeebeSubscriptionProperties() ?: emptyMap()
+            MessageDefinition(id = elementId, name = name, engineSpecificProperties = engineSpecificProperties)
         }
     }
 
-    private fun Message.correlationKey(): String? {
+    private fun Message.zeebeSubscriptionProperties(): Map<String, Any?> {
         val subscription = this.findExtensionElementsWithType(ZeebeModelConstants.ELEMENT_SUBSCRIPTION).firstOrNull()
-            ?: return null
-        return subscription.getAttributeValue(ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY)
+            ?: return emptyMap()
+        val correlationKey = subscription.getAttributeValue(ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY)
+            ?: return emptyMap()
+        return mapOf(ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY to correlationKey)
     }
 
     private fun extractVariablesPerNode(modelInstance: ModelInstance): Map<String?, List<VariableDefinition>> {
