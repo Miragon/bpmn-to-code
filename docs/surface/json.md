@@ -126,6 +126,11 @@ The pattern is `<SUBTYPE>_<SHAPE>` where `<SUBTYPE>` is one of `TIMER`, `MESSAGE
 bare shape (e.g. `END_EVENT`). The top-level `errors` / `messages` / … lists still carry the extra
 detail (error `code`, message `name`, …).
 
+Message-bearing nodes (message events and receive tasks) expose their message details under
+`properties`: `messageName`, `messageDirection` (`CATCH` / `THROW`), and — for Zeebe only — the
+`correlationKey`, the `zeebe:subscription` FEEL expression preserved verbatim. The key is present
+only where a subscription defines one and is absent for Camunda 7 / Operaton models.
+
 ::: warning Breaking change
 Before this was introduced, event nodes always reported their bare shape (e.g. `BOUNDARY_EVENT`).
 Consumers that match on the old shape-only values must be updated.

@@ -61,8 +61,21 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         val allServiceTasks = findServiceTasks(modelInstance)
         val allCallActivities = findCallActivities(modelInstance)
         val variablesPerNode = extractVariablesPerNode(modelInstance)
+        val correlationKeysByNode: Map<String, String> = modelInstance.findAllMessagesWithSource()
+            .mapNotNull { (elementId, _, message) ->
+                val correlationKey = message?.correlationKey() ?: return@mapNotNull null
+                (elementId ?: return@mapNotNull null) to correlationKey
+            }
+            .toMap()
         val eventProperties: Map<String, FlowNodeProperties> =
-            modelInstance.findMessageEventProperties() + modelInstance.findSignalEventProperties()
+            (modelInstance.findMessageEventProperties() + modelInstance.findSignalEventProperties())
+                .mapValues { (id, properties) ->
+                    if (properties is FlowNodeProperties.MessageEvent) {
+                        properties.copy(correlationKey = correlationKeysByNode[id])
+                    } else {
+                        properties
+                    }
+                }
 
         val enrichedFlowNodes = enrichFlowNodes(
             flowNodes = allFlowNodes,
@@ -194,11 +207,14 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
     }
 
     private fun Message.zeebeSubscriptionProperties(): Map<String, Any?> {
-        val subscription = this.findExtensionElementsWithType(ZeebeModelConstants.ELEMENT_SUBSCRIPTION).firstOrNull()
-            ?: return emptyMap()
-        val correlationKey = subscription.getAttributeValue(ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY)
-            ?: return emptyMap()
+        val correlationKey = this.correlationKey() ?: return emptyMap()
         return mapOf(ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY to correlationKey)
+    }
+
+    private fun Message.correlationKey(): String? {
+        val subscription = this.findExtensionElementsWithType(ZeebeModelConstants.ELEMENT_SUBSCRIPTION).firstOrNull()
+            ?: return null
+        return subscription.getAttributeValue(ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY)
     }
 
     private fun extractVariablesPerNode(modelInstance: ModelInstance): Map<String?, List<VariableDefinition>> {

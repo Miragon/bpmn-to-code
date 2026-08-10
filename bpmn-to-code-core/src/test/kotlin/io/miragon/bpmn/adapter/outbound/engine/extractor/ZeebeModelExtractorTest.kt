@@ -70,7 +70,7 @@ class ZeebeModelExtractorTest {
                         followingElements = listOf("CompensationEndEvent_RegistrationAborted")),
                     FlowNodeDefinition("Activity_ConfirmRegistration", BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
                         displayName = "Confirm subscription",
-                        properties = FlowNodeProperties.MessageEvent("Message_SubscriptionConfirmed", EventDirection.CATCH),
+                        properties = FlowNodeProperties.MessageEvent("Message_SubscriptionConfirmed", EventDirection.CATCH, correlationKey = "=subscriptionId"),
                         attachedElements = listOf("Timer_EveryDay"),
                         parentId = "SubProcess_Confirmation",
                         previousElements = listOf("Activity_SendConfirmationMail"),

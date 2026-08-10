@@ -115,6 +115,7 @@ class BpmnJsonMapper {
             type = "MessageEvent",
             messageName = name,
             messageDirection = direction.name,
+            correlationKey = correlationKey,
         )
         is FlowNodeProperties.SignalEvent -> FlowNodePropertiesJson(
             type = "SignalEvent",
