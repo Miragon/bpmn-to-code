@@ -2,6 +2,13 @@ package io.miragon.bpmn.adapter.outbound.json
 
 import io.miragon.bpmn.domain.MergedBpmnModel
 import io.miragon.bpmn.domain.MergedBpmnModel.VariantData
+import io.miragon.bpmn.domain.shared.BpmnNodeType
+import io.miragon.bpmn.domain.shared.EventDirection
+import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.FlowNodeProperties
+import io.miragon.bpmn.domain.shared.MessageDefinition
+import io.miragon.bpmn.domain.shared.TaskKind
+import io.miragon.bpmn.domain.testBpmnModel
 import io.miragon.bpmn.domain.testSendNewsletterBpmnModel
 import io.miragon.bpmn.domain.testSubscribeNewsletterBpmnModel
 import kotlinx.serialization.json.Json
@@ -26,6 +33,32 @@ class BpmnJsonGeneratorTest {
         // then: expect the generated JSON to match the expected snapshot
         val expectedFile = File(javaClass.getResource("/json/NewsletterSubscriptionProcess.json")!!.toURI())
         assertThat(result).isEqualToIgnoringWhitespace(expectedFile.readText())
+        assertJsonSyntaxValid(result)
+    }
+
+    @Test
+    fun `message event properties expose engine-specific message properties`() {
+
+        // given: a message-bearing node whose message defines a zeebe correlation key
+        val model = testBpmnModel(
+            flowNodes = listOf(
+                FlowNodeDefinition(
+                    "receiveTask",
+                    BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
+                    properties = FlowNodeProperties.MessageEvent("orderPlaced", EventDirection.CATCH),
+                ),
+            ),
+            messages = listOf(
+                MessageDefinition("receiveTask", "orderPlaced", engineSpecificProperties = mapOf("correlationKey" to "=orderId")),
+            ),
+        )
+
+        // when: generating JSON
+        val result = underTest.generate(model)
+
+        // then: the correlation key is nested under the node's properties, taken verbatim
+        assertThat(result.filterNot { it.isWhitespace() })
+            .contains("\"engineSpecificProperties\":{\"correlationKey\":\"=orderId\"}")
         assertJsonSyntaxValid(result)
     }
 

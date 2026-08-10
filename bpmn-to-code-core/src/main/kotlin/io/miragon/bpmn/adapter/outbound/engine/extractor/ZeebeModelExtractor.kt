@@ -63,12 +63,6 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         val variablesPerNode = extractVariablesPerNode(modelInstance)
         val eventProperties: Map<String, FlowNodeProperties> =
             modelInstance.findMessageEventProperties() + modelInstance.findSignalEventProperties()
-        val correlationKeysByNode = allMessages
-            .mapNotNull { message ->
-                (message.engineSpecificProperties[ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY] as? String)
-                    ?.let { message.id to it }
-            }
-            .toMap()
 
         val enrichedFlowNodes = enrichFlowNodes(
             flowNodes = allFlowNodes,
@@ -77,7 +71,6 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             timers = allTimerEvents,
             eventProperties = eventProperties,
             variablesPerNode = variablesPerNode,
-            correlationKeysByNode = correlationKeysByNode,
         )
 
         return BpmnModel(
@@ -102,7 +95,6 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         timers: List<io.miragon.bpmn.domain.shared.TimerDefinition>,
         eventProperties: Map<String, FlowNodeProperties>,
         variablesPerNode: Map<String?, List<VariableDefinition>>,
-        correlationKeysByNode: Map<String?, String>,
     ): List<FlowNodeDefinition> {
         val serviceTaskById = serviceTasks.associateBy { it.id }
         val callActivityById = callActivities.associateBy { it.id }
@@ -115,15 +107,7 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
             val properties = resolveProperties(node.id, serviceTaskById, callActivityById, timerById, eventProperties)
             val variables = variablesPerNode[node.id] ?: emptyList()
             val attachedElements = attachedElementsById[node.id] ?: emptyList()
-            val engineSpecificProperties = correlationKeysByNode[node.id]
-                ?.let { node.engineSpecificProperties + (ZeebeModelConstants.ATTRIBUTE_CORRELATION_KEY to it) }
-                ?: node.engineSpecificProperties
-            node.copy(
-                properties = properties,
-                variables = variables,
-                attachedElements = attachedElements,
-                engineSpecificProperties = engineSpecificProperties,
-            )
+            node.copy(properties = properties, variables = variables, attachedElements = attachedElements)
         }
     }
 

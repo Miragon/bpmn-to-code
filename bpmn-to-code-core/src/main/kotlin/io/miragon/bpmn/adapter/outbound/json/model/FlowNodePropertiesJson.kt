@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.json.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class FlowNodePropertiesJson(
@@ -14,4 +15,5 @@ data class FlowNodePropertiesJson(
     val messageDirection: String? = null,
     val signalName: String? = null,
     val signalDirection: String? = null,
+    val engineSpecificProperties: Map<String, JsonElement> = emptyMap(),
 )
