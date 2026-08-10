@@ -136,7 +136,7 @@ fun testSubscribeNewsletterBpmnModel(
             followingElements = listOf("Activity_SendConfirmationMail")),
         FlowNodeDefinition("StartEvent_SubmitRegistrationForm", BpmnNodeType.Event(EventShape.START_EVENT, EventDefinitionType.MESSAGE),
             displayName = "Submit newsletter form",
-            properties = FlowNodeProperties.MessageEvent("Message_FormSubmitted", EventDirection.CATCH, correlationKey = "=subscriptionId"),
+            properties = FlowNodeProperties.MessageEvent("Message_FormSubmitted", EventDirection.CATCH),
             variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
             followingElements = listOf("serviceTask_incrementSubscriptionCounter")),
         FlowNodeDefinition("SubProcess_Confirmation", BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),
