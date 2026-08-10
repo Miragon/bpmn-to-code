@@ -181,7 +181,7 @@ class ZeebeModelExtractorTest {
                 ),
                 messages = listOf(
                     MessageDefinition("StartEvent_SubmitRegistrationForm", "Message_FormSubmitted"),
-                    MessageDefinition("Activity_ConfirmRegistration", "Message_SubscriptionConfirmed", engineSpecificProperties = mapOf("correlationKey" to "=subscriptionId")),
+                    MessageDefinition("Activity_ConfirmRegistration", "Message_SubscriptionConfirmed", correlationKey = "=subscriptionId"),
                 ),
                 compensations = listOf(
                     CompensationDefinition("CompensationEndEvent_RegistrationAborted", CompensationType.THROWING, engineSpecificProperties = mapOf("activityRef" to "serviceTask_incrementSubscriptionCounter", "waitForCompletion" to false)),
