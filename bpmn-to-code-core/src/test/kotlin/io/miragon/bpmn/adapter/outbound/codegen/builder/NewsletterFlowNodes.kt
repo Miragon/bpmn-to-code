@@ -98,6 +98,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         id = "CompensationEvent_OnSubscriptionCounter",
         nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.COMPENSATION),
         attachedToRef = "serviceTask_incrementSubscriptionCounter",
+        interrupting = true,
     ),
     FlowNodeDefinition(
         id = "CompensationTask_DecrementSubscriptionCounter",
@@ -125,6 +126,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         id = "ErrorEvent_InvalidMail",
         nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.ERROR),
         attachedToRef = "SubProcess_Confirmation",
+        interrupting = true,
         followingElements = listOf("EndEvent_RegistrationNotPossible"),
     ),
     FlowNodeDefinition(
@@ -160,6 +162,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_After3Days", "Duration", "\${testVariable}")),
         attachedToRef = "SubProcess_Confirmation",
+        interrupting = true,
         followingElements = listOf("CallActivity_AbortRegistration"),
     ),
     FlowNodeDefinition(
@@ -167,6 +170,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_EveryDay", "Duration", "PT1M")),
         attachedToRef = "Activity_ConfirmRegistration",
+        interrupting = false,
         parentId = "SubProcess_Confirmation",
         followingElements = listOf("Activity_SendConfirmationMail"),
     ),

@@ -112,7 +112,7 @@ class Camunda7ModelExtractorTest {
                         previousElements = listOf("CallActivity_AbortRegistration")),
                     FlowNodeDefinition("CompensationEvent_OnSubscriptionCounter", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.COMPENSATION),
                         displayName = "Registration aborted",
-                        attachedToRef = "serviceTask_incrementSubscriptionCounter",
+                        attachedToRef = "serviceTask_incrementSubscriptionCounter", interrupting = true,
                         engineSpecificProperties = mapOf(ASYNC_AFTER_KEY to true)),
                     FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.NONE),
                         displayName = "Decrement subscription counter",
@@ -133,7 +133,7 @@ class Camunda7ModelExtractorTest {
                         previousElements = listOf("Activity_ConfirmRegistration")),
                     FlowNodeDefinition("ErrorEvent_InvalidMail", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.ERROR),
                         displayName = "Invalid Mail",
-                        attachedToRef = "SubProcess_Confirmation",
+                        attachedToRef = "SubProcess_Confirmation", interrupting = true,
                         followingElements = listOf("EndEvent_RegistrationNotPossible")),
                     FlowNodeDefinition("serviceTask_incrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
                         displayName = "Increment subscription counter",
@@ -160,12 +160,12 @@ class Camunda7ModelExtractorTest {
                     FlowNodeDefinition("Timer_After3Days", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
                         displayName = "After 3 days",
                         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_After3Days", "Duration", "\${testVariable}")),
-                        attachedToRef = "SubProcess_Confirmation",
+                        attachedToRef = "SubProcess_Confirmation", interrupting = true,
                         followingElements = listOf("CallActivity_AbortRegistration")),
                     FlowNodeDefinition("Timer_EveryDay", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
                         displayName = "Every day",
                         properties = FlowNodeProperties.Timer(TimerDefinition("Timer_EveryDay", "Duration", "PT1M")),
-                        attachedToRef = "Activity_ConfirmRegistration",
+                        attachedToRef = "Activity_ConfirmRegistration", interrupting = false,
                         parentId = "SubProcess_Confirmation",
                         followingElements = listOf("Activity_SendConfirmationMail")),
                 ),
@@ -290,6 +290,11 @@ class Camunda7ModelExtractorTest {
 
         val eventSubProcess = bpmnModel.flowNodes.first { it.id == "eventSubProcess_errorHandling" }
         assertThat(eventSubProcess.nodeType).isEqualTo(BpmnNodeType.Activity.SubProcess(SubProcessKind.EVENT))
+
+        // the event subprocess start event carries the isInterrupting flag, defaulting to true when unset
+        assertThat(bpmnModel.flowNodes.first { it.id == "event_mailRejected" }.interrupting).isTrue()
+        // a regular (non-event-subprocess) start event has no interrupting flag
+        assertThat(bpmnModel.flowNodes.first { it.id == "startEvent_editionCreated" }.interrupting).isNull()
 
         assertThat(bpmnModel.escalations).containsExactlyInAnyOrder(
             EscalationDefinition("escalationEndEvent_nofitySupport", "escalation_notifySupport", "200"),

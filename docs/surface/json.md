@@ -99,6 +99,7 @@ Boundary events appear immediately after the element they are attached to.
 | `outgoing` | no | IDs of outgoing elements |
 | `parentId` | no | Parent subprocess ID, if nested |
 | `attachedToRef` | no | Element this boundary event is attached to |
+| `interrupting` | no | For boundary events and event sub-process start events: whether the event is interrupting (`cancelActivity` / `isInterrupting`). Defaults to `true` when unset in the model; absent for all other nodes |
 | `attachedElements` | no | Boundary events attached to this element |
 | `variables` | no | Variable names extracted from I/O mappings |
 | `properties` | no | Engine-specific implementation details (task type, calledElement, timer config) |

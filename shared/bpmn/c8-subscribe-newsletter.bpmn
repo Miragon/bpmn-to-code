@@ -62,7 +62,7 @@
       <bpmn:endEvent id="EndEvent_SubscriptionConfirmed" name="Subscription confirmed">
         <bpmn:incoming>Flow_1cpwe57</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:boundaryEvent id="Timer_EveryDay" name="Every&#10;day" attachedToRef="Activity_ConfirmRegistration">
+      <bpmn:boundaryEvent id="Timer_EveryDay" name="Every&#10;day" cancelActivity="false" attachedToRef="Activity_ConfirmRegistration">
         <bpmn:outgoing>Flow_0x4ewvb</bpmn:outgoing>
         <bpmn:timerEventDefinition id="TimerEventDefinition_1hsgk8b">
           <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1M</bpmn:timeDuration>

@@ -9,6 +9,7 @@ data class FlowNodeDefinition(
     val properties: FlowNodeProperties = FlowNodeProperties.None,
     val variables: List<VariableDefinition> = emptyList(),
     val attachedToRef: String? = null,
+    val interrupting: Boolean? = null,
     val attachedElements: List<String> = emptyList(),
     val parentId: String? = null,
     val previousElements: List<String> = emptyList(),
