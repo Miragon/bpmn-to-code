@@ -61,21 +61,12 @@ class ZeebeModelExtractor : EngineSpecificExtractor {
         val allServiceTasks = findServiceTasks(modelInstance)
         val allCallActivities = findCallActivities(modelInstance)
         val variablesPerNode = extractVariablesPerNode(modelInstance)
-        val correlationKeysByNode: Map<String, String> = modelInstance.findAllMessagesWithSource()
-            .mapNotNull { (elementId, _, message) ->
-                val correlationKey = message?.correlationKey() ?: return@mapNotNull null
-                (elementId ?: return@mapNotNull null) to correlationKey
-            }
-            .toMap()
+        val correlationKeysByNode = modelInstance.findAllMessagesWithSource()
+            .associate { (elementId, _, message) -> elementId to message?.correlationKey() }
         val eventProperties: Map<String, FlowNodeProperties> =
-            (modelInstance.findMessageEventProperties() + modelInstance.findSignalEventProperties())
-                .mapValues { (id, properties) ->
-                    if (properties is FlowNodeProperties.MessageEvent) {
-                        properties.copy(correlationKey = correlationKeysByNode[id])
-                    } else {
-                        properties
-                    }
-                }
+            modelInstance.findMessageEventProperties()
+                .mapValues { (id, event) -> event.copy(correlationKey = correlationKeysByNode[id]) } +
+                modelInstance.findSignalEventProperties()
 
         val enrichedFlowNodes = enrichFlowNodes(
             flowNodes = allFlowNodes,
