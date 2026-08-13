@@ -114,8 +114,8 @@ internal class ZeebeDialect : EngineDialect {
     }
 
     private fun IoMapping?.toCallActivityMappings(): List<CallActivityDefinition.Mapping> {
-        val inputs = this?.inputs.orEmpty().map { CallActivityDefinition.Mapping(
-            direction = VariableDirection.INPUT, source = it.source, target = it.target)
+        val inputs = this?.inputs.orEmpty().map {
+            CallActivityDefinition.Mapping(direction = VariableDirection.INPUT, source = it.source, target = it.target)
         }
         val outputs = this?.outputs.orEmpty().map { CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = it.source, target = it.target) }
         return inputs + outputs
@@ -141,9 +141,7 @@ internal class ZeebeDialect : EngineDialect {
             outputs.map { Triple(it.removePrefix("="), VariableDirection.OUTPUT, it) }
     }
 
-    private fun List<ModelElementInstance>.attributeValues(vararg names: String): List<String> {
-        return names.flatMap { name -> mapNotNull { it.domElement.getAttribute(name) } }
-    }
+    private fun List<ModelElementInstance>.attributeValues(vararg names: String): List<String> = names.flatMap { name -> mapNotNull { it.domElement.getAttribute(name) } }
 
     private fun DomElement.toParameter(): IoMapping.Parameter? {
         val target = getAttribute(ZeebeModelConstants.ATTRIBUTE_TARGET)?.takeIf { it.isNotBlank() } ?: return null
@@ -151,7 +149,5 @@ internal class ZeebeDialect : EngineDialect {
         return IoMapping.Parameter(target = target, source = source)
     }
 
-    private fun ModelElementInstance.propagateFlag(attribute: String): Boolean? {
-        return getAttributeValue(attribute)?.takeIf { it.isNotBlank() }?.toBooleanStrictOrNull()
-    }
+    private fun ModelElementInstance.propagateFlag(attribute: String): Boolean? = getAttributeValue(attribute)?.takeIf { it.isNotBlank() }?.toBooleanStrictOrNull()
 }

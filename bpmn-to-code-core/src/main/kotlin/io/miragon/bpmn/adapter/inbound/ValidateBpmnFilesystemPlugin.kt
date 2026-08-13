@@ -21,6 +21,6 @@ class ValidateBpmnFilesystemPlugin(
             filePattern = filePattern,
             engine = engine,
             validationConfig = validationConfig,
-        )
+        ),
     )
 }

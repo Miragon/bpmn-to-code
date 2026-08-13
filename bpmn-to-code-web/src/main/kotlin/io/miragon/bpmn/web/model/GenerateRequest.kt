@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GenerateRequest(
     val files: List<BpmnFileData>,
-    val config: GenerationConfig
+    val config: GenerationConfig,
 ) {
 
     @Serializable
@@ -20,12 +20,12 @@ data class GenerateRequest(
         /**
          * The BPMN XML encoded in Base64.
          */
-        val content: String
+        val content: String,
     )
 
     @Serializable
     data class GenerationConfig(
         val outputLanguage: OutputLanguage,
-        val processEngine: ProcessEngine
+        val processEngine: ProcessEngine,
     )
 }

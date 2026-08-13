@@ -17,7 +17,7 @@ import org.junit.jupiter.params.provider.ValueSource
 class ExternalModuleImportTest {
 
     private val forbiddenImportPrefixes = listOf(
-        "io.miragon.bpmn.application.",      // services and ports
+        "io.miragon.bpmn.application.", // services and ports
         "io.miragon.bpmn.adapter.outbound.", // out-adapters
     )
 
@@ -27,7 +27,7 @@ class ExternalModuleImportTest {
             "bpmn-to-code-gradle",
             "bpmn-to-code-maven",
             "bpmn-to-code-web",
-        ]
+        ],
     )
     fun `plugin module only imports domain objects or inbound adapters from core`(modulePath: String) {
         Konsist

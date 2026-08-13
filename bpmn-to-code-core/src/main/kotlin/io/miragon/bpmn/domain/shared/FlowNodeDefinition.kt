@@ -44,9 +44,7 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
         override val extensions: List<EngineExtension> = emptyList(),
         override val engineAttributes: Map<String, Any?> = emptyMap(),
     ) : FlowNodeDefinition {
-        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition {
-            return copy(variables = mergeVariables(this, others))
-        }
+        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(variables = mergeVariables(this, others))
     }
 
     /**
@@ -72,9 +70,7 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
         override val extensions: List<EngineExtension> = emptyList(),
         override val engineAttributes: Map<String, Any?> = emptyMap(),
     ) : FlowNodeDefinition {
-        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition {
-            return copy(variables = mergeVariables(this, others))
-        }
+        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(variables = mergeVariables(this, others))
     }
 
     /**
@@ -110,12 +106,10 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
             override val extensions: List<EngineExtension> = emptyList(),
             override val engineAttributes: Map<String, Any?> = emptyMap(),
         ) : Activity {
-            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition {
-                return copy(
-                    variables = mergeVariables(this, others),
-                    boundaryEventRefs = mergeBoundaryEventRefs(this, others),
-                )
-            }
+            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
+                variables = mergeVariables(this, others),
+                boundaryEventRefs = mergeBoundaryEventRefs(this, others),
+            )
         }
 
         /**
@@ -139,12 +133,10 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
             override val extensions: List<EngineExtension> = emptyList(),
             override val engineAttributes: Map<String, Any?> = emptyMap(),
         ) : Activity {
-            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition {
-                return copy(
-                    variables = mergeVariables(this, others),
-                    boundaryEventRefs = mergeBoundaryEventRefs(this, others),
-                )
-            }
+            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
+                variables = mergeVariables(this, others),
+                boundaryEventRefs = mergeBoundaryEventRefs(this, others),
+            )
         }
 
         data class CallActivity(
@@ -162,12 +154,10 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
             override val extensions: List<EngineExtension> = emptyList(),
             override val engineAttributes: Map<String, Any?> = emptyMap(),
         ) : Activity {
-            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition {
-                return copy(
-                    variables = mergeVariables(this, others),
-                    boundaryEventRefs = mergeBoundaryEventRefs(this, others),
-                )
-            }
+            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
+                variables = mergeVariables(this, others),
+                boundaryEventRefs = mergeBoundaryEventRefs(this, others),
+            )
         }
     }
 
@@ -183,9 +173,7 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
         override val extensions: List<EngineExtension> = emptyList(),
         override val engineAttributes: Map<String, Any?> = emptyMap(),
     ) : FlowNodeDefinition {
-        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition {
-            return copy(variables = mergeVariables(this, others))
-        }
+        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(variables = mergeVariables(this, others))
     }
 
     companion object {
@@ -193,9 +181,7 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
         private fun mergeVariables(
             node: FlowNodeDefinition,
             others: List<FlowNodeDefinition>,
-        ): List<VariableDefinition> {
-            return (node.variables + others.flatMap { it.variables }).distinct()
-        }
+        ): List<VariableDefinition> = (node.variables + others.flatMap { it.variables }).distinct()
 
         private fun mergeBoundaryEventRefs(
             node: Activity,

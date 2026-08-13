@@ -53,12 +53,10 @@ class GenerateProcessApiService(
 
     private fun filterExecutableProcesses(
         extractedModels: List<Pair<BpmnResource, ProcessModel>>,
-    ): List<Pair<BpmnResource, ProcessModel>> {
-        return extractedModels.filter { (file, model) ->
-            val keep = model.isExecutable
-            if (!keep) logger.info { "Skipping '${model.processId}' (${file.fileName}): process is marked non-executable" }
-            keep
-        }
+    ): List<Pair<BpmnResource, ProcessModel>> = extractedModels.filter { (file, model) ->
+        val keep = model.isExecutable
+        if (!keep) logger.info { "Skipping '${model.processId}' (${file.fileName}): process is marked non-executable" }
+        keep
     }
 
     private fun toBpmnModelApi(
@@ -70,5 +68,4 @@ class GenerateProcessApiService(
         packagePath = command.packagePath,
         targetEngine = command.engine,
     )
-
 }

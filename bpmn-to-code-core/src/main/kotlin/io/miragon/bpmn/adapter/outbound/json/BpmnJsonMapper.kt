@@ -40,41 +40,33 @@ import kotlinx.serialization.json.JsonPrimitive
 @Suppress("TooManyFunctions")
 internal class BpmnJsonMapper {
 
-    fun toJson(model: ProcessModel): ProcessModelJson {
-        return ProcessModelJson(
-            process = ProcessJson(
-                id = model.processId,
-                name = model.processName,
-                isExecutable = model.isExecutable,
-                engine = model.detectedEngine?.name,
-                flowNodes = model.flowNodes.toJson(model.sequenceFlows),
-                sequenceFlows = model.sequenceFlows.map { it.toJson() },
-            ),
-            definitions = model.definitions.toJson(),
-            variants = model.variants.map { it.toJson() }.takeIf { it.isNotEmpty() },
-        )
-    }
+    fun toJson(model: ProcessModel): ProcessModelJson = ProcessModelJson(
+        process = ProcessJson(
+            id = model.processId,
+            name = model.processName,
+            isExecutable = model.isExecutable,
+            engine = model.detectedEngine?.name,
+            flowNodes = model.flowNodes.toJson(model.sequenceFlows),
+            sequenceFlows = model.sequenceFlows.map { it.toJson() },
+        ),
+        definitions = model.definitions.toJson(),
+        variants = model.variants.map { it.toJson() }.takeIf { it.isNotEmpty() },
+    )
 
-    private fun ProcessModel.Variant.toJson(): VariantJson {
-        return VariantJson(
-            name = variantName,
-            flowNodes = flowNodes.toJson(sequenceFlows),
-            sequenceFlows = sequenceFlows.map { it.toJson() },
-        )
-    }
+    private fun ProcessModel.Variant.toJson(): VariantJson = VariantJson(
+        name = variantName,
+        flowNodes = flowNodes.toJson(sequenceFlows),
+        sequenceFlows = sequenceFlows.map { it.toJson() },
+    )
 
-    private fun RootElements.toJson(): DefinitionsJson {
-        return DefinitionsJson(
-            messages = messages.mapNotNull { it.toJson() }.sortedBy { it.id },
-            signals = signals.mapNotNull { it.toJson() }.sortedBy { it.id },
-            errors = errors.mapNotNull { it.toJson() }.sortedBy { it.id },
-            escalations = escalations.mapNotNull { it.toJson() }.sortedBy { it.id },
-        )
-    }
+    private fun RootElements.toJson(): DefinitionsJson = DefinitionsJson(
+        messages = messages.mapNotNull { it.toJson() }.sortedBy { it.id },
+        signals = signals.mapNotNull { it.toJson() }.sortedBy { it.id },
+        errors = errors.mapNotNull { it.toJson() }.sortedBy { it.id },
+        escalations = escalations.mapNotNull { it.toJson() }.sortedBy { it.id },
+    )
 
-    private fun List<FlowNodeDefinition>.toJson(sequenceFlows: List<SequenceFlowDefinition>): List<FlowNodeJson> {
-        return FlowNodeSorter.sort(this, sequenceFlows).map { it.toJson() }
-    }
+    private fun List<FlowNodeDefinition>.toJson(sequenceFlows: List<SequenceFlowDefinition>): List<FlowNodeJson> = FlowNodeSorter.sort(this, sequenceFlows).map { it.toJson() }
 
     private fun FlowNodeDefinition.toJson(): FlowNodeJson {
         val activity = this as? FlowNodeDefinition.Activity
@@ -156,47 +148,37 @@ internal class BpmnJsonMapper {
         is TaskImplementation.Expression -> ImplementationJson.Expression(expression)
     }
 
-    private fun MultiInstanceDefinition.toJson(): MultiInstanceJson {
-        return MultiInstanceJson(
-            sequential = sequential,
-            inputCollection = inputCollection,
-            inputElement = inputElement,
-            outputCollection = outputCollection,
-            outputElement = outputElement,
-            cardinality = cardinality,
-            completionCondition = completionCondition,
-        )
-    }
+    private fun MultiInstanceDefinition.toJson(): MultiInstanceJson = MultiInstanceJson(
+        sequential = sequential,
+        inputCollection = inputCollection,
+        inputElement = inputElement,
+        outputCollection = outputCollection,
+        outputElement = outputElement,
+        cardinality = cardinality,
+        completionCondition = completionCondition,
+    )
 
-    private fun IoMapping.toJson(): IoMappingJson {
-        return IoMappingJson(
-            inputs = inputs.map { IoMappingJson.Parameter(it.target, it.source) },
-            outputs = outputs.map { IoMappingJson.Parameter(it.target, it.source) },
-        )
-    }
+    private fun IoMapping.toJson(): IoMappingJson = IoMappingJson(
+        inputs = inputs.map { IoMappingJson.Parameter(it.target, it.source) },
+        outputs = outputs.map { IoMappingJson.Parameter(it.target, it.source) },
+    )
 
-    private fun VariableDefinition.toJson(): VariableJson {
-        return VariableJson(name = getRawName(), direction = direction.name, expression = valueExpression)
-    }
+    private fun VariableDefinition.toJson(): VariableJson = VariableJson(name = getRawName(), direction = direction.name, expression = valueExpression)
 
-    private fun EngineExtension.toJson(): ExtensionJson {
-        return ExtensionJson(
-            type = type,
-            attributes = attributes,
-            children = children.map { it.toJson() },
-            body = body,
-        )
-    }
+    private fun EngineExtension.toJson(): ExtensionJson = ExtensionJson(
+        type = type,
+        attributes = attributes,
+        children = children.map { it.toJson() },
+        body = body,
+    )
 
-    private fun SequenceFlowDefinition.toJson(): SequenceFlowJson {
-        return SequenceFlowJson(
-            id = id ?: "",
-            sourceRef = sourceRef,
-            targetRef = targetRef,
-            name = flowName,
-            conditionExpression = conditionExpression,
-        )
-    }
+    private fun SequenceFlowDefinition.toJson(): SequenceFlowJson = SequenceFlowJson(
+        id = id ?: "",
+        sourceRef = sourceRef,
+        targetRef = targetRef,
+        name = flowName,
+        conditionExpression = conditionExpression,
+    )
 
     private fun RootElementDefinition.Message.toJson(): DefinitionsJson.Message? {
         val name = getValue().takeIf { it.isNotEmpty() } ?: return null

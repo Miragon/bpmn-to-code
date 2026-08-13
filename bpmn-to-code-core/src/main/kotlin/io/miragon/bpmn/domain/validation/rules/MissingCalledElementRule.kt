@@ -13,17 +13,15 @@ class MissingCalledElementRule : SingleModelValidationRule {
     override val id = "missing-called-element"
     override val severity = Severity.ERROR
 
-    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        return context.model.callActivities
-            .filter { !it.hasCalledElement() }
-            .map { callActivity ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = callActivity.id,
-                    processId = context.model.processId,
-                    message = "Call activity is missing a 'calledElement' or 'processId' attribute.",
-                )
-            }
-    }
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.callActivities
+        .filter { !it.hasCalledElement() }
+        .map { callActivity ->
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = callActivity.id,
+                processId = context.model.processId,
+                message = "Call activity is missing a 'calledElement' or 'processId' attribute.",
+            )
+        }
 }

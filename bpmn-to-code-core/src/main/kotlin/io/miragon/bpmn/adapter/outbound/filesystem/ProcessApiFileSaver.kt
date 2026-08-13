@@ -11,7 +11,7 @@ internal class ProcessApiFileSaver : SaveProcessApiPort {
 
     override fun writeFiles(
         generatedFiles: List<GeneratedApiFile>,
-        outputFolderPath: String
+        outputFolderPath: String,
     ) {
         val outputFolder = File(outputFolderPath)
         if (!outputFolder.exists()) {

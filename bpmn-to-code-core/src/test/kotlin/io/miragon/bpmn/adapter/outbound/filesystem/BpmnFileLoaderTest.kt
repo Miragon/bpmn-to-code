@@ -1,10 +1,10 @@
 package io.miragon.bpmn.adapter.outbound.filesystem
 
-import java.nio.file.Files
-import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
+import java.nio.file.Path
 
 class BpmnFileLoaderTest {
 
@@ -18,7 +18,6 @@ class BpmnFileLoaderTest {
 
     @Test
     fun `loadFrom returns matching files in base directory`(@TempDir tempDir: Path) {
-
         // given: a directory with files where some match the pattern
         Files.createFile(tempDir.resolve("process1.bpmn"))
         Files.createFile(tempDir.resolve("process2.bpmn"))
@@ -34,7 +33,6 @@ class BpmnFileLoaderTest {
 
     @Test
     fun `loadFrom returns matching files from subdirectories`(@TempDir tempDir: Path) {
-
         // given: a base directory with a subdirectory containing a matching file
         val subDir = Files.createDirectory(tempDir.resolve("subDir"))
         val subSubDir = Files.createDirectory(subDir.resolve("subSubDir"))
@@ -52,7 +50,6 @@ class BpmnFileLoaderTest {
 
     @Test
     fun `loadFrom returns matching files from outside current root using relative paths`(@TempDir tempDir: Path) {
-
         // given: a directory structure with files outside the base directory
         val baseDir = Files.createDirectory(tempDir.resolve("project"))
         val externalDir = Files.createDirectory(tempDir.resolve("external"))
@@ -69,7 +66,6 @@ class BpmnFileLoaderTest {
 
     @Test
     fun `loadFrom returns matching files from external subdirectories using recursive wildcard`(@TempDir tempDir: Path) {
-
         // given: a directory structure with nested external files
         val baseDir = Files.createDirectory(tempDir.resolve("project"))
         val externalDir = Files.createDirectory(tempDir.resolve("external"))
@@ -90,13 +86,15 @@ class BpmnFileLoaderTest {
         // then: expect the list to contain all BPMN files from external directory tree
         assertThat(result).hasSize(4)
         assertThat(result.map { it.fileName }).containsExactlyInAnyOrder(
-            "root-process.bpmn", "sub1-process.bpmn", "sub2-process.bpmn", "deep-process.bpmn"
+            "root-process.bpmn",
+            "sub1-process.bpmn",
+            "sub2-process.bpmn",
+            "deep-process.bpmn",
         )
     }
 
     @Test
     fun `loadFrom returns matching files from deeply nested external paths`(@TempDir tempDir: Path) {
-
         // given: a directory structure with deeply nested external files
         val projectDir = Files.createDirectory(tempDir.resolve("workspace"))
         val baseDir = Files.createDirectory(projectDir.resolve("current"))
@@ -118,7 +116,6 @@ class BpmnFileLoaderTest {
 
     @Test
     fun `loadFrom returns specific external file when exact path is provided`(@TempDir tempDir: Path) {
-
         // given: a directory structure with specific external files
         val baseDir = Files.createDirectory(tempDir.resolve("project"))
         val externalDir = Files.createDirectory(tempDir.resolve("external"))
@@ -138,7 +135,6 @@ class BpmnFileLoaderTest {
 
     @Test
     fun `loadFrom returns files ordered by relative path independent of filesystem order`(@TempDir tempDir: Path) {
-
         // given: variant files that share a file name across sibling directories, plus siblings whose
         // relative-path order differs from their file-name order
         val folders = listOf("staging", "dev", "test", "prod")

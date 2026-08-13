@@ -28,6 +28,6 @@ class CreateProcessApiFilesystemPlugin(
             outputLanguage = outputLanguage,
             engine = engine,
             validationConfig = validationConfig,
-        )
+        ),
     )
 }

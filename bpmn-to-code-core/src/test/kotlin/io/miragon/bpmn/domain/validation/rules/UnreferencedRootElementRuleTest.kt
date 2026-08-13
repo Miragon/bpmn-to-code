@@ -25,7 +25,6 @@ class UnreferencedRootElementRuleTest {
 
     @Test
     fun `warns about a message no element references`() {
-
         // given: two declared messages, only one of which an event points at
         val model = testProcessModel(
             flowNodes = listOf(messageStartEvent("Message_Used")),
@@ -49,7 +48,6 @@ class UnreferencedRootElementRuleTest {
 
     @Test
     fun `reports nothing when every root element is referenced`() {
-
         // given
         val model = testProcessModel(
             flowNodes = listOf(messageStartEvent("Message_Used")),
@@ -64,7 +62,6 @@ class UnreferencedRootElementRuleTest {
 
     @Test
     fun `covers signals and errors as well as messages`() {
-
         // given: an unreferenced entry in each registry
         val model = testProcessModel(
             flowNodes = listOf(FlowNodeDefinition.Unknown(id = "node")),
@@ -83,7 +80,6 @@ class UnreferencedRootElementRuleTest {
 
     @Test
     fun `counts a message referenced by a receive task as used`() {
-
         // given: send and receive tasks reference their message directly, not through an event definition
         val receiveTask = FlowNodeDefinition.Activity.Task(
             id = "Activity_Await",

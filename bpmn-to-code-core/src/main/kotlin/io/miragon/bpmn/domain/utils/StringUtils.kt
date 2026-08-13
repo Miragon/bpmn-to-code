@@ -12,16 +12,14 @@ object StringUtils {
      * @sample toUpperSnakeCase will convert #{sendMailDelegate} to SEND_MAIL_DELEGATE
      * @sample toUpperSnakeCase will convert io.camunda:http-json:1 to IO_CAMUNDA_HTTP_JSON_1
      */
-    fun String.toUpperSnakeCase(): String {
-        return this
-            .replace(Regex("[#\${}]"), "") // Strip expression language syntax
-            .replace(Regex("(?<=[a-zA-Z])(?=[0-9])"), "_") // Boundary between a letter and a digit
-            .replace(Regex("(?<=[0-9])(?=[a-zA-Z])"), "_") // Boundary between a digit and a letter
-            .replace(Regex("(?<=[a-z])(?=[A-Z])"), "_") // camelCase word boundary
-            .replace(Regex("[^A-Za-z0-9]+"), "_") // Collapse runs of non-identifier chars (e.g. . - :) into a single _
-            .let { if (it.firstOrNull()?.isDigit() == true) "_$it" else it } // Identifiers must not start with a digit
-            .uppercase()
-    }
+    fun String.toUpperSnakeCase(): String = this
+        .replace(Regex("[#\${}]"), "") // Strip expression language syntax
+        .replace(Regex("(?<=[a-zA-Z])(?=[0-9])"), "_") // Boundary between a letter and a digit
+        .replace(Regex("(?<=[0-9])(?=[a-zA-Z])"), "_") // Boundary between a digit and a letter
+        .replace(Regex("(?<=[a-z])(?=[A-Z])"), "_") // camelCase word boundary
+        .replace(Regex("[^A-Za-z0-9]+"), "_") // Collapse runs of non-identifier chars (e.g. . - :) into a single _
+        .let { if (it.firstOrNull()?.isDigit() == true) "_$it" else it } // Identifiers must not start with a digit
+        .uppercase()
 
     /**
      * BPMN process variables are often referenced using ${variableName} or #{beanName} syntax.
@@ -32,18 +30,14 @@ object StringUtils {
      * @sample removeExpressionSyntax("#{sendMailDelegate}") returns "sendMailDelegate"
      * @sample removeExpressionSyntax("normalString") returns "normalString"
      */
-    fun String.removeExpressionSyntax(): String {
-        return this.replace(Regex("[#\${}]"), "")
-    }
+    fun String.removeExpressionSyntax(): String = this.replace(Regex("[#\${}]"), "")
 
     /**
      * Converts a string with underscores to CamelCase, capitalising the first letter of each segment.
      * @sample toCamelCase will convert Activity_SendMail to ActivitySendMail
      * @sample toCamelCase will convert StartEvent_RequestReceived to StartEventRequestReceived
      */
-    fun String.toCamelCase(): String {
-        return split(Regex("[_\\-]"))
-            .filter { it.isNotEmpty() }
-            .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
-    }
+    fun String.toCamelCase(): String = split(Regex("[_\\-]"))
+        .filter { it.isNotEmpty() }
+        .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
 }

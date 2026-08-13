@@ -47,7 +47,6 @@ class GenerateProcessApiDeterministicOrderTest {
 
     @Test
     fun `generates byte-identical code regardless of input order`() {
-
         // given: every permutation we want to exercise (canonical, reversed, rotated)
         val inputOrders = listOf(
             variantNames,

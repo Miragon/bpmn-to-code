@@ -24,5 +24,4 @@ data class BpmnModelApi(
     }
 
     private fun String.camelCase() = replaceFirstChar { it.uppercase() }
-
 }

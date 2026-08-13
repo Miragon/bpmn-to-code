@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.mavenPublish) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.ktlint) apply false
 }
 
 allprojects {
@@ -20,10 +21,15 @@ allprojects {
 subprojects {
 
     apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "io.github.usefulness.ktlint-gradle-plugin")
 
     configure<DetektExtension> {
         config.setFrom("$rootDir/config/detekt/detekt.yml")
         buildUponDefaultConfig = true
+    }
+
+    tasks.matching { it.name == "check" }.configureEach {
+        dependsOn("detekt")
     }
 
     tasks.withType<KotlinCompile>().configureEach {
@@ -37,8 +43,6 @@ subprojects {
         targetCompatibility = "21"
     }
 
-    // Common JaCoCo configuration. Each module declares the jacoco plugin in its own
-    // plugins {} block to ensure classDirectories is properly wired to compileKotlin task outputs.
     plugins.withId("jacoco") {
         tasks.withType<Test>().configureEach {
             finalizedBy(tasks.named("jacocoTestReport"))
@@ -53,8 +57,6 @@ subprojects {
         }
 
         tasks.withType<JacocoCoverageVerification>().configureEach {
-            // Explicit dependency on compilation so Gradle's implicit-dependency
-            // validation passes when classDirectories is rebuilt from compiled output.
             dependsOn(tasks.withType<AbstractCompile>())
             violationRules {
                 rule {

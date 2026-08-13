@@ -94,19 +94,22 @@ internal class BpmnStructureReader(
      */
     fun read(): FlowScope = readScope(model.findProcess().flowElements)
 
-    private fun readScope(elements: Collection<FlowElement>): FlowScope {
-        return FlowScope(
-            flowNodes = elements.filterIsInstance<FlowNode>().map { it.toDefinition() },
-            sequenceFlows = elements.filterIsInstance<SequenceFlow>().mapNotNull { it.toDefinition() },
-        )
-    }
+    private fun readScope(elements: Collection<FlowElement>): FlowScope = FlowScope(
+        flowNodes = elements.filterIsInstance<FlowNode>().map { it.toDefinition() },
+        sequenceFlows = elements.filterIsInstance<SequenceFlow>().mapNotNull { it.toDefinition() },
+    )
 
     private fun FlowNode.toDefinition(): FlowNodeDefinition = when (this) {
         is SubProcess -> toSubProcess()
+
         is CallActivity -> toCallActivity()
+
         is Gateway -> toGateway()
+
         is CatchEvent, is org.camunda.bpm.model.bpmn.instance.ThrowEvent -> toEvent()
+
         is Task -> toTask()
+
         else -> FlowNodeDefinition.Unknown(
             id = id,
             displayName = displayName(),
@@ -139,75 +142,67 @@ internal class BpmnStructureReader(
         )
     }
 
-    private fun CallActivity.toCallActivity(): FlowNodeDefinition.Activity.CallActivity {
-        return FlowNodeDefinition.Activity.CallActivity(
-            id = id,
-            definition = dialect.callActivityOf(this),
-            displayName = displayName(),
-            incoming = incomingFlowIds(),
-            outgoing = outgoingFlowIds(),
-            multiInstance = multiInstance(),
-            ioMapping = dialect.ioMappingOf(this),
-            boundaryEventRefs = boundaryEventRefs(),
-            isForCompensation = isForCompensation,
-            defaultFlow = defaultFlowId(),
-            variables = dialect.variablesOf(this),
-            extensions = extensionReader.extensionsOf(id),
-            engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
-        )
-    }
+    private fun CallActivity.toCallActivity(): FlowNodeDefinition.Activity.CallActivity = FlowNodeDefinition.Activity.CallActivity(
+        id = id,
+        definition = dialect.callActivityOf(this),
+        displayName = displayName(),
+        incoming = incomingFlowIds(),
+        outgoing = outgoingFlowIds(),
+        multiInstance = multiInstance(),
+        ioMapping = dialect.ioMappingOf(this),
+        boundaryEventRefs = boundaryEventRefs(),
+        isForCompensation = isForCompensation,
+        defaultFlow = defaultFlowId(),
+        variables = dialect.variablesOf(this),
+        extensions = extensionReader.extensionsOf(id),
+        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+    )
 
-    private fun Task.toTask(): FlowNodeDefinition.Activity.Task {
-        return FlowNodeDefinition.Activity.Task(
-            id = id,
-            kind = taskKind(),
-            displayName = displayName(),
-            incoming = incomingFlowIds(),
-            outgoing = outgoingFlowIds(),
-            implementation = dialect.implementationOf(this),
-            message = taskMessage(),
-            multiInstance = multiInstance(),
-            ioMapping = dialect.ioMappingOf(this),
-            boundaryEventRefs = boundaryEventRefs(),
-            isForCompensation = isForCompensation,
-            defaultFlow = defaultFlowId(),
-            variables = dialect.variablesOf(this),
-            extensions = extensionReader.extensionsOf(id),
-            engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
-        )
-    }
+    private fun Task.toTask(): FlowNodeDefinition.Activity.Task = FlowNodeDefinition.Activity.Task(
+        id = id,
+        kind = taskKind(),
+        displayName = displayName(),
+        incoming = incomingFlowIds(),
+        outgoing = outgoingFlowIds(),
+        implementation = dialect.implementationOf(this),
+        message = taskMessage(),
+        multiInstance = multiInstance(),
+        ioMapping = dialect.ioMappingOf(this),
+        boundaryEventRefs = boundaryEventRefs(),
+        isForCompensation = isForCompensation,
+        defaultFlow = defaultFlowId(),
+        variables = dialect.variablesOf(this),
+        extensions = extensionReader.extensionsOf(id),
+        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+    )
 
-    private fun Gateway.toGateway(): FlowNodeDefinition.Gateway {
-        return FlowNodeDefinition.Gateway(
-            id = id,
-            kind = gatewayKind(),
-            displayName = displayName(),
-            incoming = incomingFlowIds(),
-            outgoing = outgoingFlowIds(),
-            defaultFlow = defaultFlowId(),
-            variables = dialect.variablesOf(this),
-            extensions = extensionReader.extensionsOf(id),
-            engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
-        )
-    }
+    private fun Gateway.toGateway(): FlowNodeDefinition.Gateway = FlowNodeDefinition.Gateway(
+        id = id,
+        kind = gatewayKind(),
+        displayName = displayName(),
+        incoming = incomingFlowIds(),
+        outgoing = outgoingFlowIds(),
+        defaultFlow = defaultFlowId(),
+        variables = dialect.variablesOf(this),
+        extensions = extensionReader.extensionsOf(id),
+        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+    )
 
-    private fun FlowNode.toEvent(): FlowNodeDefinition.Event {
-        return FlowNodeDefinition.Event(
-            id = id,
-            shape = eventShape(),
-            displayName = displayName(),
-            incoming = incomingFlowIds(),
-            outgoing = outgoingFlowIds(),
-            eventDefinitions = eventDefinitions(),
-            attachedToRef = (this as? BoundaryEvent)?.attachedTo?.id,
-            interrupting = interrupting(),
-            implementation = dialect.implementationOf(this),
-            ioMapping = dialect.ioMappingOf(this),
-            variables = dialect.variablesOf(this),
-            extensions = extensionReader.extensionsOf(id),
-            engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
-        )
-    }
+    private fun FlowNode.toEvent(): FlowNodeDefinition.Event = FlowNodeDefinition.Event(
+        id = id,
+        shape = eventShape(),
+        displayName = displayName(),
+        incoming = incomingFlowIds(),
+        outgoing = outgoingFlowIds(),
+        eventDefinitions = eventDefinitions(),
+        attachedToRef = (this as? BoundaryEvent)?.attachedTo?.id,
+        interrupting = interrupting(),
+        implementation = dialect.implementationOf(this),
+        ioMapping = dialect.ioMappingOf(this),
+        variables = dialect.variablesOf(this),
+        extensions = extensionReader.extensionsOf(id),
+        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+    )
 
     private fun SequenceFlow.toDefinition(): SequenceFlowDefinition? {
         val sourceRef = source?.id ?: return null
@@ -255,20 +250,17 @@ internal class BpmnStructureReader(
         else -> null
     }
 
-    private fun org.camunda.bpm.model.bpmn.instance.Message.toReference(): MessageReference {
-        return MessageReference(
-            messageRef = id ?: name,
-            messageName = name,
-        )
-    }
+    private fun org.camunda.bpm.model.bpmn.instance.Message.toReference(): MessageReference = MessageReference(
+        messageRef = id ?: name,
+        messageName = name,
+    )
 
-    private fun FlowNode.eventDefinitions(): List<EventDefinitionInstance> {
-        return getChildElementsByType(EventDefinition::class.java).mapNotNull { it.toInstance() }
-    }
+    private fun FlowNode.eventDefinitions(): List<EventDefinitionInstance> = getChildElementsByType(EventDefinition::class.java).mapNotNull { it.toInstance() }
 
     @Suppress("CyclomaticComplexMethod")
     private fun EventDefinition.toInstance(): EventDefinitionInstance? = when (this) {
         is TimerEventDefinition -> toTimer()
+
         is MessageEventDefinition -> EventDefinitionInstance.Message(
             reference = message?.toReference() ?: MessageReference(),
         )
@@ -300,7 +292,9 @@ internal class BpmnStructureReader(
         )
 
         is LinkEventDefinition -> EventDefinitionInstance.Link(linkName = name)
+
         is TerminateEventDefinition -> EventDefinitionInstance.Terminate
+
         else -> null
     }
 

@@ -37,12 +37,10 @@ internal object BpmnResourceLoader {
         return walkForBpmnFiles(directory)
     }
 
-    private fun loadFromUrl(url: URL): List<BpmnResource> {
-        return when (url.protocol) {
-            "file" -> loadFromPath(Path.of(url.toURI()))
-            "jar"  -> loadFromJar(url)
-            else   -> error("Unsupported classpath protocol: ${url.protocol}")
-        }
+    private fun loadFromUrl(url: URL): List<BpmnResource> = when (url.protocol) {
+        "file" -> loadFromPath(Path.of(url.toURI()))
+        "jar" -> loadFromJar(url)
+        else -> error("Unsupported classpath protocol: ${url.protocol}")
     }
 
     private fun loadFromPath(path: Path): List<BpmnResource> {
@@ -75,10 +73,8 @@ internal object BpmnResourceLoader {
         }
     }
 
-    private fun walkForBpmnFiles(directory: Path): List<BpmnResource> {
-        return Files.walk(directory)
-            .filter { it.extension == "bpmn" }
-            .map { BpmnResource(fileName = it.name, content = it.readBytes()) }
-            .toList()
-    }
+    private fun walkForBpmnFiles(directory: Path): List<BpmnResource> = Files.walk(directory)
+        .filter { it.extension == "bpmn" }
+        .map { BpmnResource(fileName = it.name, content = it.readBytes()) }
+        .toList()
 }

@@ -30,12 +30,11 @@ class GenerateProcessApiServiceTest {
         codeGenerator = codeGenerator,
         bpmnFileLoader = bpmnFileLoader,
         bpmnService = bpmnService,
-        fileSystemOutput = fileSystemOutput
+        fileSystemOutput = fileSystemOutput,
     )
 
     @Test
     fun `generateProcessApi generates API file`() {
-
         // given: a dummy BPMN resource and a command
         val dummyResource = BpmnResource(
             fileName = "dummy.bpmn",
@@ -74,7 +73,6 @@ class GenerateProcessApiServiceTest {
 
     @Test
     fun `generateProcessApi skips a non-executable process`() {
-
         // given: a single non-executable model
         val draftResource = BpmnResource(fileName = "draft.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
         every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(draftResource)
@@ -91,7 +89,6 @@ class GenerateProcessApiServiceTest {
 
     @Test
     fun `generateProcessApi generates only the executable process when mixed`() {
-
         // given: one executable and one non-executable model
         val keepResource = BpmnResource(fileName = "keep.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
         val draftResource = BpmnResource(fileName = "draft.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
@@ -118,7 +115,6 @@ class GenerateProcessApiServiceTest {
 
     @Test
     fun `generateProcessApi produces no output when all processes are non-executable`() {
-
         // given: only non-executable models
         val draftOne = BpmnResource(fileName = "draft-1.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
         val draftTwo = BpmnResource(fileName = "draft-2.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
@@ -157,7 +153,6 @@ class GenerateProcessApiServiceTest {
     private fun getExpectedModelApi() = testProcessModelApi(
         model = dummyModel,
         packagePath = "de.emaarco.example",
-        language = OutputLanguage.KOTLIN
+        language = OutputLanguage.KOTLIN,
     )
-
 }

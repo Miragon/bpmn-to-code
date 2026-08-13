@@ -47,9 +47,7 @@ internal class BpmnFileLoader : LoadBpmnFilesPort {
      * sorting is not a total order. Segments are joined with `/` so the key is identical across
      * operating systems, and plain [String] ordering keeps it locale-independent.
      */
-    private fun relativeSortKey(searchDir: Path, file: Path): String {
-        return searchDir.relativize(file).joinToString("/") { it.toString() }
-    }
+    private fun relativeSortKey(searchDir: Path, file: Path): String = searchDir.relativize(file).joinToString("/") { it.toString() }
 
     private fun createMatcher(pattern: String): PathMatcher {
         val fs = FileSystems.getDefault()
@@ -61,7 +59,6 @@ internal class BpmnFileLoader : LoadBpmnFilesPort {
     }
 
     private fun resolvePattern(basePath: Path, pattern: String): Pair<Path, String> {
-
         if (!pattern.contains('/')) return basePath to pattern
 
         val segments = pattern.split('/')
@@ -91,7 +88,7 @@ internal class BpmnFileLoader : LoadBpmnFilesPort {
 
     private data class WildcardCheckResult(
         val position: Int,
-        val isPresent: Boolean
+        val isPresent: Boolean,
     ) {
         fun hasNoWildcard() = !isPresent
     }

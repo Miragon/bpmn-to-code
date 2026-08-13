@@ -6,10 +6,10 @@ import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.TaskImplementation
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class ExtractProcessModelsServiceTest {
 
@@ -17,7 +17,6 @@ class ExtractProcessModelsServiceTest {
 
     @Test
     fun `extracts one model per resource, in the order they were given`() {
-
         // given: two BPMN files targeting the same engine
         val resources = listOf(resource("c8-subscribe-newsletter.bpmn"), resource("c8-send-newsletter.bpmn"))
 
@@ -30,7 +29,6 @@ class ExtractProcessModelsServiceTest {
 
     @Test
     fun `the models carry what the engine dialect resolved`() {
-
         // given: the Camunda 8 model
         val models = underTest.extractProcessModels(command(listOf(resource("c8-subscribe-newsletter.bpmn"))))
 
@@ -43,14 +41,12 @@ class ExtractProcessModelsServiceTest {
 
     @Test
     fun `no resources means no models`() {
-
         // when / then: an empty input is not an error
         assertThat(underTest.extractProcessModels(command(emptyList()))).isEmpty()
     }
 
     @Test
     fun `the plugin wires the use case by default`() {
-
         // when: going through the inbound entry point without injecting anything
         val models = ExtractProcessModelsPlugin().execute(
             listOf(resource("c8-subscribe-newsletter.bpmn")),
@@ -63,7 +59,6 @@ class ExtractProcessModelsServiceTest {
 
     @Test
     fun `a broken resource fails with the file that caused it`() {
-
         // given: one good file and one that is not XML
         val resources = listOf(
             resource("c8-subscribe-newsletter.bpmn"),

@@ -21,7 +21,6 @@ class SecureBpmnParserTest {
 
     @Test
     fun `reports malformed XML as malformed, not as a DOCTYPE violation`() {
-
         // given: a file that is not well-formed XML at all
         val truncated = "<bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"".encodeToByteArray()
 
@@ -34,7 +33,6 @@ class SecureBpmnParserTest {
 
     @Test
     fun `reports an empty file as malformed`() {
-
         // given: an empty file, the shape a failed download or an empty resource takes
         assertThatThrownBy { SecureBpmnParser.readModelFromBytes(ByteArray(0)) }
             .isInstanceOf(IllegalArgumentException::class.java)

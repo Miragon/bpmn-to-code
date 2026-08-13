@@ -1,11 +1,11 @@
 package io.miragon.bpmn.adapter
 
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
 
 /**
  * Resolves the plugin from mavenLocal (published POM) instead of using withPluginClasspath().
@@ -23,7 +23,6 @@ class GradlePluginDependencyResolutionSmokeTest {
 
     @Test
     fun `plugin resolves all dependencies from published artifact`(@TempDir projectDir: File) {
-
         // given: a minimal project configured to resolve the plugin from mavenLocal
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/c8-subscribe-newsletter.bpmn"))
@@ -37,7 +36,7 @@ class GradlePluginDependencyResolutionSmokeTest {
                     mavenCentral()
                 }
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
         File(projectDir, "build.gradle").writeText(
             """
@@ -53,7 +52,7 @@ class GradlePluginDependencyResolutionSmokeTest {
                 outputLanguage = io.miragon.bpmn.domain.shared.OutputLanguage.KOTLIN
                 processEngine = io.miragon.bpmn.domain.shared.ProcessEngine.ZEEBE
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         // when: running WITHOUT withPluginClasspath() so Gradle resolves from mavenLocal
@@ -74,7 +73,6 @@ class GradlePluginDependencyResolutionSmokeTest {
 
     @Test
     fun `applying the plugin adds bpmn-to-code-runtime to the implementation configuration`(@TempDir projectDir: File) {
-
         // given: a Java project with the plugin resolved from mavenLocal
         File(projectDir, "settings.gradle").writeText(
             """
@@ -85,7 +83,7 @@ class GradlePluginDependencyResolutionSmokeTest {
                     mavenCentral()
                 }
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
         File(projectDir, "build.gradle").writeText(
             """
@@ -97,7 +95,7 @@ class GradlePluginDependencyResolutionSmokeTest {
                 mavenLocal()
                 mavenCentral()
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         // when: inspecting the implementation dependencies
@@ -112,7 +110,6 @@ class GradlePluginDependencyResolutionSmokeTest {
 
     @Test
     fun `generateBpmnModelJson resolves kotlinx-serialization from published artifact`(@TempDir projectDir: File) {
-
         // given: a minimal project configured to resolve the plugin from mavenLocal
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/c8-subscribe-newsletter.bpmn"))
@@ -126,7 +123,7 @@ class GradlePluginDependencyResolutionSmokeTest {
                     mavenCentral()
                 }
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
         File(projectDir, "build.gradle").writeText(
             """
@@ -140,7 +137,7 @@ class GradlePluginDependencyResolutionSmokeTest {
                 outputFolderPath = "${'$'}{projectDir}/build/generated-json"
                 processEngine = io.miragon.bpmn.domain.shared.ProcessEngine.ZEEBE
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         // when: running WITHOUT withPluginClasspath() so Gradle resolves from mavenLocal

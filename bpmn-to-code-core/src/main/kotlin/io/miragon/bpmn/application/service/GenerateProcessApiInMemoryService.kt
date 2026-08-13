@@ -21,7 +21,7 @@ class GenerateProcessApiInMemoryService(
     private val modelMergerService = ModelMergerService()
 
     override fun generateProcessApi(
-        command: GenerateProcessApiInMemoryUseCase.Command
+        command: GenerateProcessApiInMemoryUseCase.Command,
     ): List<GeneratedApiFile> {
         val validationService = BpmnValidationService(command.validationConfig)
         val modelsAsFiles = toBpmnFiles(command)
@@ -52,5 +52,4 @@ class GenerateProcessApiInMemoryService(
             content = it.bpmnXml.encodeToByteArray(),
         )
     }
-
 }

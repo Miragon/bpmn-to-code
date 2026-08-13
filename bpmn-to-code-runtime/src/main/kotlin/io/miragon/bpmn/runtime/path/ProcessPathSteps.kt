@@ -96,9 +96,7 @@ fun <NEXT, N : HasInnerScope<NavigationScope<NEXT>>> ProcessPath<N>.inside(
  * (AND) branches whose relative order isn't defined. Feed the result to `hasPassed` / `hasNotPassed`.
  */
 @SafeVarargs
-fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> {
-    return branches.flatMap { it }.distinct()
-}
+fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> = branches.flatMap { it }.distinct()
 
 /**
  * Re-anchor to an arbitrary node **without** recording it and **without** checking adjacency — the last-resort
@@ -106,6 +104,4 @@ fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> {
  * [RiskyNavigation] so every use is an explicit `@OptIn`; prefer the checked steps.
  */
 @RiskyNavigation
-fun <M : FlowNode> ProcessPath<*>.jumpTo(node: M): ProcessPath<M> {
-    return ProcessPath(current = node, recorded = nodes)
-}
+fun <M : FlowNode> ProcessPath<*>.jumpTo(node: M): ProcessPath<M> = ProcessPath(current = node, recorded = nodes)

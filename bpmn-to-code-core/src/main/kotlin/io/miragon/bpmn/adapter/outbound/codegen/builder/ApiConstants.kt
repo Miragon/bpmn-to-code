@@ -9,6 +9,4 @@ import io.miragon.bpmn.domain.shared.VariableMapping
  * of them may legitimately share a name. The generated API has no such id — a name yields exactly one
  * constant — so the collapsing happens here, at the point where names become identifiers.
  */
-internal fun <T : VariableMapping<*>> List<T>.asApiConstants(): List<T> {
-    return filter { it.getRawName().isNotEmpty() }.distinctBy { it.getRawName() }
-}
+internal fun <T : VariableMapping<*>> List<T>.asApiConstants(): List<T> = filter { it.getRawName().isNotEmpty() }.distinctBy { it.getRawName() }

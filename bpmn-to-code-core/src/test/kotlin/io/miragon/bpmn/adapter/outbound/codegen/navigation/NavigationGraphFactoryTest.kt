@@ -86,14 +86,12 @@ class NavigationGraphFactoryTest {
         assertThat(serviceTask.id).isEqualTo("serviceTask_incrementSubscriptionCounter")
         assertThat(serviceTask.elementType).isEqualTo("SERVICE_TASK")
         assertThat(serviceTask.objectName).isEqualTo("ServiceTaskIncrementSubscriptionCounter")
-        assertThat(serviceTask.name).isNull()   // no displayName in the model
+        assertThat(serviceTask.name).isNull() // no displayName in the model
 
         // ActivityConfirmRegistration declares displayName "Confirm registration"
         val confirm = graph.node("subProcessConfirmation").inner!!.node("activityConfirmRegistration")
         assertThat(confirm.name).isEqualTo("Confirm registration")
     }
 
-    private fun NavigationGraph.node(propertyName: String): NavigationNode {
-        return nodes.single { it.propertyName == propertyName }
-    }
+    private fun NavigationGraph.node(propertyName: String): NavigationNode = nodes.single { it.propertyName == propertyName }
 }

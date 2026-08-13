@@ -10,7 +10,7 @@ import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 
 internal class ExtractBpmnAdapter(
-    private val dialects: Map<ProcessEngine, EngineDialect> = ExtractBpmnAdapter.dialects
+    private val dialects: Map<ProcessEngine, EngineDialect> = ExtractBpmnAdapter.dialects,
 ) : ExtractBpmnPort {
 
     override fun extract(
@@ -24,12 +24,12 @@ internal class ExtractBpmnAdapter(
         } catch (ex: IllegalStateException) {
             throw IllegalStateException(
                 "Failed to extract file: ${bpmnFile.fileName}. Please check its a valid file for $engine",
-                ex
+                ex,
             )
         } catch (ex: IllegalArgumentException) {
             throw IllegalStateException(
                 "Failed to extract file: ${bpmnFile.fileName}. Please check its a valid file for $engine",
-                ex
+                ex,
             )
         }
     }

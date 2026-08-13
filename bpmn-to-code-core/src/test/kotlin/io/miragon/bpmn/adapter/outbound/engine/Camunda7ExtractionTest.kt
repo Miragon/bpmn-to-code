@@ -16,9 +16,9 @@ import io.miragon.bpmn.domain.shared.TimerDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class Camunda7ExtractionTest {
 
@@ -26,7 +26,6 @@ class Camunda7ExtractionTest {
 
     @Test
     fun `extract returns valid ProcessModel`() {
-
         // given: the Camunda 7 newsletter BPMN file from classpath
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
         val file = File(resourceUrl.toURI())
@@ -319,10 +318,10 @@ class Camunda7ExtractionTest {
 
         val flowsById = bpmnModel.sequenceFlows.associateBy { it.id }
         assertThat(flowsById["Flow_1jogut0"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1jogut0", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true)
+            SequenceFlowDefinition("Flow_1jogut0", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true),
         )
         assertThat(flowsById["Flow_1gsz7wd"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1gsz7wd", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "\${subscribers.size() > 0}")
+            SequenceFlowDefinition("Flow_1gsz7wd", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "\${subscribers.size() > 0}"),
         )
     }
 
@@ -351,7 +350,7 @@ class Camunda7ExtractionTest {
         assertThat(callActivity.propagateAllInputVariables).isTrue()
         assertThat(callActivity.propagateAllOutputVariables).isTrue()
         assertThat(callActivity.inputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "orderId", target = "businessKey")
+            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "orderId", target = "businessKey"),
         )
     }
 

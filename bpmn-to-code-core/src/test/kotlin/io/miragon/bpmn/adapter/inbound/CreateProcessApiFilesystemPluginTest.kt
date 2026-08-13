@@ -15,7 +15,6 @@ class CreateProcessApiFilesystemPluginTest {
 
     @Test
     fun `execute delegates to use case with correct command`() {
-
         // when: execute is called with all parameters
         underTest.execute(
             baseDir = "/path/to/bpmn",
@@ -36,7 +35,7 @@ class CreateProcessApiFilesystemPluginTest {
                     packagePath = "com.example.api",
                     outputLanguage = OutputLanguage.KOTLIN,
                     engine = ProcessEngine.ZEEBE,
-                )
+                ),
             )
         }
         confirmVerified(useCase)

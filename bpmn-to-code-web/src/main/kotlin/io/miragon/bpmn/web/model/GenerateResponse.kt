@@ -19,7 +19,7 @@ data class GenerateResponse(
     data class GeneratedFile(
         val fileName: String,
         val content: String,
-        val processId: String
+        val processId: String,
     )
 
     @Serializable
@@ -35,29 +35,29 @@ data class GenerateResponse(
         fun noFilesProvided() = GenerateResponse(
             success = false,
             files = emptyList(),
-            error = "No files provided"
+            error = "No files provided",
         )
 
         fun tooManyFiles() = GenerateResponse(
             success = false,
             files = emptyList(),
-            error = "Maximum 3 BPMN files allowed"
+            error = "Maximum 3 BPMN files allowed",
         )
 
         fun unknownError() = GenerateResponse(
             success = false,
             files = emptyList(),
             error = "Unknown error occurred",
-            statusCode = HttpStatusCode.InternalServerError
+            statusCode = HttpStatusCode.InternalServerError,
         )
 
         fun fromValidationException(
-            exception: BpmnValidationException
+            exception: BpmnValidationException,
         ) = GenerateResponse(
             success = false,
             files = emptyList(),
             error = exception.message,
-            statusCode = HttpStatusCode.BadRequest
+            statusCode = HttpStatusCode.BadRequest,
         )
     }
 }

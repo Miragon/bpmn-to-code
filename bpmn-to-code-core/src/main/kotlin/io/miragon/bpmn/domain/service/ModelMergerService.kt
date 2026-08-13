@@ -50,7 +50,7 @@ class ModelMergerService {
     private fun requireVariantNames(processId: String, models: List<ProcessModel>) {
         require(models.none { it.variantName.isNullOrBlank() }) {
             "Multiple BPMN files share process ID '$processId' but not all define a variantName. " +
-                    "Add a variantName extension property to each process."
+                "Add a variantName extension property to each process."
         }
     }
 

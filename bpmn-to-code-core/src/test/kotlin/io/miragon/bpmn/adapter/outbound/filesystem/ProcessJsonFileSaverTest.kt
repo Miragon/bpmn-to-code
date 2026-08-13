@@ -1,10 +1,10 @@
 package io.miragon.bpmn.adapter.outbound.filesystem
 
 import io.miragon.bpmn.domain.GeneratedJsonFile
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
 
 class ProcessJsonFileSaverTest {
 
@@ -12,7 +12,6 @@ class ProcessJsonFileSaverTest {
 
     @Test
     fun `writeFiles writes multiple files to output folder`(@TempDir tempDir: File) {
-
         // given: multiple generated JSON files
         val firstFile = GeneratedJsonFile(fileName = "order.json", content = """{"process":"order"}""")
         val secondFile = GeneratedJsonFile(fileName = "payment.json", content = """{"process":"payment"}""")
@@ -32,7 +31,6 @@ class ProcessJsonFileSaverTest {
 
     @Test
     fun `writeFiles creates output folder if it does not exist`(@TempDir tempDir: File) {
-
         // given: a non-existent output subfolder
         val newFolder = File(tempDir, "generated/json")
         val file = GeneratedJsonFile(fileName = "order.json", content = "{}")

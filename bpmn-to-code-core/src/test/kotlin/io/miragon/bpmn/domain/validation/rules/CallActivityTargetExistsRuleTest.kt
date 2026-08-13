@@ -25,7 +25,6 @@ class CallActivityTargetExistsRuleTest {
 
     @Test
     fun `reports error when the called process is absent from the loaded models`() {
-
         // given: a caller referencing a process that was not loaded
         val model = caller(processId = "orderFulfillment", callId = "call1", calledElement = "paymentProcessing")
 
@@ -41,7 +40,6 @@ class CallActivityTargetExistsRuleTest {
 
     @Test
     fun `no violations when the called process is present among the loaded models`() {
-
         // given: both the caller and the called process are loaded
         val caller = caller(processId = "orderFulfillment", callId = "call1", calledElement = "paymentProcessing")
         val called = testProcessModel(processId = "paymentProcessing")
@@ -55,7 +53,6 @@ class CallActivityTargetExistsRuleTest {
 
     @Test
     fun `ignores call activities without a called element`() {
-
         // given: a call activity with no called element - the concern of MissingCalledElementRule
         val model = caller(processId = "orderFulfillment", callId = "call1", calledElement = null)
 

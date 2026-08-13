@@ -34,49 +34,37 @@ class ProcessGraph(
     /**
      * Ids of the flow nodes that precede [node], resolved through its incoming sequence flows.
      */
-    fun previousElementsOf(node: FlowNodeDefinition): List<String> {
-        return node.incoming.mapNotNull { flowById[it]?.sourceRef }
-    }
+    fun previousElementsOf(node: FlowNodeDefinition): List<String> = node.incoming.mapNotNull { flowById[it]?.sourceRef }
 
     /**
      * Ids of the flow nodes that follow [node], resolved through its outgoing sequence flows.
      */
-    fun followingElementsOf(node: FlowNodeDefinition): List<String> {
-        return node.outgoing.mapNotNull { flowById[it]?.targetRef }
-    }
+    fun followingElementsOf(node: FlowNodeDefinition): List<String> = node.outgoing.mapNotNull { flowById[it]?.targetRef }
 
     /**
      * Boundary events attached to [node]; empty for anything that is not an activity.
      */
-    fun attachedElementsOf(node: FlowNodeDefinition): List<String> {
-        return (node as? FlowNodeDefinition.Activity)?.boundaryEventRefs ?: emptyList()
-    }
+    fun attachedElementsOf(node: FlowNodeDefinition): List<String> = (node as? FlowNodeDefinition.Activity)?.boundaryEventRefs ?: emptyList()
 
-    private fun flatten(nodes: List<FlowNodeDefinition>): List<FlowNodeDefinition> {
-        return nodes.flatMap { node ->
-            if (node is FlowNodeDefinition.Activity.SubProcess) {
-                listOf(node) + flatten(node.flowNodes)
-            } else {
-                listOf(node)
-            }
+    private fun flatten(nodes: List<FlowNodeDefinition>): List<FlowNodeDefinition> = nodes.flatMap { node ->
+        if (node is FlowNodeDefinition.Activity.SubProcess) {
+            listOf(node) + flatten(node.flowNodes)
+        } else {
+            listOf(node)
         }
     }
 
-    private fun nestedFlows(nodes: List<FlowNodeDefinition>): List<SequenceFlowDefinition> {
-        return nodes.filterIsInstance<FlowNodeDefinition.Activity.SubProcess>()
-            .flatMap { it.sequenceFlows + nestedFlows(it.flowNodes) }
-    }
+    private fun nestedFlows(nodes: List<FlowNodeDefinition>): List<SequenceFlowDefinition> = nodes.filterIsInstance<FlowNodeDefinition.Activity.SubProcess>()
+        .flatMap { it.sequenceFlows + nestedFlows(it.flowNodes) }
 
     private fun buildParentIndex(
         nodes: List<FlowNodeDefinition>,
         parentId: String?,
-    ): Map<String, String> {
-        return buildMap {
-            nodes.forEach { node ->
-                if (parentId != null && node.id != null) put(node.id!!, parentId)
-                if (node is FlowNodeDefinition.Activity.SubProcess) {
-                    putAll(buildParentIndex(node.flowNodes, node.id))
-                }
+    ): Map<String, String> = buildMap {
+        nodes.forEach { node ->
+            if (parentId != null && node.id != null) put(node.id!!, parentId)
+            if (node is FlowNodeDefinition.Activity.SubProcess) {
+                putAll(buildParentIndex(node.flowNodes, node.id))
             }
         }
     }

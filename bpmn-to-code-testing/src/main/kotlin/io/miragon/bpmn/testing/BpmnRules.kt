@@ -164,19 +164,17 @@ object BpmnRules {
      * explicitly via [BpmnValidator.withRules].
      */
     @JvmStatic
-    fun all(): List<SingleModelValidationRule> {
-        return listOf(
-            MISSING_SERVICE_TASK_IMPLEMENTATION,
-            MISSING_MESSAGE_NAME,
-            MISSING_ERROR_DEFINITION,
-            MISSING_SIGNAL_NAME,
-            UNREFERENCED_ROOT_ELEMENT,
-            MISSING_TIMER_DEFINITION,
-            MISSING_CALLED_ELEMENT,
-            MISSING_ELEMENT_ID,
-            EMPTY_PROCESS,
-            MISSING_PROCESS_ID,
-            COLLISION_DETECTION,
-        )
-    }
+    fun all(): List<SingleModelValidationRule> = listOf(
+        MISSING_SERVICE_TASK_IMPLEMENTATION,
+        MISSING_MESSAGE_NAME,
+        MISSING_ERROR_DEFINITION,
+        MISSING_SIGNAL_NAME,
+        UNREFERENCED_ROOT_ELEMENT,
+        MISSING_TIMER_DEFINITION,
+        MISSING_CALLED_ELEMENT,
+        MISSING_ELEMENT_ID,
+        EMPTY_PROCESS,
+        MISSING_PROCESS_ID,
+        COLLISION_DETECTION,
+    )
 }

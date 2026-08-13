@@ -17,7 +17,6 @@ class CreateProcessJsonInMemoryPluginTest {
 
     @Test
     fun `execute delegates to use case and returns generated files`() {
-
         // given: multiple BpmnInput objects
         val firstInput = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = "<bpmn>first</bpmn>", processName = "first.bpmn")
         val secondInput = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = "<bpmn>second</bpmn>", processName = "second.bpmn")
@@ -42,7 +41,7 @@ class CreateProcessJsonInMemoryPluginTest {
                         GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>first</bpmn>", processName = "first.bpmn"),
                         GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>second</bpmn>", processName = "second.bpmn"),
                     ),
-                )
+                ),
             )
         }
         assertThat(result).isEqualTo(expectedFiles)

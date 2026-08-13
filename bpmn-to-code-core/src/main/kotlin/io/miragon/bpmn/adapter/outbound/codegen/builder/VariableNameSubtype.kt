@@ -10,7 +10,8 @@ import io.miragon.bpmn.domain.shared.VariableDirection
 internal enum class VariableNameSubtype(val simpleName: String) {
     INPUT("Input"),
     OUTPUT("Output"),
-    IN_OUT("InOut");
+    IN_OUT("InOut"),
+    ;
 
     companion object {
         fun chooseFor(directions: Set<VariableDirection>): VariableNameSubtype {

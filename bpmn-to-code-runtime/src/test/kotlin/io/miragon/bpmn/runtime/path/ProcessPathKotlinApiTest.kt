@@ -1,9 +1,9 @@
 package io.miragon.bpmn.runtime.path
 
-import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
 import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations.SubProcessConfirmation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
 
 /**
  * Exercises [ProcessPath] over the *actually generated* Kotlin Newsletter API — which doubles as the compile

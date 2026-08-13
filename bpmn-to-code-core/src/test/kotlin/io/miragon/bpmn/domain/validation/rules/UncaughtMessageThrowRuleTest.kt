@@ -26,15 +26,12 @@ class UncaughtMessageThrowRuleTest {
 
     private fun catchNode(id: String, message: String) = messageEvent(id, message, EventShape.INTERMEDIATE_CATCH_EVENT)
 
-    private fun model(processId: String, vararg nodes: FlowNodeDefinition) =
-        testProcessModel(processId = processId, flowNodes = nodes.toList())
+    private fun model(processId: String, vararg nodes: FlowNodeDefinition) = testProcessModel(processId = processId, flowNodes = nodes.toList())
 
-    private fun validate(vararg models: ProcessModel) =
-        underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
+    private fun validate(vararg models: ProcessModel) = underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
 
     @Test
     fun `warns on a thrown message that is never caught in the fileset`() {
-
         // given: a single model that throws a message no one catches
         val thrower = model("orderPlacement", throwNode("throw1", "OrderShipped"))
 
@@ -51,7 +48,6 @@ class UncaughtMessageThrowRuleTest {
 
     @Test
     fun `no warning when a catcher exists in the same model`() {
-
         // given: the throw and a matching catch live in one model
         val model = model("orderPlacement", throwNode("throw1", "OrderShipped"), catchNode("catch1", "OrderShipped"))
 
@@ -64,7 +60,6 @@ class UncaughtMessageThrowRuleTest {
 
     @Test
     fun `no warning when the catcher lives in another loaded model`() {
-
         // given: the message is thrown in one process and caught in another - the cross-model case
         val thrower = model("orderPlacement", throwNode("throw1", "OrderShipped"))
         val catcher = model("shipping", catchNode("catch1", "OrderShipped"))
@@ -78,7 +73,6 @@ class UncaughtMessageThrowRuleTest {
 
     @Test
     fun `warns only for the message whose catcher is missing`() {
-
         // given: two thrown messages, only one of which is caught anywhere
         val thrower = model("orderPlacement", throwNode("throw1", "OrderShipped"), throwNode("throw2", "OrderCancelled"))
         val catcher = model("shipping", catchNode("catch1", "OrderShipped"))

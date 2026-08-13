@@ -14,19 +14,16 @@ class MissingErrorDefinitionRuleTest {
 
     private val underTest = MissingErrorDefinitionRule()
 
-    private fun errorEvent(id: String, errorRef: String?, errorName: String?, errorCode: String?) =
-        FlowNodeDefinition.Event(
-            id = id,
-            shape = EventShape.END_EVENT,
-            eventDefinitions = listOf(EventDefinitionInstance.Error(errorRef, errorName, errorCode)),
-        )
+    private fun errorEvent(id: String, errorRef: String?, errorName: String?, errorCode: String?) = FlowNodeDefinition.Event(
+        id = id,
+        shape = EventShape.END_EVENT,
+        eventDefinitions = listOf(EventDefinitionInstance.Error(errorRef, errorName, errorCode)),
+    )
 
-    private fun validate(node: FlowNodeDefinition) =
-        underTest.validate(SingleModelValidationContext(model = testProcessModel(flowNodes = listOf(node)), engine = ProcessEngine.ZEEBE))
+    private fun validate(node: FlowNodeDefinition) = underTest.validate(SingleModelValidationContext(model = testProcessModel(flowNodes = listOf(node)), engine = ProcessEngine.ZEEBE))
 
     @Test
     fun `reports error for an error event whose definition has no name`() {
-
         // given: an error event referencing an error root element but carrying no name
         val node = errorEvent(id = "errorEnd1", errorRef = "Error_1", errorName = null, errorCode = "500")
 
@@ -39,7 +36,6 @@ class MissingErrorDefinitionRuleTest {
 
     @Test
     fun `reports error for an error event whose definition has no code`() {
-
         // given: an error event referencing an error root element but carrying no code
         val node = errorEvent(id = "errorEnd1", errorRef = "Error_1", errorName = "MyError", errorCode = null)
 
@@ -50,7 +46,6 @@ class MissingErrorDefinitionRuleTest {
 
     @Test
     fun `no violations for an error event with all fields`() {
-
         // given: a fully defined error event
         val node = errorEvent(id = "errorEnd1", errorRef = "Error_1", errorName = "MyError", errorCode = "500")
 
@@ -60,7 +55,6 @@ class MissingErrorDefinitionRuleTest {
 
     @Test
     fun `does not flag a catch-all error event without an errorRef`() {
-
         // given: an error boundary event that catches any error (no errorRef, no name, no code)
         val node = errorEvent(id = "catchAll", errorRef = null, errorName = null, errorCode = null)
 

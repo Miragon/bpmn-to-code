@@ -14,7 +14,6 @@ class EmptyProcessRuleTest {
 
     @Test
     fun `reports warning for process with no elements`() {
-
         // given: a model with no flow nodes
         val model = testProcessModel(flowNodes = emptyList())
 
@@ -26,10 +25,9 @@ class EmptyProcessRuleTest {
 
     @Test
     fun `no violations for process with elements`() {
-
         // given: a model with at least one flow node
         val model = testProcessModel(
-            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_Task1"))
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_Task1")),
         )
 
         // when / then: no violations

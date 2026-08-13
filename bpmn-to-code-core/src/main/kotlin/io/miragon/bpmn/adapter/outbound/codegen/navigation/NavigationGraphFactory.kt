@@ -71,13 +71,11 @@ object NavigationGraphFactory {
         node: FlowNodeWithId,
         childrenByParent: Map<String?, List<FlowNodeWithId>>,
         graph: ProcessGraph,
-    ): NavigationGraph? {
-        return if (node.definition is FlowNodeDefinition.Activity.SubProcess) {
-            buildScope(parentId = node.id, childrenByParent = childrenByParent, graph = graph)
-                .takeIf { it.nodes.isNotEmpty() }
-        } else {
-            null
-        }
+    ): NavigationGraph? = if (node.definition is FlowNodeDefinition.Activity.SubProcess) {
+        buildScope(parentId = node.id, childrenByParent = childrenByParent, graph = graph)
+            .takeIf { it.nodes.isNotEmpty() }
+    } else {
+        null
     }
 
     /**
@@ -89,20 +87,14 @@ object NavigationGraphFactory {
         node: FlowNodeDefinition,
         scopeNames: Map<String, NavigationNaming.Names>,
         graph: ProcessGraph,
-    ): List<NavigationEdge> {
-        return (graph.followingElementsOf(node) + graph.attachedElementsOf(node))
-            .distinct()
-            .mapNotNull { targetId -> scopeNames[targetId] }
-            .distinctBy { it.objectName }
-            .sortedBy { it.propertyName }
-            .map { NavigationEdge(propertyName = it.propertyName, objectName = it.objectName) }
-    }
+    ): List<NavigationEdge> = (graph.followingElementsOf(node) + graph.attachedElementsOf(node))
+        .distinct()
+        .mapNotNull { targetId -> scopeNames[targetId] }
+        .distinctBy { it.objectName }
+        .sortedBy { it.propertyName }
+        .map { NavigationEdge(propertyName = it.propertyName, objectName = it.objectName) }
 
-    private fun FlowNodeDefinition.isStartEvent(): Boolean {
-        return this is FlowNodeDefinition.Event && shape == EventShape.START_EVENT
-    }
+    private fun FlowNodeDefinition.isStartEvent(): Boolean = this is FlowNodeDefinition.Event && shape == EventShape.START_EVENT
 
-    private fun FlowNodeDefinition.calledProcessId(): String? {
-        return (this as? FlowNodeDefinition.Activity.CallActivity)?.definition?.getValue()?.ifBlank { null }
-    }
+    private fun FlowNodeDefinition.calledProcessId(): String? = (this as? FlowNodeDefinition.Activity.CallActivity)?.definition?.getValue()?.ifBlank { null }
 }

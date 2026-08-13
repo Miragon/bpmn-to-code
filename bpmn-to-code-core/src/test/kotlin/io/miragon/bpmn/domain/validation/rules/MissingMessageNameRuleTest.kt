@@ -16,12 +16,10 @@ class MissingMessageNameRuleTest {
 
     private val underTest = MissingMessageNameRule()
 
-    private fun validate(node: FlowNodeDefinition) =
-        underTest.validate(SingleModelValidationContext(model = testProcessModel(flowNodes = listOf(node)), engine = ProcessEngine.ZEEBE))
+    private fun validate(node: FlowNodeDefinition) = underTest.validate(SingleModelValidationContext(model = testProcessModel(flowNodes = listOf(node)), engine = ProcessEngine.ZEEBE))
 
     @Test
     fun `reports error for a message event whose message has no name`() {
-
         // given: a message catch event whose message reference carries no name
         val node = FlowNodeDefinition.Event(
             id = "msgEvent1",
@@ -38,7 +36,6 @@ class MissingMessageNameRuleTest {
 
     @Test
     fun `no violations for a message event with a valid name`() {
-
         // given: a message catch event whose message reference has a name
         val node = FlowNodeDefinition.Event(
             id = "msgEvent1",
@@ -52,7 +49,6 @@ class MissingMessageNameRuleTest {
 
     @Test
     fun `does not flag a message throw event that carries no message reference`() {
-
         // given: a Zeebe message end event that publishes via a job worker, with an empty message reference
         val node = FlowNodeDefinition.Event(
             id = "msgThrow1",
@@ -66,7 +62,6 @@ class MissingMessageNameRuleTest {
 
     @Test
     fun `reports error for a send task whose message has no name`() {
-
         // given: a send task that references a message with no name
         val node = FlowNodeDefinition.Activity.Task(
             id = "send1",
@@ -82,7 +77,6 @@ class MissingMessageNameRuleTest {
 
     @Test
     fun `does not flag a send task with no message`() {
-
         // given: a send task that carries no message at all - not this rule's concern
         val node = FlowNodeDefinition.Activity.Task(id = "send1", kind = TaskKind.SEND, message = null)
 

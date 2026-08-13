@@ -20,13 +20,12 @@ class CollisionDetectionRuleTest {
 
     @Test
     fun `reports collision when different IDs normalize to same constant`() {
-
         // given: two flow nodes that differ only in separator
         val model = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Unknown(id = "endEvent_complete"),
                 FlowNodeDefinition.Unknown(id = "endEvent-complete"),
-            )
+            ),
         )
 
         // when: validating
@@ -40,14 +39,13 @@ class CollisionDetectionRuleTest {
 
     @Test
     fun `reports collision when different IDs fold to the same object name`() {
-
         // given: two flow nodes whose ids keep distinct constants but fold to the same
         // PascalCase object name (previously emitted two non-compiling `object Foo`)
         val model = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Unknown(id = "foo"),
                 FlowNodeDefinition.Unknown(id = "-foo"),
-            )
+            ),
         )
 
         // when: validating
@@ -61,13 +59,12 @@ class CollisionDetectionRuleTest {
 
     @Test
     fun `no violations when no collisions`() {
-
         // given: two flow nodes with distinct constant names
         val model = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Unknown(id = "Activity_One"),
                 FlowNodeDefinition.Unknown(id = "Activity_Two"),
-            )
+            ),
         )
 
         // when / then: no violations

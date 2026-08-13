@@ -23,16 +23,15 @@ class GenerateProcessApiInMemoryServiceTest {
 
     private val underTest = GenerateProcessApiInMemoryService(
         codeGenerator = codeGenerator,
-        bpmnService = bpmnService
+        bpmnService = bpmnService,
     )
 
     @Test
     fun `service generates API files from BPMN content`() {
-
         // given: BPMN content
         val bpmnInput = GenerateProcessApiInMemoryUseCase.BpmnInput(
             bpmnXml = "<bpmn>test</bpmn>",
-            processName = "test.bpmn"
+            processName = "test.bpmn",
         )
         val expectedGeneratedFile = GeneratedApiFile(
             fileName = "TestProcessApi.kt",
@@ -47,7 +46,7 @@ class GenerateProcessApiInMemoryServiceTest {
             bpmnContents = listOf(bpmnInput),
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
-            engine = ProcessEngine.ZEEBE
+            engine = ProcessEngine.ZEEBE,
         )
 
         // when: generateProcessApi is called
@@ -63,18 +62,17 @@ class GenerateProcessApiInMemoryServiceTest {
 
     @Test
     fun `service rejects a model that targets a different engine before generating`() {
-
         // given: a model detected as Camunda 7 but generation requested for Operaton
         val bpmnInput = GenerateProcessApiInMemoryUseCase.BpmnInput(
             bpmnXml = "<bpmn>camunda</bpmn>",
-            processName = "newsletter.bpmn"
+            processName = "newsletter.bpmn",
         )
         every { bpmnService.extract(any(), any()) } returns dummyModel.copy(detectedEngine = ProcessEngine.CAMUNDA_7)
         val command = GenerateProcessApiInMemoryUseCase.Command(
             bpmnContents = listOf(bpmnInput),
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
-            engine = ProcessEngine.OPERATON
+            engine = ProcessEngine.OPERATON,
         )
 
         // when / then: it fails with a single engine-mismatch error and never generates code

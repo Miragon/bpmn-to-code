@@ -21,7 +21,7 @@ class ValidationResultTest {
     @Test
     fun `result with errors has failures regardless of failOnWarning`() {
         val result = ValidationResult(
-            listOf(violation(Severity.ERROR))
+            listOf(violation(Severity.ERROR)),
         )
         assertThat(result.isValid).isFalse()
         assertThat(result.hasErrors).isTrue()
@@ -34,7 +34,7 @@ class ValidationResultTest {
     @Test
     fun `result with only warnings does not fail by default`() {
         val result = ValidationResult(
-            listOf(violation(Severity.WARN))
+            listOf(violation(Severity.WARN)),
         )
         assertThat(result.isValid).isFalse()
         assertThat(result.hasErrors).isFalse()
@@ -46,7 +46,7 @@ class ValidationResultTest {
     @Test
     fun `result with only warnings fails when failOnWarning is true`() {
         val result = ValidationResult(
-            listOf(violation(Severity.WARN))
+            listOf(violation(Severity.WARN)),
         )
         assertThat(result.hasFailures(failOnWarning = true)).isTrue()
     }
@@ -54,7 +54,7 @@ class ValidationResultTest {
     @Test
     fun `result with mixed errors and warnings`() {
         val result = ValidationResult(
-            listOf(violation(Severity.ERROR), violation(Severity.WARN), violation(Severity.WARN))
+            listOf(violation(Severity.ERROR), violation(Severity.WARN), violation(Severity.WARN)),
         )
         assertThat(result.errors).hasSize(1)
         assertThat(result.warnings).hasSize(2)

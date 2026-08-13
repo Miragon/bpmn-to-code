@@ -24,7 +24,6 @@ class ProcessJsonActivityFacetsTest {
 
     @Test
     fun `multi-instance loop characteristics reach the json for every engine`() {
-
         // when
         val documents = sendNewsletterPerEngine()
 
@@ -45,7 +44,6 @@ class ProcessJsonActivityFacetsTest {
 
     @Test
     fun `io mappings reach the json for every engine`() {
-
         // when
         val documents = sendNewsletterPerEngine()
 
@@ -60,7 +58,6 @@ class ProcessJsonActivityFacetsTest {
 
     @Test
     fun `the zeebe output collection binding is preserved verbatim`() {
-
         // given: only Zeebe models an output collection, so it is asserted on its own
         val document = sendNewsletterPerEngine().getValue(ProcessEngine.ZEEBE)
 
@@ -73,7 +70,6 @@ class ProcessJsonActivityFacetsTest {
 
     @Test
     fun `activities without either facet omit both fields`() {
-
         // when
         val document = sendNewsletterPerEngine().getValue(ProcessEngine.ZEEBE)
 
@@ -86,13 +82,11 @@ class ProcessJsonActivityFacetsTest {
     /**
      * The send-newsletter fixture — the only one carrying both facets — generated for every engine.
      */
-    private fun sendNewsletterPerEngine(): Map<ProcessEngine, JsonObject> {
-        return mapOf(
-            ProcessEngine.ZEEBE to generate(ProcessEngine.ZEEBE, "c8-send-newsletter"),
-            ProcessEngine.CAMUNDA_7 to generate(ProcessEngine.CAMUNDA_7, "c7-send-newsletter"),
-            ProcessEngine.OPERATON to generate(ProcessEngine.OPERATON, "operaton-send-newsletter"),
-        )
-    }
+    private fun sendNewsletterPerEngine(): Map<ProcessEngine, JsonObject> = mapOf(
+        ProcessEngine.ZEEBE to generate(ProcessEngine.ZEEBE, "c8-send-newsletter"),
+        ProcessEngine.CAMUNDA_7 to generate(ProcessEngine.CAMUNDA_7, "c7-send-newsletter"),
+        ProcessEngine.OPERATON to generate(ProcessEngine.OPERATON, "operaton-send-newsletter"),
+    )
 
     private fun generate(engine: ProcessEngine, fixture: String): JsonObject {
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
@@ -103,17 +97,13 @@ class ProcessJsonActivityFacetsTest {
         return Json.parseToJsonElement(generated.content).jsonObject
     }
 
-    private fun JsonObject.flowNode(id: String): JsonObject {
-        return getValue("process").jsonObject
-            .getValue("flowNodes").jsonArray
-            .map { it.jsonObject }
-            .single { it.text("id") == id }
-    }
+    private fun JsonObject.flowNode(id: String): JsonObject = getValue("process").jsonObject
+        .getValue("flowNodes").jsonArray
+        .map { it.jsonObject }
+        .single { it.text("id") == id }
 
     private fun JsonObject.text(field: String): String? = this[field]?.jsonPrimitive?.content
 
-    private fun readResource(path: String): String {
-        return requireNotNull(javaClass.getResourceAsStream(path)) { "missing test resource $path" }
-            .use { it.readBytes().decodeToString() }
-    }
+    private fun readResource(path: String): String = requireNotNull(javaClass.getResourceAsStream(path)) { "missing test resource $path" }
+        .use { it.readBytes().decodeToString() }
 }

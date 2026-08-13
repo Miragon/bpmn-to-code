@@ -13,17 +13,15 @@ class MissingSignalNameRule : SingleModelValidationRule {
     override val id = "missing-signal-name"
     override val severity = Severity.ERROR
 
-    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        return context.model.definitions.signals
-            .filter { !it.hasName() }
-            .map {
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = null,
-                    processId = context.model.processId,
-                    message = "Signal event definition is missing a 'name' attribute.",
-                )
-            }
-    }
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.definitions.signals
+        .filter { !it.hasName() }
+        .map {
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = null,
+                processId = context.model.processId,
+                message = "Signal event definition is missing a 'name' attribute.",
+            )
+        }
 }

@@ -25,15 +25,12 @@ class UncaughtSignalThrowRuleTest {
 
     private fun catchNode(id: String, signal: String) = signalEvent(id, signal, EventShape.INTERMEDIATE_CATCH_EVENT)
 
-    private fun model(processId: String, vararg nodes: FlowNodeDefinition) =
-        testProcessModel(processId = processId, flowNodes = nodes.toList())
+    private fun model(processId: String, vararg nodes: FlowNodeDefinition) = testProcessModel(processId = processId, flowNodes = nodes.toList())
 
-    private fun validate(vararg models: ProcessModel) =
-        underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
+    private fun validate(vararg models: ProcessModel) = underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
 
     @Test
     fun `warns on a thrown signal that is never caught in the fileset`() {
-
         // given: a single model that throws a signal no one subscribes to
         val thrower = model("registration", throwNode("throw1", "RegistrationBlocked"))
 
@@ -50,7 +47,6 @@ class UncaughtSignalThrowRuleTest {
 
     @Test
     fun `no warning when a catcher exists in the same model`() {
-
         // given: the throw and a matching catch live in one model
         val model = model("registration", throwNode("throw1", "RegistrationBlocked"), catchNode("catch1", "RegistrationBlocked"))
 
@@ -63,7 +59,6 @@ class UncaughtSignalThrowRuleTest {
 
     @Test
     fun `no warning when the catcher lives in another loaded model`() {
-
         // given: the signal is thrown in one process and caught in another - the cross-model case
         val thrower = model("registration", throwNode("throw1", "RegistrationBlocked"))
         val catcher = model("monitoring", catchNode("catch1", "RegistrationBlocked"))
@@ -77,7 +72,6 @@ class UncaughtSignalThrowRuleTest {
 
     @Test
     fun `warns only for the signal whose catcher is missing`() {
-
         // given: two thrown signals, only one of which is caught anywhere
         val thrower = model("registration", throwNode("throw1", "RegistrationBlocked"), throwNode("throw2", "AccountLocked"))
         val catcher = model("monitoring", catchNode("catch1", "RegistrationBlocked"))

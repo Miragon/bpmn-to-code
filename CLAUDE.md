@@ -62,6 +62,17 @@ lefthook install
 ./gradlew :bpmn-to-code-maven:test
 ```
 
+### Code Quality (ktlint + detekt)
+Kotlin quality is enforced by ktlint (formatting/imports) and detekt (semantic/structural). Both are
+wired into `check`/`build` and gate CI + the pre-push hook.
+```bash
+./gradlew lintKotlin    # ktlint check
+./gradlew formatKotlin  # ktlint auto-fix
+./gradlew detekt        # detekt
+```
+No baseline and no silent suppressions — fix findings or add a scoped exception in the relevant
+config. ktlint config lives in `.editorconfig`, detekt config in `config/detekt/detekt.yml`.
+
 ### Plugin Development
 The plugins generate code from BPMN files. Key configuration parameters:
 - `filePattern`: BPMN file location pattern

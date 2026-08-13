@@ -13,11 +13,9 @@ import io.miragon.bpmn.web.model.GenerateResponse
 import io.miragon.bpmn.web.service.WebGenerationService
 
 fun Route.generateRoutes(
-    generationService: WebGenerationService
+    generationService: WebGenerationService,
 ) {
-
     post("/api/generate") {
-
         val request = call.receive<GenerateRequest>()
 
         if (request.files.isEmpty()) {

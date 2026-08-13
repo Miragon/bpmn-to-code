@@ -32,13 +32,11 @@ internal object FlowNodeSorter {
         val visited = mutableSetOf<String?>()
         val result = mutableListOf<FlowNodeDefinition>()
 
-        fun successorsOf(node: FlowNodeDefinition): List<FlowNodeDefinition> {
-            return node.outgoing
-                .mapNotNull { targetsByFlowId[it] }
-                .mapNotNull { nodeById[it] }
-                .filter { it.id !in visited }
-                .sortedBy { it.id ?: "" }
-        }
+        fun successorsOf(node: FlowNodeDefinition): List<FlowNodeDefinition> = node.outgoing
+            .mapNotNull { targetsByFlowId[it] }
+            .mapNotNull { nodeById[it] }
+            .filter { it.id !in visited }
+            .sortedBy { it.id ?: "" }
 
         fun visit(node: FlowNodeDefinition) {
             if (node.id in visited) return
@@ -67,11 +65,7 @@ internal object FlowNodeSorter {
         return result
     }
 
-    private fun FlowNodeDefinition.isNotBoundaryEvent(): Boolean {
-        return (this as? FlowNodeDefinition.Event)?.shape != EventShape.BOUNDARY_EVENT
-    }
+    private fun FlowNodeDefinition.isNotBoundaryEvent(): Boolean = (this as? FlowNodeDefinition.Event)?.shape != EventShape.BOUNDARY_EVENT
 
-    private fun FlowNodeDefinition.isStartEvent(): Boolean {
-        return (this as? FlowNodeDefinition.Event)?.shape == EventShape.START_EVENT
-    }
+    private fun FlowNodeDefinition.isStartEvent(): Boolean = (this as? FlowNodeDefinition.Event)?.shape == EventShape.START_EVENT
 }

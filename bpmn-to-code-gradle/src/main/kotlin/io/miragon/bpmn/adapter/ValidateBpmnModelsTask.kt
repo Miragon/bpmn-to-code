@@ -13,7 +13,7 @@ import org.gradle.work.DisableCachingByDefault
 
 @Incubating
 @DisableCachingByDefault(
-    because = "Validation depends on BPMN files that can change at any time without the plugin knowing about it"
+    because = "Validation depends on BPMN files that can change at any time without the plugin knowing about it",
 )
 abstract class ValidateBpmnModelsTask : DefaultTask() {
 
@@ -57,7 +57,7 @@ abstract class ValidateBpmnModelsTask : DefaultTask() {
 
         if (result.hasFailures(failOnWarning)) {
             throw GradleException(
-                "BPMN validation failed: ${result.errors.size} error(s), ${result.warnings.size} warning(s)"
+                "BPMN validation failed: ${result.errors.size} error(s), ${result.warnings.size} warning(s)",
             )
         }
         logger.lifecycle("BPMN validation passed")
@@ -69,6 +69,5 @@ abstract class ValidateBpmnModelsTask : DefaultTask() {
         check(this::processEngine.isInitialized) { "processEngine must be configured in bpmnToCode { ... }" }
     }
 
-    private fun formatLocation(v: ValidationViolation): String =
-        if (v.elementId != null) "${v.processId}/${v.elementId}" else v.processId
+    private fun formatLocation(v: ValidationViolation): String = if (v.elementId != null) "${v.processId}/${v.elementId}" else v.processId
 }

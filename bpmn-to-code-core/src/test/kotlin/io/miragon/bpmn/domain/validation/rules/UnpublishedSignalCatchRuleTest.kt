@@ -25,15 +25,12 @@ class UnpublishedSignalCatchRuleTest {
 
     private fun catchNode(id: String, signal: String) = signalEvent(id, signal, EventShape.INTERMEDIATE_CATCH_EVENT)
 
-    private fun model(processId: String, vararg nodes: FlowNodeDefinition) =
-        testProcessModel(processId = processId, flowNodes = nodes.toList())
+    private fun model(processId: String, vararg nodes: FlowNodeDefinition) = testProcessModel(processId = processId, flowNodes = nodes.toList())
 
-    private fun validate(vararg models: ProcessModel) =
-        underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
+    private fun validate(vararg models: ProcessModel) = underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
 
     @Test
     fun `warns on a caught signal that is never thrown in the fileset`() {
-
         // given: a single model that subscribes to a signal no one publishes
         val subscriber = model("monitoring", catchNode("catch1", "RegistrationBlocked"))
 
@@ -50,7 +47,6 @@ class UnpublishedSignalCatchRuleTest {
 
     @Test
     fun `no warning when a thrower exists in the same model`() {
-
         // given: the catch and a matching throw live in one model
         val model = model("monitoring", catchNode("catch1", "RegistrationBlocked"), throwNode("throw1", "RegistrationBlocked"))
 
@@ -63,7 +59,6 @@ class UnpublishedSignalCatchRuleTest {
 
     @Test
     fun `no warning when the thrower lives in another loaded model`() {
-
         // given: the signal is caught in one process and thrown in another - the cross-model case
         val subscriber = model("monitoring", catchNode("catch1", "RegistrationBlocked"))
         val publisher = model("registration", throwNode("throw1", "RegistrationBlocked"))
@@ -77,7 +72,6 @@ class UnpublishedSignalCatchRuleTest {
 
     @Test
     fun `warns only for the signal whose thrower is missing`() {
-
         // given: two caught signals, only one of which is thrown anywhere
         val subscriber = model("monitoring", catchNode("catch1", "RegistrationBlocked"), catchNode("catch2", "AccountLocked"))
         val publisher = model("registration", throwNode("throw1", "RegistrationBlocked"))

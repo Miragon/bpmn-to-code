@@ -5,5 +5,5 @@ package io.miragon.bpmn.domain.shared
  */
 enum class OutputLanguage {
     KOTLIN,
-    JAVA
+    JAVA,
 }

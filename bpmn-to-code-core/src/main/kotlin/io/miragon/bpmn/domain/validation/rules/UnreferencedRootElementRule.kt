@@ -37,23 +37,19 @@ class UnreferencedRootElementRule : SingleModelValidationRule {
         elements: List<T>,
         referenced: Set<String>,
         kind: String,
-    ): List<Pair<String, T>> {
-        return elements.filterNot { it.id in referenced }.map { kind to it }
-    }
+    ): List<Pair<String, T>> = elements.filterNot { it.id in referenced }.map { kind to it }
 
     private fun violation(
         model: ProcessModel,
         kind: String,
         element: RootElementDefinition,
-    ): ValidationViolation {
-        return ValidationViolation(
-            ruleId = id,
-            severity = severity,
-            elementId = element.id,
-            processId = model.processId,
-            message = "$kind '${element.id}' is declared but no element references it. " +
-                "It still produces a constant in the generated API — remove it from the BPMN file " +
-                "if it is left over from an earlier version of the model.",
-        )
-    }
+    ): ValidationViolation = ValidationViolation(
+        ruleId = id,
+        severity = severity,
+        elementId = element.id,
+        processId = model.processId,
+        message = "$kind '${element.id}' is declared but no element references it. " +
+            "It still produces a constant in the generated API — remove it from the BPMN file " +
+            "if it is left over from an earlier version of the model.",
+    )
 }

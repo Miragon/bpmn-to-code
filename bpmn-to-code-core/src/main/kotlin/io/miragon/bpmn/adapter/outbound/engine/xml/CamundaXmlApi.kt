@@ -13,41 +13,23 @@ import org.camunda.bpm.model.xml.instance.ModelElementInstance
  */
 internal object CamundaXmlApi {
 
-    fun BaseElement.findExtensionElements(): List<ModelElementInstance> {
-        return this.extensionElements?.elementsQuery?.list() ?: emptyList()
-    }
+    fun BaseElement.findExtensionElements(): List<ModelElementInstance> = this.extensionElements?.elementsQuery?.list() ?: emptyList()
 
-    fun BaseElement.findExtensionElementsWithType(type: String): List<ModelElementInstance> {
-        return this.findExtensionElements().filterByType(type)
-    }
+    fun BaseElement.findExtensionElementsWithType(type: String): List<ModelElementInstance> = this.findExtensionElements().filterByType(type)
 
-    fun BaseElement.findExtensionElement(type: String): ModelElementInstance? {
-        return this.findExtensionElementsWithType(type).firstOrNull()
-    }
+    fun BaseElement.findExtensionElement(type: String): ModelElementInstance? = this.findExtensionElementsWithType(type).firstOrNull()
 
-    fun List<ModelElementInstance>.findFirstByType(typeName: String): ModelElementInstance? {
-        return firstOrNull { it.elementType.typeName == typeName }
-    }
+    fun List<ModelElementInstance>.findFirstByType(typeName: String): ModelElementInstance? = firstOrNull { it.elementType.typeName == typeName }
 
-    fun List<ModelElementInstance>.filterByType(typeName: String): List<ModelElementInstance> {
-        return filter { it.elementType.typeName == typeName }
-    }
+    fun List<ModelElementInstance>.filterByType(typeName: String): List<ModelElementInstance> = filter { it.elementType.typeName == typeName }
 
-    fun List<ModelElementInstance>.extractAttribute(attributeName: String): List<String> {
-        return mapNotNull { it.domElement.getAttribute(attributeName) }
-    }
+    fun List<ModelElementInstance>.extractAttribute(attributeName: String): List<String> = mapNotNull { it.domElement.getAttribute(attributeName) }
 
-    fun ModelElementInstance.nonBlankAttribute(name: String): String? {
-        return getAttributeValue(name)?.takeIf { it.isNotBlank() }
-    }
+    fun ModelElementInstance.nonBlankAttribute(name: String): String? = getAttributeValue(name)?.takeIf { it.isNotBlank() }
 
-    fun ModelElementInstance.nonBlankAttributeNs(namespace: String, name: String): String? {
-        return getAttributeValueNs(namespace, name)?.takeIf { it.isNotBlank() }
-    }
+    fun ModelElementInstance.nonBlankAttributeNs(namespace: String, name: String): String? = getAttributeValueNs(namespace, name)?.takeIf { it.isNotBlank() }
 
-    fun List<DomElement>.withElementName(vararg names: String): List<DomElement> {
-        return filter { names.contains(it.localName) }
-    }
+    fun List<DomElement>.withElementName(vararg names: String): List<DomElement> = filter { names.contains(it.localName) }
 
     fun List<DomElement>.withAttribute(pair: Pair<String, String>): List<DomElement> {
         val (attributeName, expectedValue) = pair

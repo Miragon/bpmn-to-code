@@ -26,9 +26,7 @@ internal object TimerValueSyntax {
      * A dynamic expression (FEEL or Camunda EL) whose value is only
      * known at runtime.
      */
-    fun isExpression(value: String): Boolean {
-        return value.startsWith("=") || value.contains("\${") || value.contains("#{")
-    }
+    fun isExpression(value: String): Boolean = value.startsWith("=") || value.contains("\${") || value.contains("#{")
 
     /**
      * Structural cron check: 6 or 7 whitespace-separated fields
@@ -44,9 +42,7 @@ internal object TimerValueSyntax {
      * ISO-8601 duration, e.g. `PT15M`, `P1Y2M`, `P1DT12H`
      * (full xsd:duration grammar).
      */
-    fun isValidIsoDuration(value: String): Boolean {
-        return value.startsWith("P") && runCatching { datatypeFactory.newDuration(value) }.isSuccess
-    }
+    fun isValidIsoDuration(value: String): Boolean = value.startsWith("P") && runCatching { datatypeFactory.newDuration(value) }.isSuccess
 
     /**
      * ISO-8601 point in time, e.g. `2026-01-01T00:00:00Z` or

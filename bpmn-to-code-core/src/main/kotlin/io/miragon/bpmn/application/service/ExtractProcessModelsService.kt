@@ -9,7 +9,5 @@ class ExtractProcessModelsService(
     private val bpmnService: ExtractBpmnPort = ExtractBpmnAdapter(),
 ) : ExtractProcessModelsUseCase {
 
-    override fun extractProcessModels(command: ExtractProcessModelsUseCase.Command): List<ProcessModel> {
-        return command.resources.map { bpmnService.extract(it, command.engine) }
-    }
+    override fun extractProcessModels(command: ExtractProcessModelsUseCase.Command): List<ProcessModel> = command.resources.map { bpmnService.extract(it, command.engine) }
 }

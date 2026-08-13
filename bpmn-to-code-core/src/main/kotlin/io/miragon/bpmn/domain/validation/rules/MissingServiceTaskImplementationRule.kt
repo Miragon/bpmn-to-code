@@ -14,19 +14,17 @@ class MissingServiceTaskImplementationRule : SingleModelValidationRule {
     override val id = "missing-service-task-implementation"
     override val severity = Severity.ERROR
 
-    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        return context.model.serviceTasks
-            .filter { !it.hasImplementation() }
-            .map { task ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = task.id,
-                    processId = context.model.processId,
-                    message = "Service task has no implementation. ${engineHint(context.engine)}",
-                )
-            }
-    }
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.serviceTasks
+        .filter { !it.hasImplementation() }
+        .map { task ->
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = task.id,
+                processId = context.model.processId,
+                message = "Service task has no implementation. ${engineHint(context.engine)}",
+            )
+        }
 
     private fun engineHint(engine: ProcessEngine): String = when (engine) {
         ProcessEngine.CAMUNDA_7 -> "Set camunda:topic, camunda:class, or camunda:delegateExpression."

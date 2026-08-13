@@ -15,9 +15,7 @@ import io.miragon.bpmn.web.service.WebJsonGenerationService
 fun Route.generateJsonRoutes(
     jsonService: WebJsonGenerationService,
 ) {
-
     post("/api/generate-json") {
-
         val request = call.receive<GenerateJsonRequest>()
 
         if (request.files.isEmpty()) {

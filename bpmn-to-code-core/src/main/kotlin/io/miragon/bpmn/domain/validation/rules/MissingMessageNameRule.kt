@@ -17,26 +17,26 @@ class MissingMessageNameRule : SingleModelValidationRule {
     override val id = "missing-message-name"
     override val severity = Severity.ERROR
 
-    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        return context.model.allFlowNodes
-            .filter { it.hasNamelessMessage() }
-            .map { node ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = node.id,
-                    processId = context.model.processId,
-                    message = "Message element is missing a 'name' attribute.",
-                )
-            }
-    }
+    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.allFlowNodes
+        .filter { it.hasNamelessMessage() }
+        .map { node ->
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = node.id,
+                processId = context.model.processId,
+                message = "Message element is missing a 'name' attribute.",
+            )
+        }
 
     private fun FlowNodeDefinition.hasNamelessMessage(): Boolean = when (this) {
         is FlowNodeDefinition.Event ->
             eventDefinitions.filterIsInstance<EventDefinitionInstance.Message>()
                 .any { it.reference.messageRef != null && it.reference.messageName == null }
+
         is FlowNodeDefinition.Activity.Task ->
             kind in messageTaskKinds && message != null && message.messageName == null
+
         else -> false
     }
 

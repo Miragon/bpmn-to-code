@@ -14,9 +14,7 @@ class LibrarySourceProvider {
     private val cache: List<GenerateResponse.GeneratedFile> by lazy { loadLibraryFiles() }
     private val version: String by lazy { loadProjectVersion() }
 
-    fun libraryFiles(): List<GenerateResponse.GeneratedFile> {
-        return cache
-    }
+    fun libraryFiles(): List<GenerateResponse.GeneratedFile> = cache
 
     fun runtimeDependency(): GenerateResponse.RuntimeDependency {
         val group = "io.miragon"

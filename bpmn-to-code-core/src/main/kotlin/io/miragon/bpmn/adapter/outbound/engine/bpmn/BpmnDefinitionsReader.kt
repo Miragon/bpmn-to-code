@@ -61,29 +61,25 @@ internal object BpmnDefinitionsReader {
      * message element rather than on the events referencing it. It is the only engine-specific part of a
      * root element, which is why it arrives as a function instead of pulling the whole dialect in here.
      */
-    fun ModelInstance.readRootElements(correlationKeyOf: (Message) -> String?): RootElements {
-        return RootElements(
-            messages = registryOf(Message::class.java) {
-                RootElementDefinition.Message(id = it.id ?: it.name, name = it.name, correlationKey = correlationKeyOf(it))
-            },
-            signals = registryOf(Signal::class.java) {
-                RootElementDefinition.Signal(id = it.id ?: it.name, name = it.name)
-            },
-            errors = registryOf(Error::class.java) {
-                RootElementDefinition.Error(id = it.id ?: it.name, name = it.name, code = it.errorCode)
-            },
-            escalations = registryOf(Escalation::class.java) {
-                RootElementDefinition.Escalation(id = it.id ?: it.name, name = it.name, code = it.escalationCode)
-            },
-        )
-    }
+    fun ModelInstance.readRootElements(correlationKeyOf: (Message) -> String?): RootElements = RootElements(
+        messages = registryOf(Message::class.java) {
+            RootElementDefinition.Message(id = it.id ?: it.name, name = it.name, correlationKey = correlationKeyOf(it))
+        },
+        signals = registryOf(Signal::class.java) {
+            RootElementDefinition.Signal(id = it.id ?: it.name, name = it.name)
+        },
+        errors = registryOf(Error::class.java) {
+            RootElementDefinition.Error(id = it.id ?: it.name, name = it.name, code = it.errorCode)
+        },
+        escalations = registryOf(Escalation::class.java) {
+            RootElementDefinition.Escalation(id = it.id ?: it.name, name = it.name, code = it.escalationCode)
+        },
+    )
 
     private fun <E : ModelElementInstance, D : RootElementDefinition> ModelInstance.registryOf(
         type: Class<E>,
         toDefinition: (E) -> D,
-    ): List<D> {
-        return getModelElementsByType(type).map(toDefinition).distinctBy { it.id }
-    }
+    ): List<D> = getModelElementsByType(type).map(toDefinition).distinctBy { it.id }
 
     fun String.normalizeWhitespace(): String = this.replace(Regex("\\s+"), " ").trim()
 }

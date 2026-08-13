@@ -20,15 +20,26 @@ brew install lefthook
 lefthook install
 ```
 
-This installs a `pre-push` hook that runs `:bpmn-to-code-core:jacocoTestCoverageVerification` — the same check enforced in CI.
+This installs a `pre-push` hook that runs the same quality gate CI enforces: `compileKotlin`,
+`lintKotlin` (ktlint), `detekt`, and `:bpmn-to-code-core:jacocoTestCoverageVerification`.
 
 ## Common Commands
 
 ```bash
-./gradlew build                                               # full build
+./gradlew build                                               # full build (compile + ktlint + detekt + tests)
+./gradlew check                                              # ktlint + detekt + tests
+./gradlew lintKotlin                                         # ktlint formatting check
+./gradlew formatKotlin                                       # ktlint auto-fix
+./gradlew detekt                                            # detekt static analysis
 ./gradlew :bpmn-to-code-core:test                            # run core tests only
 ./gradlew :bpmn-to-code-core:jacocoTestCoverageVerification  # check coverage manually
 ```
+
+ktlint owns formatting/imports (config in `.editorconfig`); detekt owns semantic/structural
+analysis (config in `config/detekt/detekt.yml`). Both are wired into `check`/`build` and gate CI
+plus the pre-push hook — no baseline, no silent suppressions. The only scoped exceptions are the
+ktor wildcard-import allowance and no hard line-length limit (`.editorconfig`) and the generated
+runtime fixture (excluded in both `.editorconfig` and `bpmn-to-code-runtime/build.gradle.kts`).
 
 ## Skipping hooks
 

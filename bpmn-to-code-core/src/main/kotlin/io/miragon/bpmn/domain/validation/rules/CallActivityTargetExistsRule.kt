@@ -18,19 +18,17 @@ class CallActivityTargetExistsRule : CrossModelValidationRule {
     override val id = "call-activity-target-exists"
     override val severity = Severity.ERROR
 
-    override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
-        return context.models.flatMap { model ->
-            model.callActivities
-                .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }
-                .map { callActivity ->
-                    ValidationViolation(
-                        ruleId = id,
-                        severity = severity,
-                        elementId = callActivity.id,
-                        processId = model.processId,
-                        message = "Call activity '${callActivity.id}' references unknown process '${callActivity.getValue()}'.",
-                    )
-                }
-        }
+    override fun validate(context: CrossModelValidationContext): List<ValidationViolation> = context.models.flatMap { model ->
+        model.callActivities
+            .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }
+            .map { callActivity ->
+                ValidationViolation(
+                    ruleId = id,
+                    severity = severity,
+                    elementId = callActivity.id,
+                    processId = model.processId,
+                    message = "Call activity '${callActivity.id}' references unknown process '${callActivity.getValue()}'.",
+                )
+            }
     }
 }

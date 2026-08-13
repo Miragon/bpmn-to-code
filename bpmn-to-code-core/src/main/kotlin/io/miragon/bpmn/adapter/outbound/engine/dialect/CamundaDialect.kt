@@ -53,6 +53,7 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
     override fun fullyReadAttributesOf(node: FlowNode): Set<String> {
         val resolved = when (node) {
             is ServiceTask -> node.attributeImplementation()
+
             else -> node.getChildElementsByType(MessageEventDefinition::class.java)
                 .firstNotNullOfOrNull { it.attributeImplementation() }
         }
@@ -71,12 +72,10 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
     override fun multiInstanceBindingsOf(
         loop: MultiInstanceLoopCharacteristics,
         base: MultiInstanceDefinition,
-    ): MultiInstanceDefinition {
-        return base.copy(
-            inputCollection = loop.attribute(CamundaModelConstants.COLLECTION_ATTRIBUTE),
-            inputElement = loop.attribute(CamundaModelConstants.ELEMENT_VARIABLE_ATTRIBUTE),
-        )
-    }
+    ): MultiInstanceDefinition = base.copy(
+        inputCollection = loop.attribute(CamundaModelConstants.COLLECTION_ATTRIBUTE),
+        inputElement = loop.attribute(CamundaModelConstants.ELEMENT_VARIABLE_ATTRIBUTE),
+    )
 
     override fun variablesOf(node: FlowNode): List<VariableDefinition> {
         val extensions = node.findExtensionElements()
@@ -117,26 +116,20 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
 
     private data class ResolvedImplementation(val attributeName: String, val implementation: TaskImplementation)
 
-    private fun ModelElementInstance.attributeImplementation(): ResolvedImplementation? {
-        return implementationAttributes.firstNotNullOfOrNull { (name, build) ->
-            attribute(name)?.let { ResolvedImplementation(name, build(it)) }
+    private fun ModelElementInstance.attributeImplementation(): ResolvedImplementation? = implementationAttributes.firstNotNullOfOrNull { (name, build) ->
+        attribute(name)?.let { ResolvedImplementation(name, build(it)) }
+    }
+
+    private fun ModelElementInstance.attribute(name: String): String? = getAttributeValueNs(namespace, name)?.takeIf { it.isNotBlank() }
+
+    private fun FlowNode.multiInstanceVariables(): List<Triple<String, VariableDirection, String?>> = getChildElementsByType(MultiInstanceLoopCharacteristics::class.java)
+        .flatMap { loop ->
+            listOfNotNull(
+                loop.attribute(CamundaModelConstants.COLLECTION_ATTRIBUTE),
+                loop.attribute(CamundaModelConstants.ELEMENT_VARIABLE_ATTRIBUTE),
+            )
         }
-    }
-
-    private fun ModelElementInstance.attribute(name: String): String? {
-        return getAttributeValueNs(namespace, name)?.takeIf { it.isNotBlank() }
-    }
-
-    private fun FlowNode.multiInstanceVariables(): List<Triple<String, VariableDirection, String?>> {
-        return getChildElementsByType(MultiInstanceLoopCharacteristics::class.java)
-            .flatMap { loop ->
-                listOfNotNull(
-                    loop.attribute(CamundaModelConstants.COLLECTION_ATTRIBUTE),
-                    loop.attribute(CamundaModelConstants.ELEMENT_VARIABLE_ATTRIBUTE),
-                )
-            }
-            .map { Triple(it, VariableDirection.INPUT, it) }
-    }
+        .map { Triple(it, VariableDirection.INPUT, it) }
 
     private fun List<ModelElementInstance>.callActivityMappingVariables(): List<Triple<String, VariableDirection, String?>> {
         val inElements = filterByType(BpmnModelConstants.CAMUNDA_ELEMENT_IN)
@@ -158,13 +151,11 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
             outputs.map { Triple(it, VariableDirection.OUTPUT, null) }
     }
 
-    private fun List<DomElement>.valuesOfProperty(propertyName: String): List<String> {
-        return withAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_NAME to propertyName)
-            .mapNotNull { it.getAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_VALUE) }
-            .flatMap { it.split(",") }
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
-    }
+    private fun List<DomElement>.valuesOfProperty(propertyName: String): List<String> = withAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_NAME to propertyName)
+        .mapNotNull { it.getAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_VALUE) }
+        .flatMap { it.split(",") }
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
 
     private fun List<ModelElementInstance>.toCallActivityMappings(): List<CallActivityDefinition.Mapping> {
         val inputs = filterByType(BpmnModelConstants.CAMUNDA_ELEMENT_IN)
