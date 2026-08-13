@@ -50,6 +50,7 @@ class Camunda7ModelExtractorTest {
             ServiceTaskDefinition("Activity_SendConfirmationMail", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "#{newsletterSendConfirmationMail}", IMPL_KIND_KEY to "EXTERNAL_TASK")),
             ServiceTaskDefinition("EndEvent_RegistrationCompleted", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "newsletter.registrationCompleted", IMPL_KIND_KEY to "EXTERNAL_TASK")),
             ServiceTaskDefinition("serviceTask_incrementSubscriptionCounter", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "counterClass", IMPL_KIND_KEY to "DELEGATE_EXPRESSION")),
+            ServiceTaskDefinition("CompensationTask_DecrementSubscriptionCounter", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "counterClass", IMPL_KIND_KEY to "DELEGATE_EXPRESSION")),
         )
         val c7ServiceTaskById = c7ServiceTasks.associateBy { it.id }
 
@@ -114,8 +115,9 @@ class Camunda7ModelExtractorTest {
                         displayName = "Registration aborted",
                         attachedToRef = "serviceTask_incrementSubscriptionCounter", interrupting = true,
                         engineSpecificProperties = mapOf(ASYNC_AFTER_KEY to true)),
-                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.NONE),
+                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
                         displayName = "Decrement subscription counter",
+                        properties = FlowNodeProperties.ServiceTask(c7ServiceTaskById["CompensationTask_DecrementSubscriptionCounter"]!!),
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "\${subscriptionId}"))),
                     FlowNodeDefinition("EndEvent_RegistrationCompleted", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.MESSAGE),
                         displayName = "Registration completed",

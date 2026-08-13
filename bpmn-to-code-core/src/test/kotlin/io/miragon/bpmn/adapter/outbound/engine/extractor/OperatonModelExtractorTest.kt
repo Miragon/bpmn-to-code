@@ -50,6 +50,7 @@ class OperatonModelExtractorTest {
             ServiceTaskDefinition("Activity_SendConfirmationMail", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "newsletter.sendConfirmationMail", IMPL_KIND_KEY to "EXTERNAL_TASK")),
             ServiceTaskDefinition("EndEvent_RegistrationCompleted", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "newsletter.registrationCompleted", IMPL_KIND_KEY to "EXTERNAL_TASK")),
             ServiceTaskDefinition("serviceTask_incrementSubscriptionCounter", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "counterClass", IMPL_KIND_KEY to "DELEGATE_EXPRESSION")),
+            ServiceTaskDefinition("CompensationTask_DecrementSubscriptionCounter", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "counterClass", IMPL_KIND_KEY to "DELEGATE_EXPRESSION")),
         )
         val opServiceTaskById = opServiceTasks.associateBy { it.id }
 
@@ -113,8 +114,9 @@ class OperatonModelExtractorTest {
                     FlowNodeDefinition("CompensationEvent_OnSubscriptionCounter", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.COMPENSATION),
                         displayName = "Registration aborted",
                         attachedToRef = "serviceTask_incrementSubscriptionCounter", interrupting = true),
-                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.NONE),
+                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
                         displayName = "Decrement subscription counter",
+                        properties = FlowNodeProperties.ServiceTask(opServiceTaskById["CompensationTask_DecrementSubscriptionCounter"]!!),
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "\${subscriptionId}"))),
                     FlowNodeDefinition("EndEvent_RegistrationCompleted", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.MESSAGE),
                         displayName = "Registration completed",
