@@ -33,20 +33,19 @@ class NestedSubProcessCompilationTest {
             .isEmpty()
     }
 
-    private fun generate(language: OutputLanguage) =
-        service.generateProcessApi(
-            GenerateProcessApiInMemoryUseCase.Command(
-                bpmnContents = listOf(
-                    GenerateProcessApiInMemoryUseCase.BpmnInput(
-                        bpmnXml = requireNotNull(javaClass.getResource("/bpmn/nested-subprocess.bpmn")).readText(),
-                        processName = "nested-subprocess.bpmn",
-                    ),
+    private fun generate(language: OutputLanguage) = service.generateProcessApi(
+        GenerateProcessApiInMemoryUseCase.Command(
+            bpmnContents = listOf(
+                GenerateProcessApiInMemoryUseCase.BpmnInput(
+                    bpmnXml = requireNotNull(javaClass.getResource("/bpmn/nested-subprocess.bpmn")).readText(),
+                    processName = "nested-subprocess.bpmn",
                 ),
-                packagePath = "de.gen",
-                outputLanguage = language,
-                engine = ProcessEngine.ZEEBE,
             ),
-        ).single()
+            packagePath = "de.gen",
+            outputLanguage = language,
+            engine = ProcessEngine.ZEEBE,
+        ),
+    ).single()
 
     private fun compileJava(fileName: String, source: String): List<String> {
         val compiler = requireNotNull(ToolProvider.getSystemJavaCompiler()) { "JDK (not JRE) required to run this test" }

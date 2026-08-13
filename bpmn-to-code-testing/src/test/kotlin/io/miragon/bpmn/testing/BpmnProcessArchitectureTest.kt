@@ -23,22 +23,20 @@ class BpmnProcessArchitectureTest {
         override val severity = Severity.WARN
         override val phase = ValidationPhase.PRE_MERGE
 
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            return context.model.serviceTasks
-                .filter { task ->
-                    val name = task.id ?: ""
-                    !name.startsWith("Activity_") && !name.startsWith("Task_")
-                }
-                .map { task ->
-                    ValidationViolation(
-                        ruleId = id,
-                        severity = severity,
-                        elementId = task.id,
-                        processId = context.model.processId,
-                        message = "Service task '${task.id}' should start with 'Activity_' or 'Task_'",
-                    )
-                }
-        }
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.serviceTasks
+            .filter { task ->
+                val name = task.id ?: ""
+                !name.startsWith("Activity_") && !name.startsWith("Task_")
+            }
+            .map { task ->
+                ValidationViolation(
+                    ruleId = id,
+                    severity = severity,
+                    elementId = task.id,
+                    processId = context.model.processId,
+                    message = "Service task '${task.id}' should start with 'Activity_' or 'Task_'",
+                )
+            }
     }
 
     @Test

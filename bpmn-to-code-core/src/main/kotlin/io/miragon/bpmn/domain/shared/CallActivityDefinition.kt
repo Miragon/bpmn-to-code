@@ -21,6 +21,7 @@ data class CallActivityDefinition(
 
     val inputMappings get() = mappings.filter { it.direction == VariableDirection.INPUT }
     val outputMappings get() = mappings.filter { it.direction == VariableDirection.OUTPUT }
+
     /**
      * One variable passed into or out of the called process (`camunda:in` / `camunda:out`,
      * `zeebe:ioMapping`).

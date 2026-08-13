@@ -89,18 +89,16 @@ class SingleModelRuleTest {
         override val id = "call-activity-required-inputs"
         override val severity = Severity.ERROR
 
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            return context.model.callActivities.flatMap { callActivity ->
-                val declaredTargets = callActivity.inputMappings.mapNotNull { it.target }.toSet()
-                (required - declaredTargets).map { missing ->
-                    ValidationViolation(
-                        ruleId = id,
-                        severity = severity,
-                        elementId = callActivity.id,
-                        processId = context.model.processId,
-                        message = "Call activity '${callActivity.id}' must pass input variable '$missing' to the called process.",
-                    )
-                }
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.callActivities.flatMap { callActivity ->
+            val declaredTargets = callActivity.inputMappings.mapNotNull { it.target }.toSet()
+            (required - declaredTargets).map { missing ->
+                ValidationViolation(
+                    ruleId = id,
+                    severity = severity,
+                    elementId = callActivity.id,
+                    processId = context.model.processId,
+                    message = "Call activity '${callActivity.id}' must pass input variable '$missing' to the called process.",
+                )
             }
         }
     }
@@ -109,18 +107,16 @@ class SingleModelRuleTest {
         override val id = "call-activity-required-outputs"
         override val severity = Severity.ERROR
 
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            return context.model.callActivities.flatMap { callActivity ->
-                val declaredTargets = callActivity.outputMappings.mapNotNull { it.target }.toSet()
-                (required - declaredTargets).map { missing ->
-                    ValidationViolation(
-                        ruleId = id,
-                        severity = severity,
-                        elementId = callActivity.id,
-                        processId = context.model.processId,
-                        message = "Call activity '${callActivity.id}' must return output variable '$missing' to the parent process.",
-                    )
-                }
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.callActivities.flatMap { callActivity ->
+            val declaredTargets = callActivity.outputMappings.mapNotNull { it.target }.toSet()
+            (required - declaredTargets).map { missing ->
+                ValidationViolation(
+                    ruleId = id,
+                    severity = severity,
+                    elementId = callActivity.id,
+                    processId = context.model.processId,
+                    message = "Call activity '${callActivity.id}' must return output variable '$missing' to the parent process.",
+                )
             }
         }
     }
@@ -133,23 +129,21 @@ class SingleModelRuleTest {
         override val severity = Severity.ERROR
         private val allowed = Regex("""\$\{(null|true|false|execution\.getVariable\('[^']+'\))}""")
 
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            return context.model.flowNodes
-                .flatMap { node -> node.variables.map { node to it } }
-                .filter { (_, variable) -> variable.direction == VariableDirection.OUTPUT }
-                .filter { (_, variable) ->
-                    val expression = variable.valueExpression
-                    expression != null && !allowed.matches(expression)
-                }
-                .map { (node, variable) ->
-                    ValidationViolation(
-                        ruleId = id,
-                        severity = severity,
-                        elementId = node.id,
-                        processId = context.model.processId,
-                        message = "Output expression '${variable.valueExpression}' is not allowed.",
-                    )
-                }
-        }
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.flowNodes
+            .flatMap { node -> node.variables.map { node to it } }
+            .filter { (_, variable) -> variable.direction == VariableDirection.OUTPUT }
+            .filter { (_, variable) ->
+                val expression = variable.valueExpression
+                expression != null && !allowed.matches(expression)
+            }
+            .map { (node, variable) ->
+                ValidationViolation(
+                    ruleId = id,
+                    severity = severity,
+                    elementId = node.id,
+                    processId = context.model.processId,
+                    message = "Output expression '${variable.valueExpression}' is not allowed.",
+                )
+            }
     }
 }

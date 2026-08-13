@@ -2,10 +2,10 @@ package io.miragon.bpmn.adapter.outbound.json
 
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonInMemoryPlugin
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.io.File
 
 /**
  * Snapshots the **whole** pipeline: a real BPMN file in, the published JSON out.
@@ -29,7 +29,6 @@ class ProcessJsonEndToEndTest {
         "OPERATON, operaton-subscribe-newsletter",
     )
     fun `real bpmn produces the committed json`(engine: ProcessEngine, fixture: String) {
-
         // given: the shared fixture for this engine
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
             bpmnXml = readResource("/bpmn/$fixture.bpmn"),
@@ -52,9 +51,7 @@ class ProcessJsonEndToEndTest {
         return readResource(path)
     }
 
-    private fun readResource(path: String): String {
-        return requireNotNull(javaClass.getResourceAsStream(path)) { "missing resource $path" }
-            .bufferedReader()
-            .readText()
-    }
+    private fun readResource(path: String): String = requireNotNull(javaClass.getResourceAsStream(path)) { "missing resource $path" }
+        .bufferedReader()
+        .readText()
 }

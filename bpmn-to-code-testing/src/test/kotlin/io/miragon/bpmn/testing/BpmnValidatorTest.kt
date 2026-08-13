@@ -5,11 +5,11 @@ import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
-import java.nio.file.Files
-import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
+import java.nio.file.Path
 
 class BpmnValidatorTest {
 
@@ -77,7 +77,6 @@ class BpmnValidatorTest {
 
     @Test
     fun `fromDirectory loads bpmn files`(@TempDir tempDir: Path) {
-
         // given: a BPMN file copied into a temp directory
         val bpmnContent = javaClass.classLoader.getResourceAsStream("bpmn/valid-process.bpmn")!!
         Files.copy(bpmnContent, tempDir.resolve("test.bpmn"))
@@ -105,16 +104,14 @@ class BpmnValidatorTest {
         override val severity = Severity.ERROR
         override val mandatory = true
 
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            return listOf(
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = null,
-                    processId = context.model.processId,
-                    message = "always fails",
-                ),
-            )
-        }
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = listOf(
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = null,
+                processId = context.model.processId,
+                message = "always fails",
+            ),
+        )
     }
 }

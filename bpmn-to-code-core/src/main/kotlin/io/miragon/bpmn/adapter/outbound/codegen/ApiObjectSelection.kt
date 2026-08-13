@@ -18,9 +18,7 @@ internal object ApiObjectSelection {
     /**
      * Whether [type] has anything to contribute for [modelApi].
      */
-    fun includes(type: ApiObjectType, modelApi: BpmnModelApi): Boolean {
-        return type.hasContentIn(modelApi)
-    }
+    fun includes(type: ApiObjectType, modelApi: BpmnModelApi): Boolean = type.hasContentIn(modelApi)
 
     private fun ApiObjectType.hasContentIn(modelApi: BpmnModelApi): Boolean {
         val model = modelApi.model

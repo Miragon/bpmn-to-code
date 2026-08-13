@@ -33,16 +33,12 @@ data class RootElements(
     /**
      * Sorted by name, so generated output is a function of the model rather than of read order.
      */
-    fun sorted(): RootElements {
-        return RootElements(
-            messages = messages.sortedBy { it.getRawName() },
-            signals = signals.sortedBy { it.getRawName() },
-            errors = errors.sortedBy { it.getRawName() },
-            escalations = escalations.sortedBy { it.getRawName() },
-        )
-    }
+    fun sorted(): RootElements = RootElements(
+        messages = messages.sortedBy { it.getRawName() },
+        signals = signals.sortedBy { it.getRawName() },
+        errors = errors.sortedBy { it.getRawName() },
+        escalations = escalations.sortedBy { it.getRawName() },
+    )
 
-    private fun <T> List<T>.distinctById(): List<T> where T : VariableMapping<*>, T : RootElementDefinition {
-        return filter { it.getRawName().isNotEmpty() }.distinctBy { it.id ?: it.getRawName() }
-    }
+    private fun <T> List<T>.distinctById(): List<T> where T : VariableMapping<*>, T : RootElementDefinition = filter { it.getRawName().isNotEmpty() }.distinctBy { it.id ?: it.getRawName() }
 }

@@ -20,7 +20,6 @@ class CodeGenerationAdapterTest {
 
     @Test
     fun `generateCode delegates to the process api builder and returns its file`() {
-
         // given: a model API and a stubbed process builder response
         val modelApi = testProcessModelApi()
         val processFile = GeneratedApiFile(
@@ -43,7 +42,6 @@ class CodeGenerationAdapterTest {
 
     @Test
     fun `generateCode throws when output language is not supported`() {
-
         // given: a model API with an unsupported language
         val modelApi = testProcessModelApi(language = OutputLanguage.JAVA)
 

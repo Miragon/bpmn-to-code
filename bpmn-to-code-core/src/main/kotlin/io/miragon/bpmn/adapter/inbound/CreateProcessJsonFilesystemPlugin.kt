@@ -22,6 +22,6 @@ class CreateProcessJsonFilesystemPlugin(
             outputFolderPath = outputFolderPath,
             engine = engine,
             validationConfig = validationConfig,
-        )
+        ),
     )
 }

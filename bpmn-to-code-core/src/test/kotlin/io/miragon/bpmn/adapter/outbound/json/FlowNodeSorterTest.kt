@@ -14,56 +14,43 @@ class FlowNodeSorterTest {
     // Adjacency is now derived from sequence flows: a node's incoming/outgoing hold sequence-flow ids, and
     // each flow maps its id to a target node. These helpers wire nodes to a shared flow list built from edges.
 
-    private fun edges(vararg pairs: Pair<String, String>): List<SequenceFlowDefinition> {
-        return pairs.map { (source, target) ->
-            SequenceFlowDefinition(id = "$source->$target", sourceRef = source, targetRef = target)
-        }
+    private fun edges(vararg pairs: Pair<String, String>): List<SequenceFlowDefinition> = pairs.map { (source, target) ->
+        SequenceFlowDefinition(id = "$source->$target", sourceRef = source, targetRef = target)
     }
 
-    private fun outgoingOf(id: String, flows: List<SequenceFlowDefinition>): List<String> {
-        return flows.filter { it.sourceRef == id }.map { it.id!! }
-    }
+    private fun outgoingOf(id: String, flows: List<SequenceFlowDefinition>): List<String> = flows.filter { it.sourceRef == id }.map { it.id!! }
 
-    private fun incomingOf(id: String, flows: List<SequenceFlowDefinition>): List<String> {
-        return flows.filter { it.targetRef == id }.map { it.id!! }
-    }
+    private fun incomingOf(id: String, flows: List<SequenceFlowDefinition>): List<String> = flows.filter { it.targetRef == id }.map { it.id!! }
 
-    private fun task(id: String, flows: List<SequenceFlowDefinition>): FlowNodeDefinition {
-        return FlowNodeDefinition.Activity.Task(
-            id = id,
-            kind = TaskKind.SERVICE,
-            incoming = incomingOf(id, flows),
-            outgoing = outgoingOf(id, flows),
-        )
-    }
+    private fun task(id: String, flows: List<SequenceFlowDefinition>): FlowNodeDefinition = FlowNodeDefinition.Activity.Task(
+        id = id,
+        kind = TaskKind.SERVICE,
+        incoming = incomingOf(id, flows),
+        outgoing = outgoingOf(id, flows),
+    )
 
     private fun event(
         id: String,
         shape: EventShape,
         flows: List<SequenceFlowDefinition>,
         attachedToRef: String? = null,
-    ): FlowNodeDefinition {
-        return FlowNodeDefinition.Event(
-            id = id,
-            shape = shape,
-            incoming = incomingOf(id, flows),
-            outgoing = outgoingOf(id, flows),
-            attachedToRef = attachedToRef,
-        )
-    }
+    ): FlowNodeDefinition = FlowNodeDefinition.Event(
+        id = id,
+        shape = shape,
+        incoming = incomingOf(id, flows),
+        outgoing = outgoingOf(id, flows),
+        attachedToRef = attachedToRef,
+    )
 
-    private fun gateway(id: String, kind: GatewayKind, flows: List<SequenceFlowDefinition>): FlowNodeDefinition {
-        return FlowNodeDefinition.Gateway(
-            id = id,
-            kind = kind,
-            incoming = incomingOf(id, flows),
-            outgoing = outgoingOf(id, flows),
-        )
-    }
+    private fun gateway(id: String, kind: GatewayKind, flows: List<SequenceFlowDefinition>): FlowNodeDefinition = FlowNodeDefinition.Gateway(
+        id = id,
+        kind = kind,
+        incoming = incomingOf(id, flows),
+        outgoing = outgoingOf(id, flows),
+    )
 
     @Test
     fun `linear chain is sorted start to end`() {
-
         // given: a linear start → task → end chain
         val flows = edges("Start" to "Task", "Task" to "End")
         val start = event("Start", EventShape.START_EVENT, flows)
@@ -79,7 +66,6 @@ class FlowNodeSorterTest {
 
     @Test
     fun `start events are visited before other top-level nodes`() {
-
         // given: two start events feeding the same task
         val flows = edges("Start_A" to "Task", "Start_B" to "Task", "Task" to "End")
         val startA = event("Start_A", EventShape.START_EVENT, flows)
@@ -98,7 +84,6 @@ class FlowNodeSorterTest {
 
     @Test
     fun `boundary event appears after its parent`() {
-
         // given: a task with an attached boundary event
         val flows = edges("Start" to "Task", "Task" to "End", "Boundary" to "ErrorEnd")
         val start = event("Start", EventShape.START_EVENT, flows)
@@ -118,7 +103,6 @@ class FlowNodeSorterTest {
 
     @Test
     fun `subprocess is ordered in its scope and its children are sorted separately`() {
-
         // given: a top-level scope containing a sub-process. Sub-process children are no longer inlined into
         // the parent scope — they live inside the sub-process node and are sorted by re-applying the sorter.
         val topFlows = edges("Start" to "Sub", "Sub" to "End")
@@ -152,7 +136,6 @@ class FlowNodeSorterTest {
 
     @Test
     fun `cycles do not cause infinite loops`() {
-
         // given: a cyclic A ↔ B loop
         val flows = edges("Start" to "A", "A" to "B", "B" to "A", "B" to "End")
         val start = event("Start", EventShape.START_EVENT, flows)
@@ -170,7 +153,6 @@ class FlowNodeSorterTest {
 
     @Test
     fun `already sorted input is idempotent`() {
-
         // given: nodes already in correct order
         val flows = edges("Start" to "Task", "Task" to "End")
         val start = event("Start", EventShape.START_EVENT, flows)
@@ -186,7 +168,6 @@ class FlowNodeSorterTest {
 
     @Test
     fun `exclusive gateway branches appear after gateway`() {
-
         // given: a gateway splitting into two branches
         val flows = edges(
             "Start" to "GW",

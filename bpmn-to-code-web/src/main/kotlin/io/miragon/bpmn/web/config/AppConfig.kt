@@ -27,5 +27,4 @@ data class AppConfig(
             return props.getProperty("version", "unknown")
         }
     }
-
 }

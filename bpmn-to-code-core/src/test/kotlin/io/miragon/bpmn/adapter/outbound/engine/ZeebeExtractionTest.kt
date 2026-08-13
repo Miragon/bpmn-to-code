@@ -16,9 +16,9 @@ import io.miragon.bpmn.domain.shared.TimerDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class ZeebeExtractionTest {
 
@@ -26,7 +26,6 @@ class ZeebeExtractionTest {
 
     @Test
     fun `extract returns a fully populated ProcessModel`() {
-
         // given: the Camunda 8 / Zeebe newsletter BPMN file from classpath
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn"))
         val bpmnModel = underTest.read(File(resourceUrl.toURI()).readBytes())
@@ -281,16 +280,15 @@ class ZeebeExtractionTest {
 
         val flowsById = bpmnModel.sequenceFlows.associateBy { it.id }
         assertThat(flowsById["Flow_1jogut0"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1jogut0", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true)
+            SequenceFlowDefinition("Flow_1jogut0", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true),
         )
         assertThat(flowsById["Flow_1gsz7wd"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1gsz7wd", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "=subscribers.size() > 0")
+            SequenceFlowDefinition("Flow_1gsz7wd", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "=subscribers.size() > 0"),
         )
     }
 
     @Test
     fun `extract stays tolerant and leaves a call activity without calledElement for later validation`() {
-
         // given: a Camunda 7 model with a call activity and no zeebe:calledElement
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
         val file = File(resourceUrl.toURI())

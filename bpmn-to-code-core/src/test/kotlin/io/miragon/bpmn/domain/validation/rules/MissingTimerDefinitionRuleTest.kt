@@ -17,7 +17,6 @@ class MissingTimerDefinitionRuleTest {
 
     @Test
     fun `reports error for timer with no type`() {
-
         // given: a timer event carrying a definition with neither a type nor an expression
         val model = testProcessModel(
             flowNodes = listOf(
@@ -38,7 +37,6 @@ class MissingTimerDefinitionRuleTest {
 
     @Test
     fun `no violations for timer with type and expression`() {
-
         // given: a timer event with a valid type and expression
         val model = testProcessModel(
             flowNodes = listOf(

@@ -15,11 +15,7 @@ abstract class AbstractFlowNode(
     override val elementType: String,
 ) : FlowNode {
 
-    override fun equals(other: Any?): Boolean {
-        return this === other || (other is FlowNode && other.id == id)
-    }
+    override fun equals(other: Any?): Boolean = this === other || (other is FlowNode && other.id == id)
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 }

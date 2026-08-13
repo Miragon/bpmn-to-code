@@ -23,7 +23,7 @@ class MissingProcessIdRule : SingleModelValidationRule {
                     elementId = null,
                     processId = "(unknown)",
                     message = "BPMN model is missing a process ID.",
-                )
+                ),
             )
         }
         return emptyList()

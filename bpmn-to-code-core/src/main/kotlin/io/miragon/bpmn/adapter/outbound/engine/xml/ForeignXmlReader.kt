@@ -55,9 +55,7 @@ internal class ForeignXmlReader(
      * would duplicate it. Matched on namespace *and* local name, so an identically named element from
      * another engine is unaffected.
      */
-    private fun Element.isFullyReadByTheDialect(): Boolean {
-        return namespaceURI == engineNamespace && localNameOf() in fullyReadExtensions
-    }
+    private fun Element.isFullyReadByTheDialect(): Boolean = namespaceURI == engineNamespace && localNameOf() in fullyReadExtensions
 
     private fun Element.toExtension(): EngineExtension {
         val children = childElements()

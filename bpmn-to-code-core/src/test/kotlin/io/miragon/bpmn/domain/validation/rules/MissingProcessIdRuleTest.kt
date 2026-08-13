@@ -13,7 +13,6 @@ class MissingProcessIdRuleTest {
 
     @Test
     fun `reports error for blank process id`() {
-
         // given: a model with an empty process ID
         val model = testProcessModel(processId = "")
 
@@ -25,7 +24,6 @@ class MissingProcessIdRuleTest {
 
     @Test
     fun `no violations for valid process id`() {
-
         // given: a model with a non-blank process ID
         val model = testProcessModel(processId = "my-process")
 

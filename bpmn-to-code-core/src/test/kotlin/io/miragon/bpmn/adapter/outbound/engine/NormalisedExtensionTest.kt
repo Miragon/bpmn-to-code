@@ -5,9 +5,9 @@ import io.miragon.bpmn.adapter.outbound.engine.dialect.ZeebeDialect
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.TaskImplementation
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.File
 
 /**
  * `extensions` is the lossless escape hatch for engine XML we do **not** normalise (ADR 018, layer 3).
@@ -49,7 +49,6 @@ class NormalisedExtensionTest {
 
     @Test
     fun `zeebe extensions leave out the elements the dialect reads in full`() {
-
         // given: the Camunda 8 model, whose nodes carry ioMapping, taskDefinition and calledElement
         val model = extract(ZeebeDialect(), "c8-subscribe-newsletter")
 
@@ -62,7 +61,6 @@ class NormalisedExtensionTest {
 
     @Test
     fun `the normalised fields still carry that information`() {
-
         // given: the same model
         val model = extract(ZeebeDialect(), "c8-subscribe-newsletter")
 
@@ -79,7 +77,6 @@ class NormalisedExtensionTest {
 
     @Test
     fun `zeebe extensions keep an element the dialect does not read`() {
-
         // given: a task carrying zeebe:taskHeaders, which has no normalised counterpart
         val model = ProcessModelReader(ZeebeDialect()).read(TASK_HEADERS_BPMN.toByteArray())
 
@@ -95,7 +92,6 @@ class NormalisedExtensionTest {
 
     @Test
     fun `camunda extensions keep inputOutput because the dialect only reads part of it`() {
-
         // given: the Camunda 7 model
         val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
 
@@ -109,7 +105,6 @@ class NormalisedExtensionTest {
 
     @Test
     fun `engine attributes leave out the one the dialect read`() {
-
         // given: the Camunda 7 model, whose compensation handler carries camunda:delegateExpression
         val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
 
@@ -124,7 +119,6 @@ class NormalisedExtensionTest {
 
     @Test
     fun `engine attributes keep the ones the dialect does not read`() {
-
         // given: the Camunda 7 model
         val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
 
@@ -137,7 +131,6 @@ class NormalisedExtensionTest {
 
     @Test
     fun `an implementation attribute that lost the precedence race is still reported`() {
-
         // given: a task declaring both camunda:topic and camunda:class — only the topic wins
         val model = ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)).read(TWO_IMPLEMENTATIONS_BPMN.toByteArray())
         val task = model.allFlowNodes.single { it.id == "Task_1" } as FlowNodeDefinition.Activity.Task

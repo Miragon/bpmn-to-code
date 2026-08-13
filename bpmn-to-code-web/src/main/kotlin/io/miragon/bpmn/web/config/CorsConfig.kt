@@ -4,7 +4,7 @@ package io.miragon.bpmn.web.config
  * CORS configuration loaded from environment variables
  */
 data class CorsConfig(
-    val allowedOrigins: List<String>
+    val allowedOrigins: List<String>,
 ) {
     companion object {
         /**

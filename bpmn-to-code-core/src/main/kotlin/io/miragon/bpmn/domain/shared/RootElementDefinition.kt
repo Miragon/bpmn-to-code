@@ -24,7 +24,8 @@ sealed interface RootElementDefinition {
         override val id: String?,
         private val name: String?,
         val correlationKey: String? = null,
-    ) : RootElementDefinition, VariableMapping<String> {
+    ) : RootElementDefinition,
+        VariableMapping<String> {
         override fun getName() = name?.toUpperSnakeCase() ?: ""
         override fun getValue() = name ?: ""
         override fun getRawName() = name ?: ""
@@ -40,7 +41,8 @@ sealed interface RootElementDefinition {
     data class Signal(
         override val id: String?,
         private val name: String?,
-    ) : RootElementDefinition, VariableMapping<String> {
+    ) : RootElementDefinition,
+        VariableMapping<String> {
         override fun getName() = name?.toUpperSnakeCase() ?: ""
         override fun getValue() = name ?: ""
         override fun getRawName() = name ?: ""
@@ -54,7 +56,8 @@ sealed interface RootElementDefinition {
         override val id: String?,
         private val name: String?,
         private val code: String?,
-    ) : RootElementDefinition, VariableMapping<Pair<String, String>> {
+    ) : RootElementDefinition,
+        VariableMapping<Pair<String, String>> {
         override fun getName() = name?.toUpperSnakeCase() ?: ""
         override fun getValue() = (name ?: "") to (code ?: "")
         override fun getRawName() = name ?: ""
@@ -67,7 +70,8 @@ sealed interface RootElementDefinition {
         override val id: String?,
         private val name: String?,
         private val code: String?,
-    ) : RootElementDefinition, VariableMapping<Pair<String, String>> {
+    ) : RootElementDefinition,
+        VariableMapping<Pair<String, String>> {
         override fun getName() = name?.toUpperSnakeCase() ?: ""
         override fun getValue() = (name ?: "") to (code ?: "")
         override fun getRawName() = name ?: ""

@@ -1,8 +1,8 @@
 package io.miragon.bpmn.runtime.path
 
-import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
 
 /**
  * Exercises the fluent [PathWalk] facade over the generated Newsletter API from **Kotlin** (its

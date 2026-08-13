@@ -35,7 +35,6 @@ class ValidateBpmnServiceTest {
 
     @Test
     fun `valid model returns empty result`() {
-
         // given: a valid model whose detected engine matches the selected one
         every { bpmnFileLoader.loadFrom(any(), any()) } returns listOf(dummyResource)
         every { bpmnExtractor.extract(any(), any()) } returns testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
@@ -50,7 +49,6 @@ class ValidateBpmnServiceTest {
 
     @Test
     fun `pre-merge error stops execution and returns early`() {
-
         // given: a model with a service task missing implementation (pre-merge ERROR)
         val invalidModel = testProcessModel(
             flowNodes = listOf(
@@ -58,8 +56,8 @@ class ValidateBpmnServiceTest {
                     id = "task1",
                     kind = TaskKind.SERVICE,
                     implementation = TaskImplementation.Unspecified,
-                )
-            )
+                ),
+            ),
         )
         every { bpmnFileLoader.loadFrom(any(), any()) } returns listOf(dummyResource)
         every { bpmnExtractor.extract(any(), any()) } returns invalidModel

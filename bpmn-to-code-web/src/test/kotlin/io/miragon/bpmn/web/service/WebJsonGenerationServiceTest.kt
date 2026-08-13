@@ -2,9 +2,9 @@ package io.miragon.bpmn.web.service
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.web.model.GenerateJsonRequest
-import java.util.Base64
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.util.Base64
 
 class WebJsonGenerationServiceTest {
 
@@ -12,18 +12,17 @@ class WebJsonGenerationServiceTest {
 
     @Test
     fun `should generate JSON from sample BPMN file`() {
-
         // given: the sample BPMN served by the web app
         val request = GenerateJsonRequest(
             files = listOf(
                 GenerateJsonRequest.BpmnFileData(
                     fileName = "c8-newsletter.bpmn",
                     content = loadSampleBase64("samples/c8-newsletter.bpmn"),
-                )
+                ),
             ),
             config = GenerateJsonRequest.JsonGenerationConfig(
                 processEngine = ProcessEngine.ZEEBE,
-            )
+            ),
         )
 
         // when: generating JSON
@@ -40,18 +39,17 @@ class WebJsonGenerationServiceTest {
 
     @Test
     fun `should return error response when base64 content is invalid`() {
-
         // given: a request with invalid Base64 content
         val request = GenerateJsonRequest(
             files = listOf(
                 GenerateJsonRequest.BpmnFileData(
                     fileName = "invalid.bpmn",
                     content = "not-valid-base64!!!",
-                )
+                ),
             ),
             config = GenerateJsonRequest.JsonGenerationConfig(
                 processEngine = ProcessEngine.ZEEBE,
-            )
+            ),
         )
 
         // when: generating JSON

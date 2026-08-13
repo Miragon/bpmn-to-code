@@ -35,7 +35,6 @@ class ProcessJsonSchemaTest {
     @ParameterizedTest
     @EnumSource(ProcessEngine::class)
     fun `generated process json conforms to the published schema`(engine: ProcessEngine) {
-
         // when: every shared fixture of this engine runs through the real pipeline
         val generated = generateAll(engine)
 
@@ -49,7 +48,6 @@ class ProcessJsonSchemaTest {
 
     @Test
     fun `golden json fixtures conform to the published schema`() {
-
         // given: the committed fixtures, which also cover the merged multi-variant shape
         val goldenFiles = listOf(
             "/json/NewsletterSubscriptionProcess.json",
@@ -69,7 +67,6 @@ class ProcessJsonSchemaTest {
     @ParameterizedTest
     @EnumSource(ProcessEngine::class)
     fun `every reference in the generated json resolves`(engine: ProcessEngine) {
-
         // when
         val generated = generateAll(engine)
 
@@ -93,7 +90,6 @@ class ProcessJsonSchemaTest {
 
     @Test
     fun `a message correlation key is declared once, on the message it belongs to`() {
-
         // given: a Zeebe process whose zeebe:subscription sits on the bpmn:Message root element
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
             bpmnXml = readResource("/bpmn/c8-subscribe-newsletter.bpmn"),
@@ -111,14 +107,12 @@ class ProcessJsonSchemaTest {
     /**
      * Each fixture of [engine] run through the real pipeline, paired with its fixture name.
      */
-    private fun generateAll(engine: ProcessEngine): List<Pair<String, String>> {
-        return fixturesFor(engine).flatMap { fixture ->
-            val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
-                bpmnXml = readResource("/bpmn/$fixture.bpmn"),
-                processName = fixture,
-            )
-            underTest.execute(bpmnContents = listOf(input), engine = engine).map { fixture to it.content }
-        }
+    private fun generateAll(engine: ProcessEngine): List<Pair<String, String>> = fixturesFor(engine).flatMap { fixture ->
+        val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
+            bpmnXml = readResource("/bpmn/$fixture.bpmn"),
+            processName = fixture,
+        )
+        underTest.execute(bpmnContents = listOf(input), engine = engine).map { fixture to it.content }
     }
 
     /**
@@ -150,9 +144,8 @@ class ProcessJsonSchemaTest {
 
     private fun JsonNode.stringsAt(field: String): List<String> = this[field]?.map { it.asText() } ?: emptyList()
 
-    private fun readResource(path: String): String =
-        requireNotNull(javaClass.getResourceAsStream(path)) { "missing test resource $path" }
-            .use { it.readBytes().decodeToString() }
+    private fun readResource(path: String): String = requireNotNull(javaClass.getResourceAsStream(path)) { "missing test resource $path" }
+        .use { it.readBytes().decodeToString() }
 
     private fun fixturesFor(engine: ProcessEngine): List<String> = when (engine) {
         ProcessEngine.ZEEBE -> zeebeFixtures

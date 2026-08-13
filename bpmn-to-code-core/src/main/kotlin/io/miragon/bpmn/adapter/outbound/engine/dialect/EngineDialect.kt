@@ -61,7 +61,7 @@ internal interface EngineDialect {
      */
     fun multiInstanceBindingsOf(
         loop: MultiInstanceLoopCharacteristics,
-        base: MultiInstanceDefinition
+        base: MultiInstanceDefinition,
     ): MultiInstanceDefinition
 
     /**

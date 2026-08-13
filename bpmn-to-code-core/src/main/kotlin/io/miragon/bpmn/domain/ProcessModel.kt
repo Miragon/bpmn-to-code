@@ -112,37 +112,31 @@ data class ProcessModel(
     /**
      * Every signal reference in the process.
      */
-    fun signalUsages(): List<NamedEventUsage> {
-        return allFlowNodes
-            .filterIsInstance<FlowNodeDefinition.Event>()
-            .flatMap { node ->
-                node.eventDefinitions
-                    .filterIsInstance<EventDefinitionInstance.Signal>()
-                    .mapNotNull { it.signalName?.let { name -> NamedEventUsage(node, name, node.shape.direction) } }
-            }
-    }
+    fun signalUsages(): List<NamedEventUsage> = allFlowNodes
+        .filterIsInstance<FlowNodeDefinition.Event>()
+        .flatMap { node ->
+            node.eventDefinitions
+                .filterIsInstance<EventDefinitionInstance.Signal>()
+                .mapNotNull { it.signalName?.let { name -> NamedEventUsage(node, name, node.shape.direction) } }
+        }
 
     /**
      * Every error reference in the process, paired with the event that declares it.
      */
-    fun errorUsages(): List<Pair<FlowNodeDefinition, EventDefinitionInstance.Error>> {
-        return allFlowNodes
-            .filterIsInstance<FlowNodeDefinition.Event>()
-            .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Error>().map { node to it } }
-    }
+    fun errorUsages(): List<Pair<FlowNodeDefinition, EventDefinitionInstance.Error>> = allFlowNodes
+        .filterIsInstance<FlowNodeDefinition.Event>()
+        .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Error>().map { node to it } }
 
     /**
      * Ids of the `bpmn:Definitions` root elements the nodes actually point at.
      *
      * A file may declare more than these — `UnreferencedRootElementRule` reports the difference.
      */
-    fun referencedDefinitionIds(): Set<String> {
-        return allFlowNodes.flatMapTo(mutableSetOf()) { node ->
-            when (node) {
-                is FlowNodeDefinition.Event -> node.eventDefinitions.mapNotNull { it.referencedId() }
-                is FlowNodeDefinition.Activity.Task -> listOfNotNull(node.message?.messageRef)
-                else -> emptyList()
-            }
+    fun referencedDefinitionIds(): Set<String> = allFlowNodes.flatMapTo(mutableSetOf()) { node ->
+        when (node) {
+            is FlowNodeDefinition.Event -> node.eventDefinitions.mapNotNull { it.referencedId() }
+            is FlowNodeDefinition.Activity.Task -> listOfNotNull(node.message?.messageRef)
+            else -> emptyList()
         }
     }
 

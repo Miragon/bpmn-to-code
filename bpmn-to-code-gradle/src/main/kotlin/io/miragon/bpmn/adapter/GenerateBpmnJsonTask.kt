@@ -8,7 +8,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(
-    because = "Task produces output based on files that can change at any time without the plugin knowing about it"
+    because = "Task produces output based on files that can change at any time without the plugin knowing about it",
 )
 abstract class GenerateBpmnJsonTask : DefaultTask() {
 

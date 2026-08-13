@@ -14,7 +14,6 @@ class CreateProcessJsonFilesystemPluginTest {
 
     @Test
     fun `execute delegates to use case with correct command`() {
-
         // when: execute is called with all parameters
         underTest.execute(
             baseDir = "/path/to/bpmn",
@@ -31,7 +30,7 @@ class CreateProcessJsonFilesystemPluginTest {
                     filePattern = "*.bpmn",
                     outputFolderPath = "/output/folder",
                     engine = ProcessEngine.ZEEBE,
-                )
+                ),
             )
         }
         confirmVerified(useCase)

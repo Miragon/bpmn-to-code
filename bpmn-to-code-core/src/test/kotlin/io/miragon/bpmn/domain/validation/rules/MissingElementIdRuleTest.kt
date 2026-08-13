@@ -14,10 +14,9 @@ class MissingElementIdRuleTest {
 
     @Test
     fun `reports error for flow node with null id`() {
-
         // given: a model containing a flow node without an ID
         val model = testProcessModel(
-            flowNodes = listOf(FlowNodeDefinition.Unknown(id = null))
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)),
         )
 
         // when / then: an ERROR violation mentioning "FlowNode has no ID"
@@ -29,10 +28,9 @@ class MissingElementIdRuleTest {
 
     @Test
     fun `no violations for elements with valid ids`() {
-
         // given: a flow node with a valid ID
         val model = testProcessModel(
-            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_SendMail"))
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_SendMail")),
         )
 
         // when / then: no violations

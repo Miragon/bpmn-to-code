@@ -19,9 +19,7 @@ data class CrossModelValidationContext(
     /**
      * Returns the model with the given process id, or `null` if no such model was loaded.
      */
-    fun findProcess(processId: String): ProcessModel? {
-        return byProcessId[processId]
-    }
+    fun findProcess(processId: String): ProcessModel? = byProcessId[processId]
 
     /**
      * Resolves a call activity's called element to the model of the called process,

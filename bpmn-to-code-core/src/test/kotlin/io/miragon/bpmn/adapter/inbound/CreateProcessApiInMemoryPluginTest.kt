@@ -18,7 +18,6 @@ class CreateProcessApiInMemoryPluginTest {
 
     @Test
     fun `execute delegates to use case and returns generated files`() {
-
         // given: multiple BpmnInput objects
         val firstInput = mockInput("first")
         val secondInput = mockInput("second")
@@ -30,7 +29,7 @@ class CreateProcessApiInMemoryPluginTest {
             bpmnContents = listOf(firstInput, secondInput),
             packagePath = "com.example.api",
             outputLanguage = OutputLanguage.KOTLIN,
-            engine = ProcessEngine.ZEEBE
+            engine = ProcessEngine.ZEEBE,
         )
 
         // then: a use case is called with correct command mapping and returns generated files
@@ -43,14 +42,14 @@ class CreateProcessApiInMemoryPluginTest {
                     bpmnContents = listOf(
                         GenerateProcessApiInMemoryUseCase.BpmnInput(
                             bpmnXml = "<bpmn>first</bpmn>",
-                            processName = "first.bpmn"
+                            processName = "first.bpmn",
                         ),
                         GenerateProcessApiInMemoryUseCase.BpmnInput(
                             bpmnXml = "<bpmn>second</bpmn>",
-                            processName = "second.bpmn"
-                        )
-                    )
-                )
+                            processName = "second.bpmn",
+                        ),
+                    ),
+                ),
             )
         }
 
@@ -61,7 +60,7 @@ class CreateProcessApiInMemoryPluginTest {
 
     private fun mockInput(fileName: String) = CreateProcessApiInMemoryPlugin.BpmnInput(
         bpmnXml = "<bpmn>$fileName</bpmn>",
-        processName = "$fileName.bpmn"
+        processName = "$fileName.bpmn",
     )
 
     private fun mockApiFile(fileName: String) = GeneratedApiFile(
@@ -71,5 +70,4 @@ class CreateProcessApiInMemoryPluginTest {
         language = OutputLanguage.KOTLIN,
         processId = fileName,
     )
-
 }

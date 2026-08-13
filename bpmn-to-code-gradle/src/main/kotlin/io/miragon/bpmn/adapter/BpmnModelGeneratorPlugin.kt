@@ -1,9 +1,9 @@
 package io.miragon.bpmn.adapter
 
-import java.util.Properties
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import java.util.Properties
 
 @Suppress("unused")
 class BpmnModelGeneratorPlugin : Plugin<Project> {
@@ -42,7 +42,7 @@ class BpmnModelGeneratorPlugin : Plugin<Project> {
         val stream = javaClass.classLoader.getResourceAsStream(VERSION_RESOURCE)
             ?: throw GradleException(
                 "[bpmn-to-code] Could not locate '$VERSION_RESOURCE' on the plugin classpath. " +
-                    "This is a bug in the plugin distribution — please report it."
+                    "This is a bug in the plugin distribution — please report it.",
             )
         val properties = stream.use {
             Properties().apply { load(it) }
@@ -50,7 +50,7 @@ class BpmnModelGeneratorPlugin : Plugin<Project> {
         return properties.getProperty("version")?.takeIf { it.isNotBlank() }
             ?: throw GradleException(
                 "[bpmn-to-code] '$VERSION_RESOURCE' is missing a non-blank 'version' entry. " +
-                    "This is a bug in the plugin distribution — please report it."
+                    "This is a bug in the plugin distribution — please report it.",
             )
     }
 }

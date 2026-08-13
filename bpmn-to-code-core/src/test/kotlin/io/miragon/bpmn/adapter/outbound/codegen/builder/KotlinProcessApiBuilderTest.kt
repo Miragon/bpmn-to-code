@@ -11,7 +11,6 @@ import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.testSendNewsletterModel
 import io.miragon.bpmn.domain.testSubscribeNewsletterModel
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -24,6 +23,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class KotlinProcessApiBuilderTest {
 
@@ -31,7 +31,6 @@ class KotlinProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile generates correct process API file`() {
-
         // given: a BPMN model with custom service task implementations
         val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
@@ -43,7 +42,7 @@ class KotlinProcessApiBuilderTest {
                     notifyCommunityImpl = "newsletter.notifyCommunity",
                     extraVariables = listOf(VariableDefinition("testVariable", VariableDirection.INPUT)),
                 ),
-            )
+            ),
         )
 
         // when: we build the process API file
@@ -66,7 +65,6 @@ class KotlinProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile generates variant-scoped Flows and Relations for merged model`() {
-
         // given: a merged model with a single variant
         val send = testSendNewsletterModel(variantName = "send")
         val merged = ProcessModel(
@@ -90,7 +88,6 @@ class KotlinProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile emits one constant for root elements that share a name`() {
-
         // given: two bpmn:Message root elements with the same name and their own ids — the domain keeps
         // both so that every messageRef resolves, but they normalise to a single constant
         val model = testSubscribeNewsletterModel(

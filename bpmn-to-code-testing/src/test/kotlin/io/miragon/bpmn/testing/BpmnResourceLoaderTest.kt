@@ -1,15 +1,15 @@
 package io.miragon.bpmn.testing
 
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.FileOutputStream
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
 
 class BpmnResourceLoaderTest {
 
@@ -35,7 +35,6 @@ class BpmnResourceLoaderTest {
 
     @Test
     fun `fromDirectory loads all bpmn files recursively`(@TempDir tempDir: Path) {
-
         // given: a directory with BPMN files in root and subdirectory, plus a non-BPMN file
         val subDir = Files.createDirectory(tempDir.resolve("sub"))
         Files.createFile(tempDir.resolve("root.bpmn"))
@@ -51,7 +50,6 @@ class BpmnResourceLoaderTest {
 
     @Test
     fun `fromDirectory throws when path is not a directory`(@TempDir tempDir: Path) {
-
         // given: a regular file (not a directory)
         val file = Files.createFile(tempDir.resolve("process.bpmn"))
 
@@ -70,7 +68,6 @@ class BpmnResourceLoaderTest {
 
     @Test
     fun `fromClasspath loads bpmn files from jar archive`(@TempDir tempDir: Path) {
-
         // given: a JAR containing a .bpmn file
         val jarPath = tempDir.resolve("test-resources.jar")
         JarOutputStream(FileOutputStream(jarPath.toFile())).use { jar ->

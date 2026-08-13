@@ -74,13 +74,11 @@ style:
     active: true
     max: 4
   UnusedImports:
-    active: true
+    active: false
   UnusedPrivateMember:
     active: true
   WildcardImport:
-    active: true
-    excludeImports:
-      - 'io.ktor.*'
+    active: false
   ForbiddenComment:
     active: true
     comments:

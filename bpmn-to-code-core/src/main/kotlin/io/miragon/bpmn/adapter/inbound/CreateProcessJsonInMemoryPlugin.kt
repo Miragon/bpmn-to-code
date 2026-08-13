@@ -14,20 +14,18 @@ class CreateProcessJsonInMemoryPlugin(
         bpmnContents: List<BpmnInput>,
         engine: ProcessEngine,
         validationConfig: ValidationConfig = ValidationConfig(),
-    ): List<GeneratedJsonFile> {
-        return useCase.generateProcessJson(
-            GenerateProcessJsonInMemoryUseCase.Command(
-                engine = engine,
-                validationConfig = validationConfig,
-                bpmnContents = bpmnContents.map {
-                    GenerateProcessJsonInMemoryUseCase.BpmnInput(
-                        bpmnXml = it.bpmnXml,
-                        processName = it.processName,
-                    )
-                },
-            )
-        )
-    }
+    ): List<GeneratedJsonFile> = useCase.generateProcessJson(
+        GenerateProcessJsonInMemoryUseCase.Command(
+            engine = engine,
+            validationConfig = validationConfig,
+            bpmnContents = bpmnContents.map {
+                GenerateProcessJsonInMemoryUseCase.BpmnInput(
+                    bpmnXml = it.bpmnXml,
+                    processName = it.processName,
+                )
+            },
+        ),
+    )
 
     data class BpmnInput(
         val bpmnXml: String,

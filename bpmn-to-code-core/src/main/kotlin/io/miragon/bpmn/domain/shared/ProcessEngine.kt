@@ -6,5 +6,5 @@ package io.miragon.bpmn.domain.shared
 enum class ProcessEngine {
     ZEEBE,
     CAMUNDA_7,
-    OPERATON
+    OPERATON,
 }

@@ -26,8 +26,7 @@ internal class CodeGenerationAdapter(
     companion object {
         val processApiBuilders = mapOf(
             OutputLanguage.KOTLIN to KotlinProcessApiBuilder(),
-            OutputLanguage.JAVA to JavaProcessApiBuilder()
+            OutputLanguage.JAVA to JavaProcessApiBuilder(),
         )
     }
-
 }

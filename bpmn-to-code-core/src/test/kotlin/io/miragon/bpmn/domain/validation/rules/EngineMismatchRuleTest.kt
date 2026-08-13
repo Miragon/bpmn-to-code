@@ -13,7 +13,6 @@ class EngineMismatchRuleTest {
 
     @Test
     fun `reports an error when the model targets a different engine`() {
-
         // given: a model detected as Camunda 7 but validated for Operaton (the reported case)
         val model = testProcessModel(detectedEngine = ProcessEngine.CAMUNDA_7)
 
@@ -27,7 +26,6 @@ class EngineMismatchRuleTest {
 
     @Test
     fun `no violation when the detected engine matches the selected engine`() {
-
         // given: a model whose detected engine matches the selected one
         val model = testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
@@ -37,7 +35,6 @@ class EngineMismatchRuleTest {
 
     @Test
     fun `warns when the source engine could not be detected`() {
-
         // given: a model whose target engine could not be determined
         val model = testProcessModel(detectedEngine = null)
 

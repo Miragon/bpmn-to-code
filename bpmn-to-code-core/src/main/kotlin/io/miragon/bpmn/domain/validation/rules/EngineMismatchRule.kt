@@ -35,15 +35,13 @@ class EngineMismatchRule : SingleModelValidationRule {
         return listOfNotNull(violation)
     }
 
-    private fun violation(context: SingleModelValidationContext, severity: Severity, message: String): ValidationViolation {
-        return ValidationViolation(
-            ruleId = id,
-            severity = severity,
-            elementId = null,
-            processId = context.model.processId,
-            message = message,
-        )
-    }
+    private fun violation(context: SingleModelValidationContext, severity: Severity, message: String): ValidationViolation = ValidationViolation(
+        ruleId = id,
+        severity = severity,
+        elementId = null,
+        processId = context.model.processId,
+        message = message,
+    )
 
     private fun mismatchMessage(detected: ProcessEngine, selected: ProcessEngine): String {
         val detectedName = displayName(detected)
@@ -53,11 +51,9 @@ class EngineMismatchRule : SingleModelValidationRule {
             "as the process engine, or provide a model built for $selectedName."
     }
 
-    private fun undeterminedMessage(selected: ProcessEngine): String {
-        return "Could not determine this model's target engine from its BPMN namespaces, " +
-            "so it cannot be verified against the selected engine (${displayName(selected)}). " +
-            "Make sure the model carries the expected engine namespace."
-    }
+    private fun undeterminedMessage(selected: ProcessEngine): String = "Could not determine this model's target engine from its BPMN namespaces, " +
+        "so it cannot be verified against the selected engine (${displayName(selected)}). " +
+        "Make sure the model carries the expected engine namespace."
 
     private fun displayName(engine: ProcessEngine): String = when (engine) {
         ProcessEngine.ZEEBE -> "Zeebe (Camunda 8)"

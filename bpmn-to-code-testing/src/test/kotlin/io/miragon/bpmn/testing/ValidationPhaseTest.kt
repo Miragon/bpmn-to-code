@@ -47,17 +47,15 @@ class ValidationPhaseTest {
         override val id = "always-failing"
         override val severity = Severity.ERROR
 
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            return listOf(
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = null,
-                    processId = context.model.processId,
-                    message = "always fails",
-                ),
-            )
-        }
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = listOf(
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = null,
+                processId = context.model.processId,
+                message = "always fails",
+            ),
+        )
     }
 
     private class RecordingCrossModelRule : CrossModelValidationRule {

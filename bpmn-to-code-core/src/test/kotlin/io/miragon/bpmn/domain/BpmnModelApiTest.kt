@@ -13,7 +13,6 @@ class BpmnModelApiTest {
 
     @Test
     fun `fileName returns PascalCase class name regardless of ID separator style`() {
-
         // given: the expected file name
         val expectedFileName = "NewsletterSubscriptionProcessApi"
 

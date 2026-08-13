@@ -20,6 +20,7 @@ konsist = "0.17.3"
 jsonSchemaValidator = "1.5.6"
 dokka = "2.2.0"
 detekt = "1.23.8"
+ktlintPlugin = "0.14.0"
 
 [libraries]
 # Plugin dependencies
@@ -71,3 +72,4 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+ktlint = { id = "io.github.usefulness.ktlint-gradle-plugin", version.ref = "ktlintPlugin" }

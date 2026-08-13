@@ -1,15 +1,15 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
-import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
-import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.CodeBlock
 import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
+import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
+import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
-import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraphFactory
+import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel.Variant
@@ -102,7 +102,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
                 .addJavadoc(
                     "BPMN element ids as declared in the source model.\n" +
                         "Typically used in process-level tests or when searching for tasks.\n" +
-                        "Worker runtime code rarely needs these.\n"
+                        "Worker runtime code rarely needs these.\n",
                 )
             modelApi.model.allFlowNodes.sortedBy { it.getRawName() }.forEach { flowNode ->
                 elementsBuilder.addField(createTypedAttribute(flowNode, elementIdClass))
@@ -156,7 +156,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             .addJavadoc(
                 "Sequence flows between BPMN elements.\n" +
                     "Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.\n" +
-                    "Worker code typically does not need these.\n"
+                    "Worker code typically does not need these.\n",
             )
         sequenceFlows.sortedBy { it.getRawName() }.forEach { flow ->
             val initCode = buildFlowInitializer(bpmnFlowClass, flow.id ?: "", flow.flowName, flow.sourceRef, flow.targetRef, flow.conditionExpression, flow.isDefault)
@@ -189,7 +189,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
                 "Typed navigation over the process flow. Each element is a node exposing its {@code id}, " +
                     "{@code elementType} and display {@code name}, plus the elements reachable from it as methods — " +
                     "so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior " +
-                    "is its nested {@code Inner} scope.\n"
+                    "is its nested {@code Inner} scope.\n",
             )
         JavaNavigationWriter().write(relationsBuilder, NavigationGraphFactory.build(graph), staticAccessors = true)
         return relationsBuilder.build()
@@ -201,7 +201,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             val callActivitiesBuilder = TypeSpec.classBuilder("CallActivities").addModifiers(PUBLIC, STATIC, FINAL)
                 .addJavadoc(
                     "Call activities grouped by element. Each nested class exposes the called {@code PROCESS_ID} plus " +
-                        "the variable mappings passed into ({@code Inputs}) and returned from ({@code Outputs}) the called process.\n"
+                        "the variable mappings passed into ({@code Inputs}) and returned from ({@code Outputs}) the called process.\n",
                 )
             modelApi.model.callActivities
                 .sortedBy { it.getRawName() }
@@ -215,7 +215,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             classBuilder.addField(
                 FieldSpec.builder(processIdClass, "PROCESS_ID").addModifiers(PUBLIC, STATIC, FINAL)
                     .initializer("new \$T(\$S)", processIdClass, callActivity.getValue())
-                    .build()
+                    .build(),
             )
             buildMappingsClass("Inputs", callActivity.inputMappings)?.let { classBuilder.addType(it) }
             buildMappingsClass("Outputs", callActivity.outputMappings)?.let { classBuilder.addType(it) }
@@ -269,7 +269,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             val tasksBuilder = TypeSpec.classBuilder("ServiceTasks").addModifiers(PUBLIC, STATIC, FINAL)
                 .addJavadoc(
                     "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
-                        "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n"
+                        "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
                 )
             modelApi.model.serviceTasks.asApiConstants()
                 .forEach { task -> tasksBuilder.addField(createAttribute(task)) }
@@ -297,7 +297,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
                 .addJavadoc(
                     "Process variables grouped by the BPMN element that declares them.\n" +
                         "Direction is encoded in each variable's wrapper type: {@code VariableName.Input}, {@code VariableName.Output}, or {@code VariableName.InOut} when the variable is both read and written by the same element.\n" +
-                        "Consumer APIs that take a specific subtype (for example, a method accepting {@code VariableName.Output}) get compile-time direction enforcement.\n"
+                        "Consumer APIs that take a specific subtype (for example, a method accepting {@code VariableName.Output}) get compile-time direction enforcement.\n",
                 )
             val nodesWithVariables = modelApi.model.allFlowNodes
                 .filter { it.variables.isNotEmpty() }
@@ -384,17 +384,13 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         }
     }
 
-    private fun createAttribute(variable: VariableMapping<*>): FieldSpec {
-        return FieldSpec.builder(String::class.java, variable.getName())
-            .addModifiers(PUBLIC, STATIC, FINAL)
-            .initializer("\$S", variable.getValue())
-            .build()
-    }
+    private fun createAttribute(variable: VariableMapping<*>): FieldSpec = FieldSpec.builder(String::class.java, variable.getName())
+        .addModifiers(PUBLIC, STATIC, FINAL)
+        .initializer("\$S", variable.getValue())
+        .build()
 
-    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): FieldSpec {
-        return FieldSpec.builder(wrapperClass, variable.getName())
-            .addModifiers(PUBLIC, STATIC, FINAL)
-            .initializer("new \$T(\$S)", wrapperClass, variable.getValue())
-            .build()
-    }
+    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): FieldSpec = FieldSpec.builder(wrapperClass, variable.getName())
+        .addModifiers(PUBLIC, STATIC, FINAL)
+        .initializer("new \$T(\$S)", wrapperClass, variable.getValue())
+        .build()
 }

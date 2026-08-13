@@ -25,7 +25,6 @@ class MissingServiceTaskImplementationRuleTest {
 
     @Test
     fun `reports error for service task with no implementation`() {
-
         // given: a service task with no implementation
         val model = testProcessModel(flowNodes = listOf(unimplementedServiceTask("task1")))
 
@@ -41,14 +40,13 @@ class MissingServiceTaskImplementationRuleTest {
 
     @Test
     fun `reports every unimplemented service task, not just the first`() {
-
         // given: three service tasks that all lack an implementation
         val model = testProcessModel(
             flowNodes = listOf(
                 unimplementedServiceTask("task1"),
                 unimplementedServiceTask("task2"),
                 unimplementedServiceTask("task3"),
-            )
+            ),
         )
 
         // when
@@ -60,7 +58,6 @@ class MissingServiceTaskImplementationRuleTest {
 
     @Test
     fun `no violations for service task with valid implementation`() {
-
         // given: a service task with a resolved job-worker implementation
         val model = testProcessModel(
             flowNodes = listOf(
@@ -79,7 +76,6 @@ class MissingServiceTaskImplementationRuleTest {
 
     @Test
     fun `engine-specific hint for Camunda 7`() {
-
         // given: a service task with no implementation validated against Camunda 7
         val model = testProcessModel(flowNodes = listOf(unimplementedServiceTask("task1")))
 
@@ -90,7 +86,6 @@ class MissingServiceTaskImplementationRuleTest {
 
     @Test
     fun `engine-specific hint for Operaton`() {
-
         // given: a service task with no implementation validated against Operaton
         val model = testProcessModel(flowNodes = listOf(unimplementedServiceTask("task1")))
 

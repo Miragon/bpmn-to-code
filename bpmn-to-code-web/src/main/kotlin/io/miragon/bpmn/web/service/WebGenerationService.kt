@@ -48,7 +48,7 @@ class WebGenerationService(
         bpmnContents = bpmnContents,
         packagePath = "com.example.process",
         outputLanguage = config.outputLanguage,
-        engine = config.processEngine
+        engine = config.processEngine,
     )
 
     private fun buildCommand(file: GenerateRequest.BpmnFileData): CreateProcessApiInMemoryPlugin.BpmnInput {
@@ -56,12 +56,12 @@ class WebGenerationService(
         val processName = file.fileName.removeSuffix(".bpmn")
         return CreateProcessApiInMemoryPlugin.BpmnInput(
             bpmnXml = bpmnXml,
-            processName = processName
+            processName = processName,
         )
     }
 
     private fun mapToResponse(
-        apiFile: GeneratedApiFile
+        apiFile: GeneratedApiFile,
     ) = GenerateResponse.GeneratedFile(
         fileName = apiFile.fileName,
         content = apiFile.content,

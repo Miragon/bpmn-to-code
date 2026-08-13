@@ -12,6 +12,8 @@ import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.testSendNewsletterModel
 import io.miragon.bpmn.domain.testSubscribeNewsletterModel
 import io.miragon.bpmn.domain.withId
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.net.URI
 import javax.tools.Diagnostic
@@ -19,8 +21,6 @@ import javax.tools.DiagnosticCollector
 import javax.tools.JavaFileObject
 import javax.tools.SimpleJavaFileObject
 import javax.tools.ToolProvider
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 
 class JavaProcessApiBuilderTest {
 
@@ -28,7 +28,6 @@ class JavaProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile generates correct process API file`() {
-
         // given: a BPMN model with custom service task implementations
         val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
@@ -40,7 +39,7 @@ class JavaProcessApiBuilderTest {
                     notifyCommunityImpl = "newsletter.notifyCommunity",
                     extraVariables = listOf(VariableDefinition("testVariable", VariableDirection.INPUT)),
                 ),
-            )
+            ),
         )
 
         // when: we build the process API file
@@ -57,13 +56,12 @@ class JavaProcessApiBuilderTest {
 
     @Test
     fun `maps content of id to valid variable name format`() {
-
         // given: a model with flow nodes that have slashes in their names
         val defaultModel = testSubscribeNewsletterModel()
         val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.getName().replace("_", "-")) }
         val modelApi = testProcessModelApi(
             model = testSubscribeNewsletterModel(flowNodes = modifiedNodes),
-            packagePath = "de.emaarco.example"
+            packagePath = "de.emaarco.example",
         )
 
         // when: we build the process API file
@@ -76,7 +74,6 @@ class JavaProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile generates variant-scoped Flows and Relations for merged model`() {
-
         // given: a merged model with a single variant
         val send = testSendNewsletterModel(variantName = "send")
         val merged = ProcessModel(
@@ -103,7 +100,8 @@ class JavaProcessApiBuilderTest {
         val diagnostics = DiagnosticCollector<JavaFileObject>()
         val fileManager = compiler.getStandardFileManager(diagnostics, null, null)
         val sourceObject = object : SimpleJavaFileObject(
-            URI.create("string:///${fileName.replace('.', '/')}"), JavaFileObject.Kind.SOURCE
+            URI.create("string:///${fileName.replace('.', '/')}"),
+            JavaFileObject.Kind.SOURCE,
         ) {
             override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence = source
         }

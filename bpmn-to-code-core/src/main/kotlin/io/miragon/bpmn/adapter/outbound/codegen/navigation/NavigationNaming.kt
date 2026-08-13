@@ -23,14 +23,10 @@ internal object NavigationNaming {
     /**
      * Assigns [Names] to every node in a scope, keyed by element id.
      */
-    fun assignScope(nodes: List<FlowNodeWithId>): Map<String, Names> {
-        return nodes.associate { node ->
-            val objectName = node.definition.getRawName().toCamelCase()
-            node.id to Names(objectName, decapitalize(objectName))
-        }
+    fun assignScope(nodes: List<FlowNodeWithId>): Map<String, Names> = nodes.associate { node ->
+        val objectName = node.definition.getRawName().toCamelCase()
+        node.id to Names(objectName, decapitalize(objectName))
     }
 
-    private fun decapitalize(name: String): String {
-        return name.replaceFirstChar { it.lowercaseChar() }
-    }
+    private fun decapitalize(name: String): String = name.replaceFirstChar { it.lowercaseChar() }
 }

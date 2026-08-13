@@ -93,12 +93,10 @@ class BpmnValidator private constructor(
         return BpmnValidationAssert.assertThat(result)
     }
 
-    private fun applyPolicy(violations: List<ValidationViolation>): List<ValidationViolation> {
-        return if (failOnWarning) {
-            violations.map { if (it.severity == Severity.WARN) it.copy(severity = Severity.ERROR) else it }
-        } else {
-            violations
-        }
+    private fun applyPolicy(violations: List<ValidationViolation>): List<ValidationViolation> = if (failOnWarning) {
+        violations.map { if (it.severity == Severity.WARN) it.copy(severity = Severity.ERROR) else it }
+    } else {
+        violations
     }
 
     private fun resolveRules(): List<ValidationRule> {
@@ -145,16 +143,12 @@ class BpmnValidator private constructor(
          * Loads BPMN files from the classpath at the given path.
          */
         @JvmStatic
-        fun fromClasspath(path: String): BpmnValidator {
-            return BpmnValidator { BpmnResourceLoader.fromClasspath(path) }
-        }
+        fun fromClasspath(path: String): BpmnValidator = BpmnValidator { BpmnResourceLoader.fromClasspath(path) }
 
         /**
          * Loads BPMN files from a filesystem directory.
          */
         @JvmStatic
-        fun fromDirectory(directory: Path): BpmnValidator {
-            return BpmnValidator { BpmnResourceLoader.fromDirectory(directory) }
-        }
+        fun fromDirectory(directory: Path): BpmnValidator = BpmnValidator { BpmnResourceLoader.fromDirectory(directory) }
     }
 }

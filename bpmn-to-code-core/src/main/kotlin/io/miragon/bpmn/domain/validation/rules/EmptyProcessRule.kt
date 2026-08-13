@@ -22,7 +22,7 @@ class EmptyProcessRule : SingleModelValidationRule {
                     elementId = null,
                     processId = context.model.processId,
                     message = "Process has no elements defined.",
-                )
+                ),
             )
         }
         return emptyList()

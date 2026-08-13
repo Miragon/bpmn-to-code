@@ -30,27 +30,29 @@ import kotlinx.serialization.json.Json
 private val logger = KotlinLogging.logger {}
 
 fun main() {
-
     val appConfig = AppConfig.fromEnvironment()
 
     embeddedServer(
         factory = Netty,
         port = appConfig.port,
         host = "0.0.0.0",
-        module = { configureApp(appConfig) }
+        module = { configureApp(appConfig) },
     ).start(
-        wait = true
+        wait = true,
     )
 }
 
 @Suppress("LongMethod")
 fun Application.configureApp(
-    appConfig: AppConfig
+    appConfig: AppConfig,
 ) {
-
     // JSON serialization
     install(ContentNegotiation) {
-        val jsonSettings = Json { prettyPrint = true; isLenient = true; ignoreUnknownKeys = true }
+        val jsonSettings = Json {
+            prettyPrint = true
+            isLenient = true
+            ignoreUnknownKeys = true
+        }
         json(jsonSettings)
     }
 
@@ -67,7 +69,7 @@ fun Application.configureApp(
             appConfig.cors.allowedOrigins.forEach { origin ->
                 allowHost(
                     host = origin.removePrefix("https://").removePrefix("http://"),
-                    schemes = listOf("https", "http")
+                    schemes = listOf("https", "http"),
                 )
             }
         }

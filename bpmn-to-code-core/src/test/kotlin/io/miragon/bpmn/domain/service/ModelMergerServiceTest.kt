@@ -20,7 +20,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `merges processes with same id into ProcessModel`() {
-
         // given: two models with same processId and one with different processId
         val firstFlowNode = jobWorkerTask(id = "create-order", jobType = "firstTaskType")
         val secondFlowNode = jobWorkerTask(id = "update-order", jobType = "secondTaskType")
@@ -76,7 +75,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `sorts all collections alphabetically by raw name`() {
-
         // given: model with unsorted elements
         val model = testProcessModel(
             processId = "test-process",
@@ -110,7 +108,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `deduplicates all elements within single BPMN model`() {
-
         // given: a single model with duplicates of various element types
         val timerFlowNode = FlowNodeDefinition.Event(
             id = "TIMER_1",
@@ -157,7 +154,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `deduplicates shared elements across multiple BPMN models with same process ID`() {
-
         // given: two models with overlapping elements
         val firstModel = testProcessModel(
             processId = "test-process",
@@ -225,7 +221,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `preserves per-variant sequence flows and flow nodes`() {
-
         // given: two models with the same processId but different flows
         val sharedNode = FlowNodeDefinition.Unknown(id = "Gateway_Route")
         val flowDeOnly = SequenceFlowDefinition("Flow_DE", "Gateway_Route", "Task_DE", conditionExpression = "country=DE")
@@ -271,7 +266,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `unions additionalInputVariables across variants on a shared flow node`() {
-
         // given: two variants both define the same message start event with different additional input variables
         val variantA = testProcessModel(
             processId = "order-process",
@@ -325,7 +319,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `preserves variables on a flow node that exists only in one variant`() {
-
         // given: a node that exists only in variantB
         val variantA = testProcessModel(
             processId = "order-process",
@@ -355,7 +348,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `orders variants and base node selection deterministically regardless of input order`() {
-
         // given: three variants of one process, each providing a different name for the shared node
         fun variant(name: String) = testProcessModel(
             processId = "order-process",
@@ -381,7 +373,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `returns a single-file process without variants`() {
-
         // given: a single model
         val flow = SequenceFlowDefinition("Flow_1", "Start", "End")
         val model = testProcessModel(
@@ -401,7 +392,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `throws when multiple models share processId without variantName`() {
-
         // given: two models with same processId but no variantName
         val model1 = testProcessModel(processId = "order-process")
         val model2 = testProcessModel(processId = "order-process")
@@ -415,7 +405,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `keeps root elements that share a name but have their own id`() {
-
         // given: a model whose modeller created two bpmn:Message elements with the same name — the common
         // result of typing the same name on two events instead of picking the existing message
         val model = testProcessModel(
@@ -440,7 +429,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `reports a merged process as non-executable when no variant is executable`() {
-
         // given: two variants of one process, both marked isExecutable="false"
         val first = testProcessModel(processId = "order-process", variantName = "de").copy(isExecutable = false)
         val second = testProcessModel(processId = "order-process", variantName = "en").copy(isExecutable = false)
@@ -454,7 +442,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `reports a merged process as executable when at least one variant is`() {
-
         // given
         val first = testProcessModel(processId = "order-process", variantName = "de").copy(isExecutable = false)
         val second = testProcessModel(processId = "order-process", variantName = "en")
@@ -468,7 +455,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `deduplicates root elements that repeat across variants`() {
-
         // given: two variants that both reference the same root elements
         val shared = RootElementDefinition.Message(id = "Message_1", name = "OrderPlaced")
         val first = testProcessModel(processId = "order-process", variantName = "de", messages = listOf(shared))
@@ -483,7 +469,6 @@ class ModelMergerServiceTest {
 
     @Test
     fun `throws when some models have variantName and some do not`() {
-
         // given: mixed variantName presence
         val model1 = testProcessModel(processId = "order-process", variantName = "prodDe")
         val model2 = testProcessModel(processId = "order-process")

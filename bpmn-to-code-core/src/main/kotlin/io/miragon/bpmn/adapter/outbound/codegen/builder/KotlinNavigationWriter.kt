@@ -68,7 +68,7 @@ internal class KotlinNavigationWriter {
     private fun addInnerScope(nodeBuilder: TypeSpec.Builder, node: NavigationNode, inner: NavigationGraph) {
         // Qualify with the node so a bare `Inner`/`Next` doesn't bind to an enclosing scope's type.
         nodeBuilder.addSuperinterface(
-            ClassName(RUNTIME_PACKAGE, "HasInnerScope").parameterizedBy(ClassName("", node.objectName, "Inner"))
+            ClassName(RUNTIME_PACKAGE, "HasInnerScope").parameterizedBy(ClassName("", node.objectName, "Inner")),
         )
         nodeBuilder.addFunction(innerFunction(node))
         nodeBuilder.addType(buildInnerScope(node, inner.nodes.filter { it.isStart }))
@@ -122,11 +122,9 @@ internal class KotlinNavigationWriter {
         return PropertySpec.builder("calledProcess", processIdClass).initializer("ProcessId(%S)", calledProcessId).build()
     }
 
-    private fun nodeAccessor(propertyName: String, objectName: String): PropertySpec {
-        return PropertySpec.builder(propertyName, ClassName("", objectName))
-            .getter(FunSpec.getterBuilder().addStatement("return %N", objectName).build())
-            .build()
-    }
+    private fun nodeAccessor(propertyName: String, objectName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", objectName))
+        .getter(FunSpec.getterBuilder().addStatement("return %N", objectName).build())
+        .build()
 
     private companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"

@@ -18,7 +18,6 @@ class ValidateBpmnFilesystemPluginTest {
 
     @Test
     fun `execute delegates to use case with correct command`() {
-
         // given: a config and an expected validation result
         val config = ValidationConfig(failOnWarning = true, disabledRules = setOf("missing-element-id"))
         val expectedResult = ValidationResult(emptyList())
@@ -40,7 +39,7 @@ class ValidateBpmnFilesystemPluginTest {
                     filePattern = "*.bpmn",
                     engine = ProcessEngine.ZEEBE,
                     validationConfig = config,
-                )
+                ),
             )
         }
         assertThat(result).isEqualTo(expectedResult)
@@ -49,7 +48,6 @@ class ValidateBpmnFilesystemPluginTest {
 
     @Test
     fun `execute uses default validation config when not provided`() {
-
         // given: an expected validation result
         val expectedResult = ValidationResult(emptyList())
         every { useCase.validateBpmn(any()) } returns expectedResult
@@ -69,7 +67,7 @@ class ValidateBpmnFilesystemPluginTest {
                     filePattern = "*.bpmn",
                     engine = ProcessEngine.CAMUNDA_7,
                     validationConfig = ValidationConfig(),
-                )
+                ),
             )
         }
         assertThat(result).isEqualTo(expectedResult)

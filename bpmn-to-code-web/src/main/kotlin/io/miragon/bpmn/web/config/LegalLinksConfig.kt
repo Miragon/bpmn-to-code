@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LegalLinksConfig(
     val imprintUrl: String?,
-    val privacyUrl: String?
+    val privacyUrl: String?,
 ) {
     companion object {
         fun fromEnvironment(): LegalLinksConfig {

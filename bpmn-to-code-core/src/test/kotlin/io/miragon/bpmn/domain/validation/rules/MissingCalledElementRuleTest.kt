@@ -15,7 +15,6 @@ class MissingCalledElementRuleTest {
 
     @Test
     fun `reports error for call activity with null calledElement`() {
-
         // given: a call activity with no calledElement set
         val model = testProcessModel(
             flowNodes = listOf(
@@ -35,7 +34,6 @@ class MissingCalledElementRuleTest {
 
     @Test
     fun `no violations for call activity with calledElement`() {
-
         // given: a call activity with a valid calledElement reference
         val model = testProcessModel(
             flowNodes = listOf(

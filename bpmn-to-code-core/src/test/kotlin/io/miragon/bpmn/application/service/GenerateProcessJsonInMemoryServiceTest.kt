@@ -25,7 +25,6 @@ class GenerateProcessJsonInMemoryServiceTest {
 
     @Test
     fun `generateProcessJson generates JSON files from BPMN content`() {
-
         // given: BPMN content and a mock extractor
         val bpmnInput = GenerateProcessJsonInMemoryUseCase.BpmnInput(
             bpmnXml = "<bpmn>test</bpmn>",

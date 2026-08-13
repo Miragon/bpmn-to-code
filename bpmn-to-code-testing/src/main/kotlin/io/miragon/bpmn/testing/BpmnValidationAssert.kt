@@ -131,9 +131,7 @@ class BpmnValidationAssert(
     /**
      * Returns the underlying [ValidationResult] for custom assertions.
      */
-    fun result(): ValidationResult {
-        return actual
-    }
+    fun result(): ValidationResult = actual
 
     /**
      * Returns the violations for the given rule, optionally narrowed to a specific element.
@@ -152,20 +150,16 @@ class BpmnValidationAssert(
          * Entry point for [BpmnValidationAssert].
          */
         @JvmStatic
-        fun assertThat(result: ValidationResult): BpmnValidationAssert {
-            return BpmnValidationAssert(result)
-        }
+        fun assertThat(result: ValidationResult): BpmnValidationAssert = BpmnValidationAssert(result)
 
-        private fun formatViolations(violations: List<ValidationViolation>): String {
-            return violations.joinToString("\n") { violation ->
-                val severity = if (violation.severity == Severity.ERROR) "ERROR" else "WARN"
-                val location = if (violation.elementId != null) {
-                    "${violation.processId}/${violation.elementId}"
-                } else {
-                    violation.processId
-                }
-                "[$severity] $location: ${violation.message} (rule: ${violation.ruleId})"
+        private fun formatViolations(violations: List<ValidationViolation>): String = violations.joinToString("\n") { violation ->
+            val severity = if (violation.severity == Severity.ERROR) "ERROR" else "WARN"
+            val location = if (violation.elementId != null) {
+                "${violation.processId}/${violation.elementId}"
+            } else {
+                violation.processId
             }
+            "[$severity] $location: ${violation.message} (rule: ${violation.ruleId})"
         }
     }
 }

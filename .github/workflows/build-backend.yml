@@ -66,13 +66,16 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Step 4: Run Gradle build
+      # Step 4: Quality gate — ktlint formatting + detekt static analysis.
+      # `--continue` so a single run collects EVERY finding across all modules and both tools
+      # (Gradle otherwise aborts on the first failing task, hiding later modules/detekt). The build
+      # still fails at the end if anything failed.
+      - name: Run quality gate (ktlint + detekt)
+        run: ./gradlew lintKotlin detekt --continue
+
+      # Step 5: Run Gradle build (compiles all modules and runs unit + integration tests;
       - name: Run Gradle Build
         run: ./gradlew build --warning-mode all
-
-      # Step 5: Run Detekt static analysis
-      - name: Run Detekt
-        run: ./gradlew detekt
 
       # Step 6: Enforce per-class test coverage (≥ 75%) for modules with in-process tests
       - name: Check Coverage

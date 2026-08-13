@@ -18,7 +18,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions returns empty when no collisions exist`() {
-
         // given: a model with distinct constant names across all element types
         val model = testProcessModel(
             processId = "TestProcess",
@@ -40,7 +39,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions allows true duplicates with same original ID`() {
-
         // given: a model with exact duplicate elements (same id)
         val model = testProcessModel(
             processId = "TestProcess",
@@ -60,7 +58,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collision with case variation in FlowNodes`() {
-
         // given: two flow nodes that differ only in case
         val model = testProcessModel(
             processId = "TestProcess",
@@ -83,7 +80,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collision with separator variation in FlowNodes`() {
-
         // given: two flow nodes that differ only in separator character
         val model = testProcessModel(
             processId = "TestProcess",
@@ -108,7 +104,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collision with mixed case and separator variation`() {
-
         // given: three flow nodes that all normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -135,7 +130,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects folding collision that UPPER_SNAKE misses`() {
-
         // given: two flow nodes whose ids keep distinct constants (FOO, _FOO) but fold to the
         // same PascalCase object name (Foo) used for Variables/CallActivities objects
         val model = testProcessModel(
@@ -158,7 +152,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions does not double-report a collision that surfaces on both bases`() {
-
         // given: two flow nodes that collide in UPPER_SNAKE and in PascalCase folding
         val model = testProcessModel(
             processId = "TestProcess",
@@ -178,7 +171,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects UPPER_SNAKE collision that folding misses`() {
-
         // given: two flow nodes that share a constant (FOO_BAR) but keep distinct PascalCase names
         val model = testProcessModel(
             processId = "TestProcess",
@@ -199,7 +191,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collisions in Messages`() {
-
         // given: two messages that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -220,7 +211,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collisions in ServiceTasks`() {
-
         // given: two service tasks with implementations that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -241,7 +231,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collisions in Signals`() {
-
         // given: two signals that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -262,7 +251,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collisions in Errors`() {
-
         // given: two errors that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -283,7 +271,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collisions in Timers`() {
-
         // given: two timer event nodes whose ids normalize to the same constant. Timer definitions are
         // now keyed by their carrying node's id, so this necessarily surfaces a FlowNode collision too.
         val model = testProcessModel(
@@ -314,7 +301,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects collisions in Variables`() {
-
         // given: two nodes with variables that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -341,7 +327,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects multiple collisions across different variable types`() {
-
         // given: a model with collisions in FlowNodes, Messages, and Signals simultaneously
         val model = testProcessModel(
             processId = "TestProcess",
@@ -373,7 +358,6 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions handles mixed valid and collision cases`() {
-
         // given: a model where most nodes are unique but two share a constant name
         val model = testProcessModel(
             processId = "TestProcess",

@@ -3,9 +3,9 @@ package io.miragon.bpmn.web.service
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.web.model.GenerateRequest
-import java.util.Base64
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.util.Base64
 
 class WebGenerationServiceTest {
 
@@ -13,19 +13,18 @@ class WebGenerationServiceTest {
 
     @Test
     fun `should generate Kotlin API from BPMN file`() {
-
         // given: a valid Zeebe BPMN file encoded as Base64
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
                     fileName = "c8-subscribe-newsletter.bpmn",
                     content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
-                )
+                ),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
                 processEngine = ProcessEngine.ZEEBE,
-            )
+            ),
         )
 
         // when: generating the API
@@ -43,19 +42,18 @@ class WebGenerationServiceTest {
 
     @Test
     fun `should generate Java API from BPMN file`() {
-
         // given: a valid Zeebe BPMN file with Java output language
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
                     fileName = "c8-subscribe-newsletter.bpmn",
                     content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
-                )
+                ),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.JAVA,
                 processEngine = ProcessEngine.ZEEBE,
-            )
+            ),
         )
 
         // when: generating the API
@@ -71,19 +69,18 @@ class WebGenerationServiceTest {
 
     @Test
     fun `should reject a model whose target engine does not match the selected engine`() {
-
         // given: a Zeebe model but Camunda 7 selected (the demo's original failure mode)
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
                     fileName = "c8-subscribe-newsletter.bpmn",
                     content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
-                )
+                ),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
                 processEngine = ProcessEngine.CAMUNDA_7,
-            )
+            ),
         )
 
         // when: generating the API
@@ -98,19 +95,18 @@ class WebGenerationServiceTest {
 
     @Test
     fun `should reject a Camunda 7 model when Operaton is selected`() {
-
         // given: a Camunda 7 model but Operaton selected (the reported case)
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
                     fileName = "c7-subscribe-newsletter.bpmn",
                     content = loadBpmnBase64("bpmn/c7-subscribe-newsletter.bpmn"),
-                )
+                ),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
                 processEngine = ProcessEngine.OPERATON,
-            )
+            ),
         )
 
         // when: generating the API
@@ -123,19 +119,18 @@ class WebGenerationServiceTest {
 
     @Test
     fun `should handle invalid Base64 content gracefully`() {
-
         // given: a request with invalid Base64 content
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
                     fileName = "invalid.bpmn",
                     content = "not-valid-base64!!!",
-                )
+                ),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
                 processEngine = ProcessEngine.ZEEBE,
-            )
+            ),
         )
 
         // when: generating the API
@@ -149,7 +144,6 @@ class WebGenerationServiceTest {
 
     @Test
     fun `should process up to 3 BPMN files successfully`() {
-
         // given: a request with 3 identical BPMN files
         val c8Base64 = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn")
         val request = GenerateRequest(
@@ -161,7 +155,7 @@ class WebGenerationServiceTest {
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
                 processEngine = ProcessEngine.ZEEBE,
-            )
+            ),
         )
 
         // when: generating the API for all files

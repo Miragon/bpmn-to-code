@@ -1,7 +1,5 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
-import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
-import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -9,9 +7,11 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
+import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
+import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
-import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraphFactory
+import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel.Variant
@@ -105,7 +105,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
                 .addKdoc(
                     "BPMN element ids as declared in the source model.\n" +
                         "Typically used in process-level tests or when searching for tasks.\n" +
-                        "Worker runtime code rarely needs these."
+                        "Worker runtime code rarely needs these.",
                 )
             modelApi.model.allFlowNodes.sortedBy { it.getRawName() }.forEach { flowNode ->
                 elementsBuilder.addProperty(createTypedAttribute(flowNode, elementIdClass))
@@ -159,7 +159,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             .addKdoc(
                 "Sequence flows between BPMN elements.\n" +
                     "Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.\n" +
-                    "Worker code typically does not need these."
+                    "Worker code typically does not need these.",
             )
         sequenceFlows.sortedBy { it.getRawName() }.forEach { flow ->
             val initStr = buildFlowInitializer(flow.id ?: "", flow.flowName, flow.sourceRef, flow.targetRef, flow.conditionExpression, flow.isDefault)
@@ -168,20 +168,18 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         return flowsBuilder.build()
     }
 
-    private fun buildFlowInitializer(id: String, name: String?, sourceRef: String, targetRef: String, condition: String?, isDefault: Boolean): CodeBlock {
-        return CodeBlock.builder().apply {
-            add("BpmnFlow(\n")
-            indent()
-            add("id = %S,\n", id)
-            if (name != null) add("name = %S,\n", name)
-            add("sourceRef = %S,\n", sourceRef)
-            add("targetRef = %S,\n", targetRef)
-            if (condition != null) add("condition = %L,\n", stringLiteral(condition))
-            if (isDefault) add("isDefault = true,\n")
-            unindent()
-            add(")")
-        }.build()
-    }
+    private fun buildFlowInitializer(id: String, name: String?, sourceRef: String, targetRef: String, condition: String?, isDefault: Boolean): CodeBlock = CodeBlock.builder().apply {
+        add("BpmnFlow(\n")
+        indent()
+        add("id = %S,\n", id)
+        if (name != null) add("name = %S,\n", name)
+        add("sourceRef = %S,\n", sourceRef)
+        add("targetRef = %S,\n", targetRef)
+        if (condition != null) add("condition = %L,\n", stringLiteral(condition))
+        if (isDefault) add("isDefault = true,\n")
+        unindent()
+        add(")")
+    }.build()
 
     /**
      * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
@@ -195,7 +193,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
                     "Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements " +
                     "reachable from it as named properties — so a full path is verified by the compiler and offered " +
                     "by autocomplete. A subprocess's interior is its nested `Inner` scope.\n" +
-                    "Intended for tooling, tests, and reasoning about the process shape."
+                    "Intended for tooling, tests, and reasoning about the process shape.",
             )
         KotlinNavigationWriter().write(relationsBuilder, NavigationGraphFactory.build(graph))
         return relationsBuilder.build()
@@ -207,7 +205,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             val callActivitiesBuilder = TypeSpec.objectBuilder("CallActivities")
                 .addKdoc(
                     "Call activities grouped by element. Each nested object exposes the called `PROCESS_ID` plus " +
-                        "the variable mappings passed into (`Inputs`) and returned from (`Outputs`) the called process.\n"
+                        "the variable mappings passed into (`Inputs`) and returned from (`Outputs`) the called process.\n",
                 )
             modelApi.model.callActivities
                 .sortedBy { it.getRawName() }
@@ -221,7 +219,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             objectBuilder.addProperty(
                 PropertySpec.builder("PROCESS_ID", processIdClass)
                     .initializer("%T(%L)", processIdClass, stringLiteral(callActivity.getValue()))
-                    .build()
+                    .build(),
             )
             buildMappingsObject("Inputs", callActivity.inputMappings)?.let { objectBuilder.addType(it) }
             buildMappingsObject("Outputs", callActivity.outputMappings)?.let { objectBuilder.addType(it) }
@@ -274,7 +272,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             val tasksBuilder = TypeSpec.objectBuilder("ServiceTasks")
                 .addKdoc(
                     "Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.\n" +
-                        "Kept as `const val String` because annotation arguments must be compile-time constants."
+                        "Kept as `const val String` because annotation arguments must be compile-time constants.",
                 )
             modelApi.model.serviceTasks.asApiConstants()
                 .forEach { task -> tasksBuilder.addProperty(createAttribute(task)) }
@@ -302,7 +300,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
                 .addKdoc(
                     "Process variables grouped by the BPMN element that declares them.\n" +
                         "Direction is encoded in each variable's wrapper type: `VariableName.Input`, `VariableName.Output`, or `VariableName.InOut` when the variable is both read and written by the same element.\n" +
-                        "Consumer APIs that take a specific subtype (e.g. `fun setOutput(v: VariableName.Output)`) get compile-time direction enforcement."
+                        "Consumer APIs that take a specific subtype (e.g. `fun setOutput(v: VariableName.Output)`) get compile-time direction enforcement.",
                 )
             val nodesWithVariables = modelApi.model.allFlowNodes
                 .filter { it.variables.isNotEmpty() }
@@ -388,24 +386,18 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private fun createAttribute(variable: VariableMapping<String>): PropertySpec {
-        return PropertySpec.builder(variable.getName(), String::class)
-            .addModifiers(KModifier.CONST)
-            .initializer("%L", stringLiteral(variable.getValue()))
-            .build()
-    }
+    private fun createAttribute(variable: VariableMapping<String>): PropertySpec = PropertySpec.builder(variable.getName(), String::class)
+        .addModifiers(KModifier.CONST)
+        .initializer("%L", stringLiteral(variable.getValue()))
+        .build()
 
-    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): PropertySpec {
-        return PropertySpec.builder(variable.getName(), wrapperClass)
-            .initializer("%T(%L)", wrapperClass, stringLiteral(variable.getValue()))
-            .build()
-    }
+    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): PropertySpec = PropertySpec.builder(variable.getName(), wrapperClass)
+        .initializer("%T(%L)", wrapperClass, stringLiteral(variable.getValue()))
+        .build()
 
-    private fun stringLiteral(value: String): CodeBlock {
-        return if (value.contains("\${")) {
-            CodeBlock.of("\$\$\"\"\"%L\"\"\"", value)
-        } else {
-            CodeBlock.of("%S", value)
-        }
+    private fun stringLiteral(value: String): CodeBlock = if (value.contains("\${")) {
+        CodeBlock.of("\$\$\"\"\"%L\"\"\"", value)
+    } else {
+        CodeBlock.of("%S", value)
     }
 }

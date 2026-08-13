@@ -1,11 +1,11 @@
 package io.miragon.bpmn.adapter
 
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
 
 /**
  * Verifies the multi-module promise: a `common` module can expose typed wrappers over the runtime's
@@ -19,7 +19,6 @@ class MultiModuleRuntimeSharingSmokeTest {
 
     @Test
     fun `common module wrapper accepts ProcessId from two independently generated service APIs`(@TempDir projectDir: File) {
-
         val commonDir = File(projectDir, "common").also { it.mkdirs() }
         val serviceADir = File(projectDir, "service-a").also { it.mkdirs() }
         val serviceBDir = File(projectDir, "service-b").also { it.mkdirs() }
@@ -44,7 +43,7 @@ class MultiModuleRuntimeSharingSmokeTest {
             }
             rootProject.name = "multi-module-smoke"
             include("common", "service-a", "service-b")
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         File(commonDir, "build.gradle.kts").writeText(
@@ -55,7 +54,7 @@ class MultiModuleRuntimeSharingSmokeTest {
             dependencies {
                 implementation("io.miragon:bpmn-to-code-runtime:$pluginVersion")
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         File(commonDir, "src/main/kotlin/com/acme/common/EngineGateway.kt").apply { parentFile.mkdirs() }.writeText(
@@ -69,7 +68,7 @@ class MultiModuleRuntimeSharingSmokeTest {
                 fun start(id: ProcessId): String = "started:" + id
                 fun publish(msg: MessageName): String = "published:" + msg
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         writeServiceModule(serviceADir, packagePath = "com.acme.service_a.bpmn", callerName = "UsesApiA")
@@ -106,7 +105,7 @@ class MultiModuleRuntimeSharingSmokeTest {
             }
             sourceSets.main { kotlin.srcDir(generatedSrc) }
             tasks.named("compileKotlin") { dependsOn("generateBpmnModelApi") }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         File(moduleDir, "src/main/kotlin/com/acme/$callerName.kt").apply { parentFile.mkdirs() }.writeText(
@@ -121,7 +120,7 @@ class MultiModuleRuntimeSharingSmokeTest {
                     return gateway.start(NewsletterSubscriptionProcessApi.PROCESS_ID)
                 }
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 

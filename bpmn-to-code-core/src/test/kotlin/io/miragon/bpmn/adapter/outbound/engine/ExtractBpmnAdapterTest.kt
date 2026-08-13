@@ -3,10 +3,10 @@ package io.miragon.bpmn.adapter.outbound.engine
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.TaskImplementation
-import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class ExtractBpmnAdapterTest {
 
@@ -14,7 +14,6 @@ class ExtractBpmnAdapterTest {
 
     @Test
     fun `extract reads the model with the dialect registered for the engine`() {
-
         // given: the Camunda 8 newsletter model
         val bpmnResource = classpathResource("c8-subscribe-newsletter.bpmn")
 
@@ -29,7 +28,6 @@ class ExtractBpmnAdapterTest {
 
     @Test
     fun `extract throws when no dialect is registered for the engine`() {
-
         // given: an adapter that only knows Zeebe
         val zeebeOnly = ExtractBpmnAdapter(dialects = ExtractBpmnAdapter.dialects.filterKeys { it == ProcessEngine.ZEEBE })
         val bpmnResource = classpathResource("c7-subscribe-newsletter.bpmn")
@@ -41,7 +39,6 @@ class ExtractBpmnAdapterTest {
 
     @Test
     fun `extract names the offending file when the model cannot be read`() {
-
         // given: a well-formed BPMN file that declares no process
         val bpmnResource = BpmnResource(fileName = "no-process.bpmn", content = DEFINITIONS_WITHOUT_PROCESS.toByteArray())
 
@@ -53,7 +50,6 @@ class ExtractBpmnAdapterTest {
 
     @Test
     fun `a malformed file is reported with its name, not as a security violation`() {
-
         // given: a truncated BPMN file
         val bpmnResource = BpmnResource(fileName = "truncated.bpmn", content = "<bpmn:definitions".toByteArray())
 

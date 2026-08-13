@@ -40,8 +40,6 @@ class ProcessPath<N : FlowNode> internal constructor(
          * Starts a path at [start], recording it as the first node.
          */
         @JvmStatic
-        fun <N : FlowNode> from(start: N): ProcessPath<N> {
-            return ProcessPath(current = start, recorded = listOf(start))
-        }
+        fun <N : FlowNode> from(start: N): ProcessPath<N> = ProcessPath(current = start, recorded = listOf(start))
     }
 }

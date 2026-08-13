@@ -51,7 +51,7 @@ internal class JavaNavigationWriter {
         classBuilder.superclass(ClassName.get(RUNTIME_PACKAGE, "AbstractFlowNode"))
         classBuilder.addMethod(
             MethodSpec.constructorBuilder().addModifiers(PUBLIC)
-                .addStatement("super(new \$T(\$S), \$S)", elementIdClass, node.id, node.elementType).build()
+                .addStatement("super(new \$T(\$S), \$S)", elementIdClass, node.id, node.elementType).build(),
         )
         if (node.successors.isNotEmpty()) {
             classBuilder.addSuperinterface(navigableType(node))
@@ -72,7 +72,7 @@ internal class JavaNavigationWriter {
     private fun addInnerScope(classBuilder: TypeSpec.Builder, node: NavigationNode, inner: NavigationGraph) {
         // Qualify with the node so a bare `Inner`/`Next` doesn't bind to an enclosing scope's type.
         classBuilder.addSuperinterface(
-            ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "HasInnerScope"), ClassName.get("", node.objectName, "Inner"))
+            ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "HasInnerScope"), ClassName.get("", node.objectName, "Inner")),
         )
         classBuilder.addMethod(innerMethod(node))
         classBuilder.addType(buildInnerScope(node, inner.nodes.filter { it.isStart }))
