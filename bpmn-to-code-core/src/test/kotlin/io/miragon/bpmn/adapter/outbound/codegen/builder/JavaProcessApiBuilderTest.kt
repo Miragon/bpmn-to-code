@@ -1,18 +1,17 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
+import com.sun.source.util.JavacTask
 import io.miragon.bpmn.domain.BpmnModelApi
-import io.miragon.bpmn.domain.MergedBpmnModel
-import io.miragon.bpmn.domain.MergedBpmnModel.VariantData
+import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
-import io.miragon.bpmn.domain.testBpmnModelApi
-import io.miragon.bpmn.domain.testSendNewsletterBpmnModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterBpmnModel
-import com.sun.source.util.JavacTask
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
+import io.miragon.bpmn.domain.testProcessModelApi
+import io.miragon.bpmn.domain.testSendNewsletterModel
+import io.miragon.bpmn.domain.testSubscribeNewsletterModel
+import io.miragon.bpmn.domain.withId
 import java.io.File
 import java.net.URI
 import javax.tools.Diagnostic
@@ -20,6 +19,8 @@ import javax.tools.DiagnosticCollector
 import javax.tools.JavaFileObject
 import javax.tools.SimpleJavaFileObject
 import javax.tools.ToolProvider
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 
 class JavaProcessApiBuilderTest {
 
@@ -29,9 +30,9 @@ class JavaProcessApiBuilderTest {
     fun `buildApiFile generates correct process API file`() {
 
         // given: a BPMN model with custom service task implementations
-        val modelApi = testBpmnModelApi(
+        val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
-            model = testSubscribeNewsletterBpmnModel(
+            model = testSubscribeNewsletterModel(
                 flowNodes = buildSubscribeNewsletterFlowNodes(
                     confirmationMailImpl = "#{newsletterSendConfirmationMail}",
                     welcomeMailImpl = "\${newsletterSendWelcomeMail}",
@@ -58,10 +59,10 @@ class JavaProcessApiBuilderTest {
     fun `maps content of id to valid variable name format`() {
 
         // given: a model with flow nodes that have slashes in their names
-        val defaultModel = testSubscribeNewsletterBpmnModel()
-        val modifiedNodes = defaultModel.flowNodes.map { it.copy(id = it.getName().replace("_", "-")) }
-        val modelApi = testBpmnModelApi(
-            model = testSubscribeNewsletterBpmnModel(flowNodes = modifiedNodes),
+        val defaultModel = testSubscribeNewsletterModel()
+        val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.getName().replace("_", "-")) }
+        val modelApi = testProcessModelApi(
+            model = testSubscribeNewsletterModel(flowNodes = modifiedNodes),
             packagePath = "de.emaarco.example"
         )
 
@@ -77,16 +78,13 @@ class JavaProcessApiBuilderTest {
     fun `buildApiFile generates variant-scoped Flows and Relations for merged model`() {
 
         // given: a merged model with a single variant
-        val send = testSendNewsletterBpmnModel(variantName = "send")
-        val merged = MergedBpmnModel(
+        val send = testSendNewsletterModel(variantName = "send")
+        val merged = ProcessModel(
             processId = send.processId,
             flowNodes = send.flowNodes,
-            messages = send.messages,
-            signals = send.signals,
-            errors = send.errors,
-            escalations = send.escalations,
+            definitions = send.definitions,
             variants = listOf(
-                VariantData("send", send.sequenceFlows, send.flowNodes),
+                Variant("send", send.flowNodes, send.sequenceFlows),
             ),
         )
         val modelApi = BpmnModelApi(merged, OutputLanguage.JAVA, "de.emaarco.example", ProcessEngine.ZEEBE)

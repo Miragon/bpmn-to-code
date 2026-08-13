@@ -1,11 +1,11 @@
 package io.miragon.bpmn.adapter
 
+import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import java.io.File
 
 /**
  * Resolves the plugin from mavenLocal (published POM) instead of using withPluginClasspath().

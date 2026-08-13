@@ -1,10 +1,11 @@
 package io.miragon.bpmn.domain.validation.rules
 
-import io.miragon.bpmn.domain.shared.EventDirection
+import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.shared.EventDefinitionInstance
+import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
 import org.assertj.core.api.Assertions.assertThat
@@ -14,20 +15,20 @@ class UncaughtSignalThrowRuleTest {
 
     private val underTest = UncaughtSignalThrowRule()
 
-    private fun throwNode(id: String, signal: String) = FlowNodeDefinition(
+    private fun signalEvent(id: String, signal: String, shape: EventShape) = FlowNodeDefinition.Event(
         id = id,
-        properties = FlowNodeProperties.SignalEvent(signal, EventDirection.THROW),
+        shape = shape,
+        eventDefinitions = listOf(EventDefinitionInstance.Signal(signalName = signal)),
     )
 
-    private fun catchNode(id: String, signal: String) = FlowNodeDefinition(
-        id = id,
-        properties = FlowNodeProperties.SignalEvent(signal, EventDirection.CATCH),
-    )
+    private fun throwNode(id: String, signal: String) = signalEvent(id, signal, EventShape.INTERMEDIATE_THROW_EVENT)
+
+    private fun catchNode(id: String, signal: String) = signalEvent(id, signal, EventShape.INTERMEDIATE_CATCH_EVENT)
 
     private fun model(processId: String, vararg nodes: FlowNodeDefinition) =
-        testBpmnModel(processId = processId, flowNodes = nodes.toList())
+        testProcessModel(processId = processId, flowNodes = nodes.toList())
 
-    private fun validate(vararg models: io.miragon.bpmn.domain.BpmnModel) =
+    private fun validate(vararg models: ProcessModel) =
         underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
 
     @Test

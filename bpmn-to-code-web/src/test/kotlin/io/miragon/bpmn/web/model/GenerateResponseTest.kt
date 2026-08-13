@@ -1,9 +1,9 @@
 package io.miragon.bpmn.web.model
 
+import io.ktor.http.*
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
-import io.ktor.http.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

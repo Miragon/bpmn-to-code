@@ -2,9 +2,8 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
 import org.assertj.core.api.Assertions.assertThat
@@ -14,12 +13,12 @@ class CallActivityTargetExistsRuleTest {
 
     private val underTest = CallActivityTargetExistsRule()
 
-    private fun caller(processId: String, callId: String, calledElement: String?) = testBpmnModel(
+    private fun caller(processId: String, callId: String, calledElement: String?) = testProcessModel(
         processId = processId,
         flowNodes = listOf(
-            FlowNodeDefinition(
+            FlowNodeDefinition.Activity.CallActivity(
                 id = callId,
-                properties = FlowNodeProperties.CallActivity(CallActivityDefinition(id = callId, calledElement = calledElement)),
+                definition = CallActivityDefinition(id = callId, calledElement = calledElement),
             ),
         ),
     )
@@ -45,7 +44,7 @@ class CallActivityTargetExistsRuleTest {
 
         // given: both the caller and the called process are loaded
         val caller = caller(processId = "orderFulfillment", callId = "call1", calledElement = "paymentProcessing")
-        val called = testBpmnModel(processId = "paymentProcessing")
+        val called = testProcessModel(processId = "paymentProcessing")
 
         // when
         val violations = underTest.validate(CrossModelValidationContext(models = listOf(caller, called), engine = ProcessEngine.CAMUNDA_7))

@@ -18,6 +18,7 @@ import io.miragon.bpmn.domain.validation.rules.TimerIso8601SyntaxRule
 import io.miragon.bpmn.domain.validation.rules.UncaughtMessageThrowRule
 import io.miragon.bpmn.domain.validation.rules.UncaughtSignalThrowRule
 import io.miragon.bpmn.domain.validation.rules.UnpublishedSignalCatchRule
+import io.miragon.bpmn.domain.validation.rules.UnreferencedRootElementRule
 
 /**
  * Provides access to all built-in BPMN validation rules.
@@ -54,6 +55,13 @@ object BpmnRules {
      */
     @JvmField
     val MISSING_SIGNAL_NAME: SingleModelValidationRule = MissingSignalNameRule()
+
+    /**
+     * A message, signal, error or escalation that nothing references is usually left over from an
+     * earlier version of the model. It still produces a constant in the generated API.
+     */
+    @JvmField
+    val UNREFERENCED_ROOT_ELEMENT: SingleModelValidationRule = UnreferencedRootElementRule()
 
     /**
      * Timers without a valid type (Date/Duration/Cycle) are a deployment-time error on most engines.
@@ -162,6 +170,7 @@ object BpmnRules {
             MISSING_MESSAGE_NAME,
             MISSING_ERROR_DEFINITION,
             MISSING_SIGNAL_NAME,
+            UNREFERENCED_ROOT_ELEMENT,
             MISSING_TIMER_DEFINITION,
             MISSING_CALLED_ELEMENT,
             MISSING_ELEMENT_ID,

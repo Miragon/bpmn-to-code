@@ -1,6 +1,6 @@
 package io.miragon.bpmn.domain.validation.rules
 
-import io.miragon.bpmn.domain.BpmnModel
+import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
@@ -9,7 +9,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
  * Flags when a model targets a different engine than the selected one, using the engine detected
- * during extraction ([BpmnModel.detectedEngine]).
+ * during extraction ([ProcessModel.detectedEngine]).
  *
  * Zeebe (Camunda 8), Camunda 7, and Operaton each use their own namespace and extension elements,
  * and an extractor only understands its own — so generating for the wrong engine yields a broken API.
@@ -25,7 +25,7 @@ class EngineMismatchRule : SingleModelValidationRule {
     override val severity = Severity.ERROR
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        val detected = (context.model as? BpmnModel)?.detectedEngine
+        val detected = context.model.detectedEngine
         val selected = context.engine
         val violation = when {
             detected == selected -> null

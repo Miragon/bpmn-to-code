@@ -1,11 +1,11 @@
 package io.miragon.bpmn.web.service
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonInMemoryPlugin
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.web.model.GenerateJsonRequest
 import io.miragon.bpmn.web.model.GenerateJsonResponse
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.Base64
 
 class WebJsonGenerationService {

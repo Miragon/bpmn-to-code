@@ -2,14 +2,9 @@
 
 package io.miragon.bpmn.web
 
-import io.miragon.bpmn.web.config.AppConfig
-import io.miragon.bpmn.web.model.ConfigResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.miragon.bpmn.web.routes.generateJsonRoutes
-import io.miragon.bpmn.web.routes.generateRoutes
-import io.miragon.bpmn.web.service.WebGenerationService
-import io.miragon.bpmn.web.service.WebJsonGenerationService
 import io.ktor.http.*
+import io.ktor.openapi.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -19,12 +14,17 @@ import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.openapi.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
 import io.ktor.utils.io.ExperimentalKtorApi
+import io.miragon.bpmn.web.config.AppConfig
+import io.miragon.bpmn.web.model.ConfigResponse
+import io.miragon.bpmn.web.routes.generateJsonRoutes
+import io.miragon.bpmn.web.routes.generateRoutes
+import io.miragon.bpmn.web.service.WebGenerationService
+import io.miragon.bpmn.web.service.WebJsonGenerationService
 import kotlinx.serialization.json.Json
 
 private val logger = KotlinLogging.logger {}

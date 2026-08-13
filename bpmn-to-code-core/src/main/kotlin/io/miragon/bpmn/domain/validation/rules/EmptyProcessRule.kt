@@ -14,7 +14,7 @@ class EmptyProcessRule : SingleModelValidationRule {
     override val severity = Severity.WARN
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        if (context.model.flowNodes.isEmpty()) {
+        if (context.model.allFlowNodes.isEmpty()) {
             return listOf(
                 ValidationViolation(
                     ruleId = id,

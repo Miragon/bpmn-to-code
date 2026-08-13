@@ -66,15 +66,15 @@ Extract **only explicitly defined variables** from `camunda:inputOutput` / `zeeb
 
 The scope of "explicit definitions" has expanded since the initial decision. All supported sources remain intentional BPMN declarations — no expression parsing is performed.
 
-- **Camunda 7** (`Camunda7ModelExtractor.extractVariables()`):
+- **Camunda 7** (`CamundaDialect.variablesOf()`):
   - `camunda:inputOutput` → `inputParameter`/`outputParameter` (I/O mappings)
   - `camunda:in`/`camunda:out` on call activities (call activity mappings)
   - `camunda:properties` with `name="additionalInputVariables"` / `name="additionalOutputVariables"` (directional extension properties, for elements like message start events that don't support I/O mappings)
   - `multiInstanceLoopCharacteristics` `camunda:collection` expression and `camunda:elementVariable` attribute
-- **Zeebe** (`ZeebeModelExtractor.extractVariables()`):
+- **Zeebe** (`ZeebeDialect.variablesOf()`):
   - `zeebe:ioMapping` → `input`/`output` elements
   - `zeebe:loopCharacteristics` `inputElement`/`inputCollection`/`outputElement`/`outputCollection` attributes
-- **Operaton** (`OperatonModelExtractor.extractVariables()`): same as Camunda 7 using the `operaton:` namespace
+- **Operaton** (`CamundaDialect.variablesOf()` with the `operaton:` namespace): same as Camunda 7 using the `operaton:` namespace
 - Expression parsing is not performed
 
 ## Subsequent decision (issue #290)

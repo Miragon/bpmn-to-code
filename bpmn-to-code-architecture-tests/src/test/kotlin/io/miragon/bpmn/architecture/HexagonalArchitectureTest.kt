@@ -187,7 +187,9 @@ class HexagonalArchitectureTest {
 
     private companion object {
 
-        /** Restricts a whole-project scan to `bpmn-to-code-core`'s production sources. */
+        /**
+         * Restricts a whole-project scan to `bpmn-to-code-core`'s production sources.
+         */
         const val CORE_MAIN_PATH = "/bpmn-to-code-core/src/main/"
 
         /**

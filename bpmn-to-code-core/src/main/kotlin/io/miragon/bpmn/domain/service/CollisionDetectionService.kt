@@ -20,14 +20,14 @@ class CollisionDetectionService {
     fun findCollisions(model: ProcessModel): List<CollisionDetail> {
         val modelId = model.processId
         val collisions = mutableListOf<CollisionDetail>()
-        collisions.addAll(findCollisionsIn(modelId, model.flowNodes, "FlowNode"))
+        collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode"))
         collisions.addAll(findCollisionsIn(modelId, model.serviceTasks, "ServiceTask"))
-        collisions.addAll(findCollisionsIn(modelId, model.messages, "Message"))
-        collisions.addAll(findCollisionsIn(modelId, model.signals, "Signal"))
-        collisions.addAll(findCollisionsIn(modelId, model.errors, "Error"))
+        collisions.addAll(findCollisionsIn(modelId, model.definitions.messages, "Message"))
+        collisions.addAll(findCollisionsIn(modelId, model.definitions.signals, "Signal"))
+        collisions.addAll(findCollisionsIn(modelId, model.definitions.errors, "Error"))
         collisions.addAll(findCollisionsIn(modelId, model.timers, "Timer"))
         collisions.addAll(findCollisionsIn(modelId, model.variables, "Variable"))
-        collisions.addAll(findCollisionsIn(modelId, model.flowNodes, "FlowNode") { it.getRawName().toCamelCase() })
+        collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode") { it.getRawName().toCamelCase() })
         return collisions.distinctBy { Triple(it.processId, it.variableType, it.conflictingIds) }
     }
 

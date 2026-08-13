@@ -1,8 +1,8 @@
 package io.miragon.bpmn.application.port.inbound
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.model.ValidationConfig
 import io.miragon.bpmn.domain.validation.ValidationResult
+import io.miragon.bpmn.domain.validation.model.ValidationConfig
 
 interface ValidateBpmnFromFilesystemUseCase {
 

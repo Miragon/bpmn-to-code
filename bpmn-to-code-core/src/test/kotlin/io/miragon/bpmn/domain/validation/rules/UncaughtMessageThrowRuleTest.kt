@@ -1,10 +1,12 @@
 package io.miragon.bpmn.domain.validation.rules
 
+import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.shared.EventDefinitionInstance
+import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
-import io.miragon.bpmn.domain.shared.EventDirection
+import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
 import org.assertj.core.api.Assertions.assertThat
@@ -14,20 +16,20 @@ class UncaughtMessageThrowRuleTest {
 
     private val underTest = UncaughtMessageThrowRule()
 
-    private fun throwNode(id: String, message: String) = FlowNodeDefinition(
+    private fun messageEvent(id: String, message: String, shape: EventShape) = FlowNodeDefinition.Event(
         id = id,
-        properties = FlowNodeProperties.MessageEvent(message, EventDirection.THROW),
+        shape = shape,
+        eventDefinitions = listOf(EventDefinitionInstance.Message(MessageReference(messageName = message))),
     )
 
-    private fun catchNode(id: String, message: String) = FlowNodeDefinition(
-        id = id,
-        properties = FlowNodeProperties.MessageEvent(message, EventDirection.CATCH),
-    )
+    private fun throwNode(id: String, message: String) = messageEvent(id, message, EventShape.INTERMEDIATE_THROW_EVENT)
+
+    private fun catchNode(id: String, message: String) = messageEvent(id, message, EventShape.INTERMEDIATE_CATCH_EVENT)
 
     private fun model(processId: String, vararg nodes: FlowNodeDefinition) =
-        testBpmnModel(processId = processId, flowNodes = nodes.toList())
+        testProcessModel(processId = processId, flowNodes = nodes.toList())
 
-    private fun validate(vararg models: io.miragon.bpmn.domain.BpmnModel) =
+    private fun validate(vararg models: ProcessModel) =
         underTest.validate(CrossModelValidationContext(models = models.toList(), engine = ProcessEngine.ZEEBE))
 
     @Test

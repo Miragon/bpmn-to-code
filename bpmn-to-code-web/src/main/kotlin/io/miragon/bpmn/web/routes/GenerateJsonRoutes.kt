@@ -2,15 +2,15 @@
 
 package io.miragon.bpmn.web.routes
 
-import io.miragon.bpmn.web.model.GenerateJsonRequest
-import io.miragon.bpmn.web.model.GenerateJsonResponse
-import io.miragon.bpmn.web.service.WebJsonGenerationService
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
 import io.ktor.utils.io.ExperimentalKtorApi
+import io.miragon.bpmn.web.model.GenerateJsonRequest
+import io.miragon.bpmn.web.model.GenerateJsonResponse
+import io.miragon.bpmn.web.service.WebJsonGenerationService
 
 fun Route.generateJsonRoutes(
     jsonService: WebJsonGenerationService,

@@ -19,8 +19,8 @@ class BpmnModelApiTest {
 
         // when / then: all separator variants produce the same file name
         processIds.forEach { id ->
-            val model = testBpmnModel(processId = id)
-            val api = testBpmnModelApi(model = model)
+            val model = testProcessModel(processId = id)
+            val api = testProcessModelApi(model = model)
             assertThat(api.fileName()).isEqualTo(expectedFileName)
         }
     }

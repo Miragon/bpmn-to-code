@@ -1,9 +1,6 @@
 package io.miragon.bpmn.domain.validation.rules
 
-import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.EventDirection
-import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
@@ -25,46 +22,24 @@ class UnpublishedSignalCatchRule : CrossModelValidationRule {
     override val severity = Severity.WARN
 
     override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
-        val caughtSignals = caughtSignals(context)
-        val thrownSignalNames = thrownSignalNames(context)
-
-        return caughtSignals
-            .filterNot { (_, _, signal) -> signal.name in thrownSignalNames }
-            .map { (model, node, signal) ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = node.id,
-                    processId = model.processId,
-                    message = "Signal '${signal.name}' is caught by '${node.id}' but has no throwing event in the loaded models.",
-                )
-            }
-    }
-
-    private fun caughtSignals(
-        context: CrossModelValidationContext,
-    ): List<Triple<ProcessModel, FlowNodeDefinition, FlowNodeProperties.SignalEvent>> {
-        return context.models.flatMap { model ->
-            model.signalEvents(EventDirection.CATCH).map { (node, signal) -> Triple(model, node, signal) }
-        }
-    }
-
-    private fun thrownSignalNames(context: CrossModelValidationContext): Set<String> {
-        return context.models
-            .flatMap { model -> model.signalEvents(EventDirection.THROW) }
-            .map { (_, signal) -> signal.name }
+        val thrownNames = context.models
+            .flatMap { it.signalUsages() }
+            .filter { it.direction == EventDirection.THROW }
+            .map { it.name }
             .toSet()
-    }
 
-    private fun ProcessModel.signalEvents(
-        direction: EventDirection,
-    ): List<Pair<FlowNodeDefinition, FlowNodeProperties.SignalEvent>> {
-        return flowNodes
-            .mapNotNull { node -> node.signalEvent()?.let { node to it } }
-            .filter { (_, signal) -> signal.direction == direction }
-    }
-
-    private fun FlowNodeDefinition.signalEvent(): FlowNodeProperties.SignalEvent? {
-        return properties as? FlowNodeProperties.SignalEvent
+        return context.models.flatMap { model ->
+            model.signalUsages()
+                .filter { it.direction == EventDirection.CATCH && it.name !in thrownNames }
+                .map { usage ->
+                    ValidationViolation(
+                        ruleId = id,
+                        severity = severity,
+                        elementId = usage.node.id,
+                        processId = model.processId,
+                        message = "Signal '${usage.name}' is caught by '${usage.node.id}' but has no throwing event in the loaded models.",
+                    )
+                }
+        }
     }
 }

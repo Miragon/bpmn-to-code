@@ -1,7 +1,7 @@
 package io.miragon.bpmn.testing
 
-import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.ValidationResult
+import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.AbstractAssert
 

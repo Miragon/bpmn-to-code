@@ -1,8 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.filesystem
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.domain.BpmnResource
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -12,7 +12,7 @@ import kotlin.io.path.name
 import kotlin.io.path.readBytes
 import kotlin.streams.toList
 
-class BpmnFileLoader : LoadBpmnFilesPort {
+internal class BpmnFileLoader : LoadBpmnFilesPort {
 
     private val logger = KotlinLogging.logger {}
 

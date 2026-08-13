@@ -3,8 +3,8 @@ package io.miragon.bpmn.application.service
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
-import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationException
@@ -85,11 +85,8 @@ class GenerateProcessApiInMemoryServiceTest {
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
     }
 
-    private val dummyModel = BpmnModel(
+    private val dummyModel = ProcessModel(
         processId = "testProcess",
         flowNodes = emptyList(),
-        messages = emptyList(),
-        signals = emptyList(),
-        errors = emptyList(),
     )
 }

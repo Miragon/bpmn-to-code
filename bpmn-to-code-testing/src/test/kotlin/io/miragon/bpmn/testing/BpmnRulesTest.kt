@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test
 class BpmnRulesTest {
 
     @Test
-    fun `all() returns all 10 built-in rules`() {
+    fun `all() returns all 11 built-in rules`() {
         val rules = BpmnRules.all()
-        assertThat(rules).hasSize(10)
+        assertThat(rules).hasSize(11)
     }
 
     @Test

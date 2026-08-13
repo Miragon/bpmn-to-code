@@ -1,70 +1,79 @@
 package io.miragon.bpmn.adapter.outbound.engine
 
-import io.miragon.bpmn.adapter.outbound.engine.extractor.EngineSpecificExtractor
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.miragon.bpmn.domain.shared.TaskImplementation
+import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class ExtractBpmnAdapterTest {
 
-    private val extractor = mockk<EngineSpecificExtractor>(relaxed = true)
-    private val underTest = ExtractBpmnAdapter(
-        extractors = mapOf(ProcessEngine.ZEEBE to extractor)
-    )
+    private val underTest = ExtractBpmnAdapter()
 
     @Test
-    fun `extract returns model using the correct extractor`() {
+    fun `extract reads the model with the dialect registered for the engine`() {
 
-        // given: a dummy BPMN resource and a stubbed extractor
-        val expectedModel = testBpmnModel(processId = "dummyProcess")
-        val tempFile = File.createTempFile("dummy", ".bpmn").apply { deleteOnExit() }
-        val bpmnResource = BpmnResource(
-            fileName = "dummy.bpmn",
-            content = tempFile.readBytes(),
-        )
-        every { extractor.extract(any()) } returns expectedModel
+        // given: the Camunda 8 newsletter model
+        val bpmnResource = classpathResource("c8-subscribe-newsletter.bpmn")
 
-        // when: extracting with a supported engine
+        // when: extracting for Zeebe
         val result = underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE)
 
-        // then: the extractor is called and the model is returned
-        verify { extractor.extract(any()) }
-        assertThat(result).isEqualTo(expectedModel)
+        // then: the model carries the job-worker implementations only the Zeebe dialect produces
+        assertThat(result.processId).isEqualTo("newsletterSubscription")
+        assertThat(result.serviceTasks.map { it.implementation })
+            .contains(TaskImplementation.JobWorker("newsletter.sendWelcomeMail"))
     }
 
     @Test
-    fun `extract throws when no extractor is registered for the engine`() {
+    fun `extract throws when no dialect is registered for the engine`() {
 
-        // given: a resource targeting an engine with no registered extractor
-        val tempFile = File.createTempFile("dummy", ".bpmn").apply { deleteOnExit() }
-        val bpmnResource = BpmnResource(
-            fileName = "dummy.bpmn",
-            content = tempFile.readBytes(),
-        )
+        // given: an adapter that only knows Zeebe
+        val zeebeOnly = ExtractBpmnAdapter(dialects = ExtractBpmnAdapter.dialects.filterKeys { it == ProcessEngine.ZEEBE })
+        val bpmnResource = classpathResource("c7-subscribe-newsletter.bpmn")
 
         // when / then: an exception is thrown
-        assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.CAMUNDA_7) }
+        assertThatThrownBy { zeebeOnly.extract(bpmnFile = bpmnResource, engine = ProcessEngine.CAMUNDA_7) }
             .isInstanceOf(IllegalStateException::class.java)
     }
 
     @Test
-    fun `extract wraps extractor exception in RuntimeException`() {
+    fun `extract names the offending file when the model cannot be read`() {
 
-        // given: an extractor that throws during parsing
-        val tempFile = File.createTempFile("invalid", ".bpmn").apply { deleteOnExit() }
-        val bpmnResource = BpmnResource(fileName = "invalid.bpmn", content = tempFile.readBytes())
-        every { extractor.extract(any()) } throws IllegalArgumentException("invalid BPMN content")
+        // given: a well-formed BPMN file that declares no process
+        val bpmnResource = BpmnResource(fileName = "no-process.bpmn", content = DEFINITIONS_WITHOUT_PROCESS.toByteArray())
 
-        // when / then: the exception is wrapped in a RuntimeException with file name in the message
+        // when / then: the failure is wrapped and points at the file
         assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE) }
-            .isInstanceOf(RuntimeException::class.java)
-            .hasMessageContaining("invalid.bpmn")
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("no-process.bpmn")
+    }
+
+    @Test
+    fun `a malformed file is reported with its name, not as a security violation`() {
+
+        // given: a truncated BPMN file
+        val bpmnResource = BpmnResource(fileName = "truncated.bpmn", content = "<bpmn:definitions".toByteArray())
+
+        // when / then: the reader's parse failure reaches the caller with the file that caused it
+        assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE) }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("truncated.bpmn")
+    }
+
+    private fun classpathResource(fileName: String): BpmnResource {
+        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/$fileName"))
+        return BpmnResource(fileName = fileName, content = File(resourceUrl.toURI()).readBytes())
+    }
+
+    private companion object {
+        private val DEFINITIONS_WITHOUT_PROCESS = """
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_1"
+                              targetNamespace="http://bpmn.io/schema/bpmn">
+              <bpmn:message id="Message_1" name="orphan" />
+            </bpmn:definitions>
+        """.trimIndent()
     }
 }

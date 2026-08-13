@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
@@ -22,10 +22,10 @@ class CollisionDetectionRuleTest {
     fun `reports collision when different IDs normalize to same constant`() {
 
         // given: two flow nodes that differ only in separator
-        val model = testBpmnModel(
+        val model = testProcessModel(
             flowNodes = listOf(
-                FlowNodeDefinition(id = "endEvent_complete"),
-                FlowNodeDefinition(id = "endEvent-complete"),
+                FlowNodeDefinition.Unknown(id = "endEvent_complete"),
+                FlowNodeDefinition.Unknown(id = "endEvent-complete"),
             )
         )
 
@@ -43,10 +43,10 @@ class CollisionDetectionRuleTest {
 
         // given: two flow nodes whose ids keep distinct constants but fold to the same
         // PascalCase object name (previously emitted two non-compiling `object Foo`)
-        val model = testBpmnModel(
+        val model = testProcessModel(
             flowNodes = listOf(
-                FlowNodeDefinition(id = "foo"),
-                FlowNodeDefinition(id = "-foo"),
+                FlowNodeDefinition.Unknown(id = "foo"),
+                FlowNodeDefinition.Unknown(id = "-foo"),
             )
         )
 
@@ -63,10 +63,10 @@ class CollisionDetectionRuleTest {
     fun `no violations when no collisions`() {
 
         // given: two flow nodes with distinct constant names
-        val model = testBpmnModel(
+        val model = testProcessModel(
             flowNodes = listOf(
-                FlowNodeDefinition(id = "Activity_One"),
-                FlowNodeDefinition(id = "Activity_Two"),
+                FlowNodeDefinition.Unknown(id = "Activity_One"),
+                FlowNodeDefinition.Unknown(id = "Activity_Two"),
             )
         )
 

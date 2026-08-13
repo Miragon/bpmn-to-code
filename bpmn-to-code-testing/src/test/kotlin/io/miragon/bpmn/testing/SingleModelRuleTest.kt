@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 
 /**
  * Covers the single-model rule extension point: a custom [SingleModelValidationRule] can inspect the
- * parts of a single [io.miragon.bpmn.domain.BpmnModel]. Grouped by which part of the model the rule reaches.
+ * parts of a single [io.miragon.bpmn.domain.ProcessModel]. Grouped by which part of the model the rule reaches.
  */
 class SingleModelRuleTest {
 
@@ -125,7 +125,9 @@ class SingleModelRuleTest {
         }
     }
 
-    /** Allows ${null}, ${true}, ${false} and ${execution.getVariable('...')} as output expressions. */
+    /**
+     * Allows ${null}, ${true}, ${false} and ${execution.getVariable('...')} as output expressions.
+     */
     private class OutputExpressionAllowListRule : SingleModelValidationRule {
         override val id = "output-expression-allow-list"
         override val severity = Severity.ERROR

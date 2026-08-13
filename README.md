@@ -43,7 +43,7 @@ BpmnValidator
     .assertNoViolations()
 ```
 
-11 built-in rules cover missing implementations, undefined timers, empty processes, naming violations, and variable collisions. Add custom rules by implementing `SingleModelValidationRule` (per-process) or `CrossModelValidationRule` (across all loaded models).
+12 built-in rules cover missing implementations, undefined timers, empty processes, naming violations, leftover root elements, and variable collisions. Add custom rules by implementing `SingleModelValidationRule` (per-process) or `CrossModelValidationRule` (across all loaded models).
 
 ### Surface — Process Structure in Code _(beta)_
 
@@ -51,11 +51,15 @@ Generates a structured JSON alongside the API. Your process is readable by AI ag
 
 ```json
 {
-  "processId": "newsletterSubscription",
-  "flowNodes": [
-    { "id": "StartEvent_SubmitRegistrationForm", "displayName": "Submit newsletter form", "elementType": "START_EVENT" },
-    { "id": "Activity_SendConfirmationMail", "displayName": "Send confirmation mail", "elementType": "SERVICE_TASK" }
-  ]
+  "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
+  "formatVersion": "2.0",
+  "process": {
+    "id": "newsletterSubscription",
+    "flowNodes": [
+      { "id": "StartEvent_SubmitRegistrationForm", "type": "startEvent", "name": "Submit newsletter form" },
+      { "id": "Activity_SendConfirmationMail", "type": "serviceTask", "name": "Send confirmation mail" }
+    ]
+  }
 }
 ```
 
@@ -64,6 +68,7 @@ BPMN files are XML — technically readable, but full of visual layout data, nam
 - **Smaller** — no diagram coordinates, waypoints, or SVG-style metadata
 - **Focused** — only the elements and relationships that matter for logic and implementation
 - **Structured** — flow nodes, sequence flows, messages, and errors in predictable, typed fields
+- **Standard** — element names, containment and references follow OMG BPMN 2.0, validated against a published JSON Schema
 
 The result is a compact, deterministic representation that AI agents can reason about accurately — with no hallucinated element IDs, because the JSON is derived directly from the BPMN model by rule.
 
@@ -82,7 +87,7 @@ Works with Claude Code out of the box.
 
 ```kotlin
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "3.0.0"
+    id("io.miragon.bpmn-to-code-gradle") version "6.0.0"
 }
 
 tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
@@ -101,7 +106,7 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>3.0.0</version>
+    <version>6.0.0</version>
     <executions>
         <execution>
             <goals><goal>generate-bpmn-api</goal></goals>
@@ -122,7 +127,7 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 
 ```kotlin
 dependencies {
-    testImplementation("io.miragon:bpmn-to-code-testing:3.0.0")
+    testImplementation("io.miragon:bpmn-to-code-testing:6.0.0")
 }
 ```
 

@@ -1,132 +1,190 @@
 package io.miragon.bpmn.adapter.outbound.json
 
-import io.miragon.bpmn.adapter.outbound.json.model.BpmnModelJson
-import io.miragon.bpmn.adapter.outbound.json.model.CompensationJson
-import io.miragon.bpmn.adapter.outbound.json.model.EscalationJson
-import io.miragon.bpmn.adapter.outbound.json.model.ErrorJson
+import io.miragon.bpmn.adapter.outbound.json.model.CalledElementJson
+import io.miragon.bpmn.adapter.outbound.json.model.DefinitionsJson
+import io.miragon.bpmn.adapter.outbound.json.model.EventDefinitionJson
+import io.miragon.bpmn.adapter.outbound.json.model.ExtensionJson
 import io.miragon.bpmn.adapter.outbound.json.model.FlowNodeJson
-import io.miragon.bpmn.adapter.outbound.json.model.FlowNodePropertiesJson
-import io.miragon.bpmn.adapter.outbound.json.model.MessageJson
+import io.miragon.bpmn.adapter.outbound.json.model.ImplementationJson
+import io.miragon.bpmn.adapter.outbound.json.model.IoMappingJson
+import io.miragon.bpmn.adapter.outbound.json.model.MultiInstanceJson
+import io.miragon.bpmn.adapter.outbound.json.model.ProcessJson
+import io.miragon.bpmn.adapter.outbound.json.model.ProcessModelJson
 import io.miragon.bpmn.adapter.outbound.json.model.SequenceFlowJson
-import io.miragon.bpmn.adapter.outbound.json.model.SignalJson
+import io.miragon.bpmn.adapter.outbound.json.model.VariableJson
 import io.miragon.bpmn.adapter.outbound.json.model.VariantJson
-import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
-import io.miragon.bpmn.domain.BpmnModel
-import io.miragon.bpmn.domain.MergedBpmnModel
+import io.miragon.bpmn.adapter.outbound.shared.BpmnTypeName
 import io.miragon.bpmn.domain.ProcessModel
-import io.miragon.bpmn.domain.shared.CompensationDefinition
-import io.miragon.bpmn.domain.shared.ErrorDefinition
-import io.miragon.bpmn.domain.shared.EscalationDefinition
+import io.miragon.bpmn.domain.shared.EngineExtension
+import io.miragon.bpmn.domain.shared.EventDefinitionInstance
+import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
-import io.miragon.bpmn.domain.shared.MessageDefinition
+import io.miragon.bpmn.domain.shared.IoMapping
+import io.miragon.bpmn.domain.shared.MultiInstanceDefinition
+import io.miragon.bpmn.domain.shared.RootElementDefinition
+import io.miragon.bpmn.domain.shared.RootElements
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
-import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
-import io.miragon.bpmn.domain.shared.SignalDefinition
+import io.miragon.bpmn.domain.shared.SubProcessKind
+import io.miragon.bpmn.domain.shared.TaskImplementation
+import io.miragon.bpmn.domain.shared.VariableDefinition
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 
-class BpmnJsonMapper {
+/**
+ * Maps the domain model onto the public process-JSON contract (format 2.0, see ADR 018).
+ *
+ * Each scope is emitted with its own nodes and sequence flows, so nesting is structural rather than
+ * inferred, and every node is sorted into process-flow order within its scope.
+ */
+@Suppress("TooManyFunctions")
+internal class BpmnJsonMapper {
 
-    fun toJson(model: ProcessModel): BpmnModelJson {
-        return when (model) {
-            is BpmnModel -> toFlatJson(model)
-            is MergedBpmnModel -> toVariantJson(model)
-        }
-    }
-
-    private fun toFlatJson(model: BpmnModel): BpmnModelJson {
-        val messageEngineProperties = model.messages.messageEnginePropertiesByNode()
-        return BpmnModelJson(
-            processId = model.processId,
-            flowNodes = FlowNodeSorter.sort(model.flowNodes).map { it.toJson(messageEngineProperties) },
-            sequenceFlows = model.sequenceFlows.map { it.toJson() },
-            messages = model.messages.mapNotNull { it.toJson() },
-            signals = model.signals.mapNotNull { it.toJson() },
-            errors = model.errors.mapNotNull { it.toJson() },
-            escalations = model.escalations.mapNotNull { it.toJson() },
-            compensations = model.compensations.mapNotNull { it.toJson() },
+    fun toJson(model: ProcessModel): ProcessModelJson {
+        return ProcessModelJson(
+            process = ProcessJson(
+                id = model.processId,
+                name = model.processName,
+                isExecutable = model.isExecutable,
+                engine = model.detectedEngine?.name,
+                flowNodes = model.flowNodes.toJson(model.sequenceFlows),
+                sequenceFlows = model.sequenceFlows.map { it.toJson() },
+            ),
+            definitions = model.definitions.toJson(),
+            variants = model.variants.map { it.toJson() }.takeIf { it.isNotEmpty() },
         )
     }
 
-    private fun toVariantJson(model: MergedBpmnModel): BpmnModelJson {
-        val messageEngineProperties = model.messages.messageEnginePropertiesByNode()
-        return BpmnModelJson(
-            processId = model.processId,
-            messages = model.messages.mapNotNull { it.toJson() },
-            signals = model.signals.mapNotNull { it.toJson() },
-            errors = model.errors.mapNotNull { it.toJson() },
-            escalations = model.escalations.mapNotNull { it.toJson() },
-            compensations = model.compensations.mapNotNull { it.toJson() },
-            variants = model.variants.map { variant ->
-                VariantJson(
-                    variantName = variant.variantName,
-                    flowNodes = FlowNodeSorter.sort(variant.flowNodes).map { it.toJson(messageEngineProperties) },
-                    sequenceFlows = variant.sequenceFlows.map { it.toJson() },
-                )
-            },
+    private fun ProcessModel.Variant.toJson(): VariantJson {
+        return VariantJson(
+            name = variantName,
+            flowNodes = flowNodes.toJson(sequenceFlows),
+            sequenceFlows = sequenceFlows.map { it.toJson() },
         )
     }
 
-    private fun List<MessageDefinition>.messageEnginePropertiesByNode(): Map<String?, Map<String, Any?>> {
-        return associate { it.id to it.engineSpecificProperties }
+    private fun RootElements.toJson(): DefinitionsJson {
+        return DefinitionsJson(
+            messages = messages.mapNotNull { it.toJson() }.sortedBy { it.id },
+            signals = signals.mapNotNull { it.toJson() }.sortedBy { it.id },
+            errors = errors.mapNotNull { it.toJson() }.sortedBy { it.id },
+            escalations = escalations.mapNotNull { it.toJson() }.sortedBy { it.id },
+        )
     }
 
-    private fun FlowNodeDefinition.toJson(messageEngineProperties: Map<String?, Map<String, Any?>>): FlowNodeJson {
+    private fun List<FlowNodeDefinition>.toJson(sequenceFlows: List<SequenceFlowDefinition>): List<FlowNodeJson> {
+        return FlowNodeSorter.sort(this, sequenceFlows).map { it.toJson() }
+    }
+
+    private fun FlowNodeDefinition.toJson(): FlowNodeJson {
+        val activity = this as? FlowNodeDefinition.Activity
+        val event = this as? FlowNodeDefinition.Event
+        val subProcess = this as? FlowNodeDefinition.Activity.SubProcess
         return FlowNodeJson(
             id = id ?: "",
-            displayName = displayName,
-            elementType = ElementTypeName.of(nodeType),
-            parentId = parentId,
-            attachedToRef = attachedToRef,
-            interrupting = interrupting,
-            attachedElements = attachedElements,
-            previousElements = previousElements,
-            followingElements = followingElements,
-            variables = variables.map { it.getRawName() },
-            properties = properties.toJson(messageEngineProperties[id].orEmpty()),
-            engineSpecificProperties = engineSpecificProperties.mapValues { (_, v) -> v.toJsonElement() },
+            type = BpmnTypeName.of(this),
+            name = displayName,
+            incoming = incoming,
+            outgoing = outgoing,
+            default = defaultFlow(),
+            attachedToRef = event?.attachedToRef,
+            cancelActivity = event?.takeIf { it.shape == EventShape.BOUNDARY_EVENT }?.interrupting,
+            isInterrupting = event?.takeIf { it.shape == EventShape.START_EVENT }?.interrupting,
+            triggeredByEvent = subProcess?.takeIf { it.kind == SubProcessKind.EVENT }?.let { true },
+            isForCompensation = activity?.isForCompensation?.takeIf { it },
+            boundaryEventRefs = activity?.boundaryEventRefs.orEmpty(),
+            eventDefinitions = event?.eventDefinitions?.map { it.toJson() }.orEmpty(),
+            messageRef = (this as? FlowNodeDefinition.Activity.Task)?.message?.messageRef,
+            implementation = implementation()?.toJson(),
+            calledElement = (this as? FlowNodeDefinition.Activity.CallActivity)?.toCalledElement(),
+            multiInstance = activity?.multiInstance?.toJson(),
+            ioMapping = ioMapping()?.toJson(),
+            variables = variables.map { it.toJson() },
+            flowNodes = subProcess?.flowNodes?.toJson(subProcess.sequenceFlows).orEmpty(),
+            sequenceFlows = subProcess?.sequenceFlows?.map { it.toJson() }.orEmpty(),
+            extensions = extensions.map { it.toJson() },
+            engineAttributes = engineAttributes.mapValues { (_, value) -> value.toJsonElement() },
         )
     }
 
-    private fun Any?.toJsonElement(): JsonElement = when (this) {
-        null -> JsonNull
-        is Boolean -> JsonPrimitive(this)
-        is Number -> JsonPrimitive(this)
-        is String -> JsonPrimitive(this)
-        else -> JsonPrimitive(this.toString())
+    private fun FlowNodeDefinition.defaultFlow(): String? = when (this) {
+        is FlowNodeDefinition.Gateway -> defaultFlow
+        is FlowNodeDefinition.Activity -> defaultFlow
+        else -> null
     }
 
-    private fun FlowNodeProperties.toJson(messageEngineProperties: Map<String, Any?>): FlowNodePropertiesJson? = when (this) {
-        is FlowNodeProperties.None -> null
-        is FlowNodeProperties.ServiceTask -> FlowNodePropertiesJson(
-            type = "ServiceTask",
-            implementationValue = definition.engineSpecificProperties[ServiceTaskDefinition.IMPL_VALUE_KEY] as? String,
-            implementationKind = definition.engineSpecificProperties[ServiceTaskDefinition.IMPL_KIND_KEY] as? String,
+    private fun FlowNodeDefinition.implementation(): TaskImplementation? = when (this) {
+        is FlowNodeDefinition.Activity.Task -> implementation
+        is FlowNodeDefinition.Event -> implementation
+        else -> null
+    }
+
+    private fun FlowNodeDefinition.ioMapping(): IoMapping? = when (this) {
+        is FlowNodeDefinition.Activity -> ioMapping
+        is FlowNodeDefinition.Event -> ioMapping
+        else -> null
+    }
+
+    private fun FlowNodeDefinition.Activity.CallActivity.toCalledElement(): CalledElementJson? {
+        val calledElement = CalledElementJson(
+            processId = definition.getValue().takeIf { it.isNotEmpty() },
+            propagateAllInputVariables = definition.propagateAllInputVariables,
+            propagateAllOutputVariables = definition.propagateAllOutputVariables,
         )
-        is FlowNodeProperties.CallActivity -> FlowNodePropertiesJson(
-            type = "CallActivity",
-            calledElement = definition.getValue(),
+        return calledElement.takeIf { it != CalledElementJson() }
+    }
+
+    private fun EventDefinitionInstance.toJson(): EventDefinitionJson = when (this) {
+        is EventDefinitionInstance.Timer -> EventDefinitionJson.Timer(timerType?.name, expression)
+        is EventDefinitionInstance.Message -> EventDefinitionJson.Message(reference.messageRef)
+        is EventDefinitionInstance.Signal -> EventDefinitionJson.Signal(signalRef)
+        is EventDefinitionInstance.Error -> EventDefinitionJson.Error(errorRef)
+        is EventDefinitionInstance.Escalation -> EventDefinitionJson.Escalation(escalationRef)
+        is EventDefinitionInstance.Compensation -> EventDefinitionJson.Compensation(activityRef, waitForCompletion)
+        is EventDefinitionInstance.Conditional -> EventDefinitionJson.Conditional(expression)
+        is EventDefinitionInstance.Link -> EventDefinitionJson.Link(linkName)
+        is EventDefinitionInstance.Terminate -> EventDefinitionJson.Terminate
+    }
+
+    private fun TaskImplementation.toJson(): ImplementationJson? = when (this) {
+        is TaskImplementation.Unspecified -> null
+        is TaskImplementation.JobWorker -> ImplementationJson.JobWorker(jobType, retries)
+        is TaskImplementation.Connector -> ImplementationJson.Connector(jobType, templateId, retries)
+        is TaskImplementation.ExternalTask -> ImplementationJson.ExternalTask(topic)
+        is TaskImplementation.JavaClass -> ImplementationJson.JavaClass(className)
+        is TaskImplementation.DelegateExpression -> ImplementationJson.DelegateExpression(expression)
+        is TaskImplementation.Expression -> ImplementationJson.Expression(expression)
+    }
+
+    private fun MultiInstanceDefinition.toJson(): MultiInstanceJson {
+        return MultiInstanceJson(
+            sequential = sequential,
+            inputCollection = inputCollection,
+            inputElement = inputElement,
+            outputCollection = outputCollection,
+            outputElement = outputElement,
+            cardinality = cardinality,
+            completionCondition = completionCondition,
         )
-        is FlowNodeProperties.Timer -> {
-            val (type, value) = definition.getValue()
-            FlowNodePropertiesJson(
-                type = "Timer",
-                timerType = type.takeIf { it.isNotEmpty() },
-                timerValue = value.takeIf { it.isNotEmpty() },
-            )
-        }
-        is FlowNodeProperties.MessageEvent -> FlowNodePropertiesJson(
-            type = "MessageEvent",
-            messageName = name,
-            messageDirection = direction.name,
-            engineSpecificProperties = messageEngineProperties.mapValues { (_, v) -> v.toJsonElement() },
+    }
+
+    private fun IoMapping.toJson(): IoMappingJson {
+        return IoMappingJson(
+            inputs = inputs.map { IoMappingJson.Parameter(it.target, it.source) },
+            outputs = outputs.map { IoMappingJson.Parameter(it.target, it.source) },
         )
-        is FlowNodeProperties.SignalEvent -> FlowNodePropertiesJson(
-            type = "SignalEvent",
-            signalName = name,
-            signalDirection = direction.name,
+    }
+
+    private fun VariableDefinition.toJson(): VariableJson {
+        return VariableJson(name = getRawName(), direction = direction.name, expression = valueExpression)
+    }
+
+    private fun EngineExtension.toJson(): ExtensionJson {
+        return ExtensionJson(
+            type = type,
+            attributes = attributes,
+            children = children.map { it.toJson() },
+            body = body,
         )
     }
 
@@ -137,34 +195,36 @@ class BpmnJsonMapper {
             targetRef = targetRef,
             name = flowName,
             conditionExpression = conditionExpression,
-            isDefault = isDefault,
         )
     }
 
-    private fun MessageDefinition.toJson(): MessageJson? {
+    private fun RootElementDefinition.Message.toJson(): DefinitionsJson.Message? {
         val name = getValue().takeIf { it.isNotEmpty() } ?: return null
-        return MessageJson(id = id ?: "", name = name)
+        return DefinitionsJson.Message(id = id ?: name, name = name, correlationKey = correlationKey)
     }
 
-    private fun SignalDefinition.toJson(): SignalJson? {
+    private fun RootElementDefinition.Signal.toJson(): DefinitionsJson.Signal? {
         val name = getValue().takeIf { it.isNotEmpty() } ?: return null
-        return SignalJson(id = id ?: "", name = name)
+        return DefinitionsJson.Signal(id = id ?: name, name = name)
     }
 
-    private fun ErrorDefinition.toJson(): ErrorJson? {
+    private fun RootElementDefinition.Error.toJson(): DefinitionsJson.Error? {
         val (name, code) = getValue()
         if (name.isEmpty()) return null
-        return ErrorJson(id = id ?: "", name = name, code = code)
+        return DefinitionsJson.Error(id = id ?: name, name = name, errorCode = code.takeIf { it.isNotEmpty() })
     }
 
-    private fun EscalationDefinition.toJson(): EscalationJson? {
+    private fun RootElementDefinition.Escalation.toJson(): DefinitionsJson.Escalation? {
         val (name, code) = getValue()
         if (name.isEmpty()) return null
-        return EscalationJson(id = id ?: "", name = name, code = code)
+        return DefinitionsJson.Escalation(id = id ?: name, name = name, escalationCode = code.takeIf { it.isNotEmpty() })
     }
 
-    private fun CompensationDefinition.toJson(): CompensationJson? {
-        val activityRef = getValue().takeIf { it.isNotEmpty() } ?: return null
-        return CompensationJson(id = id ?: "", activityRef = activityRef)
+    private fun Any?.toJsonElement(): JsonElement = when (this) {
+        null -> JsonNull
+        is Boolean -> JsonPrimitive(this)
+        is Number -> JsonPrimitive(this)
+        is String -> JsonPrimitive(this)
+        else -> JsonPrimitive(this.toString())
     }
 }

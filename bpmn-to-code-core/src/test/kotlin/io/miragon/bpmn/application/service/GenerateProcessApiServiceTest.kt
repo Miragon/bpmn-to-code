@@ -1,17 +1,17 @@
 package io.miragon.bpmn.application.service
 
 import io.miragon.bpmn.adapter.outbound.filesystem.ProcessApiFileSaver
-import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiFromFilesystemUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
-import io.miragon.bpmn.domain.BpmnModel
+import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModelApi
+import io.miragon.bpmn.domain.testProcessModelApi
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
@@ -134,20 +134,14 @@ class GenerateProcessApiServiceTest {
         verify { fileSystemOutput.writeFiles(emptyList(), "outputFolder") }
     }
 
-    private val dummyModel = BpmnModel(
+    private val dummyModel = ProcessModel(
         processId = "newsletterSubscription",
         flowNodes = emptyList(),
-        messages = emptyList(),
-        signals = emptyList(),
-        errors = emptyList(),
     )
 
-    private val nonExecutableModel = BpmnModel(
+    private val nonExecutableModel = ProcessModel(
         processId = "draftProcess",
         flowNodes = emptyList(),
-        messages = emptyList(),
-        signals = emptyList(),
-        errors = emptyList(),
         isExecutable = false,
     )
 
@@ -160,7 +154,7 @@ class GenerateProcessApiServiceTest {
         packagePath = "de.emaarco.example",
     )
 
-    private fun getExpectedModelApi() = testBpmnModelApi(
+    private fun getExpectedModelApi() = testProcessModelApi(
         model = dummyModel,
         packagePath = "de.emaarco.example",
         language = OutputLanguage.KOTLIN

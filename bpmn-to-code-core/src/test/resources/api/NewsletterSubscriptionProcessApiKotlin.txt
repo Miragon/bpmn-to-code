@@ -28,21 +28,17 @@ object NewsletterSubscriptionProcessApi {
    * Worker runtime code rarely needs these.
    */
   object Elements {
-    val CALL_ACTIVITY_ABORT_REGISTRATION: ElementId =
-        ElementId("CallActivity_AbortRegistration")
-
     val ACTIVITY_CONFIRM_REGISTRATION: ElementId = ElementId("Activity_ConfirmRegistration")
+
+    val ACTIVITY_NOTIFY_COMMUNITY: ElementId = ElementId("Activity_NotifyCommunity")
 
     val ACTIVITY_SEND_CONFIRMATION_MAIL: ElementId =
         ElementId("Activity_SendConfirmationMail")
 
     val ACTIVITY_SEND_WELCOME_MAIL: ElementId = ElementId("Activity_SendWelcomeMail")
 
-    val ACTIVITY_NOTIFY_COMMUNITY: ElementId = ElementId("Activity_NotifyCommunity")
-
-    val GATEWAY_SPLIT_NOTIFICATIONS: ElementId = ElementId("Gateway_SplitNotifications")
-
-    val GATEWAY_JOIN_NOTIFICATIONS: ElementId = ElementId("Gateway_JoinNotifications")
+    val CALL_ACTIVITY_ABORT_REGISTRATION: ElementId =
+        ElementId("CallActivity_AbortRegistration")
 
     val COMPENSATION_END_EVENT_REGISTRATION_ABORTED: ElementId =
         ElementId("CompensationEndEvent_RegistrationAborted")
@@ -64,8 +60,9 @@ object NewsletterSubscriptionProcessApi {
 
     val ERROR_EVENT_INVALID_MAIL: ElementId = ElementId("ErrorEvent_InvalidMail")
 
-    val SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER: ElementId =
-        ElementId("serviceTask_incrementSubscriptionCounter")
+    val GATEWAY_JOIN_NOTIFICATIONS: ElementId = ElementId("Gateway_JoinNotifications")
+
+    val GATEWAY_SPLIT_NOTIFICATIONS: ElementId = ElementId("Gateway_SplitNotifications")
 
     val START_EVENT_REQUEST_RECEIVED: ElementId = ElementId("StartEvent_RequestReceived")
 
@@ -77,6 +74,9 @@ object NewsletterSubscriptionProcessApi {
     val TIMER_AFTER_3_DAYS: ElementId = ElementId("Timer_After3Days")
 
     val TIMER_EVERY_DAY: ElementId = ElementId("Timer_EveryDay")
+
+    val SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER: ElementId =
+        ElementId("serviceTask_incrementSubscriptionCounter")
   }
 
   /**

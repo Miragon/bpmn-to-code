@@ -1,7 +1,11 @@
 # ADR 012: JSON Export as a First-Class Output Format
 
 ## Status
-Accepted
+Superseded by [ADR 018](018-process-json-v2.md)
+
+> The decision to ship a JSON export at all still stands — the motivation and the determinism guarantee below
+> are unchanged. The **format** described here is v1 and was replaced in 6.0.0 by the BPMN-standard-aligned
+> v2 contract in [ADR 018](018-process-json-v2.md).
 
 ## Context
 bpmn-to-code's primary output is a Kotlin/Java constants file. That file is useful for compiler-checked references but is a compiled artifact — it requires building the project to inspect and cannot easily be consumed by non-JVM tooling.

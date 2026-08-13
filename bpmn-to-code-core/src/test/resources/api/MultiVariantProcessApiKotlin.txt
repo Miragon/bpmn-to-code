@@ -26,46 +26,46 @@ object SendNewsletterProcessApi {
    * Worker runtime code rarely needs these.
    */
   object Elements {
-    val START_EVENT_EDITION_CREATED: ElementId = ElementId("startEvent_editionCreated")
-
-    val SERVICE_TASK_LOAD_SUBSCRIBERS: ElementId = ElementId("serviceTask_loadSubscribers")
-
-    val GATEWAY_HAS_SUBSCRIBERS: ElementId = ElementId("gateway_hasSubscribers")
-
-    val SERVICE_TASK_SEND_TO_SUBSCRIBER: ElementId =
-        ElementId("serviceTask_sendToSubscriber")
-
-    val SERVICE_TASK_NOTIFY_AUTHOR: ElementId = ElementId("serviceTask_notifyAuthor")
-
     val END_EVENT_EDITION_SENT: ElementId = ElementId("endEvent_editionSent")
 
+    val END_EVENT_ISSUE_RESOLVED: ElementId = ElementId("endEvent_issueResolved")
+
     val END_EVENT_NO_SUBSCRIBERS: ElementId = ElementId("endEvent_noSubscribers")
+
+    val ESCALATION_END_EVENT_NOFITY_SUPPORT: ElementId =
+        ElementId("escalationEndEvent_nofitySupport")
+
+    val ESCALATION_END_EVENT_NOFITY_SUPPORT_AFTER_REPEATED_ERROR: ElementId =
+        ElementId("escalationEndEvent_nofitySupportAfterRepeatedError")
+
+    val EVENT_GATEWAY_AFTER_SENDING_AGAIN: ElementId =
+        ElementId("eventGateway_afterSendingAgain")
 
     val EVENT_SUB_PROCESS_ERROR_HANDLING: ElementId =
         ElementId("eventSubProcess_errorHandling")
 
     val EVENT_MAIL_REJECTED: ElementId = ElementId("event_mailRejected")
 
-    val SERVICE_TASK_ANALYZE_ERROR: ElementId = ElementId("serviceTask_analyzeError")
+    val EVENT_MAIL_REJECTED_AGAIN: ElementId = ElementId("event_mailRejectedAgain")
 
     val GATEWAY_CAN_SEND_AGAIN: ElementId = ElementId("gateway_canSendAgain")
 
+    val GATEWAY_HAS_SUBSCRIBERS: ElementId = ElementId("gateway_hasSubscribers")
+
+    val SERVICE_TASK_ANALYZE_ERROR: ElementId = ElementId("serviceTask_analyzeError")
+
+    val SERVICE_TASK_LOAD_SUBSCRIBERS: ElementId = ElementId("serviceTask_loadSubscribers")
+
+    val SERVICE_TASK_NOTIFY_AUTHOR: ElementId = ElementId("serviceTask_notifyAuthor")
+
     val SERVICE_TASK_SEND_MAIL_AGAIN: ElementId = ElementId("serviceTask_sendMailAgain")
 
-    val EVENT_GATEWAY_AFTER_SENDING_AGAIN: ElementId =
-        ElementId("eventGateway_afterSendingAgain")
+    val SERVICE_TASK_SEND_TO_SUBSCRIBER: ElementId =
+        ElementId("serviceTask_sendToSubscriber")
+
+    val START_EVENT_EDITION_CREATED: ElementId = ElementId("startEvent_editionCreated")
 
     val TIMER_NO_REJECTION_FOR_ONE_DAY: ElementId = ElementId("timer_noRejectionForOneDay")
-
-    val ESCALATION_END_EVENT_NOFITY_SUPPORT: ElementId =
-        ElementId("escalationEndEvent_nofitySupport")
-
-    val EVENT_MAIL_REJECTED_AGAIN: ElementId = ElementId("event_mailRejectedAgain")
-
-    val ESCALATION_END_EVENT_NOFITY_SUPPORT_AFTER_REPEATED_ERROR: ElementId =
-        ElementId("escalationEndEvent_nofitySupportAfterRepeatedError")
-
-    val END_EVENT_ISSUE_RESOLVED: ElementId = ElementId("endEvent_issueResolved")
   }
 
   /**
@@ -121,10 +121,10 @@ object SendNewsletterProcessApi {
        * Worker code typically does not need these.
        */
       object Flows {
-        val FLOW_0_BIANZ_5: BpmnFlow = BpmnFlow(
-              id = "Flow_0bianz5",
-              sourceRef = "startEvent_editionCreated",
-              targetRef = "serviceTask_loadSubscribers",
+        val FLOW_0338_XZF: BpmnFlow = BpmnFlow(
+              id = "Flow_0338xzf",
+              sourceRef = "timer_noRejectionForOneDay",
+              targetRef = "endEvent_issueResolved",
             )
 
         val FLOW_04_ANDB_8: BpmnFlow = BpmnFlow(
@@ -133,26 +133,22 @@ object SendNewsletterProcessApi {
               targetRef = "gateway_hasSubscribers",
             )
 
-        val FLOW_1_JOGUT_0: BpmnFlow = BpmnFlow(
-              id = "Flow_1jogut0",
-              name = "Yes",
-              sourceRef = "gateway_hasSubscribers",
-              targetRef = "serviceTask_sendToSubscriber",
-              isDefault = true,
+        val FLOW_081_CYKL: BpmnFlow = BpmnFlow(
+              id = "Flow_081cykl",
+              sourceRef = "eventGateway_afterSendingAgain",
+              targetRef = "event_mailRejectedAgain",
             )
 
-        val FLOW_1_GSZ_7_WD: BpmnFlow = BpmnFlow(
-              id = "Flow_1gsz7wd",
-              name = "No",
-              sourceRef = "gateway_hasSubscribers",
-              targetRef = "endEvent_noSubscribers",
-              condition = $$"""${subscribers.size() > 0}""",
+        val FLOW_0_BIANZ_5: BpmnFlow = BpmnFlow(
+              id = "Flow_0bianz5",
+              sourceRef = "startEvent_editionCreated",
+              targetRef = "serviceTask_loadSubscribers",
             )
 
-        val FLOW_1_RUAYVL: BpmnFlow = BpmnFlow(
-              id = "Flow_1ruayvl",
-              sourceRef = "serviceTask_sendToSubscriber",
-              targetRef = "serviceTask_notifyAuthor",
+        val FLOW_0_ENJKOE: BpmnFlow = BpmnFlow(
+              id = "Flow_0enjkoe",
+              sourceRef = "eventGateway_afterSendingAgain",
+              targetRef = "timer_noRejectionForOneDay",
             )
 
         val FLOW_0_V_2_V_55_N: BpmnFlow = BpmnFlow(
@@ -167,18 +163,22 @@ object SendNewsletterProcessApi {
               targetRef = "serviceTask_analyzeError",
             )
 
+        val FLOW_0_VYM_6_NU: BpmnFlow = BpmnFlow(
+              id = "Flow_0vym6nu",
+              sourceRef = "serviceTask_sendMailAgain",
+              targetRef = "eventGateway_afterSendingAgain",
+            )
+
+        val FLOW_0_X_9_THPQ: BpmnFlow = BpmnFlow(
+              id = "Flow_0x9thpq",
+              sourceRef = "event_mailRejectedAgain",
+              targetRef = "escalationEndEvent_nofitySupportAfterRepeatedError",
+            )
+
         val FLOW_13_NMNAG: BpmnFlow = BpmnFlow(
               id = "Flow_13nmnag",
               sourceRef = "serviceTask_analyzeError",
               targetRef = "gateway_canSendAgain",
-            )
-
-        val FLOW_1_IZUCOF: BpmnFlow = BpmnFlow(
-              id = "Flow_1izucof",
-              name = "Yes",
-              sourceRef = "gateway_canSendAgain",
-              targetRef = "serviceTask_sendMailAgain",
-              isDefault = true,
             )
 
         val FLOW_18_NF_2_JH: BpmnFlow = BpmnFlow(
@@ -189,34 +189,34 @@ object SendNewsletterProcessApi {
               condition = $$"""${rejection.reason == "PERMANENT"}""",
             )
 
-        val FLOW_0_VYM_6_NU: BpmnFlow = BpmnFlow(
-              id = "Flow_0vym6nu",
-              sourceRef = "serviceTask_sendMailAgain",
-              targetRef = "eventGateway_afterSendingAgain",
+        val FLOW_1_GSZ_7_WD: BpmnFlow = BpmnFlow(
+              id = "Flow_1gsz7wd",
+              name = "No",
+              sourceRef = "gateway_hasSubscribers",
+              targetRef = "endEvent_noSubscribers",
+              condition = $$"""${subscribers.size() > 0}""",
             )
 
-        val FLOW_0_ENJKOE: BpmnFlow = BpmnFlow(
-              id = "Flow_0enjkoe",
-              sourceRef = "eventGateway_afterSendingAgain",
-              targetRef = "timer_noRejectionForOneDay",
+        val FLOW_1_IZUCOF: BpmnFlow = BpmnFlow(
+              id = "Flow_1izucof",
+              name = "Yes",
+              sourceRef = "gateway_canSendAgain",
+              targetRef = "serviceTask_sendMailAgain",
+              isDefault = true,
             )
 
-        val FLOW_081_CYKL: BpmnFlow = BpmnFlow(
-              id = "Flow_081cykl",
-              sourceRef = "eventGateway_afterSendingAgain",
-              targetRef = "event_mailRejectedAgain",
+        val FLOW_1_JOGUT_0: BpmnFlow = BpmnFlow(
+              id = "Flow_1jogut0",
+              name = "Yes",
+              sourceRef = "gateway_hasSubscribers",
+              targetRef = "serviceTask_sendToSubscriber",
+              isDefault = true,
             )
 
-        val FLOW_0_X_9_THPQ: BpmnFlow = BpmnFlow(
-              id = "Flow_0x9thpq",
-              sourceRef = "event_mailRejectedAgain",
-              targetRef = "escalationEndEvent_nofitySupportAfterRepeatedError",
-            )
-
-        val FLOW_0338_XZF: BpmnFlow = BpmnFlow(
-              id = "Flow_0338xzf",
-              sourceRef = "timer_noRejectionForOneDay",
-              targetRef = "endEvent_issueResolved",
+        val FLOW_1_RUAYVL: BpmnFlow = BpmnFlow(
+              id = "Flow_1ruayvl",
+              sourceRef = "serviceTask_sendToSubscriber",
+              targetRef = "serviceTask_notifyAuthor",
             )
       }
 
@@ -286,7 +286,7 @@ object SendNewsletterProcessApi {
               parentId = null,
               attachedToRef = null,
               attachedElements = emptyList(),
-              elementType = "SUB_PROCESS",
+              elementType = "EVENT_SUB_PROCESS",
             )
 
         val EVENT_MAIL_REJECTED: BpmnRelations = BpmnRelations(

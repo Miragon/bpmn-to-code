@@ -72,15 +72,19 @@ The standalone `validateBpmnModels` Gradle task (and `validate-bpmn` Maven goal)
 
 ### Surface — Process Structure in Code
 
-bpmn-to-code generates a structured JSON file alongside the Kotlin/Java API. It contains every flow node with its display name, element type, sequence flows, and variables — sorted in process-flow order (DFS from start events).
+bpmn-to-code generates a structured JSON file alongside the Kotlin/Java API. It contains every flow node with its name, BPMN element type, sequence flows, and variables — sorted in process-flow order (DFS from start events). The format follows the OMG BPMN 2.0 metamodel and is validated against a [published JSON Schema](https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json).
 
 ```json
 {
-  "processId": "newsletterSubscription",
-  "flowNodes": [
-    { "id": "StartEvent_SubmitRegistrationForm", "displayName": "Submit newsletter form", "elementType": "START_EVENT" },
-    { "id": "Activity_SendConfirmationMail",     "displayName": "Send confirmation mail",  "elementType": "SERVICE_TASK" }
-  ]
+  "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
+  "formatVersion": "2.0",
+  "process": {
+    "id": "newsletterSubscription",
+    "flowNodes": [
+      { "id": "StartEvent_SubmitRegistrationForm", "type": "startEvent", "name": "Submit newsletter form" },
+      { "id": "Activity_SendConfirmationMail", "type": "serviceTask", "name": "Send confirmation mail" }
+    ]
+  }
 }
 ```
 

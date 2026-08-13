@@ -1,38 +1,48 @@
 package io.miragon.bpmn.adapter.outbound.shared
 
-import io.miragon.bpmn.domain.shared.BpmnNodeType
-import io.miragon.bpmn.domain.shared.EventDefinitionType
+import io.miragon.bpmn.domain.shared.EventDefinitionInstance
+import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
 
 /**
- * Renders the two-axis [BpmnNodeType] domain model into the flat `elementType` string shared by the
- * outbound representations — the generated JSON export and the generated Process API.
+ * Renders a [FlowNodeDefinition] into the flat `elementType` string used by the **generated Process API**
+ * (`BpmnRelations.elementType`).
  *
- * This is the single boundary between the internal node-type model and that output vocabulary.
- * Tasks, gateways and activities map to their flat name; event nodes surface their concrete
- * [definitionType][BpmnNodeType.Event.definitionType] as a prefix on the shape
- * (e.g. `ERROR_BOUNDARY_EVENT`), so consumers can tell a timer from an error without cross-referencing.
+ * Tasks, gateways and activities map to their flat name; an event surfaces its first event definition as a
+ * prefix on the shape (e.g. `ERROR_BOUNDARY_EVENT`), so consumers can tell a timer from an error without
+ * cross-referencing. The JSON export uses the BPMN element names instead — see `BpmnTypeName`.
  */
-object ElementTypeName {
+internal object ElementTypeName {
 
-    fun of(nodeType: BpmnNodeType): String = when (nodeType) {
-        is BpmnNodeType.Gateway -> nodeType.kind.render()
-        is BpmnNodeType.Event -> nodeType.render()
-        is BpmnNodeType.Activity.Task -> nodeType.kind.render()
-        is BpmnNodeType.Activity.SubProcess -> nodeType.kind.render()
-        is BpmnNodeType.Activity.CallActivity -> "CALL_ACTIVITY"
-        is BpmnNodeType.Unknown -> "UNKNOWN"
+    fun of(node: FlowNodeDefinition): String = when (node) {
+        is FlowNodeDefinition.Gateway -> node.kind.render()
+        is FlowNodeDefinition.Event -> node.render()
+        is FlowNodeDefinition.Activity.Task -> node.kind.render()
+        is FlowNodeDefinition.Activity.SubProcess -> node.kind.render()
+        is FlowNodeDefinition.Activity.CallActivity -> "CALL_ACTIVITY"
+        is FlowNodeDefinition.Unknown -> "UNKNOWN"
     }
 
-    private fun BpmnNodeType.Event.render(): String {
-        return if (definitionType == EventDefinitionType.NONE) {
-            shape.name
-        } else {
-            "${definitionType.name}_${shape.name}"
-        }
+    private fun FlowNodeDefinition.Event.render(): String {
+        val definitionType = eventDefinitions.map { it.type }.firstOrNull { it in PREFIXED_TYPES }
+            ?: return shape.name
+        return "${definitionType.name}_${shape.name}"
     }
+
+    /**
+     * The event-definition kinds that surface as a prefix on the flat element type. Conditional, link and
+     * terminate carry no prefix — the flat Process API vocabulary renders them shape-only, e.g. `END_EVENT`.
+     */
+    private val PREFIXED_TYPES = setOf(
+        EventDefinitionInstance.Type.TIMER,
+        EventDefinitionInstance.Type.MESSAGE,
+        EventDefinitionInstance.Type.ERROR,
+        EventDefinitionInstance.Type.SIGNAL,
+        EventDefinitionInstance.Type.ESCALATION,
+        EventDefinitionInstance.Type.COMPENSATION,
+    )
 
     private fun TaskKind.render(): String = when (this) {
         TaskKind.SERVICE -> "SERVICE_TASK"
