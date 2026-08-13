@@ -9,12 +9,11 @@ import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
-import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
+import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraphFactory
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessGraph
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
@@ -179,60 +178,21 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             .build()
     }
 
+    /**
+     * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
+     * `elementType` and display `name`, plus its reachable successors as methods. Boundary events and
+     * subprocess continuations are plain successors; a subprocess's interior is its nested `Inner` scope.
+     */
     private fun buildRelationsClass(graph: ProcessGraph): TypeSpec {
-        val bpmnRelationsClass = ClassName.get(RUNTIME_PACKAGE, "BpmnRelations")
         val relationsBuilder = TypeSpec.classBuilder("Relations").addModifiers(PUBLIC, STATIC, FINAL)
             .addJavadoc(
-                "Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).\n" +
-                    "Intended for tooling and tests, not worker runtime code.\n"
+                "Typed navigation over the process flow. Each element is a node exposing its {@code id}, " +
+                    "{@code elementType} and display {@code name}, plus the elements reachable from it as methods — " +
+                    "so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior " +
+                    "is its nested {@code Inner} scope.\n"
             )
-        graph.allFlowNodes
-            .filter { it.id != null }
-            .sortedBy { it.getRawName() }
-            .forEach { node ->
-                val initCode = buildRelationsInitializer(bpmnRelationsClass, node, graph)
-                val fieldBuilder = FieldSpec.builder(bpmnRelationsClass, node.getName()).addModifiers(PUBLIC, STATIC, FINAL)
-                relationsBuilder.addField(fieldBuilder.initializer(initCode).build())
-            }
+        JavaNavigationWriter().write(relationsBuilder, NavigationGraphFactory.build(graph), staticAccessors = true)
         return relationsBuilder.build()
-    }
-
-    private fun buildRelationsInitializer(bpmnRelationsClass: ClassName, node: FlowNodeDefinition, graph: ProcessGraph): CodeBlock {
-        val parentId = graph.parentIdOf(node.id)
-        val attachedToRef = (node as? FlowNodeDefinition.Event)?.attachedToRef
-        val nameBlock = if (node.displayName != null) CodeBlock.of("\$S", node.displayName) else CodeBlock.of("null")
-        val parentIdBlock = if (parentId != null) CodeBlock.of("\$S", parentId) else CodeBlock.of("null")
-        val attachedToRefBlock = if (attachedToRef != null) CodeBlock.of("\$S", attachedToRef) else CodeBlock.of("null")
-        return CodeBlock.builder()
-            .add("new \$T(", bpmnRelationsClass)
-            .add(nameBlock)
-            .add(", ")
-            .add(javaListLiteral(graph.previousElementsOf(node)))
-            .add(", ")
-            .add(javaListLiteral(graph.followingElementsOf(node)))
-            .add(", ")
-            .add(parentIdBlock)
-            .add(", ")
-            .add(attachedToRefBlock)
-            .add(", ")
-            .add(javaListLiteral(graph.attachedElementsOf(node)))
-            .add(", ")
-            .add("\$S", ElementTypeName.of(node))
-            .add(")")
-            .build()
-    }
-
-    private val listClass = ClassName.get("java.util", "List")
-
-    private fun javaListLiteral(items: List<String>): CodeBlock {
-        if (items.isEmpty()) return CodeBlock.of("\$T.of()", listClass)
-        val builder = CodeBlock.builder().add("\$T.of(", listClass)
-        items.forEachIndexed { i, item ->
-            if (i > 0) builder.add(", ")
-            builder.add("\$S", item)
-        }
-        builder.add(")")
-        return builder.build()
     }
 
     private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {
