@@ -4,7 +4,7 @@ import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.ProcessModel
 
-class BpmnJsonGenerationAdapter(
+internal class BpmnJsonGenerationAdapter(
     private val jsonGenerator: BpmnJsonGenerator = BpmnJsonGenerator(),
 ) : GenerateJsonPort {
 

@@ -1,23 +1,22 @@
 package io.miragon.bpmn.application.service
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.engine.ExtractBpmnAdapter
 import io.miragon.bpmn.adapter.outbound.filesystem.BpmnFileLoader
 import io.miragon.bpmn.adapter.outbound.filesystem.ProcessApiFileSaver
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiFromFilesystemUseCase
-import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.application.port.outbound.SaveProcessApiPort
-import io.miragon.bpmn.domain.BpmnModel
+import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
-import io.github.oshai.kotlinlogging.KotlinLogging
 
 class GenerateProcessApiService(
     private val codeGenerator: GenerateApiCodePort = CodeGenerationAdapter(),
@@ -53,8 +52,8 @@ class GenerateProcessApiService(
     }
 
     private fun filterExecutableProcesses(
-        extractedModels: List<Pair<BpmnResource, BpmnModel>>,
-    ): List<Pair<BpmnResource, BpmnModel>> {
+        extractedModels: List<Pair<BpmnResource, ProcessModel>>,
+    ): List<Pair<BpmnResource, ProcessModel>> {
         return extractedModels.filter { (file, model) ->
             val keep = model.isExecutable
             if (!keep) logger.info { "Skipping '${model.processId}' (${file.fileName}): process is marked non-executable" }
@@ -69,7 +68,7 @@ class GenerateProcessApiService(
         model = model,
         outputLanguage = command.outputLanguage,
         packagePath = command.packagePath,
-        engine = command.engine,
+        targetEngine = command.engine,
     )
 
 }

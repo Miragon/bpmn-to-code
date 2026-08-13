@@ -7,7 +7,7 @@ import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 
-class CodeGenerationAdapter(
+internal class CodeGenerationAdapter(
     private val processApiBuilders: Map<OutputLanguage, AbstractProcessApiBuilder<*>> = Companion.processApiBuilders,
 ) : GenerateApiCodePort {
 

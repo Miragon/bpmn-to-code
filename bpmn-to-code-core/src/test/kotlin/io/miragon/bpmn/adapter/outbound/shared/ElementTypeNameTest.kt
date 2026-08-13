@@ -1,9 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.shared
 
-import io.miragon.bpmn.domain.shared.BpmnNodeType
+import io.miragon.bpmn.domain.shared.CallActivityDefinition
+import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
-import io.miragon.bpmn.domain.shared.EventDefinitionType
+import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
+import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
 import org.assertj.core.api.Assertions.assertThat
@@ -24,7 +26,8 @@ class ElementTypeNameTest {
             TaskKind.NONE to "TASK",
         )
         expected.forEach { (kind, expectedName) ->
-            assertThat(ElementTypeName.of(BpmnNodeType.Activity.Task(kind))).isEqualTo(expectedName)
+            assertThat(ElementTypeName.of(FlowNodeDefinition.Activity.Task(id = "task", kind = kind)))
+                .isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*TaskKind.entries.toTypedArray())
     }
@@ -39,7 +42,8 @@ class ElementTypeNameTest {
             GatewayKind.COMPLEX to "COMPLEX_GATEWAY",
         )
         expected.forEach { (kind, expectedName) ->
-            assertThat(ElementTypeName.of(BpmnNodeType.Gateway(kind))).isEqualTo(expectedName)
+            assertThat(ElementTypeName.of(FlowNodeDefinition.Gateway(id = "gw", kind = kind)))
+                .isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*GatewayKind.entries.toTypedArray())
     }
@@ -52,14 +56,19 @@ class ElementTypeNameTest {
             SubProcessKind.TRANSACTION to "TRANSACTION",
         )
         expected.forEach { (kind, expectedName) ->
-            assertThat(ElementTypeName.of(BpmnNodeType.Activity.SubProcess(kind))).isEqualTo(expectedName)
+            assertThat(ElementTypeName.of(FlowNodeDefinition.Activity.SubProcess(id = "sub", kind = kind)))
+                .isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*SubProcessKind.entries.toTypedArray())
     }
 
     @Test
     fun `maps call activity to its element-type string`() {
-        assertThat(ElementTypeName.of(BpmnNodeType.Activity.CallActivity)).isEqualTo("CALL_ACTIVITY")
+        val callActivity = FlowNodeDefinition.Activity.CallActivity(
+            id = "call",
+            definition = CallActivityDefinition("call", "called-process"),
+        )
+        assertThat(ElementTypeName.of(callActivity)).isEqualTo("CALL_ACTIVITY")
     }
 
     @Test
@@ -72,31 +81,66 @@ class ElementTypeNameTest {
             EventShape.BOUNDARY_EVENT to "BOUNDARY_EVENT",
         )
         expected.forEach { (shape, expectedName) ->
-            assertThat(ElementTypeName.of(BpmnNodeType.Event(shape))).isEqualTo(expectedName)
+            assertThat(ElementTypeName.of(FlowNodeDefinition.Event(id = "event", shape = shape)))
+                .isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*EventShape.entries.toTypedArray())
     }
 
     @Test
-    fun `prefixes the concrete event definition onto the shape`() {
-        val expected = mapOf(
-            EventDefinitionType.TIMER to "TIMER_BOUNDARY_EVENT",
-            EventDefinitionType.MESSAGE to "MESSAGE_BOUNDARY_EVENT",
-            EventDefinitionType.ERROR to "ERROR_BOUNDARY_EVENT",
-            EventDefinitionType.SIGNAL to "SIGNAL_BOUNDARY_EVENT",
-            EventDefinitionType.ESCALATION to "ESCALATION_BOUNDARY_EVENT",
-            EventDefinitionType.COMPENSATION to "COMPENSATION_BOUNDARY_EVENT",
-            EventDefinitionType.NONE to "BOUNDARY_EVENT",
+    fun `prefixes the concrete event definition onto the shape, shape-only for terminate, conditional and link`() {
+        // Only timer/message/error/signal/escalation/compensation surface as a prefix; conditional, link and
+        // terminate render shape-only in the flat Process API vocabulary.
+        val cases: List<Pair<EventDefinitionInstance, String>> = listOf(
+            EventDefinitionInstance.Timer() to "TIMER_BOUNDARY_EVENT",
+            EventDefinitionInstance.Message(MessageReference("m", "m")) to "MESSAGE_BOUNDARY_EVENT",
+            EventDefinitionInstance.Error("e", "e", "1") to "ERROR_BOUNDARY_EVENT",
+            EventDefinitionInstance.Signal("s", "s") to "SIGNAL_BOUNDARY_EVENT",
+            EventDefinitionInstance.Escalation("esc", "esc", "2") to "ESCALATION_BOUNDARY_EVENT",
+            EventDefinitionInstance.Compensation() to "COMPENSATION_BOUNDARY_EVENT",
+            EventDefinitionInstance.Conditional("=x") to "BOUNDARY_EVENT",
+            EventDefinitionInstance.Link("link") to "BOUNDARY_EVENT",
+            EventDefinitionInstance.Terminate to "BOUNDARY_EVENT",
         )
-        expected.forEach { (definitionType, expectedName) ->
-            assertThat(ElementTypeName.of(BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, definitionType)))
-                .isEqualTo(expectedName)
+        cases.forEach { (definition, expectedName) ->
+            val event = FlowNodeDefinition.Event(
+                id = "event",
+                shape = EventShape.BOUNDARY_EVENT,
+                eventDefinitions = listOf(definition),
+            )
+            assertThat(ElementTypeName.of(event)).isEqualTo(expectedName)
         }
-        assertThat(expected.keys).containsExactlyInAnyOrder(*EventDefinitionType.entries.toTypedArray())
+        // every event-definition kind is exercised exactly once
+        assertThat(cases.map { it.first.type })
+            .containsExactlyInAnyOrder(*EventDefinitionInstance.Type.entries.toTypedArray())
+    }
+
+    @Test
+    fun `renders a terminate end event shape-only`() {
+        val terminateEnd = FlowNodeDefinition.Event(
+            id = "end",
+            shape = EventShape.END_EVENT,
+            eventDefinitions = listOf(EventDefinitionInstance.Terminate),
+        )
+        assertThat(ElementTypeName.of(terminateEnd)).isEqualTo("END_EVENT")
+    }
+
+    @Test
+    fun `selects the first prefixed event definition when several are present`() {
+        val event = FlowNodeDefinition.Event(
+            id = "event",
+            shape = EventShape.BOUNDARY_EVENT,
+            eventDefinitions = listOf(
+                EventDefinitionInstance.Link("link"),
+                EventDefinitionInstance.Error("e", "e", "1"),
+                EventDefinitionInstance.Timer(),
+            ),
+        )
+        assertThat(ElementTypeName.of(event)).isEqualTo("ERROR_BOUNDARY_EVENT")
     }
 
     @Test
     fun `maps unknown to its element-type string`() {
-        assertThat(ElementTypeName.of(BpmnNodeType.Unknown)).isEqualTo("UNKNOWN")
+        assertThat(ElementTypeName.of(FlowNodeDefinition.Unknown(id = "unknown"))).isEqualTo("UNKNOWN")
     }
 }

@@ -9,7 +9,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
  * It returns `null` for plain BPMN files that carry no engine extensions.
  * The result is used to warn when the selected engine does not match the model's actual target.
  */
-object EngineDetector {
+internal object EngineDetector {
 
     private const val ZEEBE_NS = "http://camunda.org/schema/zeebe/"
     private const val OPERATON_NS = "http://operaton.org/schema/"

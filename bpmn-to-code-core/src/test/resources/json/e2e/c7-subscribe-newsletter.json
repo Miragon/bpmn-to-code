@@ -1,0 +1,701 @@
+{
+    "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
+    "formatVersion": "2.0",
+    "process": {
+        "id": "newsletterSubscription",
+        "engine": "CAMUNDA_7",
+        "flowNodes": [
+            {
+                "id": "StartEvent_SubmitRegistrationForm",
+                "type": "startEvent",
+                "name": "Submit newsletter form",
+                "outgoing": [
+                    "Flow_1csfyyz"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "message",
+                        "messageRef": "Message_04tc0t0"
+                    }
+                ],
+                "ioMapping": {
+                    "outputs": [
+                        {
+                            "target": "subscriptionId",
+                            "source": "${subscriptionId}"
+                        }
+                    ]
+                },
+                "variables": [
+                    {
+                        "name": "subscriptionId",
+                        "direction": "OUTPUT",
+                        "expression": "${subscriptionId}"
+                    }
+                ],
+                "extensions": [
+                    {
+                        "$type": "camunda:inputOutput",
+                        "children": [
+                            {
+                                "$type": "camunda:outputParameter",
+                                "attributes": {
+                                    "name": "subscriptionId"
+                                },
+                                "body": "${subscriptionId}"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "serviceTask_incrementSubscriptionCounter",
+                "type": "serviceTask",
+                "name": "Increment subscription counter",
+                "incoming": [
+                    "Flow_1csfyyz"
+                ],
+                "outgoing": [
+                    "Flow_0zdmt0t"
+                ],
+                "boundaryEventRefs": [
+                    "CompensationEvent_OnSubscriptionCounter"
+                ],
+                "implementation": {
+                    "type": "delegateExpression",
+                    "expression": "counterClass"
+                }
+            },
+            {
+                "id": "CompensationEvent_OnSubscriptionCounter",
+                "type": "boundaryEvent",
+                "name": "Registration aborted",
+                "attachedToRef": "serviceTask_incrementSubscriptionCounter",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "compensation",
+                        "waitForCompletion": false
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true
+                }
+            },
+            {
+                "id": "SubProcess_Confirmation",
+                "type": "subProcess",
+                "name": "Subscription Confirmation",
+                "incoming": [
+                    "Flow_0zdmt0t"
+                ],
+                "outgoing": [
+                    "Flow_09cuvzp"
+                ],
+                "boundaryEventRefs": [
+                    "ErrorEvent_InvalidMail",
+                    "Timer_After3Days"
+                ],
+                "flowNodes": [
+                    {
+                        "id": "StartEvent_RequestReceived",
+                        "type": "startEvent",
+                        "name": "Subscription requested",
+                        "outgoing": [
+                            "Flow_05i3x1y"
+                        ],
+                        "ioMapping": {
+                            "outputs": [
+                                {
+                                    "target": "subscriptionId",
+                                    "source": "${subscriptionId}"
+                                }
+                            ]
+                        },
+                        "variables": [
+                            {
+                                "name": "subscriptionId",
+                                "direction": "OUTPUT",
+                                "expression": "${subscriptionId}"
+                            }
+                        ],
+                        "extensions": [
+                            {
+                                "$type": "camunda:inputOutput",
+                                "children": [
+                                    {
+                                        "$type": "camunda:outputParameter",
+                                        "attributes": {
+                                            "name": "subscriptionId"
+                                        },
+                                        "body": "${subscriptionId}"
+                                    }
+                                ]
+                            }
+                        ],
+                        "engineAttributes": {
+                            "camunda:asyncBefore": true
+                        }
+                    },
+                    {
+                        "id": "Activity_SendConfirmationMail",
+                        "type": "serviceTask",
+                        "name": "Send confirmation mail",
+                        "incoming": [
+                            "Flow_05i3x1y",
+                            "Flow_0x4ewvb"
+                        ],
+                        "outgoing": [
+                            "Flow_1bckm43"
+                        ],
+                        "implementation": {
+                            "type": "externalTask",
+                            "topic": "#{newsletterSendConfirmationMail}"
+                        },
+                        "ioMapping": {
+                            "inputs": [
+                                {
+                                    "target": "subscriptionId",
+                                    "source": "${subscriptionId}"
+                                },
+                                {
+                                    "target": "otherVariable",
+                                    "source": "dummy"
+                                }
+                            ]
+                        },
+                        "variables": [
+                            {
+                                "name": "subscriptionId",
+                                "direction": "INPUT",
+                                "expression": "${subscriptionId}"
+                            },
+                            {
+                                "name": "otherVariable",
+                                "direction": "INPUT",
+                                "expression": "dummy"
+                            }
+                        ],
+                        "extensions": [
+                            {
+                                "$type": "camunda:inputOutput",
+                                "children": [
+                                    {
+                                        "$type": "camunda:inputParameter",
+                                        "attributes": {
+                                            "name": "subscriptionId"
+                                        },
+                                        "body": "${subscriptionId}"
+                                    },
+                                    {
+                                        "$type": "camunda:inputParameter",
+                                        "attributes": {
+                                            "name": "otherVariable"
+                                        },
+                                        "body": "dummy"
+                                    }
+                                ]
+                            }
+                        ],
+                        "engineAttributes": {
+                            "camunda:type": "external"
+                        }
+                    },
+                    {
+                        "id": "Activity_ConfirmRegistration",
+                        "type": "userTask",
+                        "name": "Confirm subscription",
+                        "incoming": [
+                            "Flow_1bckm43"
+                        ],
+                        "outgoing": [
+                            "Flow_1cpwe57"
+                        ],
+                        "boundaryEventRefs": [
+                            "Timer_EveryDay"
+                        ],
+                        "ioMapping": {
+                            "inputs": [
+                                {
+                                    "target": "subscriptionId",
+                                    "source": "${subscriptionId}"
+                                }
+                            ]
+                        },
+                        "variables": [
+                            {
+                                "name": "subscriptionId",
+                                "direction": "INPUT",
+                                "expression": "${subscriptionId}"
+                            }
+                        ],
+                        "extensions": [
+                            {
+                                "$type": "camunda:inputOutput",
+                                "children": [
+                                    {
+                                        "$type": "camunda:inputParameter",
+                                        "attributes": {
+                                            "name": "subscriptionId"
+                                        },
+                                        "body": "${subscriptionId}"
+                                    }
+                                ]
+                            }
+                        ],
+                        "engineAttributes": {
+                            "camunda:asyncAfter": true
+                        }
+                    },
+                    {
+                        "id": "Timer_EveryDay",
+                        "type": "boundaryEvent",
+                        "name": "Every day",
+                        "outgoing": [
+                            "Flow_0x4ewvb"
+                        ],
+                        "attachedToRef": "Activity_ConfirmRegistration",
+                        "cancelActivity": false,
+                        "eventDefinitions": [
+                            {
+                                "type": "timer",
+                                "timerType": "DURATION",
+                                "expression": "PT1M"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "EndEvent_SubscriptionConfirmed",
+                        "type": "endEvent",
+                        "name": "Subscription confirmed",
+                        "incoming": [
+                            "Flow_1cpwe57"
+                        ]
+                    }
+                ],
+                "sequenceFlows": [
+                    {
+                        "id": "Flow_05i3x1y",
+                        "sourceRef": "StartEvent_RequestReceived",
+                        "targetRef": "Activity_SendConfirmationMail"
+                    },
+                    {
+                        "id": "Flow_0x4ewvb",
+                        "sourceRef": "Timer_EveryDay",
+                        "targetRef": "Activity_SendConfirmationMail"
+                    },
+                    {
+                        "id": "Flow_1bckm43",
+                        "sourceRef": "Activity_SendConfirmationMail",
+                        "targetRef": "Activity_ConfirmRegistration"
+                    },
+                    {
+                        "id": "Flow_1cpwe57",
+                        "sourceRef": "Activity_ConfirmRegistration",
+                        "targetRef": "EndEvent_SubscriptionConfirmed"
+                    }
+                ]
+            },
+            {
+                "id": "ErrorEvent_InvalidMail",
+                "type": "boundaryEvent",
+                "name": "Invalid Mail",
+                "outgoing": [
+                    "Flow_0i2ctuv"
+                ],
+                "attachedToRef": "SubProcess_Confirmation",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "error",
+                        "errorRef": "Error_0uxgmyc"
+                    }
+                ]
+            },
+            {
+                "id": "EndEvent_RegistrationNotPossible",
+                "type": "endEvent",
+                "name": "Registration not possible",
+                "incoming": [
+                    "Flow_0i2ctuv"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "signal",
+                        "signalRef": "Signal_14g8ki5"
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncBefore": true,
+                    "camunda:exclusive": false
+                }
+            },
+            {
+                "id": "Timer_After3Days",
+                "type": "boundaryEvent",
+                "name": "After 3 days",
+                "outgoing": [
+                    "Flow_1l1lj4m"
+                ],
+                "attachedToRef": "SubProcess_Confirmation",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "timer",
+                        "timerType": "DURATION",
+                        "expression": "${testVariable}"
+                    }
+                ]
+            },
+            {
+                "id": "CallActivity_AbortRegistration",
+                "type": "callActivity",
+                "name": "Abort registration",
+                "incoming": [
+                    "Flow_1l1lj4m"
+                ],
+                "outgoing": [
+                    "Flow_1bsb8no"
+                ],
+                "calledElement": {
+                    "processId": "abort-registration"
+                },
+                "variables": [
+                    {
+                        "name": "subscriptionId",
+                        "direction": "INPUT",
+                        "expression": "subscriptionId"
+                    },
+                    {
+                        "name": "reasonCode",
+                        "direction": "INPUT",
+                        "expression": "${reasonCode}"
+                    },
+                    {
+                        "name": "abortResult",
+                        "direction": "OUTPUT",
+                        "expression": "abortResult"
+                    }
+                ],
+                "extensions": [
+                    {
+                        "$type": "camunda:in",
+                        "attributes": {
+                            "source": "subscriptionId",
+                            "target": "childSubscriptionId"
+                        }
+                    },
+                    {
+                        "$type": "camunda:in",
+                        "attributes": {
+                            "sourceExpression": "${reasonCode}",
+                            "target": "childReasonCode"
+                        }
+                    },
+                    {
+                        "$type": "camunda:out",
+                        "attributes": {
+                            "source": "childAbortResult",
+                            "target": "abortResult"
+                        }
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true,
+                    "camunda:asyncBefore": true
+                }
+            },
+            {
+                "id": "CompensationEndEvent_RegistrationAborted",
+                "type": "endEvent",
+                "name": "Registration aborted",
+                "incoming": [
+                    "Flow_1bsb8no"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "compensation",
+                        "activityRef": "serviceTask_incrementSubscriptionCounter",
+                        "waitForCompletion": false
+                    }
+                ]
+            },
+            {
+                "id": "Gateway_SplitNotifications",
+                "type": "parallelGateway",
+                "incoming": [
+                    "Flow_09cuvzp"
+                ],
+                "outgoing": [
+                    "Flow_16hub0n",
+                    "Flow_1p5t47z"
+                ]
+            },
+            {
+                "id": "Activity_NotifyCommunity",
+                "type": "serviceTask",
+                "name": "Notify community",
+                "incoming": [
+                    "Flow_1p5t47z"
+                ],
+                "outgoing": [
+                    "Flow_1duwy83"
+                ],
+                "implementation": {
+                    "type": "delegateExpression",
+                    "expression": "${newsletterNotifyCommunity}"
+                },
+                "engineAttributes": {
+                    "camunda:asyncAfter": true,
+                    "camunda:asyncBefore": true,
+                    "camunda:exclusive": false
+                }
+            },
+            {
+                "id": "Gateway_JoinNotifications",
+                "type": "parallelGateway",
+                "incoming": [
+                    "Flow_1i7hjid",
+                    "Flow_1duwy83"
+                ],
+                "outgoing": [
+                    "Flow_1862jd8"
+                ]
+            },
+            {
+                "id": "EndEvent_RegistrationCompleted",
+                "type": "endEvent",
+                "name": "Registration completed",
+                "incoming": [
+                    "Flow_1862jd8"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "message"
+                    }
+                ],
+                "implementation": {
+                    "type": "externalTask",
+                    "topic": "newsletter.registrationCompleted"
+                },
+                "ioMapping": {
+                    "inputs": [
+                        {
+                            "target": "subscriptionId",
+                            "source": "${subscriptionId}"
+                        }
+                    ]
+                },
+                "variables": [
+                    {
+                        "name": "subscriptionId",
+                        "direction": "INPUT",
+                        "expression": "${subscriptionId}"
+                    }
+                ],
+                "extensions": [
+                    {
+                        "$type": "camunda:inputOutput",
+                        "children": [
+                            {
+                                "$type": "camunda:inputParameter",
+                                "attributes": {
+                                    "name": "subscriptionId"
+                                },
+                                "body": "${subscriptionId}"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "Activity_SendWelcomeMail",
+                "type": "serviceTask",
+                "name": "Send Welcome-Mail",
+                "incoming": [
+                    "Flow_16hub0n"
+                ],
+                "outgoing": [
+                    "Flow_1i7hjid"
+                ],
+                "implementation": {
+                    "type": "delegateExpression",
+                    "expression": "${newsletterSendWelcomeMail}"
+                },
+                "ioMapping": {
+                    "inputs": [
+                        {
+                            "target": "subscriptionId",
+                            "source": "${subscriptionId}"
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "target": "subscriptionId",
+                            "source": "${subscriptionId}"
+                        }
+                    ]
+                },
+                "variables": [
+                    {
+                        "name": "subscriptionId",
+                        "direction": "INPUT",
+                        "expression": "${subscriptionId}"
+                    },
+                    {
+                        "name": "subscriptionId",
+                        "direction": "OUTPUT",
+                        "expression": "${subscriptionId}"
+                    }
+                ],
+                "extensions": [
+                    {
+                        "$type": "camunda:inputOutput",
+                        "children": [
+                            {
+                                "$type": "camunda:inputParameter",
+                                "attributes": {
+                                    "name": "subscriptionId"
+                                },
+                                "body": "${subscriptionId}"
+                            },
+                            {
+                                "$type": "camunda:outputParameter",
+                                "attributes": {
+                                    "name": "subscriptionId"
+                                },
+                                "body": "${subscriptionId}"
+                            }
+                        ]
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true,
+                    "camunda:asyncBefore": true,
+                    "camunda:exclusive": false
+                }
+            },
+            {
+                "id": "CompensationTask_DecrementSubscriptionCounter",
+                "type": "serviceTask",
+                "name": "Decrement subscription counter",
+                "isForCompensation": true,
+                "implementation": {
+                    "type": "delegateExpression",
+                    "expression": "counterClass"
+                },
+                "ioMapping": {
+                    "inputs": [
+                        {
+                            "target": "subscriptionId",
+                            "source": "${subscriptionId}"
+                        }
+                    ]
+                },
+                "variables": [
+                    {
+                        "name": "subscriptionId",
+                        "direction": "INPUT",
+                        "expression": "${subscriptionId}"
+                    }
+                ],
+                "extensions": [
+                    {
+                        "$type": "camunda:inputOutput",
+                        "children": [
+                            {
+                                "$type": "camunda:inputParameter",
+                                "attributes": {
+                                    "name": "subscriptionId"
+                                },
+                                "body": "${subscriptionId}"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "sequenceFlows": [
+            {
+                "id": "Flow_09cuvzp",
+                "sourceRef": "SubProcess_Confirmation",
+                "targetRef": "Gateway_SplitNotifications"
+            },
+            {
+                "id": "Flow_0i2ctuv",
+                "sourceRef": "ErrorEvent_InvalidMail",
+                "targetRef": "EndEvent_RegistrationNotPossible"
+            },
+            {
+                "id": "Flow_0zdmt0t",
+                "sourceRef": "serviceTask_incrementSubscriptionCounter",
+                "targetRef": "SubProcess_Confirmation"
+            },
+            {
+                "id": "Flow_16hub0n",
+                "sourceRef": "Gateway_SplitNotifications",
+                "targetRef": "Activity_SendWelcomeMail"
+            },
+            {
+                "id": "Flow_1862jd8",
+                "sourceRef": "Gateway_JoinNotifications",
+                "targetRef": "EndEvent_RegistrationCompleted"
+            },
+            {
+                "id": "Flow_1bsb8no",
+                "sourceRef": "CallActivity_AbortRegistration",
+                "targetRef": "CompensationEndEvent_RegistrationAborted"
+            },
+            {
+                "id": "Flow_1csfyyz",
+                "sourceRef": "StartEvent_SubmitRegistrationForm",
+                "targetRef": "serviceTask_incrementSubscriptionCounter"
+            },
+            {
+                "id": "Flow_1duwy83",
+                "sourceRef": "Activity_NotifyCommunity",
+                "targetRef": "Gateway_JoinNotifications"
+            },
+            {
+                "id": "Flow_1i7hjid",
+                "sourceRef": "Activity_SendWelcomeMail",
+                "targetRef": "Gateway_JoinNotifications"
+            },
+            {
+                "id": "Flow_1l1lj4m",
+                "sourceRef": "Timer_After3Days",
+                "targetRef": "CallActivity_AbortRegistration"
+            },
+            {
+                "id": "Flow_1p5t47z",
+                "sourceRef": "Gateway_SplitNotifications",
+                "targetRef": "Activity_NotifyCommunity"
+            }
+        ]
+    },
+    "definitions": {
+        "messages": [
+            {
+                "id": "Message_04tc0t0",
+                "name": "Message_FormSubmitted"
+            },
+            {
+                "id": "Message_36dkcng",
+                "name": "Message_SubscriptionConfirmed"
+            }
+        ],
+        "signals": [
+            {
+                "id": "Signal_14g8ki5",
+                "name": "Signal_RegistrationNotPossible"
+            }
+        ],
+        "errors": [
+            {
+                "id": "Error_0uxgmyc",
+                "name": "Error_InvalidMail",
+                "errorCode": "500"
+            }
+        ]
+    }
+}

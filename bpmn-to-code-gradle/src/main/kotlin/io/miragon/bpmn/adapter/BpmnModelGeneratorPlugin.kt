@@ -1,9 +1,9 @@
 package io.miragon.bpmn.adapter
 
+import java.util.Properties
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import java.util.Properties
 
 @Suppress("unused")
 class BpmnModelGeneratorPlugin : Plugin<Project> {

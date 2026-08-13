@@ -1,14 +1,14 @@
 package io.miragon.bpmn.adapter.outbound.json
 
-import io.miragon.bpmn.domain.MergedBpmnModel
-import io.miragon.bpmn.domain.MergedBpmnModel.VariantData
-import io.miragon.bpmn.domain.testSendNewsletterBpmnModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterBpmnModel
+import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.ProcessModel.Variant
+import io.miragon.bpmn.domain.testSendNewsletterModel
+import io.miragon.bpmn.domain.testSubscribeNewsletterModel
+import java.io.File
 import kotlinx.serialization.json.Json
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class BpmnJsonGeneratorTest {
 
@@ -18,7 +18,7 @@ class BpmnJsonGeneratorTest {
     fun `generates correct JSON for single model`() {
 
         // given: the subscribe newsletter BPMN model
-        val model = testSubscribeNewsletterBpmnModel()
+        val model = testSubscribeNewsletterModel()
 
         // when: generating JSON
         val result = underTest.generate(model)
@@ -33,16 +33,13 @@ class BpmnJsonGeneratorTest {
     fun `generates JSON with variants for merged model`() {
 
         // given: a merged model with a single variant
-        val send = testSendNewsletterBpmnModel(variantName = "send")
-        val merged = MergedBpmnModel(
+        val send = testSendNewsletterModel(variantName = "send")
+        val merged = ProcessModel(
             processId = send.processId,
             flowNodes = send.flowNodes,
-            messages = send.messages,
-            signals = send.signals,
-            errors = send.errors,
-            escalations = send.escalations,
+            definitions = send.definitions,
             variants = listOf(
-                VariantData("send", send.sequenceFlows, send.flowNodes),
+                Variant("send", send.flowNodes, send.sequenceFlows),
             ),
         )
 
@@ -59,7 +56,7 @@ class BpmnJsonGeneratorTest {
     fun `adapter always uses processId as filename`() {
 
         // given: a model
-        val model = testSubscribeNewsletterBpmnModel()
+        val model = testSubscribeNewsletterModel()
         val adapter = BpmnJsonGenerationAdapter()
 
         // when: generating JSON via adapter

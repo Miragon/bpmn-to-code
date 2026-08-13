@@ -2,11 +2,17 @@ package io.miragon.bpmn.domain.shared
 
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
+/**
+ * The called-process binding of a `bpmn:callActivity`: the target process id plus the variable mappings
+ * propagated in and out of it (`camunda:in` / `camunda:out` for Camunda 7 / Operaton, `zeebe:ioMapping`
+ * for Zeebe).
+ */
 data class CallActivityDefinition(
     val id: String?,
     private val calledElement: String?,
-    val mappings: List<CallActivityMapping> = emptyList(),
-    val engineSpecificProperties: Map<String, Any?> = emptyMap(),
+    val mappings: List<CallActivityDefinition.Mapping> = emptyList(),
+    val propagateAllInputVariables: Boolean? = null,
+    val propagateAllOutputVariables: Boolean? = null,
 ) : VariableMapping<String> {
     override fun getName() = id?.toUpperSnakeCase() ?: ""
     override fun getValue() = calledElement ?: ""
@@ -15,11 +21,14 @@ data class CallActivityDefinition(
 
     val inputMappings get() = mappings.filter { it.direction == VariableDirection.INPUT }
     val outputMappings get() = mappings.filter { it.direction == VariableDirection.OUTPUT }
-    val propagateAllInputVariables: Boolean? get() = engineSpecificProperties[PROPAGATE_ALL_INPUT_KEY] as? Boolean
-    val propagateAllOutputVariables: Boolean? get() = engineSpecificProperties[PROPAGATE_ALL_OUTPUT_KEY] as? Boolean
-
-    companion object {
-        const val PROPAGATE_ALL_INPUT_KEY = "propagateAllInputVariables"
-        const val PROPAGATE_ALL_OUTPUT_KEY = "propagateAllOutputVariables"
-    }
+    /**
+     * One variable passed into or out of the called process (`camunda:in` / `camunda:out`,
+     * `zeebe:ioMapping`).
+     */
+    data class Mapping(
+        val direction: VariableDirection,
+        val source: String? = null,
+        val sourceExpression: String? = null,
+        val target: String? = null,
+    )
 }

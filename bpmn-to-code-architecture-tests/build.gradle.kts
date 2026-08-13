@@ -20,4 +20,14 @@ dependencies {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+
+    // Konsist reads the other modules' sources from disk, which Gradle cannot see. Without declaring
+    // them the task stays UP-TO-DATE after any change outside this module, so a violation only surfaces
+    // on a clean CI checkout.
+    inputs.files(
+        fileTree(rootDir) {
+            include("bpmn-to-code-*/src/**/*.kt")
+            exclude("bpmn-to-code-architecture-tests/**")
+        },
+    ).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("projectSources")
 }

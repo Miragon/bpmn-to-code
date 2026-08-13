@@ -14,6 +14,7 @@ bpmn-to-code can validate your BPMN models against a set of built-in rules — i
 | `missing-message-name` | ERROR | Message event or receive task with no message name |
 | `missing-error-definition` | ERROR | Error boundary/end event with no error definition |
 | `missing-signal-name` | ERROR | Signal event with no signal name |
+| `unreferenced-root-element` | WARN | Message, signal, error or escalation declared but referenced by nothing |
 | `missing-timer-definition` | ERROR | Timer event with no timer type or value |
 | `missing-called-element` | ERROR | Call activity with no `calledElement` reference |
 | `missing-element-id` | ERROR | Flow node with no ID · **mandatory** |
@@ -66,7 +67,7 @@ BPMN validation failed: 1 error(s), 1 warning(s)
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>3.0.0</version>
+    <version>6.0.0</version>
     <executions>
         <execution>
             <id>validate-bpmn</id>

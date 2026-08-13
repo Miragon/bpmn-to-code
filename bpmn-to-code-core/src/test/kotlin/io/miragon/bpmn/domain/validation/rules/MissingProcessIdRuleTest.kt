@@ -1,7 +1,7 @@
 package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import org.assertj.core.api.Assertions.assertThat
@@ -15,7 +15,7 @@ class MissingProcessIdRuleTest {
     fun `reports error for blank process id`() {
 
         // given: a model with an empty process ID
-        val model = testBpmnModel(processId = "")
+        val model = testProcessModel(processId = "")
 
         // when / then: an ERROR violation is reported
         val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
@@ -27,7 +27,7 @@ class MissingProcessIdRuleTest {
     fun `no violations for valid process id`() {
 
         // given: a model with a non-blank process ID
-        val model = testBpmnModel(processId = "my-process")
+        val model = testProcessModel(processId = "my-process")
 
         // when / then: no violations
         val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))

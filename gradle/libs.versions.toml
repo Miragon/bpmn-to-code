@@ -17,6 +17,7 @@ shadow = "9.4.2"
 slf4j = "2.0.18"
 kotlinLogging = "8.0.4"
 konsist = "0.17.3"
+jsonSchemaValidator = "1.5.6"
 dokka = "2.2.0"
 detekt = "1.23.8"
 
@@ -51,6 +52,9 @@ junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jUnit" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertJ" }
 junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatformLauncher" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+# Test-only: validates the generated process JSON against the published schema.
+# Deliberately NOT part of the `testing` bundle — it pulls Jackson in, and only bpmn-to-code-core needs it.
+jsonSchemaValidator = { module = "com.networknt:json-schema-validator", version.ref = "jsonSchemaValidator" }
 
 [bundles]
 codegen = ["kotlinpoet", "javapoet"]

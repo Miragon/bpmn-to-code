@@ -2,19 +2,18 @@ package io.miragon.bpmn.domain.shared
 
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
+/**
+ * The service-task-like implementation of one node, as consumed by the generated `ServiceTasks` object.
+ * Wraps the typed [TaskImplementation] and exposes its [TaskImplementation.reference] as the constant value.
+ */
 data class ServiceTaskDefinition(
     val id: String?,
-    val engineSpecificProperties: Map<String, Any?> = emptyMap(),
+    val implementation: TaskImplementation,
 ) : VariableMapping<String> {
-    override fun getName() = implementationType?.toUpperSnakeCase() ?: ""
-    override fun getValue() = implementationType ?: ""
-    override fun getRawName() = implementationType ?: ""
-    fun hasImplementation() = implementationType != null
+    override fun getName() = reference?.toUpperSnakeCase() ?: ""
+    override fun getValue() = reference ?: ""
+    override fun getRawName() = reference ?: ""
+    fun hasImplementation() = reference != null
 
-    private val implementationType: String? get() = engineSpecificProperties[IMPL_VALUE_KEY] as? String
-
-    companion object {
-        const val IMPL_VALUE_KEY = "implementationValue"
-        const val IMPL_KIND_KEY = "implementationKind"
-    }
+    private val reference: String? get() = implementation.reference
 }

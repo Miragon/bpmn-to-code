@@ -26,19 +26,15 @@ public final class NewsletterSubscriptionProcessApi {
    * Worker runtime code rarely needs these.
    */
   public static final class Elements {
-    public static final ElementId CALL_ACTIVITY_ABORT_REGISTRATION = new ElementId("CallActivity_AbortRegistration");
-
     public static final ElementId ACTIVITY_CONFIRM_REGISTRATION = new ElementId("Activity_ConfirmRegistration");
+
+    public static final ElementId ACTIVITY_NOTIFY_COMMUNITY = new ElementId("Activity_NotifyCommunity");
 
     public static final ElementId ACTIVITY_SEND_CONFIRMATION_MAIL = new ElementId("Activity_SendConfirmationMail");
 
     public static final ElementId ACTIVITY_SEND_WELCOME_MAIL = new ElementId("Activity_SendWelcomeMail");
 
-    public static final ElementId ACTIVITY_NOTIFY_COMMUNITY = new ElementId("Activity_NotifyCommunity");
-
-    public static final ElementId GATEWAY_SPLIT_NOTIFICATIONS = new ElementId("Gateway_SplitNotifications");
-
-    public static final ElementId GATEWAY_JOIN_NOTIFICATIONS = new ElementId("Gateway_JoinNotifications");
+    public static final ElementId CALL_ACTIVITY_ABORT_REGISTRATION = new ElementId("CallActivity_AbortRegistration");
 
     public static final ElementId COMPENSATION_END_EVENT_REGISTRATION_ABORTED = new ElementId("CompensationEndEvent_RegistrationAborted");
 
@@ -54,7 +50,9 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final ElementId ERROR_EVENT_INVALID_MAIL = new ElementId("ErrorEvent_InvalidMail");
 
-    public static final ElementId SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER = new ElementId("serviceTask_incrementSubscriptionCounter");
+    public static final ElementId GATEWAY_JOIN_NOTIFICATIONS = new ElementId("Gateway_JoinNotifications");
+
+    public static final ElementId GATEWAY_SPLIT_NOTIFICATIONS = new ElementId("Gateway_SplitNotifications");
 
     public static final ElementId START_EVENT_REQUEST_RECEIVED = new ElementId("StartEvent_RequestReceived");
 
@@ -65,6 +63,8 @@ public final class NewsletterSubscriptionProcessApi {
     public static final ElementId TIMER_AFTER_3_DAYS = new ElementId("Timer_After3Days");
 
     public static final ElementId TIMER_EVERY_DAY = new ElementId("Timer_EveryDay");
+
+    public static final ElementId SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER = new ElementId("serviceTask_incrementSubscriptionCounter");
   }
 
   /**

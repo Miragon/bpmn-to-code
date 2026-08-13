@@ -1,7 +1,7 @@
 # ADR 010: Operaton Namespace-Only Extractor
 
 ## Status
-Accepted
+Accepted — implementation updated in 6.0
 
 ## Context
 Operaton is a fork of Camunda 7 that uses its own namespace (`http://operaton.org/schema/1.0/bpmn`) for BPMN extension attributes. While Operaton can execute both Operaton-namespaced models and plain Camunda 7 models, we need to decide how to support Operaton in the extraction strategy.
@@ -16,6 +16,13 @@ Operaton is a fork of Camunda 7 that uses its own namespace (`http://operaton.or
 Implement `OperatonModelExtractor` to **only** support BPMN models with the Operaton namespace (`operaton:topic`, `operaton:delegateExpression`, `operaton:class`).
 
 Users running Operaton with Camunda 7 models should use `ProcessEngine.CAMUNDA_7` configuration and the existing `Camunda7ModelExtractor`.
+
+### Update (6.0, see ADR 017)
+
+The decision stands: Operaton models are read through the Operaton namespace only. What changed is that
+Camunda 7 and Operaton no longer have separate extractor classes. Because the two share an identical
+element and attribute vocabulary, both use `CamundaDialect` parameterised with their own namespace, which
+removed the code duplication listed under *Consequences* below.
 
 ## Rationale
 

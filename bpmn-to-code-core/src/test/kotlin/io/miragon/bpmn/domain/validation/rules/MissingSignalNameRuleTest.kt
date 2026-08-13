@@ -1,8 +1,8 @@
 package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.shared.SignalDefinition
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.shared.RootElementDefinition
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import org.assertj.core.api.Assertions.assertThat
@@ -16,8 +16,8 @@ class MissingSignalNameRuleTest {
     fun `reports error for signal with null name`() {
 
         // given: a signal element with no name
-        val model = testBpmnModel(
-            signals = listOf(SignalDefinition(id = "sig1", name = null))
+        val model = testProcessModel(
+            signals = listOf(RootElementDefinition.Signal(id = "sig1", name = null))
         )
 
         // when / then: an ERROR violation is reported
@@ -30,8 +30,8 @@ class MissingSignalNameRuleTest {
     fun `no violations for signal with name`() {
 
         // given: a signal element with a valid name
-        val model = testBpmnModel(
-            signals = listOf(SignalDefinition(id = "sig1", name = "MySignal"))
+        val model = testProcessModel(
+            signals = listOf(RootElementDefinition.Signal(id = "sig1", name = "MySignal"))
         )
 
         // when / then: no violations

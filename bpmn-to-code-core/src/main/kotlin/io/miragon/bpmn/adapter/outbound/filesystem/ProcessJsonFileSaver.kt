@@ -1,11 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.filesystem
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.application.port.outbound.SaveProcessJsonPort
 import io.miragon.bpmn.domain.GeneratedJsonFile
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
-class ProcessJsonFileSaver : SaveProcessJsonPort {
+internal class ProcessJsonFileSaver : SaveProcessJsonPort {
 
     private val logger = KotlinLogging.logger {}
 

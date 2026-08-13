@@ -33,7 +33,7 @@ class ExternalModuleImportTest {
         Konsist
             .scopeFromProject()
             .files
-            .filter { file -> file.path.contains(modulePath) }
+            .filter { file -> file.path.contains("/src/") && file.path.contains(modulePath) }
             .assertTrue { file ->
                 file.imports.none { import ->
                     forbiddenImportPrefixes.any { import.name.startsWith(it) }

@@ -5,10 +5,10 @@ import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.shared.TaskImplementation
+import io.miragon.bpmn.domain.shared.TaskKind
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.mockk.every
 import io.mockk.mockk
@@ -38,7 +38,7 @@ class ValidateBpmnServiceTest {
 
         // given: a valid model whose detected engine matches the selected one
         every { bpmnFileLoader.loadFrom(any(), any()) } returns listOf(dummyResource)
-        every { bpmnExtractor.extract(any(), any()) } returns testBpmnModel(detectedEngine = ProcessEngine.ZEEBE)
+        every { bpmnExtractor.extract(any(), any()) } returns testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
         // when: validateBpmn is called
         val result = underTest.validateBpmn(command)
@@ -52,11 +52,12 @@ class ValidateBpmnServiceTest {
     fun `pre-merge error stops execution and returns early`() {
 
         // given: a model with a service task missing implementation (pre-merge ERROR)
-        val invalidModel = testBpmnModel(
+        val invalidModel = testProcessModel(
             flowNodes = listOf(
-                FlowNodeDefinition(
+                FlowNodeDefinition.Activity.Task(
                     id = "task1",
-                    properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition(id = "task1")),
+                    kind = TaskKind.SERVICE,
+                    implementation = TaskImplementation.Unspecified,
                 )
             )
         )

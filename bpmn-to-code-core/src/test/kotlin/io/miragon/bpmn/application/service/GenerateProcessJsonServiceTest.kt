@@ -8,7 +8,7 @@ import io.miragon.bpmn.application.port.outbound.SaveProcessJsonPort
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
@@ -55,5 +55,5 @@ class GenerateProcessJsonServiceTest {
         confirmVerified(jsonGenerator, bpmnFileLoader, fileSaver)
     }
 
-    private val dummyModel = testBpmnModel()
+    private val dummyModel = testProcessModel()
 }

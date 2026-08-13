@@ -2,7 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.testBpmnModelApi
+import io.miragon.bpmn.domain.testProcessModelApi
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
@@ -22,7 +22,7 @@ class CodeGenerationAdapterTest {
     fun `generateCode delegates to the process api builder and returns its file`() {
 
         // given: a model API and a stubbed process builder response
-        val modelApi = testBpmnModelApi()
+        val modelApi = testProcessModelApi()
         val processFile = GeneratedApiFile(
             fileName = "TestApi.kt",
             packagePath = "packagePath",
@@ -45,7 +45,7 @@ class CodeGenerationAdapterTest {
     fun `generateCode throws when output language is not supported`() {
 
         // given: a model API with an unsupported language
-        val modelApi = testBpmnModelApi(language = OutputLanguage.JAVA)
+        val modelApi = testProcessModelApi(language = OutputLanguage.JAVA)
 
         // when / then: an exception is thrown
         assertThatThrownBy { underTest.generateCode(modelApi) }

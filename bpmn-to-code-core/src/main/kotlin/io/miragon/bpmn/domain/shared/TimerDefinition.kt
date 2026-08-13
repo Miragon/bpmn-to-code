@@ -2,14 +2,17 @@ package io.miragon.bpmn.domain.shared
 
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
+/**
+ * A timer event definition, keyed by the id of the event node that carries it — unlike messages, signals
+ * and errors, `bpmn:timerEventDefinition` is not a `bpmn:Definitions` root element.
+ */
 data class TimerDefinition(
     val id: String?,
-    private val type: String?,
-    private val value: String?,
-    val engineSpecificProperties: Map<String, Any?> = emptyMap(),
+    val type: TimerType?,
+    val expression: String?,
 ) : VariableMapping<Pair<String, String>> {
     override fun getName() = id?.toUpperSnakeCase() ?: ""
-    override fun getValue() = (type ?: "") to (value ?: "")
+    override fun getValue() = (type?.label ?: "") to (expression ?: "")
     override fun getRawName() = id ?: ""
-    fun hasTimerType() = type != null && value != null
+    fun hasTimerType() = type != null && expression != null
 }

@@ -2,7 +2,7 @@ package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import org.assertj.core.api.Assertions.assertThat
@@ -16,8 +16,8 @@ class MissingElementIdRuleTest {
     fun `reports error for flow node with null id`() {
 
         // given: a model containing a flow node without an ID
-        val model = testBpmnModel(
-            flowNodes = listOf(FlowNodeDefinition(id = null))
+        val model = testProcessModel(
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = null))
         )
 
         // when / then: an ERROR violation mentioning "FlowNode has no ID"
@@ -31,8 +31,8 @@ class MissingElementIdRuleTest {
     fun `no violations for elements with valid ids`() {
 
         // given: a flow node with a valid ID
-        val model = testBpmnModel(
-            flowNodes = listOf(FlowNodeDefinition(id = "Activity_SendMail"))
+        val model = testProcessModel(
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_SendMail"))
         )
 
         // when / then: no violations

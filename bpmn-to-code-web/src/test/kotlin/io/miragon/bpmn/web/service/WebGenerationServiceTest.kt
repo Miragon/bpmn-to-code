@@ -3,9 +3,9 @@ package io.miragon.bpmn.web.service
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.web.model.GenerateRequest
+import java.util.Base64
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.Base64
 
 class WebGenerationServiceTest {
 

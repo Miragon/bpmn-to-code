@@ -14,7 +14,7 @@ Add it to your test scope, write a test, and your CI will catch modeling issues 
 
 ```kotlin [Gradle]
 dependencies {
-    testImplementation("io.miragon:bpmn-to-code-testing:3.0.0")
+    testImplementation("io.miragon:bpmn-to-code-testing:6.0.0")
 }
 ```
 
@@ -22,7 +22,7 @@ dependencies {
 <dependency>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-testing</artifactId>
-    <version>3.0.0</version>
+    <version>6.0.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -54,7 +54,7 @@ fun `BPMN models should have no violations`() {
 
 ## Selecting Rules
 
-By default, `validate()` runs all 10 built-in rules. You can override the rule set:
+By default, `validate()` runs all 11 built-in rules. You can override the rule set:
 
 ```kotlin
 BpmnValidator
@@ -126,6 +126,7 @@ result.assertNoViolations("empty-process")  // custom: assert a specific rule pr
 | Message event has no name | `MISSING_MESSAGE_NAME` | ERROR | Message start/catch/throw without a message name |
 | Error event has no definition | `MISSING_ERROR_DEFINITION` | ERROR | Error boundary/end event without error definition |
 | Signal event has no name | `MISSING_SIGNAL_NAME` | ERROR | Signal start/intermediate/end without signal name |
+| Root element referenced by nothing | `UNREFERENCED_ROOT_ELEMENT` | WARN | Message/signal/error/escalation left over from an earlier model version |
 | Timer event has no definition | `MISSING_TIMER_DEFINITION` | ERROR | Timer event without type or value |
 | Call activity has no calledElement | `MISSING_CALLED_ELEMENT` | ERROR | Call activity without `calledElement` attribute |
 | Flow node has no ID | `MISSING_ELEMENT_ID` | ERROR | Any flow node missing an `id` attribute |

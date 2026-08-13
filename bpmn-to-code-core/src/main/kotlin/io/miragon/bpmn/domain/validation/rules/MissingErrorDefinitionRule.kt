@@ -14,13 +14,13 @@ class MissingErrorDefinitionRule : SingleModelValidationRule {
     override val severity = Severity.ERROR
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        return context.model.errors
-            .filter { !it.hasRequiredFields() }
-            .map { error ->
+        return context.model.errorUsages()
+            .filter { (_, error) -> error.errorRef != null && (error.errorName == null || error.errorCode == null) }
+            .map { (node, _) ->
                 ValidationViolation(
                     ruleId = id,
                     severity = severity,
-                    elementId = error.id,
+                    elementId = node.id,
                     processId = context.model.processId,
                     message = "Error event definition is missing a 'name' or 'errorCode' attribute.",
                 )

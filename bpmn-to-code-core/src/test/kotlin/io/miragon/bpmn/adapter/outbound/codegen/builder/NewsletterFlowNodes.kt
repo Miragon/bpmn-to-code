@@ -1,21 +1,20 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
-import io.miragon.bpmn.domain.shared.SubProcessKind
-import io.miragon.bpmn.domain.shared.BpmnNodeType
-import io.miragon.bpmn.domain.shared.EventShape
-import io.miragon.bpmn.domain.shared.EventDefinitionType
-import io.miragon.bpmn.domain.shared.GatewayKind
-import io.miragon.bpmn.domain.shared.TaskKind
+import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
-import io.miragon.bpmn.domain.shared.CallActivityMapping
+import io.miragon.bpmn.domain.shared.EventDefinitionInstance
+import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
-import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
-import io.miragon.bpmn.domain.shared.ServiceTaskDefinition.Companion.IMPL_VALUE_KEY
-import io.miragon.bpmn.domain.shared.TimerDefinition
+import io.miragon.bpmn.domain.shared.GatewayKind
+import io.miragon.bpmn.domain.shared.MessageReference
+import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
+import io.miragon.bpmn.domain.shared.SubProcessKind
+import io.miragon.bpmn.domain.shared.TaskKind
+import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 
+@Suppress("LongMethod")
 internal fun buildSubscribeNewsletterFlowNodes(
     confirmationMailImpl: String,
     welcomeMailImpl: String,
@@ -23,155 +22,160 @@ internal fun buildSubscribeNewsletterFlowNodes(
     notifyCommunityImpl: String,
     extraVariables: List<VariableDefinition> = emptyList(),
 ) = listOf(
-    FlowNodeDefinition(
+    FlowNodeDefinition.Activity.CallActivity(
         id = "CallActivity_AbortRegistration",
-        nodeType = BpmnNodeType.Activity.CallActivity,
-        properties = FlowNodeProperties.CallActivity(
-            CallActivityDefinition(
-                id = "CallActivity_AbortRegistration",
-                calledElement = "abort-registration",
-                mappings = listOf(
-                    CallActivityMapping(direction = VariableDirection.INPUT, source = "subscriptionId", target = "childSubscriptionId"),
-                    CallActivityMapping(direction = VariableDirection.INPUT, sourceExpression = "\${reasonCode}", target = "childReasonCode"),
-                    CallActivityMapping(direction = VariableDirection.OUTPUT, source = "childAbortResult", target = "abortResult"),
-                ),
+        definition = CallActivityDefinition(
+            id = "CallActivity_AbortRegistration",
+            calledElement = "abort-registration",
+            mappings = listOf(
+                CallActivityDefinition.Mapping(direction = VariableDirection.INPUT, source = "subscriptionId", target = "childSubscriptionId"),
+                CallActivityDefinition.Mapping(direction = VariableDirection.INPUT, sourceExpression = "\${reasonCode}", target = "childReasonCode"),
+                CallActivityDefinition.Mapping(direction = VariableDirection.OUTPUT, source = "childAbortResult", target = "abortResult"),
             ),
         ),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT)),
-        previousElements = listOf("Timer_After3Days"),
-        followingElements = listOf("CompensationEndEvent_RegistrationAborted"),
+        incoming = listOf("Flow_1l1lj4m"),
+        outgoing = listOf("Flow_1bsb8no"),
     ),
-    FlowNodeDefinition(
-        id = "Activity_ConfirmRegistration",
-        displayName = "Confirm registration",
-        nodeType = BpmnNodeType.Activity.Task(TaskKind.RECEIVE),
-        attachedElements = listOf("Timer_EveryDay"),
-        parentId = "SubProcess_Confirmation",
-        previousElements = listOf("Activity_SendConfirmationMail"),
-        followingElements = listOf("EndEvent_SubscriptionConfirmed"),
-    ),
-    FlowNodeDefinition(
-        id = "Activity_SendConfirmationMail",
-        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
-        properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_SendConfirmationMail", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to confirmationMailImpl))),
-        variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT)) + extraVariables,
-        parentId = "SubProcess_Confirmation",
-        previousElements = listOf("StartEvent_RequestReceived", "Timer_EveryDay"),
-        followingElements = listOf("Activity_ConfirmRegistration"),
-    ),
-    FlowNodeDefinition(
+    jobWorkerTask(
         id = "Activity_SendWelcomeMail",
-        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
-        properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_SendWelcomeMail", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to welcomeMailImpl))),
+        jobType = welcomeMailImpl,
+        incoming = listOf("Flow_16hub0n"),
+        outgoing = listOf("Flow_1i7hjid"),
         variables = listOf(
             VariableDefinition("subscriptionId", VariableDirection.INPUT),
             VariableDefinition("subscriptionId", VariableDirection.OUTPUT),
         ),
-        previousElements = listOf("Gateway_SplitNotifications"),
-        followingElements = listOf("Gateway_JoinNotifications"),
     ),
-    FlowNodeDefinition(
+    jobWorkerTask(
         id = "Activity_NotifyCommunity",
-        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
-        properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("Activity_NotifyCommunity", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to notifyCommunityImpl))),
-        previousElements = listOf("Gateway_SplitNotifications"),
-        followingElements = listOf("Gateway_JoinNotifications"),
+        jobType = notifyCommunityImpl,
+        incoming = listOf("Flow_1p5t47z"),
+        outgoing = listOf("Flow_1duwy83"),
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Gateway(
         id = "Gateway_SplitNotifications",
-        nodeType = BpmnNodeType.Gateway(GatewayKind.PARALLEL),
-        previousElements = listOf("SubProcess_Confirmation"),
-        followingElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity"),
+        kind = GatewayKind.PARALLEL,
+        incoming = listOf("Flow_09cuvzp"),
+        outgoing = listOf("Flow_16hub0n", "Flow_1p5t47z"),
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Gateway(
         id = "Gateway_JoinNotifications",
-        nodeType = BpmnNodeType.Gateway(GatewayKind.PARALLEL),
-        previousElements = listOf("Activity_SendWelcomeMail", "Activity_NotifyCommunity"),
-        followingElements = listOf("EndEvent_RegistrationCompleted"),
+        kind = GatewayKind.PARALLEL,
+        incoming = listOf("Flow_1i7hjid", "Flow_1duwy83"),
+        outgoing = listOf("Flow_1862jd8"),
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Event(
         id = "CompensationEndEvent_RegistrationAborted",
-        nodeType = BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.COMPENSATION),
-        previousElements = listOf("CallActivity_AbortRegistration"),
+        shape = EventShape.END_EVENT,
+        incoming = listOf("Flow_1bsb8no"),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation()),
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Event(
         id = "CompensationEvent_OnSubscriptionCounter",
-        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.COMPENSATION),
+        shape = EventShape.BOUNDARY_EVENT,
         attachedToRef = "serviceTask_incrementSubscriptionCounter",
         interrupting = true,
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation()),
     ),
-    FlowNodeDefinition(
+    jobWorkerTask(
         id = "CompensationTask_DecrementSubscriptionCounter",
-        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
+        jobType = "counterClass",
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Event(
         id = "EndEvent_RegistrationCompleted",
-        nodeType = BpmnNodeType.Event(EventShape.END_EVENT),
-        properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("EndEvent_RegistrationCompleted", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to registrationCompletedImpl))),
+        shape = EventShape.END_EVENT,
+        incoming = listOf("Flow_1862jd8"),
+        implementation = io.miragon.bpmn.domain.shared.TaskImplementation.JobWorker(registrationCompletedImpl),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
-        previousElements = listOf("Gateway_JoinNotifications"),
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Event(
         id = "EndEvent_RegistrationNotPossible",
-        nodeType = BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.SIGNAL),
-        previousElements = listOf("ErrorEvent_InvalidMail"),
+        shape = EventShape.END_EVENT,
+        incoming = listOf("Flow_0i2ctuv"),
+        eventDefinitions = listOf(
+            EventDefinitionInstance.Signal("Signal_RegistrationNotPossible", "Signal_RegistrationNotPossible"),
+        ),
     ),
-    FlowNodeDefinition(
-        id = "EndEvent_SubscriptionConfirmed",
-        nodeType = BpmnNodeType.Event(EventShape.END_EVENT),
-        parentId = "SubProcess_Confirmation",
-        previousElements = listOf("Activity_ConfirmRegistration"),
-    ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Event(
         id = "ErrorEvent_InvalidMail",
-        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.ERROR),
+        shape = EventShape.BOUNDARY_EVENT,
         attachedToRef = "SubProcess_Confirmation",
         interrupting = true,
-        followingElements = listOf("EndEvent_RegistrationNotPossible"),
+        outgoing = listOf("Flow_0i2ctuv"),
+        eventDefinitions = listOf(EventDefinitionInstance.Error("Error_InvalidMail", "Error_InvalidMail", "500")),
     ),
-    FlowNodeDefinition(
+    jobWorkerTask(
         id = "serviceTask_incrementSubscriptionCounter",
-        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
-        properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition("serviceTask_incrementSubscriptionCounter", engineSpecificProperties = mapOf(IMPL_VALUE_KEY to "counterClass"))),
-        attachedElements = listOf("CompensationEvent_OnSubscriptionCounter"),
-        previousElements = listOf("StartEvent_SubmitRegistrationForm"),
-        followingElements = listOf("SubProcess_Confirmation"),
+        jobType = "counterClass",
+        incoming = listOf("Flow_1csfyyz"),
+        outgoing = listOf("Flow_0zdmt0t"),
+        boundaryEventRefs = listOf("CompensationEvent_OnSubscriptionCounter"),
     ),
-    FlowNodeDefinition(
-        id = "StartEvent_RequestReceived",
-        nodeType = BpmnNodeType.Event(EventShape.START_EVENT),
-        variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
-        parentId = "SubProcess_Confirmation",
-        followingElements = listOf("Activity_SendConfirmationMail"),
-    ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Event(
         id = "StartEvent_SubmitRegistrationForm",
-        nodeType = BpmnNodeType.Event(EventShape.START_EVENT, EventDefinitionType.MESSAGE),
+        shape = EventShape.START_EVENT,
+        outgoing = listOf("Flow_1csfyyz"),
+        eventDefinitions = listOf(
+            EventDefinitionInstance.Message(MessageReference("Message_FormSubmitted", "Message_FormSubmitted")),
+        ),
         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
-        followingElements = listOf("serviceTask_incrementSubscriptionCounter"),
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Activity.SubProcess(
         id = "SubProcess_Confirmation",
-        nodeType = BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN),
-        attachedElements = listOf("ErrorEvent_InvalidMail", "Timer_After3Days"),
-        previousElements = listOf("serviceTask_incrementSubscriptionCounter"),
-        followingElements = listOf("Gateway_SplitNotifications"),
+        kind = SubProcessKind.PLAIN,
+        incoming = listOf("Flow_0zdmt0t"),
+        outgoing = listOf("Flow_09cuvzp"),
+        boundaryEventRefs = listOf("ErrorEvent_InvalidMail", "Timer_After3Days"),
+        flowNodes = listOf(
+            FlowNodeDefinition.Activity.Task(
+                id = "Activity_ConfirmRegistration",
+                kind = TaskKind.RECEIVE,
+                displayName = "Confirm registration",
+                incoming = listOf("Flow_1bckm43"),
+                outgoing = listOf("Flow_1cpwe57"),
+                boundaryEventRefs = listOf("Timer_EveryDay"),
+            ),
+            jobWorkerTask(
+                id = "Activity_SendConfirmationMail",
+                jobType = confirmationMailImpl,
+                incoming = listOf("Flow_05i3x1y", "Flow_0x4ewvb"),
+                outgoing = listOf("Flow_1bckm43"),
+                variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT)) + extraVariables,
+            ),
+            FlowNodeDefinition.Event(
+                id = "EndEvent_SubscriptionConfirmed",
+                shape = EventShape.END_EVENT,
+                incoming = listOf("Flow_1cpwe57"),
+            ),
+            FlowNodeDefinition.Event(
+                id = "StartEvent_RequestReceived",
+                shape = EventShape.START_EVENT,
+                outgoing = listOf("Flow_05i3x1y"),
+                variables = listOf(VariableDefinition("subscriptionId", VariableDirection.OUTPUT)),
+            ),
+            FlowNodeDefinition.Event(
+                id = "Timer_EveryDay",
+                shape = EventShape.BOUNDARY_EVENT,
+                attachedToRef = "Activity_ConfirmRegistration",
+                interrupting = false,
+                outgoing = listOf("Flow_0x4ewvb"),
+                eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "PT1M")),
+            ),
+        ),
+        sequenceFlows = listOf(
+            SequenceFlowDefinition("Flow_05i3x1y", "StartEvent_RequestReceived", "Activity_SendConfirmationMail"),
+            SequenceFlowDefinition("Flow_0x4ewvb", "Timer_EveryDay", "Activity_SendConfirmationMail"),
+            SequenceFlowDefinition("Flow_1bckm43", "Activity_SendConfirmationMail", "Activity_ConfirmRegistration"),
+            SequenceFlowDefinition("Flow_1cpwe57", "Activity_ConfirmRegistration", "EndEvent_SubscriptionConfirmed"),
+        ),
     ),
-    FlowNodeDefinition(
+    FlowNodeDefinition.Event(
         id = "Timer_After3Days",
-        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
-        properties = FlowNodeProperties.Timer(TimerDefinition("Timer_After3Days", "Duration", "\${testVariable}")),
+        shape = EventShape.BOUNDARY_EVENT,
         attachedToRef = "SubProcess_Confirmation",
         interrupting = true,
-        followingElements = listOf("CallActivity_AbortRegistration"),
-    ),
-    FlowNodeDefinition(
-        id = "Timer_EveryDay",
-        nodeType = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.TIMER),
-        properties = FlowNodeProperties.Timer(TimerDefinition("Timer_EveryDay", "Duration", "PT1M")),
-        attachedToRef = "Activity_ConfirmRegistration",
-        interrupting = false,
-        parentId = "SubProcess_Confirmation",
-        followingElements = listOf("Activity_SendConfirmationMail"),
+        outgoing = listOf("Flow_1l1lj4m"),
+        eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "\${testVariable}")),
     ),
 )

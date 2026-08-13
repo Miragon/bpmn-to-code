@@ -2,8 +2,8 @@ package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.domain.BpmnResource
 import java.net.URL
-import java.nio.file.FileSystems
 import java.nio.file.FileSystemNotFoundException
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.extension

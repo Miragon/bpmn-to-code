@@ -12,7 +12,7 @@ Add the following to the `<build>` section of your `pom.xml`:
         <plugin>
             <groupId>io.miragon</groupId>
             <artifactId>bpmn-to-code-maven</artifactId>
-            <version>3.0.0</version>
+            <version>6.0.0</version>
             <executions>
                 <execution>
                     <goals>

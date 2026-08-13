@@ -49,6 +49,7 @@ Document decisions that:
 ### Core Architecture
 - [ADR 001: Hexagonal Architecture](001-hexagonal-architecture.md) - Clean architecture with ports and adapters
 - [ADR 002: Model Merging](002-model-merging.md) - Combining multiple BPMN files into single API
+- [ADR 017: BPMN-Aligned Domain Model](017-bpmn-aligned-domain-model.md) - Sealed flow-node hierarchy mirroring the BPMN class tree
 
 ### Code Generation
 - [ADR 003: Generated API Structure](003-generated-api-structure.md) - Structure of generated Process APIs
@@ -62,7 +63,8 @@ Document decisions that:
 - [ADR 006: File-Based Versioning](006-file-based-versioning.md) - API versioning strategy (deprecated — feature removed)
 - [ADR 007: Variable Extraction Scope](007-variable-extraction-scope.md) - Explicit variable definitions only
 - [ADR 011: Variable Name Collision Detection](011-variable-name-collision-detection.md) - Handling duplicate variable names
-- [ADR 012: JSON Export](012-json-export.md) - Structured JSON representation of process models
+- [ADR 012: JSON Export](012-json-export.md) - Structured JSON representation of process models (superseded by ADR 018)
+- [ADR 018: Process JSON v2](018-process-json-v2.md) - BPMN-standard-aligned, schema-versioned public JSON contract
 - [ADR 014: Shared BPMN Types](014-shared-bpmn-types.md) - Published `bpmn-to-code-runtime` artifact for shared types across modules
 - [ADR 015: Directional Variable Extraction](015-directional-variable-extraction.md) - Split `Variables.<Element>` into `Inputs` / `Outputs`
 - [ADR 016: Migration to the `io.miragon` Namespace](016-miragon-namespace-migration.md) - Rename to `io.miragon` with a deprecated backward-compat layer

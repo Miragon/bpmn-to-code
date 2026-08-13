@@ -1,5 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
+import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
+import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -10,15 +12,12 @@ import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
-import io.miragon.bpmn.domain.BpmnModel
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.MergedBpmnModel
-import io.miragon.bpmn.domain.MergedBpmnModel.VariantData
-import io.miragon.bpmn.domain.shared.ApiObjectType
+import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
-import io.miragon.bpmn.domain.shared.CallActivityMapping
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.ProcessGraph
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableMapping
@@ -29,7 +28,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
  * Generates the type-safe API contract for a single BPMN process as a Kotlin object file.
  * References shared BPMN types (BpmnTimer, BpmnError, etc.) from the `bpmn-to-code-runtime` artifact.
  */
-class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
+internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
 
     companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
@@ -59,8 +58,9 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
         val rootObjectBuilder = TypeSpec.objectBuilder(objectName)
         val fileSpecBuilder = FileSpec.builder(modelApi.packagePath, objectName).addFileComment(autoGenComment)
 
-        val relevantWriters = objectWriters.filter { it.value.shouldWrite(modelApi) }
-        relevantWriters.forEach { (_, writer) -> writer.write(rootObjectBuilder, modelApi) }
+        objectWriters
+            .filterKeys { ApiObjectSelection.includes(it, modelApi) }
+            .forEach { (_, writer) -> writer.addTo(rootObjectBuilder, modelApi) }
 
         fileSpecBuilder.addType(rootObjectBuilder.build()).addAnnotation(unusedAnnotation)
         val fileSpec = fileSpecBuilder.build()
@@ -78,10 +78,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class ProcessIdWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.PROCESS_ID
-        override fun shouldWrite(modelApi: BpmnModelApi) = true
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val processIdClass = ClassName(RUNTIME_PACKAGE, "ProcessId")
             val idProperty = PropertySpec.builder("PROCESS_ID", processIdClass)
                 .initializer("%T(%L)", processIdClass, stringLiteral(modelApi.model.processId))
@@ -92,13 +89,10 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private class ProcessEngineWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.PROCESS_ENGINE
-        override fun shouldWrite(modelApi: BpmnModelApi) = true
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnEngineClass = ClassName(RUNTIME_PACKAGE, "BpmnEngine")
             val engineProperty = PropertySpec.builder("PROCESS_ENGINE", bpmnEngineClass)
-                .initializer("%T.%L", bpmnEngineClass, modelApi.engine.name)
+                .initializer("%T.%L", bpmnEngineClass, modelApi.targetEngine.name)
                 .build()
             builder.addProperty(engineProperty)
         }
@@ -106,10 +100,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class ElementsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.ELEMENTS
-        override fun shouldWrite(modelApi: BpmnModelApi) = true
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val elementIdClass = ClassName(RUNTIME_PACKAGE, "ElementId")
             val elementsBuilder = TypeSpec.objectBuilder("Elements")
                 .addKdoc(
@@ -117,7 +108,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
                         "Typically used in process-level tests or when searching for tasks.\n" +
                         "Worker runtime code rarely needs these."
                 )
-            modelApi.model.flowNodes.forEach { flowNode ->
+            modelApi.model.allFlowNodes.sortedBy { it.getRawName() }.forEach { flowNode ->
                 elementsBuilder.addProperty(createTypedAttribute(flowNode, elementIdClass))
             }
             builder.addType(elementsBuilder.build())
@@ -126,37 +117,24 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class FlowsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.FLOWS
-        override fun shouldWrite(modelApi: BpmnModelApi): Boolean {
-            return modelApi.model is BpmnModel && modelApi.model.sequenceFlows.isNotEmpty()
-        }
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val flowsObject = buildFlowsObject(modelApi.model.sequenceFlows)
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+            val flowsObject = buildFlowsObject(modelApi.model.graph.allSequenceFlows)
             builder.addType(flowsObject)
         }
     }
 
     private inner class RelationsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.RELATIONS
-        override fun shouldWrite(modelApi: BpmnModelApi): Boolean {
-            return modelApi.model is BpmnModel && modelApi.model.sequenceFlows.isNotEmpty()
-        }
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val relationsObject = buildRelationsObject(modelApi.model.flowNodes)
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+            val relationsObject = buildRelationsObject(modelApi.model.graph)
             builder.addType(relationsObject)
         }
     }
 
     private inner class VariantsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.VARIANTS
-        override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model is MergedBpmnModel
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val model = modelApi.model as? MergedBpmnModel ?: return
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+            val model = modelApi.model
             val variantsBuilder = TypeSpec.objectBuilder("Variants")
             model.variants.forEach { variant ->
                 val variantObject = buildVariantObject(variant)
@@ -165,12 +143,12 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
             builder.addType(variantsBuilder.build())
         }
 
-        private fun buildVariantObject(variant: VariantData): TypeSpec {
+        private fun buildVariantObject(variant: Variant): TypeSpec {
             val variantName = variant.variantName.toCamelCase()
             val variantBuilder = TypeSpec.objectBuilder(variantName)
-            if (variant.sequenceFlows.isNotEmpty()) {
-                variantBuilder.addType(buildFlowsObject(variant.sequenceFlows))
-                variantBuilder.addType(buildRelationsObject(variant.flowNodes))
+            if (variant.graph.allSequenceFlows.isNotEmpty()) {
+                variantBuilder.addType(buildFlowsObject(variant.graph.allSequenceFlows))
+                variantBuilder.addType(buildRelationsObject(variant.graph))
             }
             return variantBuilder.build()
         }
@@ -184,7 +162,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
                     "Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.\n" +
                     "Worker code typically does not need these."
             )
-        sequenceFlows.forEach { flow ->
+        sequenceFlows.sortedBy { it.getRawName() }.forEach { flow ->
             val initStr = buildFlowInitializer(flow.id ?: "", flow.flowName, flow.sourceRef, flow.targetRef, flow.conditionExpression, flow.isDefault)
             flowsBuilder.addProperty(PropertySpec.builder(flow.getName(), bpmnFlowClass).initializer(initStr).build())
         }
@@ -206,38 +184,40 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
         }.build()
     }
 
-    private fun buildRelationsObject(flowNodes: List<FlowNodeDefinition>): TypeSpec {
+    private fun buildRelationsObject(graph: ProcessGraph): TypeSpec {
         val bpmnRelationsClass = ClassName(RUNTIME_PACKAGE, "BpmnRelations")
         val relationsBuilder = TypeSpec.objectBuilder("Relations")
             .addKdoc(
                 "Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).\n" +
                     "Intended for tooling and tests, not worker runtime code."
             )
-        flowNodes
+        graph.allFlowNodes
             .filter { it.id != null }
             .sortedBy { it.getRawName() }
             .forEach { node ->
-                val initStr = buildRelationsInitializer(node)
+                val initStr = buildRelationsInitializer(node, graph)
                 relationsBuilder.addProperty(PropertySpec.builder(node.getName(), bpmnRelationsClass).initializer(initStr).build())
             }
         return relationsBuilder.build()
     }
 
-    private fun buildRelationsInitializer(node: FlowNodeDefinition): CodeBlock {
+    private fun buildRelationsInitializer(node: FlowNodeDefinition, graph: ProcessGraph): CodeBlock {
         return CodeBlock.builder().apply {
             add("BpmnRelations(\n")
             indent()
             if (node.displayName != null) add("name = %S,\n", node.displayName)
-            add("previousElements = %L,\n", listLiteral(node.previousElements))
-            add("followingElements = %L,\n", listLiteral(node.followingElements))
-            add("parentId = %L,\n", nullableStringLiteral(node.parentId))
-            add("attachedToRef = %L,\n", nullableStringLiteral(node.attachedToRef))
-            add("attachedElements = %L,\n", listLiteral(node.attachedElements))
-            add("elementType = %S,\n", ElementTypeName.of(node.nodeType))
+            add("previousElements = %L,\n", listLiteral(graph.previousElementsOf(node)))
+            add("followingElements = %L,\n", listLiteral(graph.followingElementsOf(node)))
+            add("parentId = %L,\n", nullableStringLiteral(graph.parentIdOf(node.id)))
+            add("attachedToRef = %L,\n", nullableStringLiteral(node.attachedToRef()))
+            add("attachedElements = %L,\n", listLiteral(graph.attachedElementsOf(node)))
+            add("elementType = %S,\n", ElementTypeName.of(node))
             unindent()
             add(")")
         }.build()
     }
+
+    private fun FlowNodeDefinition.attachedToRef(): String? = (this as? FlowNodeDefinition.Event)?.attachedToRef
 
     private fun listLiteral(items: List<String>): String {
         return if (items.isEmpty()) "emptyList()" else "listOf(${items.joinToString { "\"$it\"" }})"
@@ -249,10 +229,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.CALL_ACTIVITIES
-        override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.callActivities.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val callActivitiesBuilder = TypeSpec.objectBuilder("CallActivities")
                 .addKdoc(
                     "Call activities grouped by element. Each nested object exposes the called `PROCESS_ID` plus " +
@@ -277,7 +254,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
             return objectBuilder.build()
         }
 
-        private fun buildMappingsObject(objectName: String, mappings: List<CallActivityMapping>): TypeSpec? {
+        private fun buildMappingsObject(objectName: String, mappings: List<CallActivityDefinition.Mapping>): TypeSpec? {
             val withTarget = mappings
                 .filter { !it.target.isNullOrBlank() }
                 .sortedBy { it.target!!.toUpperSnakeCase() }
@@ -288,7 +265,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
             return mappingsBuilder.build()
         }
 
-        private fun buildMappingProperty(mapping: CallActivityMapping, mappingClass: ClassName): PropertySpec {
+        private fun buildMappingProperty(mapping: CallActivityDefinition.Mapping, mappingClass: ClassName): PropertySpec {
             val target = mapping.target!!
             val args = CodeBlock.builder().add("target = %L", stringLiteral(target))
             if (mapping.source != null) args.add(", source = %L", stringLiteral(mapping.source))
@@ -301,14 +278,11 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class MessagesWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.MESSAGES
-        override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.messages.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val messageNameClass = ClassName(RUNTIME_PACKAGE, "MessageName")
             val messagesBuilder = TypeSpec.objectBuilder("Messages")
                 .addKdoc("BPMN message names used to correlate messages to running process instances.")
-            modelApi.model.messages.forEach { message ->
+            modelApi.model.definitions.messages.asApiConstants().forEach { message ->
                 messagesBuilder.addProperty(createTypedAttribute(message, messageNameClass))
             }
             builder.addType(messagesBuilder.build())
@@ -322,17 +296,13 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
      */
     private inner class ServiceTasksWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.SERVICE_TASKS
-        override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.serviceTasks.any { it.getRawName().isNotEmpty() }
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val tasksBuilder = TypeSpec.objectBuilder("ServiceTasks")
                 .addKdoc(
                     "Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.\n" +
                         "Kept as `const val String` because annotation arguments must be compile-time constants."
                 )
-            modelApi.model.serviceTasks
-                .filter { it.getRawName().isNotEmpty() }
+            modelApi.model.serviceTasks.asApiConstants()
                 .forEach { task -> tasksBuilder.addProperty(createAttribute(task)) }
             builder.addType(tasksBuilder.build())
         }
@@ -340,13 +310,10 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class SignalsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.SIGNALS
-        override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.signals.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val signalNameClass = ClassName(RUNTIME_PACKAGE, "SignalName")
             val signalsBuilder = TypeSpec.objectBuilder("Signals")
-            modelApi.model.signals.forEach { signal ->
+            modelApi.model.definitions.signals.asApiConstants().forEach { signal ->
                 signalsBuilder.addProperty(createTypedAttribute(signal, signalNameClass))
             }
             builder.addType(signalsBuilder.build())
@@ -355,10 +322,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class VariablesWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.VARIABLES
-        override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.variables.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val variableNameClass = ClassName(RUNTIME_PACKAGE, "VariableName")
             val variablesBuilder = TypeSpec.objectBuilder("Variables")
                 .addKdoc(
@@ -366,7 +330,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
                         "Direction is encoded in each variable's wrapper type: `VariableName.Input`, `VariableName.Output`, or `VariableName.InOut` when the variable is both read and written by the same element.\n" +
                         "Consumer APIs that take a specific subtype (e.g. `fun setOutput(v: VariableName.Output)`) get compile-time direction enforcement."
                 )
-            val nodesWithVariables = modelApi.model.flowNodes
+            val nodesWithVariables = modelApi.model.allFlowNodes
                 .filter { it.variables.isNotEmpty() }
                 .sortedBy { it.getRawName() }
             for (node in nodesWithVariables) {
@@ -395,13 +359,10 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private class ErrorsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.ERRORS
-        override fun shouldWrite(modelApi: BpmnModelApi): Boolean = modelApi.model.errors.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnErrorClass = ClassName(RUNTIME_PACKAGE, "BpmnError")
             val errorsBuilder = TypeSpec.objectBuilder("Errors")
-            modelApi.model.errors.forEach {
+            modelApi.model.definitions.errors.asApiConstants().forEach {
                 val (errorName, errorCode) = it.getValue()
                 val instanceBuilder = PropertySpec.builder(it.getName(), bpmnErrorClass)
                 val variable = instanceBuilder.initializer("BpmnError(\"$errorName\", \"$errorCode\")")
@@ -413,13 +374,10 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private class EscalationsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.ESCALATIONS
-        override fun shouldWrite(modelApi: BpmnModelApi): Boolean = modelApi.model.escalations.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnEscalationClass = ClassName(RUNTIME_PACKAGE, "BpmnEscalation")
             val escalationsBuilder = TypeSpec.objectBuilder("Escalations")
-            modelApi.model.escalations.forEach {
+            modelApi.model.definitions.escalations.asApiConstants().forEach {
                 val (escalationName, escalationCode) = it.getValue()
                 val instanceBuilder = PropertySpec.builder(it.getName(), bpmnEscalationClass)
                 val variable = instanceBuilder.initializer("BpmnEscalation(\"$escalationName\", \"$escalationCode\")")
@@ -431,10 +389,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class CompensationsWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.COMPENSATIONS
-        override fun shouldWrite(modelApi: BpmnModelApi) = modelApi.model.compensations.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val elementIdClass = ClassName(RUNTIME_PACKAGE, "ElementId")
             val compensationsBuilder = TypeSpec.objectBuilder("Compensations")
             modelApi.model.compensations.forEach { compensation ->
@@ -446,10 +401,7 @@ class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<
 
     private inner class TimersWriter : ObjectWriter<TypeSpec.Builder> {
 
-        override val objectType = ApiObjectType.TIMERS
-        override fun shouldWrite(modelApi: BpmnModelApi): Boolean = modelApi.model.timers.isNotEmpty()
-
-        override fun write(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
+        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnTimerClass = ClassName(RUNTIME_PACKAGE, "BpmnTimer")
             val timersBuilder = TypeSpec.objectBuilder("Timers")
             modelApi.model.timers.forEach { timer ->

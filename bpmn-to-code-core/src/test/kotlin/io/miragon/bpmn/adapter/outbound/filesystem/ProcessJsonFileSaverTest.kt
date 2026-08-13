@@ -1,10 +1,10 @@
 package io.miragon.bpmn.adapter.outbound.filesystem
 
 import io.miragon.bpmn.domain.GeneratedJsonFile
+import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import java.io.File
 
 class ProcessJsonFileSaverTest {
 

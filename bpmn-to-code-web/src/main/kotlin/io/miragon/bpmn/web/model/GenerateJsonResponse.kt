@@ -1,7 +1,7 @@
 package io.miragon.bpmn.web.model
 
-import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.ktor.http.*
+import io.miragon.bpmn.domain.validation.BpmnValidationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 

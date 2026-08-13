@@ -1,42 +1,77 @@
 package io.miragon.bpmn.adapter.outbound.json
 
-import io.miragon.bpmn.domain.shared.SubProcessKind
-import io.miragon.bpmn.domain.shared.BpmnNodeType
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
+import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
+import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class FlowNodeSorterTest {
 
-    private fun node(
+    // Adjacency is now derived from sequence flows: a node's incoming/outgoing hold sequence-flow ids, and
+    // each flow maps its id to a target node. These helpers wire nodes to a shared flow list built from edges.
+
+    private fun edges(vararg pairs: Pair<String, String>): List<SequenceFlowDefinition> {
+        return pairs.map { (source, target) ->
+            SequenceFlowDefinition(id = "$source->$target", sourceRef = source, targetRef = target)
+        }
+    }
+
+    private fun outgoingOf(id: String, flows: List<SequenceFlowDefinition>): List<String> {
+        return flows.filter { it.sourceRef == id }.map { it.id!! }
+    }
+
+    private fun incomingOf(id: String, flows: List<SequenceFlowDefinition>): List<String> {
+        return flows.filter { it.targetRef == id }.map { it.id!! }
+    }
+
+    private fun task(id: String, flows: List<SequenceFlowDefinition>): FlowNodeDefinition {
+        return FlowNodeDefinition.Activity.Task(
+            id = id,
+            kind = TaskKind.SERVICE,
+            incoming = incomingOf(id, flows),
+            outgoing = outgoingOf(id, flows),
+        )
+    }
+
+    private fun event(
         id: String,
-        type: BpmnNodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
-        previousElements: List<String> = emptyList(),
-        followingElements: List<String> = emptyList(),
-        parentId: String? = null,
+        shape: EventShape,
+        flows: List<SequenceFlowDefinition>,
         attachedToRef: String? = null,
-    ) = FlowNodeDefinition(
-        id = id,
-        nodeType = type,
-        previousElements = previousElements,
-        followingElements = followingElements,
-        parentId = parentId,
-        attachedToRef = attachedToRef,
-    )
+    ): FlowNodeDefinition {
+        return FlowNodeDefinition.Event(
+            id = id,
+            shape = shape,
+            incoming = incomingOf(id, flows),
+            outgoing = outgoingOf(id, flows),
+            attachedToRef = attachedToRef,
+        )
+    }
+
+    private fun gateway(id: String, kind: GatewayKind, flows: List<SequenceFlowDefinition>): FlowNodeDefinition {
+        return FlowNodeDefinition.Gateway(
+            id = id,
+            kind = kind,
+            incoming = incomingOf(id, flows),
+            outgoing = outgoingOf(id, flows),
+        )
+    }
 
     @Test
     fun `linear chain is sorted start to end`() {
 
         // given: a linear start → task → end chain
-        val start = node(id = "Start", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("Task"))
-        val task = node(id = "Task", previousElements = listOf("Start"), followingElements = listOf("End"))
-        val end = node(id = "End", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("Task"))
+        val flows = edges("Start" to "Task", "Task" to "End")
+        val start = event("Start", EventShape.START_EVENT, flows)
+        val task = task("Task", flows)
+        val end = event("End", EventShape.END_EVENT, flows)
 
         // when: sorting the unsorted list
-        val result = FlowNodeSorter.sort(listOf(task, end, start))
+        val result = FlowNodeSorter.sort(listOf(task, end, start), flows)
 
         // then: nodes appear in process order
         assertThat(result.map { it.id }).containsExactly("Start", "Task", "End")
@@ -46,13 +81,14 @@ class FlowNodeSorterTest {
     fun `start events are visited before other top-level nodes`() {
 
         // given: two start events feeding the same task
-        val startA = node(id = "Start_A", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("Task"))
-        val startB = node(id = "Start_B", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("Task"))
-        val task = node(id = "Task", previousElements = listOf("Start_A", "Start_B"), followingElements = listOf("End"))
-        val end = node(id = "End", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("Task"))
+        val flows = edges("Start_A" to "Task", "Start_B" to "Task", "Task" to "End")
+        val startA = event("Start_A", EventShape.START_EVENT, flows)
+        val startB = event("Start_B", EventShape.START_EVENT, flows)
+        val task = task("Task", flows)
+        val end = event("End", EventShape.END_EVENT, flows)
 
         // when: sorting
-        val result = FlowNodeSorter.sort(listOf(task, end, startB, startA))
+        val result = FlowNodeSorter.sort(listOf(task, end, startB, startA), flows)
         val ids = result.map { it.id }
 
         // then: Start_A (alphabetically first) leads, all nodes appear exactly once
@@ -64,14 +100,15 @@ class FlowNodeSorterTest {
     fun `boundary event appears after its parent`() {
 
         // given: a task with an attached boundary event
-        val start = node(id = "Start", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("Task"))
-        val task = node(id = "Task", previousElements = listOf("Start"), followingElements = listOf("End"))
-        val boundary = node(id = "Boundary", type = BpmnNodeType.Event(EventShape.BOUNDARY_EVENT), attachedToRef = "Task", followingElements = listOf("ErrorEnd"))
-        val end = node(id = "End", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("Task"))
-        val errorEnd = node(id = "ErrorEnd", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("Boundary"))
+        val flows = edges("Start" to "Task", "Task" to "End", "Boundary" to "ErrorEnd")
+        val start = event("Start", EventShape.START_EVENT, flows)
+        val task = task("Task", flows)
+        val boundary = event("Boundary", EventShape.BOUNDARY_EVENT, flows, attachedToRef = "Task")
+        val end = event("End", EventShape.END_EVENT, flows)
+        val errorEnd = event("ErrorEnd", EventShape.END_EVENT, flows)
 
         // when: sorting
-        val result = FlowNodeSorter.sort(listOf(end, errorEnd, boundary, task, start))
+        val result = FlowNodeSorter.sort(listOf(end, errorEnd, boundary, task, start), flows)
         val ids = result.map { it.id }
 
         // then: Boundary comes after Task, ErrorEnd comes after Boundary
@@ -80,34 +117,51 @@ class FlowNodeSorterTest {
     }
 
     @Test
-    fun `subprocess children are inlined after subprocess`() {
+    fun `subprocess is ordered in its scope and its children are sorted separately`() {
 
-        // given: a subprocess with child nodes
-        val start = node(id = "Start", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("Sub"))
-        val sub = node(id = "Sub", type = BpmnNodeType.Activity.SubProcess(SubProcessKind.PLAIN), previousElements = listOf("Start"), followingElements = listOf("End"))
-        val subStart = node(id = "SubStart", type = BpmnNodeType.Event(EventShape.START_EVENT), parentId = "Sub", followingElements = listOf("SubTask"))
-        val subTask = node(id = "SubTask", parentId = "Sub", previousElements = listOf("SubStart"), followingElements = listOf("SubEnd"))
-        val subEnd = node(id = "SubEnd", type = BpmnNodeType.Event(EventShape.END_EVENT), parentId = "Sub", previousElements = listOf("SubTask"))
-        val end = node(id = "End", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("Sub"))
+        // given: a top-level scope containing a sub-process. Sub-process children are no longer inlined into
+        // the parent scope — they live inside the sub-process node and are sorted by re-applying the sorter.
+        val topFlows = edges("Start" to "Sub", "Sub" to "End")
+        val start = event("Start", EventShape.START_EVENT, topFlows)
+        val childFlows = edges("SubStart" to "SubTask", "SubTask" to "SubEnd")
+        val subStart = event("SubStart", EventShape.START_EVENT, childFlows)
+        val subTask = task("SubTask", childFlows)
+        val subEnd = event("SubEnd", EventShape.END_EVENT, childFlows)
+        val sub = FlowNodeDefinition.Activity.SubProcess(
+            id = "Sub",
+            kind = SubProcessKind.PLAIN,
+            incoming = incomingOf("Sub", topFlows),
+            outgoing = outgoingOf("Sub", topFlows),
+            flowNodes = listOf(subEnd, subTask, subStart),
+            sequenceFlows = childFlows,
+        )
+        val end = event("End", EventShape.END_EVENT, topFlows)
 
-        // when: sorting
-        val result = FlowNodeSorter.sort(listOf(end, subEnd, subTask, subStart, sub, start))
+        // when: sorting the top scope
+        val topResult = FlowNodeSorter.sort(listOf(end, sub, start), topFlows)
 
-        // then: subprocess children are inlined immediately after the subprocess
-        assertThat(result.map { it.id }).containsExactly("Start", "Sub", "SubStart", "SubTask", "SubEnd", "End")
+        // then: the sub-process is ordered between start and end, without its children leaking into the scope
+        assertThat(topResult.map { it.id }).containsExactly("Start", "Sub", "End")
+
+        // and when: sorting the sub-process's own scope
+        val childResult = FlowNodeSorter.sort(sub.flowNodes, sub.sequenceFlows)
+
+        // then: its children appear in process order
+        assertThat(childResult.map { it.id }).containsExactly("SubStart", "SubTask", "SubEnd")
     }
 
     @Test
     fun `cycles do not cause infinite loops`() {
 
         // given: a cyclic A ↔ B loop
-        val start = node(id = "Start", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("A"))
-        val a = node(id = "A", previousElements = listOf("Start", "B"), followingElements = listOf("B"))
-        val b = node(id = "B", previousElements = listOf("A"), followingElements = listOf("A", "End"))
-        val end = node(id = "End", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("B"))
+        val flows = edges("Start" to "A", "A" to "B", "B" to "A", "B" to "End")
+        val start = event("Start", EventShape.START_EVENT, flows)
+        val a = task("A", flows)
+        val b = task("B", flows)
+        val end = event("End", EventShape.END_EVENT, flows)
 
         // when: sorting
-        val result = FlowNodeSorter.sort(listOf(b, a, end, start))
+        val result = FlowNodeSorter.sort(listOf(b, a, end, start), flows)
 
         // then: no exception; each node appears exactly once
         assertThat(result.map { it.id }).containsExactlyInAnyOrder("Start", "A", "B", "End")
@@ -118,12 +172,13 @@ class FlowNodeSorterTest {
     fun `already sorted input is idempotent`() {
 
         // given: nodes already in correct order
-        val start = node(id = "Start", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("Task"))
-        val task = node(id = "Task", previousElements = listOf("Start"), followingElements = listOf("End"))
-        val end = node(id = "End", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("Task"))
+        val flows = edges("Start" to "Task", "Task" to "End")
+        val start = event("Start", EventShape.START_EVENT, flows)
+        val task = task("Task", flows)
+        val end = event("End", EventShape.END_EVENT, flows)
 
         // when: sorting
-        val result = FlowNodeSorter.sort(listOf(start, task, end))
+        val result = FlowNodeSorter.sort(listOf(start, task, end), flows)
 
         // then: order is unchanged
         assertThat(result.map { it.id }).containsExactly("Start", "Task", "End")
@@ -133,14 +188,21 @@ class FlowNodeSorterTest {
     fun `exclusive gateway branches appear after gateway`() {
 
         // given: a gateway splitting into two branches
-        val start = node(id = "Start", type = BpmnNodeType.Event(EventShape.START_EVENT), followingElements = listOf("GW"))
-        val gw = node(id = "GW", type = BpmnNodeType.Gateway(GatewayKind.EXCLUSIVE), previousElements = listOf("Start"), followingElements = listOf("Branch_A", "Branch_B"))
-        val branchA = node(id = "Branch_A", previousElements = listOf("GW"), followingElements = listOf("End"))
-        val branchB = node(id = "Branch_B", previousElements = listOf("GW"), followingElements = listOf("End"))
-        val end = node(id = "End", type = BpmnNodeType.Event(EventShape.END_EVENT), previousElements = listOf("Branch_A", "Branch_B"))
+        val flows = edges(
+            "Start" to "GW",
+            "GW" to "Branch_A",
+            "GW" to "Branch_B",
+            "Branch_A" to "End",
+            "Branch_B" to "End",
+        )
+        val start = event("Start", EventShape.START_EVENT, flows)
+        val gw = gateway("GW", GatewayKind.EXCLUSIVE, flows)
+        val branchA = task("Branch_A", flows)
+        val branchB = task("Branch_B", flows)
+        val end = event("End", EventShape.END_EVENT, flows)
 
         // when: sorting
-        val result = FlowNodeSorter.sort(listOf(end, branchB, gw, branchA, start))
+        val result = FlowNodeSorter.sort(listOf(end, branchB, gw, branchA, start), flows)
         val ids = result.map { it.id }
 
         // then: both branches appear after their gateway

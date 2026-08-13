@@ -1,18 +1,18 @@
 package io.miragon.bpmn.testing
 
-import io.miragon.bpmn.adapter.outbound.engine.ExtractBpmnAdapter
-import io.miragon.bpmn.domain.BpmnModel
+import io.miragon.bpmn.adapter.inbound.ExtractProcessModelsPlugin
 import io.miragon.bpmn.domain.BpmnResource
+import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
+import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.ValidationRule
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
-import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import java.nio.file.Path
 
@@ -87,9 +87,7 @@ class BpmnValidator private constructor(
             "Process engine must be set. Call .engine(ProcessEngine.CAMUNDA_7) or similar before .validate()"
         }
 
-        val extractor = ExtractBpmnAdapter()
-        val resources = resourceLoader()
-        val models = resources.map { extractor.extract(it, selectedEngine) }
+        val models = ExtractProcessModelsPlugin().execute(resourceLoader(), selectedEngine)
         val activeRules = resolveRules()
         val result = runValidation(models, selectedEngine, activeRules)
         return BpmnValidationAssert.assertThat(result)
@@ -109,7 +107,7 @@ class BpmnValidator private constructor(
     }
 
     private fun runValidation(
-        models: List<BpmnModel>,
+        models: List<ProcessModel>,
         engine: ProcessEngine,
         activeRules: List<ValidationRule>,
     ): ValidationResult {

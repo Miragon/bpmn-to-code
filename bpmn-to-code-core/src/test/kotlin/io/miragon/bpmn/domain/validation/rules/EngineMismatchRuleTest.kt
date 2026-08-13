@@ -1,7 +1,7 @@
 package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import org.assertj.core.api.Assertions.assertThat
@@ -15,7 +15,7 @@ class EngineMismatchRuleTest {
     fun `reports an error when the model targets a different engine`() {
 
         // given: a model detected as Camunda 7 but validated for Operaton (the reported case)
-        val model = testBpmnModel(detectedEngine = ProcessEngine.CAMUNDA_7)
+        val model = testProcessModel(detectedEngine = ProcessEngine.CAMUNDA_7)
 
         // when / then: a single engine-mismatch ERROR is produced
         val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.OPERATON))
@@ -29,7 +29,7 @@ class EngineMismatchRuleTest {
     fun `no violation when the detected engine matches the selected engine`() {
 
         // given: a model whose detected engine matches the selected one
-        val model = testBpmnModel(detectedEngine = ProcessEngine.ZEEBE)
+        val model = testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
         // when / then: no violation is reported
         assertThat(underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))).isEmpty()
@@ -39,7 +39,7 @@ class EngineMismatchRuleTest {
     fun `warns when the source engine could not be detected`() {
 
         // given: a model whose target engine could not be determined
-        val model = testBpmnModel(detectedEngine = null)
+        val model = testProcessModel(detectedEngine = null)
 
         // when / then: a single engine-mismatch WARN is produced
         val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.CAMUNDA_7))

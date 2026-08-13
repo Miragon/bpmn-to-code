@@ -1,10 +1,10 @@
 package io.miragon.bpmn.domain.service
 
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.FlowNodeProperties
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
-import io.miragon.bpmn.domain.testBpmnModel
+import io.miragon.bpmn.domain.shared.TaskImplementation
+import io.miragon.bpmn.domain.shared.TaskKind
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
@@ -18,11 +18,17 @@ class BpmnValidationServiceTest {
 
     private val underTest = BpmnValidationService()
 
+    private fun serviceTaskWithoutImplementation(id: String) = FlowNodeDefinition.Activity.Task(
+        id = id,
+        kind = TaskKind.SERVICE,
+        implementation = TaskImplementation.Unspecified,
+    )
+
     @Test
     fun `valid model passes all pre-merge rules`() {
 
         // given: a valid BPMN model whose detected engine matches the selected one
-        val model = testBpmnModel(detectedEngine = ProcessEngine.ZEEBE)
+        val model = testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
         // when / then: no exception is thrown
         assertDoesNotThrow { underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE) }
@@ -32,13 +38,8 @@ class BpmnValidationServiceTest {
     fun `throws BpmnValidationException for missing service task implementation`() {
 
         // given: a model with a service task that has no implementation
-        val model = testBpmnModel(
-            flowNodes = listOf(
-                FlowNodeDefinition(
-                    id = "task1",
-                    properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition(id = "task1")),
-                )
-            )
+        val model = testProcessModel(
+            flowNodes = listOf(serviceTaskWithoutImplementation("task1")),
         )
 
         // when: validating pre-merge
@@ -57,13 +58,8 @@ class BpmnValidationServiceTest {
         val underTest = BpmnValidationService(
             ValidationConfig(disabledRules = setOf("missing-service-task-implementation"))
         )
-        val model = testBpmnModel(
-            flowNodes = listOf(
-                FlowNodeDefinition(
-                    id = "task1",
-                    properties = FlowNodeProperties.ServiceTask(ServiceTaskDefinition(id = "task1")),
-                )
-            )
+        val model = testProcessModel(
+            flowNodes = listOf(serviceTaskWithoutImplementation("task1")),
         )
 
         // when / then: no exception is thrown because the rule is disabled
@@ -74,7 +70,7 @@ class BpmnValidationServiceTest {
     fun `warnings do not throw by default`() {
 
         // given: a model that produces only warnings (empty process)
-        val model = testBpmnModel(flowNodes = emptyList())
+        val model = testProcessModel(flowNodes = emptyList())
 
         // when / then: no exception is thrown
         assertDoesNotThrow { underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE) }
@@ -85,7 +81,7 @@ class BpmnValidationServiceTest {
 
         // given: a service with failOnWarning and a model with an empty process
         val underTest = BpmnValidationService(ValidationConfig(failOnWarning = true))
-        val model = testBpmnModel(flowNodes = emptyList())
+        val model = testProcessModel(flowNodes = emptyList())
 
         // when: validating pre-merge
         val exception = assertThrows<BpmnValidationException> {
@@ -100,8 +96,8 @@ class BpmnValidationServiceTest {
     fun `throws BpmnValidationException for flow node with null element id`() {
 
         // given: a model containing a flow node without an ID
-        val model = testBpmnModel(
-            flowNodes = listOf(FlowNodeDefinition(id = null))
+        val model = testProcessModel(
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = null))
         )
 
         // when: validating pre-merge
@@ -119,10 +115,10 @@ class BpmnValidationServiceTest {
     fun `post-merge collision detection detects collisions`() {
 
         // given: a model with two flow nodes that produce the same constant name
-        val model = testBpmnModel(
+        val model = testProcessModel(
             flowNodes = listOf(
-                FlowNodeDefinition(id = "endEvent_complete"),
-                FlowNodeDefinition(id = "endEvent-complete"),
+                FlowNodeDefinition.Unknown(id = "endEvent_complete"),
+                FlowNodeDefinition.Unknown(id = "endEvent-complete"),
             )
         )
 
@@ -140,10 +136,10 @@ class BpmnValidationServiceTest {
 
         // given: two flow nodes whose ids keep distinct constants but fold to the same
         // PascalCase object name — previously emitted non-compiling generated code
-        val model = testBpmnModel(
+        val model = testProcessModel(
             flowNodes = listOf(
-                FlowNodeDefinition(id = "foo"),
-                FlowNodeDefinition(id = "-foo"),
+                FlowNodeDefinition.Unknown(id = "foo"),
+                FlowNodeDefinition.Unknown(id = "-foo"),
             )
         )
 
@@ -163,10 +159,10 @@ class BpmnValidationServiceTest {
         val underTest = BpmnValidationService(
             ValidationConfig(disabledRules = setOf("collision-detection"))
         )
-        val model = testBpmnModel(
+        val model = testProcessModel(
             flowNodes = listOf(
-                FlowNodeDefinition(id = "endEvent_complete"),
-                FlowNodeDefinition(id = "endEvent-complete"),
+                FlowNodeDefinition.Unknown(id = "endEvent_complete"),
+                FlowNodeDefinition.Unknown(id = "endEvent-complete"),
             )
         )
 
@@ -186,8 +182,8 @@ class BpmnValidationServiceTest {
         val underTest = BpmnValidationService(
             ValidationConfig(disabledRules = setOf("missing-element-id"))
         )
-        val model = testBpmnModel(
-            flowNodes = listOf(FlowNodeDefinition(id = null))
+        val model = testProcessModel(
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = null))
         )
 
         // when: validating pre-merge
