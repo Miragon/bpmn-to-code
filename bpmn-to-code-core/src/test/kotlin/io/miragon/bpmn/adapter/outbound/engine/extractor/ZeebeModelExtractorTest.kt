@@ -108,7 +108,7 @@ class ZeebeModelExtractorTest {
                     FlowNodeDefinition("CompensationEvent_OnSubscriptionCounter", BpmnNodeType.Event(EventShape.BOUNDARY_EVENT, EventDefinitionType.COMPENSATION),
                         displayName = "Registration aborted",
                         attachedToRef = "serviceTask_incrementSubscriptionCounter", interrupting = true),
-                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.NONE),
+                    FlowNodeDefinition("CompensationTask_DecrementSubscriptionCounter", BpmnNodeType.Activity.Task(TaskKind.SERVICE),
                         displayName = "Decrement subscription counter",
                         variables = listOf(VariableDefinition("subscriptionId", VariableDirection.INPUT, "=subscriptionId"))),
                     FlowNodeDefinition("EndEvent_RegistrationCompleted", BpmnNodeType.Event(EventShape.END_EVENT, EventDefinitionType.MESSAGE),

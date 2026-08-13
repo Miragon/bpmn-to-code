@@ -218,7 +218,7 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final BpmnRelations COMPENSATION_EVENT_ON_SUBSCRIPTION_COUNTER = new BpmnRelations(null, List.of(), List.of(), null, "serviceTask_incrementSubscriptionCounter", List.of(), "COMPENSATION_BOUNDARY_EVENT");
 
-    public static final BpmnRelations COMPENSATION_TASK_DECREMENT_SUBSCRIPTION_COUNTER = new BpmnRelations(null, List.of(), List.of(), null, null, List.of(), "TASK");
+    public static final BpmnRelations COMPENSATION_TASK_DECREMENT_SUBSCRIPTION_COUNTER = new BpmnRelations(null, List.of(), List.of(), null, null, List.of(), "SERVICE_TASK");
 
     public static final BpmnRelations END_EVENT_REGISTRATION_COMPLETED = new BpmnRelations(null, List.of("Gateway_JoinNotifications"), List.of(), null, null, List.of(), "END_EVENT");
 

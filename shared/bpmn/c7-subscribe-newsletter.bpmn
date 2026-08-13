@@ -142,13 +142,13 @@
     <bpmn:boundaryEvent id="CompensationEvent_OnSubscriptionCounter" name="Registration aborted" camunda:asyncAfter="true" attachedToRef="serviceTask_incrementSubscriptionCounter">
       <bpmn:compensateEventDefinition id="CompensateEventDefinition_1ffa569" />
     </bpmn:boundaryEvent>
-    <bpmn:task id="CompensationTask_DecrementSubscriptionCounter" name="Decrement subscription counter" isForCompensation="true">
+    <bpmn:serviceTask id="CompensationTask_DecrementSubscriptionCounter" name="Decrement subscription counter" isForCompensation="true" camunda:delegateExpression="counterClass">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="subscriptionId">${subscriptionId}</camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
-    </bpmn:task>
+    </bpmn:serviceTask>
     <bpmn:association id="Association_0vlmtgi" associationDirection="One" sourceRef="CompensationEvent_OnSubscriptionCounter" targetRef="CompensationTask_DecrementSubscriptionCounter" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">

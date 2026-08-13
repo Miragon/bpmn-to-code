@@ -276,7 +276,11 @@
         {
             "id": "CompensationTask_DecrementSubscriptionCounter",
             "displayName": "Decrement subscription counter",
-            "elementType": "TASK"
+            "elementType": "SERVICE_TASK",
+            "properties": {
+                "type": "ServiceTask",
+                "implementationValue": "counterClass"
+            }
         }
     ],
     "messages": [

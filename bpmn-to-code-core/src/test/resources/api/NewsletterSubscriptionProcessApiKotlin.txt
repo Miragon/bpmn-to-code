@@ -352,7 +352,7 @@ object NewsletterSubscriptionProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
-          elementType = "TASK",
+          elementType = "SERVICE_TASK",
         )
 
     val END_EVENT_REGISTRATION_COMPLETED: BpmnRelations = BpmnRelations(

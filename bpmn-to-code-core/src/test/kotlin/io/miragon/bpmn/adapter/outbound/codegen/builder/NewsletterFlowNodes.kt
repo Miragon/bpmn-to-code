@@ -102,7 +102,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
     ),
     FlowNodeDefinition(
         id = "CompensationTask_DecrementSubscriptionCounter",
-        nodeType = BpmnNodeType.Activity.Task(TaskKind.NONE),
+        nodeType = BpmnNodeType.Activity.Task(TaskKind.SERVICE),
     ),
     FlowNodeDefinition(
         id = "EndEvent_RegistrationCompleted",

@@ -108,13 +108,13 @@
       <bpmn:incoming>Flow_1bsb8no</bpmn:incoming>
       <bpmn:compensateEventDefinition id="CompensateEventDefinition_1ocf8wi" activityRef="serviceTask_incrementSubscriptionCounter" />
     </bpmn:endEvent>
-    <bpmn:task id="CompensationTask_DecrementSubscriptionCounter" name="Decrement subscription counter" isForCompensation="true">
+    <bpmn:serviceTask id="CompensationTask_DecrementSubscriptionCounter" name="Decrement subscription counter" isForCompensation="true">
       <bpmn:extensionElements>
         <zeebe:ioMapping>
           <zeebe:input source="=subscriptionId" target="subscriptionId" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
-    </bpmn:task>
+    </bpmn:serviceTask>
     <bpmn:parallelGateway id="Gateway_SplitNotifications">
       <bpmn:incoming>Flow_09cuvzp</bpmn:incoming>
       <bpmn:outgoing>Flow_16hub0n</bpmn:outgoing>
