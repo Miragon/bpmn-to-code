@@ -13,7 +13,6 @@ plugins {
     alias(libs.plugins.pitest) apply false
 }
 
-// Captured here: the `libs` accessor is not resolvable inside the subprojects {} block below.
 val pitestCoreVersion = libs.versions.pitestCore.get()
 val pitestJunit5Version = libs.versions.pitestJunit5.get()
 
@@ -86,9 +85,6 @@ subprojects {
             outputFormats.set(listOf("HTML", "XML"))
             timestampedReports.set(false)
             threads.set(Runtime.getRuntime().availableProcessors())
-
-            // Suppress mutations of Kotlin compiler-generated null/resource intrinsics
-            // (unkillable synthetic checks), keeping PIT's logging defaults.
             avoidCallsTo.set(
                 listOf(
                     "kotlin.jvm.internal.Intrinsics",

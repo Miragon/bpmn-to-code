@@ -35,9 +35,6 @@ jobs:
           distribution: 'temurin'
 
       # Step 4: Run mutation testing for the logic-bearing modules.
-      # --no-configuration-cache: the pitest task is not configuration-cache compatible.
-      # --continue: run every module even if one regresses below its threshold, so all
-      #             reports are produced before the job fails.
       - name: Run PIT
         run: |
           ./gradlew --no-configuration-cache --continue --warning-mode all \
