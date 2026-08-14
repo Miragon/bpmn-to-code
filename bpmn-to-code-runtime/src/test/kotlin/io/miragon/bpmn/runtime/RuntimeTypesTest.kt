@@ -146,9 +146,7 @@ class RuntimeTypesTest {
         assertThat(node.hashCode()).isEqualTo(same.hashCode())
     }
 
-    private fun flowNode(id: String): AbstractFlowNode {
-        return object : AbstractFlowNode(ElementId(id), "SERVICE_TASK") {}
-    }
+    private fun flowNode(id: String): AbstractFlowNode = object : AbstractFlowNode(ElementId(id), "SERVICE_TASK") {}
 
     @Test
     fun `InputOutputMapping keeps target plus source or sourceExpression`() {

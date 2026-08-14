@@ -151,17 +151,15 @@ class BpmnValidatorTest {
         override val severity: Severity,
         override val phase: ValidationPhase = ValidationPhase.PRE_MERGE,
     ) : SingleModelValidationRule {
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            return listOf(
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = null,
-                    processId = context.model.processId,
-                    message = "violation from $id",
-                ),
-            )
-        }
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = listOf(
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = null,
+                processId = context.model.processId,
+                message = "violation from $id",
+            ),
+        )
     }
 
     private class AlwaysFailingMandatoryRule : SingleModelValidationRule {
