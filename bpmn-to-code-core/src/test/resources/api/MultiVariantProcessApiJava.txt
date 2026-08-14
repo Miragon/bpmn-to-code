@@ -4,7 +4,6 @@ package de.emaarco.example;
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnEscalation;
-import io.miragon.bpmn.runtime.BpmnFlow;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.HasInnerScope;
@@ -110,43 +109,6 @@ public final class SendNewsletterProcessApi {
 
   public static final class Variants {
     public static final class Send {
-      /**
-       * Sequence flows between BPMN elements.
-       * Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.
-       * Worker code typically does not need these.
-       */
-      public static final class Flows {
-        public static final BpmnFlow FLOW_0338_XZF = new BpmnFlow("Flow_0338xzf", null, "timer_noRejectionForOneDay", "endEvent_issueResolved", null, false);
-
-        public static final BpmnFlow FLOW_04_ANDB_8 = new BpmnFlow("Flow_04andb8", null, "serviceTask_loadSubscribers", "gateway_hasSubscribers", null, false);
-
-        public static final BpmnFlow FLOW_081_CYKL = new BpmnFlow("Flow_081cykl", null, "eventGateway_afterSendingAgain", "event_mailRejectedAgain", null, false);
-
-        public static final BpmnFlow FLOW_0_BIANZ_5 = new BpmnFlow("Flow_0bianz5", null, "startEvent_editionCreated", "serviceTask_loadSubscribers", null, false);
-
-        public static final BpmnFlow FLOW_0_ENJKOE = new BpmnFlow("Flow_0enjkoe", null, "eventGateway_afterSendingAgain", "timer_noRejectionForOneDay", null, false);
-
-        public static final BpmnFlow FLOW_0_V_2_V_55_N = new BpmnFlow("Flow_0v2v55n", null, "serviceTask_notifyAuthor", "endEvent_editionSent", null, false);
-
-        public static final BpmnFlow FLOW_0_VTPPNK = new BpmnFlow("Flow_0vtppnk", null, "event_mailRejected", "serviceTask_analyzeError", null, false);
-
-        public static final BpmnFlow FLOW_0_VYM_6_NU = new BpmnFlow("Flow_0vym6nu", null, "serviceTask_sendMailAgain", "eventGateway_afterSendingAgain", null, false);
-
-        public static final BpmnFlow FLOW_0_X_9_THPQ = new BpmnFlow("Flow_0x9thpq", null, "event_mailRejectedAgain", "escalationEndEvent_nofitySupportAfterRepeatedError", null, false);
-
-        public static final BpmnFlow FLOW_13_NMNAG = new BpmnFlow("Flow_13nmnag", null, "serviceTask_analyzeError", "gateway_canSendAgain", null, false);
-
-        public static final BpmnFlow FLOW_18_NF_2_JH = new BpmnFlow("Flow_18nf2jh", "No", "gateway_canSendAgain", "escalationEndEvent_nofitySupport", "${rejection.reason == \"PERMANENT\"}", false);
-
-        public static final BpmnFlow FLOW_1_GSZ_7_WD = new BpmnFlow("Flow_1gsz7wd", "No", "gateway_hasSubscribers", "endEvent_noSubscribers", "${subscribers.size() > 0}", false);
-
-        public static final BpmnFlow FLOW_1_IZUCOF = new BpmnFlow("Flow_1izucof", "Yes", "gateway_canSendAgain", "serviceTask_sendMailAgain", null, true);
-
-        public static final BpmnFlow FLOW_1_JOGUT_0 = new BpmnFlow("Flow_1jogut0", "Yes", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", null, true);
-
-        public static final BpmnFlow FLOW_1_RUAYVL = new BpmnFlow("Flow_1ruayvl", null, "serviceTask_sendToSubscriber", "serviceTask_notifyAuthor", null, false);
-      }
-
       /**
        * Typed navigation over the process flow. Each element is a node exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it as methods — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested {@code Inner} scope.
        */

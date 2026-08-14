@@ -50,67 +50,6 @@ class RuntimeTypesTest {
     }
 
     @Test
-    fun `BpmnFlow defaults nullable fields to null`() {
-        val flow = BpmnFlow(id = "f1", sourceRef = "s", targetRef = "t")
-        assertThat(flow.id).isEqualTo("f1")
-        assertThat(flow.sourceRef).isEqualTo("s")
-        assertThat(flow.targetRef).isEqualTo("t")
-        assertThat(flow.name).isNull()
-        assertThat(flow.condition).isNull()
-        assertThat(flow.isDefault).isFalse()
-    }
-
-    @Test
-    fun `BpmnFlow retains a default flag and its labelled fields`() {
-        val flow = BpmnFlow(
-            id = "f2",
-            name = "yes",
-            sourceRef = "gateway",
-            targetRef = "approve",
-            condition = "\${approved}",
-            isDefault = true,
-        )
-        assertThat(flow.name).isEqualTo("yes")
-        assertThat(flow.condition).isEqualTo("\${approved}")
-        assertThat(flow.isDefault).isTrue()
-    }
-
-    @Test
-    fun `BpmnRelations retains list and nullable fields`() {
-        val relations = BpmnRelations(
-            name = "Approve",
-            previousElements = listOf("start"),
-            followingElements = listOf("end"),
-            parentId = null,
-            attachedToRef = null,
-            attachedElements = listOf("boundary-timer"),
-            elementType = "USER_TASK",
-        )
-        assertThat(relations.name).isEqualTo("Approve")
-        assertThat(relations.parentId).isNull()
-        assertThat(relations.attachedToRef).isNull()
-        assertThat(relations.previousElements).containsExactly("start")
-        assertThat(relations.followingElements).containsExactly("end")
-        assertThat(relations.attachedElements).containsExactly("boundary-timer")
-        assertThat(relations.elementType).isEqualTo("USER_TASK")
-    }
-
-    @Test
-    fun `BpmnRelations exposes parent and boundary host for nested elements`() {
-        val relations = BpmnRelations(
-            name = "Send reminder",
-            previousElements = listOf("start"),
-            followingElements = listOf("end"),
-            parentId = "confirmation-subprocess",
-            attachedToRef = "confirm-task",
-            attachedElements = emptyList(),
-            elementType = "TIMER_BOUNDARY_EVENT",
-        )
-        assertThat(relations.parentId).isEqualTo("confirmation-subprocess")
-        assertThat(relations.attachedToRef).isEqualTo("confirm-task")
-    }
-
-    @Test
     fun `BpmnEngine covers all supported dialects`() {
         assertThat(BpmnEngine.entries).containsExactly(
             BpmnEngine.ZEEBE,

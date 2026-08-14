@@ -8,7 +8,7 @@ import io.miragon.bpmn.domain.shared.TaskKind
 
 /**
  * Renders a [FlowNodeDefinition] into the flat `elementType` string used by the **generated Process API**
- * (`BpmnRelations.elementType`).
+ * navigation nodes (each `Relations` node's `elementType`, carried through `NavigationNode.elementType`).
  *
  * Tasks, gateways and activities map to their flat name; an event surfaces its first event definition as a
  * prefix on the shape (e.g. `ERROR_BOUNDARY_EVENT`), so consumers can tell a timer from an error without

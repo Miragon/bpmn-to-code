@@ -12,7 +12,6 @@ internal enum class ApiObjectType {
     PROCESS_ID,
     PROCESS_ENGINE,
     ELEMENTS,
-    FLOWS,
     RELATIONS,
     VARIANTS,
     CALL_ACTIVITIES,
@@ -21,7 +20,6 @@ internal enum class ApiObjectType {
     TIMERS,
     ERRORS,
     ESCALATIONS,
-    COMPENSATIONS,
     SIGNALS,
     VARIABLES,
 }

@@ -6,7 +6,6 @@ package de.emaarco.example
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnEscalation
-import io.miragon.bpmn.runtime.BpmnFlow
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.HasInnerScope
@@ -118,111 +117,6 @@ object SendNewsletterProcessApi {
 
   object Variants {
     object Send {
-      /**
-       * Sequence flows between BPMN elements.
-       * Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.
-       * Worker code typically does not need these.
-       */
-      object Flows {
-        val FLOW_0338_XZF: BpmnFlow = BpmnFlow(
-              id = "Flow_0338xzf",
-              sourceRef = "timer_noRejectionForOneDay",
-              targetRef = "endEvent_issueResolved",
-            )
-
-        val FLOW_04_ANDB_8: BpmnFlow = BpmnFlow(
-              id = "Flow_04andb8",
-              sourceRef = "serviceTask_loadSubscribers",
-              targetRef = "gateway_hasSubscribers",
-            )
-
-        val FLOW_081_CYKL: BpmnFlow = BpmnFlow(
-              id = "Flow_081cykl",
-              sourceRef = "eventGateway_afterSendingAgain",
-              targetRef = "event_mailRejectedAgain",
-            )
-
-        val FLOW_0_BIANZ_5: BpmnFlow = BpmnFlow(
-              id = "Flow_0bianz5",
-              sourceRef = "startEvent_editionCreated",
-              targetRef = "serviceTask_loadSubscribers",
-            )
-
-        val FLOW_0_ENJKOE: BpmnFlow = BpmnFlow(
-              id = "Flow_0enjkoe",
-              sourceRef = "eventGateway_afterSendingAgain",
-              targetRef = "timer_noRejectionForOneDay",
-            )
-
-        val FLOW_0_V_2_V_55_N: BpmnFlow = BpmnFlow(
-              id = "Flow_0v2v55n",
-              sourceRef = "serviceTask_notifyAuthor",
-              targetRef = "endEvent_editionSent",
-            )
-
-        val FLOW_0_VTPPNK: BpmnFlow = BpmnFlow(
-              id = "Flow_0vtppnk",
-              sourceRef = "event_mailRejected",
-              targetRef = "serviceTask_analyzeError",
-            )
-
-        val FLOW_0_VYM_6_NU: BpmnFlow = BpmnFlow(
-              id = "Flow_0vym6nu",
-              sourceRef = "serviceTask_sendMailAgain",
-              targetRef = "eventGateway_afterSendingAgain",
-            )
-
-        val FLOW_0_X_9_THPQ: BpmnFlow = BpmnFlow(
-              id = "Flow_0x9thpq",
-              sourceRef = "event_mailRejectedAgain",
-              targetRef = "escalationEndEvent_nofitySupportAfterRepeatedError",
-            )
-
-        val FLOW_13_NMNAG: BpmnFlow = BpmnFlow(
-              id = "Flow_13nmnag",
-              sourceRef = "serviceTask_analyzeError",
-              targetRef = "gateway_canSendAgain",
-            )
-
-        val FLOW_18_NF_2_JH: BpmnFlow = BpmnFlow(
-              id = "Flow_18nf2jh",
-              name = "No",
-              sourceRef = "gateway_canSendAgain",
-              targetRef = "escalationEndEvent_nofitySupport",
-              condition = $$"""${rejection.reason == "PERMANENT"}""",
-            )
-
-        val FLOW_1_GSZ_7_WD: BpmnFlow = BpmnFlow(
-              id = "Flow_1gsz7wd",
-              name = "No",
-              sourceRef = "gateway_hasSubscribers",
-              targetRef = "endEvent_noSubscribers",
-              condition = $$"""${subscribers.size() > 0}""",
-            )
-
-        val FLOW_1_IZUCOF: BpmnFlow = BpmnFlow(
-              id = "Flow_1izucof",
-              name = "Yes",
-              sourceRef = "gateway_canSendAgain",
-              targetRef = "serviceTask_sendMailAgain",
-              isDefault = true,
-            )
-
-        val FLOW_1_JOGUT_0: BpmnFlow = BpmnFlow(
-              id = "Flow_1jogut0",
-              name = "Yes",
-              sourceRef = "gateway_hasSubscribers",
-              targetRef = "serviceTask_sendToSubscriber",
-              isDefault = true,
-            )
-
-        val FLOW_1_RUAYVL: BpmnFlow = BpmnFlow(
-              id = "Flow_1ruayvl",
-              sourceRef = "serviceTask_sendToSubscriber",
-              targetRef = "serviceTask_notifyAuthor",
-            )
-      }
-
       /**
        * Typed navigation over the process flow.
        * Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements reachable from it as named properties — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested `Inner` scope.

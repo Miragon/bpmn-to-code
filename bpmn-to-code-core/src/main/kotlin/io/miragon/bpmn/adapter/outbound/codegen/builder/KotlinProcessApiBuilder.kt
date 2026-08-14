@@ -43,10 +43,8 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         ApiObjectType.TIMERS to TimersWriter(),
         ApiObjectType.ERRORS to ErrorsWriter(),
         ApiObjectType.ESCALATIONS to EscalationsWriter(),
-        ApiObjectType.COMPENSATIONS to CompensationsWriter(),
         ApiObjectType.SIGNALS to SignalsWriter(),
         ApiObjectType.VARIABLES to VariablesWriter(),
-        ApiObjectType.FLOWS to FlowsWriter(),
         ApiObjectType.RELATIONS to RelationsWriter(),
         ApiObjectType.VARIANTS to VariantsWriter(),
     )
@@ -114,14 +112,6 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private inner class FlowsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val flowsObject = buildFlowsObject(modelApi.model.graph.allSequenceFlows)
-            builder.addType(flowsObject)
-        }
-    }
-
     private inner class RelationsWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
@@ -146,40 +136,11 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             val variantName = variant.variantName.toCamelCase()
             val variantBuilder = TypeSpec.objectBuilder(variantName)
             if (variant.graph.allSequenceFlows.isNotEmpty()) {
-                variantBuilder.addType(buildFlowsObject(variant.graph.allSequenceFlows))
                 variantBuilder.addType(buildRelationsObject(variant.graph))
             }
             return variantBuilder.build()
         }
     }
-
-    private fun buildFlowsObject(sequenceFlows: List<SequenceFlowDefinition>): TypeSpec {
-        val bpmnFlowClass = ClassName(RUNTIME_PACKAGE, "BpmnFlow")
-        val flowsBuilder = TypeSpec.objectBuilder("Flows")
-            .addKdoc(
-                "Sequence flows between BPMN elements.\n" +
-                    "Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.\n" +
-                    "Worker code typically does not need these.",
-            )
-        sequenceFlows.sortedBy { it.getRawName() }.forEach { flow ->
-            val initStr = buildFlowInitializer(flow.id ?: "", flow.flowName, flow.sourceRef, flow.targetRef, flow.conditionExpression, flow.isDefault)
-            flowsBuilder.addProperty(PropertySpec.builder(flow.getName(), bpmnFlowClass).initializer(initStr).build())
-        }
-        return flowsBuilder.build()
-    }
-
-    private fun buildFlowInitializer(id: String, name: String?, sourceRef: String, targetRef: String, condition: String?, isDefault: Boolean): CodeBlock = CodeBlock.builder().apply {
-        add("BpmnFlow(\n")
-        indent()
-        add("id = %S,\n", id)
-        if (name != null) add("name = %S,\n", name)
-        add("sourceRef = %S,\n", sourceRef)
-        add("targetRef = %S,\n", targetRef)
-        if (condition != null) add("condition = %L,\n", stringLiteral(condition))
-        if (isDefault) add("isDefault = true,\n")
-        unindent()
-        add(")")
-    }.build()
 
     /**
      * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
@@ -356,18 +317,6 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
                 escalationsBuilder.addProperty(variable.build())
             }
             builder.addType(escalationsBuilder.build())
-        }
-    }
-
-    private inner class CompensationsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val elementIdClass = ClassName(RUNTIME_PACKAGE, "ElementId")
-            val compensationsBuilder = TypeSpec.objectBuilder("Compensations")
-            modelApi.model.compensations.forEach { compensation ->
-                compensationsBuilder.addProperty(createTypedAttribute(compensation, elementIdClass))
-            }
-            builder.addType(compensationsBuilder.build())
         }
     }
 

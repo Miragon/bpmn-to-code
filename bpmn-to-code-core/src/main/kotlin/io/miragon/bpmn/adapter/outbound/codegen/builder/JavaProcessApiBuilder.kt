@@ -44,10 +44,8 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         ApiObjectType.TIMERS to TimersWriter(),
         ApiObjectType.ERRORS to ErrorsWriter(),
         ApiObjectType.ESCALATIONS to EscalationsWriter(),
-        ApiObjectType.COMPENSATIONS to CompensationsWriter(),
         ApiObjectType.SIGNALS to SignalsWriter(),
         ApiObjectType.VARIABLES to VariablesWriter(),
-        ApiObjectType.FLOWS to FlowsWriter(),
         ApiObjectType.RELATIONS to RelationsWriter(),
         ApiObjectType.VARIANTS to VariantsWriter(),
     )
@@ -111,14 +109,6 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         }
     }
 
-    private inner class FlowsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val flowsClass = buildFlowsClass(modelApi.model.graph.allSequenceFlows)
-            builder.addType(flowsClass)
-        }
-    }
-
     private inner class RelationsWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
@@ -143,39 +133,10 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             val variantName = variant.variantName.toCamelCase()
             val variantBuilder = TypeSpec.classBuilder(variantName).addModifiers(PUBLIC, STATIC, FINAL)
             if (variant.graph.allSequenceFlows.isNotEmpty()) {
-                variantBuilder.addType(buildFlowsClass(variant.graph.allSequenceFlows))
                 variantBuilder.addType(buildRelationsClass(variant.graph))
             }
             return variantBuilder.build()
         }
-    }
-
-    private fun buildFlowsClass(sequenceFlows: List<SequenceFlowDefinition>): TypeSpec {
-        val bpmnFlowClass = ClassName.get(RUNTIME_PACKAGE, "BpmnFlow")
-        val flowsBuilder = TypeSpec.classBuilder("Flows").addModifiers(PUBLIC, STATIC, FINAL)
-            .addJavadoc(
-                "Sequence flows between BPMN elements.\n" +
-                    "Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.\n" +
-                    "Worker code typically does not need these.\n",
-            )
-        sequenceFlows.sortedBy { it.getRawName() }.forEach { flow ->
-            val initCode = buildFlowInitializer(bpmnFlowClass, flow.id ?: "", flow.flowName, flow.sourceRef, flow.targetRef, flow.conditionExpression, flow.isDefault)
-            val fieldBuilder = FieldSpec.builder(bpmnFlowClass, flow.getName()).addModifiers(PUBLIC, STATIC, FINAL)
-            flowsBuilder.addField(fieldBuilder.initializer(initCode).build())
-        }
-        return flowsBuilder.build()
-    }
-
-    private fun buildFlowInitializer(bpmnFlowClass: ClassName, id: String, name: String?, sourceRef: String, targetRef: String, condition: String?, isDefault: Boolean): CodeBlock {
-        val nameBlock = if (name != null) CodeBlock.of("\$S", name) else CodeBlock.of("null")
-        val conditionBlock = if (condition != null) CodeBlock.of("\$S", condition) else CodeBlock.of("null")
-        return CodeBlock.builder()
-            .add("new \$T(\$S, ", bpmnFlowClass, id)
-            .add(nameBlock)
-            .add(", \$S, \$S, ", sourceRef, targetRef)
-            .add(conditionBlock)
-            .add(", \$L)", isDefault)
-            .build()
     }
 
     /**
@@ -354,18 +315,6 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
                 escalationsBuilder.addField(variable.initializer("new \$T(\$S, \$S)", bpmnEscalationClass, escalationName, escalationCode).build())
             }
             builder.addType(escalationsBuilder.build())
-        }
-    }
-
-    private inner class CompensationsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val elementIdClass = ClassName.get(RUNTIME_PACKAGE, "ElementId")
-            val compensationsBuilder = TypeSpec.classBuilder("Compensations").addModifiers(PUBLIC, STATIC, FINAL)
-            modelApi.model.compensations.forEach { compensation ->
-                compensationsBuilder.addField(createTypedAttribute(compensation, elementIdClass))
-            }
-            builder.addType(compensationsBuilder.build())
         }
     }
 

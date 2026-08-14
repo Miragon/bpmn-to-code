@@ -24,7 +24,7 @@ internal object ApiObjectSelection {
         val model = modelApi.model
         return when (this) {
             ApiObjectType.PROCESS_ID, ApiObjectType.PROCESS_ENGINE, ApiObjectType.ELEMENTS -> true
-            ApiObjectType.FLOWS, ApiObjectType.RELATIONS -> !model.isMerged && model.graph.allSequenceFlows.isNotEmpty()
+            ApiObjectType.RELATIONS -> !model.isMerged && model.graph.allSequenceFlows.isNotEmpty()
             ApiObjectType.VARIANTS -> model.isMerged
             ApiObjectType.CALL_ACTIVITIES -> model.callActivities.isNotEmpty()
             ApiObjectType.MESSAGES -> model.definitions.messages.isNotEmpty()
@@ -32,7 +32,6 @@ internal object ApiObjectSelection {
             ApiObjectType.TIMERS -> model.timers.isNotEmpty()
             ApiObjectType.ERRORS -> model.definitions.errors.isNotEmpty()
             ApiObjectType.ESCALATIONS -> model.definitions.escalations.isNotEmpty()
-            ApiObjectType.COMPENSATIONS -> model.compensations.isNotEmpty()
             ApiObjectType.SIGNALS -> model.definitions.signals.isNotEmpty()
             ApiObjectType.VARIABLES -> model.variables.isNotEmpty()
         }

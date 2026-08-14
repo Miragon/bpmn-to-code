@@ -16,11 +16,11 @@ The generated Process API is an `object` (Kotlin) or `class` (Java) with nested 
 | `ServiceTasks` | Worker types / topics / delegate expressions from service tasks |
 | `Timers` | Timer configurations with type and value (`BpmnTimer`) |
 | `Errors` | Error definitions with name and code (`BpmnError`) |
-| `Compensations` | Compensation event IDs |
 | `Signals` | Signal names from signal events |
 | `Variables` | Per-element variables, split into `Inputs` / `Outputs` sub-objects by direction |
-| `Flows` | Sequence flows with `sourceRef`, `targetRef`, `conditionExpression`, `isDefault` |
 | `Relations` | Typed navigation graph: each element exposes `id` / `elementType` / `name` and its successors behind `then()` (implements `FlowNode` / `HasSuccessors`) |
+
+> The full process shape — every sequence flow (with `sourceRef` / `targetRef` / `conditionExpression` / `isDefault`) and every element — lives in the [JSON export](/surface/json). The generated code API focuses on what JVM code references at compile time.
 
 Sections are only included when the BPMN model contains matching elements.
 
@@ -39,7 +39,6 @@ package de.emaarco.example
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnError
-import io.miragon.bpmn.runtime.BpmnFlow
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.InputOutputMapping
@@ -97,10 +96,6 @@ object NewsletterSubscriptionProcessApi {
     val ERROR_INVALID_MAIL: BpmnError = BpmnError("Error_InvalidMail", "500")
   }
 
-  object Compensations {
-    const val COMPENSATION_END_EVENT_REGISTRATION_ABORTED: String = "CompensationEndEvent_RegistrationAborted"
-  }
-
   object Signals {
     const val SIGNAL_REGISTRATION_NOT_POSSIBLE: String = "Signal_RegistrationNotPossible"
   }
@@ -117,15 +112,6 @@ object NewsletterSubscriptionProcessApi {
         val SUBSCRIPTION_ID: VariableName = VariableName("subscriptionId")
       }
     }
-  }
-
-  object Flows {
-    val FLOW_05_I_3_X_1_Y: BpmnFlow = BpmnFlow(
-      id = "Flow_05i3x1y",
-      sourceRef = "StartEvent_RequestReceived",
-      targetRef = "Activity_SendConfirmationMail",
-    )
-    // ... all sequence flows
   }
 
   object Relations {
@@ -157,7 +143,6 @@ package de.emaarco.example;
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnError;
-import io.miragon.bpmn.runtime.BpmnFlow;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.HasSuccessors;
@@ -176,27 +161,11 @@ public class NewsletterSubscriptionProcessApi {
         public static final String MESSAGE_FORM_SUBMITTED = "Message_FormSubmitted";
     }
 
-    // ... same structure for ServiceTasks, Timers, Errors, Compensations, Signals, Variables, Flows, Relations
+    // ... same structure for ServiceTasks, Timers, Errors, Signals, Variables, Relations
 }
 ```
 
 :::
-
-## Flows
-
-The `Flows` section contains every sequence flow in the process as a `BpmnFlow` data class:
-
-```kotlin
-data class BpmnFlow(
-    val id: String,
-    val sourceRef: String,
-    val targetRef: String,
-    val conditionExpression: String? = null,
-    val isDefault: Boolean = false,
-)
-```
-
-Use `Flows` to build process-aware test fixtures or to inspect routing logic in your application code.
 
 ## Relations — typed navigation graph
 
