@@ -55,7 +55,8 @@ Applied to the four logic-bearing modules only — the same set that carries JaC
   synthetics (`*$DefaultImpls`, `*$Companion`, `*$WhenMappings`, `*$$serializer`,
   `*$$inlined$*`). Each module adds its own extras via `excludedClasses.addAll(...)` so they
   extend, not replace, the shared list. `avoidCallsTo` additionally suppresses mutations of the
-  Kotlin null/resource intrinsics (while keeping PIT's logging-framework defaults).
+  Kotlin null/resource intrinsics and the `kotlin-logging` (`io.github.oshai`) calls, while
+  keeping PIT's logging-framework defaults.
 - **Thresholds** are per-module `mutationThreshold` values, set a few points below each module's
   coverage so the gate ratchets against regression rather than chasing a target:
 
@@ -64,14 +65,16 @@ Applied to the four logic-bearing modules only — the same set that carries JaC
   | `bpmn-to-code-core` | 84% | 80 |
   | `bpmn-to-code-runtime` | 100% | 95 |
   | `bpmn-to-code-testing` | 98% | 95 |
-  | `bpmn-to-code-web` | 28% | 22 |
+  | `bpmn-to-code-web` | 95% | 90 |
 
-  `bpmn-to-code-web` is the outstanding gap: mutation testing surfaced that its service layer
-  (`LibrarySourceProvider`, `WebGenerationService`, `WebJsonGenerationService`) is weakly
-  covered by mutation standards even though it clears the 75% JaCoCo line gate. The threshold
-  records that reality as a floor; it should be raised as those tests improve. The `core`
-  figure is likewise still climbing — its remaining survivors are concentrated in the BPMN
-  parsing/dialect adapters (`BpmnStructureReader`, `CamundaDialect`, `ForeignXmlReader`).
+  `bpmn-to-code-web` started at 28%: most of that was `kotlin-logging` call noise (now handled
+  by `avoidCallsTo`), and the rest was a genuinely untested `LibrarySourceProvider`. Testing it
+  properly surfaced a real bug — `loadProjectVersion()` read the wrong properties key
+  (`projectVersion` instead of `version`), so the playground's runtime-dependency snippet always
+  showed `unknown`; fixed here. Its three residual survivors are defensive "resource missing"
+  fallbacks unreachable in a correctly built artifact (test strength is 100%). The `core` figure
+  is still climbing — its remaining survivors are concentrated in the BPMN parsing/dialect
+  adapters (`BpmnStructureReader`, `CamundaDialect`, `ForeignXmlReader`).
 
 - **Configuration cache.** The build enables `org.gradle.configuration-cache` globally. The
   `pitest` task is not configuration-cache compatible, so it must be run with
@@ -97,7 +100,8 @@ HTML reports as an artifact and fails when any module regresses below its thresh
 ### Positive
 - Adds a fault-detection metric that line coverage cannot provide, and turns it into an
   enforceable regression floor.
-- Already surfaced a concrete gap (the web service layer) that the 75% line gate hid.
+- Already paid for itself: surfaced (and fixed) a real bug in the web playground's
+  runtime-dependency version lookup that the 75% line gate had missed.
 - Follows the established JaCoCo wiring pattern, so the build stays consistent and the
   per-module exclusion lists have a single obvious home.
 

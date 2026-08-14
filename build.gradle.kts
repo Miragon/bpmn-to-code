@@ -93,6 +93,7 @@ subprojects {
                 listOf(
                     "kotlin.jvm.internal.Intrinsics",
                     "kotlin.io.CloseableKt",
+                    "io.github.oshai.kotlinlogging",
                     "java.util.logging",
                     "org.slf4j",
                     "org.apache.log4j",

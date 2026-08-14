@@ -125,7 +125,7 @@ pitest {
         "io.miragon.bpmn.web.config.*",
         "io.miragon.bpmn.web.model.ConfigResponse*",
     )
-    mutationThreshold.set(22)
+    mutationThreshold.set(90)
 }
 
 tasks.named<ProcessResources>("processResources") {

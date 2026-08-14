@@ -31,6 +31,7 @@ class WebGenerationServiceTest {
         val response = underTest.generate(request)
 
         // then: a Kotlin file is generated containing the process constant
+        assertThat(request.files.first().fileName).isEqualTo("c8-subscribe-newsletter.bpmn")
         assertThat(response.success).describedAs("Generation should succeed").isTrue()
         assertThat(response.files).describedAs("Should generate at least one file").isNotEmpty()
         assertThat(response.error).describedAs("Should not have errors").isNull()
@@ -38,6 +39,11 @@ class WebGenerationServiceTest {
         assertThat(generatedFile.fileName).describedAs("Should generate Kotlin file").endsWith(".kt")
         assertThat(generatedFile.content).describedAs("Should contain Kotlin object declaration").contains("object")
         assertThat(generatedFile.content).describedAs("Should contain process ID").contains("newsletterSubscription")
+        assertThat(generatedFile.processId).describedAs("Should carry the process id").isEqualTo("newsletterSubscription")
+
+        // and: the bundled runtime sources and dependency snippet ride along with the response
+        assertThat(response.libraryFiles).describedAs("Should bundle runtime library sources").isNotEmpty()
+        assertThat(response.runtimeDependency).describedAs("Should include the runtime dependency").isNotNull()
     }
 
     @Test
