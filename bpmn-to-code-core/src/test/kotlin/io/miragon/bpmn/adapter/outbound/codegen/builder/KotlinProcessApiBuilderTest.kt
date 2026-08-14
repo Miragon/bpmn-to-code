@@ -59,12 +59,11 @@ class KotlinProcessApiBuilderTest {
         // and: key KDoc blocks disambiguate the nested objects
         assertThat(result.content).contains("process-level tests")
         assertThat(result.content).contains("@JobWorker(type = ServiceTasks.X)")
-        assertThat(result.content).contains("Worker code typically does not need these")
         assertThat(result.content).contains("Typed navigation over the process flow")
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped Flows and Relations for merged model`() {
+    fun `buildApiFile generates variant-scoped Relations for merged model`() {
         // given: a merged model with a single variant
         val send = testSendNewsletterModel(variantName = "send")
         val merged = ProcessModel(
@@ -80,7 +79,7 @@ class KotlinProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains Variants section instead of flat Flows/Relations
+        // then: output contains Variants section instead of a flat Relations
         val expectedFile = File(requireNotNull(javaClass.getResource("/api/MultiVariantProcessApiKotlin.txt")).toURI())
         assertThat(result.content).isEqualTo(expectedFile.readText())
         assertKotlinSyntaxValid(result.content)

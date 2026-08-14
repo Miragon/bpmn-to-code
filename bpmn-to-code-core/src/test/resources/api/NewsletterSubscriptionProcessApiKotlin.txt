@@ -6,7 +6,6 @@ package de.emaarco.example
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnError
-import io.miragon.bpmn.runtime.BpmnFlow
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.HasInnerScope
@@ -137,14 +136,6 @@ object NewsletterSubscriptionProcessApi {
     val ERROR_INVALID_MAIL: BpmnError = BpmnError("Error_InvalidMail", "500")
   }
 
-  object Compensations {
-    val COMPENSATION_END_EVENT_REGISTRATION_ABORTED: ElementId =
-        ElementId("CompensationEndEvent_RegistrationAborted")
-
-    val COMPENSATION_EVENT_ON_SUBSCRIPTION_COUNTER: ElementId =
-        ElementId("CompensationEvent_OnSubscriptionCounter")
-  }
-
   object Signals {
     val SIGNAL_REGISTRATION_NOT_POSSIBLE: SignalName =
         SignalName("Signal_RegistrationNotPossible")
@@ -181,103 +172,6 @@ object NewsletterSubscriptionProcessApi {
     object StartEventSubmitRegistrationForm {
       val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId")
     }
-  }
-
-  /**
-   * Sequence flows between BPMN elements.
-   * Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.
-   * Worker code typically does not need these.
-   */
-  object Flows {
-    val FLOW_05_I_3_X_1_Y: BpmnFlow = BpmnFlow(
-          id = "Flow_05i3x1y",
-          sourceRef = "StartEvent_RequestReceived",
-          targetRef = "Activity_SendConfirmationMail",
-        )
-
-    val FLOW_09_CUVZP: BpmnFlow = BpmnFlow(
-          id = "Flow_09cuvzp",
-          sourceRef = "SubProcess_Confirmation",
-          targetRef = "Gateway_SplitNotifications",
-        )
-
-    val FLOW_0_I_2_CTUV: BpmnFlow = BpmnFlow(
-          id = "Flow_0i2ctuv",
-          sourceRef = "ErrorEvent_InvalidMail",
-          targetRef = "EndEvent_RegistrationNotPossible",
-        )
-
-    val FLOW_0_X_4_EWVB: BpmnFlow = BpmnFlow(
-          id = "Flow_0x4ewvb",
-          sourceRef = "Timer_EveryDay",
-          targetRef = "Activity_SendConfirmationMail",
-        )
-
-    val FLOW_0_ZDMT_0_T: BpmnFlow = BpmnFlow(
-          id = "Flow_0zdmt0t",
-          sourceRef = "serviceTask_incrementSubscriptionCounter",
-          targetRef = "SubProcess_Confirmation",
-        )
-
-    val FLOW_16_HUB_0_N: BpmnFlow = BpmnFlow(
-          id = "Flow_16hub0n",
-          sourceRef = "Gateway_SplitNotifications",
-          targetRef = "Activity_SendWelcomeMail",
-        )
-
-    val FLOW_1862_JD_8: BpmnFlow = BpmnFlow(
-          id = "Flow_1862jd8",
-          sourceRef = "Gateway_JoinNotifications",
-          targetRef = "EndEvent_RegistrationCompleted",
-        )
-
-    val FLOW_1_BCKM_43: BpmnFlow = BpmnFlow(
-          id = "Flow_1bckm43",
-          sourceRef = "Activity_SendConfirmationMail",
-          targetRef = "Activity_ConfirmRegistration",
-        )
-
-    val FLOW_1_BSB_8_NO: BpmnFlow = BpmnFlow(
-          id = "Flow_1bsb8no",
-          sourceRef = "CallActivity_AbortRegistration",
-          targetRef = "CompensationEndEvent_RegistrationAborted",
-        )
-
-    val FLOW_1_CPWE_57: BpmnFlow = BpmnFlow(
-          id = "Flow_1cpwe57",
-          sourceRef = "Activity_ConfirmRegistration",
-          targetRef = "EndEvent_SubscriptionConfirmed",
-        )
-
-    val FLOW_1_CSFYYZ: BpmnFlow = BpmnFlow(
-          id = "Flow_1csfyyz",
-          sourceRef = "StartEvent_SubmitRegistrationForm",
-          targetRef = "serviceTask_incrementSubscriptionCounter",
-        )
-
-    val FLOW_1_DUWY_83: BpmnFlow = BpmnFlow(
-          id = "Flow_1duwy83",
-          sourceRef = "Activity_NotifyCommunity",
-          targetRef = "Gateway_JoinNotifications",
-        )
-
-    val FLOW_1_I_7_HJID: BpmnFlow = BpmnFlow(
-          id = "Flow_1i7hjid",
-          sourceRef = "Activity_SendWelcomeMail",
-          targetRef = "Gateway_JoinNotifications",
-        )
-
-    val FLOW_1_L_1_LJ_4_M: BpmnFlow = BpmnFlow(
-          id = "Flow_1l1lj4m",
-          sourceRef = "Timer_After3Days",
-          targetRef = "CallActivity_AbortRegistration",
-        )
-
-    val FLOW_1_P_5_T_47_Z: BpmnFlow = BpmnFlow(
-          id = "Flow_1p5t47z",
-          sourceRef = "Gateway_SplitNotifications",
-          targetRef = "Activity_NotifyCommunity",
-        )
   }
 
   /**

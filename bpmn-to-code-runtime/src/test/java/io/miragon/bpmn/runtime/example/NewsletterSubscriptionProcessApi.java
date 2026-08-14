@@ -4,7 +4,6 @@ package io.miragon.bpmn.runtime.example;
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnError;
-import io.miragon.bpmn.runtime.BpmnFlow;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.HasInnerScope;
@@ -118,12 +117,6 @@ public final class NewsletterSubscriptionProcessApi {
     public static final BpmnError ERROR_INVALID_MAIL = new BpmnError("Error_InvalidMail", "500");
   }
 
-  public static final class Compensations {
-    public static final ElementId COMPENSATION_END_EVENT_REGISTRATION_ABORTED = new ElementId("CompensationEndEvent_RegistrationAborted");
-
-    public static final ElementId COMPENSATION_EVENT_ON_SUBSCRIPTION_COUNTER = new ElementId("CompensationEvent_OnSubscriptionCounter");
-  }
-
   public static final class Signals {
     public static final SignalName SIGNAL_REGISTRATION_NOT_POSSIBLE = new SignalName("Signal_RegistrationNotPossible");
   }
@@ -167,43 +160,6 @@ public final class NewsletterSubscriptionProcessApi {
     public static final class StartEventSubmitRegistrationForm {
       public static final VariableName.Output SUBSCRIPTION_ID = new VariableName.Output("subscriptionId");
     }
-  }
-
-  /**
-   * Sequence flows between BPMN elements.
-   * Mainly useful for process-model tooling, tests, and AI-agent consumers reasoning about the process shape.
-   * Worker code typically does not need these.
-   */
-  public static final class Flows {
-    public static final BpmnFlow FLOW_05_I_3_X_1_Y = new BpmnFlow("Flow_05i3x1y", null, "StartEvent_RequestReceived", "Activity_SendConfirmationMail", null, false);
-
-    public static final BpmnFlow FLOW_09_CUVZP = new BpmnFlow("Flow_09cuvzp", null, "SubProcess_Confirmation", "Gateway_SplitNotifications", null, false);
-
-    public static final BpmnFlow FLOW_0_I_2_CTUV = new BpmnFlow("Flow_0i2ctuv", null, "ErrorEvent_InvalidMail", "EndEvent_RegistrationNotPossible", null, false);
-
-    public static final BpmnFlow FLOW_0_X_4_EWVB = new BpmnFlow("Flow_0x4ewvb", null, "Timer_EveryDay", "Activity_SendConfirmationMail", null, false);
-
-    public static final BpmnFlow FLOW_0_ZDMT_0_T = new BpmnFlow("Flow_0zdmt0t", null, "serviceTask_incrementSubscriptionCounter", "SubProcess_Confirmation", null, false);
-
-    public static final BpmnFlow FLOW_16_HUB_0_N = new BpmnFlow("Flow_16hub0n", null, "Gateway_SplitNotifications", "Activity_SendWelcomeMail", null, false);
-
-    public static final BpmnFlow FLOW_1862_JD_8 = new BpmnFlow("Flow_1862jd8", null, "Gateway_JoinNotifications", "EndEvent_RegistrationCompleted", null, false);
-
-    public static final BpmnFlow FLOW_1_BCKM_43 = new BpmnFlow("Flow_1bckm43", null, "Activity_SendConfirmationMail", "Activity_ConfirmRegistration", null, false);
-
-    public static final BpmnFlow FLOW_1_BSB_8_NO = new BpmnFlow("Flow_1bsb8no", null, "CallActivity_AbortRegistration", "CompensationEndEvent_RegistrationAborted", null, false);
-
-    public static final BpmnFlow FLOW_1_CPWE_57 = new BpmnFlow("Flow_1cpwe57", null, "Activity_ConfirmRegistration", "EndEvent_SubscriptionConfirmed", null, false);
-
-    public static final BpmnFlow FLOW_1_CSFYYZ = new BpmnFlow("Flow_1csfyyz", null, "StartEvent_SubmitRegistrationForm", "serviceTask_incrementSubscriptionCounter", null, false);
-
-    public static final BpmnFlow FLOW_1_DUWY_83 = new BpmnFlow("Flow_1duwy83", null, "Activity_NotifyCommunity", "Gateway_JoinNotifications", null, false);
-
-    public static final BpmnFlow FLOW_1_I_7_HJID = new BpmnFlow("Flow_1i7hjid", null, "Activity_SendWelcomeMail", "Gateway_JoinNotifications", null, false);
-
-    public static final BpmnFlow FLOW_1_L_1_LJ_4_M = new BpmnFlow("Flow_1l1lj4m", null, "Timer_After3Days", "CallActivity_AbortRegistration", null, false);
-
-    public static final BpmnFlow FLOW_1_P_5_T_47_Z = new BpmnFlow("Flow_1p5t47z", null, "Gateway_SplitNotifications", "Activity_NotifyCommunity", null, false);
   }
 
   /**
