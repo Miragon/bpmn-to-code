@@ -29,12 +29,14 @@ class WebJsonGenerationServiceTest {
         val response = underTest.generate(request)
 
         // then: generation succeeds
+        assertThat(request.files.first().fileName).isEqualTo("c8-newsletter.bpmn")
         assertThat(response.success).describedAs("Generation should succeed but got: ${response.error}").isTrue()
         assertThat(response.files).isNotEmpty()
         assertThat(response.error).isNull()
         val file = response.files.first()
         assertThat(file.fileName).endsWith(".json")
         assertThat(file.processId).isEqualTo("newsletterSubscription")
+        assertThat(file.content).describedAs("Should carry the generated JSON body").isNotBlank()
     }
 
     @Test

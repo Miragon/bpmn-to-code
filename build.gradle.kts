@@ -1,3 +1,4 @@
+import info.solidsoft.gradle.pitest.PitestPluginExtension
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
@@ -9,7 +10,11 @@ plugins {
     alias(libs.plugins.mavenPublish) apply false
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.pitest) apply false
 }
+
+val pitestCoreVersion = libs.versions.pitestCore.get()
+val pitestJunit5Version = libs.versions.pitestJunit5.get()
 
 allprojects {
     repositories {
@@ -68,6 +73,42 @@ subprojects {
                     }
                 }
             }
+        }
+    }
+
+    plugins.withId("info.solidsoft.pitest") {
+        configure<PitestPluginExtension> {
+            pitestVersion.set(pitestCoreVersion)
+            junit5PluginVersion.set(pitestJunit5Version)
+
+            targetClasses.set(listOf("io.miragon.*"))
+            outputFormats.set(listOf("HTML", "XML"))
+            timestampedReports.set(false)
+            threads.set(Runtime.getRuntime().availableProcessors())
+            avoidCallsTo.set(
+                listOf(
+                    "kotlin.jvm.internal.Intrinsics",
+                    "kotlin.io.CloseableKt",
+                    "io.github.oshai.kotlinlogging",
+                    "java.util.logging",
+                    "org.slf4j",
+                    "org.apache.log4j",
+                    "org.apache.commons.logging",
+                ),
+            )
+
+            excludedClasses.set(
+                listOf(
+                    "*\$DefaultImpls",
+                    "*\$Companion",
+                    "*\$WhenMappings",
+                    "*\$\$serializer",
+                    "*\$\$inlined\$*",
+                    "io.miragon.bpmn.domain.shared.*",
+                    "io.miragon.bpmn.domain.validation.model.*",
+                    "io.miragon.bpmn.application.port.*",
+                ),
+            )
         }
     }
 }

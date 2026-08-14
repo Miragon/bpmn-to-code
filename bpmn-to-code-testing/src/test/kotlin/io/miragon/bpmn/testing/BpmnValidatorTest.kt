@@ -4,7 +4,9 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
+import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -97,6 +99,67 @@ class BpmnValidatorTest {
             .engine(ProcessEngine.CAMUNDA_7)
             .validate()
             .assertNoErrors()
+    }
+
+    @Test
+    fun `failOnWarning promotes warnings to errors`() {
+        val result = BpmnValidator
+            .fromClasspath("bpmn/valid-process.bpmn")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(AlwaysViolatingRule("warn-rule", Severity.WARN))
+            .failOnWarning()
+            .validate()
+            .result()
+
+        assertThat(result.errors.map { it.ruleId }).contains("warn-rule")
+        assertThat(result.warnings).isEmpty()
+    }
+
+    @Test
+    fun `warnings in the pre-merge phase do not short-circuit post-merge rules`() {
+        val result = BpmnValidator
+            .fromClasspath("bpmn/valid-process.bpmn")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(
+                AlwaysViolatingRule("pre-warn", Severity.WARN, ValidationPhase.PRE_MERGE),
+                AlwaysViolatingRule("post-warn", Severity.WARN, ValidationPhase.POST_MERGE),
+            )
+            .validate()
+            .result()
+
+        assertThat(result.violations.map { it.ruleId }).contains("pre-warn", "post-warn")
+    }
+
+    @Test
+    fun `an error in the pre-merge phase short-circuits post-merge rules`() {
+        val result = BpmnValidator
+            .fromClasspath("bpmn/valid-process.bpmn")
+            .engine(ProcessEngine.CAMUNDA_7)
+            .withRules(
+                AlwaysViolatingRule("pre-error", Severity.ERROR, ValidationPhase.PRE_MERGE),
+                AlwaysViolatingRule("post-warn", Severity.WARN, ValidationPhase.POST_MERGE),
+            )
+            .validate()
+            .result()
+
+        assertThat(result.violations.map { it.ruleId }).contains("pre-error")
+        assertThat(result.violations.map { it.ruleId }).doesNotContain("post-warn")
+    }
+
+    private class AlwaysViolatingRule(
+        override val id: String,
+        override val severity: Severity,
+        override val phase: ValidationPhase = ValidationPhase.PRE_MERGE,
+    ) : SingleModelValidationRule {
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = listOf(
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = null,
+                processId = context.model.processId,
+                message = "violation from $id",
+            ),
+        )
     }
 
     private class AlwaysFailingMandatoryRule : SingleModelValidationRule {

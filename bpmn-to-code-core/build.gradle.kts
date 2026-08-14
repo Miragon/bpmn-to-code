@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.pitest)
     jacoco
 }
 
@@ -62,4 +63,12 @@ tasks.jacocoTestCoverageVerification {
     classDirectories.setFrom(
         files(classDirectories.files.map { fileTree(it) { exclude(coverageExclusions) } })
     )
+}
+
+pitest {
+    excludedClasses.addAll(
+        "io.miragon.bpmn.adapter.outbound.engine.*Constants*",
+        "io.miragon.bpmn.adapter.outbound.json.model.*",
+    )
+    mutationThreshold.set(80)
 }

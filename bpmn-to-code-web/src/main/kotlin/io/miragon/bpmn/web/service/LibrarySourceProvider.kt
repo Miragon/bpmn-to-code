@@ -53,7 +53,7 @@ class LibrarySourceProvider {
         val properties = stream.use {
             Properties().apply { load(it) }
         }
-        return properties.getProperty("projectVersion")?.takeIf { it.isNotBlank() } ?: "unknown"
+        return properties.getProperty("version")?.takeIf { it.isNotBlank() } ?: "unknown"
     }
 
     private fun readResource(path: String): String? {

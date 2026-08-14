@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ktor)
+    alias(libs.plugins.pitest)
     application
     jacoco
 }
@@ -115,6 +116,16 @@ tasks.jacocoTestCoverageVerification {
     classDirectories.setFrom(
         files(classDirectories.files.map { fileTree(it) { exclude(coverageExclusions) } })
     )
+}
+
+pitest {
+    excludedClasses.addAll(
+        "io.miragon.bpmn.web.routes.*",
+        "io.miragon.bpmn.web.Application*",
+        "io.miragon.bpmn.web.config.*",
+        "io.miragon.bpmn.web.model.ConfigResponse*",
+    )
+    mutationThreshold.set(90)
 }
 
 tasks.named<ProcessResources>("processResources") {
