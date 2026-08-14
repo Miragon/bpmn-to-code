@@ -75,3 +75,4 @@ Document decisions that:
 
 ### Testing
 - [ADR 013: Testing Module](013-testing-module.md) - Arch-Unit style BPMN model validation framework
+- [ADR 019: Mutation Testing with PIT](019-mutation-testing-with-pit.md) - PIT mutation testing with a hard per-module score gate

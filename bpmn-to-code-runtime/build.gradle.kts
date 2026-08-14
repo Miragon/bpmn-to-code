@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.pitest)
     jacoco
 }
 
@@ -25,6 +26,11 @@ tasks.named<Test>("test") {
 // exclude it from detekt, as a consumer would exclude their own generated output.
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
     exclude("**/io/miragon/bpmn/runtime/path/example/**")
+}
+
+pitest {
+    excludedClasses.addAll("io.miragon.bpmn.runtime.path.example.*")
+    mutationThreshold.set(95)
 }
 
 mavenPublishing {

@@ -21,6 +21,9 @@ jsonSchemaValidator = "1.5.6"
 dokka = "2.2.0"
 detekt = "1.23.8"
 ktlintPlugin = "0.14.0"
+pitest = "1.19.0"
+pitestCore = "1.19.4"
+pitestJunit5 = "1.2.3"
 
 [libraries]
 # Plugin dependencies
@@ -73,3 +76,4 @@ shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 ktlint = { id = "io.github.usefulness.ktlint-gradle-plugin", version.ref = "ktlintPlugin" }
+pitest = { id = "info.solidsoft.pitest", version.ref = "pitest" }

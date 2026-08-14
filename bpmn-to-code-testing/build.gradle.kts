@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.pitest)
     jacoco
 }
 
@@ -35,6 +36,10 @@ tasks.jar {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+}
+
+pitest {
+    mutationThreshold.set(95)
 }
 
 mavenPublishing {

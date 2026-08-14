@@ -41,6 +41,21 @@ plus the pre-push hook — no baseline, no silent suppressions. The only scoped 
 ktor wildcard-import allowance and no hard line-length limit (`.editorconfig`) and the generated
 runtime fixture (excluded in both `.editorconfig` and `bpmn-to-code-runtime/build.gradle.kts`).
 
+## Mutation testing (PIT)
+
+[PIT](https://pitest.org/) measures how well the tests actually detect faults, complementing
+the line-coverage gate. It runs on demand locally (it is slower than the unit suite, so it is
+not part of the pre-push hook) and as a nightly / manual CI workflow. See
+[ADR 019](adr/019-mutation-testing-with-pit.md) for scope and thresholds.
+
+```bash
+./gradlew pitest --no-configuration-cache                    # all instrumented modules
+./gradlew :bpmn-to-code-core:pitest --no-configuration-cache # one module
+```
+
+`--no-configuration-cache` is required: the `pitest` task is not configuration-cache
+compatible. HTML reports land in each module's `build/reports/pitest/`.
+
 ## Skipping hooks
 
 ```bash
