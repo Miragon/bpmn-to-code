@@ -22,7 +22,6 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(kotlin("compiler-embeddable"))
     testImplementation(libs.jsonSchemaValidator)
-    // Lets the codegen tests compile generated output for real (not just parse) against the runtime interfaces.
     testImplementation(project(":bpmn-to-code-runtime"))
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
@@ -30,22 +29,24 @@ dependencies {
 sourceSets {
     test {
         resources.srcDir(rootProject.file("shared"))
-        // The published JSON schema, so ProcessJsonSchemaTest validates against it offline
         resources.srcDir(rootProject.file("docs/public/schema"))
+    }
+}
+
+tasks.processResources {
+    from(rootProject.file("docs/public/schema")) {
+        into("META-INF/bpmn-to-code/schema")
     }
 }
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
-    // Lets `./gradlew test -Dgolden.update=true` rewrite the end-to-end JSON snapshots.
     systemProperty("golden.update", System.getProperty("golden.update") ?: "false")
 }
 
 private val coverageExclusions = listOf(
     "**/domain/shared/**",
     "**/domain/validation/model/**",
-    // Constant holders: their `const val`s are inlined at the call site, so the object itself
-    // never executes. Matched by name rather than by package so a move cannot silently re-include them.
     "**/adapter/outbound/engine/**/*Constants*",
     "**/adapter/outbound/json/model/**",
     "**/application/port/**",

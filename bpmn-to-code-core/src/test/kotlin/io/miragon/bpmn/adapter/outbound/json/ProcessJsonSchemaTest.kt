@@ -30,7 +30,7 @@ class ProcessJsonSchemaTest {
 
     private val schema = JsonSchemaFactory
         .getInstance(SpecVersion.VersionFlag.V202012)
-        .getSchema(requireNotNull(javaClass.getResourceAsStream("/process-model/2.0.json")))
+        .getSchema(requireNotNull(javaClass.getResourceAsStream("/META-INF/bpmn-to-code/schema/process-model/2.0.json")))
 
     @ParameterizedTest
     @EnumSource(ProcessEngine::class)
