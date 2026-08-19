@@ -15,7 +15,7 @@ Add it to your test scope, write a test, and your CI will catch modeling issues 
 
 ```kotlin [Gradle]
 dependencies {
-    testImplementation("io.miragon:bpmn-to-code-testing:5.2.0")
+    testImplementation("io.miragon:bpmn-to-code-testing:6.0.0")
 }
 ```
 
@@ -23,7 +23,7 @@ dependencies {
 <dependency>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-testing</artifactId>
-    <version>5.2.0</version>
+    <version>6.0.0</version>
     <scope>test</scope>
 </dependency>
 ```

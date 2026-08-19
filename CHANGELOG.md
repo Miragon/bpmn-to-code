@@ -3,6 +3,28 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.0.0](https://github.com/Miragon/bpmn-to-code/compare/v5.2.0...v6.0.0) (2026-08-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **codegen:** drop redundant Flows and Compensations API sections ([#85](https://github.com/Miragon/bpmn-to-code/issues/85))
+* **core:** typed process navigation via reshaped Relations ([#55](https://github.com/Miragon/bpmn-to-code/issues/55))
+* **domain,json:** BPMN-aligned sealed domain model and process JSON v2 ([#81](https://github.com/Miragon/bpmn-to-code/issues/81))
+
+### Features
+
+* **core:** bundle process-model JSON schema in the jar ([#86](https://github.com/Miragon/bpmn-to-code/issues/86)) ([a1f9fe9](https://github.com/Miragon/bpmn-to-code/commit/a1f9fe9d80f6d7a57a1841c20633cbccd98644c2))
+* **core:** typed process navigation via reshaped Relations ([#55](https://github.com/Miragon/bpmn-to-code/issues/55)) ([3bcb956](https://github.com/Miragon/bpmn-to-code/commit/3bcb9560d6ed0351e035b38eed0a4457ad435e99))
+* **domain,json:** BPMN-aligned sealed domain model and process JSON v2 ([#81](https://github.com/Miragon/bpmn-to-code/issues/81)) ([a1d21b9](https://github.com/Miragon/bpmn-to-code/commit/a1d21b9710059adc96266657ebb7add07aea2681))
+* **json:** expose interrupting flag on boundary and event sub-process start events ([#78](https://github.com/Miragon/bpmn-to-code/issues/78)) ([21353f4](https://github.com/Miragon/bpmn-to-code/commit/21353f4b7e30335debc8a5546e37d446f213edbb))
+* **json:** expose zeebe message-subscription correlationKey in message-event properties ([#80](https://github.com/Miragon/bpmn-to-code/issues/80)) ([8cb7e18](https://github.com/Miragon/bpmn-to-code/commit/8cb7e182586238758a76eb29e0c4c67cbc8691ec))
+
+
+### Code Refactoring
+
+* **codegen:** drop redundant Flows and Compensations API sections ([#85](https://github.com/Miragon/bpmn-to-code/issues/85)) ([2f90f6f](https://github.com/Miragon/bpmn-to-code/commit/2f90f6f6c6a554c8a9b7591f9a921673c79257b1))
+
 ## [5.2.0](https://github.com/Miragon/bpmn-to-code/compare/v5.1.0...v5.2.0) (2026-08-03)
 
 
