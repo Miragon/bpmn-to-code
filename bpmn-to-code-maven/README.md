@@ -19,7 +19,7 @@ Add the `bpmn-to-code-runtime` dependency (it ships the shared types — `Proces
     <dependency>
         <groupId>io.miragon</groupId>
         <artifactId>bpmn-to-code-runtime</artifactId>
-        <version>5.2.0</version>
+        <version>6.0.0</version>
     </dependency>
 </dependencies>
 ```
@@ -36,7 +36,7 @@ BPMN files, where to output the generated API files, and how to format the outpu
         <plugin>
             <groupId>io.miragon</groupId>
             <artifactId>bpmn-to-code-maven</artifactId>
-            <version>5.2.0</version>
+            <version>6.0.0</version>
             <executions>
                 <execution>
                     <goals>
