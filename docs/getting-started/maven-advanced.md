@@ -6,11 +6,12 @@ bpmn-to-code itself doesn't support excluding specific files or running multiple
 
 Add separate `<execution>` blocks with their own `<configuration>` to generate from different file sets or engines:
 
+<!-- x-release-please-start-version -->
 ```xml
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.0.0</version>
+    <version>5.2.0</version>
     <executions>
         <!-- Camunda 7 processes -->
         <execution>
@@ -41,6 +42,7 @@ Add separate `<execution>` blocks with their own `<configuration>` to generate f
     </executions>
 </plugin>
 ```
+<!-- x-release-please-end -->
 
 Both executions run automatically during `mvn compile`.
 
@@ -48,6 +50,7 @@ Both executions run automatically during `mvn compile`.
 
 bpmn-to-code processes all files matching the `filePattern` glob — it has no built-in include/exclude logic. If you need to exclude specific files, use the [maven-resources-plugin](https://maven.apache.org/plugins/maven-resources-plugin/) to copy only the files you want into a staging directory, then point bpmn-to-code at that directory:
 
+<!-- x-release-please-start-version -->
 ```xml
 <!-- 1. Copy only the BPMN files you want -->
 <plugin>
@@ -80,7 +83,7 @@ bpmn-to-code processes all files matching the `filePattern` glob — it has no b
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.0.0</version>
+    <version>5.2.0</version>
     <executions>
         <execution>
             <goals><goal>generate-bpmn-api</goal></goals>
@@ -96,5 +99,6 @@ bpmn-to-code processes all files matching the `filePattern` glob — it has no b
     </configuration>
 </plugin>
 ```
+<!-- x-release-please-end -->
 
 The [maven-resources-plugin](https://maven.apache.org/plugins/maven-resources-plugin/) runs first (during `generate-sources`), then bpmn-to-code generates from the filtered files.

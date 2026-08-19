@@ -9,10 +9,16 @@
       "package-name": "bpmn-to-code",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
-        {
-          "type": "generic",
-          "path": "gradle.properties"
-        }
+        { "type": "generic", "path": "gradle.properties" },
+        { "type": "generic", "path": "README.md" },
+        { "type": "generic", "path": "bpmn-to-code-gradle/README.md" },
+        { "type": "generic", "path": "bpmn-to-code-maven/README.md" },
+        { "type": "generic", "path": "docs/getting-started/gradle.md" },
+        { "type": "generic", "path": "docs/getting-started/maven.md" },
+        { "type": "generic", "path": "docs/getting-started/maven-advanced.md" },
+        { "type": "generic", "path": "docs/validate/index.md" },
+        { "type": "generic", "path": "docs/validate/testing.md" },
+        { "type": "generic", "path": "docs/surface/json.md" }
       ]
     }
   }

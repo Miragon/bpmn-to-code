@@ -13,19 +13,22 @@ and ensure consistency between your BPMN model and your code.
 Add the `bpmn-to-code-runtime` dependency (it ships the shared types — `ProcessId`, `ElementId`, `MessageName`,
 `SignalName`, `VariableName`, and the BPMN metadata records — that the generated code references):
 
+<!-- x-release-please-start-version -->
 ```xml
 <dependencies>
     <dependency>
         <groupId>io.miragon</groupId>
         <artifactId>bpmn-to-code-runtime</artifactId>
-        <version>3.0.0</version>
+        <version>5.2.0</version>
     </dependency>
 </dependencies>
 ```
+<!-- x-release-please-end -->
 
 Then add the plugin configuration within the `<build>` section. It tells the plugin where to locate your
 BPMN files, where to output the generated API files, and how to format the output (language, package, engine).
 
+<!-- x-release-please-start-version -->
 ```xml
 
 <build>
@@ -33,7 +36,7 @@ BPMN files, where to output the generated API files, and how to format the outpu
         <plugin>
             <groupId>io.miragon</groupId>
             <artifactId>bpmn-to-code-maven</artifactId>
-            <version>3.0.0</version>
+            <version>5.2.0</version>
             <executions>
                 <execution>
                     <goals>
@@ -53,6 +56,7 @@ BPMN files, where to output the generated API files, and how to format the outpu
     </plugins>
 </build>
 ```
+<!-- x-release-please-end -->
 
 Once configured, bpmn-to-code-maven processes your BPMN files and generates type-safe API references that
 you can seamlessly integrate into your application—whether for testing, messaging, or managing worker tasks.

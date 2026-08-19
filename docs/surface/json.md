@@ -312,11 +312,12 @@ Run:
 
 ### Maven
 
+<!-- x-release-please-start-version -->
 ```xml
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.0.0</version>
+    <version>5.2.0</version>
     <executions>
         <execution>
             <id>generate-bpmn-json</id>
@@ -331,6 +332,7 @@ Run:
     </executions>
 </plugin>
 ```
+<!-- x-release-please-end -->
 
 ## Parameters
 

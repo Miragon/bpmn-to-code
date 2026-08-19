@@ -12,11 +12,13 @@ and ensure consistency between your BPMN model and your code.
 
 To get started, apply the plugin in your build.gradle.kts file:
 
+<!-- x-release-please-start-version -->
 ```kotlin
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "3.0.0"
+    id("io.miragon.bpmn-to-code-gradle") version "5.2.0"
 }
 ```
+<!-- x-release-please-end -->
 
 If the plugin can not be found yet, please make sure,
 that you've also added the gradle plugin repository to your settings.gradle.kts file:
