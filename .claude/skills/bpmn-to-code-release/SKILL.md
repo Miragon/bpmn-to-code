@@ -11,7 +11,7 @@ Releases are automated by [release-please](https://github.com/googleapis/release
 ## Normal flow
 
 1. **Conventional commits land on `main`.** `feat:` → minor, `fix:` → patch, `feat!:` / `BREAKING CHANGE` → major. Other types (`chore`, `docs`, `refactor`, `build`, `test`, …) do not bump.
-2. **Release-please opens / updates a PR** titled `chore(main): release <next-version>`. It touches only `gradle.properties`, `CHANGELOG.md`, and `.release-please-manifest.json`.
+2. **Release-please opens / updates a PR** titled `chore(main): release <next-version>`. It bumps `gradle.properties`, `CHANGELOG.md`, `.release-please-manifest.json`, and — via the `extra-files` list in `release-please-config.json` — the version in every install snippet in the READMEs and `docs/` (each wrapped in invisible `<!-- x-release-please-start-version -->` / `<!-- x-release-please-end -->` HTML-comment markers). Version-specific migration guides and ADRs are intentionally **not** registered and stay untouched.
 3. **Merge the Release PR** when you want to ship.
 4. **A published GitHub Release is created** (tag `v<version>` created atomically) with notes generated from the commits. The release is *not* a draft — publishing immediately is what guarantees the tag exists, which release-please needs to anchor the next changelog.
 5. **The same `Release` workflow run continues and pauses at the `release` approval gate.** Publishing is no longer a separate workflow reacting to the published release — the publish jobs run in the *same* run via `needs` + `release_created`. Open the workflow run and **approve the deployment** (or reject to abort). This is the human gate — it replaces the old "publish the draft" step.

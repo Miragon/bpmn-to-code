@@ -6,13 +6,14 @@ The bpmn-to-code Maven plugin generates type-safe Process API files from your BP
 
 Add the following to the `<build>` section of your `pom.xml`:
 
+<!-- x-release-please-start-version -->
 ```xml
 <build>
     <plugins>
         <plugin>
             <groupId>io.miragon</groupId>
             <artifactId>bpmn-to-code-maven</artifactId>
-            <version>6.0.0</version>
+            <version>5.2.0</version>
             <executions>
                 <execution>
                     <goals>
@@ -32,6 +33,7 @@ Add the following to the `<build>` section of your `pom.xml`:
     </plugins>
 </build>
 ```
+<!-- x-release-please-end -->
 
 See [Configuration](/guide/configuration) for all available parameters.
 
