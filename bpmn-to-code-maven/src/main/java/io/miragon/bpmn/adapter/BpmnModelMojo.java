@@ -52,7 +52,7 @@ public class BpmnModelMojo extends AbstractMojo {
 	
 	/**
 	 * Output language for code generation.
-	 * Valid values: KOTLIN, JAVA. Defaults to KOTLIN.
+	 * Valid values: KOTLIN, JAVA, CSHARP (beta). Defaults to KOTLIN.
 	 */
 	@Parameter(property = "outputLanguage", defaultValue = "KOTLIN")
 	private String outputLanguage;

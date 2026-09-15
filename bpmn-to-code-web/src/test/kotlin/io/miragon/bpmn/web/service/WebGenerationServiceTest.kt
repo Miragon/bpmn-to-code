@@ -47,6 +47,36 @@ class WebGenerationServiceTest {
     }
 
     @Test
+    fun `should generate C# API without the jvm runtime attachments`() {
+        // given: a valid Zeebe BPMN file with C# output language
+        val request = GenerateRequest(
+            files = listOf(
+                GenerateRequest.BpmnFileData(
+                    fileName = "c8-subscribe-newsletter.bpmn",
+                    content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
+                ),
+            ),
+            config = GenerateRequest.GenerationConfig(
+                outputLanguage = OutputLanguage.CSHARP,
+                processEngine = ProcessEngine.ZEEBE,
+            ),
+        )
+
+        // when: generating the API
+        val response = underTest.generate(request)
+
+        // then: a C# file is generated
+        assertThat(response.success).isTrue()
+        val generatedFile = response.files.first()
+        assertThat(generatedFile.fileName).describedAs("Should generate C# file").endsWith(".cs")
+        assertThat(generatedFile.content).contains("public static class", "newsletterSubscription")
+
+        // and: no JVM runtime is offered, because the generated C# depends on nothing
+        assertThat(response.libraryFiles).describedAs("Should not bundle jvm runtime sources").isEmpty()
+        assertThat(response.runtimeDependency).describedAs("Should not offer a jvm dependency").isNull()
+    }
+
+    @Test
     fun `should generate Java API from BPMN file`() {
         // given: a valid Zeebe BPMN file with Java output language
         val request = GenerateRequest(

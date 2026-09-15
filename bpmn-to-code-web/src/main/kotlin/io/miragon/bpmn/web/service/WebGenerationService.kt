@@ -3,6 +3,7 @@ package io.miragon.bpmn.web.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiInMemoryPlugin
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.web.model.GenerateRequest
 import io.miragon.bpmn.web.model.GenerateResponse
@@ -23,11 +24,12 @@ class WebGenerationService(
             val bpmnInputs = request.files.map { this.buildCommand(it) }
             val generatedApiFiles = this.executePlugin(request.config, bpmnInputs)
             val generatedFiles = generatedApiFiles.map { mapToResponse(it) }
+            val runsOnJvm = config.outputLanguage.runsOnJvm()
             return GenerateResponse(
                 success = true,
                 files = generatedFiles,
-                libraryFiles = librarySourceProvider.libraryFiles(),
-                runtimeDependency = librarySourceProvider.runtimeDependency(),
+                libraryFiles = if (runsOnJvm) librarySourceProvider.libraryFiles() else emptyList(),
+                runtimeDependency = if (runsOnJvm) librarySourceProvider.runtimeDependency() else null,
             )
         } catch (e: BpmnValidationException) {
             logger.error(e) { "BPMN validation failed during generation" }
@@ -59,6 +61,12 @@ class WebGenerationService(
             processName = processName,
         )
     }
+
+    /**
+     * `bpmn-to-code-runtime` is a JVM artifact, and the C# output deliberately depends on nothing, so
+     * offering its sources or a Gradle/Maven coordinate alongside a `.cs` file would be nonsense.
+     */
+    private fun OutputLanguage.runsOnJvm() = this != OutputLanguage.CSHARP
 
     private fun mapToResponse(
         apiFile: GeneratedApiFile,

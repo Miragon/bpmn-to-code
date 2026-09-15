@@ -63,7 +63,7 @@ Prepare the following changes to the build file. Use the example at `examples/gr
        filePattern = "<user-chosen-pattern>"
        outputFolderPath = "$projectDir/src/main/<kotlin|java>"
        packagePath = "<user-chosen-package>"
-       outputLanguage = OutputLanguage.<KOTLIN|JAVA>
+       outputLanguage = OutputLanguage.<KOTLIN|JAVA|CSHARP>
        processEngine = ProcessEngine.<engine>
    }
    ```

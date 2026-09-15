@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen
 
+import io.miragon.bpmn.adapter.outbound.codegen.builder.CSharpProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.JavaProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.KotlinProcessApiBuilder
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
@@ -27,6 +28,7 @@ internal class CodeGenerationAdapter(
         val processApiBuilders = mapOf(
             OutputLanguage.KOTLIN to KotlinProcessApiBuilder(),
             OutputLanguage.JAVA to JavaProcessApiBuilder(),
+            OutputLanguage.CSHARP to CSharpProcessApiBuilder(),
         )
     }
 }

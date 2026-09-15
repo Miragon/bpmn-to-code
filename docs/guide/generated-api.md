@@ -4,7 +4,8 @@ One file per BPMN process, containing type-safe constants for all extracted elem
 
 ## Structure
 
-The generated Process API is an `object` (Kotlin) or `class` (Java) with nested sections:
+The generated Process API is an `object` (Kotlin), `class` (Java) or `static class` (C#) with nested
+sections:
 
 | Section | Contents |
 |---------|----------|
@@ -23,6 +24,15 @@ The generated Process API is an `object` (Kotlin) or `class` (Java) with nested 
 > The full process shape — every sequence flow (with `sourceRef` / `targetRef` / `conditionExpression` / `isDefault`) and every element — lives in the [JSON export](/surface/json). The generated code API focuses on what JVM code references at compile time.
 
 Sections are only included when the BPMN model contains matching elements.
+
+::: warning C# (beta) omits `Relations`
+The C# target generates the constants sections only. `Relations` (and, for merged models, `Variants`)
+derives every node from `bpmn-to-code-runtime`, a JVM artifact with no C# counterpart yet, so it is left
+out rather than emitted half-working. C# also has no wrapper types at all — every value is a plain
+`const string`, which is why the generated `.cs` file needs no dependency. Variable direction is carried
+in an XML doc comment instead of in the type. See
+[Output Languages](/guide/configuration#output-languages).
+:::
 
 ## Full Example
 

@@ -10,7 +10,7 @@ Plugin must generate type-safe API code in multiple languages (Kotlin, Java) wit
 Use Strategy pattern with language-specific builders:
 
 ```kotlin
-Map<OutputLanguage, AbstractApiBuilder>
+Map<OutputLanguage, AbstractProcessApiBuilder<*>>
 ```
 
 Each builder implements code generation for its language using appropriate code generation libraries. Builders share common structure through abstract base class.
@@ -37,10 +37,15 @@ Each builder implements code generation for its language using appropriate code 
 
 ## Implementation
 ```kotlin
-val builder = mapOf(
-    OutputLanguage.KOTLIN to KotlinApiBuilder(),
-    OutputLanguage.JAVA to JavaApiBuilder()
+val processApiBuilders = mapOf(
+    OutputLanguage.KOTLIN to KotlinProcessApiBuilder(),
+    OutputLanguage.JAVA to JavaProcessApiBuilder(),
+    OutputLanguage.CSHARP to CSharpProcessApiBuilder(),
 )
 ```
 
 Builders generate identical API structures with language-specific syntax.
+
+> **Amended by [ADR 020](020-csharp-constants-only-output.md).** That last sentence no longer holds for
+> every target: the C# builder emits a constants-only subset and uses templated emission rather than a
+> poet library, because no C# equivalent of `bpmn-to-code-runtime` exists.

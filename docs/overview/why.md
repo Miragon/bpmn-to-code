@@ -148,8 +148,8 @@ The generation engine is the same everywhere. Pick the format that fits your wor
 
 | Format | Best for | Languages | |
 |---|---|---|---|
-| **Gradle plugin** | JVM projects using Gradle | Java, Kotlin | [Setup guide](/getting-started/gradle) |
-| **Maven plugin** | JVM projects using Maven | Java, Kotlin | [Setup guide](/getting-started/maven) |
-| **Web app** | Trying it out, one-off generation, non-JVM projects | Java, Kotlin | [Web app](/web/) |
+| **Gradle plugin** | JVM projects using Gradle | Java, Kotlin, C# (beta) | [Setup guide](/getting-started/gradle) |
+| **Maven plugin** | JVM projects using Maven | Java, Kotlin, C# (beta) | [Setup guide](/getting-started/maven) |
+| **Web app** | Trying it out, one-off generation, non-JVM projects | Java, Kotlin, C# (beta) | [Web app](/web/) |
 
-Output languages may diverge across formats in the future — the Web app is the natural place to add non-JVM languages, since there is no JVM build integration constraining the toolchain.
+C# is in beta and emits the constants only — see [Output Languages](/guide/configuration#output-languages). The Web app is the natural home for non-JVM languages, since there is no JVM build integration constraining the toolchain.
