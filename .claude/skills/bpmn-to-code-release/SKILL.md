@@ -40,6 +40,20 @@ gh workflow view "Release" --web
 
 If the Release PR doesn't appear after a push to `main`, the workflow run page shows why (usually: no Conventional commits with releasable types since the last tag).
 
+## Snapshots
+
+Snapshots are a separate, on-demand path — not part of the release flow. Dispatch
+`publish-snapshot.yml` with a `-SNAPSHOT` version to publish both the Maven Central
+snapshots (the `io.miragon` modules + Gradle plugin) and the `bpmn-to-code-web` Docker
+snapshot image in one run:
+
+```bash
+gh workflow run publish-snapshot.yml -f version=5.3.0-SNAPSHOT
+```
+
+The Docker snapshot is tagged with the `-SNAPSHOT` version only — it never moves `:latest`
+and never triggers an ops rollout.
+
 ## Manual publishing (fallback)
 
 Only if automation fails. Ask the user for confirmation first. There is no single
