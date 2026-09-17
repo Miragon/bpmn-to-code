@@ -65,7 +65,17 @@ function switchTab(tab) {
     document.getElementById('results-content').innerHTML = '';
     state.generatedFiles = [];
 
-    document.querySelector('.include-sources-toggle').style.display = tab === 'json' ? 'none' : '';
+    updateIncludeSourcesVisibility();
+}
+
+/**
+ * The library sources are the JVM `bpmn-to-code-runtime`; the C# output depends on nothing, so the
+ * toggle has nothing to offer there.
+ */
+function updateIncludeSourcesVisibility() {
+    const jvmTarget = document.getElementById('output-language').value !== 'CSHARP';
+    const visible = state.activeTab !== 'json' && jvmTarget;
+    document.querySelector('.include-sources-toggle').style.display = visible ? '' : 'none';
 }
 
 function setupEventListeners() {
@@ -94,6 +104,7 @@ function setupEventListeners() {
     });
 
     configForm.addEventListener('submit', handleGenerate);
+    document.getElementById('output-language').addEventListener('change', updateIncludeSourcesVisibility);
     document.querySelectorAll('.sample-btn').forEach(btn =>
         btn.addEventListener('click', () => loadSample(btn)));
 
@@ -289,10 +300,12 @@ async function handleGenerate(e) {
     }
 }
 
+const HIGHLIGHT_CLASSES = { KOTLIN: 'kotlin', JAVA: 'java', CSHARP: 'csharp' };
+
 function renderResults(files) {
     const languageClass = state.activeTab === 'json'
         ? 'json'
-        : (document.getElementById('output-language').value === 'JAVA' ? 'java' : 'kotlin');
+        : HIGHLIGHT_CLASSES[document.getElementById('output-language').value] || 'kotlin';
 
     document.getElementById('results-content').innerHTML = files.map((file, index) => {
         const icon = fileIconFor(file.fileName);
@@ -338,6 +351,7 @@ function fileIconFor(fileName) {
     const name = (fileName || '').toLowerCase();
     if (name.endsWith('.kt')) return { cls: 'ci-kt', label: 'Kt' };
     if (name.endsWith('.java')) return { cls: 'ci-jv', label: 'Jv' };
+    if (name.endsWith('.cs')) return { cls: 'ci-cs', label: 'C#' };
     if (name.endsWith('.json')) return { cls: 'ci-json', label: '{ }' };
     return { cls: 'ci-kt', label: 'Kt' };
 }

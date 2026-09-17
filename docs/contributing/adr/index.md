@@ -6,7 +6,7 @@
 
 - **Keeping models and code in sync**: Automatically extract process elements and generate code that references them
 - **Reducing manual effort**: Eliminate tedious manual referencing of BPMN element IDs, messages, and task types
-- **Enabling extensibility**: Support multiple process engines (Camunda 7, Zeebe) and output languages (Kotlin, Java)
+- **Enabling extensibility**: Support multiple process engines (Camunda 7, Zeebe, Operaton) and output languages (Kotlin, Java, C#)
 - **Promoting clean design**: Future styleguide validation will ensure BPMN models follow naming conventions and patterns
 
 The plugin transforms BPMN files into lightweight "Process API" code that integrates seamlessly with testing frameworks, messaging systems, and automation logic.
@@ -54,6 +54,7 @@ Document decisions that:
 ### Code Generation
 - [ADR 003: Generated API Structure](003-generated-api-structure.md) - Structure of generated Process APIs
 - [ADR 005: Strategy Pattern for Code Generation](005-strategy-pattern-code-generation.md) - Language-specific builders (Java/Kotlin)
+- [ADR 020: C# Output — Templated Emission, Constants Only](020-csharp-constants-only-output.md) - Beta C# target without the JVM runtime
 
 ### Multi-Engine Support
 - [ADR 004: Strategy Pattern for Multi-Engine](004-strategy-pattern-multi-engine.md) - Supporting Camunda 7 and Zeebe

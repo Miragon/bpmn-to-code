@@ -10,7 +10,7 @@ All plugin parameters, available for both the Gradle and Maven plugins.
 | `filePattern` | `String` | yes | — | Glob pattern to locate BPMN files (e.g. `src/main/resources/**/*.bpmn`) |
 | `outputFolderPath` | `String` | yes | — | Directory where generated code is written |
 | `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`) |
-| `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN` or `JAVA` |
+| `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (beta) |
 | `processEngine` | `ProcessEngine` | yes | — | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
 
 ## Process Engines
@@ -31,9 +31,25 @@ Operaton is an open-source fork of Camunda 7. It uses the same patterns for I/O 
 |----------|-------|-----------------|
 | Kotlin | `KOTLIN` | `object` with `const val` properties |
 | Java | `JAVA` | `class` with `public static final` fields |
+| C# | `CSHARP` | `static class` with `const string` fields — **beta**, constants only |
+
+::: warning C# is beta
+The C# target emits the **constants** sections only: process id, engine, element ids, call activities,
+messages, service tasks, timers, errors, escalations, signals and variables.
+
+The typed navigation DSL (`Relations` / `Variants`) is **not** generated. Every node of it derives from
+`bpmn-to-code-runtime`, which is a JVM artifact; until a C# counterpart exists, a partial navigation API
+could not compile. In exchange, the generated `.cs` file has **no dependencies at all** — drop it into a
+project and it builds.
+
+Direction of a process variable, which the JVM APIs carry in a wrapper type, is documented on each
+constant instead so it still shows up in IntelliSense.
+:::
 
 ::: info
-Currently, the Gradle plugin, Maven plugin, and Web app all emit the same set of languages. Future language support may differ per module — additional languages will likely appear in the Web app first.
+The Web app is the primary surface for C#. The Gradle and Maven plugins accept `CSHARP` as well — useful
+in a polyglot monorepo where the JVM build also generates the constants for a sibling .NET worker — but a
+pure .NET project has no JVM build to hook into.
 :::
 
 ## Examples

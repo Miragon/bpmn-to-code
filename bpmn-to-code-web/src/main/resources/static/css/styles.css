@@ -591,6 +591,7 @@ main { display: flex; flex-direction: column; gap: 20px; padding-bottom: 56px; }
 }
 .code-file-icon.ci-kt { background: linear-gradient(135deg, #7F52FF 0%, #C411E0 55%, #E44857 100%); }
 .code-file-icon.ci-jv { background: linear-gradient(135deg, #E76F00 0%, #F29111 100%); }
+.code-file-icon.ci-cs { background: linear-gradient(135deg, #68217A 0%, #9B4F96 100%); }
 .code-file-icon.ci-json { background: linear-gradient(135deg, #CE6C00 0%, #F5A623 100%); }
 .code-file-title-group {
     display: flex;

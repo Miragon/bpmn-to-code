@@ -66,22 +66,29 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Step 4: Quality gate — ktlint formatting + detekt static analysis.
+      # Step 4: .NET SDK — the C# process-api output is compiled by CSharpCompilationTest, which
+      # skips itself when no SDK is present. Installing it here is what makes that test a PR gate.
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '8.0'
+
+      # Step 5: Quality gate — ktlint formatting + detekt static analysis.
       # `--continue` so a single run collects EVERY finding across all modules and both tools
       # (Gradle otherwise aborts on the first failing task, hiding later modules/detekt). The build
       # still fails at the end if anything failed.
       - name: Run quality gate (ktlint + detekt)
         run: ./gradlew lintKotlin detekt --continue
 
-      # Step 5: Run Gradle build (compiles all modules and runs unit + integration tests;
+      # Step 6: Run Gradle build (compiles all modules and runs unit + integration tests;
       - name: Run Gradle Build
         run: ./gradlew build --warning-mode all
 
-      # Step 6: Enforce per-class test coverage (≥ 75%) for modules with in-process tests
+      # Step 7: Enforce per-class test coverage (≥ 75%) for modules with in-process tests
       - name: Check Coverage
         run: ./gradlew :bpmn-to-code-core:jacocoTestCoverageVerification :bpmn-to-code-web:jacocoTestCoverageVerification :bpmn-to-code-testing:jacocoTestCoverageVerification :bpmn-to-code-runtime:jacocoTestCoverageVerification
 
-      # Step 7: Post coverage summary as PR comment
+      # Step 8: Post coverage summary as PR comment
       - name: Post Coverage Comment
         if: always() && github.event_name == 'pull_request'
         env:
