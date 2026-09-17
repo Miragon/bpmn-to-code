@@ -65,12 +65,12 @@ class NormalisedExtensionTest {
         val model = extract(ZeebeDialect(), "c8-subscribe-newsletter")
 
         // then: what was left out of extensions is present in typed form, so nothing was lost
-        val task = model.allFlowNodes.single { it.id == "Activity_SendConfirmationMail" }
+        val task = model.allFlowNodes.single { it.id == "serviceTask_sendConfirmationMail" }
             as FlowNodeDefinition.Activity.Task
         assertThat(task.implementation?.reference).isEqualTo("newsletter.sendConfirmationMail")
         assertThat(task.ioMapping?.inputs?.map { it.target }).contains("subscriptionId")
 
-        val callActivity = model.allFlowNodes.single { it.id == "CallActivity_AbortRegistration" }
+        val callActivity = model.allFlowNodes.single { it.id == "callActivity_abortRegistration" }
             as FlowNodeDefinition.Activity.CallActivity
         assertThat(callActivity.definition.getValue()).isEqualTo("abort-registration")
     }
@@ -109,7 +109,7 @@ class NormalisedExtensionTest {
         val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
 
         // when: looking at the node that has it
-        val handler = model.allFlowNodes.single { it.id == "CompensationTask_DecrementSubscriptionCounter" }
+        val handler = model.allFlowNodes.single { it.id == "serviceTask_decrementSubscriptionCounter" }
             as FlowNodeDefinition.Activity.Task
 
         // then: the attribute is reported once, as a typed implementation

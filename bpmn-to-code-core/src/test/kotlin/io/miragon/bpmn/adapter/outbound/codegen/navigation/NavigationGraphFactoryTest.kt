@@ -21,17 +21,17 @@ class NavigationGraphFactoryTest {
     fun `root scope contains only top-level nodes and keeps subprocess children nested`() {
         val graph = NavigationGraphFactory.build(processGraph)
 
-        // given: five nodes declare parentId = SubProcess_Confirmation -> they live in the inner scope, not root
+        // given: five nodes declare parentId = subProcess_confirmation -> they live in the inner scope, not root
         assertThat(graph.nodes.map { it.propertyName })
             .contains("subProcessConfirmation", "startEventSubmitRegistrationForm", "serviceTaskIncrementSubscriptionCounter")
-            .doesNotContain("activityConfirmRegistration", "startEventRequestReceived", "timerEveryDay")
+            .doesNotContain("userTaskConfirmRegistration", "startEventRequestReceived", "timerEveryDay")
 
         val subProcess = graph.node("subProcessConfirmation")
         assertThat(subProcess.inner).isNotNull
         assertThat(subProcess.inner!!.nodes.map { it.propertyName })
             .containsExactlyInAnyOrder(
-                "activityConfirmRegistration",
-                "activitySendConfirmationMail",
+                "userTaskConfirmRegistration",
+                "serviceTaskSendConfirmationMail",
                 "endEventSubscriptionConfirmed",
                 "startEventRequestReceived",
                 "timerEveryDay",
@@ -42,7 +42,7 @@ class NavigationGraphFactoryTest {
     fun `sequence-flow and boundary edges are unified as target-named successors`() {
         val graph = NavigationGraphFactory.build(processGraph)
 
-        // given: SubProcess_Confirmation follows into the notification split gateway and has two boundary events attached
+        // given: subProcess_confirmation follows into the notification split gateway and has two boundary events attached
         assertThat(graph.node("subProcessConfirmation").successors.map { it.propertyName })
             .containsExactly("errorEventInvalidMail", "gatewaySplitNotifications", "timerAfter3Days")
 
@@ -62,8 +62,8 @@ class NavigationGraphFactoryTest {
 
         assertThat(inner.node("startEventRequestReceived").isStart).isTrue()
         assertThat(inner.node("startEventRequestReceived").successors.map { it.propertyName })
-            .containsExactly("activitySendConfirmationMail")
-        assertThat(inner.node("activityConfirmRegistration").successors.map { it.propertyName })
+            .containsExactly("serviceTaskSendConfirmationMail")
+        assertThat(inner.node("userTaskConfirmRegistration").successors.map { it.propertyName })
             .containsExactly("endEventSubscriptionConfirmed", "timerEveryDay")
     }
 
@@ -88,8 +88,8 @@ class NavigationGraphFactoryTest {
         assertThat(serviceTask.objectName).isEqualTo("ServiceTaskIncrementSubscriptionCounter")
         assertThat(serviceTask.name).isNull() // no displayName in the model
 
-        // ActivityConfirmRegistration declares displayName "Confirm registration"
-        val confirm = graph.node("subProcessConfirmation").inner!!.node("activityConfirmRegistration")
+        // userTaskConfirmRegistration declares displayName "Confirm registration"
+        val confirm = graph.node("subProcessConfirmation").inner!!.node("userTaskConfirmRegistration")
         assertThat(confirm.name).isEqualTo("Confirm registration")
     }
 

@@ -2,9 +2,9 @@
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_180pfvm" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.45.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
   <bpmn:process id="sendNewsletter" isExecutable="true">
     <bpmn:startEvent id="startEvent_editionCreated" name="Newsletter edition created">
-      <bpmn:outgoing>Flow_0bianz5</bpmn:outgoing>
+      <bpmn:outgoing>flow_editionToLoadSubscribers</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="Flow_0bianz5" sourceRef="startEvent_editionCreated" targetRef="serviceTask_loadSubscribers" />
+    <bpmn:sequenceFlow id="flow_editionToLoadSubscribers" sourceRef="startEvent_editionCreated" targetRef="serviceTask_loadSubscribers" />
     <bpmn:serviceTask id="serviceTask_loadSubscribers" name="Load subscribers">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="newsletter.loadSubscribers" />
@@ -13,28 +13,28 @@
           <zeebe:output source="=author" target="author" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0bianz5</bpmn:incoming>
-      <bpmn:outgoing>Flow_04andb8</bpmn:outgoing>
+      <bpmn:incoming>flow_editionToLoadSubscribers</bpmn:incoming>
+      <bpmn:outgoing>flow_loadSubscribersToGateway</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_04andb8" sourceRef="serviceTask_loadSubscribers" targetRef="gateway_hasSubscribers" />
-    <bpmn:exclusiveGateway id="gateway_hasSubscribers" name="Has subscribers?" default="Flow_1jogut0">
-      <bpmn:incoming>Flow_04andb8</bpmn:incoming>
-      <bpmn:outgoing>Flow_1jogut0</bpmn:outgoing>
-      <bpmn:outgoing>Flow_1gsz7wd</bpmn:outgoing>
+    <bpmn:sequenceFlow id="flow_loadSubscribersToGateway" sourceRef="serviceTask_loadSubscribers" targetRef="gateway_hasSubscribers" />
+    <bpmn:exclusiveGateway id="gateway_hasSubscribers" name="Has subscribers?" default="flow_hasSubscribers">
+      <bpmn:incoming>flow_loadSubscribersToGateway</bpmn:incoming>
+      <bpmn:outgoing>flow_hasSubscribers</bpmn:outgoing>
+      <bpmn:outgoing>flow_noSubscribers</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_1jogut0" name="Yes" sourceRef="gateway_hasSubscribers" targetRef="serviceTask_sendToSubscriber" />
+    <bpmn:sequenceFlow id="flow_hasSubscribers" name="Yes" sourceRef="gateway_hasSubscribers" targetRef="serviceTask_sendToSubscriber" />
     <bpmn:endEvent id="endEvent_noSubscribers" name="No subscribers found">
-      <bpmn:incoming>Flow_1gsz7wd</bpmn:incoming>
+      <bpmn:incoming>flow_noSubscribers</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1gsz7wd" name="No" sourceRef="gateway_hasSubscribers" targetRef="endEvent_noSubscribers">
+    <bpmn:sequenceFlow id="flow_noSubscribers" name="No" sourceRef="gateway_hasSubscribers" targetRef="endEvent_noSubscribers">
       <bpmn:conditionExpression>=subscribers.size() &gt; 0</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:serviceTask id="serviceTask_sendToSubscriber" name="Send to subscriber">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="newsletter.sendMailToSubscriber" />
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1jogut0</bpmn:incoming>
-      <bpmn:outgoing>Flow_1ruayvl</bpmn:outgoing>
+      <bpmn:incoming>flow_hasSubscribers</bpmn:incoming>
+      <bpmn:outgoing>flow_sendToNotifyAuthor</bpmn:outgoing>
       <bpmn:multiInstanceLoopCharacteristics isSequential="true">
         <bpmn:extensionElements>
           <zeebe:loopCharacteristics inputCollection="=subscribers" inputElement="subscriber" />
@@ -44,7 +44,7 @@
     <bpmn:endEvent id="endEvent_editionSent" name="Newsletter edition send">
       <bpmn:incoming>Flow_1conn0</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1ruayvl" sourceRef="serviceTask_sendToSubscriber" targetRef="serviceTask_notifyAuthor" />
+    <bpmn:sequenceFlow id="flow_sendToNotifyAuthor" sourceRef="serviceTask_sendToSubscriber" targetRef="serviceTask_notifyAuthor" />
     <bpmn:serviceTask id="serviceTask_notifyAuthor" name="Notify authors">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="newsletter.notifyAuthors" />
@@ -52,15 +52,15 @@
           <zeebe:input source="null" target="test" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1ruayvl</bpmn:incoming>
-      <bpmn:outgoing>Flow_0v2v55n</bpmn:outgoing>
+      <bpmn:incoming>flow_sendToNotifyAuthor</bpmn:incoming>
+      <bpmn:outgoing>flow_notifyAuthorToEditionSent</bpmn:outgoing>
       <bpmn:multiInstanceLoopCharacteristics>
         <bpmn:extensionElements>
           <zeebe:loopCharacteristics inputCollection="=authors" inputElement="author" outputCollection="results" outputElement="=result" />
         </bpmn:extensionElements>
       </bpmn:multiInstanceLoopCharacteristics>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_0v2v55n" sourceRef="serviceTask_notifyAuthor" targetRef="serviceTask_publishNewsletter" />
+    <bpmn:sequenceFlow id="flow_notifyAuthorToEditionSent" sourceRef="serviceTask_notifyAuthor" targetRef="serviceTask_publishNewsletter" />
     <bpmn:serviceTask id="serviceTask_publishNewsletter" name="Publish newsletter online" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="io.camunda:http-json:1" />
@@ -70,82 +70,82 @@
           <zeebe:output source="=response" target="apiResponse" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0v2v55n</bpmn:incoming>
+      <bpmn:incoming>flow_notifyAuthorToEditionSent</bpmn:incoming>
       <bpmn:outgoing>Flow_1conn0</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1conn0" sourceRef="serviceTask_publishNewsletter" targetRef="endEvent_editionSent" />
     <bpmn:subProcess id="eventSubProcess_errorHandling" name="Error handling" triggeredByEvent="true">
       <bpmn:startEvent id="event_mailRejected" name="Mail rejected">
-        <bpmn:outgoing>Flow_0vtppnk</bpmn:outgoing>
-        <bpmn:messageEventDefinition id="MessageEventDefinition_12zsezj" messageRef="Message_3bq0n3s" />
+        <bpmn:outgoing>flow_mailRejectedToAnalyze</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="messageEventDefinition_mailRejected" messageRef="message_mailRejected" />
       </bpmn:startEvent>
-      <bpmn:sequenceFlow id="Flow_0vtppnk" sourceRef="event_mailRejected" targetRef="serviceTask_analyzeError" />
+      <bpmn:sequenceFlow id="flow_mailRejectedToAnalyze" sourceRef="event_mailRejected" targetRef="serviceTask_analyzeError" />
       <bpmn:serviceTask id="serviceTask_analyzeError" name="Analyze error">
         <bpmn:extensionElements>
           <zeebe:taskDefinition type="newsletter.analyzeSendError" />
         </bpmn:extensionElements>
-        <bpmn:incoming>Flow_0vtppnk</bpmn:incoming>
-        <bpmn:outgoing>Flow_13nmnag</bpmn:outgoing>
+        <bpmn:incoming>flow_mailRejectedToAnalyze</bpmn:incoming>
+        <bpmn:outgoing>flow_analyzeToCanSendAgain</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:exclusiveGateway id="gateway_canSendAgain" name="Can re-send?" default="Flow_1izucof">
-        <bpmn:incoming>Flow_13nmnag</bpmn:incoming>
-        <bpmn:outgoing>Flow_1izucof</bpmn:outgoing>
-        <bpmn:outgoing>Flow_18nf2jh</bpmn:outgoing>
+      <bpmn:exclusiveGateway id="gateway_canSendAgain" name="Can re-send?" default="flow_canSendAgain">
+        <bpmn:incoming>flow_analyzeToCanSendAgain</bpmn:incoming>
+        <bpmn:outgoing>flow_canSendAgain</bpmn:outgoing>
+        <bpmn:outgoing>flow_cannotSendAgain</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="Flow_13nmnag" sourceRef="serviceTask_analyzeError" targetRef="gateway_canSendAgain" />
-      <bpmn:sequenceFlow id="Flow_1izucof" name="Yes" sourceRef="gateway_canSendAgain" targetRef="serviceTask_sendMailAgain" />
-      <bpmn:sequenceFlow id="Flow_0vym6nu" sourceRef="serviceTask_sendMailAgain" targetRef="eventGateway_afterSendingAgain" />
+      <bpmn:sequenceFlow id="flow_analyzeToCanSendAgain" sourceRef="serviceTask_analyzeError" targetRef="gateway_canSendAgain" />
+      <bpmn:sequenceFlow id="flow_canSendAgain" name="Yes" sourceRef="gateway_canSendAgain" targetRef="serviceTask_sendMailAgain" />
+      <bpmn:sequenceFlow id="flow_sendAgainToEventGateway" sourceRef="serviceTask_sendMailAgain" targetRef="eventGateway_afterSendingAgain" />
       <bpmn:eventBasedGateway id="eventGateway_afterSendingAgain">
-        <bpmn:incoming>Flow_0vym6nu</bpmn:incoming>
-        <bpmn:outgoing>Flow_0enjkoe</bpmn:outgoing>
-        <bpmn:outgoing>Flow_081cykl</bpmn:outgoing>
+        <bpmn:incoming>flow_sendAgainToEventGateway</bpmn:incoming>
+        <bpmn:outgoing>flow_eventGatewayToTimer</bpmn:outgoing>
+        <bpmn:outgoing>flow_eventGatewayToMailRejectedAgain</bpmn:outgoing>
       </bpmn:eventBasedGateway>
-      <bpmn:sequenceFlow id="Flow_18nf2jh" name="No" sourceRef="gateway_canSendAgain" targetRef="escalationEndEvent_nofitySupport">
+      <bpmn:sequenceFlow id="flow_cannotSendAgain" name="No" sourceRef="gateway_canSendAgain" targetRef="escalationEndEvent_nofitySupport">
         <bpmn:conditionExpression>=canBeResolved = false</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:serviceTask id="serviceTask_sendMailAgain" name="Send mail again">
         <bpmn:extensionElements>
           <zeebe:taskDefinition type="newsletter.sendMailToSubscriber" />
         </bpmn:extensionElements>
-        <bpmn:incoming>Flow_1izucof</bpmn:incoming>
-        <bpmn:outgoing>Flow_0vym6nu</bpmn:outgoing>
+        <bpmn:incoming>flow_canSendAgain</bpmn:incoming>
+        <bpmn:outgoing>flow_sendAgainToEventGateway</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:sequenceFlow id="Flow_0enjkoe" sourceRef="eventGateway_afterSendingAgain" targetRef="timer_noRejectionForOneDay" />
+      <bpmn:sequenceFlow id="flow_eventGatewayToTimer" sourceRef="eventGateway_afterSendingAgain" targetRef="timer_noRejectionForOneDay" />
       <bpmn:intermediateCatchEvent id="timer_noRejectionForOneDay" name="No rejection for 1 day">
-        <bpmn:incoming>Flow_0enjkoe</bpmn:incoming>
-        <bpmn:outgoing>Flow_0338xzf</bpmn:outgoing>
-        <bpmn:timerEventDefinition id="TimerEventDefinition_1w1lmdp">
+        <bpmn:incoming>flow_eventGatewayToTimer</bpmn:incoming>
+        <bpmn:outgoing>flow_timerToIssueResolved</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="timerEventDefinition_noRejectionForOneDay">
           <bpmn:timeDuration>PT1D</bpmn:timeDuration>
         </bpmn:timerEventDefinition>
       </bpmn:intermediateCatchEvent>
       <bpmn:endEvent id="escalationEndEvent_nofitySupport" name="Notify support">
-        <bpmn:incoming>Flow_18nf2jh</bpmn:incoming>
-        <bpmn:escalationEventDefinition id="EscalationEventDefinition_0v78ov7" escalationRef="Escalation_2gr27c9" />
+        <bpmn:incoming>flow_cannotSendAgain</bpmn:incoming>
+        <bpmn:escalationEventDefinition id="escalationEventDefinition_notifySupport" escalationRef="escalation_notifySupport" />
       </bpmn:endEvent>
       <bpmn:intermediateCatchEvent id="event_mailRejectedAgain" name="Mail rejected again">
-        <bpmn:incoming>Flow_081cykl</bpmn:incoming>
-        <bpmn:outgoing>Flow_0x9thpq</bpmn:outgoing>
-        <bpmn:messageEventDefinition id="MessageEventDefinition_1wq8qup" messageRef="Message_0qejt6h" />
+        <bpmn:incoming>flow_eventGatewayToMailRejectedAgain</bpmn:incoming>
+        <bpmn:outgoing>flow_mailRejectedAgainToEscalation</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="messageEventDefinition_mailRejectedAgain" messageRef="message_mailRejectedAgain" />
       </bpmn:intermediateCatchEvent>
-      <bpmn:sequenceFlow id="Flow_081cykl" sourceRef="eventGateway_afterSendingAgain" targetRef="event_mailRejectedAgain" />
-      <bpmn:sequenceFlow id="Flow_0x9thpq" sourceRef="event_mailRejectedAgain" targetRef="escalationEndEvent_nofitySupportAfterRepeatedError" />
+      <bpmn:sequenceFlow id="flow_eventGatewayToMailRejectedAgain" sourceRef="eventGateway_afterSendingAgain" targetRef="event_mailRejectedAgain" />
+      <bpmn:sequenceFlow id="flow_mailRejectedAgainToEscalation" sourceRef="event_mailRejectedAgain" targetRef="escalationEndEvent_nofitySupportAfterRepeatedError" />
       <bpmn:endEvent id="escalationEndEvent_nofitySupportAfterRepeatedError" name="Notify support">
-        <bpmn:incoming>Flow_0x9thpq</bpmn:incoming>
-        <bpmn:escalationEventDefinition id="EscalationEventDefinition_0y07we7" escalationRef="Escalation_2gr27c9" />
+        <bpmn:incoming>flow_mailRejectedAgainToEscalation</bpmn:incoming>
+        <bpmn:escalationEventDefinition id="escalationEventDefinition_notifySupportAfterRepeatedError" escalationRef="escalation_notifySupport" />
       </bpmn:endEvent>
       <bpmn:endEvent id="endEvent_issueResolved" name="Temporary issue resolved">
-        <bpmn:incoming>Flow_0338xzf</bpmn:incoming>
+        <bpmn:incoming>flow_timerToIssueResolved</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="Flow_0338xzf" sourceRef="timer_noRejectionForOneDay" targetRef="endEvent_issueResolved" />
+      <bpmn:sequenceFlow id="flow_timerToIssueResolved" sourceRef="timer_noRejectionForOneDay" targetRef="endEvent_issueResolved" />
     </bpmn:subProcess>
   </bpmn:process>
-  <bpmn:escalation id="Escalation_2gr27c9" name="escalation_notifySupport" escalationCode="200" />
-  <bpmn:message id="Message_0qejt6h" name="Message_MailRejectedAgain">
+  <bpmn:escalation id="escalation_notifySupport" name="escalation_notifySupport" escalationCode="200" />
+  <bpmn:message id="message_mailRejectedAgain" name="Message_MailRejectedAgain">
     <bpmn:extensionElements>
       <zeebe:subscription correlationKey="=mailId" />
     </bpmn:extensionElements>
   </bpmn:message>
-  <bpmn:message id="Message_3bq0n3s" name="Message_MailRejected">
+  <bpmn:message id="message_mailRejected" name="Message_MailRejected">
     <bpmn:extensionElements>
       <zeebe:subscription correlationKey="=mailId" />
     </bpmn:extensionElements>
@@ -244,26 +244,26 @@
           <dc:Bounds x="940" y="475" width="81" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_0vtppnk_di" bpmnElement="Flow_0vtppnk">
+      <bpmndi:BPMNEdge id="flow_mailRejectedToAnalyze_di" bpmnElement="flow_mailRejectedToAnalyze">
         <di:waypoint x="253" y="450" />
         <di:waypoint x="305" y="450" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_13nmnag_di" bpmnElement="Flow_13nmnag">
+      <bpmndi:BPMNEdge id="flow_analyzeToCanSendAgain_di" bpmnElement="flow_analyzeToCanSendAgain">
         <di:waypoint x="405" y="450" />
         <di:waypoint x="460" y="450" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1izucof_di" bpmnElement="Flow_1izucof">
+      <bpmndi:BPMNEdge id="flow_canSendAgain_di" bpmnElement="flow_canSendAgain">
         <di:waypoint x="510" y="450" />
         <di:waypoint x="565" y="450" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="529" y="432" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0vym6nu_di" bpmnElement="Flow_0vym6nu">
+      <bpmndi:BPMNEdge id="flow_sendAgainToEventGateway_di" bpmnElement="flow_sendAgainToEventGateway">
         <di:waypoint x="665" y="450" />
         <di:waypoint x="720" y="450" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_18nf2jh_di" bpmnElement="Flow_18nf2jh">
+      <bpmndi:BPMNEdge id="flow_cannotSendAgain_di" bpmnElement="flow_cannotSendAgain">
         <di:waypoint x="485" y="475" />
         <di:waypoint x="485" y="560" />
         <di:waypoint x="597" y="560" />
@@ -271,39 +271,39 @@
           <dc:Bounds x="493" y="515" width="15" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0enjkoe_di" bpmnElement="Flow_0enjkoe">
+      <bpmndi:BPMNEdge id="flow_eventGatewayToTimer_di" bpmnElement="flow_eventGatewayToTimer">
         <di:waypoint x="770" y="450" />
         <di:waypoint x="837" y="450" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_081cykl_di" bpmnElement="Flow_081cykl">
+      <bpmndi:BPMNEdge id="flow_eventGatewayToMailRejectedAgain_di" bpmnElement="flow_eventGatewayToMailRejectedAgain">
         <di:waypoint x="745" y="475" />
         <di:waypoint x="745" y="560" />
         <di:waypoint x="837" y="560" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0x9thpq_di" bpmnElement="Flow_0x9thpq">
+      <bpmndi:BPMNEdge id="flow_mailRejectedAgainToEscalation_di" bpmnElement="flow_mailRejectedAgainToEscalation">
         <di:waypoint x="873" y="560" />
         <di:waypoint x="962" y="560" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0338xzf_di" bpmnElement="Flow_0338xzf">
+      <bpmndi:BPMNEdge id="flow_timerToIssueResolved_di" bpmnElement="flow_timerToIssueResolved">
         <di:waypoint x="873" y="450" />
         <di:waypoint x="962" y="450" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0bianz5_di" bpmnElement="Flow_0bianz5">
+      <bpmndi:BPMNEdge id="flow_editionToLoadSubscribers_di" bpmnElement="flow_editionToLoadSubscribers">
         <di:waypoint x="218" y="120" />
         <di:waypoint x="270" y="120" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_04andb8_di" bpmnElement="Flow_04andb8">
+      <bpmndi:BPMNEdge id="flow_loadSubscribersToGateway_di" bpmnElement="flow_loadSubscribersToGateway">
         <di:waypoint x="370" y="120" />
         <di:waypoint x="415" y="120" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1jogut0_di" bpmnElement="Flow_1jogut0">
+      <bpmndi:BPMNEdge id="flow_hasSubscribers_di" bpmnElement="flow_hasSubscribers">
         <di:waypoint x="465" y="120" />
         <di:waypoint x="510" y="120" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="471" y="102" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1gsz7wd_di" bpmnElement="Flow_1gsz7wd">
+      <bpmndi:BPMNEdge id="flow_noSubscribers_di" bpmnElement="flow_noSubscribers">
         <di:waypoint x="440" y="145" />
         <di:waypoint x="440" y="250" />
         <di:waypoint x="542" y="250" />
@@ -311,11 +311,11 @@
           <dc:Bounds x="448" y="195" width="15" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1ruayvl_di" bpmnElement="Flow_1ruayvl">
+      <bpmndi:BPMNEdge id="flow_sendToNotifyAuthor_di" bpmnElement="flow_sendToNotifyAuthor">
         <di:waypoint x="610" y="120" />
         <di:waypoint x="650" y="120" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0v2v55n_di" bpmnElement="Flow_0v2v55n">
+      <bpmndi:BPMNEdge id="flow_notifyAuthorToEditionSent_di" bpmnElement="flow_notifyAuthorToEditionSent">
         <di:waypoint x="750" y="120" />
         <di:waypoint x="790" y="120" />
       </bpmndi:BPMNEdge>

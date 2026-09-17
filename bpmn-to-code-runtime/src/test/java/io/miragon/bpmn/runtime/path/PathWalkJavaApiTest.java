@@ -24,26 +24,26 @@ class PathWalkJavaApiTest {
             .onto(n -> n.subProcessConfirmation())
             .inside(Relations.subProcessConfirmation().inner(), s ->
                 PathWalk.from(s.startEventRequestReceived())
-                    .then(n -> n.activitySendConfirmationMail())
-                    .then(n -> n.activityConfirmRegistration())
+                    .then(n -> n.serviceTaskSendConfirmationMail())
+                    .then(n -> n.userTaskConfirmRegistration())
                     .end(n -> n.endEventSubscriptionConfirmed()))
             .then(n -> n.gatewaySplitNotifications())
-            .then(n -> n.activitySendWelcomeMail())
+            .then(n -> n.serviceTaskSendWelcomeMail())
             .then(n -> n.gatewayJoinNotifications())
             .end(n -> n.endEventRegistrationCompleted())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "EndEvent_SubscriptionConfirmed",
-            "Gateway_SplitNotifications",
-            "Activity_SendWelcomeMail",
-            "Gateway_JoinNotifications",
-            "EndEvent_RegistrationCompleted"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "endEvent_subscriptionConfirmed",
+            "gateway_splitNotifications",
+            "serviceTask_sendWelcomeMail",
+            "gateway_joinNotifications",
+            "endEvent_registrationCompleted"
         );
     }
 
@@ -52,22 +52,22 @@ class PathWalkJavaApiTest {
         var ids = PathWalk.from(Relations.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
             .enter(Relations.subProcessConfirmation().inner(), s -> s.startEventRequestReceived())
-            .then(n -> n.activitySendConfirmationMail())
-            .then(n -> n.activityConfirmRegistration())
+            .then(n -> n.serviceTaskSendConfirmationMail())
+            .then(n -> n.userTaskConfirmRegistration())
             .interruptedBy(Relations.subProcessConfirmation(), n -> n.timerAfter3Days())
             .then(n -> n.callActivityAbortRegistration())
             .end(n -> n.compensationEndEventRegistrationAborted())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_After3Days",
-            "CallActivity_AbortRegistration",
-            "CompensationEndEvent_RegistrationAborted"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_after3Days",
+            "callActivity_abortRegistration",
+            "compensationEndEvent_registrationAborted"
         );
     }
 
@@ -76,18 +76,18 @@ class PathWalkJavaApiTest {
         var ids = PathWalk.from(Relations.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
             .enter(Relations.subProcessConfirmation().inner(), s -> s.startEventRequestReceived())
-            .then(n -> n.activitySendConfirmationMail())
+            .then(n -> n.serviceTaskSendConfirmationMail())
             .interruptedBy(Relations.subProcessConfirmation(), n -> n.errorEventInvalidMail())
             .end(n -> n.endEventRegistrationNotPossible())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "ErrorEvent_InvalidMail",
-            "EndEvent_RegistrationNotPossible"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "errorEvent_invalidMail",
+            "endEvent_registrationNotPossible"
         );
     }
 
@@ -96,44 +96,44 @@ class PathWalkJavaApiTest {
         var trail = PathWalk.from(Relations.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
             .enter(Relations.subProcessConfirmation().inner(), s -> s.startEventRequestReceived())
-            .then(n -> n.activitySendConfirmationMail())
-            .then(n -> n.activityConfirmRegistration())
+            .then(n -> n.serviceTaskSendConfirmationMail())
+            .then(n -> n.userTaskConfirmRegistration())
             .then(n -> n.timerEveryDay())
-            .then(n -> n.activitySendConfirmationMail())
-            .then(n -> n.activityConfirmRegistration())
+            .then(n -> n.serviceTaskSendConfirmationMail())
+            .then(n -> n.userTaskConfirmRegistration())
             .end(n -> n.endEventSubscriptionConfirmed());
 
         assertThat(trail.getIds()).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_EveryDay",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "EndEvent_SubscriptionConfirmed"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_everyDay",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "endEvent_subscriptionConfirmed"
         );
         assertThat(trail.getDistinctIds()).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_EveryDay",
-            "EndEvent_SubscriptionConfirmed"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_everyDay",
+            "endEvent_subscriptionConfirmed"
         );
     }
 
     @Test
     void parallelBranchesUnionIntoADeduplicatedSetViaNodesOf() {
         List<FlowNode> welcomeBranch = PathWalk.from(Relations.gatewaySplitNotifications())
-            .then(n -> n.activitySendWelcomeMail())
+            .then(n -> n.serviceTaskSendWelcomeMail())
             .then(n -> n.gatewayJoinNotifications())
             .end(n -> n.endEventRegistrationCompleted())
             .getNodes();
         List<FlowNode> notifyBranch = PathWalk.from(Relations.gatewaySplitNotifications())
-            .then(n -> n.activityNotifyCommunity())
+            .then(n -> n.serviceTaskNotifyCommunity())
             .then(n -> n.gatewayJoinNotifications())
             .end(n -> n.endEventRegistrationCompleted())
             .getNodes();
@@ -143,7 +143,7 @@ class PathWalkJavaApiTest {
             .toList();
 
         assertThat(ids)
-            .contains("Activity_SendWelcomeMail", "Activity_NotifyCommunity", "Gateway_JoinNotifications")
+            .contains("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity", "gateway_joinNotifications")
             .doesNotHaveDuplicates();
     }
 
@@ -151,19 +151,19 @@ class PathWalkJavaApiTest {
     void jumpToReAnchorsToTheForkToWalkTheSecondParallelBranch() {
         // RiskyNavigation is not enforced for Java callers (no @OptIn equivalent) — the intent is documented.
         var ids = PathWalk.from(Relations.gatewaySplitNotifications())
-            .then(n -> n.activitySendWelcomeMail())
+            .then(n -> n.serviceTaskSendWelcomeMail())
             .jumpTo(Relations.gatewaySplitNotifications())
-            .then(n -> n.activityNotifyCommunity())
+            .then(n -> n.serviceTaskNotifyCommunity())
             .then(n -> n.gatewayJoinNotifications())
             .end(n -> n.endEventRegistrationCompleted())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "Gateway_SplitNotifications",
-            "Activity_SendWelcomeMail",
-            "Activity_NotifyCommunity",
-            "Gateway_JoinNotifications",
-            "EndEvent_RegistrationCompleted"
+            "gateway_splitNotifications",
+            "serviceTask_sendWelcomeMail",
+            "serviceTask_notifyCommunity",
+            "gateway_joinNotifications",
+            "endEvent_registrationCompleted"
         );
     }
 
@@ -172,13 +172,13 @@ class PathWalkJavaApiTest {
         // Newsletter has no consecutively-repeating node, so this is an isolated mechanic check that also
         // exercises the instance-level nodes / ids / distinctIds accessors (mid-walk, before any end).
         var walk = PathWalk.from(Relations.gatewaySplitNotifications())
-            .thenMultipleTimes(2, n -> n.activitySendWelcomeMail());
+            .thenMultipleTimes(2, n -> n.serviceTaskSendWelcomeMail());
 
         assertThat(walk.getIds())
-            .containsExactly("Gateway_SplitNotifications", "Activity_SendWelcomeMail", "Activity_SendWelcomeMail");
+            .containsExactly("gateway_splitNotifications", "serviceTask_sendWelcomeMail", "serviceTask_sendWelcomeMail");
         assertThat(walk.getDistinctIds())
-            .containsExactly("Gateway_SplitNotifications", "Activity_SendWelcomeMail");
+            .containsExactly("gateway_splitNotifications", "serviceTask_sendWelcomeMail");
         assertThat(walk.getNodes().stream().map(n -> n.getId().getValue()).toList())
-            .containsExactly("Gateway_SplitNotifications", "Activity_SendWelcomeMail", "Activity_SendWelcomeMail");
+            .containsExactly("gateway_splitNotifications", "serviceTask_sendWelcomeMail", "serviceTask_sendWelcomeMail");
     }
 }

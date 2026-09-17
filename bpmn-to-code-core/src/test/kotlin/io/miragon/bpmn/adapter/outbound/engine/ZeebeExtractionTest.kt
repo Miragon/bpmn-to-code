@@ -41,108 +41,108 @@ class ZeebeExtractionTest {
 
         // the root scope holds only root-level nodes; the confirmation sub-process owns its own children
         assertThat(bpmnModel.flowNodes.mapNotNull { it.id }).containsExactlyInAnyOrder(
-            "CallActivity_AbortRegistration",
-            "Activity_SendWelcomeMail",
-            "Activity_NotifyCommunity",
-            "Gateway_SplitNotifications",
-            "Gateway_JoinNotifications",
-            "CompensationEndEvent_RegistrationAborted",
-            "CompensationEvent_OnSubscriptionCounter",
-            "CompensationTask_DecrementSubscriptionCounter",
-            "EndEvent_RegistrationCompleted",
-            "EndEvent_RegistrationNotPossible",
-            "ErrorEvent_InvalidMail",
+            "callActivity_abortRegistration",
+            "serviceTask_sendWelcomeMail",
+            "serviceTask_notifyCommunity",
+            "gateway_splitNotifications",
+            "gateway_joinNotifications",
+            "compensationEndEvent_registrationAborted",
+            "compensationEvent_onSubscriptionCounter",
+            "serviceTask_decrementSubscriptionCounter",
+            "endEvent_registrationCompleted",
+            "endEvent_registrationNotPossible",
+            "errorEvent_invalidMail",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_SubmitRegistrationForm",
-            "SubProcess_Confirmation",
-            "Timer_After3Days",
+            "startEvent_submitRegistrationForm",
+            "subProcess_confirmation",
+            "timer_after3Days",
         )
 
         // the sub-process nests its children and reports them through the flat view with the right parent
-        val subProcess = node("SubProcess_Confirmation") as FlowNodeDefinition.Activity.SubProcess
+        val subProcess = node("subProcess_confirmation") as FlowNodeDefinition.Activity.SubProcess
         assertThat(subProcess.kind).isEqualTo(SubProcessKind.PLAIN)
         assertThat(subProcess.flowNodes.mapNotNull { it.id }).containsExactlyInAnyOrder(
-            "Activity_ConfirmRegistration",
-            "Activity_SendConfirmationMail",
-            "EndEvent_SubscriptionConfirmed",
-            "StartEvent_RequestReceived",
-            "Timer_EveryDay",
+            "userTask_confirmRegistration",
+            "serviceTask_sendConfirmationMail",
+            "endEvent_subscriptionConfirmed",
+            "startEvent_requestReceived",
+            "timer_everyDay",
         )
         listOf(
-            "Activity_ConfirmRegistration",
-            "Activity_SendConfirmationMail",
-            "EndEvent_SubscriptionConfirmed",
-            "StartEvent_RequestReceived",
-            "Timer_EveryDay",
-        ).forEach { assertThat(bpmnModel.graph.parentIdOf(it)).isEqualTo("SubProcess_Confirmation") }
-        assertThat(bpmnModel.graph.parentIdOf("CallActivity_AbortRegistration")).isNull()
+            "userTask_confirmRegistration",
+            "serviceTask_sendConfirmationMail",
+            "endEvent_subscriptionConfirmed",
+            "startEvent_requestReceived",
+            "timer_everyDay",
+        ).forEach { assertThat(bpmnModel.graph.parentIdOf(it)).isEqualTo("subProcess_confirmation") }
+        assertThat(bpmnModel.graph.parentIdOf("callActivity_abortRegistration")).isNull()
 
         // node kinds
-        assertThat((node("Gateway_SplitNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
-        assertThat((node("Gateway_JoinNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
-        val compensationHandler = node("CompensationTask_DecrementSubscriptionCounter") as FlowNodeDefinition.Activity.Task
+        assertThat((node("gateway_splitNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
+        assertThat((node("gateway_joinNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
+        val compensationHandler = node("serviceTask_decrementSubscriptionCounter") as FlowNodeDefinition.Activity.Task
         assertThat(compensationHandler.kind).isEqualTo(TaskKind.SERVICE)
         // a serviceTask, but the Zeebe fixture configures no zeebe:taskDefinition for it
         assertThat(compensationHandler.implementation).isNull()
 
         // the receive task references its message directly (not through an event definition)
-        val confirmRegistration = node("Activity_ConfirmRegistration") as FlowNodeDefinition.Activity.Task
+        val confirmRegistration = node("userTask_confirmRegistration") as FlowNodeDefinition.Activity.Task
         assertThat(confirmRegistration.kind).isEqualTo(TaskKind.RECEIVE)
         assertThat(confirmRegistration.message?.messageName).isEqualTo("Message_SubscriptionConfirmed")
 
         // service-task-like implementations are all Zeebe job workers
         val implementationsById = bpmnModel.serviceTasks.associate { it.id to it.implementation }
-        assertThat(implementationsById["Activity_SendConfirmationMail"])
+        assertThat(implementationsById["serviceTask_sendConfirmationMail"])
             .isEqualTo(TaskImplementation.JobWorker("newsletter.sendConfirmationMail"))
-        assertThat(implementationsById["Activity_SendWelcomeMail"])
+        assertThat(implementationsById["serviceTask_sendWelcomeMail"])
             .isEqualTo(TaskImplementation.JobWorker("newsletter.sendWelcomeMail"))
-        assertThat(implementationsById["Activity_NotifyCommunity"])
+        assertThat(implementationsById["serviceTask_notifyCommunity"])
             .isEqualTo(TaskImplementation.JobWorker("newsletter.notifyCommunity"))
         assertThat(implementationsById["serviceTask_incrementSubscriptionCounter"])
             .isEqualTo(TaskImplementation.JobWorker("newsletter.incrementCounter"))
-        assertThat(implementationsById["EndEvent_RegistrationCompleted"])
+        assertThat(implementationsById["endEvent_registrationCompleted"])
             .isEqualTo(TaskImplementation.JobWorker("newsletter.registrationCompleted"))
 
         // event definitions
-        assertThat(event("Timer_After3Days").eventDefinitions)
+        assertThat(event("timer_after3Days").eventDefinitions)
             .containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "=testVariable"))
-        assertThat(event("Timer_EveryDay").eventDefinitions)
+        assertThat(event("timer_everyDay").eventDefinitions)
             .containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "PT1M"))
-        val formMessage = event("StartEvent_SubmitRegistrationForm").eventDefinitions
+        val formMessage = event("startEvent_submitRegistrationForm").eventDefinitions
             .filterIsInstance<EventDefinitionInstance.Message>().single()
         assertThat(formMessage.reference.messageName).isEqualTo("Message_FormSubmitted")
-        assertThat(event("EndEvent_RegistrationNotPossible").eventDefinitions)
-            .containsExactly(EventDefinitionInstance.Signal("Signal_14g8ki5", "Signal_RegistrationNotPossible"))
-        assertThat(event("ErrorEvent_InvalidMail").eventDefinitions)
-            .containsExactly(EventDefinitionInstance.Error("Error_0uxgmyc", "Error_InvalidMail", "500"))
-        assertThat(event("CompensationEndEvent_RegistrationAborted").eventDefinitions)
+        assertThat(event("endEvent_registrationNotPossible").eventDefinitions)
+            .containsExactly(EventDefinitionInstance.Signal("signal_registrationNotPossible", "Signal_RegistrationNotPossible"))
+        assertThat(event("errorEvent_invalidMail").eventDefinitions)
+            .containsExactly(EventDefinitionInstance.Error("error_invalidMail", "Error_InvalidMail", "500"))
+        assertThat(event("compensationEndEvent_registrationAborted").eventDefinitions)
             .allMatch { it is EventDefinitionInstance.Compensation }
 
         // boundary events carry their attachment and cancel-activity flag
-        val errorBoundary = event("ErrorEvent_InvalidMail")
+        val errorBoundary = event("errorEvent_invalidMail")
         assertThat(errorBoundary.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
-        assertThat(errorBoundary.attachedToRef).isEqualTo("SubProcess_Confirmation")
+        assertThat(errorBoundary.attachedToRef).isEqualTo("subProcess_confirmation")
         assertThat(errorBoundary.interrupting).isTrue()
-        val compensationBoundary = event("CompensationEvent_OnSubscriptionCounter")
+        val compensationBoundary = event("compensationEvent_onSubscriptionCounter")
         assertThat(compensationBoundary.attachedToRef).isEqualTo("serviceTask_incrementSubscriptionCounter")
         assertThat(compensationBoundary.interrupting).isTrue()
 
         // derived timer registry
         assertThat(bpmnModel.timers).containsExactlyInAnyOrder(
-            TimerDefinition("Timer_After3Days", TimerType.DURATION, "=testVariable"),
-            TimerDefinition("Timer_EveryDay", TimerType.DURATION, "PT1M"),
+            TimerDefinition("timer_after3Days", TimerType.DURATION, "=testVariable"),
+            TimerDefinition("timer_everyDay", TimerType.DURATION, "PT1M"),
         )
 
         // derived compensation registry
         assertThat(bpmnModel.compensations).containsExactlyInAnyOrder(
             CompensationDefinition(
-                "CompensationEndEvent_RegistrationAborted",
+                "compensationEndEvent_registrationAborted",
                 CompensationDefinition.Type.THROWING,
                 activityRef = "serviceTask_incrementSubscriptionCounter",
                 waitForCompletion = false,
             ),
             CompensationDefinition(
-                "CompensationEvent_OnSubscriptionCounter",
+                "compensationEvent_onSubscriptionCounter",
                 CompensationDefinition.Type.CATCHING,
                 activityRef = null,
                 waitForCompletion = false,
@@ -150,7 +150,7 @@ class ZeebeExtractionTest {
         )
 
         // call activity target and mappings
-        val callActivity = bpmnModel.callActivities.single { it.id == "CallActivity_AbortRegistration" }
+        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
         assertThat(callActivity.hasCalledElement()).isTrue()
         assertThat(callActivity.getValue()).isEqualTo("abort-registration")
         assertThat(callActivity.inputMappings).containsExactly(
@@ -168,22 +168,22 @@ class ZeebeExtractionTest {
             .containsEntry("Message_SubscriptionConfirmed", "=subscriptionId")
 
         // adjacency, resolved through the sequence flows
-        assertThat(bpmnModel.graph.previousElementsOf(node("Gateway_SplitNotifications")))
-            .containsExactly("SubProcess_Confirmation")
-        assertThat(bpmnModel.graph.followingElementsOf(node("Gateway_SplitNotifications")))
-            .containsExactlyInAnyOrder("Activity_SendWelcomeMail", "Activity_NotifyCommunity")
-        assertThat(bpmnModel.graph.attachedElementsOf(node("SubProcess_Confirmation")))
-            .containsExactlyInAnyOrder("ErrorEvent_InvalidMail", "Timer_After3Days")
+        assertThat(bpmnModel.graph.previousElementsOf(node("gateway_splitNotifications")))
+            .containsExactly("subProcess_confirmation")
+        assertThat(bpmnModel.graph.followingElementsOf(node("gateway_splitNotifications")))
+            .containsExactlyInAnyOrder("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity")
+        assertThat(bpmnModel.graph.attachedElementsOf(node("subProcess_confirmation")))
+            .containsExactlyInAnyOrder("errorEvent_invalidMail", "timer_after3Days")
         assertThat(bpmnModel.graph.attachedElementsOf(node("serviceTask_incrementSubscriptionCounter")))
-            .containsExactly("CompensationEvent_OnSubscriptionCounter")
-        assertThat(bpmnModel.graph.attachedElementsOf(node("Activity_ConfirmRegistration")))
-            .containsExactly("Timer_EveryDay")
+            .containsExactly("compensationEvent_onSubscriptionCounter")
+        assertThat(bpmnModel.graph.attachedElementsOf(node("userTask_confirmRegistration")))
+            .containsExactly("timer_everyDay")
 
         // root sequence flows exclude the four that belong to the confirmation sub-process
         assertThat(bpmnModel.sequenceFlows.mapNotNull { it.id })
-            .doesNotContain("Flow_05i3x1y", "Flow_0x4ewvb", "Flow_1bckm43", "Flow_1cpwe57")
+            .doesNotContain("flow_requestToConfirmationMail", "flow_everyDayToConfirmationMail", "flow_confirmationMailToConfirm", "flow_confirmToConfirmed")
         assertThat(subProcess.sequenceFlows.mapNotNull { it.id })
-            .containsExactlyInAnyOrder("Flow_05i3x1y", "Flow_0x4ewvb", "Flow_1bckm43", "Flow_1cpwe57")
+            .containsExactlyInAnyOrder("flow_requestToConfirmationMail", "flow_everyDayToConfirmationMail", "flow_confirmationMailToConfirm", "flow_confirmToConfirmed")
         assertThat(bpmnModel.graph.allSequenceFlows).hasSize(15)
     }
 
@@ -207,7 +207,7 @@ class ZeebeExtractionTest {
     fun `extract captures call-activity io-mapping targets and propagate-all flags`() {
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn"))
         val bpmnModel = underTest.read(File(resourceUrl.toURI()).readBytes())
-        val callActivity = bpmnModel.callActivities.single { it.id == "CallActivity_AbortRegistration" }
+        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
         assertThat(callActivity.inputMappings).containsExactly(
             CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "=subscriptionId", target = "subscriptionId"),
         )
@@ -279,11 +279,11 @@ class ZeebeExtractionTest {
         val bpmnModel = underTest.read(file.readBytes())
 
         val flowsById = bpmnModel.sequenceFlows.associateBy { it.id }
-        assertThat(flowsById["Flow_1jogut0"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1jogut0", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true),
+        assertThat(flowsById["flow_hasSubscribers"]).isEqualTo(
+            SequenceFlowDefinition("flow_hasSubscribers", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true),
         )
-        assertThat(flowsById["Flow_1gsz7wd"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1gsz7wd", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "=subscribers.size() > 0"),
+        assertThat(flowsById["flow_noSubscribers"]).isEqualTo(
+            SequenceFlowDefinition("flow_noSubscribers", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "=subscribers.size() > 0"),
         )
     }
 
@@ -297,7 +297,7 @@ class ZeebeExtractionTest {
         val bpmnModel = underTest.read(file.readBytes())
 
         // then: extraction does not validate or fail here
-        val callActivity = bpmnModel.callActivities.single { it.id == "CallActivity_AbortRegistration" }
+        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
         assertThat(callActivity.hasCalledElement()).isFalse()
         assertThat(bpmnModel.detectedEngine).isEqualTo(ProcessEngine.CAMUNDA_7)
     }

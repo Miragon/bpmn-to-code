@@ -34,7 +34,7 @@ class StringUtilsTest {
 
     @Test
     fun `toUpperSnakeCase handles mixed patterns`() {
-        assertThat("Activity_SendConfirmationMail".toUpperSnakeCase()).isEqualTo("ACTIVITY_SEND_CONFIRMATION_MAIL")
+        assertThat("serviceTask_sendConfirmationMail".toUpperSnakeCase()).isEqualTo("SERVICE_TASK_SEND_CONFIRMATION_MAIL")
         assertThat("activity-send-mail-v2".toUpperSnakeCase()).isEqualTo("ACTIVITY_SEND_MAIL_V_2")
     }
 

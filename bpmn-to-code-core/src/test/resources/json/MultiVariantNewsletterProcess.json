@@ -8,21 +8,21 @@
                 "id": "startEvent_editionCreated",
                 "type": "startEvent",
                 "outgoing": [
-                    "Flow_0bianz5"
+                    "flow_editionToLoadSubscribers"
                 ]
             },
             {
                 "id": "endEvent_editionSent",
                 "type": "endEvent",
                 "incoming": [
-                    "Flow_0v2v55n"
+                    "flow_notifyAuthorToEditionSent"
                 ]
             },
             {
                 "id": "endEvent_noSubscribers",
                 "type": "endEvent",
                 "incoming": [
-                    "Flow_1gsz7wd"
+                    "flow_noSubscribers"
                 ]
             },
             {
@@ -34,7 +34,7 @@
                         "id": "event_mailRejected",
                         "type": "startEvent",
                         "outgoing": [
-                            "Flow_0vtppnk"
+                            "flow_mailRejectedToAnalyze"
                         ],
                         "isInterrupting": true,
                         "eventDefinitions": [
@@ -48,10 +48,10 @@
                         "id": "serviceTask_analyzeError",
                         "type": "serviceTask",
                         "incoming": [
-                            "Flow_0vtppnk"
+                            "flow_mailRejectedToAnalyze"
                         ],
                         "outgoing": [
-                            "Flow_13nmnag"
+                            "flow_analyzeToCanSendAgain"
                         ],
                         "implementation": {
                             "type": "jobWorker",
@@ -62,19 +62,19 @@
                         "id": "gateway_canSendAgain",
                         "type": "exclusiveGateway",
                         "incoming": [
-                            "Flow_13nmnag"
+                            "flow_analyzeToCanSendAgain"
                         ],
                         "outgoing": [
-                            "Flow_1izucof",
-                            "Flow_18nf2jh"
+                            "flow_canSendAgain",
+                            "flow_cannotSendAgain"
                         ],
-                        "default": "Flow_1izucof"
+                        "default": "flow_canSendAgain"
                     },
                     {
                         "id": "escalationEndEvent_nofitySupport",
                         "type": "endEvent",
                         "incoming": [
-                            "Flow_18nf2jh"
+                            "flow_cannotSendAgain"
                         ],
                         "eventDefinitions": [
                             {
@@ -87,10 +87,10 @@
                         "id": "serviceTask_sendMailAgain",
                         "type": "serviceTask",
                         "incoming": [
-                            "Flow_1izucof"
+                            "flow_canSendAgain"
                         ],
                         "outgoing": [
-                            "Flow_0vym6nu"
+                            "flow_sendAgainToEventGateway"
                         ],
                         "implementation": {
                             "type": "jobWorker",
@@ -101,21 +101,21 @@
                         "id": "eventGateway_afterSendingAgain",
                         "type": "eventBasedGateway",
                         "incoming": [
-                            "Flow_0vym6nu"
+                            "flow_sendAgainToEventGateway"
                         ],
                         "outgoing": [
-                            "Flow_0enjkoe",
-                            "Flow_081cykl"
+                            "flow_eventGatewayToTimer",
+                            "flow_eventGatewayToMailRejectedAgain"
                         ]
                     },
                     {
                         "id": "event_mailRejectedAgain",
                         "type": "intermediateCatchEvent",
                         "incoming": [
-                            "Flow_081cykl"
+                            "flow_eventGatewayToMailRejectedAgain"
                         ],
                         "outgoing": [
-                            "Flow_0x9thpq"
+                            "flow_mailRejectedAgainToEscalation"
                         ],
                         "eventDefinitions": [
                             {
@@ -128,17 +128,17 @@
                         "id": "escalationEndEvent_nofitySupportAfterRepeatedError",
                         "type": "endEvent",
                         "incoming": [
-                            "Flow_0x9thpq"
+                            "flow_mailRejectedAgainToEscalation"
                         ]
                     },
                     {
                         "id": "timer_noRejectionForOneDay",
                         "type": "intermediateCatchEvent",
                         "incoming": [
-                            "Flow_0enjkoe"
+                            "flow_eventGatewayToTimer"
                         ],
                         "outgoing": [
-                            "Flow_0338xzf"
+                            "flow_timerToIssueResolved"
                         ],
                         "eventDefinitions": [
                             {
@@ -152,56 +152,56 @@
                         "id": "endEvent_issueResolved",
                         "type": "endEvent",
                         "incoming": [
-                            "Flow_0338xzf"
+                            "flow_timerToIssueResolved"
                         ]
                     }
                 ],
                 "sequenceFlows": [
                     {
-                        "id": "Flow_0vtppnk",
+                        "id": "flow_mailRejectedToAnalyze",
                         "sourceRef": "event_mailRejected",
                         "targetRef": "serviceTask_analyzeError"
                     },
                     {
-                        "id": "Flow_13nmnag",
+                        "id": "flow_analyzeToCanSendAgain",
                         "sourceRef": "serviceTask_analyzeError",
                         "targetRef": "gateway_canSendAgain"
                     },
                     {
-                        "id": "Flow_1izucof",
+                        "id": "flow_canSendAgain",
                         "sourceRef": "gateway_canSendAgain",
                         "targetRef": "serviceTask_sendMailAgain",
                         "name": "Yes"
                     },
                     {
-                        "id": "Flow_18nf2jh",
+                        "id": "flow_cannotSendAgain",
                         "sourceRef": "gateway_canSendAgain",
                         "targetRef": "escalationEndEvent_nofitySupport",
                         "name": "No",
                         "conditionExpression": "${rejection.reason == \"PERMANENT\"}"
                     },
                     {
-                        "id": "Flow_0vym6nu",
+                        "id": "flow_sendAgainToEventGateway",
                         "sourceRef": "serviceTask_sendMailAgain",
                         "targetRef": "eventGateway_afterSendingAgain"
                     },
                     {
-                        "id": "Flow_0enjkoe",
+                        "id": "flow_eventGatewayToTimer",
                         "sourceRef": "eventGateway_afterSendingAgain",
                         "targetRef": "timer_noRejectionForOneDay"
                     },
                     {
-                        "id": "Flow_081cykl",
+                        "id": "flow_eventGatewayToMailRejectedAgain",
                         "sourceRef": "eventGateway_afterSendingAgain",
                         "targetRef": "event_mailRejectedAgain"
                     },
                     {
-                        "id": "Flow_0x9thpq",
+                        "id": "flow_mailRejectedAgainToEscalation",
                         "sourceRef": "event_mailRejectedAgain",
                         "targetRef": "escalationEndEvent_nofitySupportAfterRepeatedError"
                     },
                     {
-                        "id": "Flow_0338xzf",
+                        "id": "flow_timerToIssueResolved",
                         "sourceRef": "timer_noRejectionForOneDay",
                         "targetRef": "endEvent_issueResolved"
                     }
@@ -211,22 +211,22 @@
                 "id": "gateway_hasSubscribers",
                 "type": "exclusiveGateway",
                 "incoming": [
-                    "Flow_04andb8"
+                    "flow_loadSubscribersToGateway"
                 ],
                 "outgoing": [
-                    "Flow_1jogut0",
-                    "Flow_1gsz7wd"
+                    "flow_hasSubscribers",
+                    "flow_noSubscribers"
                 ],
-                "default": "Flow_1jogut0"
+                "default": "flow_hasSubscribers"
             },
             {
                 "id": "serviceTask_loadSubscribers",
                 "type": "serviceTask",
                 "incoming": [
-                    "Flow_0bianz5"
+                    "flow_editionToLoadSubscribers"
                 ],
                 "outgoing": [
-                    "Flow_04andb8"
+                    "flow_loadSubscribersToGateway"
                 ],
                 "implementation": {
                     "type": "jobWorker",
@@ -247,10 +247,10 @@
                 "id": "serviceTask_notifyAuthor",
                 "type": "serviceTask",
                 "incoming": [
-                    "Flow_1ruayvl"
+                    "flow_sendToNotifyAuthor"
                 ],
                 "outgoing": [
-                    "Flow_0v2v55n"
+                    "flow_notifyAuthorToEditionSent"
                 ],
                 "implementation": {
                     "type": "jobWorker",
@@ -261,10 +261,10 @@
                 "id": "serviceTask_sendToSubscriber",
                 "type": "serviceTask",
                 "incoming": [
-                    "Flow_1jogut0"
+                    "flow_hasSubscribers"
                 ],
                 "outgoing": [
-                    "Flow_1ruayvl"
+                    "flow_sendToNotifyAuthor"
                 ],
                 "implementation": {
                     "type": "jobWorker",
@@ -300,17 +300,17 @@
                     "id": "startEvent_editionCreated",
                     "type": "startEvent",
                     "outgoing": [
-                        "Flow_0bianz5"
+                        "flow_editionToLoadSubscribers"
                     ]
                 },
                 {
                     "id": "serviceTask_loadSubscribers",
                     "type": "serviceTask",
                     "incoming": [
-                        "Flow_0bianz5"
+                        "flow_editionToLoadSubscribers"
                     ],
                     "outgoing": [
-                        "Flow_04andb8"
+                        "flow_loadSubscribersToGateway"
                     ],
                     "implementation": {
                         "type": "jobWorker",
@@ -331,29 +331,29 @@
                     "id": "gateway_hasSubscribers",
                     "type": "exclusiveGateway",
                     "incoming": [
-                        "Flow_04andb8"
+                        "flow_loadSubscribersToGateway"
                     ],
                     "outgoing": [
-                        "Flow_1jogut0",
-                        "Flow_1gsz7wd"
+                        "flow_hasSubscribers",
+                        "flow_noSubscribers"
                     ],
-                    "default": "Flow_1jogut0"
+                    "default": "flow_hasSubscribers"
                 },
                 {
                     "id": "endEvent_noSubscribers",
                     "type": "endEvent",
                     "incoming": [
-                        "Flow_1gsz7wd"
+                        "flow_noSubscribers"
                     ]
                 },
                 {
                     "id": "serviceTask_sendToSubscriber",
                     "type": "serviceTask",
                     "incoming": [
-                        "Flow_1jogut0"
+                        "flow_hasSubscribers"
                     ],
                     "outgoing": [
-                        "Flow_1ruayvl"
+                        "flow_sendToNotifyAuthor"
                     ],
                     "implementation": {
                         "type": "jobWorker",
@@ -364,10 +364,10 @@
                     "id": "serviceTask_notifyAuthor",
                     "type": "serviceTask",
                     "incoming": [
-                        "Flow_1ruayvl"
+                        "flow_sendToNotifyAuthor"
                     ],
                     "outgoing": [
-                        "Flow_0v2v55n"
+                        "flow_notifyAuthorToEditionSent"
                     ],
                     "implementation": {
                         "type": "jobWorker",
@@ -378,7 +378,7 @@
                     "id": "endEvent_editionSent",
                     "type": "endEvent",
                     "incoming": [
-                        "Flow_0v2v55n"
+                        "flow_notifyAuthorToEditionSent"
                     ]
                 },
                 {
@@ -390,7 +390,7 @@
                             "id": "event_mailRejected",
                             "type": "startEvent",
                             "outgoing": [
-                                "Flow_0vtppnk"
+                                "flow_mailRejectedToAnalyze"
                             ],
                             "isInterrupting": true,
                             "eventDefinitions": [
@@ -404,10 +404,10 @@
                             "id": "serviceTask_analyzeError",
                             "type": "serviceTask",
                             "incoming": [
-                                "Flow_0vtppnk"
+                                "flow_mailRejectedToAnalyze"
                             ],
                             "outgoing": [
-                                "Flow_13nmnag"
+                                "flow_analyzeToCanSendAgain"
                             ],
                             "implementation": {
                                 "type": "jobWorker",
@@ -418,19 +418,19 @@
                             "id": "gateway_canSendAgain",
                             "type": "exclusiveGateway",
                             "incoming": [
-                                "Flow_13nmnag"
+                                "flow_analyzeToCanSendAgain"
                             ],
                             "outgoing": [
-                                "Flow_1izucof",
-                                "Flow_18nf2jh"
+                                "flow_canSendAgain",
+                                "flow_cannotSendAgain"
                             ],
-                            "default": "Flow_1izucof"
+                            "default": "flow_canSendAgain"
                         },
                         {
                             "id": "escalationEndEvent_nofitySupport",
                             "type": "endEvent",
                             "incoming": [
-                                "Flow_18nf2jh"
+                                "flow_cannotSendAgain"
                             ],
                             "eventDefinitions": [
                                 {
@@ -443,10 +443,10 @@
                             "id": "serviceTask_sendMailAgain",
                             "type": "serviceTask",
                             "incoming": [
-                                "Flow_1izucof"
+                                "flow_canSendAgain"
                             ],
                             "outgoing": [
-                                "Flow_0vym6nu"
+                                "flow_sendAgainToEventGateway"
                             ],
                             "implementation": {
                                 "type": "jobWorker",
@@ -457,21 +457,21 @@
                             "id": "eventGateway_afterSendingAgain",
                             "type": "eventBasedGateway",
                             "incoming": [
-                                "Flow_0vym6nu"
+                                "flow_sendAgainToEventGateway"
                             ],
                             "outgoing": [
-                                "Flow_0enjkoe",
-                                "Flow_081cykl"
+                                "flow_eventGatewayToTimer",
+                                "flow_eventGatewayToMailRejectedAgain"
                             ]
                         },
                         {
                             "id": "event_mailRejectedAgain",
                             "type": "intermediateCatchEvent",
                             "incoming": [
-                                "Flow_081cykl"
+                                "flow_eventGatewayToMailRejectedAgain"
                             ],
                             "outgoing": [
-                                "Flow_0x9thpq"
+                                "flow_mailRejectedAgainToEscalation"
                             ],
                             "eventDefinitions": [
                                 {
@@ -484,17 +484,17 @@
                             "id": "escalationEndEvent_nofitySupportAfterRepeatedError",
                             "type": "endEvent",
                             "incoming": [
-                                "Flow_0x9thpq"
+                                "flow_mailRejectedAgainToEscalation"
                             ]
                         },
                         {
                             "id": "timer_noRejectionForOneDay",
                             "type": "intermediateCatchEvent",
                             "incoming": [
-                                "Flow_0enjkoe"
+                                "flow_eventGatewayToTimer"
                             ],
                             "outgoing": [
-                                "Flow_0338xzf"
+                                "flow_timerToIssueResolved"
                             ],
                             "eventDefinitions": [
                                 {
@@ -508,56 +508,56 @@
                             "id": "endEvent_issueResolved",
                             "type": "endEvent",
                             "incoming": [
-                                "Flow_0338xzf"
+                                "flow_timerToIssueResolved"
                             ]
                         }
                     ],
                     "sequenceFlows": [
                         {
-                            "id": "Flow_0vtppnk",
+                            "id": "flow_mailRejectedToAnalyze",
                             "sourceRef": "event_mailRejected",
                             "targetRef": "serviceTask_analyzeError"
                         },
                         {
-                            "id": "Flow_13nmnag",
+                            "id": "flow_analyzeToCanSendAgain",
                             "sourceRef": "serviceTask_analyzeError",
                             "targetRef": "gateway_canSendAgain"
                         },
                         {
-                            "id": "Flow_1izucof",
+                            "id": "flow_canSendAgain",
                             "sourceRef": "gateway_canSendAgain",
                             "targetRef": "serviceTask_sendMailAgain",
                             "name": "Yes"
                         },
                         {
-                            "id": "Flow_18nf2jh",
+                            "id": "flow_cannotSendAgain",
                             "sourceRef": "gateway_canSendAgain",
                             "targetRef": "escalationEndEvent_nofitySupport",
                             "name": "No",
                             "conditionExpression": "${rejection.reason == \"PERMANENT\"}"
                         },
                         {
-                            "id": "Flow_0vym6nu",
+                            "id": "flow_sendAgainToEventGateway",
                             "sourceRef": "serviceTask_sendMailAgain",
                             "targetRef": "eventGateway_afterSendingAgain"
                         },
                         {
-                            "id": "Flow_0enjkoe",
+                            "id": "flow_eventGatewayToTimer",
                             "sourceRef": "eventGateway_afterSendingAgain",
                             "targetRef": "timer_noRejectionForOneDay"
                         },
                         {
-                            "id": "Flow_081cykl",
+                            "id": "flow_eventGatewayToMailRejectedAgain",
                             "sourceRef": "eventGateway_afterSendingAgain",
                             "targetRef": "event_mailRejectedAgain"
                         },
                         {
-                            "id": "Flow_0x9thpq",
+                            "id": "flow_mailRejectedAgainToEscalation",
                             "sourceRef": "event_mailRejectedAgain",
                             "targetRef": "escalationEndEvent_nofitySupportAfterRepeatedError"
                         },
                         {
-                            "id": "Flow_0338xzf",
+                            "id": "flow_timerToIssueResolved",
                             "sourceRef": "timer_noRejectionForOneDay",
                             "targetRef": "endEvent_issueResolved"
                         }
@@ -566,35 +566,35 @@
             ],
             "sequenceFlows": [
                 {
-                    "id": "Flow_0bianz5",
+                    "id": "flow_editionToLoadSubscribers",
                     "sourceRef": "startEvent_editionCreated",
                     "targetRef": "serviceTask_loadSubscribers"
                 },
                 {
-                    "id": "Flow_04andb8",
+                    "id": "flow_loadSubscribersToGateway",
                     "sourceRef": "serviceTask_loadSubscribers",
                     "targetRef": "gateway_hasSubscribers"
                 },
                 {
-                    "id": "Flow_1jogut0",
+                    "id": "flow_hasSubscribers",
                     "sourceRef": "gateway_hasSubscribers",
                     "targetRef": "serviceTask_sendToSubscriber",
                     "name": "Yes"
                 },
                 {
-                    "id": "Flow_1gsz7wd",
+                    "id": "flow_noSubscribers",
                     "sourceRef": "gateway_hasSubscribers",
                     "targetRef": "endEvent_noSubscribers",
                     "name": "No",
                     "conditionExpression": "${subscribers.size() > 0}"
                 },
                 {
-                    "id": "Flow_1ruayvl",
+                    "id": "flow_sendToNotifyAuthor",
                     "sourceRef": "serviceTask_sendToSubscriber",
                     "targetRef": "serviceTask_notifyAuthor"
                 },
                 {
-                    "id": "Flow_0v2v55n",
+                    "id": "flow_notifyAuthorToEditionSent",
                     "sourceRef": "serviceTask_notifyAuthor",
                     "targetRef": "endEvent_editionSent"
                 }

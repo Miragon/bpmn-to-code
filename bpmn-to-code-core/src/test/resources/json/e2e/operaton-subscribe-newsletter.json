@@ -6,16 +6,16 @@
         "engine": "OPERATON",
         "flowNodes": [
             {
-                "id": "StartEvent_SubmitRegistrationForm",
+                "id": "startEvent_submitRegistrationForm",
                 "type": "startEvent",
                 "name": "Submit newsletter form",
                 "outgoing": [
-                    "Flow_1csfyyz"
+                    "flow_submitToIncrementCounter"
                 ],
                 "eventDefinitions": [
                     {
                         "type": "message",
-                        "messageRef": "Message_04tc0t0"
+                        "messageRef": "message_formSubmitted"
                     }
                 ],
                 "ioMapping": {
@@ -53,13 +53,13 @@
                 "type": "serviceTask",
                 "name": "Increment subscription counter",
                 "incoming": [
-                    "Flow_1csfyyz"
+                    "flow_submitToIncrementCounter"
                 ],
                 "outgoing": [
-                    "Flow_0zdmt0t"
+                    "flow_incrementCounterToConfirmation"
                 ],
                 "boundaryEventRefs": [
-                    "CompensationEvent_OnSubscriptionCounter"
+                    "compensationEvent_onSubscriptionCounter"
                 ],
                 "implementation": {
                     "type": "delegateExpression",
@@ -67,7 +67,7 @@
                 }
             },
             {
-                "id": "CompensationEvent_OnSubscriptionCounter",
+                "id": "compensationEvent_onSubscriptionCounter",
                 "type": "boundaryEvent",
                 "name": "Registration aborted",
                 "attachedToRef": "serviceTask_incrementSubscriptionCounter",
@@ -80,26 +80,26 @@
                 ]
             },
             {
-                "id": "SubProcess_Confirmation",
+                "id": "subProcess_confirmation",
                 "type": "subProcess",
                 "name": "Subscription Confirmation",
                 "incoming": [
-                    "Flow_0zdmt0t"
+                    "flow_incrementCounterToConfirmation"
                 ],
                 "outgoing": [
-                    "Flow_09cuvzp"
+                    "flow_confirmationToSplit"
                 ],
                 "boundaryEventRefs": [
-                    "ErrorEvent_InvalidMail",
-                    "Timer_After3Days"
+                    "errorEvent_invalidMail",
+                    "timer_after3Days"
                 ],
                 "flowNodes": [
                     {
-                        "id": "StartEvent_RequestReceived",
+                        "id": "startEvent_requestReceived",
                         "type": "startEvent",
                         "name": "Subscription requested",
                         "outgoing": [
-                            "Flow_05i3x1y"
+                            "flow_requestToConfirmationMail"
                         ],
                         "ioMapping": {
                             "outputs": [
@@ -135,15 +135,15 @@
                         }
                     },
                     {
-                        "id": "Activity_SendConfirmationMail",
+                        "id": "serviceTask_sendConfirmationMail",
                         "type": "serviceTask",
                         "name": "Send confirmation mail",
                         "incoming": [
-                            "Flow_05i3x1y",
-                            "Flow_0x4ewvb"
+                            "flow_requestToConfirmationMail",
+                            "flow_everyDayToConfirmationMail"
                         ],
                         "outgoing": [
-                            "Flow_1bckm43"
+                            "flow_confirmationMailToConfirm"
                         ],
                         "implementation": {
                             "type": "externalTask",
@@ -199,17 +199,17 @@
                         }
                     },
                     {
-                        "id": "Activity_ConfirmRegistration",
+                        "id": "userTask_confirmRegistration",
                         "type": "userTask",
                         "name": "Confirm subscription",
                         "incoming": [
-                            "Flow_1bckm43"
+                            "flow_confirmationMailToConfirm"
                         ],
                         "outgoing": [
-                            "Flow_1cpwe57"
+                            "flow_confirmToConfirmed"
                         ],
                         "boundaryEventRefs": [
-                            "Timer_EveryDay"
+                            "timer_everyDay"
                         ],
                         "ioMapping": {
                             "inputs": [
@@ -245,13 +245,13 @@
                         }
                     },
                     {
-                        "id": "Timer_EveryDay",
+                        "id": "timer_everyDay",
                         "type": "boundaryEvent",
                         "name": "Every day",
                         "outgoing": [
-                            "Flow_0x4ewvb"
+                            "flow_everyDayToConfirmationMail"
                         ],
-                        "attachedToRef": "Activity_ConfirmRegistration",
+                        "attachedToRef": "userTask_confirmRegistration",
                         "cancelActivity": false,
                         "eventDefinitions": [
                             {
@@ -262,64 +262,64 @@
                         ]
                     },
                     {
-                        "id": "EndEvent_SubscriptionConfirmed",
+                        "id": "endEvent_subscriptionConfirmed",
                         "type": "endEvent",
                         "name": "Subscription confirmed",
                         "incoming": [
-                            "Flow_1cpwe57"
+                            "flow_confirmToConfirmed"
                         ]
                     }
                 ],
                 "sequenceFlows": [
                     {
-                        "id": "Flow_05i3x1y",
-                        "sourceRef": "StartEvent_RequestReceived",
-                        "targetRef": "Activity_SendConfirmationMail"
+                        "id": "flow_confirmToConfirmed",
+                        "sourceRef": "userTask_confirmRegistration",
+                        "targetRef": "endEvent_subscriptionConfirmed"
                     },
                     {
-                        "id": "Flow_0x4ewvb",
-                        "sourceRef": "Timer_EveryDay",
-                        "targetRef": "Activity_SendConfirmationMail"
+                        "id": "flow_confirmationMailToConfirm",
+                        "sourceRef": "serviceTask_sendConfirmationMail",
+                        "targetRef": "userTask_confirmRegistration"
                     },
                     {
-                        "id": "Flow_1bckm43",
-                        "sourceRef": "Activity_SendConfirmationMail",
-                        "targetRef": "Activity_ConfirmRegistration"
+                        "id": "flow_everyDayToConfirmationMail",
+                        "sourceRef": "timer_everyDay",
+                        "targetRef": "serviceTask_sendConfirmationMail"
                     },
                     {
-                        "id": "Flow_1cpwe57",
-                        "sourceRef": "Activity_ConfirmRegistration",
-                        "targetRef": "EndEvent_SubscriptionConfirmed"
+                        "id": "flow_requestToConfirmationMail",
+                        "sourceRef": "startEvent_requestReceived",
+                        "targetRef": "serviceTask_sendConfirmationMail"
                     }
                 ]
             },
             {
-                "id": "ErrorEvent_InvalidMail",
+                "id": "errorEvent_invalidMail",
                 "type": "boundaryEvent",
                 "name": "Invalid Mail",
                 "outgoing": [
-                    "Flow_0i2ctuv"
+                    "flow_invalidMailToNotPossible"
                 ],
-                "attachedToRef": "SubProcess_Confirmation",
+                "attachedToRef": "subProcess_confirmation",
                 "cancelActivity": true,
                 "eventDefinitions": [
                     {
                         "type": "error",
-                        "errorRef": "Error_0uxgmyc"
+                        "errorRef": "error_invalidMail"
                     }
                 ]
             },
             {
-                "id": "EndEvent_RegistrationNotPossible",
+                "id": "endEvent_registrationNotPossible",
                 "type": "endEvent",
                 "name": "Registration not possible",
                 "incoming": [
-                    "Flow_0i2ctuv"
+                    "flow_invalidMailToNotPossible"
                 ],
                 "eventDefinitions": [
                     {
                         "type": "signal",
-                        "signalRef": "Signal_14g8ki5"
+                        "signalRef": "signal_registrationNotPossible"
                     }
                 ],
                 "engineAttributes": {
@@ -328,13 +328,13 @@
                 }
             },
             {
-                "id": "Timer_After3Days",
+                "id": "timer_after3Days",
                 "type": "boundaryEvent",
                 "name": "After 3 days",
                 "outgoing": [
-                    "Flow_1l1lj4m"
+                    "flow_after3DaysToAbort"
                 ],
-                "attachedToRef": "SubProcess_Confirmation",
+                "attachedToRef": "subProcess_confirmation",
                 "cancelActivity": true,
                 "eventDefinitions": [
                     {
@@ -345,14 +345,14 @@
                 ]
             },
             {
-                "id": "CallActivity_AbortRegistration",
+                "id": "callActivity_abortRegistration",
                 "type": "callActivity",
                 "name": "Abort registration",
                 "incoming": [
-                    "Flow_1l1lj4m"
+                    "flow_after3DaysToAbort"
                 ],
                 "outgoing": [
-                    "Flow_1bsb8no"
+                    "flow_abortToRegistrationAborted"
                 ],
                 "calledElement": {
                     "processId": "abort-registration"
@@ -403,11 +403,11 @@
                 }
             },
             {
-                "id": "CompensationEndEvent_RegistrationAborted",
+                "id": "compensationEndEvent_registrationAborted",
                 "type": "endEvent",
                 "name": "Registration aborted",
                 "incoming": [
-                    "Flow_1bsb8no"
+                    "flow_abortToRegistrationAborted"
                 ],
                 "eventDefinitions": [
                     {
@@ -418,25 +418,25 @@
                 ]
             },
             {
-                "id": "Gateway_SplitNotifications",
+                "id": "gateway_splitNotifications",
                 "type": "parallelGateway",
                 "incoming": [
-                    "Flow_09cuvzp"
+                    "flow_confirmationToSplit"
                 ],
                 "outgoing": [
-                    "Flow_16hub0n",
-                    "Flow_1p5t47z"
+                    "flow_splitToWelcomeMail",
+                    "flow_splitToNotifyCommunity"
                 ]
             },
             {
-                "id": "Activity_NotifyCommunity",
+                "id": "serviceTask_notifyCommunity",
                 "type": "serviceTask",
                 "name": "Notify community",
                 "incoming": [
-                    "Flow_1p5t47z"
+                    "flow_splitToNotifyCommunity"
                 ],
                 "outgoing": [
-                    "Flow_1duwy83"
+                    "flow_notifyCommunityToJoin"
                 ],
                 "implementation": {
                     "type": "delegateExpression",
@@ -449,22 +449,22 @@
                 }
             },
             {
-                "id": "Gateway_JoinNotifications",
+                "id": "gateway_joinNotifications",
                 "type": "parallelGateway",
                 "incoming": [
-                    "Flow_1i7hjid",
-                    "Flow_1duwy83"
+                    "flow_welcomeMailToJoin",
+                    "flow_notifyCommunityToJoin"
                 ],
                 "outgoing": [
-                    "Flow_1862jd8"
+                    "flow_joinToRegistrationCompleted"
                 ]
             },
             {
-                "id": "EndEvent_RegistrationCompleted",
+                "id": "endEvent_registrationCompleted",
                 "type": "endEvent",
                 "name": "Registration completed",
                 "incoming": [
-                    "Flow_1862jd8"
+                    "flow_joinToRegistrationCompleted"
                 ],
                 "eventDefinitions": [
                     {
@@ -506,14 +506,14 @@
                 ]
             },
             {
-                "id": "Activity_SendWelcomeMail",
+                "id": "serviceTask_sendWelcomeMail",
                 "type": "serviceTask",
                 "name": "Send Welcome-Mail",
                 "incoming": [
-                    "Flow_16hub0n"
+                    "flow_splitToWelcomeMail"
                 ],
                 "outgoing": [
-                    "Flow_1i7hjid"
+                    "flow_welcomeMailToJoin"
                 ],
                 "implementation": {
                     "type": "delegateExpression",
@@ -573,7 +573,7 @@
                 }
             },
             {
-                "id": "CompensationTask_DecrementSubscriptionCounter",
+                "id": "serviceTask_decrementSubscriptionCounter",
                 "type": "serviceTask",
                 "name": "Decrement subscription counter",
                 "isForCompensation": true,
@@ -614,82 +614,82 @@
         ],
         "sequenceFlows": [
             {
-                "id": "Flow_09cuvzp",
-                "sourceRef": "SubProcess_Confirmation",
-                "targetRef": "Gateway_SplitNotifications"
+                "id": "flow_abortToRegistrationAborted",
+                "sourceRef": "callActivity_abortRegistration",
+                "targetRef": "compensationEndEvent_registrationAborted"
             },
             {
-                "id": "Flow_0i2ctuv",
-                "sourceRef": "ErrorEvent_InvalidMail",
-                "targetRef": "EndEvent_RegistrationNotPossible"
+                "id": "flow_after3DaysToAbort",
+                "sourceRef": "timer_after3Days",
+                "targetRef": "callActivity_abortRegistration"
             },
             {
-                "id": "Flow_0zdmt0t",
+                "id": "flow_confirmationToSplit",
+                "sourceRef": "subProcess_confirmation",
+                "targetRef": "gateway_splitNotifications"
+            },
+            {
+                "id": "flow_incrementCounterToConfirmation",
                 "sourceRef": "serviceTask_incrementSubscriptionCounter",
-                "targetRef": "SubProcess_Confirmation"
+                "targetRef": "subProcess_confirmation"
             },
             {
-                "id": "Flow_16hub0n",
-                "sourceRef": "Gateway_SplitNotifications",
-                "targetRef": "Activity_SendWelcomeMail"
+                "id": "flow_invalidMailToNotPossible",
+                "sourceRef": "errorEvent_invalidMail",
+                "targetRef": "endEvent_registrationNotPossible"
             },
             {
-                "id": "Flow_1862jd8",
-                "sourceRef": "Gateway_JoinNotifications",
-                "targetRef": "EndEvent_RegistrationCompleted"
+                "id": "flow_joinToRegistrationCompleted",
+                "sourceRef": "gateway_joinNotifications",
+                "targetRef": "endEvent_registrationCompleted"
             },
             {
-                "id": "Flow_1bsb8no",
-                "sourceRef": "CallActivity_AbortRegistration",
-                "targetRef": "CompensationEndEvent_RegistrationAborted"
+                "id": "flow_notifyCommunityToJoin",
+                "sourceRef": "serviceTask_notifyCommunity",
+                "targetRef": "gateway_joinNotifications"
             },
             {
-                "id": "Flow_1csfyyz",
-                "sourceRef": "StartEvent_SubmitRegistrationForm",
+                "id": "flow_splitToNotifyCommunity",
+                "sourceRef": "gateway_splitNotifications",
+                "targetRef": "serviceTask_notifyCommunity"
+            },
+            {
+                "id": "flow_splitToWelcomeMail",
+                "sourceRef": "gateway_splitNotifications",
+                "targetRef": "serviceTask_sendWelcomeMail"
+            },
+            {
+                "id": "flow_submitToIncrementCounter",
+                "sourceRef": "startEvent_submitRegistrationForm",
                 "targetRef": "serviceTask_incrementSubscriptionCounter"
             },
             {
-                "id": "Flow_1duwy83",
-                "sourceRef": "Activity_NotifyCommunity",
-                "targetRef": "Gateway_JoinNotifications"
-            },
-            {
-                "id": "Flow_1i7hjid",
-                "sourceRef": "Activity_SendWelcomeMail",
-                "targetRef": "Gateway_JoinNotifications"
-            },
-            {
-                "id": "Flow_1l1lj4m",
-                "sourceRef": "Timer_After3Days",
-                "targetRef": "CallActivity_AbortRegistration"
-            },
-            {
-                "id": "Flow_1p5t47z",
-                "sourceRef": "Gateway_SplitNotifications",
-                "targetRef": "Activity_NotifyCommunity"
+                "id": "flow_welcomeMailToJoin",
+                "sourceRef": "serviceTask_sendWelcomeMail",
+                "targetRef": "gateway_joinNotifications"
             }
         ]
     },
     "definitions": {
         "messages": [
             {
-                "id": "Message_04tc0t0",
+                "id": "message_formSubmitted",
                 "name": "Message_FormSubmitted"
             },
             {
-                "id": "Message_36dkcng",
+                "id": "message_subscriptionConfirmed",
                 "name": "Message_SubscriptionConfirmed"
             }
         ],
         "signals": [
             {
-                "id": "Signal_14g8ki5",
+                "id": "signal_registrationNotPossible",
                 "name": "Signal_RegistrationNotPossible"
             }
         ],
         "errors": [
             {
-                "id": "Error_0uxgmyc",
+                "id": "error_invalidMail",
                 "name": "Error_InvalidMail",
                 "errorCode": "500"
             }
