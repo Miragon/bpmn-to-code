@@ -1,4 +1,4 @@
-name: Publish Snapshot to Maven Central Snapshots (io.miragon)
+name: Publish Snapshot (Maven Central + Docker Hub)
 
 on:
   # Snapshots are published on demand only - not on every push to main.
@@ -60,3 +60,25 @@ jobs:
           :bpmn-to-code-maven:publishToMavenCentral
           :bpmn-to-code-testing:publishToMavenCentral
           :bpmn-to-code-gradle:publishAllPublicationsToCentralSnapshotsRepository
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # v4
+        with:
+          username: ${{ secrets.DOCKER_MIRAGON_USERNAME }}
+          password: ${{ secrets.DOCKER_MIRAGON_PASSWORD }}
+
+      # Snapshot images are tagged with the -SNAPSHOT version only. Unlike the release
+      # workflow, we never push `latest` and never trigger an ops rollout.
+      - name: Build Docker snapshot image
+        run: >-
+          ./gradlew :bpmn-to-code-web:dockerBuild
+          -PprojectVersion=${{ steps.version.outputs.snapshot }}
+
+      - name: Push Docker snapshot image
+        run: >-
+          ./gradlew :bpmn-to-code-web:dockerPush
+          -PprojectVersion=${{ steps.version.outputs.snapshot }}
+
+      - name: Log out from Docker Hub
+        if: always()
+        run: docker logout
