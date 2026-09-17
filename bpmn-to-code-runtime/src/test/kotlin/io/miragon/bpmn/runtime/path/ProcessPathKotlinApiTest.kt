@@ -24,8 +24,8 @@ class ProcessPathKotlinApiTest {
         // The interior walk as a reusable, fully-checked block — typed on the subprocess so every hop compiles.
         val confirmationInterior: ProcessPath<SubProcessConfirmation>.() -> ProcessPath<*> = {
             enter { it.startEventRequestReceived }
-                .then { it.activitySendConfirmationMail }
-                .then { it.activityConfirmRegistration }
+                .then { it.serviceTaskSendConfirmationMail }
+                .then { it.userTaskConfirmRegistration }
                 .then { it.endEventSubscriptionConfirmed }
         }
 
@@ -34,21 +34,21 @@ class ProcessPathKotlinApiTest {
             .onto { it.subProcessConfirmation }
             .inside(confirmationInterior)
             .then { it.gatewaySplitNotifications }
-            .then { it.activitySendWelcomeMail }
+            .then { it.serviceTaskSendWelcomeMail }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
 
         assertThat(path.ids).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "EndEvent_SubscriptionConfirmed",
-            "Gateway_SplitNotifications",
-            "Activity_SendWelcomeMail",
-            "Gateway_JoinNotifications",
-            "EndEvent_RegistrationCompleted",
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "endEvent_subscriptionConfirmed",
+            "gateway_splitNotifications",
+            "serviceTask_sendWelcomeMail",
+            "gateway_joinNotifications",
+            "endEvent_registrationCompleted",
         )
     }
 
@@ -60,21 +60,21 @@ class ProcessPathKotlinApiTest {
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .onto { it.subProcessConfirmation }
             .enter { it.startEventRequestReceived }
-            .then { it.activitySendConfirmationMail }
-            .then { it.activityConfirmRegistration }
+            .then { it.serviceTaskSendConfirmationMail }
+            .then { it.userTaskConfirmRegistration }
             .interruptedBy(Newsletter.SubProcessConfirmation) { it.timerAfter3Days }
             .then { it.callActivityAbortRegistration }
             .then { it.compensationEndEventRegistrationAborted }
 
         assertThat(path.ids).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_After3Days",
-            "CallActivity_AbortRegistration",
-            "CompensationEndEvent_RegistrationAborted",
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_after3Days",
+            "callActivity_abortRegistration",
+            "compensationEndEvent_registrationAborted",
         )
     }
 
@@ -84,17 +84,17 @@ class ProcessPathKotlinApiTest {
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .onto { it.subProcessConfirmation }
             .enter { it.startEventRequestReceived }
-            .then { it.activitySendConfirmationMail }
+            .then { it.serviceTaskSendConfirmationMail }
             .interruptedBy(Newsletter.SubProcessConfirmation) { it.errorEventInvalidMail }
             .then { it.endEventRegistrationNotPossible }
 
         assertThat(path.ids).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "ErrorEvent_InvalidMail",
-            "EndEvent_RegistrationNotPossible",
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "errorEvent_invalidMail",
+            "endEvent_registrationNotPossible",
         )
     }
 
@@ -106,32 +106,32 @@ class ProcessPathKotlinApiTest {
         val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .enter(Newsletter.SubProcessConfirmation.Inner) { it.startEventRequestReceived }
-            .then { it.activitySendConfirmationMail }
-            .then { it.activityConfirmRegistration }
+            .then { it.serviceTaskSendConfirmationMail }
+            .then { it.userTaskConfirmRegistration }
             .then { it.timerEveryDay }
-            .then { it.activitySendConfirmationMail }
-            .then { it.activityConfirmRegistration }
+            .then { it.serviceTaskSendConfirmationMail }
+            .then { it.userTaskConfirmRegistration }
             .then { it.endEventSubscriptionConfirmed }
 
         assertThat(path.ids).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_EveryDay",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "EndEvent_SubscriptionConfirmed",
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_everyDay",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "endEvent_subscriptionConfirmed",
         )
         assertThat(path.distinctIds).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_EveryDay",
-            "EndEvent_SubscriptionConfirmed",
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_everyDay",
+            "endEvent_subscriptionConfirmed",
         )
     }
 
@@ -140,18 +140,18 @@ class ProcessPathKotlinApiTest {
     @Test
     fun `parallel branches assert as an unordered deduplicated set via nodesOf`() {
         val welcomeBranch = ProcessPath.from(Newsletter.gatewaySplitNotifications)
-            .then { it.activitySendWelcomeMail }
+            .then { it.serviceTaskSendWelcomeMail }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
             .nodes
         val notifyBranch = ProcessPath.from(Newsletter.gatewaySplitNotifications)
-            .then { it.activityNotifyCommunity }
+            .then { it.serviceTaskNotifyCommunity }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
             .nodes
 
         assertThat(nodesOf(welcomeBranch, notifyBranch).map { it.id.value })
-            .contains("Activity_SendWelcomeMail", "Activity_NotifyCommunity", "Gateway_JoinNotifications")
+            .contains("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity", "gateway_joinNotifications")
             .doesNotHaveDuplicates()
     }
 
@@ -161,19 +161,19 @@ class ProcessPathKotlinApiTest {
     @Test
     fun `jumpTo re-anchors to the fork to walk the second parallel branch in one chain`() {
         val passed = ProcessPath.from(Newsletter.gatewaySplitNotifications)
-            .then { it.activitySendWelcomeMail }
+            .then { it.serviceTaskSendWelcomeMail }
             .jumpTo(Newsletter.GatewaySplitNotifications)
-            .then { it.activityNotifyCommunity }
+            .then { it.serviceTaskNotifyCommunity }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
             .nodes
 
         assertThat(passed.map { it.id.value }).containsExactly(
-            "Gateway_SplitNotifications",
-            "Activity_SendWelcomeMail",
-            "Activity_NotifyCommunity",
-            "Gateway_JoinNotifications",
-            "EndEvent_RegistrationCompleted",
+            "gateway_splitNotifications",
+            "serviceTask_sendWelcomeMail",
+            "serviceTask_notifyCommunity",
+            "gateway_joinNotifications",
+            "endEvent_registrationCompleted",
         )
     }
 
@@ -184,16 +184,16 @@ class ProcessPathKotlinApiTest {
         assertThat(Newsletter.startEventSubmitRegistrationForm.elementType).isEqualTo("MESSAGE_START_EVENT")
         assertThat(Newsletter.gatewaySplitNotifications.elementType).isEqualTo("PARALLEL_GATEWAY")
         assertThat(Newsletter.callActivityAbortRegistration.elementType).isEqualTo("CALL_ACTIVITY")
-        assertThat(Newsletter.activitySendWelcomeMail.elementType).isEqualTo("SERVICE_TASK")
-        assertThat(Newsletter.gatewaySplitNotifications.id.value).isEqualTo("Gateway_SplitNotifications")
+        assertThat(Newsletter.serviceTaskSendWelcomeMail.elementType).isEqualTo("SERVICE_TASK")
+        assertThat(Newsletter.gatewaySplitNotifications.id.value).isEqualTo("gateway_splitNotifications")
     }
 
     @Test
     fun `compensation handler is reachable only via its accessor, not through the navigation graph`() {
         // Compensation handlers hang off a boundary event via an association, not a sequence flow, so they have
         // no incoming edge in the graph — no then/onto/enter reaches them. They stay addressable by name.
-        val handler = Newsletter.compensationTaskDecrementSubscriptionCounter
-        assertThat(handler.id.value).isEqualTo("CompensationTask_DecrementSubscriptionCounter")
+        val handler = Newsletter.serviceTaskDecrementSubscriptionCounter
+        assertThat(handler.id.value).isEqualTo("serviceTask_decrementSubscriptionCounter")
         assertThat(handler.elementType).isEqualTo("SERVICE_TASK")
     }
 }

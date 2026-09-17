@@ -34,26 +34,26 @@ class ProcessPathJavaApiTest {
         var p2 = onto(p1, Relations.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
         var p3 = inside(p2, sub -> {
             var i0 = enter(sub, Relations.SubProcessConfirmation.Inner.Next::startEventRequestReceived);
-            var i1 = then(i0, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::activitySendConfirmationMail);
-            var i2 = then(i1, Relations.SubProcessConfirmation.ActivitySendConfirmationMail.Next::activityConfirmRegistration);
-            return then(i2, Relations.SubProcessConfirmation.ActivityConfirmRegistration.Next::endEventSubscriptionConfirmed);
+            var i1 = then(i0, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
+            var i2 = then(i1, Relations.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
+            return then(i2, Relations.SubProcessConfirmation.UserTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
         });
         var p4 = then(p3, Relations.SubProcessConfirmation.Next::gatewaySplitNotifications);
-        var p5 = then(p4, Relations.GatewaySplitNotifications.Next::activitySendWelcomeMail);
-        var p6 = then(p5, Relations.ActivitySendWelcomeMail.Next::gatewayJoinNotifications);
+        var p5 = then(p4, Relations.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
+        var p6 = then(p5, Relations.ServiceTaskSendWelcomeMail.Next::gatewayJoinNotifications);
         var p7 = then(p6, Relations.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
 
         assertThat(p7.getIds()).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "EndEvent_SubscriptionConfirmed",
-            "Gateway_SplitNotifications",
-            "Activity_SendWelcomeMail",
-            "Gateway_JoinNotifications",
-            "EndEvent_RegistrationCompleted"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "endEvent_subscriptionConfirmed",
+            "gateway_splitNotifications",
+            "serviceTask_sendWelcomeMail",
+            "gateway_joinNotifications",
+            "endEvent_registrationCompleted"
         );
     }
 
@@ -65,21 +65,21 @@ class ProcessPathJavaApiTest {
         var p1 = then(p0, Relations.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
         var p2 = onto(p1, Relations.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
         var p3 = enter(p2, Relations.SubProcessConfirmation.Inner.Next::startEventRequestReceived);
-        var p4 = then(p3, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::activitySendConfirmationMail);
-        var p5 = then(p4, Relations.SubProcessConfirmation.ActivitySendConfirmationMail.Next::activityConfirmRegistration);
+        var p4 = then(p3, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
+        var p5 = then(p4, Relations.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
         var p6 = interruptedBy(p5, Relations.subProcessConfirmation(), Relations.SubProcessConfirmation.Next::timerAfter3Days);
         var p7 = then(p6, Relations.TimerAfter3Days.Next::callActivityAbortRegistration);
         var p8 = then(p7, Relations.CallActivityAbortRegistration.Next::compensationEndEventRegistrationAborted);
 
         assertThat(p8.getIds()).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_After3Days",
-            "CallActivity_AbortRegistration",
-            "CompensationEndEvent_RegistrationAborted"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_after3Days",
+            "callActivity_abortRegistration",
+            "compensationEndEvent_registrationAborted"
         );
     }
 
@@ -89,17 +89,17 @@ class ProcessPathJavaApiTest {
         var p1 = then(p0, Relations.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
         var p2 = onto(p1, Relations.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
         var p3 = enter(p2, Relations.SubProcessConfirmation.Inner.Next::startEventRequestReceived);
-        var p4 = then(p3, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::activitySendConfirmationMail);
+        var p4 = then(p3, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
         var p5 = interruptedBy(p4, Relations.subProcessConfirmation(), Relations.SubProcessConfirmation.Next::errorEventInvalidMail);
         var p6 = then(p5, Relations.ErrorEventInvalidMail.Next::endEventRegistrationNotPossible);
 
         assertThat(p6.getIds()).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "ErrorEvent_InvalidMail",
-            "EndEvent_RegistrationNotPossible"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "errorEvent_invalidMail",
+            "endEvent_registrationNotPossible"
         );
     }
 
@@ -108,32 +108,32 @@ class ProcessPathJavaApiTest {
         var p0 = ProcessPath.from(Relations.startEventSubmitRegistrationForm());
         var p1 = then(p0, Relations.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
         var p2 = enter(p1, Relations.subProcessConfirmation().inner(), Relations.SubProcessConfirmation.Inner.Next::startEventRequestReceived);
-        var p3 = then(p2, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::activitySendConfirmationMail);
-        var p4 = then(p3, Relations.SubProcessConfirmation.ActivitySendConfirmationMail.Next::activityConfirmRegistration);
-        var p5 = then(p4, Relations.SubProcessConfirmation.ActivityConfirmRegistration.Next::timerEveryDay);
-        var p6 = then(p5, Relations.SubProcessConfirmation.TimerEveryDay.Next::activitySendConfirmationMail);
-        var p7 = then(p6, Relations.SubProcessConfirmation.ActivitySendConfirmationMail.Next::activityConfirmRegistration);
-        var p8 = then(p7, Relations.SubProcessConfirmation.ActivityConfirmRegistration.Next::endEventSubscriptionConfirmed);
+        var p3 = then(p2, Relations.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
+        var p4 = then(p3, Relations.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
+        var p5 = then(p4, Relations.SubProcessConfirmation.UserTaskConfirmRegistration.Next::timerEveryDay);
+        var p6 = then(p5, Relations.SubProcessConfirmation.TimerEveryDay.Next::serviceTaskSendConfirmationMail);
+        var p7 = then(p6, Relations.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
+        var p8 = then(p7, Relations.SubProcessConfirmation.UserTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
 
         assertThat(p8.getIds()).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_EveryDay",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "EndEvent_SubscriptionConfirmed"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_everyDay",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "endEvent_subscriptionConfirmed"
         );
         assertThat(p8.getDistinctIds()).containsExactly(
-            "StartEvent_SubmitRegistrationForm",
+            "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_RequestReceived",
-            "Activity_SendConfirmationMail",
-            "Activity_ConfirmRegistration",
-            "Timer_EveryDay",
-            "EndEvent_SubscriptionConfirmed"
+            "startEvent_requestReceived",
+            "serviceTask_sendConfirmationMail",
+            "userTask_confirmRegistration",
+            "timer_everyDay",
+            "endEvent_subscriptionConfirmed"
         );
     }
 
@@ -142,14 +142,14 @@ class ProcessPathJavaApiTest {
     @Test
     void parallelBranchesAssertAsAnUnorderedSetViaNodesOf() {
         var welcomeStart = ProcessPath.from(Relations.gatewaySplitNotifications());
-        var w1 = then(welcomeStart, Relations.GatewaySplitNotifications.Next::activitySendWelcomeMail);
-        var w2 = then(w1, Relations.ActivitySendWelcomeMail.Next::gatewayJoinNotifications);
+        var w1 = then(welcomeStart, Relations.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
+        var w2 = then(w1, Relations.ServiceTaskSendWelcomeMail.Next::gatewayJoinNotifications);
         var w3 = then(w2, Relations.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
         List<FlowNode> welcomeBranch = w3.getNodes();
 
         var notifyStart = ProcessPath.from(Relations.gatewaySplitNotifications());
-        var t1 = then(notifyStart, Relations.GatewaySplitNotifications.Next::activityNotifyCommunity);
-        var t2 = then(t1, Relations.ActivityNotifyCommunity.Next::gatewayJoinNotifications);
+        var t1 = then(notifyStart, Relations.GatewaySplitNotifications.Next::serviceTaskNotifyCommunity);
+        var t2 = then(t1, Relations.ServiceTaskNotifyCommunity.Next::gatewayJoinNotifications);
         var t3 = then(t2, Relations.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
         List<FlowNode> notifyBranch = t3.getNodes();
 
@@ -161,7 +161,7 @@ class ProcessPathJavaApiTest {
         // Kotlin, now that AbstractFlowNode has id-based equals/hashCode (the Java accessors return fresh
         // instances, but equal-by-id ones).
         assertThat(ids)
-            .contains("Activity_SendWelcomeMail", "Activity_NotifyCommunity", "Gateway_JoinNotifications")
+            .contains("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity", "gateway_joinNotifications")
             .doesNotHaveDuplicates();
     }
 
@@ -171,19 +171,19 @@ class ProcessPathJavaApiTest {
     void jumpToReAnchorsToTheForkToWalkTheSecondParallelBranchInOneChain() {
 
         var p0 = ProcessPath.from(Relations.gatewaySplitNotifications());
-        var p1 = then(p0, Relations.GatewaySplitNotifications.Next::activitySendWelcomeMail);
+        var p1 = then(p0, Relations.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
         var p2 = jumpTo(p1, Relations.gatewaySplitNotifications());
-        var p3 = then(p2, Relations.GatewaySplitNotifications.Next::activityNotifyCommunity);
-        var p4 = then(p3, Relations.ActivityNotifyCommunity.Next::gatewayJoinNotifications);
+        var p3 = then(p2, Relations.GatewaySplitNotifications.Next::serviceTaskNotifyCommunity);
+        var p4 = then(p3, Relations.ServiceTaskNotifyCommunity.Next::gatewayJoinNotifications);
         var p5 = then(p4, Relations.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
 
         var ids = p5.getNodes().stream().map(n -> n.getId().getValue()).toList();
         assertThat(ids).containsExactly(
-            "Gateway_SplitNotifications",
-            "Activity_SendWelcomeMail",
-            "Activity_NotifyCommunity",
-            "Gateway_JoinNotifications",
-            "EndEvent_RegistrationCompleted"
+            "gateway_splitNotifications",
+            "serviceTask_sendWelcomeMail",
+            "serviceTask_notifyCommunity",
+            "gateway_joinNotifications",
+            "endEvent_registrationCompleted"
         );
     }
 
@@ -194,14 +194,14 @@ class ProcessPathJavaApiTest {
         assertThat(Relations.startEventSubmitRegistrationForm().getElementType()).isEqualTo("MESSAGE_START_EVENT");
         assertThat(Relations.gatewaySplitNotifications().getElementType()).isEqualTo("PARALLEL_GATEWAY");
         assertThat(Relations.callActivityAbortRegistration().getElementType()).isEqualTo("CALL_ACTIVITY");
-        assertThat(Relations.activitySendWelcomeMail().getElementType()).isEqualTo("SERVICE_TASK");
-        assertThat(Relations.gatewaySplitNotifications().getId().getValue()).isEqualTo("Gateway_SplitNotifications");
+        assertThat(Relations.serviceTaskSendWelcomeMail().getElementType()).isEqualTo("SERVICE_TASK");
+        assertThat(Relations.gatewaySplitNotifications().getId().getValue()).isEqualTo("gateway_splitNotifications");
     }
 
     @Test
     void compensationHandlerIsReachableOnlyViaItsAccessorNotThroughTheNavigationGraph() {
-        var handler = Relations.compensationTaskDecrementSubscriptionCounter();
-        assertThat(handler.getId().getValue()).isEqualTo("CompensationTask_DecrementSubscriptionCounter");
+        var handler = Relations.serviceTaskDecrementSubscriptionCounter();
+        assertThat(handler.getId().getValue()).isEqualTo("serviceTask_decrementSubscriptionCounter");
         assertThat(handler.getElementType()).isEqualTo("SERVICE_TASK");
     }
 }

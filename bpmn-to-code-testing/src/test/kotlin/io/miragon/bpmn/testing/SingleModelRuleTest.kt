@@ -37,7 +37,7 @@ class SingleModelRuleTest {
                 .validate()
                 .assertViolation(
                     ruleId = "call-activity-required-inputs",
-                    elementId = "CallActivity_AbortRegistration",
+                    elementId = "callActivity_abortRegistration",
                     messageContains = "businessKey",
                 )
         }
@@ -61,7 +61,7 @@ class SingleModelRuleTest {
                 .validate()
                 .assertViolation(
                     ruleId = "call-activity-required-outputs",
-                    elementId = "CallActivity_AbortRegistration",
+                    elementId = "callActivity_abortRegistration",
                     messageContains = "missingResult",
                 )
         }

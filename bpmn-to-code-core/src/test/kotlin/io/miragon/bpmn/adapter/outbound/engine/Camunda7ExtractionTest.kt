@@ -42,96 +42,96 @@ class Camunda7ExtractionTest {
         assertThat(bpmnModel.isExecutable).isTrue()
 
         // --- root vs. nested scope ---
-        // the five nodes that lived in the sub-process (old parentId "SubProcess_Confirmation") must not be
+        // the five nodes that lived in the sub-process (old parentId "subProcess_confirmation") must not be
         // at the root, but must be reachable through allFlowNodes with their parent set on the graph
         val nestedIds = listOf(
-            "Activity_ConfirmRegistration",
-            "Activity_SendConfirmationMail",
-            "EndEvent_SubscriptionConfirmed",
-            "StartEvent_RequestReceived",
-            "Timer_EveryDay",
+            "userTask_confirmRegistration",
+            "serviceTask_sendConfirmationMail",
+            "endEvent_subscriptionConfirmed",
+            "startEvent_requestReceived",
+            "timer_everyDay",
         )
         assertThat(bpmnModel.flowNodes.map { it.id }).containsExactlyInAnyOrder(
-            "CallActivity_AbortRegistration",
-            "Activity_SendWelcomeMail",
-            "Activity_NotifyCommunity",
-            "Gateway_SplitNotifications",
-            "Gateway_JoinNotifications",
-            "CompensationEndEvent_RegistrationAborted",
-            "CompensationEvent_OnSubscriptionCounter",
-            "CompensationTask_DecrementSubscriptionCounter",
-            "EndEvent_RegistrationCompleted",
-            "EndEvent_RegistrationNotPossible",
-            "ErrorEvent_InvalidMail",
+            "callActivity_abortRegistration",
+            "serviceTask_sendWelcomeMail",
+            "serviceTask_notifyCommunity",
+            "gateway_splitNotifications",
+            "gateway_joinNotifications",
+            "compensationEndEvent_registrationAborted",
+            "compensationEvent_onSubscriptionCounter",
+            "serviceTask_decrementSubscriptionCounter",
+            "endEvent_registrationCompleted",
+            "endEvent_registrationNotPossible",
+            "errorEvent_invalidMail",
             "serviceTask_incrementSubscriptionCounter",
-            "StartEvent_SubmitRegistrationForm",
-            "SubProcess_Confirmation",
-            "Timer_After3Days",
+            "startEvent_submitRegistrationForm",
+            "subProcess_confirmation",
+            "timer_after3Days",
         )
         assertThat(bpmnModel.flowNodes.map { it.id }).doesNotContainAnyElementsOf(nestedIds)
         assertThat(bpmnModel.allFlowNodes.map { it.id }).containsAll(nestedIds)
-        nestedIds.forEach { assertThat(bpmnModel.graph.parentIdOf(it)).isEqualTo("SubProcess_Confirmation") }
+        nestedIds.forEach { assertThat(bpmnModel.graph.parentIdOf(it)).isEqualTo("subProcess_confirmation") }
 
         // --- sub-process: kind and children ---
-        val subProcess = node("SubProcess_Confirmation") as FlowNodeDefinition.Activity.SubProcess
+        val subProcess = node("subProcess_confirmation") as FlowNodeDefinition.Activity.SubProcess
         assertThat(subProcess.kind).isEqualTo(SubProcessKind.PLAIN)
         assertThat(subProcess.flowNodes.map { it.id }).containsExactlyInAnyOrderElementsOf(nestedIds)
 
         // --- node kinds ---
-        assertThat((node("Activity_ConfirmRegistration") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.USER)
-        val compensationHandler = node("CompensationTask_DecrementSubscriptionCounter") as FlowNodeDefinition.Activity.Task
+        assertThat((node("userTask_confirmRegistration") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.USER)
+        val compensationHandler = node("serviceTask_decrementSubscriptionCounter") as FlowNodeDefinition.Activity.Task
         assertThat(compensationHandler.kind).isEqualTo(TaskKind.SERVICE)
         assertThat(compensationHandler.implementation).isEqualTo(TaskImplementation.DelegateExpression("counterClass"))
-        assertThat((node("Activity_SendWelcomeMail") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.SERVICE)
-        assertThat((node("Gateway_SplitNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
-        assertThat((node("Gateway_JoinNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
-        assertThat(node("CallActivity_AbortRegistration")).isInstanceOf(FlowNodeDefinition.Activity.CallActivity::class.java)
+        assertThat((node("serviceTask_sendWelcomeMail") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.SERVICE)
+        assertThat((node("gateway_splitNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
+        assertThat((node("gateway_joinNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
+        assertThat(node("callActivity_abortRegistration")).isInstanceOf(FlowNodeDefinition.Activity.CallActivity::class.java)
 
         // --- service-task implementations (old IMPL_KIND -> type, IMPL_VALUE -> reference) ---
         val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
-        assertThat(implementations["Activity_SendWelcomeMail"]).isEqualTo(TaskImplementation.DelegateExpression("\${newsletterSendWelcomeMail}"))
-        assertThat(implementations["Activity_SendConfirmationMail"]).isEqualTo(TaskImplementation.ExternalTask("#{newsletterSendConfirmationMail}"))
-        assertThat(implementations["EndEvent_RegistrationCompleted"]).isEqualTo(TaskImplementation.ExternalTask("newsletter.registrationCompleted"))
+        assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.DelegateExpression("\${newsletterSendWelcomeMail}"))
+        assertThat(implementations["serviceTask_sendConfirmationMail"]).isEqualTo(TaskImplementation.ExternalTask("#{newsletterSendConfirmationMail}"))
+        assertThat(implementations["endEvent_registrationCompleted"]).isEqualTo(TaskImplementation.ExternalTask("newsletter.registrationCompleted"))
         assertThat(implementations["serviceTask_incrementSubscriptionCounter"]).isEqualTo(TaskImplementation.DelegateExpression("counterClass"))
-        assertThat(implementations["Activity_NotifyCommunity"]).isEqualTo(TaskImplementation.DelegateExpression("\${newsletterNotifyCommunity}"))
+        assertThat(implementations["serviceTask_notifyCommunity"]).isEqualTo(TaskImplementation.DelegateExpression("\${newsletterNotifyCommunity}"))
 
         // --- event definitions ---
-        val timerAfter = node("Timer_After3Days") as FlowNodeDefinition.Event
+        val timerAfter = node("timer_after3Days") as FlowNodeDefinition.Event
         assertThat(timerAfter.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
         assertThat(timerAfter.interrupting).isTrue()
-        assertThat(timerAfter.attachedToRef).isEqualTo("SubProcess_Confirmation")
+        assertThat(timerAfter.attachedToRef).isEqualTo("subProcess_confirmation")
         assertThat(timerAfter.eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "\${testVariable}"))
 
-        val timerEveryDay = node("Timer_EveryDay") as FlowNodeDefinition.Event
+        val timerEveryDay = node("timer_everyDay") as FlowNodeDefinition.Event
         assertThat(timerEveryDay.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
         assertThat(timerEveryDay.interrupting).isFalse()
-        assertThat(timerEveryDay.attachedToRef).isEqualTo("Activity_ConfirmRegistration")
+        assertThat(timerEveryDay.attachedToRef).isEqualTo("userTask_confirmRegistration")
         assertThat(timerEveryDay.eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "PT1M"))
 
-        val submitForm = node("StartEvent_SubmitRegistrationForm") as FlowNodeDefinition.Event
+        val submitForm = node("startEvent_submitRegistrationForm") as FlowNodeDefinition.Event
         assertThat(submitForm.shape).isEqualTo(EventShape.START_EVENT)
         assertThat(submitForm.eventDefinitions.filterIsInstance<EventDefinitionInstance.Message>().single().reference.messageName)
             .isEqualTo("Message_FormSubmitted")
 
-        val notPossible = node("EndEvent_RegistrationNotPossible") as FlowNodeDefinition.Event
+        val notPossible = node("endEvent_registrationNotPossible") as FlowNodeDefinition.Event
         assertThat(notPossible.shape).isEqualTo(EventShape.END_EVENT)
         assertThat(notPossible.eventDefinitions.filterIsInstance<EventDefinitionInstance.Signal>().single().signalName)
             .isEqualTo("Signal_RegistrationNotPossible")
 
-        val invalidMail = node("ErrorEvent_InvalidMail") as FlowNodeDefinition.Event
+        val invalidMail = node("errorEvent_invalidMail") as FlowNodeDefinition.Event
         assertThat(invalidMail.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
         assertThat(invalidMail.interrupting).isTrue()
-        assertThat(invalidMail.attachedToRef).isEqualTo("SubProcess_Confirmation")
+        assertThat(invalidMail.attachedToRef).isEqualTo("subProcess_confirmation")
         val error = invalidMail.eventDefinitions.filterIsInstance<EventDefinitionInstance.Error>().single()
         assertThat(error.errorName).isEqualTo("Error_InvalidMail")
         assertThat(error.errorCode).isEqualTo("500")
         assertThat(bpmnModel.definitions.errors.map { it.getValue() }).contains("Error_InvalidMail" to "500")
 
-        val abortedEnd = node("CompensationEndEvent_RegistrationAborted") as FlowNodeDefinition.Event
+        val abortedEnd = node("compensationEndEvent_registrationAborted") as FlowNodeDefinition.Event
         assertThat(abortedEnd.shape).isEqualTo(EventShape.END_EVENT)
         assertThat(abortedEnd.eventDefinitions).anyMatch { it is EventDefinitionInstance.Compensation }
 
-        val onCounter = node("CompensationEvent_OnSubscriptionCounter") as FlowNodeDefinition.Event
+        val onCounter = node("compensationEvent_onSubscriptionCounter") as FlowNodeDefinition.Event
         assertThat(onCounter.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
         assertThat(onCounter.interrupting).isTrue()
         assertThat(onCounter.attachedToRef).isEqualTo("serviceTask_incrementSubscriptionCounter")
@@ -139,18 +139,18 @@ class Camunda7ExtractionTest {
 
         // --- derived timers ---
         assertThat(bpmnModel.timers).containsExactlyInAnyOrder(
-            TimerDefinition("Timer_After3Days", TimerType.DURATION, "\${testVariable}"),
-            TimerDefinition("Timer_EveryDay", TimerType.DURATION, "PT1M"),
+            TimerDefinition("timer_after3Days", TimerType.DURATION, "\${testVariable}"),
+            TimerDefinition("timer_everyDay", TimerType.DURATION, "PT1M"),
         )
 
         // --- derived compensations ---
         assertThat(bpmnModel.compensations).containsExactlyInAnyOrder(
-            CompensationDefinition("CompensationEndEvent_RegistrationAborted", CompensationDefinition.Type.THROWING, activityRef = "serviceTask_incrementSubscriptionCounter", waitForCompletion = false),
-            CompensationDefinition("CompensationEvent_OnSubscriptionCounter", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
+            CompensationDefinition("compensationEndEvent_registrationAborted", CompensationDefinition.Type.THROWING, activityRef = "serviceTask_incrementSubscriptionCounter", waitForCompletion = false),
+            CompensationDefinition("compensationEvent_onSubscriptionCounter", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
         )
 
         // --- call activity ---
-        val callActivity = bpmnModel.callActivities.single { it.id == "CallActivity_AbortRegistration" }
+        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
         assertThat(callActivity.hasCalledElement()).isTrue()
         assertThat(callActivity.getValue()).isEqualTo("abort-registration")
         assertThat(callActivity.inputMappings).containsExactlyInAnyOrder(
@@ -164,40 +164,40 @@ class Camunda7ExtractionTest {
         assertThat(callActivity.propagateAllOutputVariables).isNull()
 
         // --- sequence flows: root scope vs. sub-process scope ---
-        val subProcessInternalFlows = listOf("Flow_05i3x1y", "Flow_0x4ewvb", "Flow_1bckm43", "Flow_1cpwe57")
+        val subProcessInternalFlows = listOf("flow_requestToConfirmationMail", "flow_everyDayToConfirmationMail", "flow_confirmationMailToConfirm", "flow_confirmToConfirmed")
         assertThat(bpmnModel.sequenceFlows.map { it.id }).doesNotContainAnyElementsOf(subProcessInternalFlows)
-        assertThat(bpmnModel.sequenceFlows.map { it.id }).contains("Flow_09cuvzp", "Flow_0zdmt0t")
+        assertThat(bpmnModel.sequenceFlows.map { it.id }).contains("flow_confirmationToSplit", "flow_incrementCounterToConfirmation")
         assertThat(subProcess.sequenceFlows.map { it.id }).containsExactlyInAnyOrderElementsOf(subProcessInternalFlows)
         assertThat(bpmnModel.graph.allSequenceFlows).hasSize(15)
         assertThat(bpmnModel.graph.allSequenceFlows).contains(
-            SequenceFlowDefinition("Flow_1bckm43", "Activity_SendConfirmationMail", "Activity_ConfirmRegistration"),
-            SequenceFlowDefinition("Flow_1l1lj4m", "Timer_After3Days", "CallActivity_AbortRegistration"),
+            SequenceFlowDefinition("flow_confirmationMailToConfirm", "serviceTask_sendConfirmationMail", "userTask_confirmRegistration"),
+            SequenceFlowDefinition("flow_after3DaysToAbort", "timer_after3Days", "callActivity_abortRegistration"),
         )
 
         // --- messages registry ---
         assertThat(bpmnModel.definitions.messages.map { it.getValue() }).contains("Message_FormSubmitted")
 
         // --- boundary attachments ---
-        assertThat(bpmnModel.graph.attachedElementsOf(node("SubProcess_Confirmation")))
-            .containsExactlyInAnyOrder("ErrorEvent_InvalidMail", "Timer_After3Days")
+        assertThat(bpmnModel.graph.attachedElementsOf(node("subProcess_confirmation")))
+            .containsExactlyInAnyOrder("errorEvent_invalidMail", "timer_after3Days")
         assertThat(bpmnModel.graph.attachedElementsOf(node("serviceTask_incrementSubscriptionCounter")))
-            .containsExactly("CompensationEvent_OnSubscriptionCounter")
-        assertThat(bpmnModel.graph.attachedElementsOf(node("Activity_ConfirmRegistration")))
-            .containsExactly("Timer_EveryDay")
+            .containsExactly("compensationEvent_onSubscriptionCounter")
+        assertThat(bpmnModel.graph.attachedElementsOf(node("userTask_confirmRegistration")))
+            .containsExactly("timer_everyDay")
 
         // --- node-to-node adjacency (derived through sequence flows) ---
-        assertThat(bpmnModel.graph.previousElementsOf(node("CallActivity_AbortRegistration"))).containsExactly("Timer_After3Days")
-        assertThat(bpmnModel.graph.followingElementsOf(node("CallActivity_AbortRegistration"))).containsExactly("CompensationEndEvent_RegistrationAborted")
-        assertThat(bpmnModel.graph.previousElementsOf(node("SubProcess_Confirmation"))).containsExactly("serviceTask_incrementSubscriptionCounter")
-        assertThat(bpmnModel.graph.followingElementsOf(node("Gateway_SplitNotifications")))
-            .containsExactlyInAnyOrder("Activity_SendWelcomeMail", "Activity_NotifyCommunity")
+        assertThat(bpmnModel.graph.previousElementsOf(node("callActivity_abortRegistration"))).containsExactly("timer_after3Days")
+        assertThat(bpmnModel.graph.followingElementsOf(node("callActivity_abortRegistration"))).containsExactly("compensationEndEvent_registrationAborted")
+        assertThat(bpmnModel.graph.previousElementsOf(node("subProcess_confirmation"))).containsExactly("serviceTask_incrementSubscriptionCounter")
+        assertThat(bpmnModel.graph.followingElementsOf(node("gateway_splitNotifications")))
+            .containsExactlyInAnyOrder("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity")
     }
 
     @Test
     fun `extract captures call-activity input and output mapping targets`() {
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
         val bpmnModel = underTest.read(File(resourceUrl.toURI()).readBytes())
-        val callActivity = bpmnModel.callActivities.single { it.id == "CallActivity_AbortRegistration" }
+        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
         assertThat(callActivity.inputMappings).containsExactlyInAnyOrder(
             CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "subscriptionId", target = "childSubscriptionId"),
             CallActivityDefinition.Mapping(VariableDirection.INPUT, sourceExpression = "\${reasonCode}", target = "childReasonCode"),
@@ -317,11 +317,11 @@ class Camunda7ExtractionTest {
         val bpmnModel = underTest.read(file.readBytes())
 
         val flowsById = bpmnModel.sequenceFlows.associateBy { it.id }
-        assertThat(flowsById["Flow_1jogut0"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1jogut0", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true),
+        assertThat(flowsById["flow_hasSubscribers"]).isEqualTo(
+            SequenceFlowDefinition("flow_hasSubscribers", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true),
         )
-        assertThat(flowsById["Flow_1gsz7wd"]).isEqualTo(
-            SequenceFlowDefinition("Flow_1gsz7wd", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "\${subscribers.size() > 0}"),
+        assertThat(flowsById["flow_noSubscribers"]).isEqualTo(
+            SequenceFlowDefinition("flow_noSubscribers", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "\${subscribers.size() > 0}"),
         )
     }
 
@@ -359,7 +359,7 @@ class Camunda7ExtractionTest {
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
         val file = File(resourceUrl.toURI())
         val bpmnModel = underTest.read(file.readBytes())
-        val callActivity = bpmnModel.callActivities.single { it.id == "CallActivity_AbortRegistration" }
+        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
         assertThat(callActivity.propagateAllInputVariables).isNull()
         assertThat(callActivity.propagateAllOutputVariables).isNull()
     }
@@ -397,7 +397,7 @@ class Camunda7ExtractionTest {
         // UnreferencedRootElementRule is what reports it
         assertThat(bpmnModel.definitions.messages.map { it.getValue() })
             .containsExactlyInAnyOrder("Message_FormSubmitted", "Message_SubscriptionConfirmed")
-        assertThat(bpmnModel.referencedDefinitionIds()).doesNotContain("Message_36dkcng")
+        assertThat(bpmnModel.referencedDefinitionIds()).doesNotContain("message_subscriptionConfirmed")
     }
 
     private companion object {
