@@ -231,17 +231,7 @@
                 "implementation": {
                     "type": "jobWorker",
                     "jobType": "newsletter.loadSubscribers"
-                },
-                "variables": [
-                    {
-                        "name": "subscribers",
-                        "direction": "OUTPUT"
-                    },
-                    {
-                        "name": "author",
-                        "direction": "OUTPUT"
-                    }
-                ]
+                }
             },
             {
                 "id": "serviceTask_notifyAuthor",
@@ -315,17 +305,7 @@
                     "implementation": {
                         "type": "jobWorker",
                         "jobType": "newsletter.loadSubscribers"
-                    },
-                    "variables": [
-                        {
-                            "name": "subscribers",
-                            "direction": "OUTPUT"
-                        },
-                        {
-                            "name": "author",
-                            "direction": "OUTPUT"
-                        }
-                    ]
+                    }
                 },
                 {
                     "id": "gateway_hasSubscribers",

@@ -25,14 +25,7 @@
                             "source": "=subscriptionId"
                         }
                     ]
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "=subscriptionId"
-                    }
-                ]
+                }
             },
             {
                 "id": "serviceTask_incrementSubscriptionCounter",
@@ -94,14 +87,7 @@
                                     "source": "=subscriptionId"
                                 }
                             ]
-                        },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "OUTPUT",
-                                "expression": "=subscriptionId"
-                            }
-                        ]
+                        }
                     },
                     {
                         "id": "serviceTask_sendConfirmationMail",
@@ -129,19 +115,7 @@
                                     "source": "=subscriptionId"
                                 }
                             ]
-                        },
-                        "variables": [
-                            {
-                                "name": "testVariable",
-                                "direction": "INPUT",
-                                "expression": "=\"123\""
-                            },
-                            {
-                                "name": "subscriptionId",
-                                "direction": "INPUT",
-                                "expression": "=subscriptionId"
-                            }
-                        ]
+                        }
                     },
                     {
                         "id": "userTask_confirmRegistration",
@@ -229,14 +203,7 @@
                             "source": "=subscriptionId"
                         }
                     ]
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "=subscriptionId"
-                    }
-                ]
+                }
             },
             {
                 "id": "endEvent_registrationNotPossible",
@@ -291,14 +258,7 @@
                             "source": "=subscriptionId"
                         }
                     ]
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "=subscriptionId"
-                    }
-                ]
+                }
             },
             {
                 "id": "compensationEndEvent_registrationAborted",
@@ -375,14 +335,7 @@
                             "source": "=subscriptionId"
                         }
                     ]
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "=subscriptionId"
-                    }
-                ]
+                }
             },
             {
                 "id": "serviceTask_sendWelcomeMail",
@@ -411,19 +364,7 @@
                             "source": "=subscriptionId"
                         }
                     ]
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "=subscriptionId"
-                    },
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "=subscriptionId"
-                    }
-                ]
+                }
             },
             {
                 "id": "serviceTask_decrementSubscriptionCounter",
@@ -437,14 +378,7 @@
                             "source": "=subscriptionId"
                         }
                     ]
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "=subscriptionId"
-                    }
-                ]
+                }
             }
         ],
         "sequenceFlows": [

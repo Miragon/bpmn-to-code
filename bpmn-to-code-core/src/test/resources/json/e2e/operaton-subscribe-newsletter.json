@@ -26,13 +26,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "operaton:inputOutput",
@@ -109,13 +102,6 @@
                                 }
                             ]
                         },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "OUTPUT",
-                                "expression": "${subscriptionId}"
-                            }
-                        ],
                         "extensions": [
                             {
                                 "$type": "operaton:inputOutput",
@@ -161,18 +147,6 @@
                                 }
                             ]
                         },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "INPUT",
-                                "expression": "${subscriptionId}"
-                            },
-                            {
-                                "name": "otherVariable",
-                                "direction": "INPUT",
-                                "expression": "dummy"
-                            }
-                        ],
                         "extensions": [
                             {
                                 "$type": "operaton:inputOutput",
@@ -219,13 +193,6 @@
                                 }
                             ]
                         },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "INPUT",
-                                "expression": "${subscriptionId}"
-                            }
-                        ],
                         "extensions": [
                             {
                                 "$type": "operaton:inputOutput",
@@ -357,23 +324,6 @@
                 "calledElement": {
                     "processId": "abort-registration"
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "subscriptionId"
-                    },
-                    {
-                        "name": "reasonCode",
-                        "direction": "INPUT",
-                        "expression": "${reasonCode}"
-                    },
-                    {
-                        "name": "abortResult",
-                        "direction": "OUTPUT",
-                        "expression": "abortResult"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "operaton:in",
@@ -483,13 +433,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "operaton:inputOutput",
@@ -533,18 +476,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "${subscriptionId}"
-                    },
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "operaton:inputOutput",
@@ -589,13 +520,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "operaton:inputOutput",

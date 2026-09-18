@@ -11,7 +11,6 @@ import io.miragon.bpmn.adapter.outbound.json.model.MultiInstanceJson
 import io.miragon.bpmn.adapter.outbound.json.model.ProcessJson
 import io.miragon.bpmn.adapter.outbound.json.model.ProcessModelJson
 import io.miragon.bpmn.adapter.outbound.json.model.SequenceFlowJson
-import io.miragon.bpmn.adapter.outbound.json.model.VariableJson
 import io.miragon.bpmn.adapter.outbound.json.model.VariantJson
 import io.miragon.bpmn.adapter.outbound.shared.BpmnTypeName
 import io.miragon.bpmn.domain.ProcessModel
@@ -26,7 +25,6 @@ import io.miragon.bpmn.domain.shared.RootElements
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskImplementation
-import io.miragon.bpmn.domain.shared.VariableDefinition
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
@@ -91,7 +89,6 @@ internal class BpmnJsonMapper {
             calledElement = (this as? FlowNodeDefinition.Activity.CallActivity)?.toCalledElement(),
             multiInstance = activity?.multiInstance?.toJson(),
             ioMapping = ioMapping()?.toJson(),
-            variables = variables.map { it.toJson() },
             flowNodes = subProcess?.flowNodes?.toJson(subProcess.sequenceFlows).orEmpty(),
             sequenceFlows = subProcess?.sequenceFlows?.map { it.toJson() }.orEmpty(),
             extensions = extensions.map { it.toJson() },
@@ -162,8 +159,6 @@ internal class BpmnJsonMapper {
         inputs = inputs.map { IoMappingJson.Parameter(it.target, it.source) },
         outputs = outputs.map { IoMappingJson.Parameter(it.target, it.source) },
     )
-
-    private fun VariableDefinition.toJson(): VariableJson = VariableJson(name = getRawName(), direction = direction.name, expression = valueExpression)
 
     private fun EngineExtension.toJson(): ExtensionJson = ExtensionJson(
         type = type,

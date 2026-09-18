@@ -51,6 +51,19 @@ class BpmnJsonGeneratorTest {
     }
 
     @Test
+    fun `does not emit variables - they restate ioMapping and have no bpmn element`() {
+        // given: a model whose nodes carry variables in the domain
+        val model = testSubscribeNewsletterModel()
+        assertThat(model.variables).isNotEmpty()
+
+        // when: generating JSON
+        val result = underTest.generate(model)
+
+        // then: the export never carries a variables facet
+        assertThat(result).doesNotContain("\"variables\"")
+    }
+
+    @Test
     fun `adapter always uses processId as filename`() {
         // given: a model
         val model = testSubscribeNewsletterModel()
