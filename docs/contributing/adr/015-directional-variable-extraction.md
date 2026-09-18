@@ -61,10 +61,10 @@ Direction mapping per source:
 
 **Add an `UNDIRECTED` direction value and a third sub-object** — rejected for the same reason: once we remove the single undirected source, nothing needs this tier. Keeping the enum binary avoids a degenerate branch everywhere.
 
-**Keep `additionalVariables` as an alias for `additionalInputVariables`** — rejected. Silent migration is worse than an explicit rename for a small feature; the migration skill surfaces the change, and the old property was sparsely used.
+**Keep `additionalVariables` as an alias for `additionalInputVariables`** — rejected. Silent migration is worse than an explicit rename for a small feature; the changelog documents the change, and the old property was sparsely used.
 
 ## Implementation
 - Domain: `VariableDirection { INPUT, OUTPUT }`; `VariableDefinition(name, direction)` with direction required.
 - Extractors: Zeebe / Camunda 7 / Operaton tag every source; dedup happens on `(name, direction)`.
 - Writers: `KotlinProcessApiBuilder.VariablesWriter` and `JavaProcessApiBuilder.VariablesWriter` partition a node's variables and emit the `Inputs` / `Outputs` sub-objects (each only when non-empty).
-- Migration skill: `migrate-bpmn-to-code-v1-to-v2` flags `Variables.<Element>.X` references and `additionalVariables` BPMN declarations for manual review.
+- Migration: search BPMN files for `name="additionalVariables"` and split each into the two directional variants; `Variables.<Element>.X` source references need manual review (see the v2 changelog).

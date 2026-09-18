@@ -13,7 +13,6 @@ bpmn-to-code ships with reusable skills for AI coding assistants. Skills work wi
 | `setup-bpmn-to-code-gradle` | Set up the Gradle plugin in an existing project. Detects project structure, BPMN files, and output language. |
 | `setup-bpmn-to-code-maven` | Set up the Maven plugin in an existing project. Adds plugin configuration to `pom.xml`. |
 | `migrate-to-bpmn-to-code-apis` | Replace hardcoded BPMN strings with references to the generated Process API. Scans source code and shows a migration plan before applying changes. |
-| `migrate-bpmn-to-code-v1-to-v2` | Migrate generated API references from v1.1.0 to v2.0.0. Finds `TaskTypes` → `ServiceTasks` renames, moved `BpmnTimer`/`BpmnError` imports, and flags variable path changes for manual review. |
 
 ## Installation
 
@@ -35,10 +34,9 @@ Install skills using [`npx skills`](https://github.com/vercel-labs/skills):
 npx skills add https://github.com/Miragon/bpmn-to-code
 
 # Or pick only what you need
-npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-gradle
-npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/setup-bpmn-to-code-maven
-npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/.claude/skills/migrate-to-bpmn-to-code-apis
-npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/migrate-bpmn-to-code-v1-to-v2
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/setup-bpmn-to-code-gradle
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/setup-bpmn-to-code-maven
+npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/migrate-to-bpmn-to-code-apis
 ```
 
 ## How Skills Work
