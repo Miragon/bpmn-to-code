@@ -16,7 +16,7 @@ data class AppConfig(
         fun fromEnvironment() = AppConfig(
             legalLinks = LegalLinksConfig.fromEnvironment(),
             cors = CorsConfig.fromEnvironment(),
-            port = 8080,
+            port = System.getenv("PORT")?.trim()?.toIntOrNull() ?: 8080,
             version = loadVersion(),
         )
 
