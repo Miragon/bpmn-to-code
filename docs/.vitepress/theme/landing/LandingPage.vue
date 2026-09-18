@@ -91,7 +91,7 @@ import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from 
       <div class="offering-intro">
         <span class="pillar-badge skills"><span class="num">4</span>Ship <span class="eyebrow">&middot; with Agent Skills &middot; in beta</span></span>
         <h2>Build processes <em>with</em> agents, not around them.</h2>
-        <p>Drop-in agent skills, built on everything bpmn-to-code offers. Integrate the plugin into your project in one prompt, scaffold process services from a diagram, and get architectural tests written for you &mdash; while you focus on modeling the business logic. Works with Claude Code and any other agent supporting the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
+        <p>Drop-in agent skills, built on everything bpmn-to-code offers. Integrate the plugin into your project in one prompt, migrate hardcoded BPMN strings to the generated Process API, and get architectural tests written for you &mdash; while you focus on modeling the business logic. Works with Claude Code and any other agent supporting the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
         <a class="pillar-link" :href="withBase('/skills/')">See all skills <span class="arrow">&rarr;</span></a>
       </div>
       <div class="skills-grid">

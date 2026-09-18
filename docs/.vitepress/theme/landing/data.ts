@@ -229,8 +229,8 @@ export interface Skill {
 export const skills: Skill[] = [
   {
     icon: '\u2708',
-    name: 'create-process-service',
-    description: 'Create a complete Spring Boot process service from a BPMN file — hexagonal layers, workers, Docker Compose, all wired to the generated Process API.',
+    name: 'migrate-to-bpmn-to-code-apis',
+    description: 'Replace hardcoded BPMN strings with references to the generated Process API — scans your source, shows a migration plan, and applies it after approval.',
   },
   {
     icon: '\u270E',
