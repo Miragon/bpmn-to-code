@@ -158,7 +158,6 @@
                 "calledElement": { "$ref": "#/$defs/calledElement" },
                 "multiInstance": { "$ref": "#/$defs/multiInstance" },
                 "ioMapping": { "$ref": "#/$defs/ioMapping" },
-                "variables": { "type": "array", "items": { "$ref": "#/$defs/variable" } },
                 "flowNodes": {
                     "type": "array",
                     "description": "Children of a sub-process scope.",
@@ -279,16 +278,6 @@
             "properties": {
                 "target": { "type": "string" },
                 "source": { "type": "string" }
-            },
-            "additionalProperties": false
-        },
-        "variable": {
-            "type": "object",
-            "required": ["name", "direction"],
-            "properties": {
-                "name": { "type": "string" },
-                "direction": { "enum": ["INPUT", "OUTPUT"] },
-                "expression": { "type": "string" }
             },
             "additionalProperties": false
         },

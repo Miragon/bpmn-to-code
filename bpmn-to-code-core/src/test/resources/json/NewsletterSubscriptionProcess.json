@@ -16,12 +16,6 @@
                         "type": "message",
                         "messageRef": "Message_FormSubmitted"
                     }
-                ],
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT"
-                    }
                 ]
             },
             {
@@ -75,12 +69,6 @@
                         "name": "Subscription requested",
                         "outgoing": [
                             "flow_requestToConfirmationMail"
-                        ],
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "OUTPUT"
-                            }
                         ]
                     },
                     {
@@ -97,13 +85,7 @@
                         "implementation": {
                             "type": "jobWorker",
                             "jobType": "newsletter.sendConfirmationMail"
-                        },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "INPUT"
-                            }
-                        ]
+                        }
                     },
                     {
                         "id": "userTask_confirmRegistration",
@@ -227,13 +209,7 @@
                 ],
                 "calledElement": {
                     "processId": "abort-registration"
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT"
-                    }
-                ]
+                }
             },
             {
                 "id": "compensationEndEvent_registrationAborted",
@@ -300,13 +276,7 @@
                 "implementation": {
                     "type": "jobWorker",
                     "jobType": "newsletter.registrationCompleted"
-                },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT"
-                    }
-                ]
+                }
             },
             {
                 "id": "serviceTask_sendWelcomeMail",
@@ -322,12 +292,6 @@
                     "type": "jobWorker",
                     "jobType": "newsletter.sendWelcomeMail"
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT"
-                    }
-                ],
                 "engineAttributes": {
                     "camunda:asyncBefore": true,
                     "camunda:asyncAfter": true,

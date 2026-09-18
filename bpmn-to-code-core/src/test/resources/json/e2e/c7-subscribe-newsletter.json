@@ -26,13 +26,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "camunda:inputOutput",
@@ -112,13 +105,6 @@
                                 }
                             ]
                         },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "OUTPUT",
-                                "expression": "${subscriptionId}"
-                            }
-                        ],
                         "extensions": [
                             {
                                 "$type": "camunda:inputOutput",
@@ -164,18 +150,6 @@
                                 }
                             ]
                         },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "INPUT",
-                                "expression": "${subscriptionId}"
-                            },
-                            {
-                                "name": "otherVariable",
-                                "direction": "INPUT",
-                                "expression": "dummy"
-                            }
-                        ],
                         "extensions": [
                             {
                                 "$type": "camunda:inputOutput",
@@ -222,13 +196,6 @@
                                 }
                             ]
                         },
-                        "variables": [
-                            {
-                                "name": "subscriptionId",
-                                "direction": "INPUT",
-                                "expression": "${subscriptionId}"
-                            }
-                        ],
                         "extensions": [
                             {
                                 "$type": "camunda:inputOutput",
@@ -360,23 +327,6 @@
                 "calledElement": {
                     "processId": "abort-registration"
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "subscriptionId"
-                    },
-                    {
-                        "name": "reasonCode",
-                        "direction": "INPUT",
-                        "expression": "${reasonCode}"
-                    },
-                    {
-                        "name": "abortResult",
-                        "direction": "OUTPUT",
-                        "expression": "abortResult"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "camunda:in",
@@ -486,13 +436,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "camunda:inputOutput",
@@ -536,18 +479,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "${subscriptionId}"
-                    },
-                    {
-                        "name": "subscriptionId",
-                        "direction": "OUTPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "camunda:inputOutput",
@@ -592,13 +523,6 @@
                         }
                     ]
                 },
-                "variables": [
-                    {
-                        "name": "subscriptionId",
-                        "direction": "INPUT",
-                        "expression": "${subscriptionId}"
-                    }
-                ],
                 "extensions": [
                     {
                         "$type": "camunda:inputOutput",

@@ -45,6 +45,46 @@ class NormalisedExtensionTest {
               </bpmn:process>
             </bpmn:definitions>
         """.trimIndent()
+
+        val MODELER_METADATA_BPMN = """
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                              xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_3"
+                              targetNamespace="http://bpmn.io/schema/bpmn">
+              <bpmn:process id="modelerProcess" isExecutable="true">
+                <bpmn:serviceTask id="Task_1" zeebe:modelerTemplate="io.camunda.connectors.HttpJson"
+                                  zeebe:modelerTemplateVersion="4"
+                                  zeebe:modelerTemplateIcon="data:image/svg+xml;base64,AAAA">
+                  <bpmn:extensionElements>
+                    <zeebe:taskDefinition type="io.camunda:http-json:1" />
+                    <zeebe:properties>
+                      <zeebe:property name="camundaModeler:exampleOutputJson" value="{ &quot;a&quot;: 1 }" />
+                    </zeebe:properties>
+                    <zeebe:taskHeaders>
+                      <zeebe:header key="retryBackoff" value="PT5M" />
+                    </zeebe:taskHeaders>
+                  </bpmn:extensionElements>
+                </bpmn:serviceTask>
+              </bpmn:process>
+            </bpmn:definitions>
+        """.trimIndent()
+
+        val MIXED_PROPERTIES_BPMN = """
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                              xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_4"
+                              targetNamespace="http://bpmn.io/schema/bpmn">
+              <bpmn:process id="mixedProcess" isExecutable="true">
+                <bpmn:serviceTask id="Task_1">
+                  <bpmn:extensionElements>
+                    <zeebe:taskDefinition type="worker" />
+                    <zeebe:properties>
+                      <zeebe:property name="camundaModeler:exampleOutputJson" value="{}" />
+                      <zeebe:property name="resultTimeout" value="PT30S" />
+                    </zeebe:properties>
+                  </bpmn:extensionElements>
+                </bpmn:serviceTask>
+              </bpmn:process>
+            </bpmn:definitions>
+        """.trimIndent()
     }
 
     @Test
@@ -139,6 +179,33 @@ class NormalisedExtensionTest {
         assertThat(task.implementation).isEqualTo(TaskImplementation.ExternalTask("some-topic"))
         assertThat(task.engineAttributes).containsEntry("camunda:class", "com.example.Handler")
         assertThat(task.engineAttributes).doesNotContainKey("camunda:topic")
+    }
+
+    @Test
+    fun `modeler authoring metadata is dropped from engine attributes and extensions`() {
+        // given: a connector task carrying modeler-template attributes and a camundaModeler example blob
+        val model = ProcessModelReader(ZeebeDialect()).read(MODELER_METADATA_BPMN.toByteArray())
+        val task = model.allFlowNodes.single { it.id == "Task_1" }
+
+        // then: the base64 icon and template markers never reach engineAttributes
+        assertThat(task.engineAttributes.keys)
+            .doesNotContain("zeebe:modelerTemplate", "zeebe:modelerTemplateVersion", "zeebe:modelerTemplateIcon")
+
+        // and: the properties container held only editor metadata, so it is gone; runtime headers stay
+        val types = task.extensions.map { it.type }
+        assertThat(types).contains("zeebe:taskHeaders")
+        assertThat(types).doesNotContain("zeebe:properties")
+    }
+
+    @Test
+    fun `a properties container keeps its runtime entries when only modeler metadata is dropped`() {
+        // given: a properties block mixing a camundaModeler blob with a real property
+        val model = ProcessModelReader(ZeebeDialect()).read(MIXED_PROPERTIES_BPMN.toByteArray())
+        val task = model.allFlowNodes.single { it.id == "Task_1" }
+
+        // then: the container survives with only the runtime property left
+        val properties = task.extensions.single { it.type == "zeebe:properties" }
+        assertThat(properties.children.map { it.attributes["name"] }).containsExactly("resultTimeout")
     }
 
     private fun extract(dialect: io.miragon.bpmn.adapter.outbound.engine.dialect.EngineDialect, fixture: String): ProcessModel {

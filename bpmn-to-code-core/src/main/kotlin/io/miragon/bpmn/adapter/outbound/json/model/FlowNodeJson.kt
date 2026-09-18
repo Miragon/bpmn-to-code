@@ -35,7 +35,6 @@ internal data class FlowNodeJson(
     val calledElement: CalledElementJson? = null,
     val multiInstance: MultiInstanceJson? = null,
     val ioMapping: IoMappingJson? = null,
-    val variables: List<VariableJson> = emptyList(),
     val flowNodes: List<FlowNodeJson> = emptyList(),
     val sequenceFlows: List<SequenceFlowJson> = emptyList(),
     val extensions: List<ExtensionJson> = emptyList(),

@@ -31,7 +31,7 @@ internal class ForeignXmlReader(
             .filter { it.localNameOf() == EXTENSION_ELEMENTS && it.namespaceURI in BPMN_NAMESPACES }
             .flatMap { it.childElements() }
             .filterNot { it.isFullyReadByTheDialect() }
-            .map { it.toExtension() }
+            .mapNotNull { it.toExtensionOrNull() }
     }
 
     /**
@@ -47,6 +47,7 @@ internal class ForeignXmlReader(
             .map { attributes.item(it) }
             .filter { it.namespaceURI != null && it.namespaceURI !in IGNORED_NAMESPACES }
             .filterNot { it.namespaceURI == engineNamespace && it.localNameOf() in fullyRead }
+            .filterNot { it.localNameOf() in MODELER_METADATA_ATTRIBUTES }
             .associate { it.qualifiedName() to it.nodeValue.toTypedValue() }
     }
 
@@ -57,15 +58,25 @@ internal class ForeignXmlReader(
      */
     private fun Element.isFullyReadByTheDialect(): Boolean = namespaceURI == engineNamespace && localNameOf() in fullyReadExtensions
 
-    private fun Element.toExtension(): EngineExtension {
-        val children = childElements()
+    /**
+     * Projects an extension element, dropping Camunda-Modeler authoring metadata that carries no runtime
+     * meaning: a `zeebe:property` whose name is `camundaModeler:…` (e.g. `exampleOutputJson`), and any
+     * container left empty once those are removed (e.g. a `zeebe:properties` holding only such entries).
+     */
+    private fun Element.toExtensionOrNull(): EngineExtension? {
+        if (isModelerNoiseProperty()) return null
+        val childElements = childElements()
+        val children = childElements.mapNotNull { it.toExtensionOrNull() }
+        if (childElements.isNotEmpty() && children.isEmpty()) return null
         return EngineExtension(
             type = qualifiedName(),
             attributes = ownAttributes(),
-            children = children.map { it.toExtension() },
-            body = textContent.takeIf { children.isEmpty() && it.isNotBlank() }?.trim(),
+            children = children,
+            body = textContent.takeIf { childElements.isEmpty() && it.isNotBlank() }?.trim(),
         )
     }
+
+    private fun Element.isModelerNoiseProperty(): Boolean = localNameOf() == PROPERTY_ELEMENT && getAttribute(NAME_ATTRIBUTE).startsWith(MODELER_PROPERTY_PREFIX)
 
     private fun Element.ownAttributes(): Map<String, String> {
         val attributes = attributes ?: return emptyMap()
@@ -107,6 +118,15 @@ internal class ForeignXmlReader(
     private companion object {
         const val ID_ATTRIBUTE = "id"
         const val EXTENSION_ELEMENTS = "extensionElements"
+        const val PROPERTY_ELEMENT = "property"
+        const val NAME_ATTRIBUTE = "name"
+        const val MODELER_PROPERTY_PREFIX = "camundaModeler:"
+
+        val MODELER_METADATA_ATTRIBUTES = setOf(
+            "modelerTemplate",
+            "modelerTemplateVersion",
+            "modelerTemplateIcon",
+        )
 
         val BPMN_NAMESPACES = setOf(
             "http://www.omg.org/spec/BPMN/20100524/MODEL",
