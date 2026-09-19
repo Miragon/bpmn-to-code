@@ -11,7 +11,7 @@ Add separate `<execution>` blocks with their own `<configuration>` to generate f
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>5.2.0</version>
+    <version>6.0.0</version>
     <executions>
         <!-- Camunda 7 processes -->
         <execution>
@@ -83,7 +83,7 @@ bpmn-to-code processes all files matching the `filePattern` glob — it has no b
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>5.2.0</version>
+    <version>6.0.0</version>
     <executions>
         <execution>
             <goals><goal>generate-bpmn-api</goal></goals>
