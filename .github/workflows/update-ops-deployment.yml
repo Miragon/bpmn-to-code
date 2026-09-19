@@ -32,7 +32,6 @@ permissions:
 env:
   OPS_REPO: Miragon/ops
   IMAGE: miragon/bpmn-to-code-web
-  DEPLOYMENT_FILE: workloads/bpmn-to-code-web/deployment.yaml
 
 jobs:
   update-ops:
@@ -48,7 +47,14 @@ jobs:
             echo "No version provided — using placeholder (PR creation is disabled)."
             version="0.0.0-dryrun"
           fi
+          # Snapshots roll out to their own workload; releases update the stable one.
+          case "$version" in
+            *-SNAPSHOT) deployment_file=workloads/bpmn-to-code-web-snapshot/deployment.yaml ;;
+            *)          deployment_file=workloads/bpmn-to-code-web/deployment.yaml ;;
+          esac
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "deployment_file=$deployment_file" >> "$GITHUB_OUTPUT"
+          echo "Bumping $deployment_file to $version"
 
       - name: Mint ops-scoped token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -67,6 +73,8 @@ jobs:
           path: ops
 
       - name: Update image reference
+        env:
+          DEPLOYMENT_FILE: ${{ steps.resolve-version.outputs.deployment_file }}
         run: |
           set -euo pipefail
           file="ops/${DEPLOYMENT_FILE}"
@@ -85,6 +93,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.ops-token.outputs.token }}
           VERSION: ${{ steps.resolve-version.outputs.version }}
+          DEPLOYMENT_FILE: ${{ steps.resolve-version.outputs.deployment_file }}
         run: |
           set -euo pipefail
           if git diff --quiet; then
