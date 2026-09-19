@@ -19,6 +19,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    outputs:
+      snapshot: ${{ steps.version.outputs.snapshot }}
+
     env:
       # Same Central Portal token used by the release publish - the snapshot repo shares auth.
       ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MIRAGON_SONATYPE_USERNAME }}
@@ -82,3 +85,13 @@ jobs:
       - name: Log out from Docker Hub
         if: always()
         run: docker logout
+
+  # After the snapshot image is on Docker Hub, bump the dedicated snapshot deployment
+  # in Miragon/ops. update-ops routes -SNAPSHOT versions to bpmn-to-code-web-snapshot.
+  update-ops:
+    name: Bump ops snapshot deployment
+    needs: publish
+    uses: ./.github/workflows/update-ops-deployment.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.publish.outputs.snapshot }}
