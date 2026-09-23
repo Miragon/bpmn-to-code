@@ -10,7 +10,7 @@ import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
-import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraphFactory
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -45,7 +45,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         ApiObjectType.ESCALATIONS to EscalationsWriter(),
         ApiObjectType.SIGNALS to SignalsWriter(),
         ApiObjectType.VARIABLES to VariablesWriter(),
-        ApiObjectType.RELATIONS to RelationsWriter(),
+        ApiObjectType.FLOW to FlowWriter(),
         ApiObjectType.VARIANTS to VariantsWriter(),
     )
 
@@ -112,11 +112,11 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private inner class RelationsWriter : ObjectWriter<TypeSpec.Builder> {
+    private inner class FlowWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val relationsObject = buildRelationsObject(modelApi.model.graph)
-            builder.addType(relationsObject)
+            val flowObject = buildFlowObject(modelApi.model.graph)
+            builder.addType(flowObject)
         }
     }
 
@@ -136,7 +136,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             val variantName = variant.variantName.toCamelCase()
             val variantBuilder = TypeSpec.objectBuilder(variantName)
             if (variant.graph.allSequenceFlows.isNotEmpty()) {
-                variantBuilder.addType(buildRelationsObject(variant.graph))
+                variantBuilder.addType(buildFlowObject(variant.graph))
             }
             return variantBuilder.build()
         }
@@ -144,20 +144,20 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
 
     /**
      * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
-     * `elementType` and display `name`, plus its reachable successors as named accessors. Boundary events and
-     * subprocess continuations are plain successors; a subprocess's interior is its nested `Inner` scope.
+     * `elementType` and display `name`, plus its reachable successors behind `then()`. Boundary events and
+     * subprocess continuations are plain successors; a subprocess nests its interior and opens it via `start()`.
      */
-    private fun buildRelationsObject(graph: ProcessGraph): TypeSpec {
-        val relationsBuilder = TypeSpec.objectBuilder("Relations")
+    private fun buildFlowObject(graph: ProcessGraph): TypeSpec {
+        val flowBuilder = TypeSpec.objectBuilder("Flow")
             .addKdoc(
                 "Typed navigation over the process flow.\n" +
-                    "Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements " +
-                    "reachable from it as named properties — so a full path is verified by the compiler and offered " +
-                    "by autocomplete. A subprocess's interior is its nested `Inner` scope.\n" +
+                    "Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the " +
+                    "elements reachable from it behind `then()` — so a full path is verified by the compiler and " +
+                    "offered by autocomplete. A subprocess nests its interior and opens it via `start()`.\n" +
                     "Intended for tooling, tests, and reasoning about the process shape.",
             )
-        KotlinNavigationWriter().write(relationsBuilder, NavigationGraphFactory.build(graph))
-        return relationsBuilder.build()
+        KotlinFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph))
+        return flowBuilder.build()
     }
 
     private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {

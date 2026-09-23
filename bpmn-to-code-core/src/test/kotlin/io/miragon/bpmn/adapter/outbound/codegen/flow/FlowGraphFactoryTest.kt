@@ -1,12 +1,12 @@
-package io.miragon.bpmn.adapter.outbound.codegen.navigation
+package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.adapter.outbound.codegen.builder.buildSubscribeNewsletterFlowNodes
-import io.miragon.bpmn.adapter.outbound.codegen.navigation.NavigationGraph.NavigationNode
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.domain.testSubscribeNewsletterModel
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class NavigationGraphFactoryTest {
+class FlowGraphFactoryTest {
 
     private val processGraph = testSubscribeNewsletterModel(
         flowNodes = buildSubscribeNewsletterFlowNodes(
@@ -19,7 +19,7 @@ class NavigationGraphFactoryTest {
 
     @Test
     fun `root scope contains only top-level nodes and keeps subprocess children nested`() {
-        val graph = NavigationGraphFactory.build(processGraph)
+        val graph = FlowGraphFactory.build(processGraph)
 
         // given: five nodes declare parentId = subProcess_confirmation -> they live in the inner scope, not root
         assertThat(graph.nodes.map { it.propertyName })
@@ -40,7 +40,7 @@ class NavigationGraphFactoryTest {
 
     @Test
     fun `sequence-flow and boundary edges are unified as target-named successors`() {
-        val graph = NavigationGraphFactory.build(processGraph)
+        val graph = FlowGraphFactory.build(processGraph)
 
         // given: subProcess_confirmation follows into the notification split gateway and has two boundary events attached
         assertThat(graph.node("subProcessConfirmation").successors.map { it.propertyName })
@@ -57,7 +57,7 @@ class NavigationGraphFactoryTest {
 
     @Test
     fun `inner scope resolves its own start event and edges`() {
-        val graph = NavigationGraphFactory.build(processGraph)
+        val graph = FlowGraphFactory.build(processGraph)
         val inner = graph.node("subProcessConfirmation").inner!!
 
         assertThat(inner.node("startEventRequestReceived").isStart).isTrue()
@@ -69,7 +69,7 @@ class NavigationGraphFactoryTest {
 
     @Test
     fun `call activity stays opaque but exposes the called process id as info`() {
-        val graph = NavigationGraphFactory.build(processGraph)
+        val graph = FlowGraphFactory.build(processGraph)
         val callActivity = graph.node("callActivityAbortRegistration")
 
         assertThat(callActivity.inner).isNull()
@@ -80,7 +80,7 @@ class NavigationGraphFactoryTest {
 
     @Test
     fun `node exposes id, flat element type and optional display name`() {
-        val graph = NavigationGraphFactory.build(processGraph)
+        val graph = FlowGraphFactory.build(processGraph)
         val serviceTask = graph.node("serviceTaskIncrementSubscriptionCounter")
 
         assertThat(serviceTask.id).isEqualTo("serviceTask_incrementSubscriptionCounter")
@@ -93,5 +93,5 @@ class NavigationGraphFactoryTest {
         assertThat(confirm.name).isEqualTo("Confirm registration")
     }
 
-    private fun NavigationGraph.node(propertyName: String): NavigationNode = nodes.single { it.propertyName == propertyName }
+    private fun FlowGraph.node(propertyName: String): FlowGraphNode = nodes.single { it.propertyName == propertyName }
 }

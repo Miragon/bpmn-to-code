@@ -12,7 +12,7 @@ internal enum class ApiObjectType {
     PROCESS_ID,
     PROCESS_ENGINE,
     ELEMENTS,
-    RELATIONS,
+    FLOW,
     VARIANTS,
     CALL_ACTIVITIES,
     MESSAGES,

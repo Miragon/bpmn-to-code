@@ -63,7 +63,7 @@ class KotlinProcessApiBuilderTest {
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped Relations for merged model`() {
+    fun `buildApiFile generates variant-scoped Flow for merged model`() {
         // given: a merged model with a single variant
         val send = testSendNewsletterModel(variantName = "send")
         val merged = ProcessModel(
@@ -79,7 +79,7 @@ class KotlinProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains Variants section instead of a flat Relations
+        // then: output contains Variants section instead of a flat Flow
         val expectedFile = File(requireNotNull(javaClass.getResource("/api/MultiVariantProcessApiKotlin.txt")).toURI())
         assertThat(result.content).isEqualTo(expectedFile.readText())
         assertKotlinSyntaxValid(result.content)

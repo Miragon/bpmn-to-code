@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.navigation
+package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 
@@ -13,7 +13,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
  * - object name = PascalCase of the id (`serviceTask_increment` -> `ServiceTaskIncrement`)
  * - property/accessor name = the same, first letter lowercased (`serviceTaskIncrement`)
  */
-internal object NavigationNaming {
+internal object FlowNaming {
 
     /**
      * Object/property names for one node.

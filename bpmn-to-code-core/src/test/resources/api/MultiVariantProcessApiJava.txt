@@ -6,10 +6,9 @@ import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnEscalation;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
-import io.miragon.bpmn.runtime.HasInnerScope;
+import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.MessageName;
-import io.miragon.bpmn.runtime.NavigationScope;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.VariableName;
 import java.lang.Override;
@@ -110,9 +109,9 @@ public final class SendNewsletterProcessApi {
   public static final class Variants {
     public static final class Send {
       /**
-       * Typed navigation over the process flow. Each element is a node exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it as methods — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested {@code Inner} scope.
+       * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. A subprocess nests its interior and opens it via {@code start()}.
        */
-      public static final class Relations {
+      public static final class Flow {
         public static EndEventEditionSent endEventEditionSent() {
           return new EndEventEditionSent();
         }
@@ -145,16 +144,6 @@ public final class SendNewsletterProcessApi {
           return new StartEventEditionCreated();
         }
 
-        public static Next then() {
-          return new Next();
-        }
-
-        public static final class Next {
-          public StartEventEditionCreated startEventEditionCreated() {
-            return new StartEventEditionCreated();
-          }
-        }
-
         public static final class EndEventEditionSent extends AbstractFlowNode {
           public EndEventEditionSent() {
             super(new ElementId("endEvent_editionSent"), "END_EVENT");
@@ -167,14 +156,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class EventSubProcessErrorHandling extends AbstractFlowNode implements HasInnerScope<EventSubProcessErrorHandling.Inner> {
+        public static final class EventSubProcessErrorHandling extends AbstractFlowNode implements FlowScope<EventSubProcessErrorHandling.Start> {
           public EventSubProcessErrorHandling() {
             super(new ElementId("eventSubProcess_errorHandling"), "EVENT_SUB_PROCESS");
           }
 
           @Override
-          public EventSubProcessErrorHandling.Inner inner() {
-            return new EventSubProcessErrorHandling.Inner();
+          public Start start() {
+            return new Start();
           }
 
           public EndEventIssueResolved endEventIssueResolved() {
@@ -218,16 +207,9 @@ public final class SendNewsletterProcessApi {
             return new TimerNoRejectionForOneDay();
           }
 
-          public static final class Inner implements NavigationScope<EventSubProcessErrorHandling.Inner.Next> {
-            @Override
-            public Next then() {
-              return new Next();
-            }
-
-            public static final class Next {
-              public EventMailRejected eventMailRejected() {
-                return new EventMailRejected();
-              }
+          public static final class Start {
+            public EventMailRejected eventMailRejected() {
+              return new EventMailRejected();
             }
           }
 

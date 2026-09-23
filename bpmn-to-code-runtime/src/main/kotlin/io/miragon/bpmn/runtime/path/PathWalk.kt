@@ -1,8 +1,8 @@
 package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.FlowNode
+import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
-import io.miragon.bpmn.runtime.NavigationScope
 import java.util.function.Function
 
 /**
@@ -17,7 +17,7 @@ import java.util.function.Function
  *
  * Two shape differences forced by Java's type system (vs. the Kotlin extension DSL): the terminal step is [end]
  * (an end event is not `HasSuccessors`, so it can't continue a chain), and descending into a subprocess names the
- * interior scope explicitly ([enter] / [inside] take the generated `Inner` scope).
+ * subprocess explicitly ([enter] / [inside] take the subprocess node as its [FlowScope]).
  */
 class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(
     private val path: ProcessPath<N>,
@@ -46,17 +46,17 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(
     fun <M : FlowNode> end(pick: Function<NEXT, M>): Trail = Trail(path.then { pick.apply(it) })
 
     /**
-     * Descends into a named interior [scope] and records the picked inner node — the re-anchor form of enter.
+     * Descends into the named subprocess [scope] and records the picked inner node — the re-anchor form of enter.
      */
-    fun <S, M : HasSuccessors<MNEXT>, MNEXT> enter(scope: NavigationScope<S>, pick: Function<S, M>): PathWalk<M, MNEXT> = PathWalk(path.enter(inner = scope) { pick.apply(it) })
+    fun <S, M : HasSuccessors<MNEXT>, MNEXT> enter(scope: FlowScope<S>, pick: Function<S, M>): PathWalk<M, MNEXT> = PathWalk(path.enter(scope = scope) { pick.apply(it) })
 
     /**
      * Walks a subprocess interior in [block] (seeded from [scope]) and then continues **on the current
      * subprocess node** — so the following [then] is a plain, checked step after the subprocess. The block's
      * walked nodes are recorded; the current node afterwards is unchanged.
      */
-    fun <S> inside(scope: NavigationScope<S>, block: Function<S, Trail>): PathWalk<N, NEXT> {
-        val interior = block.apply(scope.then())
+    fun <S> inside(scope: FlowScope<S>, block: Function<S, Trail>): PathWalk<N, NEXT> {
+        val interior = block.apply(scope.start())
         return PathWalk(ProcessPath(current = path.current, recorded = path.nodes + interior.nodes))
     }
 

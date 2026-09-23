@@ -14,11 +14,10 @@ import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
 
 /**
- * Regression gate for a subprocess nested inside another subprocess. The generated interior scope is named
- * `Inner`; if the interior nodes were nested inside it, a nested subprocess would emit an `Inner` enclosed by
- * another `Inner` — legal in Kotlin, but a compile error in Java (JLS 8.1.3). The existing golden tests only
- * *parse* the output, so they can't catch this; here we generate the Java API and actually **compile** it
- * against the runtime interfaces.
+ * Regression gate for a subprocess nested inside another subprocess: every nesting level repeats the `Next` and
+ * `Start` holder names, and Java forbids a nested type sharing a simple name with an enclosing one (JLS 8.1.3).
+ * The existing golden tests only *parse* the output, so they can't catch this; here we generate the Java API and
+ * actually **compile** it against the runtime interfaces.
  */
 class NestedSubProcessCompilationTest {
 

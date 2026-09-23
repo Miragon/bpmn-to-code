@@ -3,9 +3,9 @@ package io.miragon.bpmn.runtime.path
 import io.miragon.bpmn.runtime.FlowNode
 
 /**
- * A compile-checked walk over a generated `Relations` navigation graph, accumulating the nodes it passes.
+ * A compile-checked walk over a generated `Flow` navigation graph, accumulating the nodes it passes.
  *
- * Start with [from] at a named node (e.g. `ProcessPath.from(Relations.startEventSubmitRegistrationForm)`),
+ * Start with [from] at a named node (e.g. `ProcessPath.from(Flow.StartEventSubmitRegistrationForm)`),
  * chain steps, then feed [ids] to your engine's existing string-based flow assertion — e.g.
  * `assertThat(instance).hasPassedInOrder(*path.ids.toTypedArray())`. The **edge steps** ([then] / [onto]) and
  * the **subprocess steps** ([enter] / [inside]) are checked against the model at compile time, so a model

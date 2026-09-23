@@ -1,13 +1,13 @@
-package io.miragon.bpmn.adapter.outbound.codegen.navigation
+package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 /**
  * Language-agnostic intermediate representation of a process as a typed navigation graph.
  *
- * It is computed once by [NavigationGraphFactory] and rendered per output language by the API builders
+ * It is computed once by [FlowGraphFactory] and rendered per output language by the API builders
  * Nodes reference their successors by name (not by object reference), which keeps the structure cycle-safe.
  */
-data class NavigationGraph(
-    val nodes: List<NavigationNode>,
+data class FlowGraph(
+    val nodes: List<FlowGraphNode>,
 ) {
 
     /**
@@ -24,25 +24,25 @@ data class NavigationGraph(
      * @property inner the subprocess interior as its own scope (the only wrapper); `null` for non-subprocess nodes.
      * @property calledProcessId for call activities, the called process id as pure info; `null` otherwise.
      */
-    data class NavigationNode(
+    data class FlowGraphNode(
         val objectName: String,
         val propertyName: String,
         val id: String,
         val elementType: String,
         val name: String?,
         val isStart: Boolean,
-        val successors: List<NavigationEdge>,
-        val inner: NavigationGraph?,
+        val successors: List<FlowEdge>,
+        val inner: FlowGraph?,
         val calledProcessId: String?,
     )
 
     /**
      * A directed edge to a reachable successor, named after the target element.
      *
-     * @property propertyName the target's camelCase [NavigationNode.propertyName] — the property emitted on the source node.
-     * @property objectName the target's PascalCase [NavigationNode.objectName] — what the getter returns.
+     * @property propertyName the target's camelCase [FlowGraphNode.propertyName] — the property emitted on the source node.
+     * @property objectName the target's PascalCase [FlowGraphNode.objectName] — what the getter returns.
      */
-    data class NavigationEdge(
+    data class FlowEdge(
         val propertyName: String,
         val objectName: String,
     )
