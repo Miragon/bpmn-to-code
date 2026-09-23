@@ -13,6 +13,10 @@ on:
         description: "Version to deploy (with or without leading 'v', e.g. 3.0.0)"
         required: true
         type: string
+      digest:
+        description: "Image digest to pin (sha256:...); when set, ops references image@digest"
+        type: string
+        default: ""
       dry_run:
         description: "Dry run (show diff only, no PR)"
         type: boolean
@@ -22,6 +26,10 @@ on:
       version:
         description: "Version to deploy (with or without leading 'v')"
         type: string
+      digest:
+        description: "Image digest to pin (sha256:...); when set, ops references image@digest"
+        type: string
+        default: ""
       dry_run:
         type: boolean
         default: false
@@ -75,12 +83,22 @@ jobs:
       - name: Update image reference
         env:
           DEPLOYMENT_FILE: ${{ steps.resolve-version.outputs.deployment_file }}
+          VERSION: ${{ steps.resolve-version.outputs.version }}
+          DIGEST: ${{ inputs.digest }}
         run: |
           set -euo pipefail
           file="ops/${DEPLOYMENT_FILE}"
-          target="${IMAGE}:${{ steps.resolve-version.outputs.version }}"
-          # Replace the full image value (registry + tag) so we also repoint emaarco -> miragon.
-          sed -i -E "s#^([[:space:]]*image:[[:space:]]*).*bpmn-to-code-web:.*#\1${target}#" "$file"
+          # Drop any stale human-readable version marker so we never leave duplicates.
+          sed -i -E '/^[[:space:]]*# version:[[:space:]]*/d' "$file"
+          if [ -n "${DIGEST}" ]; then
+            # Pin to the immutable digest; keep the version as a comment for humans/ArgoCD.
+            # The replacement rewrites the full image value (so emaarco -> miragon too) and
+            # inserts the marker on the line above, preserving indentation via \1.
+            sed -i -E "s|^([[:space:]]*)image:[[:space:]]*.*bpmn-to-code-web[:@].*|\1# version: ${VERSION}\n\1image: ${IMAGE}@${DIGEST}|" "$file"
+          else
+            # Fallback (manual dispatch / release without a digest): reference the tag.
+            sed -i -E "s|^([[:space:]]*)image:[[:space:]]*.*bpmn-to-code-web[:@].*|\1image: ${IMAGE}:${VERSION}|" "$file"
+          fi
           echo "Resulting image line:"
           grep -nE "image:.*bpmn-to-code-web" "$file"
 

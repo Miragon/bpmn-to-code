@@ -21,6 +21,7 @@ jobs:
 
     outputs:
       snapshot: ${{ steps.version.outputs.snapshot }}
+      digest: ${{ steps.digest.outputs.digest }}
 
     env:
       # Same Central Portal token used by the release publish - the snapshot repo shares auth.
@@ -82,6 +83,18 @@ jobs:
           ./gradlew :bpmn-to-code-web:dockerPush
           -PprojectVersion=${{ steps.version.outputs.snapshot }}
 
+      # Read the immutable manifest digest back from the registry so ops can pin to it.
+      # A reused -SNAPSHOT tag yields a fresh digest per build, guaranteeing a real ops
+      # change and a deterministic rollout.
+      - name: Resolve pushed digest
+        id: digest
+        run: |
+          set -euo pipefail
+          ref="miragon/bpmn-to-code-web:${{ steps.version.outputs.snapshot }}"
+          digest=$(docker buildx imagetools inspect "$ref" --format '{{.Manifest.Digest}}')
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "Resolved ${ref} -> ${digest}"
+
       - name: Log out from Docker Hub
         if: always()
         run: docker logout
@@ -95,3 +108,4 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.publish.outputs.snapshot }}
+      digest: ${{ needs.publish.outputs.digest }}
