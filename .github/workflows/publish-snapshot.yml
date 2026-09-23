@@ -21,7 +21,7 @@ jobs:
 
     outputs:
       snapshot: ${{ steps.version.outputs.snapshot }}
-      digest: ${{ steps.digest.outputs.digest }}
+      image_ref: ${{ steps.digest.outputs.image_ref }}
 
     env:
       # Same Central Portal token used by the release publish - the snapshot repo shares auth.
@@ -90,10 +90,11 @@ jobs:
         id: digest
         run: |
           set -euo pipefail
-          ref="miragon/bpmn-to-code-web:${{ steps.version.outputs.snapshot }}"
-          digest=$(docker buildx imagetools inspect "$ref" --format '{{.Manifest.Digest}}')
-          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
-          echo "Resolved ${ref} -> ${digest}"
+          name="miragon/bpmn-to-code-web"
+          tag="${{ steps.version.outputs.snapshot }}"
+          digest=$(docker buildx imagetools inspect "${name}:${tag}" --format '{{.Manifest.Digest}}')
+          echo "image_ref=${name}@${digest}" >> "$GITHUB_OUTPUT"
+          echo "Resolved ${name}:${tag} -> ${name}@${digest}"
 
       - name: Log out from Docker Hub
         if: always()
@@ -108,4 +109,4 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.publish.outputs.snapshot }}
-      digest: ${{ needs.publish.outputs.digest }}
+      image_ref: ${{ needs.publish.outputs.image_ref }}

@@ -13,8 +13,8 @@ on:
         description: "Version to deploy (with or without leading 'v', e.g. 3.0.0)"
         required: true
         type: string
-      digest:
-        description: "Image digest to pin (sha256:...); when set, ops references image@digest"
+      image_ref:
+        description: "Full image reference to pin (e.g. miragon/bpmn-to-code-web@sha256:...); defaults to IMAGE:version"
         type: string
         default: ""
       dry_run:
@@ -26,8 +26,8 @@ on:
       version:
         description: "Version to deploy (with or without leading 'v')"
         type: string
-      digest:
-        description: "Image digest to pin (sha256:...); when set, ops references image@digest"
+      image_ref:
+        description: "Full image reference to pin (e.g. miragon/bpmn-to-code-web@sha256:...); defaults to IMAGE:version"
         type: string
         default: ""
       dry_run:
@@ -84,21 +84,16 @@ jobs:
         env:
           DEPLOYMENT_FILE: ${{ steps.resolve-version.outputs.deployment_file }}
           VERSION: ${{ steps.resolve-version.outputs.version }}
-          DIGEST: ${{ inputs.digest }}
+          # Full reference the caller just pushed; falls back to the tag for manual dispatch.
+          IMAGE_REF: ${{ inputs.image_ref != '' && inputs.image_ref || format('{0}:{1}', env.IMAGE, steps.resolve-version.outputs.version) }}
         run: |
           set -euo pipefail
           file="ops/${DEPLOYMENT_FILE}"
-          # Drop any stale human-readable version marker so we never leave duplicates.
+          # Rewrite the image value (so emaarco -> miragon too) and keep the version as a
+          # comment above it for humans/ArgoCD when the ref is an opaque digest. Drop any
+          # stale marker first so re-runs stay idempotent. Indentation preserved via \1.
           sed -i -E '/^[[:space:]]*# version:[[:space:]]*/d' "$file"
-          if [ -n "${DIGEST}" ]; then
-            # Pin to the immutable digest; keep the version as a comment for humans/ArgoCD.
-            # The replacement rewrites the full image value (so emaarco -> miragon too) and
-            # inserts the marker on the line above, preserving indentation via \1.
-            sed -i -E "s|^([[:space:]]*)image:[[:space:]]*.*bpmn-to-code-web[:@].*|\1# version: ${VERSION}\n\1image: ${IMAGE}@${DIGEST}|" "$file"
-          else
-            # Fallback (manual dispatch / release without a digest): reference the tag.
-            sed -i -E "s|^([[:space:]]*)image:[[:space:]]*.*bpmn-to-code-web[:@].*|\1image: ${IMAGE}:${VERSION}|" "$file"
-          fi
+          sed -i -E "s|^([[:space:]]*)image:[[:space:]]*.*bpmn-to-code-web[:@].*|\1# version: ${VERSION}\n\1image: ${IMAGE_REF}|" "$file"
           echo "Resulting image line:"
           grep -nE "image:.*bpmn-to-code-web" "$file"
 
