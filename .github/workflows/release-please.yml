@@ -97,7 +97,6 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.release-please.outputs.tag_name }}
-      image_ref: ${{ needs.publish-docker.outputs.image_ref }}
       dry_run: ${{ inputs.dry_run == true }}
 
   deploy-docs:
