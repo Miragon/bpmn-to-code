@@ -8,11 +8,10 @@ import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
-import io.miragon.bpmn.runtime.HasInnerScope
+import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.InputOutputMapping
 import io.miragon.bpmn.runtime.MessageName
-import io.miragon.bpmn.runtime.NavigationScope
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.SignalName
 import io.miragon.bpmn.runtime.VariableName
@@ -176,62 +175,10 @@ object NewsletterSubscriptionProcessApi {
 
   /**
    * Typed navigation over the process flow.
-   * Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements reachable from it as named properties — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested `Inner` scope.
+   * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `then()` — so a full path is verified by the compiler and offered by autocomplete. A subprocess nests its interior and opens it via `start()`.
    * Intended for tooling, tests, and reasoning about the process shape.
    */
-  object Relations {
-    val callActivityAbortRegistration: CallActivityAbortRegistration
-      get() = CallActivityAbortRegistration
-
-    val compensationEndEventRegistrationAborted: CompensationEndEventRegistrationAborted
-      get() = CompensationEndEventRegistrationAborted
-
-    val compensationEventOnSubscriptionCounter: CompensationEventOnSubscriptionCounter
-      get() = CompensationEventOnSubscriptionCounter
-
-    val endEventRegistrationCompleted: EndEventRegistrationCompleted
-      get() = EndEventRegistrationCompleted
-
-    val endEventRegistrationNotPossible: EndEventRegistrationNotPossible
-      get() = EndEventRegistrationNotPossible
-
-    val errorEventInvalidMail: ErrorEventInvalidMail
-      get() = ErrorEventInvalidMail
-
-    val gatewayJoinNotifications: GatewayJoinNotifications
-      get() = GatewayJoinNotifications
-
-    val gatewaySplitNotifications: GatewaySplitNotifications
-      get() = GatewaySplitNotifications
-
-    val serviceTaskDecrementSubscriptionCounter: ServiceTaskDecrementSubscriptionCounter
-      get() = ServiceTaskDecrementSubscriptionCounter
-
-    val serviceTaskIncrementSubscriptionCounter: ServiceTaskIncrementSubscriptionCounter
-      get() = ServiceTaskIncrementSubscriptionCounter
-
-    val serviceTaskNotifyCommunity: ServiceTaskNotifyCommunity
-      get() = ServiceTaskNotifyCommunity
-
-    val serviceTaskSendWelcomeMail: ServiceTaskSendWelcomeMail
-      get() = ServiceTaskSendWelcomeMail
-
-    val startEventSubmitRegistrationForm: StartEventSubmitRegistrationForm
-      get() = StartEventSubmitRegistrationForm
-
-    val subProcessConfirmation: SubProcessConfirmation
-      get() = SubProcessConfirmation
-
-    val timerAfter3Days: TimerAfter3Days
-      get() = TimerAfter3Days
-
-    fun then(): Next = Next
-
-    object Next {
-      val startEventSubmitRegistrationForm: StartEventSubmitRegistrationForm
-        get() = StartEventSubmitRegistrationForm
-    }
-
+  object Flow {
     object CallActivityAbortRegistration : AbstractFlowNode(ElementId("callActivity_abortRegistration"), "CALL_ACTIVITY"),
         HasSuccessors<CallActivityAbortRegistration.Next> {
       val calledProcess: ProcessId = ProcessId("abort-registration")
@@ -331,25 +278,10 @@ object NewsletterSubscriptionProcessApi {
     }
 
     object SubProcessConfirmation : AbstractFlowNode(ElementId("subProcess_confirmation"), "SUB_PROCESS"),
-        HasSuccessors<SubProcessConfirmation.Next>, HasInnerScope<SubProcessConfirmation.Inner> {
-      val endEventSubscriptionConfirmed: EndEventSubscriptionConfirmed
-        get() = EndEventSubscriptionConfirmed
-
-      val serviceTaskSendConfirmationMail: ServiceTaskSendConfirmationMail
-        get() = ServiceTaskSendConfirmationMail
-
-      val startEventRequestReceived: StartEventRequestReceived
-        get() = StartEventRequestReceived
-
-      val timerEveryDay: TimerEveryDay
-        get() = TimerEveryDay
-
-      val userTaskConfirmRegistration: UserTaskConfirmRegistration
-        get() = UserTaskConfirmRegistration
-
+        HasSuccessors<SubProcessConfirmation.Next>, FlowScope<SubProcessConfirmation.Start> {
       override fun then(): Next = Next
 
-      override fun `inner`(): SubProcessConfirmation.Inner = SubProcessConfirmation.Inner
+      override fun start(): Start = Start
 
       object Next {
         val errorEventInvalidMail: ErrorEventInvalidMail
@@ -362,13 +294,9 @@ object NewsletterSubscriptionProcessApi {
           get() = TimerAfter3Days
       }
 
-      object Inner : NavigationScope<SubProcessConfirmation.Inner.Next> {
-        override fun then(): Next = Next
-
-        object Next {
-          val startEventRequestReceived: StartEventRequestReceived
-            get() = StartEventRequestReceived
-        }
+      object Start {
+        val startEventRequestReceived: StartEventRequestReceived
+          get() = StartEventRequestReceived
       }
 
       object EndEventSubscriptionConfirmed : AbstractFlowNode(ElementId("endEvent_subscriptionConfirmed"), "END_EVENT")

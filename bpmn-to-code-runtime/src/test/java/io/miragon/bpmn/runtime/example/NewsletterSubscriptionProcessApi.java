@@ -6,11 +6,10 @@ import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnError;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
-import io.miragon.bpmn.runtime.HasInnerScope;
+import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.InputOutputMapping;
 import io.miragon.bpmn.runtime.MessageName;
-import io.miragon.bpmn.runtime.NavigationScope;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SignalName;
 import io.miragon.bpmn.runtime.VariableName;
@@ -159,9 +158,9 @@ public final class NewsletterSubscriptionProcessApi {
   }
 
   /**
-   * Typed navigation over the process flow. Each element is a node exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it as methods — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested {@code Inner} scope.
+   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. A subprocess nests its interior and opens it via {@code start()}.
    */
-  public static final class Relations {
+  public static final class Flow {
     public static CallActivityAbortRegistration callActivityAbortRegistration() {
       return new CallActivityAbortRegistration();
     }
@@ -223,16 +222,6 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static TimerAfter3Days timerAfter3Days() {
       return new TimerAfter3Days();
-    }
-
-    public static Next then() {
-      return new Next();
-    }
-
-    public static final class Next {
-      public StartEventSubmitRegistrationForm startEventSubmitRegistrationForm() {
-        return new StartEventSubmitRegistrationForm();
-      }
     }
 
     public static final class CallActivityAbortRegistration extends AbstractFlowNode implements HasSuccessors<CallActivityAbortRegistration.Next> {
@@ -411,7 +400,7 @@ public final class NewsletterSubscriptionProcessApi {
       }
     }
 
-    public static final class SubProcessConfirmation extends AbstractFlowNode implements HasSuccessors<SubProcessConfirmation.Next>, HasInnerScope<SubProcessConfirmation.Inner> {
+    public static final class SubProcessConfirmation extends AbstractFlowNode implements HasSuccessors<SubProcessConfirmation.Next>, FlowScope<SubProcessConfirmation.Start> {
       public SubProcessConfirmation() {
         super(new ElementId("subProcess_confirmation"), "SUB_PROCESS");
       }
@@ -422,8 +411,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public SubProcessConfirmation.Inner inner() {
-        return new SubProcessConfirmation.Inner();
+      public Start start() {
+        return new Start();
       }
 
       public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
@@ -460,16 +449,9 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Inner implements NavigationScope<SubProcessConfirmation.Inner.Next> {
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        public static final class Next {
-          public StartEventRequestReceived startEventRequestReceived() {
-            return new StartEventRequestReceived();
-          }
+      public static final class Start {
+        public StartEventRequestReceived startEventRequestReceived() {
+          return new StartEventRequestReceived();
         }
       }
 

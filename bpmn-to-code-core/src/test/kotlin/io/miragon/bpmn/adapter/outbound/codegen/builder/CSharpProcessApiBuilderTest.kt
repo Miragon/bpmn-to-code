@@ -64,7 +64,7 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.buildApiFile(modelApi)
 
         // then: neither navigation section is generated, but the constants are
-        assertThat(result.content).doesNotContain("class Variants", "class Relations")
+        assertThat(result.content).doesNotContain("class Variants", "class Flow")
         assertThat(result.content).contains("public static class Elements")
     }
 
@@ -81,7 +81,7 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.buildApiFile(modelApi)
 
         // then: the navigation DSL is absent
-        assertThat(result.content).doesNotContain("class Relations")
+        assertThat(result.content).doesNotContain("class Flow")
     }
 
     @Test

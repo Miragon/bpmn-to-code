@@ -2,9 +2,8 @@ package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.ElementId
-import io.miragon.bpmn.runtime.HasInnerScope
+import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
-import io.miragon.bpmn.runtime.NavigationScope
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -58,7 +57,7 @@ class ProcessPathTest {
     @Test
     fun `enter with an explicit scope descends from any position`() {
         val path = ProcessPath.from(Start)
-            .enter(Sub.Inner) { it.innerStart }
+            .enter(Sub) { it.innerStart }
 
         assertThat(path.ids).containsExactly("Start", "InnerStart")
     }
@@ -135,18 +134,15 @@ class ProcessPathTest {
 
     private object InnerStart : AbstractFlowNode(ElementId("InnerStart"), "START_EVENT")
 
-    private object Sub : AbstractFlowNode(ElementId("Sub"), "SUB_PROCESS"), HasSuccessors<Sub.Next>, HasInnerScope<Sub.Inner> {
+    private object Sub : AbstractFlowNode(ElementId("Sub"), "SUB_PROCESS"), HasSuccessors<Sub.Next>, FlowScope<Sub.Start> {
         override fun then(): Next = Next
-        override fun inner(): Inner = Inner
+        override fun start(): Start = Start
         object Next {
             val end: End get() = End
             val boundary: Boundary get() = Boundary
         }
-        object Inner : NavigationScope<Inner.Next> {
-            override fun then(): Next = Next
-            object Next {
-                val innerStart: InnerStart get() = InnerStart
-            }
+        object Start {
+            val innerStart: InnerStart get() = InnerStart
         }
     }
 }

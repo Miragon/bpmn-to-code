@@ -18,8 +18,8 @@ Two facts about the current codebase shaped the decision:
 
 1. **The generated JVM API is not a bag of strings.** Since typed navigation landed, every section except
    `ServiceTasks` wraps its values in types from `bpmn-to-code-runtime` (`ElementId`, `MessageName`,
-   `VariableName.Input`, `BpmnError`, `BpmnTimer`, `InputOutputMapping`, …). `Relations` goes further —
-   each node extends `AbstractFlowNode` and implements `HasSuccessors` / `HasInnerScope`.
+   `VariableName.Input`, `BpmnError`, `BpmnTimer`, `InputOutputMapping`, …). `Flow` goes further —
+   each node extends `AbstractFlowNode` and implements `HasSuccessors` / `FlowScope`.
 2. **`bpmn-to-code-runtime` is a JVM artifact** ([ADR 014](014-shared-bpmn-types.md)) with no C#
    counterpart, and no NuGet publishing pipeline exists.
 
@@ -34,7 +34,7 @@ fields written to a `.cs` file, with `packagePath` used verbatim as the namespac
 - **No runtime dependency.** Every value is a plain `const string`. Multi-field values (errors, timers,
   call-activity mappings) become a nested `static class` of consts rather than a wrapper type. The
   generated file compiles in any project with nothing added to it.
-- **`Relations` and `Variants` are not generated.** Both are navigation over the process graph and every
+- **`Flow` and `Variants` are not generated.** Both are navigation over the process graph and every
   node of them derives from the JVM runtime. A partial navigation API would not compile, so it is omitted
   rather than half-emitted.
 - **Templated emission, scoped to C#.** ADR 005 rejected template-based generation because it loses the
@@ -78,6 +78,6 @@ when no .NET SDK is present so contributors without one can still run the suite;
 - Makes each generated file self-contained, but duplicates the types across every generated process and
   amounts to designing the C# runtime informally, with no version to reason about.
 
-**Generate constants but keep `Relations` as plain strings** (Rejected)
-- The value of `Relations` is the compiler-verified path; without the typed nodes it degrades to a second,
+**Generate constants but keep `Flow` as plain strings** (Rejected)
+- The value of `Flow` is the compiler-verified path; without the typed nodes it degrades to a second,
   differently-shaped copy of `Elements`.

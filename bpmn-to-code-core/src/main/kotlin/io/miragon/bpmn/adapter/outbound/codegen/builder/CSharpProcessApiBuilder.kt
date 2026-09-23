@@ -14,7 +14,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 /**
  * Generates the process API for a single BPMN process as a C# file — **beta**.
  *
- * Only the constants sections are emitted. `Relations` and `Variants` are navigation over the process
+ * Only the constants sections are emitted. `Flow` and `Variants` are navigation over the process
  * graph, and every node of it extends types from `bpmn-to-code-runtime`, which exists for the JVM only;
  * until a C# counterpart ships, a partial navigation API would not compile. Everything else the Kotlin and
  * Java builders express through wrapper types (`ElementId`, `MessageName`, `BpmnError`, …) is a plain

@@ -24,7 +24,7 @@ internal object ApiObjectSelection {
         val model = modelApi.model
         return when (this) {
             ApiObjectType.PROCESS_ID, ApiObjectType.PROCESS_ENGINE, ApiObjectType.ELEMENTS -> true
-            ApiObjectType.RELATIONS -> !model.isMerged && model.graph.allSequenceFlows.isNotEmpty()
+            ApiObjectType.FLOW -> !model.isMerged && model.graph.allSequenceFlows.isNotEmpty()
             ApiObjectType.VARIANTS -> model.isMerged
             ApiObjectType.CALL_ACTIVITIES -> model.callActivities.isNotEmpty()
             ApiObjectType.MESSAGES -> model.definitions.messages.isNotEmpty()

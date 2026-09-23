@@ -1,13 +1,13 @@
 package io.miragon.bpmn.runtime.path
 
-import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations.SubProcessConfirmation
+import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Flow.SubProcessConfirmation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
+import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Flow as Newsletter
 
 /**
  * Exercises [ProcessPath] over the *actually generated* Kotlin Newsletter API — which doubles as the compile
- * contract that the generated `: HasSuccessors<Next>` / `: FlowNode` / `HasInnerScope` code resolves against the runtime
+ * contract that the generated `: HasSuccessors<Next>` / `: FlowNode` code resolves against the runtime
  * interfaces. Newsletter is the single navigation fixture and covers every element type: message/plain start,
  * service/receive task, embedded subprocess with interior, parallel (AND) split/join, call activity, boundary
  * events (interrupting timer, error, non-interrupting timer), signal end, and compensation.
@@ -29,7 +29,7 @@ class ProcessPathKotlinApiTest {
                 .then { it.endEventSubscriptionConfirmed }
         }
 
-        val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
+        val path = ProcessPath.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .onto { it.subProcessConfirmation }
             .inside(confirmationInterior)
@@ -56,7 +56,7 @@ class ProcessPathKotlinApiTest {
 
     @Test
     fun `interrupting timer boundary leaves the subprocess into the call activity and compensation end`() {
-        val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
+        val path = ProcessPath.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .onto { it.subProcessConfirmation }
             .enter { it.startEventRequestReceived }
@@ -80,7 +80,7 @@ class ProcessPathKotlinApiTest {
 
     @Test
     fun `error boundary leaves the subprocess into the signal end event`() {
-        val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
+        val path = ProcessPath.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .onto { it.subProcessConfirmation }
             .enter { it.startEventRequestReceived }
@@ -103,9 +103,9 @@ class ProcessPathKotlinApiTest {
         // enter(scope) descends straight into a named interior from a non-adjacent position (here after the
         // increment task) — the re-anchor form. The daily reminder timer is non-interrupting, so it is a normal
         // interior hop that loops back to the confirmation mail (a multi-node cycle, written out explicitly).
-        val path = ProcessPath.from(Newsletter.startEventSubmitRegistrationForm)
+        val path = ProcessPath.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
-            .enter(Newsletter.SubProcessConfirmation.Inner) { it.startEventRequestReceived }
+            .enter(Newsletter.SubProcessConfirmation) { it.startEventRequestReceived }
             .then { it.serviceTaskSendConfirmationMail }
             .then { it.userTaskConfirmRegistration }
             .then { it.timerEveryDay }
@@ -139,12 +139,12 @@ class ProcessPathKotlinApiTest {
 
     @Test
     fun `parallel branches assert as an unordered deduplicated set via nodesOf`() {
-        val welcomeBranch = ProcessPath.from(Newsletter.gatewaySplitNotifications)
+        val welcomeBranch = ProcessPath.from(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskSendWelcomeMail }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
             .nodes
-        val notifyBranch = ProcessPath.from(Newsletter.gatewaySplitNotifications)
+        val notifyBranch = ProcessPath.from(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskNotifyCommunity }
             .then { it.gatewayJoinNotifications }
             .then { it.endEventRegistrationCompleted }
@@ -160,7 +160,7 @@ class ProcessPathKotlinApiTest {
     @OptIn(RiskyNavigation::class)
     @Test
     fun `jumpTo re-anchors to the fork to walk the second parallel branch in one chain`() {
-        val passed = ProcessPath.from(Newsletter.gatewaySplitNotifications)
+        val passed = ProcessPath.from(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskSendWelcomeMail }
             .jumpTo(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskNotifyCommunity }
@@ -181,18 +181,18 @@ class ProcessPathKotlinApiTest {
 
     @Test
     fun `nodes expose their id and flat elementType across element kinds`() {
-        assertThat(Newsletter.startEventSubmitRegistrationForm.elementType).isEqualTo("MESSAGE_START_EVENT")
-        assertThat(Newsletter.gatewaySplitNotifications.elementType).isEqualTo("PARALLEL_GATEWAY")
-        assertThat(Newsletter.callActivityAbortRegistration.elementType).isEqualTo("CALL_ACTIVITY")
-        assertThat(Newsletter.serviceTaskSendWelcomeMail.elementType).isEqualTo("SERVICE_TASK")
-        assertThat(Newsletter.gatewaySplitNotifications.id.value).isEqualTo("gateway_splitNotifications")
+        assertThat(Newsletter.StartEventSubmitRegistrationForm.elementType).isEqualTo("MESSAGE_START_EVENT")
+        assertThat(Newsletter.GatewaySplitNotifications.elementType).isEqualTo("PARALLEL_GATEWAY")
+        assertThat(Newsletter.CallActivityAbortRegistration.elementType).isEqualTo("CALL_ACTIVITY")
+        assertThat(Newsletter.ServiceTaskSendWelcomeMail.elementType).isEqualTo("SERVICE_TASK")
+        assertThat(Newsletter.GatewaySplitNotifications.id.value).isEqualTo("gateway_splitNotifications")
     }
 
     @Test
-    fun `compensation handler is reachable only via its accessor, not through the navigation graph`() {
+    fun `compensation handler is reachable only by name, not through the navigation graph`() {
         // Compensation handlers hang off a boundary event via an association, not a sequence flow, so they have
         // no incoming edge in the graph — no then/onto/enter reaches them. They stay addressable by name.
-        val handler = Newsletter.serviceTaskDecrementSubscriptionCounter
+        val handler = Newsletter.ServiceTaskDecrementSubscriptionCounter
         assertThat(handler.id.value).isEqualTo("serviceTask_decrementSubscriptionCounter")
         assertThat(handler.elementType).isEqualTo("SERVICE_TASK")
     }

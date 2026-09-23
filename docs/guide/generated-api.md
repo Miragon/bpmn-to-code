@@ -19,14 +19,14 @@ sections:
 | `Errors` | Error definitions with name and code (`BpmnError`) |
 | `Signals` | Signal names from signal events |
 | `Variables` | Per-element variables, split into `Inputs` / `Outputs` sub-objects by direction |
-| `Relations` | Typed navigation graph: each element exposes `id` / `elementType` / `name` and its successors behind `then()` (implements `FlowNode` / `HasSuccessors`) |
+| `Flow` | Typed navigation graph: each element exposes `id` / `elementType` / `name` and its successors behind `then()` (implements `FlowNode` / `HasSuccessors`); a subprocess opens its interior via `start()` (`FlowScope`) |
 
 > The full process shape — every sequence flow (with `sourceRef` / `targetRef` / `conditionExpression` / `isDefault`) and every element — lives in the [JSON export](/surface/json). The generated code API focuses on what JVM code references at compile time.
 
 Sections are only included when the BPMN model contains matching elements.
 
-::: warning C# (beta) omits `Relations`
-The C# target generates the constants sections only. `Relations` (and, for merged models, `Variants`)
+::: warning C# (beta) omits `Flow`
+The C# target generates the constants sections only. `Flow` (and, for merged models, `Variants`)
 derives every node from `bpmn-to-code-runtime`, a JVM artifact with no C# counterpart yet, so it is left
 out rather than emitted half-working. C# also has no wrapper types at all — every value is a plain
 `const string`, which is why the generated `.cs` file needs no dependency. Variable direction is carried
@@ -124,14 +124,9 @@ object NewsletterSubscriptionProcessApi {
     }
   }
 
-  object Relations {
+  object Flow {
     // Typed navigation graph: each element is a node exposing `id`, `elementType`, `name`,
-    // and the elements reachable from it behind `then()`. Enter the flow with the scope-level `then()`.
-    fun then(): Next = Next
-    object Next {
-      val startEventSubmitRegistrationForm get() = StartEventSubmitRegistrationForm
-    }
-
+    // and the elements reachable from it behind `then()`. Start a walk at any node, e.g. `Flow.StartEventSubmitRegistrationForm`.
     object ActivityConfirmRegistration :
         AbstractFlowNode(ElementId("Activity_ConfirmRegistration"), "RECEIVE_TASK"),
         HasSuccessors<ActivityConfirmRegistration.Next> {
@@ -171,15 +166,15 @@ public class NewsletterSubscriptionProcessApi {
         public static final String MESSAGE_FORM_SUBMITTED = "Message_FormSubmitted";
     }
 
-    // ... same structure for ServiceTasks, Timers, Errors, Signals, Variables, Relations
+    // ... same structure for ServiceTasks, Timers, Errors, Signals, Variables, Flow
 }
 ```
 
 :::
 
-## Relations — typed navigation graph
+## Flow — typed navigation graph
 
-`Relations` is a **typed navigation graph** of the process flow. Each element is a nested node exposing its
+`Flow` is a **typed navigation graph** of the process flow. Each element is a nested node exposing its
 `id` (`ElementId`), `elementType`, optional display `name`, and the elements reachable from it behind
 `then()`. The return type of every `then()` step is the next node, so **a path that doesn't exist in the
 model doesn't compile** — regenerate after a model change and the affected step breaks the build at that exact
@@ -187,10 +182,7 @@ edge. (Full per-element adjacency in a walkable, language-neutral form is still 
 export](/surface/json).)
 
 ```kotlin
-object Relations {
-  fun then(): Next = Next                                   // scope-level then() = the process start event(s)
-  object Next { val startEventSubmitRegistrationForm get() = StartEventSubmitRegistrationForm }
-
+object Flow {
   object ServiceTaskIncrementSubscriptionCounter :
       AbstractFlowNode(ElementId("serviceTask_incrementSubscriptionCounter"), "SERVICE_TASK"),
       HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next> {
@@ -200,10 +192,12 @@ object Relations {
 
   object SubProcessConfirmation :
       AbstractFlowNode(ElementId("SubProcess_Confirmation"), "SUB_PROCESS"),
-      HasSuccessors<SubProcessConfirmation.Next> {
-    object Inner { /* the subprocess interior — its own scope, entered via Inner.then() */ }
-    override fun then(): Next = Next
-    object Next { val activitySendWelcomeMail get() = ActivitySendWelcomeMail /* + boundary events */ }
+      HasSuccessors<SubProcessConfirmation.Next>, FlowScope<SubProcessConfirmation.Start> {
+    override fun then(): Next = Next                        // what follows the subprocess (+ boundary events)
+    override fun start(): Start = Start                     // the interior's start event(s)
+    object Next { val activitySendWelcomeMail get() = ActivitySendWelcomeMail }
+    object Start { val startEventRequestReceived get() = StartEventRequestReceived }
+    object StartEventRequestReceived : /* … */              // interior nodes are nested on the subprocess
   }
 
   // terminal element — no then()
@@ -211,11 +205,12 @@ object Relations {
 }
 ```
 
-- **`then()`** = the elements reachable next; a scope's `then()` (on `Relations` or an `Inner`) = its start
-  event(s). **Subprocesses** nest their interior in `Inner`; **boundary events** and continuations are plain
-  successors. Java mirrors this with methods (`relations.subProcessConfirmation().then()…`).
+- **`then()`** = the elements reachable next, **boundary events** and continuations alike. **Subprocesses**
+  nest their interior nodes and open them via **`start()`** = the interior's start event(s). Java mirrors this
+  with methods (`Flow.subProcessConfirmation().then()…`).
 - Every node extends **`AbstractFlowNode`** (the base carrying `id` + `elementType` from the **`FlowNode`**
-  contract); nodes with successors also implement **`HasSuccessors<Next>`** — a shared supertype for generic tooling.
+  contract); nodes with successors also implement **`HasSuccessors<Next>`**, subprocesses additionally
+  **`FlowScope<Start>`** — shared supertypes for generic tooling.
 
 ### Asserting flow in process tests — `ProcessPath`
 
@@ -235,9 +230,9 @@ import io.miragon.bpmn.runtime.path.then
 import io.miragon.bpmn.runtime.path.onto
 import io.miragon.bpmn.runtime.path.enter
 import io.miragon.bpmn.runtime.path.inside
-import de.myapp.NewsletterSubscriptionProcessApi.Relations
+import de.myapp.NewsletterSubscriptionProcessApi.Flow
 
-val path = ProcessPath.from(Relations.startEventSubmitRegistrationForm)
+val path = ProcessPath.from(Flow.StartEventSubmitRegistrationForm)
     .then { it.serviceTaskIncrementSubscriptionCounter }
     .onto { it.subProcessConfirmation }                     // step onto the subprocess (checked, not recorded)
     .inside {                                               // walk its interior, resume on the subprocess node
@@ -254,8 +249,8 @@ val path = ProcessPath.from(Relations.startEventSubmitRegistrationForm)
 assertThat(instance).isEnded.hasPassedInOrder(*path.ids.toTypedArray())
 ```
 
-Start with `ProcessPath.from(Relations.<node>)` — any node is reachable flat, so the start event needs no
-`.then()` accessor.
+Start with `ProcessPath.from(Flow.<Node>)` — every node is a nested object reachable flat, so no accessor is
+needed to get hold of the start event.
 
 - **Edge steps** — `then { it.successor }` — the lambda's `it` is the current node's `Next`, so `it.`
   autocompletes exactly the reachable successors and only a **real successor** compiles. `thenMultipleTimes(n)`
@@ -264,11 +259,11 @@ Start with `ProcessPath.from(Relations.<node>)` — any node is reachable flat, 
 - **Enter a subprocess** — two single-lambda steps for good autocomplete: `onto { it.sub }` steps onto the
   subprocess node (compile-checked edge, marker *not* recorded — a subprocess is a scope bracket, assert it via
   `hasPassed`), then `enter { it.start }` descends into its interior. From a position where the subprocess
-  isn't the current node, descend explicitly with `enter(Relations.SubProcess.Inner) { it.start }`.
+  isn't the current node, descend explicitly with `enter(Flow.SubProcess) { it.start }`.
 - **Leave a subprocess** — a **normal** full walk uses `inside { enter { it.start } … }`: it walks the interior
   and resumes on the subprocess node, so the following `then { it.continuation }` is checked and needs no
   subprocess name (it nests — each inner subprocess is its own `onto { … }.inside { … }`). A **boundary**
-  interruption uses `interruptedBy(Relations.SubProcess) { it.timerAfter3Days }` — the token leaves the interior
+  interruption uses `interruptedBy(Flow.SubProcess) { it.timerAfter3Days }` — the token leaves the interior
   *early* via the boundary (interrupting timers, error boundaries), which is why it's a re-anchor and can't be
   expressed with `inside`.
 - **Escape hatch** — `jumpTo(node)` re-anchors to any node without checking adjacency and without recording it
@@ -279,12 +274,12 @@ Start with `ProcessPath.from(Relations.<node>)` — any node is reachable flat, 
   `hasPassed`:
 
 ```kotlin
-val welcomeBranch = ProcessPath.from(Relations.gatewaySplitNotifications)
+val welcomeBranch = ProcessPath.from(Flow.GatewaySplitNotifications)
     .then { it.activitySendWelcomeMail }
     .then { it.gatewayJoinNotifications }
     .then { it.endEventRegistrationCompleted }
     .nodes
-val notifyBranch = ProcessPath.from(Relations.gatewaySplitNotifications)
+val notifyBranch = ProcessPath.from(Flow.GatewaySplitNotifications)
     .then { it.activityNotifyCommunity }
     .then { it.gatewayJoinNotifications }
     .then { it.endEventRegistrationCompleted }
@@ -301,15 +296,15 @@ Java's entry point is **`PathWalk`** — a fluent, chained, compile-checked faca
 step's `n` is the current node's `Next`, so only a real successor compiles):
 
 ```java
-var ids = PathWalk.from(Relations.startEventSubmitRegistrationForm())
+var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
     .then(n -> n.serviceTaskIncrementSubscriptionCounter())
     .end(n -> n.endEventRegistrationCompleted())
     .getIds();
 ```
 
 Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end` (an end event can't continue
-a chain) and subprocess descent names the interior scope explicitly (`enter(sub.inner(), …)` /
-`inside(sub.inner(), …)`). The raw extension steps are also reachable from Java as static calls
+a chain) and subprocess descent names the subprocess explicitly (`enter(Flow.subProcessConfirmation(), …)` /
+`inside(Flow.subProcessConfirmation(), …)`). The raw extension steps are also reachable from Java as static calls
 (`ProcessPathStepsKt.then(path, n -> n.x())`) — checked but not fluent; prefer `PathWalk`.
 
 ## Per-Element Variables with Direction

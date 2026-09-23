@@ -1,7 +1,7 @@
 package io.miragon.bpmn.runtime.path;
 
 import io.miragon.bpmn.runtime.FlowNode;
-import io.miragon.bpmn.runtime.example.NewsletterSubscriptionProcessApi.Relations;
+import io.miragon.bpmn.runtime.example.NewsletterSubscriptionProcessApi.Flow;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -19,10 +19,10 @@ class PathWalkJavaApiTest {
 
     @Test
     void happyPathWalksTheSubprocessInteriorViaInside() {
-        var ids = PathWalk.from(Relations.startEventSubmitRegistrationForm())
+        var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
             .onto(n -> n.subProcessConfirmation())
-            .inside(Relations.subProcessConfirmation().inner(), s ->
+            .inside(Flow.subProcessConfirmation(), s ->
                 PathWalk.from(s.startEventRequestReceived())
                     .then(n -> n.serviceTaskSendConfirmationMail())
                     .then(n -> n.userTaskConfirmRegistration())
@@ -49,12 +49,12 @@ class PathWalkJavaApiTest {
 
     @Test
     void interruptingTimerBoundaryLeavesTheSubprocessIntoTheCallActivityAndCompensationEnd() {
-        var ids = PathWalk.from(Relations.startEventSubmitRegistrationForm())
+        var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-            .enter(Relations.subProcessConfirmation().inner(), s -> s.startEventRequestReceived())
+            .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
             .then(n -> n.serviceTaskSendConfirmationMail())
             .then(n -> n.userTaskConfirmRegistration())
-            .interruptedBy(Relations.subProcessConfirmation(), n -> n.timerAfter3Days())
+            .interruptedBy(Flow.subProcessConfirmation(), n -> n.timerAfter3Days())
             .then(n -> n.callActivityAbortRegistration())
             .end(n -> n.compensationEndEventRegistrationAborted())
             .getIds();
@@ -73,11 +73,11 @@ class PathWalkJavaApiTest {
 
     @Test
     void errorBoundaryLeavesTheSubprocessIntoTheSignalEndEvent() {
-        var ids = PathWalk.from(Relations.startEventSubmitRegistrationForm())
+        var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-            .enter(Relations.subProcessConfirmation().inner(), s -> s.startEventRequestReceived())
+            .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
             .then(n -> n.serviceTaskSendConfirmationMail())
-            .interruptedBy(Relations.subProcessConfirmation(), n -> n.errorEventInvalidMail())
+            .interruptedBy(Flow.subProcessConfirmation(), n -> n.errorEventInvalidMail())
             .end(n -> n.endEventRegistrationNotPossible())
             .getIds();
 
@@ -93,9 +93,9 @@ class PathWalkJavaApiTest {
 
     @Test
     void nonInterruptingTimerLoopRecordsRepeatsInIdsAndDedupsThemInDistinctIds() {
-        var trail = PathWalk.from(Relations.startEventSubmitRegistrationForm())
+        var trail = PathWalk.from(Flow.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-            .enter(Relations.subProcessConfirmation().inner(), s -> s.startEventRequestReceived())
+            .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
             .then(n -> n.serviceTaskSendConfirmationMail())
             .then(n -> n.userTaskConfirmRegistration())
             .then(n -> n.timerEveryDay())
@@ -127,12 +127,12 @@ class PathWalkJavaApiTest {
 
     @Test
     void parallelBranchesUnionIntoADeduplicatedSetViaNodesOf() {
-        List<FlowNode> welcomeBranch = PathWalk.from(Relations.gatewaySplitNotifications())
+        List<FlowNode> welcomeBranch = PathWalk.from(Flow.gatewaySplitNotifications())
             .then(n -> n.serviceTaskSendWelcomeMail())
             .then(n -> n.gatewayJoinNotifications())
             .end(n -> n.endEventRegistrationCompleted())
             .getNodes();
-        List<FlowNode> notifyBranch = PathWalk.from(Relations.gatewaySplitNotifications())
+        List<FlowNode> notifyBranch = PathWalk.from(Flow.gatewaySplitNotifications())
             .then(n -> n.serviceTaskNotifyCommunity())
             .then(n -> n.gatewayJoinNotifications())
             .end(n -> n.endEventRegistrationCompleted())
@@ -150,9 +150,9 @@ class PathWalkJavaApiTest {
     @Test
     void jumpToReAnchorsToTheForkToWalkTheSecondParallelBranch() {
         // RiskyNavigation is not enforced for Java callers (no @OptIn equivalent) — the intent is documented.
-        var ids = PathWalk.from(Relations.gatewaySplitNotifications())
+        var ids = PathWalk.from(Flow.gatewaySplitNotifications())
             .then(n -> n.serviceTaskSendWelcomeMail())
-            .jumpTo(Relations.gatewaySplitNotifications())
+            .jumpTo(Flow.gatewaySplitNotifications())
             .then(n -> n.serviceTaskNotifyCommunity())
             .then(n -> n.gatewayJoinNotifications())
             .end(n -> n.endEventRegistrationCompleted())
@@ -171,7 +171,7 @@ class PathWalkJavaApiTest {
     void thenMultipleTimesRecordsTheSameNodeRepeatedly() {
         // Newsletter has no consecutively-repeating node, so this is an isolated mechanic check that also
         // exercises the instance-level nodes / ids / distinctIds accessors (mid-walk, before any end).
-        var walk = PathWalk.from(Relations.gatewaySplitNotifications())
+        var walk = PathWalk.from(Flow.gatewaySplitNotifications())
             .thenMultipleTimes(2, n -> n.serviceTaskSendWelcomeMail());
 
         assertThat(walk.getIds())

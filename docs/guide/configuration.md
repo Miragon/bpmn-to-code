@@ -37,7 +37,7 @@ Operaton is an open-source fork of Camunda 7. It uses the same patterns for I/O 
 The C# target emits the **constants** sections only: process id, engine, element ids, call activities,
 messages, service tasks, timers, errors, escalations, signals and variables.
 
-The typed navigation DSL (`Relations` / `Variants`) is **not** generated. Every node of it derives from
+The typed navigation DSL (`Flow` / `Variants`) is **not** generated. Every node of it derives from
 `bpmn-to-code-runtime`, which is a JVM artifact; until a C# counterpart exists, a partial navigation API
 could not compile. In exchange, the generated `.cs` file has **no dependencies at all** — drop it into a
 project and it builds.

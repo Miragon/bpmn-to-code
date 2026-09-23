@@ -1,9 +1,8 @@
 package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.FlowNode
-import io.miragon.bpmn.runtime.HasInnerScope
+import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
-import io.miragon.bpmn.runtime.NavigationScope
 
 /**
  * Edge step: advance to a real successor of the current node and record it. The lambda's parameter `it` is
@@ -41,24 +40,24 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.onto(subprocess: (
 
 /**
  * Descend into the current subprocess node's interior and record the entered inner node. The lambda's `it`
- * is the interior's start `Next`, so `it.<start>` autocompletes — only a real inner start compiles. Reach the
+ * is the subprocess's `Start`, so `it.<start>` autocompletes — only a real inner start compiles. Reach the
  * subprocess node first with [onto] (checked edge) — e.g. `onto { it.sub }.enter { it.start }`.
  *
  * To leave the subprocess again: a **normal** full walk uses [inside] (which resumes on the subprocess node
  * automatically), a **boundary** interruption uses [interruptedBy]. A bare `onto { … }.enter { … }` chain with
  * neither is a dead end — once inside you can only continue out via [inside] or [interruptedBy].
  */
-fun <NEXT, M : FlowNode> ProcessPath<out HasInnerScope<NavigationScope<NEXT>>>.enter(pick: (NEXT) -> M): ProcessPath<M> {
-    val node = pick(current.inner().then())
+fun <START, M : FlowNode> ProcessPath<out FlowScope<START>>.enter(pick: (START) -> M): ProcessPath<M> {
+    val node = pick(current.start())
     return ProcessPath(current = node, recorded = nodes + node)
 }
 
 /**
- * Descend into an explicitly named interior scope — the re-anchor form of [enter], for entering a subprocess
- * from a position where it isn't the current node (e.g. `enter(Relations.SubProcess.Inner) { it.start }`).
+ * Descend into an explicitly named subprocess — the re-anchor form of [enter], for entering a subprocess
+ * from a position where it isn't the current node (e.g. `enter(Flow.SubProcess) { it.start }`).
  */
-fun <NEXT, M : FlowNode> ProcessPath<*>.enter(inner: NavigationScope<NEXT>, pick: (NEXT) -> M): ProcessPath<M> {
-    val node = pick(inner.then())
+fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (START) -> M): ProcessPath<M> {
+    val node = pick(scope.start())
     return ProcessPath(current = node, recorded = nodes + node)
 }
 
@@ -84,7 +83,7 @@ fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(
  * subprocess is entered with its own `onto { … }.inside { … }`, each block capturing its subprocess via the
  * closure.
  */
-fun <NEXT, N : HasInnerScope<NavigationScope<NEXT>>> ProcessPath<N>.inside(
+fun <START, N : FlowScope<START>> ProcessPath<N>.inside(
     block: ProcessPath<N>.() -> ProcessPath<*>,
 ): ProcessPath<N> {
     val walked = ProcessPath(current = current, recorded = emptyList<FlowNode>()).block()

@@ -2,7 +2,7 @@ package io.miragon.bpmn.runtime.path
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Relations as Newsletter
+import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Flow as Newsletter
 
 /**
  * Exercises the fluent [PathWalk] facade over the generated Newsletter API from **Kotlin** (its
@@ -15,10 +15,10 @@ class PathWalkKotlinApiTest {
 
     @Test
     fun `happy path walks the subprocess interior via inside`() {
-        val ids = PathWalk.from(Newsletter.startEventSubmitRegistrationForm)
+        val ids = PathWalk.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .onto { it.subProcessConfirmation }
-            .inside(Newsletter.SubProcessConfirmation.Inner) { s ->
+            .inside(Newsletter.SubProcessConfirmation) { s ->
                 PathWalk.from(s.startEventRequestReceived)
                     .then { it.serviceTaskSendConfirmationMail }
                     .then { it.userTaskConfirmRegistration }
@@ -46,9 +46,9 @@ class PathWalkKotlinApiTest {
 
     @Test
     fun `interrupting timer boundary leaves the subprocess into the call activity and compensation end`() {
-        val ids = PathWalk.from(Newsletter.startEventSubmitRegistrationForm)
+        val ids = PathWalk.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
-            .enter(Newsletter.SubProcessConfirmation.Inner) { it.startEventRequestReceived }
+            .enter(Newsletter.SubProcessConfirmation) { it.startEventRequestReceived }
             .then { it.serviceTaskSendConfirmationMail }
             .then { it.userTaskConfirmRegistration }
             .interruptedBy(Newsletter.SubProcessConfirmation) { it.timerAfter3Days }
@@ -70,9 +70,9 @@ class PathWalkKotlinApiTest {
 
     @Test
     fun `error boundary leaves the subprocess into the signal end event`() {
-        val ids = PathWalk.from(Newsletter.startEventSubmitRegistrationForm)
+        val ids = PathWalk.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
-            .enter(Newsletter.SubProcessConfirmation.Inner) { it.startEventRequestReceived }
+            .enter(Newsletter.SubProcessConfirmation) { it.startEventRequestReceived }
             .then { it.serviceTaskSendConfirmationMail }
             .interruptedBy(Newsletter.SubProcessConfirmation) { it.errorEventInvalidMail }
             .end { it.endEventRegistrationNotPossible }
@@ -90,9 +90,9 @@ class PathWalkKotlinApiTest {
 
     @Test
     fun `non-interrupting timer loop records repeats in ids and dedups them in distinctIds`() {
-        val trail = PathWalk.from(Newsletter.startEventSubmitRegistrationForm)
+        val trail = PathWalk.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }
-            .enter(Newsletter.SubProcessConfirmation.Inner) { it.startEventRequestReceived }
+            .enter(Newsletter.SubProcessConfirmation) { it.startEventRequestReceived }
             .then { it.serviceTaskSendConfirmationMail }
             .then { it.userTaskConfirmRegistration }
             .then { it.timerEveryDay }
@@ -124,12 +124,12 @@ class PathWalkKotlinApiTest {
 
     @Test
     fun `parallel branches union into a deduplicated set via nodesOf`() {
-        val welcomeBranch = PathWalk.from(Newsletter.gatewaySplitNotifications)
+        val welcomeBranch = PathWalk.from(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskSendWelcomeMail }
             .then { it.gatewayJoinNotifications }
             .end { it.endEventRegistrationCompleted }
             .nodes
-        val notifyBranch = PathWalk.from(Newsletter.gatewaySplitNotifications)
+        val notifyBranch = PathWalk.from(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskNotifyCommunity }
             .then { it.gatewayJoinNotifications }
             .end { it.endEventRegistrationCompleted }
@@ -143,7 +143,7 @@ class PathWalkKotlinApiTest {
     @OptIn(RiskyNavigation::class)
     @Test
     fun `jumpTo re-anchors to the fork to walk the second parallel branch`() {
-        val ids = PathWalk.from(Newsletter.gatewaySplitNotifications)
+        val ids = PathWalk.from(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskSendWelcomeMail }
             .jumpTo(Newsletter.GatewaySplitNotifications)
             .then { it.serviceTaskNotifyCommunity }
@@ -164,7 +164,7 @@ class PathWalkKotlinApiTest {
     fun `thenMultipleTimes records the same node repeatedly (builder mechanic, not a real flow)`() {
         // Newsletter has no consecutively-repeating node, so this is an isolated mechanic check that also
         // exercises the instance-level nodes / ids / distinctIds accessors (mid-walk, before any end).
-        val walk = PathWalk.from(Newsletter.gatewaySplitNotifications)
+        val walk = PathWalk.from(Newsletter.GatewaySplitNotifications)
             .thenMultipleTimes(2) { it.serviceTaskSendWelcomeMail }
 
         assertThat(walk.ids)

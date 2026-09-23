@@ -8,10 +8,9 @@ import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnEscalation
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
-import io.miragon.bpmn.runtime.HasInnerScope
+import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
-import io.miragon.bpmn.runtime.NavigationScope
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.VariableName
 import kotlin.String
@@ -119,87 +118,21 @@ object SendNewsletterProcessApi {
     object Send {
       /**
        * Typed navigation over the process flow.
-       * Each element is a node exposing its `id`, `elementType` and display `name`, plus the elements reachable from it as named properties — so a full path is verified by the compiler and offered by autocomplete. A subprocess's interior is its nested `Inner` scope.
+       * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `then()` — so a full path is verified by the compiler and offered by autocomplete. A subprocess nests its interior and opens it via `start()`.
        * Intended for tooling, tests, and reasoning about the process shape.
        */
-      object Relations {
-        val endEventEditionSent: EndEventEditionSent
-          get() = EndEventEditionSent
-
-        val endEventNoSubscribers: EndEventNoSubscribers
-          get() = EndEventNoSubscribers
-
-        val eventSubProcessErrorHandling: EventSubProcessErrorHandling
-          get() = EventSubProcessErrorHandling
-
-        val gatewayHasSubscribers: GatewayHasSubscribers
-          get() = GatewayHasSubscribers
-
-        val serviceTaskLoadSubscribers: ServiceTaskLoadSubscribers
-          get() = ServiceTaskLoadSubscribers
-
-        val serviceTaskNotifyAuthor: ServiceTaskNotifyAuthor
-          get() = ServiceTaskNotifyAuthor
-
-        val serviceTaskSendToSubscriber: ServiceTaskSendToSubscriber
-          get() = ServiceTaskSendToSubscriber
-
-        val startEventEditionCreated: StartEventEditionCreated
-          get() = StartEventEditionCreated
-
-        fun then(): Next = Next
-
-        object Next {
-          val startEventEditionCreated: StartEventEditionCreated
-            get() = StartEventEditionCreated
-        }
-
+      object Flow {
         object EndEventEditionSent : AbstractFlowNode(ElementId("endEvent_editionSent"), "END_EVENT")
 
         object EndEventNoSubscribers : AbstractFlowNode(ElementId("endEvent_noSubscribers"), "END_EVENT")
 
         object EventSubProcessErrorHandling : AbstractFlowNode(ElementId("eventSubProcess_errorHandling"), "EVENT_SUB_PROCESS"),
-            HasInnerScope<EventSubProcessErrorHandling.Inner> {
-          val endEventIssueResolved: EndEventIssueResolved
-            get() = EndEventIssueResolved
+            FlowScope<EventSubProcessErrorHandling.Start> {
+          override fun start(): Start = Start
 
-          val escalationEndEventNofitySupport: EscalationEndEventNofitySupport
-            get() = EscalationEndEventNofitySupport
-
-          val escalationEndEventNofitySupportAfterRepeatedError:
-              EscalationEndEventNofitySupportAfterRepeatedError
-            get() = EscalationEndEventNofitySupportAfterRepeatedError
-
-          val eventGatewayAfterSendingAgain: EventGatewayAfterSendingAgain
-            get() = EventGatewayAfterSendingAgain
-
-          val eventMailRejected: EventMailRejected
-            get() = EventMailRejected
-
-          val eventMailRejectedAgain: EventMailRejectedAgain
-            get() = EventMailRejectedAgain
-
-          val gatewayCanSendAgain: GatewayCanSendAgain
-            get() = GatewayCanSendAgain
-
-          val serviceTaskAnalyzeError: ServiceTaskAnalyzeError
-            get() = ServiceTaskAnalyzeError
-
-          val serviceTaskSendMailAgain: ServiceTaskSendMailAgain
-            get() = ServiceTaskSendMailAgain
-
-          val timerNoRejectionForOneDay: TimerNoRejectionForOneDay
-            get() = TimerNoRejectionForOneDay
-
-          override fun `inner`(): EventSubProcessErrorHandling.Inner = EventSubProcessErrorHandling.Inner
-
-          object Inner : NavigationScope<EventSubProcessErrorHandling.Inner.Next> {
-            override fun then(): Next = Next
-
-            object Next {
-              val eventMailRejected: EventMailRejected
-                get() = EventMailRejected
-            }
+          object Start {
+            val eventMailRejected: EventMailRejected
+              get() = EventMailRejected
           }
 
           object EndEventIssueResolved : AbstractFlowNode(ElementId("endEvent_issueResolved"), "END_EVENT")
