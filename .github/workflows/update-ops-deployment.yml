@@ -13,6 +13,10 @@ on:
         description: "Version to deploy (with or without leading 'v', e.g. 3.0.0)"
         required: true
         type: string
+      image_ref:
+        description: "Full image reference to pin (e.g. miragon/bpmn-to-code-web@sha256:...); defaults to IMAGE:version"
+        type: string
+        default: ""
       dry_run:
         description: "Dry run (show diff only, no PR)"
         type: boolean
@@ -22,6 +26,10 @@ on:
       version:
         description: "Version to deploy (with or without leading 'v')"
         type: string
+      image_ref:
+        description: "Full image reference to pin (e.g. miragon/bpmn-to-code-web@sha256:...); defaults to IMAGE:version"
+        type: string
+        default: ""
       dry_run:
         type: boolean
         default: false
@@ -75,12 +83,17 @@ jobs:
       - name: Update image reference
         env:
           DEPLOYMENT_FILE: ${{ steps.resolve-version.outputs.deployment_file }}
+          VERSION: ${{ steps.resolve-version.outputs.version }}
+          # Full reference the caller just pushed; falls back to the tag for manual dispatch.
+          IMAGE_REF: ${{ inputs.image_ref != '' && inputs.image_ref || format('{0}:{1}', env.IMAGE, steps.resolve-version.outputs.version) }}
         run: |
           set -euo pipefail
           file="ops/${DEPLOYMENT_FILE}"
-          target="${IMAGE}:${{ steps.resolve-version.outputs.version }}"
-          # Replace the full image value (registry + tag) so we also repoint emaarco -> miragon.
-          sed -i -E "s#^([[:space:]]*image:[[:space:]]*).*bpmn-to-code-web:.*#\1${target}#" "$file"
+          # Rewrite the image value (so emaarco -> miragon too) and keep the version as a
+          # comment above it for humans/ArgoCD when the ref is an opaque digest. Drop any
+          # stale marker first so re-runs stay idempotent. Indentation preserved via \1.
+          sed -i -E '/^[[:space:]]*# version:[[:space:]]*/d' "$file"
+          sed -i -E "s|^([[:space:]]*)image:[[:space:]]*.*bpmn-to-code-web[:@].*|\1# version: ${VERSION}\n\1image: ${IMAGE_REF}|" "$file"
           echo "Resulting image line:"
           grep -nE "image:.*bpmn-to-code-web" "$file"
 
