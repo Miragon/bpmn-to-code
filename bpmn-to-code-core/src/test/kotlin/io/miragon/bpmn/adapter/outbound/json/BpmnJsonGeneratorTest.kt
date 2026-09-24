@@ -64,6 +64,20 @@ class BpmnJsonGeneratorTest {
     }
 
     @Test
+    fun `emits isDefault only on the default sequence flow`() {
+        // given: a model whose gateway has a default flow and a conditional sibling
+        val model = testSendNewsletterModel()
+
+        // when: generating JSON
+        val result = underTest.generate(model)
+
+        // then: the default flow carries isDefault, the conditional sibling does not
+        assertThat(result).contains("\"id\": \"flow_hasSubscribers\"")
+        assertThat(result).containsPattern("flow_hasSubscribers[\\s\\S]*?\"isDefault\": true")
+        assertThat(result).doesNotContain("\"isDefault\": false")
+    }
+
+    @Test
     fun `adapter always uses processId as filename`() {
         // given: a model
         val model = testSubscribeNewsletterModel()

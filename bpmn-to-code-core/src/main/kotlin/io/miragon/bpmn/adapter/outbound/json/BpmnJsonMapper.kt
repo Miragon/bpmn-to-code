@@ -173,6 +173,7 @@ internal class BpmnJsonMapper {
         targetRef = targetRef,
         name = flowName,
         conditionExpression = conditionExpression,
+        isDefault = isDefault.takeIf { it },
     )
 
     private fun RootElementDefinition.Message.toJson(): DefinitionsJson.Message? {

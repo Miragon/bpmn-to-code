@@ -171,7 +171,8 @@
                         "id": "flow_canSendAgain",
                         "sourceRef": "gateway_canSendAgain",
                         "targetRef": "serviceTask_sendMailAgain",
-                        "name": "Yes"
+                        "name": "Yes",
+                        "isDefault": true
                     },
                     {
                         "id": "flow_cannotSendAgain",
@@ -507,7 +508,8 @@
                             "id": "flow_canSendAgain",
                             "sourceRef": "gateway_canSendAgain",
                             "targetRef": "serviceTask_sendMailAgain",
-                            "name": "Yes"
+                            "name": "Yes",
+                            "isDefault": true
                         },
                         {
                             "id": "flow_cannotSendAgain",
@@ -559,7 +561,8 @@
                     "id": "flow_hasSubscribers",
                     "sourceRef": "gateway_hasSubscribers",
                     "targetRef": "serviceTask_sendToSubscriber",
-                    "name": "Yes"
+                    "name": "Yes",
+                    "isDefault": true
                 },
                 {
                     "id": "flow_noSubscribers",
