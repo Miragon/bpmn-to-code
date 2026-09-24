@@ -92,6 +92,9 @@ public static class NewsletterSubscriptionProcessApi
         public const string NewsletterRegistrationCompleted = "newsletter.registrationCompleted";
     }
 
+    /// <summary>
+    /// Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
+    /// </summary>
     public static class Timers
     {
         public static class TimerAfter3Days
@@ -107,6 +110,9 @@ public static class NewsletterSubscriptionProcessApi
         }
     }
 
+    /// <summary>
+    /// BPMN error definitions with name and code, as thrown and caught by the process.
+    /// </summary>
     public static class Errors
     {
         public static class ErrorInvalidMail
@@ -116,6 +122,9 @@ public static class NewsletterSubscriptionProcessApi
         }
     }
 
+    /// <summary>
+    /// BPMN signal names broadcast and caught by signal events.
+    /// </summary>
     public static class Signals
     {
         public const string SignalRegistrationNotPossible = "Signal_RegistrationNotPossible";

@@ -243,6 +243,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val signalNameClass = ClassName.get(RUNTIME_PACKAGE, "SignalName")
             val signalsBuilder = TypeSpec.classBuilder("Signals").addModifiers(PUBLIC, STATIC, FINAL)
+                .addJavadoc("BPMN signal names broadcast and caught by signal events.\n")
             modelApi.model.definitions.signals.asApiConstants().forEach { signal ->
                 signalsBuilder.addField(createTypedAttribute(signal, signalNameClass))
             }
@@ -293,6 +294,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnErrorClass = ClassName.get(RUNTIME_PACKAGE, "BpmnError")
             val errorsBuilder = TypeSpec.classBuilder("Errors").addModifiers(PUBLIC, STATIC, FINAL)
+                .addJavadoc("BPMN error definitions with name and code, as thrown and caught by the process.\n")
             modelApi.model.definitions.errors.asApiConstants().forEach {
                 val (errorName, errorCode) = it.getValue()
                 val instanceBuilder = FieldSpec.builder(bpmnErrorClass, it.getName())
@@ -308,6 +310,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnEscalationClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEscalation")
             val escalationsBuilder = TypeSpec.classBuilder("Escalations").addModifiers(PUBLIC, STATIC, FINAL)
+                .addJavadoc("BPMN escalation definitions with name and code, as thrown and caught by the process.\n")
             modelApi.model.definitions.escalations.asApiConstants().forEach {
                 val (escalationName, escalationCode) = it.getValue()
                 val instanceBuilder = FieldSpec.builder(bpmnEscalationClass, it.getName())
@@ -323,6 +326,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnTimerClass = ClassName.get(RUNTIME_PACKAGE, "BpmnTimer")
             val timersBuilder = TypeSpec.classBuilder("Timers").addModifiers(PUBLIC, STATIC, FINAL)
+                .addJavadoc("Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.\n")
             modelApi.model.timers.forEach {
                 val (timerType, timerValue) = it.getValue()
                 val instanceBuilder = FieldSpec.builder(bpmnTimerClass, it.getName())

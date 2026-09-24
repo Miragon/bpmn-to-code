@@ -110,16 +110,25 @@ public final class NewsletterSubscriptionProcessApi {
     public static final String NEWSLETTER_REGISTRATION_COMPLETED = "newsletter.registrationCompleted";
   }
 
+  /**
+   * Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
+   */
   public static final class Timers {
     public static final BpmnTimer TIMER_AFTER_3_DAYS = new BpmnTimer("Duration", "${testVariable}");
 
     public static final BpmnTimer TIMER_EVERY_DAY = new BpmnTimer("Duration", "PT1M");
   }
 
+  /**
+   * BPMN error definitions with name and code, as thrown and caught by the process.
+   */
   public static final class Errors {
     public static final BpmnError ERROR_INVALID_MAIL = new BpmnError("Error_InvalidMail", "500");
   }
 
+  /**
+   * BPMN signal names broadcast and caught by signal events.
+   */
   public static final class Signals {
     public static final SignalName SIGNAL_REGISTRATION_NOT_POSSIBLE = new SignalName("Signal_RegistrationNotPossible");
   }

@@ -125,16 +125,25 @@ object NewsletterSubscriptionProcessApi {
     const val NEWSLETTER_REGISTRATION_COMPLETED: String = "newsletter.registrationCompleted"
   }
 
+  /**
+   * Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
+   */
   object Timers {
     val TIMER_AFTER_3_DAYS: BpmnTimer = BpmnTimer("Duration", $$"""${testVariable}""")
 
     val TIMER_EVERY_DAY: BpmnTimer = BpmnTimer("Duration", "PT1M")
   }
 
+  /**
+   * BPMN error definitions with name and code, as thrown and caught by the process.
+   */
   object Errors {
     val ERROR_INVALID_MAIL: BpmnError = BpmnError("Error_InvalidMail", "500")
   }
 
+  /**
+   * BPMN signal names broadcast and caught by signal events.
+   */
   object Signals {
     val SIGNAL_REGISTRATION_NOT_POSSIBLE: SignalName =
         SignalName("Signal_RegistrationNotPossible")

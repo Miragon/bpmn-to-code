@@ -115,6 +115,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private class SignalsWriter : ObjectWriter<CSharpWriter> {
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
+            builder.docComment("BPMN signal names broadcast and caught by signal events.")
             builder.staticClass("Signals") {
                 modelApi.model.definitions.signals.asApiConstants().forEach { signal ->
                     builder.constant(signal.getRawName().toPascalCase(), signal.getValue())
@@ -126,6 +127,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private class TimersWriter : ObjectWriter<CSharpWriter> {
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
+            builder.docComment("Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.")
             builder.staticClass("Timers") {
                 builder.forEachSeparated(modelApi.model.timers) { timer ->
                     val (timerType, timerValue) = timer.getValue()
@@ -141,6 +143,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private class ErrorsWriter : ObjectWriter<CSharpWriter> {
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
+            builder.docComment("BPMN error definitions with name and code, as thrown and caught by the process.")
             builder.staticClass("Errors") {
                 builder.forEachSeparated(modelApi.model.definitions.errors.asApiConstants()) { error ->
                     val (errorName, errorCode) = error.getValue()
@@ -156,6 +159,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private class EscalationsWriter : ObjectWriter<CSharpWriter> {
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
+            builder.docComment("BPMN escalation definitions with name and code, as thrown and caught by the process.")
             builder.staticClass("Escalations") {
                 builder.forEachSeparated(modelApi.model.definitions.escalations.asApiConstants()) { escalation ->
                     val (escalationName, escalationCode) = escalation.getValue()
