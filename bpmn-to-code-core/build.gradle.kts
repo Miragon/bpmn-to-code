@@ -39,9 +39,16 @@ tasks.processResources {
     }
 }
 
+private val runtimeTestSources = rootProject.file("bpmn-to-code-runtime/src/test")
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
     systemProperty("golden.update", System.getProperty("golden.update") ?: "false")
+    systemProperty("runtime.test.sources", runtimeTestSources.absolutePath)
+    inputs.files(
+        runtimeTestSources.resolve("kotlin/io/miragon/bpmn/runtime/path/example/NewsletterSubscriptionProcessApi.kt"),
+        runtimeTestSources.resolve("java/io/miragon/bpmn/runtime/example/NewsletterSubscriptionProcessApi.java"),
+    )
 }
 
 private val coverageExclusions = listOf(

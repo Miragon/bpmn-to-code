@@ -30,7 +30,8 @@ Extract the shared types into a **published artifact**, `io.github.emaarco:bpmn-
 Artifact contents:
 - Identifier wrappers: `ProcessId`, `ElementId`, `MessageName`, `SignalName`
 - Variable wrapper: sealed interface `VariableName` + nested `Input` / `Output` / `InOut`
-- Metadata records: `BpmnTimer`, `BpmnError`, `BpmnEscalation`, `BpmnFlow`, `BpmnRelations`
+- Metadata records: `BpmnTimer`, `BpmnError`, `BpmnEscalation`, `InputOutputMapping`, `SequenceFlow`
+- Navigation contracts: `FlowNode`, `AbstractFlowNode`, `HasSuccessors`, `HasFlows`, `FlowScope`, and the `path` package (`ProcessPath`, `PathWalk`)
 - Engine enum: `BpmnEngine`
 
 The Gradle plugin automatically adds `implementation("io.github.emaarco:bpmn-to-code-runtime:$pluginVersion")` to any project it's applied to (when the `java` plugin is present), matching the pattern of `org.jetbrains.kotlin.jvm` adding `kotlin-stdlib`. Maven users add the `<dependency>` manually — documented in the Maven plugin README.

@@ -51,12 +51,10 @@ class KotlinProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.kt")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
-        val expectedFile = File(requireNotNull(javaClass.getResource("/api/NewsletterSubscriptionProcessApiKotlin.txt")).toURI())
-        assertThat(result.content).isEqualTo(expectedFile.readText())
+        assertThat(result.content).isEqualTo(golden("/api/NewsletterSubscriptionProcessApiKotlin.txt", result.content))
         assertKotlinSyntaxValid(result.content)
 
-        // and: key KDoc blocks disambiguate the nested objects
-        assertThat(result.content).contains("process-level tests")
+        // and: the Flow KDoc explains how to navigate it
         assertThat(result.content).contains("Typed navigation over the process flow")
     }
 
@@ -77,10 +75,17 @@ class KotlinProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains Variants section instead of a flat Flow
-        val expectedFile = File(requireNotNull(javaClass.getResource("/api/MultiVariantProcessApiKotlin.txt")).toURI())
-        assertThat(result.content).isEqualTo(expectedFile.readText())
+        // then: output contains FlowVariants section instead of a flat Flow
+        assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiKotlin.txt", result.content))
         assertKotlinSyntaxValid(result.content)
+    }
+
+    private fun golden(path: String, generated: String): String {
+        if (System.getProperty("golden.update") == "true") {
+            File("src/test/resources$path").writeText(generated)
+            return generated
+        }
+        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 
     companion object {

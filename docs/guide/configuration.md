@@ -29,21 +29,15 @@ Operaton is an open-source fork of Camunda 7. It uses the same patterns for I/O 
 
 | Language | Value | Generated Output |
 |----------|-------|-----------------|
-| Kotlin | `KOTLIN` | `object` with `const val` properties |
-| Java | `JAVA` | `class` with `public static final` fields |
-| C# | `CSHARP` | `static class` with `const string` fields — **beta**, constants only |
+| Kotlin | `KOTLIN` | `object` with nested objects; depends on `bpmn-to-code-runtime` |
+| Java | `JAVA` | `class` with nested static classes; depends on `bpmn-to-code-runtime` |
+| C# | `CSHARP` | `static class` with the same registries and `Flow`; runtime types inlined, no dependency |
 
-::: warning C# is beta
-The C# target emits the **constants** sections only: process id, engine, element ids, call activities,
-messages, service tasks, timers, errors, escalations, signals and variables.
-
-The typed navigation DSL (`Flow` / `Variants`) is **not** generated. Every node of it derives from
-`bpmn-to-code-runtime`, which is a JVM artifact; until a C# counterpart exists, a partial navigation API
-could not compile. In exchange, the generated `.cs` files have **no dependencies at all** — drop them into a
-project and they build.
-
-Direction of a process variable, which the JVM APIs carry in a wrapper type, is documented on each
-constant instead so it still shows up in IntelliSense.
+::: info C# has no package dependency
+The C# output carries the same API surface as Kotlin and Java, including the typed `Flow` / `FlowVariants`
+navigation. The runtime types its nodes need (`IFlowNode`, `SequenceFlow<T>`, `ElementId`, `VariableName`,
+…) are emitted into every generated file as a nested `Runtime` class, so a `.cs` file drops into any project
+and builds. See [C# specifics](/guide/generated-api#c-specifics).
 :::
 
 ::: info

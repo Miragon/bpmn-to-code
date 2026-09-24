@@ -8,8 +8,8 @@ enum class OutputLanguage {
     JAVA,
 
     /**
-     * Beta. Emits the constants sections only — the typed navigation DSL is JVM-only until a
-     * C# counterpart of `bpmn-to-code-runtime` exists.
+     * Same API surface as Kotlin and Java; the runtime types the `Flow` nodes need are inlined into each
+     * generated file, so the output has no package dependency.
      */
     CSHARP,
 }

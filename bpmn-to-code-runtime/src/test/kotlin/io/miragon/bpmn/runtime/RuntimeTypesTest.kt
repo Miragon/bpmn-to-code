@@ -85,7 +85,56 @@ class RuntimeTypesTest {
         assertThat(node.hashCode()).isEqualTo(same.hashCode())
     }
 
+    @Test
+    fun `AbstractFlowNode exposes the display name and defaults it to null`() {
+        val named = object : AbstractFlowNode(ElementId("approve-task"), "USER_TASK", "Approve order") {}
+
+        assertThat(named.name).isEqualTo("Approve order")
+        assertThat(flowNode("approve-task").name).isNull()
+    }
+
+    @Test
+    fun `AbstractFlowNode equality ignores the display name`() {
+        val named = object : AbstractFlowNode(ElementId("approve-task"), "USER_TASK", "Approve order") {}
+
+        assertThat(named).isEqualTo(flowNode("approve-task"))
+        assertThat(named.hashCode()).isEqualTo(flowNode("approve-task").hashCode())
+    }
+
     private fun flowNode(id: String): AbstractFlowNode = object : AbstractFlowNode(ElementId(id), "SERVICE_TASK") {}
+
+    @Test
+    fun `SequenceFlow carries id, name, condition, default marker and its typed target`() {
+        val target = flowNode("end")
+        val flow = SequenceFlow(ElementId("flow_1"), "No", "=stock > 0", false, target)
+
+        assertThat(flow.id).isEqualTo(ElementId("flow_1"))
+        assertThat(flow.name).isEqualTo("No")
+        assertThat(flow.conditionExpression).isEqualTo("=stock > 0")
+        assertThat(flow.isDefault).isFalse()
+        assertThat(flow.target).isSameAs(target)
+    }
+
+    @Test
+    fun `SequenceFlow implements value equality and copy`() {
+        val flow = SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end"))
+
+        assertThat(flow).isEqualTo(SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end")))
+        assertThat(flow).isNotEqualTo(flow.copy(isDefault = false))
+        assertThat(flow.copy(name = "Yes").name).isEqualTo("Yes")
+        assertThat(flow.hashCode()).isEqualTo(SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end")).hashCode())
+    }
+
+    @Test
+    fun `HasFlows exposes the node's typed edges holder`() {
+        val end = flowNode("end")
+        val start = object : AbstractFlowNode(ElementId("start"), "START_EVENT"), HasFlows<SequenceFlow<AbstractFlowNode>> {
+            override fun flows(): SequenceFlow<AbstractFlowNode> = SequenceFlow(ElementId("flow_1"), null, "= ok", false, end)
+        }
+
+        assertThat(start.flows().target).isEqualTo(end)
+        assertThat(start.flows().conditionExpression).isEqualTo("= ok")
+    }
 
     @Test
     fun `InputOutputMapping keeps target plus source or sourceExpression`() {

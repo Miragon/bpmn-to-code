@@ -20,7 +20,7 @@ class JavaSharedDefinitionsBuilderTest {
 
         // then: every file belongs to no process and matches the golden output
         assertThat(result).allMatch { it.processId == null && it.packagePath == "de.emaarco.example" }
-        assertThat(result.asGoldenText()).isEqualTo(readGolden("/api/SharedDefinitionsJava.txt"))
+        assertThat(result.asGoldenText()).isEqualTo(readGolden("/api/SharedDefinitionsJava.txt", result.asGoldenText()))
     }
 
     @Test

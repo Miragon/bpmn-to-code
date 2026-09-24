@@ -69,8 +69,8 @@ function switchTab(tab) {
 }
 
 /**
- * The library sources are the JVM `bpmn-to-code-runtime`; the C# output depends on nothing, so the
- * toggle has nothing to offer there.
+ * The library sources are the JVM `bpmn-to-code-runtime`; the C# output inlines its own runtime types,
+ * so the toggle has nothing to offer there.
  */
 function updateIncludeSourcesVisibility() {
     const jvmTarget = document.getElementById('output-language').value !== 'CSHARP';

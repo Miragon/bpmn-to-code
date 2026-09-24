@@ -79,4 +79,4 @@ For elements where I/O mappings aren't supported (like message start events), de
 </bpmn:extensionElements>
 ```
 
-Each comma-separated value becomes a variable — values under `additionalInputVariables` land in the element's `Inputs` sub-object, values under `additionalOutputVariables` in `Outputs`. Works on any BPMN element. The legacy undirected `additionalVariables` property is no longer extracted — split your values into the two directional properties above.
+Each comma-separated value becomes a variable — values under `additionalInputVariables` become `VariableName.Input` entries in the element's `Variables` holder on its `Flow` node, values under `additionalOutputVariables` become `VariableName.Output` entries. Works on any BPMN element. The legacy undirected `additionalVariables` property is no longer extracted — split your values into the two directional properties above.

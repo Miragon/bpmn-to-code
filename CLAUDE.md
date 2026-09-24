@@ -78,7 +78,7 @@ The plugins generate code from BPMN files. Key configuration parameters:
 - `filePattern`: BPMN file location pattern
 - `outputFolderPath`: Where to generate code
 - `packagePath`: Generated code package
-- `outputLanguage`: KOTLIN, JAVA, or CSHARP (beta — constants only, no navigation DSL)
+- `outputLanguage`: KOTLIN, JAVA, or CSHARP (C# inlines its runtime types per file)
 - `processEngine`: CAMUNDA_7 or ZEEBE
 
 

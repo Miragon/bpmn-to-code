@@ -7,7 +7,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
  *
  * Kotlin and Java are emitted through KotlinPoet / JavaPoet, which model a type tree and render it.
  * No comparable library for C# is on the classpath, so the C# builder writes text directly and this
- * class is the whole of what it needs: nested blocks, constants, and doc comments.
+ * class is the whole of what it needs: nested blocks, constants, properties, and doc comments.
  */
 internal class CSharpWriter {
 
@@ -32,9 +32,16 @@ internal class CSharpWriter {
         line("}")
     }
 
-    fun staticClass(name: String, body: () -> Unit) {
+    fun staticClass(name: String, body: () -> Unit) = typeBlock("public static class", disambiguate(name), body)
+
+    fun sealedClass(name: String, implements: String? = null, body: () -> Unit) {
         val typeName = disambiguate(name)
-        block("public static class $typeName") {
+        val header = implements?.let { "$typeName : $it" } ?: typeName
+        typeBlock("public sealed class", header, body, typeName)
+    }
+
+    private fun typeBlock(keyword: String, header: String, body: () -> Unit, typeName: String = header) {
+        block("$keyword $header") {
             enclosingTypes.addLast(typeName)
             body()
             enclosingTypes.removeLast()
@@ -44,9 +51,24 @@ internal class CSharpWriter {
     fun constant(name: String, value: String) = line("public const string ${disambiguate(name)} = ${stringLiteral(value)};")
 
     /**
+     * The singleton of the enclosing node class: a private constructor plus a static `Instance` field. The
+     * initializer only ever runs the node's own initializers, never another node's, so static
+     * initialisation cannot cycle.
+     */
+    fun singleton() {
+        val typeName = enclosingTypes.last()
+        line("public static readonly $typeName Instance = new();")
+        line("private $typeName() { }")
+    }
+
+    fun readonlyProperty(name: String, type: String, initializer: String) = line("public $type ${disambiguate(name)} { get; } = $initializer;")
+
+    fun expressionProperty(name: String, type: String, expression: String) = line("public $type ${disambiguate(name)} => $expression;")
+
+    /**
      * C# rejects a member that shares its name with the type enclosing it (CS0542), which a BPMN element
-     * called `Elements` or a timer called `Timers` would otherwise produce. The JVM builders never hit this
-     * because their constants are UPPER_SNAKE_CASE and so can never equal a PascalCase type name.
+     * called `Elements` or a timer event called `Timer` would otherwise produce. The JVM builders never hit
+     * this because their members are UPPER_SNAKE_CASE or camelCase and so can never equal a PascalCase type name.
      */
     private fun disambiguate(name: String) = if (name == enclosingTypes.lastOrNull()) name + "_" else name
 
@@ -78,7 +100,7 @@ internal class CSharpWriter {
          * C# only interpolates in `$"..."`, so BPMN expression values such as `${reasonCode}` need no
          * special treatment — unlike Kotlin, where the builder falls back to a raw string.
          */
-        private fun stringLiteral(value: String): String = buildString {
+        fun stringLiteral(value: String): String = buildString {
             append('"')
             value.forEach { character ->
                 when (character) {
@@ -92,6 +114,8 @@ internal class CSharpWriter {
             }
             append('"')
         }
+
+        fun nullableStringLiteral(value: String?): String = value?.let { stringLiteral(it) } ?: "null"
 
         /**
          * PascalCase identifier for a BPMN name, derived from the UPPER_SNAKE_CASE form so that the

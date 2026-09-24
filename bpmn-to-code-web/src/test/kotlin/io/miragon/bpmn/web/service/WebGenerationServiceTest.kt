@@ -38,6 +38,7 @@ class WebGenerationServiceTest {
         val generatedFile = response.files.first()
         assertThat(generatedFile.fileName).describedAs("Should generate Kotlin file").endsWith(".kt")
         assertThat(generatedFile.content).describedAs("Should contain Kotlin object declaration").contains("object")
+        assertThat(generatedFile.content).describedAs("Should carry the node-centric Flow").contains("object Flow").doesNotContain("object Elements")
         assertThat(generatedFile.content).describedAs("Should contain process ID").contains("newsletterSubscription")
         assertThat(generatedFile.processId).describedAs("Should carry the process id").isEqualTo("newsletterSubscription")
 
@@ -75,8 +76,9 @@ class WebGenerationServiceTest {
         val generatedFile = response.files.first()
         assertThat(generatedFile.fileName).describedAs("Should generate C# file").endsWith(".cs")
         assertThat(generatedFile.content).contains("public static class", "newsletterSubscription")
+        assertThat(generatedFile.content).describedAs("Should carry Flow with inlined runtime types").contains("public static class Flow", "public static class Runtime")
 
-        // and: no JVM runtime is offered, because the generated C# depends on nothing
+        // and: no JVM runtime is offered, because the generated C# inlines its own runtime types
         assertThat(response.libraryFiles).describedAs("Should not bundle jvm runtime sources").isEmpty()
         assertThat(response.runtimeDependency).describedAs("Should not offer a jvm dependency").isNull()
     }

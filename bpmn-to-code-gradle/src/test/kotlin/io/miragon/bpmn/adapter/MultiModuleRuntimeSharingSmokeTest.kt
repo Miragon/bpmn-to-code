@@ -9,7 +9,7 @@ import java.io.File
 
 /**
  * Verifies the multi-module promise: a `common` module can expose typed wrappers over the runtime's
- * `ProcessId` / `MessageName` and both service modules can hand it their own generated identifiers
+ * `ProcessId` / `MessageName` / `SequenceFlow` and both service modules can hand it their own generated identifiers
  * without duplicate-class or type-mismatch errors. This is the regression guard for ADR 016.
  */
 class MultiModuleRuntimeSharingSmokeTest {
@@ -63,10 +63,12 @@ class MultiModuleRuntimeSharingSmokeTest {
 
             import io.miragon.bpmn.runtime.MessageName
             import io.miragon.bpmn.runtime.ProcessId
+            import io.miragon.bpmn.runtime.SequenceFlow
 
             class EngineGateway {
                 fun start(id: ProcessId): String = "started:" + id
                 fun publish(msg: MessageName): String = "published:" + msg
+                fun follow(flow: SequenceFlow<*>): String = "took:" + flow.id + "->" + flow.target.id
             }
             """.trimIndent(),
         )
@@ -117,7 +119,8 @@ class MultiModuleRuntimeSharingSmokeTest {
 
             object $callerName {
                 fun run(gateway: EngineGateway): String {
-                    return gateway.start(NewsletterSubscriptionProcessApi.PROCESS_ID)
+                    val edge = NewsletterSubscriptionProcessApi.Flow.StartEventSubmitRegistrationForm.flows().flowSubmitToIncrementCounter
+                    return gateway.start(NewsletterSubscriptionProcessApi.PROCESS_ID) + gateway.follow(edge)
                 }
             }
             """.trimIndent(),

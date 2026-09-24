@@ -99,11 +99,11 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
 
     private fun createConstant(variable: VariableMapping<String>): PropertySpec = PropertySpec.builder(variable.getName(), String::class)
         .addModifiers(KModifier.CONST)
-        .initializer("%L", stringLiteral(variable.getValue()))
+        .initializer("%L", kotlinStringLiteral(variable.getValue()))
         .build()
 
     private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): PropertySpec = PropertySpec.builder(variable.getName(), wrapperClass)
-        .initializer("%T(%L)", wrapperClass, stringLiteral(variable.getValue()))
+        .initializer("%T(%L)", wrapperClass, kotlinStringLiteral(variable.getValue()))
         .build()
 
     private fun createNameAndCodeAttribute(variable: VariableMapping<Pair<String, String>>, wrapperClass: ClassName): PropertySpec {
