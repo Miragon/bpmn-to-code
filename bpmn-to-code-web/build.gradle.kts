@@ -130,6 +130,7 @@ pitest {
 
 tasks.named<ProcessResources>("processResources") {
     val projectVersion = project.version.toString()
+    inputs.property("projectVersion", projectVersion)
     filesMatching("version.properties") {
         expand("projectVersion" to projectVersion)
     }
