@@ -185,7 +185,8 @@
                 "sourceRef": { "type": "string" },
                 "targetRef": { "type": "string" },
                 "name": { "type": "string" },
-                "conditionExpression": { "type": "string" }
+                "conditionExpression": { "type": "string" },
+                "isDefault": { "type": "boolean", "description": "True if this is the source's default flow." }
             },
             "additionalProperties": false
         },
