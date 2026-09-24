@@ -18,7 +18,7 @@ Claude Code plugin with AI skills for setting up and using the [bpmn-to-code](ht
 |-------|-------------|
 | `setup-bpmn-to-code-gradle` | Set up the Gradle plugin in an existing project. Detects project structure, BPMN files, and output language. |
 | `setup-bpmn-to-code-maven` | Set up the Maven plugin in an existing project. Adds plugin configuration to `pom.xml`. |
-| `migrate-to-bpmn-to-code-apis` | Replace hardcoded BPMN strings with references to the generated Process API. |
+| `migrate-to-bpmn-to-code-apis` | Replace hardcoded BPMN strings with references to the generated Process API, or rewrite 5.x references to the 6.0 node-centric `Flow`. |
 | `build-bpmn-styleguide` | Interactively create a `BPMN_STYLE_GUIDE.md` with team conventions for naming, IDs, and layout. |
 | `validate-bpmn-style` | Check BPMN files against a `BPMN_STYLE_GUIDE.md` and report violations with explanations. |
 | `generate-rules-to-enforce-bpmn-styleguide` | Generate Kotlin `SingleModelValidationRule` implementations for all automatable style guide rules. |

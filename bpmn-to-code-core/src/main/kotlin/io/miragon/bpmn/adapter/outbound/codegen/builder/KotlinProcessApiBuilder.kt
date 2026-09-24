@@ -4,7 +4,6 @@ import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
@@ -14,14 +13,9 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.ProcessModel.Variant
-import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.ProcessGraph
-import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
-import io.miragon.bpmn.domain.shared.VariableDefinition
-import io.miragon.bpmn.domain.shared.VariableMapping
+import io.miragon.bpmn.domain.shared.RootElements
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
-import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
 /**
  * Generates the type-safe API contract for a single BPMN process as a Kotlin object file.
@@ -36,12 +30,8 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private val objectWriters: Map<ApiObjectType, ObjectWriter<TypeSpec.Builder>> = mapOf(
         ApiObjectType.PROCESS_ID to ProcessIdWriter(),
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
-        ApiObjectType.ELEMENTS to ElementsWriter(),
-        ApiObjectType.CALL_ACTIVITIES to CallActivitiesWriter(),
-        ApiObjectType.TIMERS to TimersWriter(),
-        ApiObjectType.VARIABLES to VariablesWriter(),
         ApiObjectType.FLOW to FlowWriter(),
-        ApiObjectType.VARIANTS to VariantsWriter(),
+        ApiObjectType.FLOW_VARIANTS to FlowVariantsWriter(),
     )
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
@@ -90,174 +80,46 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private inner class ElementsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val elementIdClass = ClassName(RUNTIME_PACKAGE, "ElementId")
-            val elementsBuilder = TypeSpec.objectBuilder("Elements")
-                .addKdoc(
-                    "BPMN element ids as declared in the source model.\n" +
-                        "Typically used in process-level tests or when searching for tasks.\n" +
-                        "Worker runtime code rarely needs these.",
-                )
-            modelApi.model.allFlowNodes.sortedBy { it.getRawName() }.forEach { flowNode ->
-                elementsBuilder.addProperty(createTypedAttribute(flowNode, elementIdClass))
-            }
-            builder.addType(elementsBuilder.build())
-        }
-    }
-
     private inner class FlowWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val flowObject = buildFlowObject(modelApi.model.graph)
+            val flowObject = buildFlowObject(modelApi.model.graph, modelApi.model.definitions)
             builder.addType(flowObject)
         }
     }
 
-    private inner class VariantsWriter : ObjectWriter<TypeSpec.Builder> {
+    private inner class FlowVariantsWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val model = modelApi.model
-            val variantsBuilder = TypeSpec.objectBuilder("Variants")
+            val variantsBuilder = TypeSpec.objectBuilder("FlowVariants")
+                .addKdoc("The `Flow` of each merged BPMN file, keyed by its `variantName`.")
             model.variants.forEach { variant ->
-                val variantObject = buildVariantObject(variant)
-                variantsBuilder.addType(variantObject)
+                variantsBuilder.addType(buildFlowObject(variant.graph, model.definitions, variant.variantName.toCamelCase()))
             }
             builder.addType(variantsBuilder.build())
-        }
-
-        private fun buildVariantObject(variant: Variant): TypeSpec {
-            val variantName = variant.variantName.toCamelCase()
-            val variantBuilder = TypeSpec.objectBuilder(variantName)
-            if (variant.graph.allSequenceFlows.isNotEmpty()) {
-                variantBuilder.addType(buildFlowObject(variant.graph))
-            }
-            return variantBuilder.build()
         }
     }
 
     /**
      * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
      * `elementType` and display `name`, plus its reachable successors behind `then()`. Boundary events and
-     * subprocess continuations are plain successors; a subprocess nests its interior and opens it via `start()`.
+     * subprocess continuations are plain successors; every node is a direct child of `Flow`, and a subprocess
+     * opens its interior via `start()`.
      */
-    private fun buildFlowObject(graph: ProcessGraph): TypeSpec {
-        val flowBuilder = TypeSpec.objectBuilder("Flow")
+    private fun buildFlowObject(graph: ProcessGraph, definitions: RootElements, objectName: String = "Flow"): TypeSpec {
+        val flowBuilder = TypeSpec.objectBuilder(objectName)
             .addKdoc(
                 "Typed navigation over the process flow.\n" +
                     "Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the " +
                     "elements reachable from it behind `then()` — so a full path is verified by the compiler and " +
-                    "offered by autocomplete. A subprocess nests its interior and opens it via `start()`.\n" +
+                    "offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess " +
+                    "depth; a subprocess opens its interior via `start()`.\n" +
                     "Intended for tooling, tests, and reasoning about the process shape.",
             )
-        KotlinFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph))
+        KotlinFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }
 
-    private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val callActivitiesBuilder = TypeSpec.objectBuilder("CallActivities")
-                .addKdoc(
-                    "Call activities grouped by element. Each nested object exposes the called `PROCESS_ID` plus " +
-                        "the variable mappings passed into (`Inputs`) and returned from (`Outputs`) the called process.\n",
-                )
-            modelApi.model.callActivities
-                .sortedBy { it.getRawName() }
-                .forEach { callActivity -> callActivitiesBuilder.addType(buildCallActivityObject(callActivity)) }
-            builder.addType(callActivitiesBuilder.build())
-        }
-
-        private fun buildCallActivityObject(callActivity: CallActivityDefinition): TypeSpec {
-            val processIdClass = ClassName(RUNTIME_PACKAGE, "ProcessId")
-            val objectBuilder = TypeSpec.objectBuilder(callActivity.getRawName().toCamelCase())
-            objectBuilder.addProperty(
-                PropertySpec.builder("PROCESS_ID", processIdClass)
-                    .initializer("%T(%L)", processIdClass, stringLiteral(callActivity.getValue()))
-                    .build(),
-            )
-            buildMappingsObject("Inputs", callActivity.inputMappings)?.let { objectBuilder.addType(it) }
-            buildMappingsObject("Outputs", callActivity.outputMappings)?.let { objectBuilder.addType(it) }
-            return objectBuilder.build()
-        }
-
-        private fun buildMappingsObject(objectName: String, mappings: List<CallActivityDefinition.Mapping>): TypeSpec? {
-            val withTarget = mappings
-                .filter { !it.target.isNullOrBlank() }
-                .sortedBy { it.target!!.toUpperSnakeCase() }
-            if (withTarget.isEmpty()) return null
-            val mappingClass = ClassName(RUNTIME_PACKAGE, "InputOutputMapping")
-            val mappingsBuilder = TypeSpec.objectBuilder(objectName)
-            withTarget.forEach { mapping -> mappingsBuilder.addProperty(buildMappingProperty(mapping, mappingClass)) }
-            return mappingsBuilder.build()
-        }
-
-        private fun buildMappingProperty(mapping: CallActivityDefinition.Mapping, mappingClass: ClassName): PropertySpec {
-            val target = mapping.target!!
-            val args = CodeBlock.builder().add("target = %L", stringLiteral(target))
-            if (mapping.source != null) args.add(", source = %L", stringLiteral(mapping.source))
-            if (mapping.sourceExpression != null) args.add(", sourceExpression = %L", stringLiteral(mapping.sourceExpression))
-            return PropertySpec.builder(target.toUpperSnakeCase(), mappingClass)
-                .initializer("%T(%L)", mappingClass, args.build())
-                .build()
-        }
-    }
-
-    private inner class VariablesWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val variableNameClass = ClassName(RUNTIME_PACKAGE, "VariableName")
-            val variablesBuilder = TypeSpec.objectBuilder("Variables")
-                .addKdoc(
-                    "Process variables grouped by the BPMN element that declares them.\n" +
-                        "Direction is encoded in each variable's wrapper type: `VariableName.Input`, `VariableName.Output`, or `VariableName.InOut` when the variable is both read and written by the same element.\n" +
-                        "Consumer APIs that take a specific subtype (e.g. `fun setOutput(v: VariableName.Output)`) get compile-time direction enforcement.",
-                )
-            val nodesWithVariables = modelApi.model.allFlowNodes
-                .filter { it.variables.isNotEmpty() }
-                .sortedBy { it.getRawName() }
-            for (node in nodesWithVariables) {
-                val objectName = node.getRawName().toCamelCase()
-                val nodeVarsBuilder = TypeSpec.objectBuilder(objectName)
-                val variablesByName = node.variables.groupBy { it.getRawName() }
-                val sortedNames = variablesByName.keys.sorted()
-                for (rawName in sortedNames) {
-                    val group = variablesByName.getValue(rawName)
-                    val directions = group.map { it.direction }.toSet()
-                    val subtype = VariableNameSubtype.chooseFor(directions)
-                    nodeVarsBuilder.addProperty(createDirectionalAttribute(group.first(), subtype, variableNameClass))
-                }
-                variablesBuilder.addType(nodeVarsBuilder.build())
-            }
-            builder.addType(variablesBuilder.build())
-        }
-
-        private fun createDirectionalAttribute(variable: VariableDefinition, subtype: VariableNameSubtype, wrapperClass: ClassName): PropertySpec {
-            val subtypeClass = wrapperClass.nestedClass(subtype.simpleName)
-            return PropertySpec.builder(variable.getName(), subtypeClass)
-                .initializer("%T(%L)", subtypeClass, stringLiteral(variable.getValue()))
-                .build()
-        }
-    }
-
-    private inner class TimersWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnTimerClass = ClassName(RUNTIME_PACKAGE, "BpmnTimer")
-            val timersBuilder = TypeSpec.objectBuilder("Timers")
-                .addKdoc("Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.")
-            modelApi.model.timers.forEach { timer ->
-                val (timerType, timerValue) = timer.getValue()
-                val instanceBuilder = PropertySpec.builder(timer.getName(), bpmnTimerClass)
-                val variable = instanceBuilder.initializer("%T(%S, %L)", bpmnTimerClass, timerType, stringLiteral(timerValue))
-                timersBuilder.addProperty(variable.build())
-            }
-            builder.addType(timersBuilder.build())
-        }
-    }
-
-    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): PropertySpec = PropertySpec.builder(variable.getName(), wrapperClass)
-        .initializer("%T(%L)", wrapperClass, stringLiteral(variable.getValue()))
-        .build()
+    private fun stringLiteral(value: String): CodeBlock = kotlinStringLiteral(value)
 }

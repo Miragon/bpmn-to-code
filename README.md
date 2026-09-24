@@ -139,16 +139,16 @@ dependencies {
 
 ## Supported Languages
 
-| Module | Java | Kotlin | C# (beta) |
+| Module | Java | Kotlin | C# |
 |--------|:---:|:---:|:---:|
 | Gradle plugin | ✅ | ✅ | ✅ |
 | Maven plugin | ✅ | ✅ | ✅ |
 | Web app | ✅ | ✅ | ✅ |
 
-> **C# is beta** and emits the constants only — the typed navigation DSL is JVM-only until a C# runtime
-> package exists. The generated `.cs` file has no dependencies. The Web app is the primary surface for it;
-> the build plugins accept `CSHARP` too, which is useful in a polyglot monorepo but not for a pure .NET
-> project. See [Output Languages](https://miragon.github.io/bpmn-to-code/guide/configuration.html#output-languages).
+> The C# output carries the same API as Kotlin and Java, including the typed `Flow` navigation; the runtime
+> types it needs are inlined into each generated `.cs` file, so it has no dependencies. The Web app is the
+> primary surface for it; the build plugins accept `CSHARP` too, which is useful in a polyglot monorepo but
+> not for a pure .NET project. See [Output Languages](https://miragon.github.io/bpmn-to-code/guide/configuration.html#output-languages).
 
 ## Supported Engines
 

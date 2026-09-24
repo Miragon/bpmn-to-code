@@ -52,10 +52,11 @@ Document decisions that:
 - [ADR 017: BPMN-Aligned Domain Model](017-bpmn-aligned-domain-model.md) - Sealed flow-node hierarchy mirroring the BPMN class tree
 
 ### Code Generation
-- [ADR 003: Generated API Structure](003-generated-api-structure.md) - Structure of generated Process APIs
+- [ADR 003: Generated API Structure](003-generated-api-structure.md) - Naming of generated Process APIs (section layout amended by ADR 021, superseded by ADR 022)
 - [ADR 005: Strategy Pattern for Code Generation](005-strategy-pattern-code-generation.md) - Language-specific builders (Java/Kotlin)
-- [ADR 020: C# Output — Templated Emission, Constants Only](020-csharp-constants-only-output.md) - Beta C# target without the JVM runtime
+- [ADR 020: C# Output — Templated Emission, Constants Only](020-csharp-constants-only-output.md) - Beta C# target without the JVM runtime (superseded by ADR 022)
 - [ADR 021: Shared Definition APIs](021-shared-definition-apis.md) - Job types, messages, signals, errors and escalations generated once per run
+- [ADR 022: Process API as a Typed Projection of the Process Model](022-process-api-typed-projection.md) - Flat `Flow` with node facets and typed sequence-flow edges; C# parity with inlined runtime types
 
 ### Multi-Engine Support
 - [ADR 004: Strategy Pattern for Multi-Engine](004-strategy-pattern-multi-engine.md) - Supporting Camunda 7 and Zeebe

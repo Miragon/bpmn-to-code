@@ -12,7 +12,7 @@ bpmn-to-code ships with reusable skills for AI coding assistants. Skills work wi
 |-------|-------------|
 | `setup-bpmn-to-code-gradle` | Set up the Gradle plugin in an existing project. Detects project structure, BPMN files, and output language. |
 | `setup-bpmn-to-code-maven` | Set up the Maven plugin in an existing project. Adds plugin configuration to `pom.xml`. |
-| `migrate-to-bpmn-to-code-apis` | Replace hardcoded BPMN strings with references to the generated Process API. Scans source code and shows a migration plan before applying changes. |
+| `migrate-to-bpmn-to-code-apis` | Replace hardcoded BPMN strings with references to the generated Process API, or rewrite 5.x references (`Elements`, `Variables`, `CallActivities`, `Timers`) to the 6.0 node-centric `Flow`. Scans source code and shows a migration plan before applying changes. |
 
 ## Installation
 

@@ -3,12 +3,17 @@ package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BpmnEngine;
+import io.miragon.bpmn.runtime.BpmnError;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.FlowScope;
+import io.miragon.bpmn.runtime.HasFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.InputOutputMapping;
+import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
+import io.miragon.bpmn.runtime.SequenceFlow;
+import io.miragon.bpmn.runtime.SignalName;
 import io.miragon.bpmn.runtime.VariableName;
 import java.lang.Override;
 import java.lang.String;
@@ -19,112 +24,7 @@ public final class NewsletterSubscriptionProcessApi {
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
   /**
-   * BPMN element ids as declared in the source model.
-   * Typically used in process-level tests or when searching for tasks.
-   * Worker runtime code rarely needs these.
-   */
-  public static final class Elements {
-    public static final ElementId CALL_ACTIVITY_ABORT_REGISTRATION = new ElementId("callActivity_abortRegistration");
-
-    public static final ElementId COMPENSATION_END_EVENT_REGISTRATION_ABORTED = new ElementId("compensationEndEvent_registrationAborted");
-
-    public static final ElementId COMPENSATION_EVENT_ON_SUBSCRIPTION_COUNTER = new ElementId("compensationEvent_onSubscriptionCounter");
-
-    public static final ElementId END_EVENT_REGISTRATION_COMPLETED = new ElementId("endEvent_registrationCompleted");
-
-    public static final ElementId END_EVENT_REGISTRATION_NOT_POSSIBLE = new ElementId("endEvent_registrationNotPossible");
-
-    public static final ElementId END_EVENT_SUBSCRIPTION_CONFIRMED = new ElementId("endEvent_subscriptionConfirmed");
-
-    public static final ElementId ERROR_EVENT_INVALID_MAIL = new ElementId("errorEvent_invalidMail");
-
-    public static final ElementId GATEWAY_JOIN_NOTIFICATIONS = new ElementId("gateway_joinNotifications");
-
-    public static final ElementId GATEWAY_SPLIT_NOTIFICATIONS = new ElementId("gateway_splitNotifications");
-
-    public static final ElementId SERVICE_TASK_DECREMENT_SUBSCRIPTION_COUNTER = new ElementId("serviceTask_decrementSubscriptionCounter");
-
-    public static final ElementId SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER = new ElementId("serviceTask_incrementSubscriptionCounter");
-
-    public static final ElementId SERVICE_TASK_NOTIFY_COMMUNITY = new ElementId("serviceTask_notifyCommunity");
-
-    public static final ElementId SERVICE_TASK_SEND_CONFIRMATION_MAIL = new ElementId("serviceTask_sendConfirmationMail");
-
-    public static final ElementId SERVICE_TASK_SEND_WELCOME_MAIL = new ElementId("serviceTask_sendWelcomeMail");
-
-    public static final ElementId START_EVENT_REQUEST_RECEIVED = new ElementId("startEvent_requestReceived");
-
-    public static final ElementId START_EVENT_SUBMIT_REGISTRATION_FORM = new ElementId("startEvent_submitRegistrationForm");
-
-    public static final ElementId SUB_PROCESS_CONFIRMATION = new ElementId("subProcess_confirmation");
-
-    public static final ElementId TIMER_AFTER_3_DAYS = new ElementId("timer_after3Days");
-
-    public static final ElementId TIMER_EVERY_DAY = new ElementId("timer_everyDay");
-
-    public static final ElementId USER_TASK_CONFIRM_REGISTRATION = new ElementId("userTask_confirmRegistration");
-  }
-
-  /**
-   * Call activities grouped by element. Each nested class exposes the called {@code PROCESS_ID} plus the variable mappings passed into ({@code Inputs}) and returned from ({@code Outputs}) the called process.
-   */
-  public static final class CallActivities {
-    public static final class CallActivityAbortRegistration {
-      public static final ProcessId PROCESS_ID = new ProcessId("abort-registration");
-
-      public static final class Inputs {
-        public static final InputOutputMapping CHILD_REASON_CODE = new InputOutputMapping("childReasonCode", null, "${reasonCode}");
-
-        public static final InputOutputMapping CHILD_SUBSCRIPTION_ID = new InputOutputMapping("childSubscriptionId", "subscriptionId", null);
-      }
-
-      public static final class Outputs {
-        public static final InputOutputMapping ABORT_RESULT = new InputOutputMapping("abortResult", "childAbortResult", null);
-      }
-    }
-  }
-
-  public static final class Timers {
-    public static final BpmnTimer TIMER_AFTER_3_DAYS = new BpmnTimer("Duration", "${testVariable}");
-
-    public static final BpmnTimer TIMER_EVERY_DAY = new BpmnTimer("Duration", "PT1M");
-  }
-
-  /**
-   * Process variables grouped by the BPMN element that declares them.
-   * Direction is encoded in each variable's wrapper type: {@code VariableName.Input}, {@code VariableName.Output}, or {@code VariableName.InOut} when the variable is both read and written by the same element.
-   * Consumer APIs that take a specific subtype (for example, a method accepting {@code VariableName.Output}) get compile-time direction enforcement.
-   */
-  public static final class Variables {
-    public static final class CallActivityAbortRegistration {
-      public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
-    }
-
-    public static final class EndEventRegistrationCompleted {
-      public static final VariableName.Output SUBSCRIPTION_ID = new VariableName.Output("subscriptionId");
-    }
-
-    public static final class ServiceTaskSendConfirmationMail {
-      public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
-
-      public static final VariableName.Input TEST_VARIABLE = new VariableName.Input("testVariable");
-    }
-
-    public static final class ServiceTaskSendWelcomeMail {
-      public static final VariableName.InOut SUBSCRIPTION_ID = new VariableName.InOut("subscriptionId");
-    }
-
-    public static final class StartEventRequestReceived {
-      public static final VariableName.Output SUBSCRIPTION_ID = new VariableName.Output("subscriptionId");
-    }
-
-    public static final class StartEventSubmitRegistrationForm {
-      public static final VariableName.Output SUBSCRIPTION_ID = new VariableName.Output("subscriptionId");
-    }
-  }
-
-  /**
-   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. A subprocess nests its interior and opens it via {@code start()}.
+   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}.
    */
   public static final class Flow {
     public static CallActivityAbortRegistration callActivityAbortRegistration() {
@@ -146,6 +46,10 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static EndEventRegistrationNotPossible endEventRegistrationNotPossible() {
       return new EndEventRegistrationNotPossible();
+    }
+
+    public static EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
+      return new EndEventSubscriptionConfirmed();
     }
 
     public static ErrorEventInvalidMail errorEventInvalidMail() {
@@ -174,8 +78,16 @@ public final class NewsletterSubscriptionProcessApi {
       return new ServiceTaskNotifyCommunity();
     }
 
+    public static ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
+      return new ServiceTaskSendConfirmationMail();
+    }
+
     public static ServiceTaskSendWelcomeMail serviceTaskSendWelcomeMail() {
       return new ServiceTaskSendWelcomeMail();
+    }
+
+    public static StartEventRequestReceived startEventRequestReceived() {
+      return new StartEventRequestReceived();
     }
 
     public static StartEventSubmitRegistrationForm startEventSubmitRegistrationForm() {
@@ -190,7 +102,15 @@ public final class NewsletterSubscriptionProcessApi {
       return new TimerAfter3Days();
     }
 
-    public static final class CallActivityAbortRegistration extends AbstractFlowNode implements HasSuccessors<CallActivityAbortRegistration.Next> {
+    public static TimerEveryDay timerEveryDay() {
+      return new TimerEveryDay();
+    }
+
+    public static UserTaskConfirmRegistration userTaskConfirmRegistration() {
+      return new UserTaskConfirmRegistration();
+    }
+
+    public static final class CallActivityAbortRegistration extends AbstractFlowNode implements HasSuccessors<CallActivityAbortRegistration.Next>, HasFlows<CallActivityAbortRegistration.Flows> {
       public final ProcessId calledProcess = new ProcessId("abort-registration");
 
       public CallActivityAbortRegistration() {
@@ -202,9 +122,35 @@ public final class NewsletterSubscriptionProcessApi {
         return new Next();
       }
 
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      public static final class Variables {
+        public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
+      }
+
+      public static final class Inputs {
+        public static final InputOutputMapping CHILD_REASON_CODE = new InputOutputMapping("childReasonCode", null, "${reasonCode}");
+
+        public static final InputOutputMapping CHILD_SUBSCRIPTION_ID = new InputOutputMapping("childSubscriptionId", "subscriptionId", null);
+      }
+
+      public static final class Outputs {
+        public static final InputOutputMapping ABORT_RESULT = new InputOutputMapping("abortResult", "childAbortResult", null);
+      }
+
       public static final class Next {
         public CompensationEndEventRegistrationAborted compensationEndEventRegistrationAborted() {
           return new CompensationEndEventRegistrationAborted();
+        }
+      }
+
+      public static final class Flows {
+        public SequenceFlow<CompensationEndEventRegistrationAborted> flowAbortToRegistrationAborted(
+            ) {
+          return new SequenceFlow<>(new ElementId("flow_abortToRegistrationAborted"), null, null, false, new CompensationEndEventRegistrationAborted());
         }
       }
     }
@@ -216,26 +162,54 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class CompensationEventOnSubscriptionCounter extends AbstractFlowNode {
+      public final boolean isInterrupting = true;
+
       public CompensationEventOnSubscriptionCounter() {
         super(new ElementId("compensationEvent_onSubscriptionCounter"), "COMPENSATION_BOUNDARY_EVENT");
+      }
+
+      public ServiceTaskIncrementSubscriptionCounter attachedTo() {
+        return new ServiceTaskIncrementSubscriptionCounter();
       }
     }
 
     public static final class EndEventRegistrationCompleted extends AbstractFlowNode {
+      public static final String JOB_TYPE = "newsletter.registrationCompleted";
+
       public EndEventRegistrationCompleted() {
         super(new ElementId("endEvent_registrationCompleted"), "END_EVENT");
+      }
+
+      public static final class Variables {
+        public static final VariableName.Output SUBSCRIPTION_ID = new VariableName.Output("subscriptionId");
       }
     }
 
     public static final class EndEventRegistrationNotPossible extends AbstractFlowNode {
+      public final SignalName signal = new SignalName("Signal_RegistrationNotPossible");
+
       public EndEventRegistrationNotPossible() {
         super(new ElementId("endEvent_registrationNotPossible"), "SIGNAL_END_EVENT");
       }
     }
 
-    public static final class ErrorEventInvalidMail extends AbstractFlowNode implements HasSuccessors<ErrorEventInvalidMail.Next> {
+    public static final class EndEventSubscriptionConfirmed extends AbstractFlowNode {
+      public EndEventSubscriptionConfirmed() {
+        super(new ElementId("endEvent_subscriptionConfirmed"), "END_EVENT");
+      }
+    }
+
+    public static final class ErrorEventInvalidMail extends AbstractFlowNode implements HasSuccessors<ErrorEventInvalidMail.Next>, HasFlows<ErrorEventInvalidMail.Flows> {
+      public final BpmnError error = new BpmnError("Error_InvalidMail", "500");
+
+      public final boolean isInterrupting = true;
+
       public ErrorEventInvalidMail() {
         super(new ElementId("errorEvent_invalidMail"), "ERROR_BOUNDARY_EVENT");
+      }
+
+      public SubProcessConfirmation attachedTo() {
+        return new SubProcessConfirmation();
       }
 
       @Override
@@ -243,14 +217,25 @@ public final class NewsletterSubscriptionProcessApi {
         return new Next();
       }
 
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
       public static final class Next {
         public EndEventRegistrationNotPossible endEventRegistrationNotPossible() {
           return new EndEventRegistrationNotPossible();
         }
       }
+
+      public static final class Flows {
+        public SequenceFlow<EndEventRegistrationNotPossible> flowInvalidMailToNotPossible() {
+          return new SequenceFlow<>(new ElementId("flow_invalidMailToNotPossible"), null, null, false, new EndEventRegistrationNotPossible());
+        }
+      }
     }
 
-    public static final class GatewayJoinNotifications extends AbstractFlowNode implements HasSuccessors<GatewayJoinNotifications.Next> {
+    public static final class GatewayJoinNotifications extends AbstractFlowNode implements HasSuccessors<GatewayJoinNotifications.Next>, HasFlows<GatewayJoinNotifications.Flows> {
       public GatewayJoinNotifications() {
         super(new ElementId("gateway_joinNotifications"), "PARALLEL_GATEWAY");
       }
@@ -260,14 +245,25 @@ public final class NewsletterSubscriptionProcessApi {
         return new Next();
       }
 
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
       public static final class Next {
         public EndEventRegistrationCompleted endEventRegistrationCompleted() {
           return new EndEventRegistrationCompleted();
         }
       }
+
+      public static final class Flows {
+        public SequenceFlow<EndEventRegistrationCompleted> flowJoinToRegistrationCompleted() {
+          return new SequenceFlow<>(new ElementId("flow_joinToRegistrationCompleted"), null, null, false, new EndEventRegistrationCompleted());
+        }
+      }
     }
 
-    public static final class GatewaySplitNotifications extends AbstractFlowNode implements HasSuccessors<GatewaySplitNotifications.Next> {
+    public static final class GatewaySplitNotifications extends AbstractFlowNode implements HasSuccessors<GatewaySplitNotifications.Next>, HasFlows<GatewaySplitNotifications.Flows> {
       public GatewaySplitNotifications() {
         super(new ElementId("gateway_splitNotifications"), "PARALLEL_GATEWAY");
       }
@@ -275,6 +271,11 @@ public final class NewsletterSubscriptionProcessApi {
       @Override
       public Next then() {
         return new Next();
+      }
+
+      @Override
+      public Flows flows() {
+        return new Flows();
       }
 
       public static final class Next {
@@ -286,15 +287,29 @@ public final class NewsletterSubscriptionProcessApi {
           return new ServiceTaskSendWelcomeMail();
         }
       }
+
+      public static final class Flows {
+        public SequenceFlow<ServiceTaskNotifyCommunity> flowSplitToNotifyCommunity() {
+          return new SequenceFlow<>(new ElementId("flow_splitToNotifyCommunity"), null, null, false, new ServiceTaskNotifyCommunity());
+        }
+
+        public SequenceFlow<ServiceTaskSendWelcomeMail> flowSplitToWelcomeMail() {
+          return new SequenceFlow<>(new ElementId("flow_splitToWelcomeMail"), null, null, false, new ServiceTaskSendWelcomeMail());
+        }
+      }
     }
 
     public static final class ServiceTaskDecrementSubscriptionCounter extends AbstractFlowNode {
+      public static final String JOB_TYPE = "counterClass";
+
       public ServiceTaskDecrementSubscriptionCounter() {
         super(new ElementId("serviceTask_decrementSubscriptionCounter"), "SERVICE_TASK");
       }
     }
 
-    public static final class ServiceTaskIncrementSubscriptionCounter extends AbstractFlowNode implements HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next> {
+    public static final class ServiceTaskIncrementSubscriptionCounter extends AbstractFlowNode implements HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next>, HasFlows<ServiceTaskIncrementSubscriptionCounter.Flows> {
+      public static final String JOB_TYPE = "counterClass";
+
       public ServiceTaskIncrementSubscriptionCounter() {
         super(new ElementId("serviceTask_incrementSubscriptionCounter"), "SERVICE_TASK");
       }
@@ -302,6 +317,11 @@ public final class NewsletterSubscriptionProcessApi {
       @Override
       public Next then() {
         return new Next();
+      }
+
+      @Override
+      public Flows flows() {
+        return new Flows();
       }
 
       public static final class Next {
@@ -313,9 +333,17 @@ public final class NewsletterSubscriptionProcessApi {
           return new SubProcessConfirmation();
         }
       }
+
+      public static final class Flows {
+        public SequenceFlow<SubProcessConfirmation> flowIncrementCounterToConfirmation() {
+          return new SequenceFlow<>(new ElementId("flow_incrementCounterToConfirmation"), null, null, false, new SubProcessConfirmation());
+        }
+      }
     }
 
-    public static final class ServiceTaskNotifyCommunity extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyCommunity.Next> {
+    public static final class ServiceTaskNotifyCommunity extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyCommunity.Next>, HasFlows<ServiceTaskNotifyCommunity.Flows> {
+      public static final String JOB_TYPE = "newsletter.notifyCommunity";
+
       public ServiceTaskNotifyCommunity() {
         super(new ElementId("serviceTask_notifyCommunity"), "SERVICE_TASK");
       }
@@ -325,14 +353,63 @@ public final class NewsletterSubscriptionProcessApi {
         return new Next();
       }
 
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
       public static final class Next {
         public GatewayJoinNotifications gatewayJoinNotifications() {
           return new GatewayJoinNotifications();
         }
       }
+
+      public static final class Flows {
+        public SequenceFlow<GatewayJoinNotifications> flowNotifyCommunityToJoin() {
+          return new SequenceFlow<>(new ElementId("flow_notifyCommunityToJoin"), null, null, false, new GatewayJoinNotifications());
+        }
+      }
     }
 
-    public static final class ServiceTaskSendWelcomeMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendWelcomeMail.Next> {
+    public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasFlows<ServiceTaskSendConfirmationMail.Flows> {
+      public static final String JOB_TYPE = "#{newsletterSendConfirmationMail}";
+
+      public ServiceTaskSendConfirmationMail() {
+        super(new ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK");
+      }
+
+      @Override
+      public Next then() {
+        return new Next();
+      }
+
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      public static final class Variables {
+        public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
+
+        public static final VariableName.Input TEST_VARIABLE = new VariableName.Input("testVariable");
+      }
+
+      public static final class Next {
+        public UserTaskConfirmRegistration userTaskConfirmRegistration() {
+          return new UserTaskConfirmRegistration();
+        }
+      }
+
+      public static final class Flows {
+        public SequenceFlow<UserTaskConfirmRegistration> flowConfirmationMailToConfirm() {
+          return new SequenceFlow<>(new ElementId("flow_confirmationMailToConfirm"), null, null, false, new UserTaskConfirmRegistration());
+        }
+      }
+    }
+
+    public static final class ServiceTaskSendWelcomeMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendWelcomeMail.Next>, HasFlows<ServiceTaskSendWelcomeMail.Flows> {
+      public static final String JOB_TYPE = "${newsletterSendWelcomeMail}";
+
       public ServiceTaskSendWelcomeMail() {
         super(new ElementId("serviceTask_sendWelcomeMail"), "SERVICE_TASK");
       }
@@ -342,14 +419,63 @@ public final class NewsletterSubscriptionProcessApi {
         return new Next();
       }
 
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      public static final class Variables {
+        public static final VariableName.InOut SUBSCRIPTION_ID = new VariableName.InOut("subscriptionId");
+      }
+
       public static final class Next {
         public GatewayJoinNotifications gatewayJoinNotifications() {
           return new GatewayJoinNotifications();
         }
       }
+
+      public static final class Flows {
+        public SequenceFlow<GatewayJoinNotifications> flowWelcomeMailToJoin() {
+          return new SequenceFlow<>(new ElementId("flow_welcomeMailToJoin"), null, null, false, new GatewayJoinNotifications());
+        }
+      }
     }
 
-    public static final class StartEventSubmitRegistrationForm extends AbstractFlowNode implements HasSuccessors<StartEventSubmitRegistrationForm.Next> {
+    public static final class StartEventRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventRequestReceived.Next>, HasFlows<StartEventRequestReceived.Flows> {
+      public StartEventRequestReceived() {
+        super(new ElementId("startEvent_requestReceived"), "START_EVENT");
+      }
+
+      @Override
+      public Next then() {
+        return new Next();
+      }
+
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      public static final class Variables {
+        public static final VariableName.Output SUBSCRIPTION_ID = new VariableName.Output("subscriptionId");
+      }
+
+      public static final class Next {
+        public ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
+          return new ServiceTaskSendConfirmationMail();
+        }
+      }
+
+      public static final class Flows {
+        public SequenceFlow<ServiceTaskSendConfirmationMail> flowRequestToConfirmationMail() {
+          return new SequenceFlow<>(new ElementId("flow_requestToConfirmationMail"), null, null, false, new ServiceTaskSendConfirmationMail());
+        }
+      }
+    }
+
+    public static final class StartEventSubmitRegistrationForm extends AbstractFlowNode implements HasSuccessors<StartEventSubmitRegistrationForm.Next>, HasFlows<StartEventSubmitRegistrationForm.Flows> {
+      public final MessageName message = new MessageName("Message_FormSubmitted");
+
       public StartEventSubmitRegistrationForm() {
         super(new ElementId("startEvent_submitRegistrationForm"), "MESSAGE_START_EVENT");
       }
@@ -359,14 +485,30 @@ public final class NewsletterSubscriptionProcessApi {
         return new Next();
       }
 
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      public static final class Variables {
+        public static final VariableName.Output SUBSCRIPTION_ID = new VariableName.Output("subscriptionId");
+      }
+
       public static final class Next {
         public ServiceTaskIncrementSubscriptionCounter serviceTaskIncrementSubscriptionCounter() {
           return new ServiceTaskIncrementSubscriptionCounter();
         }
       }
+
+      public static final class Flows {
+        public SequenceFlow<ServiceTaskIncrementSubscriptionCounter> flowSubmitToIncrementCounter(
+            ) {
+          return new SequenceFlow<>(new ElementId("flow_submitToIncrementCounter"), null, null, false, new ServiceTaskIncrementSubscriptionCounter());
+        }
+      }
     }
 
-    public static final class SubProcessConfirmation extends AbstractFlowNode implements HasSuccessors<SubProcessConfirmation.Next>, FlowScope<SubProcessConfirmation.Start> {
+    public static final class SubProcessConfirmation extends AbstractFlowNode implements HasSuccessors<SubProcessConfirmation.Next>, HasFlows<SubProcessConfirmation.Flows>, FlowScope<SubProcessConfirmation.Start> {
       public SubProcessConfirmation() {
         super(new ElementId("subProcess_confirmation"), "SUB_PROCESS");
       }
@@ -377,28 +519,13 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      @Override
       public Start start() {
         return new Start();
-      }
-
-      public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
-        return new EndEventSubscriptionConfirmed();
-      }
-
-      public ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
-        return new ServiceTaskSendConfirmationMail();
-      }
-
-      public StartEventRequestReceived startEventRequestReceived() {
-        return new StartEventRequestReceived();
-      }
-
-      public TimerEveryDay timerEveryDay() {
-        return new TimerEveryDay();
-      }
-
-      public UserTaskConfirmRegistration userTaskConfirmRegistration() {
-        return new UserTaskConfirmRegistration();
       }
 
       public static final class Next {
@@ -415,96 +542,30 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
+      public static final class Flows {
+        public SequenceFlow<GatewaySplitNotifications> flowConfirmationToSplit() {
+          return new SequenceFlow<>(new ElementId("flow_confirmationToSplit"), null, null, false, new GatewaySplitNotifications());
+        }
+      }
+
       public static final class Start {
         public StartEventRequestReceived startEventRequestReceived() {
           return new StartEventRequestReceived();
         }
       }
-
-      public static final class EndEventSubscriptionConfirmed extends AbstractFlowNode {
-        public EndEventSubscriptionConfirmed() {
-          super(new ElementId("endEvent_subscriptionConfirmed"), "END_EVENT");
-        }
-      }
-
-      public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendConfirmationMail.Next> {
-        public ServiceTaskSendConfirmationMail() {
-          super(new ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        public static final class Next {
-          public UserTaskConfirmRegistration userTaskConfirmRegistration() {
-            return new UserTaskConfirmRegistration();
-          }
-        }
-      }
-
-      public static final class StartEventRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventRequestReceived.Next> {
-        public StartEventRequestReceived() {
-          super(new ElementId("startEvent_requestReceived"), "START_EVENT");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        public static final class Next {
-          public ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
-            return new ServiceTaskSendConfirmationMail();
-          }
-        }
-      }
-
-      public static final class TimerEveryDay extends AbstractFlowNode implements HasSuccessors<TimerEveryDay.Next> {
-        public TimerEveryDay() {
-          super(new ElementId("timer_everyDay"), "TIMER_BOUNDARY_EVENT");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        public static final class Next {
-          public ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
-            return new ServiceTaskSendConfirmationMail();
-          }
-        }
-      }
-
-      public static final class UserTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<UserTaskConfirmRegistration.Next> {
-        public final String name = "Confirm registration";
-
-        public UserTaskConfirmRegistration() {
-          super(new ElementId("userTask_confirmRegistration"), "RECEIVE_TASK");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        public static final class Next {
-          public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
-            return new EndEventSubscriptionConfirmed();
-          }
-
-          public TimerEveryDay timerEveryDay() {
-            return new TimerEveryDay();
-          }
-        }
-      }
     }
 
-    public static final class TimerAfter3Days extends AbstractFlowNode implements HasSuccessors<TimerAfter3Days.Next> {
+    public static final class TimerAfter3Days extends AbstractFlowNode implements HasSuccessors<TimerAfter3Days.Next>, HasFlows<TimerAfter3Days.Flows> {
+      public final BpmnTimer timer = new BpmnTimer("Duration", "${testVariable}");
+
+      public final boolean isInterrupting = true;
+
       public TimerAfter3Days() {
         super(new ElementId("timer_after3Days"), "TIMER_BOUNDARY_EVENT");
+      }
+
+      public SubProcessConfirmation attachedTo() {
+        return new SubProcessConfirmation();
       }
 
       @Override
@@ -512,9 +573,88 @@ public final class NewsletterSubscriptionProcessApi {
         return new Next();
       }
 
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
       public static final class Next {
         public CallActivityAbortRegistration callActivityAbortRegistration() {
           return new CallActivityAbortRegistration();
+        }
+      }
+
+      public static final class Flows {
+        public SequenceFlow<CallActivityAbortRegistration> flowAfter3DaysToAbort() {
+          return new SequenceFlow<>(new ElementId("flow_after3DaysToAbort"), null, null, false, new CallActivityAbortRegistration());
+        }
+      }
+    }
+
+    public static final class TimerEveryDay extends AbstractFlowNode implements HasSuccessors<TimerEveryDay.Next>, HasFlows<TimerEveryDay.Flows> {
+      public final BpmnTimer timer = new BpmnTimer("Duration", "PT1M");
+
+      public final boolean isInterrupting = false;
+
+      public TimerEveryDay() {
+        super(new ElementId("timer_everyDay"), "TIMER_BOUNDARY_EVENT");
+      }
+
+      public UserTaskConfirmRegistration attachedTo() {
+        return new UserTaskConfirmRegistration();
+      }
+
+      @Override
+      public Next then() {
+        return new Next();
+      }
+
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      public static final class Next {
+        public ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
+          return new ServiceTaskSendConfirmationMail();
+        }
+      }
+
+      public static final class Flows {
+        public SequenceFlow<ServiceTaskSendConfirmationMail> flowEveryDayToConfirmationMail() {
+          return new SequenceFlow<>(new ElementId("flow_everyDayToConfirmationMail"), null, null, false, new ServiceTaskSendConfirmationMail());
+        }
+      }
+    }
+
+    public static final class UserTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<UserTaskConfirmRegistration.Next>, HasFlows<UserTaskConfirmRegistration.Flows> {
+      public UserTaskConfirmRegistration() {
+        super(new ElementId("userTask_confirmRegistration"), "RECEIVE_TASK", "Confirm registration");
+      }
+
+      @Override
+      public Next then() {
+        return new Next();
+      }
+
+      @Override
+      public Flows flows() {
+        return new Flows();
+      }
+
+      public static final class Next {
+        public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
+          return new EndEventSubscriptionConfirmed();
+        }
+
+        public TimerEveryDay timerEveryDay() {
+          return new TimerEveryDay();
+        }
+      }
+
+      public static final class Flows {
+        public SequenceFlow<EndEventSubscriptionConfirmed> flowConfirmToConfirmed() {
+          return new SequenceFlow<>(new ElementId("flow_confirmToConfirmed"), null, null, false, new EndEventSubscriptionConfirmed());
         }
       }
     }

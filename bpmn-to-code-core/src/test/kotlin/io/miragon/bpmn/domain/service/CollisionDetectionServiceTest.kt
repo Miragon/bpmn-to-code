@@ -1,11 +1,12 @@
 package io.miragon.bpmn.domain.service
 
 import io.miragon.bpmn.domain.jobWorkerTask
-import io.miragon.bpmn.domain.shared.EventDefinitionInstance
-import io.miragon.bpmn.domain.shared.EventShape
+import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.RootElementDefinition
-import io.miragon.bpmn.domain.shared.TimerType
+import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
+import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.testProcessModel
@@ -38,17 +39,13 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions allows true duplicates with same original ID`() {
-        // given: a model with exact duplicate elements (same id)
+    fun `findCollisions allows true duplicates with same original ID in definitions`() {
+        // given: a model with exact duplicate root elements (same id)
         val model = testProcessModel(
             processId = "TestProcess",
             messages = listOf(
                 RootElementDefinition.Message(id = "Message_Test", name = "Message_Test"),
                 RootElementDefinition.Message(id = "Message_Test", name = "Message_Test"),
-            ),
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "Activity_SendMail"),
-                FlowNodeDefinition.Unknown(id = "Activity_SendMail"),
             ),
         )
 
@@ -57,54 +54,33 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects collision with case variation in FlowNodes`() {
-        // given: two flow nodes that differ only in case
+    fun `findCollisions detects the same element id declared at the root and inside a subprocess`() {
+        // given: merging keeps a root node and a subprocess-interior node with the same id as two nodes
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "eventData"),
-                FlowNodeDefinition.Unknown(id = "EventData"),
+                FlowNodeDefinition.Unknown(id = "Activity_SendMail"),
+                FlowNodeDefinition.Activity.SubProcess(
+                    id = "SubProcess_Retry",
+                    kind = SubProcessKind.PLAIN,
+                    flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_SendMail")),
+                ),
             ),
         )
 
         // when: checking for collisions
         val collisions = underTest.findCollisions(model)
 
-        // then: one collision is reported with the expected constant name
+        // then: the repeated id is reported as a FlowNode collision, since the flat Flow object can emit it only once
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("FlowNode")
-        assertThat(collisions[0].constantName).isEqualTo("EVENT_DATA")
-        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("EventData", "eventData")
-        assertThat(collisions[0].processId).isEqualTo("TestProcess")
+        assertThat(collisions[0].constantName).isEqualTo("ActivitySendMail")
+        assertThat(collisions[0].conflictingIds).containsExactly("Activity_SendMail", "Activity_SendMail")
     }
 
     @Test
-    fun `findCollisions detects collision with separator variation in FlowNodes`() {
-        // given: two flow nodes that differ only in separator character
-        val model = testProcessModel(
-            processId = "TestProcess",
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "endEvent_dataProcessed"),
-                FlowNodeDefinition.Unknown(id = "endEvent-dataProcessed"),
-            ),
-        )
-
-        // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
-
-        // then: one collision is reported
-        assertThat(collisions).hasSize(1)
-        assertThat(collisions[0].variableType).isEqualTo("FlowNode")
-        assertThat(collisions[0].constantName).isEqualTo("END_EVENT_DATA_PROCESSED")
-        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder(
-            "endEvent-dataProcessed",
-            "endEvent_dataProcessed",
-        )
-    }
-
-    @Test
-    fun `findCollisions detects collision with mixed case and separator variation`() {
-        // given: three flow nodes that all normalize to the same constant
+    fun `findCollisions detects flow nodes that fold to the same object name`() {
+        // given: flow nodes that differ only in case or separator
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
@@ -117,21 +93,17 @@ class CollisionDetectionServiceTest {
         // when: checking for collisions
         val collisions = underTest.findCollisions(model)
 
-        // then: one collision groups all three IDs
+        // then: one collision groups all three ids under the folded object name
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("FlowNode")
-        assertThat(collisions[0].constantName).isEqualTo("EVENT_DATA")
-        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder(
-            "event-data",
-            "eventData",
-            "event_Data",
-        )
+        assertThat(collisions[0].constantName).isEqualTo("EventData")
+        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("event-data", "eventData", "event_Data")
+        assertThat(collisions[0].processId).isEqualTo("TestProcess")
     }
 
     @Test
-    fun `findCollisions detects folding collision that UPPER_SNAKE misses`() {
-        // given: two flow nodes whose ids keep distinct constants (FOO, _FOO) but fold to the
-        // same PascalCase object name (Foo) used for Variables/CallActivities objects
+    fun `findCollisions detects folding collision between a leading separator and none`() {
+        // given: two flow nodes whose ids fold to the same PascalCase object name (Foo)
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
@@ -145,33 +117,13 @@ class CollisionDetectionServiceTest {
 
         // then: one collision is reported on the folded object-name basis
         assertThat(collisions).hasSize(1)
-        assertThat(collisions[0].variableType).isEqualTo("FlowNode")
         assertThat(collisions[0].constantName).isEqualTo("Foo")
         assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("-foo", "foo")
     }
 
     @Test
-    fun `findCollisions does not double-report a collision that surfaces on both bases`() {
-        // given: two flow nodes that collide in UPPER_SNAKE and in PascalCase folding
-        val model = testProcessModel(
-            processId = "TestProcess",
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "endEvent_complete"),
-                FlowNodeDefinition.Unknown(id = "endEvent-complete"),
-            ),
-        )
-
-        // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
-
-        // then: exactly one collision, keeping the UPPER_SNAKE constant name
-        assertThat(collisions).hasSize(1)
-        assertThat(collisions[0].constantName).isEqualTo("END_EVENT_COMPLETE")
-    }
-
-    @Test
-    fun `findCollisions detects UPPER_SNAKE collision that folding misses`() {
-        // given: two flow nodes that share a constant (FOO_BAR) but keep distinct PascalCase names
+    fun `findCollisions ignores ids that only share an UPPER_SNAKE form but keep distinct object names`() {
+        // given: fooBar and fooBAR would have collided as constants; as Flow objects they are FooBar and FooBAR
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
@@ -180,13 +132,8 @@ class CollisionDetectionServiceTest {
             ),
         )
 
-        // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
-
-        // then: still reported once on the UPPER_SNAKE basis
-        assertThat(collisions).hasSize(1)
-        assertThat(collisions[0].constantName).isEqualTo("FOO_BAR")
-        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("fooBAR", "fooBar")
+        // when / then: no collision, the flat Flow can hold both
+        assertThat(underTest.findCollisions(model)).isEmpty()
     }
 
     @Test
@@ -270,48 +217,21 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects collisions in Timers`() {
-        // given: two timer event nodes whose ids normalize to the same constant. Timer definitions are
-        // now keyed by their carrying node's id, so this necessarily surfaces a FlowNode collision too.
-        val model = testProcessModel(
-            processId = "TestProcess",
-            flowNodes = listOf(
-                FlowNodeDefinition.Event(
-                    id = "Duration",
-                    shape = EventShape.INTERMEDIATE_CATCH_EVENT,
-                    eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "PT1M")),
-                ),
-                FlowNodeDefinition.Event(
-                    id = "duration",
-                    shape = EventShape.INTERMEDIATE_CATCH_EVENT,
-                    eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "PT2M")),
-                ),
-            ),
-        )
-
-        // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
-
-        // then: a Timer collision is reported on the shared constant
-        val timerCollisions = collisions.filter { it.variableType == "Timer" }
-        assertThat(timerCollisions).hasSize(1)
-        assertThat(timerCollisions[0].constantName).isEqualTo("DURATION")
-        assertThat(timerCollisions[0].conflictingIds).containsExactlyInAnyOrder("Duration", "duration")
-    }
-
-    @Test
-    fun `findCollisions detects collisions in Variables`() {
-        // given: two nodes with variables that normalize to the same constant
+    fun `findCollisions detects variables colliding within one node but not across nodes`() {
+        // given: one node declaring userId and user_id, and another node reusing userId
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
                 FlowNodeDefinition.Unknown(
                     id = "node1",
-                    variables = listOf(VariableDefinition(name = "userId", direction = VariableDirection.INPUT)),
+                    variables = listOf(
+                        VariableDefinition(name = "userId", direction = VariableDirection.INPUT),
+                        VariableDefinition(name = "user_id", direction = VariableDirection.INPUT),
+                    ),
                 ),
                 FlowNodeDefinition.Unknown(
                     id = "node2",
-                    variables = listOf(VariableDefinition(name = "user_id", direction = VariableDirection.INPUT)),
+                    variables = listOf(VariableDefinition(name = "user-id", direction = VariableDirection.OUTPUT)),
                 ),
             ),
         )
@@ -319,10 +239,69 @@ class CollisionDetectionServiceTest {
         // when: checking for collisions
         val collisions = underTest.findCollisions(model)
 
-        // then: one Variable collision is reported
+        // then: only the per-node pair is reported; node2's variable lives in its own Variables holder
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("Variable")
         assertThat(collisions[0].constantName).isEqualTo("USER_ID")
+        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("userId", "user_id")
+    }
+
+    @Test
+    fun `findCollisions detects sequence flows of one node that fold to the same property name`() {
+        // given: a gateway with two outgoing flows whose ids differ only in separator
+        val model = testProcessModel(
+            processId = "TestProcess",
+            flowNodes = listOf(
+                FlowNodeDefinition.Gateway(id = "split", kind = GatewayKind.EXCLUSIVE, outgoing = listOf("flow_yes", "flow-yes")),
+                FlowNodeDefinition.Unknown(id = "a", outgoing = listOf("flow_no")),
+                FlowNodeDefinition.Unknown(id = "b"),
+            ),
+            sequenceFlows = listOf(
+                SequenceFlowDefinition("flow_yes", "split", "a"),
+                SequenceFlowDefinition("flow-yes", "split", "b"),
+                SequenceFlowDefinition("flow_no", "a", "b"),
+            ),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findCollisions(model)
+
+        // then: one SequenceFlow collision on the gateway's Flows holder
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].variableType).isEqualTo("SequenceFlow")
+        assertThat(collisions[0].constantName).isEqualTo("FlowYes")
+        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("flow_yes", "flow-yes")
+    }
+
+    @Test
+    fun `findCollisions detects call-activity mappings of one direction that fold to the same constant`() {
+        // given: two input mappings whose targets normalize to the same constant
+        val model = testProcessModel(
+            processId = "TestProcess",
+            flowNodes = listOf(
+                FlowNodeDefinition.Activity.CallActivity(
+                    id = "callChild",
+                    definition = CallActivityDefinition(
+                        id = "callChild",
+                        calledElement = "child",
+                        mappings = listOf(
+                            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "a", target = "childId"),
+                            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "b", target = "child_id"),
+                            CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "c", target = "child-id"),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findCollisions(model)
+
+        // then: the two inputs collide inside Inputs; the output lives in Outputs and does not
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].variableType).isEqualTo("CallActivityMapping")
+        assertThat(collisions[0].constantName).isEqualTo("CHILD_ID")
+        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("childId", "child_id")
     }
 
     @Test
@@ -357,7 +336,7 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions handles mixed valid and collision cases`() {
-        // given: a model where most nodes are unique but two share a constant name
+        // given: a model where most nodes are unique but two share an object name
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
@@ -374,7 +353,7 @@ class CollisionDetectionServiceTest {
 
         // then: only the colliding pair is reported
         assertThat(collisions).hasSize(1)
-        assertThat(collisions[0].constantName).isEqualTo("END_EVENT_COMPLETE")
+        assertThat(collisions[0].constantName).isEqualTo("EndEventComplete")
     }
 
     @Test

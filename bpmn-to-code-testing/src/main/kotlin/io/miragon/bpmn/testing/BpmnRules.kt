@@ -14,6 +14,7 @@ import io.miragon.bpmn.domain.validation.rules.MissingProcessIdRule
 import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
 import io.miragon.bpmn.domain.validation.rules.MissingSignalNameRule
 import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
+import io.miragon.bpmn.domain.validation.rules.ReservedElementNameRule
 import io.miragon.bpmn.domain.validation.rules.SharedDefinitionCollisionRule
 import io.miragon.bpmn.domain.validation.rules.TimerCronSyntaxRule
 import io.miragon.bpmn.domain.validation.rules.TimerIso8601SyntaxRule
@@ -108,6 +109,13 @@ object BpmnRules {
     val COLLISION_DETECTION: SingleModelValidationRule = CollisionDetectionRule()
 
     /**
+     * Element ids that would be generated as a name the Process API reserves for itself (`Flow`, `Next`,
+     * `Instance`, the runtime types, …) would shadow that part of the API, so the generated code could not compile.
+     */
+    @JvmField
+    val RESERVED_ELEMENT_NAME: SingleModelValidationRule = ReservedElementNameRule()
+
+    /**
      * Job types, messages, signals, errors and escalations are generated once for all processes; two
      * of them normalizing to the same constant name — even in different processes — break the build.
      */
@@ -185,6 +193,7 @@ object BpmnRules {
         EMPTY_PROCESS,
         MISSING_PROCESS_ID,
         COLLISION_DETECTION,
+        RESERVED_ELEMENT_NAME,
         SHARED_DEFINITION_COLLISION,
     )
 }

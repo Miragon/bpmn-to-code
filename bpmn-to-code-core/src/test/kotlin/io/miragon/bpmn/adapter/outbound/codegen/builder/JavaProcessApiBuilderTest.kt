@@ -49,8 +49,7 @@ class JavaProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.java")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
-        val expectedFile = File(requireNotNull(javaClass.getResource("/api/NewsletterSubscriptionProcessApiJava.txt")).toURI())
-        assertThat(result.content).isEqualToIgnoringWhitespace(expectedFile.readText())
+        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/NewsletterSubscriptionProcessApiJava.txt", result.content))
         assertJavaSyntaxValid(result.fileName, result.content)
     }
 
@@ -89,10 +88,17 @@ class JavaProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains Variants section instead of a flat Flow
-        val expectedFile = File(requireNotNull(javaClass.getResource("/api/MultiVariantProcessApiJava.txt")).toURI())
-        assertThat(result.content).isEqualToIgnoringWhitespace(expectedFile.readText())
+        // then: output contains FlowVariants section instead of a flat Flow
+        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/MultiVariantProcessApiJava.txt", result.content))
         assertJavaSyntaxValid(result.fileName, result.content)
+    }
+
+    private fun golden(path: String, generated: String): String {
+        if (System.getProperty("golden.update") == "true") {
+            File("src/test/resources$path").writeText(generated)
+            return generated
+        }
+        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 
     private fun assertJavaSyntaxValid(fileName: String, source: String) {

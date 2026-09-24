@@ -6,7 +6,7 @@ import io.miragon.bpmn.domain.BpmnModelApi
  * Decides which sections a generated Process API contains.
  *
  * Today the only question is whether a section would have anything to say about the model — a process
- * without timers gets no `Timers` object rather than an empty one. That is a mapping from the
+ * whose models are merged gets `FlowVariants` rather than `Flow`. That is a mapping from the
  * codegen vocabulary onto the domain, so it lives here, once, rather than in each language's builder or
  * on [ApiObjectType] itself.
  *
@@ -23,12 +23,9 @@ internal object ApiObjectSelection {
     private fun ApiObjectType.hasContentIn(modelApi: BpmnModelApi): Boolean {
         val model = modelApi.model
         return when (this) {
-            ApiObjectType.PROCESS_ID, ApiObjectType.PROCESS_ENGINE, ApiObjectType.ELEMENTS -> true
-            ApiObjectType.FLOW -> !model.isMerged && model.graph.allSequenceFlows.isNotEmpty()
-            ApiObjectType.VARIANTS -> model.isMerged
-            ApiObjectType.CALL_ACTIVITIES -> model.callActivities.isNotEmpty()
-            ApiObjectType.TIMERS -> model.timers.isNotEmpty()
-            ApiObjectType.VARIABLES -> model.variables.isNotEmpty()
+            ApiObjectType.PROCESS_ID, ApiObjectType.PROCESS_ENGINE -> true
+            ApiObjectType.FLOW -> !model.isMerged && model.allFlowNodes.isNotEmpty()
+            ApiObjectType.FLOW_VARIANTS -> model.isMerged
         }
     }
 }

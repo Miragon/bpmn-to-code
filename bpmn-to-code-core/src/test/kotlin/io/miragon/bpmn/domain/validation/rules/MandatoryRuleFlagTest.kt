@@ -12,6 +12,7 @@ class MandatoryRuleFlagTest {
     @Test
     fun `integrity-critical rules are mandatory`() {
         assertThat(CollisionDetectionRule().mandatory).isTrue()
+        assertThat(ReservedElementNameRule().mandatory).isTrue()
         assertThat(MissingElementIdRule().mandatory).isTrue()
         assertThat(MissingProcessIdRule().mandatory).isTrue()
     }

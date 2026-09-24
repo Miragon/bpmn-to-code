@@ -1,7 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
 import com.palantir.javapoet.ClassName
-import com.palantir.javapoet.CodeBlock
 import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
@@ -12,14 +11,9 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.ProcessModel.Variant
-import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.ProcessGraph
-import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
-import io.miragon.bpmn.domain.shared.VariableDefinition
-import io.miragon.bpmn.domain.shared.VariableMapping
+import io.miragon.bpmn.domain.shared.RootElements
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
-import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
@@ -37,12 +31,8 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
     private val objectWriters: Map<ApiObjectType, ObjectWriter<TypeSpec.Builder>> = mapOf(
         ApiObjectType.PROCESS_ID to ProcessIdWriter(),
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
-        ApiObjectType.ELEMENTS to ElementsWriter(),
-        ApiObjectType.CALL_ACTIVITIES to CallActivitiesWriter(),
-        ApiObjectType.TIMERS to TimersWriter(),
-        ApiObjectType.VARIABLES to VariablesWriter(),
         ApiObjectType.FLOW to FlowWriter(),
-        ApiObjectType.VARIANTS to VariantsWriter(),
+        ApiObjectType.FLOW_VARIANTS to FlowVariantsWriter(),
     )
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
@@ -87,181 +77,43 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         }
     }
 
-    private inner class ElementsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val elementIdClass = ClassName.get(RUNTIME_PACKAGE, "ElementId")
-            val elementsBuilder = TypeSpec.classBuilder("Elements").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc(
-                    "BPMN element ids as declared in the source model.\n" +
-                        "Typically used in process-level tests or when searching for tasks.\n" +
-                        "Worker runtime code rarely needs these.\n",
-                )
-            modelApi.model.allFlowNodes.sortedBy { it.getRawName() }.forEach { flowNode ->
-                elementsBuilder.addField(createTypedAttribute(flowNode, elementIdClass))
-            }
-            builder.addType(elementsBuilder.build())
-        }
-    }
-
     private inner class FlowWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val flowClass = buildFlowClass(modelApi.model.graph)
+            val flowClass = buildFlowClass(modelApi.model.graph, modelApi.model.definitions)
             builder.addType(flowClass)
         }
     }
 
-    private inner class VariantsWriter : ObjectWriter<TypeSpec.Builder> {
+    private inner class FlowVariantsWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val model = modelApi.model
-            val variantsBuilder = TypeSpec.classBuilder("Variants").addModifiers(PUBLIC, STATIC, FINAL)
+            val variantsBuilder = TypeSpec.classBuilder("FlowVariants").addModifiers(PUBLIC, STATIC, FINAL)
+                .addJavadoc("The {@code Flow} of each merged BPMN file, keyed by its {@code variantName}.\n")
             model.variants.forEach { variant ->
-                val variantClass = buildVariantClass(variant)
-                variantsBuilder.addType(variantClass)
+                variantsBuilder.addType(buildFlowClass(variant.graph, model.definitions, variant.variantName.toCamelCase()))
             }
             builder.addType(variantsBuilder.build())
-        }
-
-        private fun buildVariantClass(variant: Variant): TypeSpec {
-            val variantName = variant.variantName.toCamelCase()
-            val variantBuilder = TypeSpec.classBuilder(variantName).addModifiers(PUBLIC, STATIC, FINAL)
-            if (variant.graph.allSequenceFlows.isNotEmpty()) {
-                variantBuilder.addType(buildFlowClass(variant.graph))
-            }
-            return variantBuilder.build()
         }
     }
 
     /**
      * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
      * `elementType` and display `name`, plus its reachable successors behind `then()`. Boundary events and
-     * subprocess continuations are plain successors; a subprocess nests its interior and opens it via `start()`.
+     * subprocess continuations are plain successors; every node is a direct child of `Flow`, and a subprocess
+     * opens its interior via `start()`.
      */
-    private fun buildFlowClass(graph: ProcessGraph): TypeSpec {
-        val flowBuilder = TypeSpec.classBuilder("Flow").addModifiers(PUBLIC, STATIC, FINAL)
+    private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "Flow"): TypeSpec {
+        val flowBuilder = TypeSpec.classBuilder(className).addModifiers(PUBLIC, STATIC, FINAL)
             .addJavadoc(
                 "Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, " +
                     "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +
                     "{@code then()} — so a full path is verified by the compiler and offered by autocomplete. " +
-                    "A subprocess nests its interior and opens it via {@code start()}.\n",
+                    "Every element is a direct child of {@code Flow}, whatever its subprocess depth; " +
+                    "a subprocess opens its interior via {@code start()}.\n",
             )
-        JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph))
+        JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }
-
-    private inner class CallActivitiesWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val callActivitiesBuilder = TypeSpec.classBuilder("CallActivities").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc(
-                    "Call activities grouped by element. Each nested class exposes the called {@code PROCESS_ID} plus " +
-                        "the variable mappings passed into ({@code Inputs}) and returned from ({@code Outputs}) the called process.\n",
-                )
-            modelApi.model.callActivities
-                .sortedBy { it.getRawName() }
-                .forEach { callActivity -> callActivitiesBuilder.addType(buildCallActivityClass(callActivity)) }
-            builder.addType(callActivitiesBuilder.build())
-        }
-
-        private fun buildCallActivityClass(callActivity: CallActivityDefinition): TypeSpec {
-            val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
-            val classBuilder = TypeSpec.classBuilder(callActivity.getRawName().toCamelCase()).addModifiers(PUBLIC, STATIC, FINAL)
-            classBuilder.addField(
-                FieldSpec.builder(processIdClass, "PROCESS_ID").addModifiers(PUBLIC, STATIC, FINAL)
-                    .initializer("new \$T(\$S)", processIdClass, callActivity.getValue())
-                    .build(),
-            )
-            buildMappingsClass("Inputs", callActivity.inputMappings)?.let { classBuilder.addType(it) }
-            buildMappingsClass("Outputs", callActivity.outputMappings)?.let { classBuilder.addType(it) }
-            return classBuilder.build()
-        }
-
-        private fun buildMappingsClass(className: String, mappings: List<CallActivityDefinition.Mapping>): TypeSpec? {
-            val withTarget = mappings
-                .filter { !it.target.isNullOrBlank() }
-                .sortedBy { it.target!!.toUpperSnakeCase() }
-            if (withTarget.isEmpty()) return null
-            val mappingClass = ClassName.get(RUNTIME_PACKAGE, "InputOutputMapping")
-            val mappingsBuilder = TypeSpec.classBuilder(className).addModifiers(PUBLIC, STATIC, FINAL)
-            withTarget.forEach { mapping -> mappingsBuilder.addField(buildMappingField(mapping, mappingClass)) }
-            return mappingsBuilder.build()
-        }
-
-        private fun buildMappingField(mapping: CallActivityDefinition.Mapping, mappingClass: ClassName): FieldSpec {
-            val target = mapping.target!!
-            val sourceBlock = if (mapping.source != null) CodeBlock.of("\$S", mapping.source) else CodeBlock.of("null")
-            val sourceExpressionBlock = if (mapping.sourceExpression != null) CodeBlock.of("\$S", mapping.sourceExpression) else CodeBlock.of("null")
-            val initializer = CodeBlock.builder()
-                .add("new \$T(\$S, ", mappingClass, target)
-                .add(sourceBlock)
-                .add(", ")
-                .add(sourceExpressionBlock)
-                .add(")")
-                .build()
-            return FieldSpec.builder(mappingClass, target.toUpperSnakeCase()).addModifiers(PUBLIC, STATIC, FINAL)
-                .initializer(initializer)
-                .build()
-        }
-    }
-
-    private inner class VariablesWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val variableNameClass = ClassName.get(RUNTIME_PACKAGE, "VariableName")
-            val variablesBuilder = TypeSpec.classBuilder("Variables").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc(
-                    "Process variables grouped by the BPMN element that declares them.\n" +
-                        "Direction is encoded in each variable's wrapper type: {@code VariableName.Input}, {@code VariableName.Output}, or {@code VariableName.InOut} when the variable is both read and written by the same element.\n" +
-                        "Consumer APIs that take a specific subtype (for example, a method accepting {@code VariableName.Output}) get compile-time direction enforcement.\n",
-                )
-            val nodesWithVariables = modelApi.model.allFlowNodes
-                .filter { it.variables.isNotEmpty() }
-                .sortedBy { it.getRawName() }
-            for (node in nodesWithVariables) {
-                val className = node.getRawName().toCamelCase()
-                val nodeVarsBuilder = TypeSpec.classBuilder(className).addModifiers(PUBLIC, STATIC, FINAL)
-                val variablesByName = node.variables.groupBy { it.getRawName() }
-                val sortedNames = variablesByName.keys.sorted()
-                for (rawName in sortedNames) {
-                    val group = variablesByName.getValue(rawName)
-                    val directions = group.map { it.direction }.toSet()
-                    val subtype = VariableNameSubtype.chooseFor(directions)
-                    nodeVarsBuilder.addField(createDirectionalAttribute(group.first(), subtype, variableNameClass))
-                }
-                variablesBuilder.addType(nodeVarsBuilder.build())
-            }
-            builder.addType(variablesBuilder.build())
-        }
-
-        private fun createDirectionalAttribute(variable: VariableDefinition, subtype: VariableNameSubtype, wrapperClass: ClassName): FieldSpec {
-            val subtypeClass = wrapperClass.nestedClass(subtype.simpleName)
-            return FieldSpec.builder(subtypeClass, variable.getName())
-                .addModifiers(PUBLIC, STATIC, FINAL)
-                .initializer("new \$T(\$S)", subtypeClass, variable.getValue())
-                .build()
-        }
-    }
-
-    private class TimersWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnTimerClass = ClassName.get(RUNTIME_PACKAGE, "BpmnTimer")
-            val timersBuilder = TypeSpec.classBuilder("Timers").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc("Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.\n")
-            modelApi.model.timers.forEach {
-                val (timerType, timerValue) = it.getValue()
-                val instanceBuilder = FieldSpec.builder(bpmnTimerClass, it.getName())
-                val variable = instanceBuilder.addModifiers(PUBLIC, STATIC, FINAL)
-                timersBuilder.addField(variable.initializer("new \$T(\$S, \$S)", bpmnTimerClass, timerType, timerValue).build())
-            }
-            builder.addType(timersBuilder.build())
-        }
-    }
-
-    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): FieldSpec = FieldSpec.builder(wrapperClass, variable.getName())
-        .addModifiers(PUBLIC, STATIC, FINAL)
-        .initializer("new \$T(\$S)", wrapperClass, variable.getValue())
-        .build()
 }

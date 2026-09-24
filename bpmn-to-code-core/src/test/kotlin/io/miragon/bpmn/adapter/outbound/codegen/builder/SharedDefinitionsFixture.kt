@@ -16,4 +16,10 @@ internal fun newsletterSharedDefinitionsApi(language: OutputLanguage) = SharedDe
 
 internal fun List<GeneratedApiFile>.asGoldenText(): String = joinToString("\n") { "// ===== ${it.fileName}\n${it.content}" }
 
-internal fun readGolden(resource: String): String = File(requireNotNull(object {}.javaClass.getResource(resource)).toURI()).readText()
+internal fun readGolden(resource: String, generated: String): String {
+    if (System.getProperty("golden.update") == "true") {
+        File("src/test/resources$resource").writeText(generated)
+        return generated
+    }
+    return File(requireNotNull(object {}.javaClass.getResource(resource)).toURI()).readText()
+}

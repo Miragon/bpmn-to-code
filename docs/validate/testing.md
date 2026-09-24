@@ -135,6 +135,7 @@ result.assertNoViolations("empty-process")  // custom: assert a specific rule pr
 | Process has no ID | `MISSING_PROCESS_ID` | ERROR | Process element missing the `id` attribute |
 | Process is empty | `EMPTY_PROCESS` | ERROR | Process with no flow nodes |
 | Variable name collision | `COLLISION_DETECTION` | ERROR | Two different IDs normalize to the same constant name |
+| Reserved element name | `RESERVED_ELEMENT_NAME` | ERROR | Element ID that would be generated as a name the Process API reserves (`Flow`, `Next`, `Instance`, …) |
 | Shared definition collision | `SHARED_DEFINITION_COLLISION` | ERROR | Two different job types, messages, signals, errors or escalations — across all loaded processes — normalize to the same constant name |
 
 ## Optional Rules (opt-in)
@@ -268,7 +269,7 @@ variables" (this treats Camunda's "not declared" and Zeebe's explicit `false` al
 :::
 
 ::: tip Also available in the generated API
-The same mappings are surfaced in the [generated Process API](/guide/generated-api#call-activity-variable-mappings) under `CallActivities.<CallActivity>.Inputs` / `.Outputs` as `InputOutputMapping` constants, so production code can reference them type-safely too — not just validation rules.
+The same mappings are surfaced in the [generated Process API](/guide/generated-api#call-activity-variable-mappings) on the call activity's `Flow` node as `Flow.<CallActivity>.Inputs` / `.Outputs` (`InputOutputMapping` constants), so production code can reference them type-safely too — not just validation rules.
 :::
 
 ## Cross-Process (Multi-Model) Rules

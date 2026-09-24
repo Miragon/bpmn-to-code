@@ -44,7 +44,7 @@
     "bpmn-to-code generates type-safe API constants from BPMN files — always use the generated constants instead of hardcoding BPMN element IDs or message names as strings.",
     "Choose the correct plugin for your build tool: use bpmn-to-code-gradle for Gradle projects and bpmn-to-code-maven for Maven projects. Configuration differs between the two.",
     "Set the processEngine to match your runtime: CAMUNDA_7 for Camunda Platform 7, ZEEBE for Camunda Platform 8 / Zeebe, or OPERATON for Operaton.",
-    "Set outputLanguage to KOTLIN, JAVA, or CSHARP to match your project. CSHARP is beta and emits constants only \u2014 no typed navigation DSL. The generated code package path (packagePath) must align with your source directory structure.",
+    "Set outputLanguage to KOTLIN, JAVA, or CSHARP to match your project. CSHARP generates the same Flow navigation as Kotlin and Java, with its runtime types inlined into each file. The generated code package path (packagePath) must align with your source directory structure.",
     "Run the generation task (generateProcessApi for Gradle, bpmn-to-code:generate for Maven) after modifying BPMN files to regenerate the API definitions.",
     "bpmn-to-code ships AI agent skills for automated setup and migration. Install them via 'npx skills add https://github.com/Miragon/bpmn-to-code'. Available skills: setup-bpmn-to-code-gradle (auto-configure Gradle plugin), setup-bpmn-to-code-maven (auto-configure Maven plugin), migrate-to-bpmn-to-code-apis (replace hardcoded BPMN strings with generated API constants)."
   ]

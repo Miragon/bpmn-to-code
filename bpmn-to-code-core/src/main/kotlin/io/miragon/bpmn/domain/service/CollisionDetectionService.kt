@@ -1,29 +1,33 @@
 package io.miragon.bpmn.domain.service
 
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.shared.CallActivityDefinition
+import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.VariableMapping
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
+import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 import io.miragon.bpmn.domain.validation.model.CollisionDetail
 
 /**
  * Domain service responsible for detecting name collisions in BPMN models.
- * Such a collision occurs when different configs (for example, for serviceTasks)
- * would normalize to the same constant name in the processApi
+ * Such a collision occurs when different ids (for example, of two service tasks)
+ * would normalize to the same identifier in the generated Process API.
  *
  * If this is the case, it cannot be guaranteed that the Process API is complete,
- * because the variables could have different values and only the first would be included.
+ * because the two elements could differ and only the first would be emitted.
  *
- * Thus, this class is responsible for detecting such collisions.
+ * Each check mirrors one scope of the generated API: flow nodes are named model-wide (the flat `Flow`),
+ * variables, sequence flows and call-activity mappings per node, and the shared definitions across all
+ * models of a run ([findSharedCollisions]).
  */
 class CollisionDetectionService {
 
     fun findCollisions(model: ProcessModel): List<CollisionDetail> {
         val modelId = model.processId
         val collisions = mutableListOf<CollisionDetail>()
-        collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode"))
-        collisions.addAll(findCollisionsIn(modelId, model.timers, "Timer"))
-        collisions.addAll(findCollisionsIn(modelId, model.variables, "Variable"))
         collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode") { it.getRawName().toCamelCase() })
+        collisions.addAll(findRepeatedIds(modelId, model.allFlowNodes))
+        model.allFlowNodes.forEach { node -> collisions.addAll(findCollisionsOn(modelId, node, model)) }
         return collisions.distinctBy { Triple(it.processId, it.variableType, it.conflictingIds) }
     }
 
@@ -56,24 +60,68 @@ class CollisionDetectionService {
         }
     }
 
+    private fun findCollisionsOn(processId: String, node: FlowNodeDefinition, model: ProcessModel): List<CollisionDetail> {
+        val collisions = mutableListOf<CollisionDetail>()
+        collisions.addAll(findCollisionsIn(processId, node.variables, "Variable"))
+        collisions.addAll(findCollisionsIn(processId, model.graph.outgoingFlowsOf(node), "SequenceFlow") { it.getRawName().toCamelCase() })
+        (node as? FlowNodeDefinition.Activity.CallActivity)?.definition?.let { callActivity ->
+            collisions.addAll(findMappingCollisions(processId, callActivity.inputMappings))
+            collisions.addAll(findMappingCollisions(processId, callActivity.outputMappings))
+        }
+        return collisions
+    }
+
+    private fun findMappingCollisions(processId: String, mappings: List<CallActivityDefinition.Mapping>): List<CollisionDetail> = findCollisionsIn(
+        processId = processId,
+        items = mappings.filter { !it.target.isNullOrBlank() },
+        variableType = "CallActivityMapping",
+        rawName = { it.target!! },
+        constantName = { it.target!!.toUpperSnakeCase() },
+    )
+
+    /**
+     * The same element id declared in two scopes (e.g. at the root and inside a subprocess) survives merging as
+     * two nodes, which the flat `Flow` object would emit twice under one name.
+     */
+    private fun findRepeatedIds(processId: String, flowNodes: List<VariableMapping<*>>): List<CollisionDetail> = flowNodes
+        .map { it.getRawName() }
+        .filter { it.isNotEmpty() }
+        .groupingBy { it }
+        .eachCount()
+        .filterValues { it > 1 }
+        .map { (id, occurrences) ->
+            CollisionDetail(
+                processId = processId,
+                variableType = "FlowNode",
+                constantName = id.toCamelCase(),
+                conflictingIds = List(occurrences) { id },
+            )
+        }
+
     private fun <T : VariableMapping<*>> findCollisionsIn(
         processId: String,
         items: List<T>,
         variableType: String,
-        nameSelector: (T) -> String = { it.getName() },
+        constantName: (T) -> String = { it.getName() },
+    ): List<CollisionDetail> = findCollisionsIn(processId, items, variableType, { it.getRawName() }, constantName)
+
+    private fun <T> findCollisionsIn(
+        processId: String,
+        items: List<T>,
+        variableType: String,
+        rawName: (T) -> String,
+        constantName: (T) -> String,
     ): List<CollisionDetail> {
-        val distinctItems = items.filter { it.getRawName().isNotEmpty() }.distinctBy { it.getRawName() }
-        val relevantItems = distinctItems.filter { nameSelector(it).isNotEmpty() }
-        val itemsPerVariableName = relevantItems.groupBy(nameSelector)
-        val collisions = itemsPerVariableName.filterValues { it.size > 1 }
-        return collisions.mapNotNull { (constantName, itemsWithSameName) ->
-            val rawNames = itemsWithSameName.map { it.getRawName() }
-            if (rawNames.isEmpty()) return@mapNotNull null
+        val distinctItems = items.filter { rawName(it).isNotEmpty() }.distinctBy { rawName(it) }
+        val relevantItems = distinctItems.filter { constantName(it).isNotEmpty() }
+        val itemsPerConstantName = relevantItems.groupBy(constantName)
+        val collisions = itemsPerConstantName.filterValues { it.size > 1 }
+        return collisions.map { (name, itemsWithSameName) ->
             CollisionDetail(
                 processId = processId,
                 variableType = variableType,
-                constantName = constantName,
-                conflictingIds = rawNames.sorted(),
+                constantName = name,
+                conflictingIds = itemsWithSameName.map(rawName).sorted(),
             )
         }
     }

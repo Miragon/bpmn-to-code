@@ -27,6 +27,7 @@ jobs:
         run: |
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
             'bpmn-to-code-core/' \
+            'bpmn-to-code-runtime/' \
             'bpmn-to-code-gradle/' \
             'bpmn-to-code-maven/' \
             'bpmn-to-code-testing/' \

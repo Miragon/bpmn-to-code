@@ -26,12 +26,13 @@ Implement comprehensive collision detection that:
 
 - Created `CollisionDetectionService` as a dedicated domain service following hexagonal architecture to detect collisions and throw errors
 
-### Identifier-folding basis (flow nodes)
-Flow nodes additionally generate **PascalCase** object names (`Variables`, `CallActivities`) via `StringUtils.toCamelCase()`, which folds away empty segments from leading/trailing/collapsed separators. Ids such as `foo` and `-foo` keep distinct `UPPER_SNAKE` constants (`FOO` / `_FOO`) but fold to the same object name `Foo`, which would emit two `object Foo` and fail to compile. Flow-node collision detection therefore checks **both** bases:
-- the `UPPER_SNAKE` constant basis (`Elements`), and
-- the PascalCase object-name basis (`getRawName().toCamelCase()`).
+### Naming scopes (since 6.0)
+Since the Process API became node-centric (ADR 022), each check mirrors the scope the generated name lives in:
+- **Flow nodes** are named model-wide, because `Flow` is flat: every element, whatever its subprocess depth, becomes one nested object named `getRawName().toCamelCase()`. Ids such as `foo` and `-foo` fold to the same object name `Foo`, which would emit two `object Foo` and fail to compile. The same id declared in two scopes (root and subprocess interior) survives merging as two nodes and is reported as well.
+- **Registries** (`ServiceTasks`, `Messages`, `Signals`, `Errors`, `Escalations`) are named model-wide on the `UPPER_SNAKE` basis.
+- **Variables**, **sequence flows** and **call-activity mappings** are named per node — they live inside the node's `Variables`, `Flows`, `Inputs` / `Outputs` holders — so the same variable name on two different nodes is not a collision, while `userId` and `user_id` on one node is.
 
-Neither basis subsumes the other (`fooBar` / `fooBAR` collide only in `UPPER_SNAKE`; `foo` / `-foo` only in folding), so both are needed. Collisions surfacing on both bases are de-duplicated and reported once, preferring the `UPPER_SNAKE` name. Call-activity ids are a subset of flow-node ids, so a single flow-node check covers `CallActivities` objects too.
+The former `Elements` and `Timers` bases disappeared with their sections. Names that would shadow the API's own holders or runtime types (`Flow`, `Next`, `Instance`, `ElementId`, …) are not collisions between elements and are rejected by the separate mandatory `reserved-element-name` rule.
 
 ## Consequences
 

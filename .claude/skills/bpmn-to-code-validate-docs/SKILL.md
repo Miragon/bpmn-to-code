@@ -48,7 +48,7 @@ Compare `docs/guide/generated-api.md` against:
 - `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/outbound/codegen/`
 
 Verify:
-- All sections listed (Elements, CallActivities, Messages, ServiceTasks, Timers, Errors, Signals, Variables) actually get generated
+- All sections listed (Messages, ServiceTasks, Errors, Escalations, Signals, Flow, Variants) actually get generated, and the per-node members of Flow (JOB_TYPE, Variables, calledProcess/Inputs/Outputs, timer, message/signal/error/escalation, attachedTo/isInterrupting, Next, Flows, Start) match the generators
 - The example code matches what the generators would produce
 - No generated sections are missing from the docs
 

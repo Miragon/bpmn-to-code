@@ -37,9 +37,15 @@ class ProcessGraph(
     fun previousElementsOf(node: FlowNodeDefinition): List<String> = node.incoming.mapNotNull { flowById[it]?.sourceRef }
 
     /**
+     * The sequence flows leaving [node], in the order the node declares them; flows without an id cannot be
+     * referenced and are skipped.
+     */
+    fun outgoingFlowsOf(node: FlowNodeDefinition): List<SequenceFlowDefinition> = node.outgoing.mapNotNull { flowById[it] }
+
+    /**
      * Ids of the flow nodes that follow [node], resolved through its outgoing sequence flows.
      */
-    fun followingElementsOf(node: FlowNodeDefinition): List<String> = node.outgoing.mapNotNull { flowById[it]?.targetRef }
+    fun followingElementsOf(node: FlowNodeDefinition): List<String> = outgoingFlowsOf(node).map { it.targetRef }
 
     /**
      * Boundary events attached to [node]; empty for anything that is not an activity.
