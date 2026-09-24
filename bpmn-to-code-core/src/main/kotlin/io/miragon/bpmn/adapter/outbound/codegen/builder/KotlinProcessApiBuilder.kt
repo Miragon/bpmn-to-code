@@ -246,6 +246,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val signalNameClass = ClassName(RUNTIME_PACKAGE, "SignalName")
             val signalsBuilder = TypeSpec.objectBuilder("Signals")
+                .addKdoc("BPMN signal names broadcast and caught by signal events.")
             modelApi.model.definitions.signals.asApiConstants().forEach { signal ->
                 signalsBuilder.addProperty(createTypedAttribute(signal, signalNameClass))
             }
@@ -295,6 +296,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnErrorClass = ClassName(RUNTIME_PACKAGE, "BpmnError")
             val errorsBuilder = TypeSpec.objectBuilder("Errors")
+                .addKdoc("BPMN error definitions with name and code, as thrown and caught by the process.")
             modelApi.model.definitions.errors.asApiConstants().forEach {
                 val (errorName, errorCode) = it.getValue()
                 val instanceBuilder = PropertySpec.builder(it.getName(), bpmnErrorClass)
@@ -310,6 +312,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnEscalationClass = ClassName(RUNTIME_PACKAGE, "BpmnEscalation")
             val escalationsBuilder = TypeSpec.objectBuilder("Escalations")
+                .addKdoc("BPMN escalation definitions with name and code, as thrown and caught by the process.")
             modelApi.model.definitions.escalations.asApiConstants().forEach {
                 val (escalationName, escalationCode) = it.getValue()
                 val instanceBuilder = PropertySpec.builder(it.getName(), bpmnEscalationClass)
@@ -325,6 +328,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnTimerClass = ClassName(RUNTIME_PACKAGE, "BpmnTimer")
             val timersBuilder = TypeSpec.objectBuilder("Timers")
+                .addKdoc("Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.")
             modelApi.model.timers.forEach { timer ->
                 val (timerType, timerValue) = timer.getValue()
                 val instanceBuilder = PropertySpec.builder(timer.getName(), bpmnTimerClass)

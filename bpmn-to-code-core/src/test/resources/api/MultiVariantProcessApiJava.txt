@@ -85,10 +85,16 @@ public final class SendNewsletterProcessApi {
     public static final String NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER = "newsletter.sendMailToSubscriber";
   }
 
+  /**
+   * Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
+   */
   public static final class Timers {
     public static final BpmnTimer TIMER_NO_REJECTION_FOR_ONE_DAY = new BpmnTimer("Duration", "PT1D");
   }
 
+  /**
+   * BPMN escalation definitions with name and code, as thrown and caught by the process.
+   */
   public static final class Escalations {
     public static final BpmnEscalation ESCALATION_NOTIFY_SUPPORT = new BpmnEscalation("escalation_notifySupport", "200");
   }

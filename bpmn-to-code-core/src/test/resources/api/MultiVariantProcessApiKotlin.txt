@@ -92,10 +92,16 @@ object SendNewsletterProcessApi {
     const val NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER: String = "newsletter.sendMailToSubscriber"
   }
 
+  /**
+   * Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
+   */
   object Timers {
     val TIMER_NO_REJECTION_FOR_ONE_DAY: BpmnTimer = BpmnTimer("Duration", "PT1D")
   }
 
+  /**
+   * BPMN escalation definitions with name and code, as thrown and caught by the process.
+   */
   object Escalations {
     val ESCALATION_NOTIFY_SUPPORT: BpmnEscalation =
         BpmnEscalation("escalation_notifySupport", "200")
