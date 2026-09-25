@@ -118,7 +118,7 @@
                         }
                     },
                     {
-                        "id": "userTask_confirmRegistration",
+                        "id": "receiveTask_confirmRegistration",
                         "type": "receiveTask",
                         "name": "Confirm subscription",
                         "incoming": [
@@ -139,7 +139,7 @@
                         "outgoing": [
                             "flow_everyDayToConfirmationMail"
                         ],
-                        "attachedToRef": "userTask_confirmRegistration",
+                        "attachedToRef": "receiveTask_confirmRegistration",
                         "cancelActivity": false,
                         "eventDefinitions": [
                             {
@@ -161,13 +161,13 @@
                 "sequenceFlows": [
                     {
                         "id": "flow_confirmToConfirmed",
-                        "sourceRef": "userTask_confirmRegistration",
+                        "sourceRef": "receiveTask_confirmRegistration",
                         "targetRef": "endEvent_subscriptionConfirmed"
                     },
                     {
                         "id": "flow_confirmationMailToConfirm",
                         "sourceRef": "serviceTask_sendConfirmationMail",
-                        "targetRef": "userTask_confirmRegistration"
+                        "targetRef": "receiveTask_confirmRegistration"
                     },
                     {
                         "id": "flow_everyDayToConfirmationMail",

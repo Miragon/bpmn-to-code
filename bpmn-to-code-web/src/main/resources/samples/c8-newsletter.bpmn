@@ -46,11 +46,11 @@
         <bpmn:incoming>flow_everyDayToConfirmationMail</bpmn:incoming>
         <bpmn:outgoing>flow_confirmationMailToConfirm</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:receiveTask id="userTask_confirmRegistration" name="Confirm subscription" messageRef="message_subscriptionConfirmed">
+      <bpmn:receiveTask id="receiveTask_confirmRegistration" name="Confirm subscription" messageRef="message_subscriptionConfirmed">
         <bpmn:incoming>flow_confirmationMailToConfirm</bpmn:incoming>
         <bpmn:outgoing>flow_confirmToConfirmed</bpmn:outgoing>
       </bpmn:receiveTask>
-      <bpmn:boundaryEvent id="timer_everyDay" name="Every&#10;day" attachedToRef="userTask_confirmRegistration">
+      <bpmn:boundaryEvent id="timer_everyDay" name="Every&#10;day" attachedToRef="receiveTask_confirmRegistration">
         <bpmn:outgoing>flow_everyDayToConfirmationMail</bpmn:outgoing>
         <bpmn:timerEventDefinition id="timerEventDefinition_everyDay">
           <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1M</bpmn:timeDuration>
@@ -65,12 +65,12 @@
         <bpmn:outgoing>flow_requestToConfirmationMail</bpmn:outgoing>
       </bpmn:startEvent>
       <bpmn:sequenceFlow id="flow_requestToConfirmationMail" sourceRef="startEvent_requestReceived" targetRef="serviceTask_sendConfirmationMail" />
-      <bpmn:sequenceFlow id="flow_confirmationMailToConfirm" sourceRef="serviceTask_sendConfirmationMail" targetRef="userTask_confirmRegistration" />
+      <bpmn:sequenceFlow id="flow_confirmationMailToConfirm" sourceRef="serviceTask_sendConfirmationMail" targetRef="receiveTask_confirmRegistration" />
       <bpmn:sequenceFlow id="flow_everyDayToConfirmationMail" sourceRef="timer_everyDay" targetRef="serviceTask_sendConfirmationMail" />
       <bpmn:endEvent id="endEvent_subscriptionConfirmed" name="Subscription confirmed">
         <bpmn:incoming>flow_confirmToConfirmed</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="flow_confirmToConfirmed" sourceRef="userTask_confirmRegistration" targetRef="endEvent_subscriptionConfirmed" />
+      <bpmn:sequenceFlow id="flow_confirmToConfirmed" sourceRef="receiveTask_confirmRegistration" targetRef="endEvent_subscriptionConfirmed" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="flow_submitToIncrementCounter" sourceRef="startEvent_submitRegistrationForm" targetRef="subProcess_confirmation" />
     <bpmn:sequenceFlow id="flow_after3DaysToAbort" sourceRef="timer_after3Days" targetRef="callActivity_abortRegistration" />
@@ -144,7 +144,7 @@
         <dc:Bounds x="410" y="280" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0z8isb8_di" bpmnElement="userTask_confirmRegistration">
+      <bpmndi:BPMNShape id="Activity_0z8isb8_di" bpmnElement="receiveTask_confirmRegistration">
         <dc:Bounds x="550" y="280" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>

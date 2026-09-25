@@ -129,7 +129,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         boundaryEventRefs = listOf("errorEvent_invalidMail", "timer_after3Days"),
         flowNodes = listOf(
             FlowNodeDefinition.Activity.Task(
-                id = "userTask_confirmRegistration",
+                id = "receiveTask_confirmRegistration",
                 kind = TaskKind.RECEIVE,
                 displayName = "Confirm registration",
                 incoming = listOf("flow_confirmationMailToConfirm"),
@@ -157,7 +157,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
             FlowNodeDefinition.Event(
                 id = "timer_everyDay",
                 shape = EventShape.BOUNDARY_EVENT,
-                attachedToRef = "userTask_confirmRegistration",
+                attachedToRef = "receiveTask_confirmRegistration",
                 interrupting = false,
                 outgoing = listOf("flow_everyDayToConfirmationMail"),
                 eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "PT1M")),
@@ -166,8 +166,8 @@ internal fun buildSubscribeNewsletterFlowNodes(
         sequenceFlows = listOf(
             SequenceFlowDefinition("flow_requestToConfirmationMail", "startEvent_requestReceived", "serviceTask_sendConfirmationMail"),
             SequenceFlowDefinition("flow_everyDayToConfirmationMail", "timer_everyDay", "serviceTask_sendConfirmationMail"),
-            SequenceFlowDefinition("flow_confirmationMailToConfirm", "serviceTask_sendConfirmationMail", "userTask_confirmRegistration"),
-            SequenceFlowDefinition("flow_confirmToConfirmed", "userTask_confirmRegistration", "endEvent_subscriptionConfirmed"),
+            SequenceFlowDefinition("flow_confirmationMailToConfirm", "serviceTask_sendConfirmationMail", "receiveTask_confirmRegistration"),
+            SequenceFlowDefinition("flow_confirmToConfirmed", "receiveTask_confirmRegistration", "endEvent_subscriptionConfirmed"),
         ),
     ),
     FlowNodeDefinition.Event(

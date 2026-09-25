@@ -62,14 +62,14 @@ class ZeebeExtractionTest {
         val subProcess = node("subProcess_confirmation") as FlowNodeDefinition.Activity.SubProcess
         assertThat(subProcess.kind).isEqualTo(SubProcessKind.PLAIN)
         assertThat(subProcess.flowNodes.mapNotNull { it.id }).containsExactlyInAnyOrder(
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "serviceTask_sendConfirmationMail",
             "endEvent_subscriptionConfirmed",
             "startEvent_requestReceived",
             "timer_everyDay",
         )
         listOf(
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "serviceTask_sendConfirmationMail",
             "endEvent_subscriptionConfirmed",
             "startEvent_requestReceived",
@@ -86,7 +86,7 @@ class ZeebeExtractionTest {
         assertThat(compensationHandler.implementation).isNull()
 
         // the receive task references its message directly (not through an event definition)
-        val confirmRegistration = node("userTask_confirmRegistration") as FlowNodeDefinition.Activity.Task
+        val confirmRegistration = node("receiveTask_confirmRegistration") as FlowNodeDefinition.Activity.Task
         assertThat(confirmRegistration.kind).isEqualTo(TaskKind.RECEIVE)
         assertThat(confirmRegistration.message?.messageName).isEqualTo("Message_SubscriptionConfirmed")
 
@@ -176,7 +176,7 @@ class ZeebeExtractionTest {
             .containsExactlyInAnyOrder("errorEvent_invalidMail", "timer_after3Days")
         assertThat(bpmnModel.graph.attachedElementsOf(node("serviceTask_incrementSubscriptionCounter")))
             .containsExactly("compensationEvent_onSubscriptionCounter")
-        assertThat(bpmnModel.graph.attachedElementsOf(node("userTask_confirmRegistration")))
+        assertThat(bpmnModel.graph.attachedElementsOf(node("receiveTask_confirmRegistration")))
             .containsExactly("timer_everyDay")
 
         // root sequence flows exclude the four that belong to the confirmation sub-process
