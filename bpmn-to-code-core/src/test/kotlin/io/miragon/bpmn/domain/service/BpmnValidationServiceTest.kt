@@ -1,5 +1,6 @@
 package io.miragon.bpmn.domain.service
 
+import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.TaskImplementation
@@ -142,6 +143,39 @@ class BpmnValidationServiceTest {
 
         // then: the collision-detection rule fires
         assertThat(exception.violations).anyMatch { it.ruleId == "collision-detection" }
+    }
+
+    @Test
+    fun `post-merge validation detects shared definition collisions across processes`() {
+        // given: two processes whose job types normalize to the same constant
+        val first = testProcessModel(processId = "first", flowNodes = listOf(jobWorkerTask(id = "task1", jobType = "newsletter.sendMail")))
+        val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")))
+
+        // when: validating post-merge
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validate(listOf(first, second), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+        }
+
+        // then: the shared-definition-collision rule fires
+        assertThat(exception.violations).anyMatch { it.ruleId == "shared-definition-collision" }
+    }
+
+    @Test
+    fun `mandatory shared-definition-collision rule stays active even when disabled`() {
+        // given: a service that tries to disable the mandatory shared-definition-collision rule
+        val underTest = BpmnValidationService(
+            ValidationConfig(disabledRules = setOf("shared-definition-collision")),
+        )
+        val first = testProcessModel(processId = "first", flowNodes = listOf(jobWorkerTask(id = "task1", jobType = "newsletter.sendMail")))
+        val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")))
+
+        // when: validating post-merge
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validate(listOf(first, second), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+        }
+
+        // then: the rule still fires despite being disabled
+        assertThat(exception.violations).anyMatch { it.ruleId == "shared-definition-collision" }
     }
 
     @Test

@@ -1,7 +1,8 @@
 # ADR 003: Generated API Structure and Naming
 
 ## Status
-Accepted
+Accepted — amended by [ADR 021](021-shared-definition-apis.md): `Messages`, `ServiceTasks`, `Errors`,
+`Signals` and `Escalations` moved out of the Process API into shared files.
 
 ## Context
 Generated API must organize hundreds of constants (element IDs, messages, variables, etc.) from BPMN models. Needs a structure that prevents naming conflicts, provides IDE support, follows language conventions, and handles different property types (strings vs. structured data).

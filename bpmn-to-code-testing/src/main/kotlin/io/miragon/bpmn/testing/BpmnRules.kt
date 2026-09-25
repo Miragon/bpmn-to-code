@@ -2,6 +2,7 @@ package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
+import io.miragon.bpmn.domain.validation.ValidationRule
 import io.miragon.bpmn.domain.validation.rules.CallActivityTargetExistsRule
 import io.miragon.bpmn.domain.validation.rules.CollisionDetectionRule
 import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
@@ -13,6 +14,7 @@ import io.miragon.bpmn.domain.validation.rules.MissingProcessIdRule
 import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
 import io.miragon.bpmn.domain.validation.rules.MissingSignalNameRule
 import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
+import io.miragon.bpmn.domain.validation.rules.SharedDefinitionCollisionRule
 import io.miragon.bpmn.domain.validation.rules.TimerCronSyntaxRule
 import io.miragon.bpmn.domain.validation.rules.TimerIso8601SyntaxRule
 import io.miragon.bpmn.domain.validation.rules.UncaughtMessageThrowRule
@@ -105,6 +107,13 @@ object BpmnRules {
     @JvmField
     val COLLISION_DETECTION: SingleModelValidationRule = CollisionDetectionRule()
 
+    /**
+     * Job types, messages, signals, errors and escalations are generated once for all processes; two
+     * of them normalizing to the same constant name — even in different processes — break the build.
+     */
+    @JvmField
+    val SHARED_DEFINITION_COLLISION: CrossModelValidationRule = SharedDefinitionCollisionRule()
+
     // --- Optional rules (opt-in) ------------------------------------------------------------------
     // Not part of [all]. Enable explicitly via BpmnValidator.withRules(...) to enforce a timer-format
     // convention. Cron and ISO are mutually exclusive for timeCycle timers, so enable one of the two.
@@ -164,7 +173,7 @@ object BpmnRules {
      * explicitly via [BpmnValidator.withRules].
      */
     @JvmStatic
-    fun all(): List<SingleModelValidationRule> = listOf(
+    fun all(): List<ValidationRule> = listOf(
         MISSING_SERVICE_TASK_IMPLEMENTATION,
         MISSING_MESSAGE_NAME,
         MISSING_ERROR_DEFINITION,
@@ -176,5 +185,6 @@ object BpmnRules {
         EMPTY_PROCESS,
         MISSING_PROCESS_ID,
         COLLISION_DETECTION,
+        SHARED_DEFINITION_COLLISION,
     )
 }

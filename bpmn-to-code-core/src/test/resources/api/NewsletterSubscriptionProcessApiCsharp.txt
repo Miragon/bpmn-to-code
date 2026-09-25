@@ -73,26 +73,6 @@ public static class NewsletterSubscriptionProcessApi
     }
 
     /// <summary>
-    /// BPMN message names used to correlate messages to running process instances.
-    /// </summary>
-    public static class Messages
-    {
-        public const string MessageFormSubmitted = "Message_FormSubmitted";
-    }
-
-    /// <summary>
-    /// Job worker task types — the task type a C# worker subscribes to.
-    /// </summary>
-    public static class ServiceTasks
-    {
-        public const string NewsletterSendConfirmationMail = "#{newsletterSendConfirmationMail}";
-        public const string NewsletterSendWelcomeMail = "${newsletterSendWelcomeMail}";
-        public const string CounterClass = "counterClass";
-        public const string NewsletterNotifyCommunity = "newsletter.notifyCommunity";
-        public const string NewsletterRegistrationCompleted = "newsletter.registrationCompleted";
-    }
-
-    /// <summary>
     /// Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
     /// </summary>
     public static class Timers
@@ -108,26 +88,6 @@ public static class NewsletterSubscriptionProcessApi
             public const string Type = "Duration";
             public const string Value = "PT1M";
         }
-    }
-
-    /// <summary>
-    /// BPMN error definitions with name and code, as thrown and caught by the process.
-    /// </summary>
-    public static class Errors
-    {
-        public static class ErrorInvalidMail500
-        {
-            public const string Reference = "Error_InvalidMail";
-            public const string Code = "500";
-        }
-    }
-
-    /// <summary>
-    /// BPMN signal names broadcast and caught by signal events.
-    /// </summary>
-    public static class Signals
-    {
-        public const string SignalRegistrationNotPossible = "Signal_RegistrationNotPossible";
     }
 
     /// <summary>

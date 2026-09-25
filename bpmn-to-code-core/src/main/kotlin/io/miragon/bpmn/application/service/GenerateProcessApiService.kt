@@ -14,8 +14,10 @@ import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
+import io.miragon.bpmn.domain.service.SharedDefinitionsService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class GenerateProcessApiService(
@@ -27,6 +29,7 @@ class GenerateProcessApiService(
 
     private val logger = KotlinLogging.logger {}
     private val modelMergerService = ModelMergerService()
+    private val sharedDefinitionsService = SharedDefinitionsService()
 
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val validationService = BpmnValidationService(command.validationConfig)
@@ -37,9 +40,9 @@ class GenerateProcessApiService(
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(models)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
-        val generatedFiles = mergedModels
-            .flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
-            .distinctBy { it.packagePath to it.fileName }
+        val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
+        val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(mergedModels, command))
+        val generatedFiles = (processFiles + sharedFiles).distinctBy { it.packagePath to it.fileName }
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
         val filesByProcessId = executableModels
             .groupBy({ (_, model) -> model.processId }, { (file, _) -> file.fileName })
@@ -67,5 +70,14 @@ class GenerateProcessApiService(
         outputLanguage = command.outputLanguage,
         packagePath = command.packagePath,
         targetEngine = command.engine,
+    )
+
+    private fun toSharedDefinitionsApi(
+        models: List<ProcessModel>,
+        command: GenerateProcessApiFromFilesystemUseCase.Command,
+    ) = SharedDefinitionsApi(
+        definitions = sharedDefinitionsService.collect(models),
+        outputLanguage = command.outputLanguage,
+        packagePath = command.packagePath,
     )
 }

@@ -1,6 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.SharedDefinitions
+import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.mockk.confirmVerified
@@ -14,8 +16,10 @@ import org.junit.jupiter.api.Test
 class CodeGenerationAdapterTest {
 
     private val kotlinProcessBuilder = mockk<CodeGenerationAdapter.AbstractProcessApiBuilder<*>>(relaxed = true)
+    private val kotlinSharedBuilder = mockk<CodeGenerationAdapter.AbstractSharedDefinitionsBuilder>(relaxed = true)
     private val underTest = CodeGenerationAdapter(
         processApiBuilders = mapOf(OutputLanguage.KOTLIN to kotlinProcessBuilder),
+        sharedDefinitionsBuilders = mapOf(OutputLanguage.KOTLIN to kotlinSharedBuilder),
     )
 
     @Test
@@ -47,6 +51,36 @@ class CodeGenerationAdapterTest {
 
         // when / then: an exception is thrown
         assertThatThrownBy { underTest.generateCode(modelApi) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `generateSharedCode delegates to the shared definitions builder and returns its files`() {
+        // given: shared definitions and a stubbed shared builder response
+        val api = SharedDefinitionsApi(SharedDefinitions(), OutputLanguage.KOTLIN, "packagePath")
+        val sharedFile = GeneratedApiFile(
+            fileName = "ServiceTasks.kt",
+            packagePath = "packagePath",
+            content = "content",
+            language = OutputLanguage.KOTLIN,
+            processId = null,
+        )
+        every { kotlinSharedBuilder.buildApiFiles(api) } returns listOf(sharedFile)
+
+        // when: generating the shared code
+        val result = underTest.generateSharedCode(api)
+
+        // then: the shared builder's files are returned
+        assertThat(result).containsExactly(sharedFile)
+    }
+
+    @Test
+    fun `generateSharedCode throws when output language is not supported`() {
+        // given: shared definitions with an unsupported language
+        val api = SharedDefinitionsApi(SharedDefinitions(), OutputLanguage.JAVA, "packagePath")
+
+        // when / then: an exception is thrown
+        assertThatThrownBy { underTest.generateSharedCode(api) }
             .isInstanceOf(IllegalArgumentException::class.java)
     }
 }

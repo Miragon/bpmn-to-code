@@ -21,14 +21,39 @@ class CollisionDetectionService {
         val modelId = model.processId
         val collisions = mutableListOf<CollisionDetail>()
         collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode"))
-        collisions.addAll(findCollisionsIn(modelId, model.serviceTasks, "ServiceTask"))
-        collisions.addAll(findCollisionsIn(modelId, model.definitions.messages, "Message"))
-        collisions.addAll(findCollisionsIn(modelId, model.definitions.signals, "Signal"))
-        collisions.addAll(findCollisionsIn(modelId, model.definitions.errors, "Error"))
         collisions.addAll(findCollisionsIn(modelId, model.timers, "Timer"))
         collisions.addAll(findCollisionsIn(modelId, model.variables, "Variable"))
         collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode") { it.getRawName().toCamelCase() })
         return collisions.distinctBy { Triple(it.processId, it.variableType, it.conflictingIds) }
+    }
+
+    fun findSharedCollisions(models: List<ProcessModel>): List<CollisionDetail> = listOf(
+        findSharedCollisionsIn(models, "ServiceTask") { it.serviceTasks },
+        findSharedCollisionsIn(models, "Message") { it.definitions.messages },
+        findSharedCollisionsIn(models, "Signal") { it.definitions.signals },
+        findSharedCollisionsIn(models, "Error") { it.definitions.errors },
+        findSharedCollisionsIn(models, "Escalation") { it.definitions.escalations },
+    ).flatten()
+
+    private fun <T : VariableMapping<*>> findSharedCollisionsIn(
+        models: List<ProcessModel>,
+        variableType: String,
+        itemsOf: (ProcessModel) -> List<T>,
+    ): List<CollisionDetail> {
+        val usages = models.flatMap { model ->
+            itemsOf(model).filter { it.getName().isNotEmpty() }.map { model.processId to it }
+        }
+        val usagesPerConstantName = usages.groupBy { (_, item) -> item.getName() }
+        return usagesPerConstantName.mapNotNull { (constantName, usagesWithSameName) ->
+            val distinctItems = usagesWithSameName.map { (_, item) -> item }.distinctBy { it.getValue() }
+            if (distinctItems.size < 2) return@mapNotNull null
+            CollisionDetail(
+                processId = usagesWithSameName.map { (processId, _) -> processId }.distinct().sorted().joinToString(", "),
+                variableType = variableType,
+                constantName = constantName,
+                conflictingIds = distinctItems.map { it.getRawName() }.sorted(),
+            )
+        }
     }
 
     private fun <T : VariableMapping<*>> findCollisionsIn(

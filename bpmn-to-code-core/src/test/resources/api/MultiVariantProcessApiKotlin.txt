@@ -5,15 +5,12 @@ package de.emaarco.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BpmnEngine
-import io.miragon.bpmn.runtime.BpmnEscalation
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
-import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.VariableName
-import kotlin.String
 import kotlin.Suppress
 
 object SendNewsletterProcessApi {
@@ -70,41 +67,10 @@ object SendNewsletterProcessApi {
   }
 
   /**
-   * BPMN message names used to correlate messages to running process instances.
-   */
-  object Messages {
-    val MESSAGE_MAIL_REJECTED: MessageName = MessageName("Message_MailRejected")
-
-    val MESSAGE_MAIL_REJECTED_AGAIN: MessageName = MessageName("Message_MailRejectedAgain")
-  }
-
-  /**
-   * Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.
-   * Kept as `const val String` because annotation arguments must be compile-time constants.
-   */
-  object ServiceTasks {
-    const val NEWSLETTER_ANALYZE_SEND_ERROR: String = "newsletter.analyzeSendError"
-
-    const val NEWSLETTER_LOAD_SUBSCRIBERS: String = "newsletter.loadSubscribers"
-
-    const val NEWSLETTER_NOTIFY_AUTHOR: String = "newsletter.notifyAuthor"
-
-    const val NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER: String = "newsletter.sendMailToSubscriber"
-  }
-
-  /**
    * Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
    */
   object Timers {
     val TIMER_NO_REJECTION_FOR_ONE_DAY: BpmnTimer = BpmnTimer("Duration", "PT1D")
-  }
-
-  /**
-   * BPMN escalation definitions with name and code, as thrown and caught by the process.
-   */
-  object Escalations {
-    val ESCALATION_NOTIFY_SUPPORT_200: BpmnEscalation =
-        BpmnEscalation("escalation_notifySupport", "200")
   }
 
   /**

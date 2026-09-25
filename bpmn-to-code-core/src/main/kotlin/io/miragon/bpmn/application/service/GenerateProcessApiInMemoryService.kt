@@ -9,8 +9,10 @@ import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
+import io.miragon.bpmn.domain.service.SharedDefinitionsService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class GenerateProcessApiInMemoryService(
@@ -19,6 +21,7 @@ class GenerateProcessApiInMemoryService(
 ) : GenerateProcessApiInMemoryUseCase {
 
     private val modelMergerService = ModelMergerService()
+    private val sharedDefinitionsService = SharedDefinitionsService()
 
     override fun generateProcessApi(
         command: GenerateProcessApiInMemoryUseCase.Command,
@@ -29,9 +32,9 @@ class GenerateProcessApiInMemoryService(
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(models)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
-        return mergedModels
-            .flatMap { codeGenerator.generateCode(toModelApi(command, it)) }
-            .distinctBy { it.packagePath to it.fileName }
+        val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toModelApi(command, it)) }
+        val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(command, mergedModels))
+        return (processFiles + sharedFiles).distinctBy { it.packagePath to it.fileName }
     }
 
     private fun toModelApi(
@@ -42,6 +45,15 @@ class GenerateProcessApiInMemoryService(
         outputLanguage = command.outputLanguage,
         packagePath = command.packagePath,
         targetEngine = command.engine,
+    )
+
+    private fun toSharedDefinitionsApi(
+        command: GenerateProcessApiInMemoryUseCase.Command,
+        models: List<ProcessModel>,
+    ) = SharedDefinitionsApi(
+        definitions = sharedDefinitionsService.collect(models),
+        outputLanguage = command.outputLanguage,
+        packagePath = command.packagePath,
     )
 
     private fun toBpmnFiles(

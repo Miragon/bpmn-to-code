@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
@@ -20,6 +21,7 @@ import io.miragon.bpmn.domain.validation.rules.MissingProcessIdRule
 import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
 import io.miragon.bpmn.domain.validation.rules.MissingSignalNameRule
 import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
+import io.miragon.bpmn.domain.validation.rules.SharedDefinitionCollisionRule
 
 class BpmnValidationService(
     private val config: ValidationConfig = ValidationConfig(),
@@ -28,6 +30,7 @@ class BpmnValidationService(
     private val logger = KotlinLogging.logger {}
 
     private val allRules = builtInRules()
+    private val crossModelRules = builtInCrossModelRules()
 
     init {
         warnOnDisabledMandatoryRules()
@@ -38,10 +41,19 @@ class BpmnValidationService(
             .filter { it.phase == phase }
             .filterNot { it.id in config.disabledRules && !it.mandatory }
 
-        return models.flatMap { model ->
+        val singleModelViolations = models.flatMap { model ->
             val ctx = SingleModelValidationContext(model, engine)
             activeRules.flatMap { it.validate(ctx) }
         }
+        return singleModelViolations + collectCrossModelViolations(models, engine, phase)
+    }
+
+    private fun collectCrossModelViolations(models: List<ProcessModel>, engine: ProcessEngine, phase: ValidationPhase): List<ValidationViolation> {
+        if (phase != ValidationPhase.POST_MERGE) return emptyList()
+        val ctx = CrossModelValidationContext(models, engine)
+        return crossModelRules
+            .filterNot { it.id in config.disabledRules && !it.mandatory }
+            .flatMap { it.validate(ctx) }
     }
 
     fun validate(models: List<ProcessModel>, engine: ProcessEngine, phase: ValidationPhase) {
@@ -76,7 +88,7 @@ class BpmnValidationService(
      * warning rather than silently ignored — the rule is kept active regardless.
      */
     private fun warnOnDisabledMandatoryRules() {
-        allRules
+        (allRules + crossModelRules)
             .filter { it.mandatory && it.id in config.disabledRules }
             .forEach { rule ->
                 logger.warn { "[BPMN VALIDATION] Rule '${rule.id}' is mandatory and cannot be disabled; keeping it active." }
@@ -97,6 +109,10 @@ class BpmnValidationService(
             EmptyProcessRule(),
             MissingProcessIdRule(),
             CollisionDetectionRule(),
+        )
+
+        private fun builtInCrossModelRules() = listOf(
+            SharedDefinitionCollisionRule(),
         )
     }
 }

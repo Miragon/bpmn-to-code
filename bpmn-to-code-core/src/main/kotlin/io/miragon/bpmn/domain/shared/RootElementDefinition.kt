@@ -76,10 +76,12 @@ sealed interface RootElementDefinition {
         override fun getValue() = (name ?: "") to (code ?: "")
         override fun getRawName() = nameWithCode(name, code)
     }
-}
 
-private fun nameWithCode(name: String?, code: String?): String = when {
-    name.isNullOrEmpty() -> ""
-    code.isNullOrEmpty() -> name
-    else -> "${name}_$code"
+    private companion object {
+        fun nameWithCode(name: String?, code: String?): String = when {
+            name.isNullOrEmpty() -> ""
+            code.isNullOrEmpty() -> name
+            else -> "${name}_$code"
+        }
+    }
 }

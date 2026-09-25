@@ -49,7 +49,15 @@ class GenerateProcessApiServiceTest {
         )
         every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(dummyResource)
         every { bpmnService.extract(any(), any()) } returns dummyModel
+        val sharedFile = GeneratedApiFile(
+            fileName = "ServiceTasks.kt",
+            packagePath = "de.emaarco.example",
+            content = "// generated code",
+            language = OutputLanguage.KOTLIN,
+            processId = null,
+        )
         every { codeGenerator.generateCode(any()) } returns listOf(expectedGeneratedFile)
+        every { codeGenerator.generateSharedCode(any()) } returns listOf(sharedFile)
         val command = GenerateProcessApiFromFilesystemUseCase.Command(
             baseDir = "baseDir",
             filePattern = "*.bpmn",
@@ -66,7 +74,8 @@ class GenerateProcessApiServiceTest {
         val expectedModelApi = getExpectedModelApi()
         verify { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") }
         verify { codeGenerator.generateCode(expectedModelApi) }
-        verify { fileSystemOutput.writeFiles(listOf(expectedGeneratedFile), "outputFolder") }
+        verify { codeGenerator.generateSharedCode(match { it.packagePath == "de.emaarco.example" && it.outputLanguage == OutputLanguage.KOTLIN }) }
+        verify { fileSystemOutput.writeFiles(listOf(expectedGeneratedFile, sharedFile), "outputFolder") }
         confirmVerified(codeGenerator, bpmnFileLoader, fileSystemOutput)
         assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("dummy.bpmn"))))
     }

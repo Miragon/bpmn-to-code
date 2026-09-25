@@ -15,11 +15,6 @@ internal enum class ApiObjectType {
     FLOW,
     VARIANTS,
     CALL_ACTIVITIES,
-    MESSAGES,
-    SERVICE_TASKS,
     TIMERS,
-    ERRORS,
-    ESCALATIONS,
-    SIGNALS,
     VARIABLES,
 }

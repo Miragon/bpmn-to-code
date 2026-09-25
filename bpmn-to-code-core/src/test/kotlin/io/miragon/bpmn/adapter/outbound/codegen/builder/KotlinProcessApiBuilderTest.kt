@@ -5,7 +5,6 @@ import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.testProcessModelApi
@@ -58,7 +57,6 @@ class KotlinProcessApiBuilderTest {
 
         // and: key KDoc blocks disambiguate the nested objects
         assertThat(result.content).contains("process-level tests")
-        assertThat(result.content).contains("@JobWorker(type = ServiceTasks.X)")
         assertThat(result.content).contains("Typed navigation over the process flow")
     }
 
@@ -82,25 +80,6 @@ class KotlinProcessApiBuilderTest {
         // then: output contains Variants section instead of a flat Flow
         val expectedFile = File(requireNotNull(javaClass.getResource("/api/MultiVariantProcessApiKotlin.txt")).toURI())
         assertThat(result.content).isEqualTo(expectedFile.readText())
-        assertKotlinSyntaxValid(result.content)
-    }
-
-    @Test
-    fun `buildApiFile emits one constant for root elements that share a name`() {
-        // given: two bpmn:Message root elements with the same name and their own ids — the domain keeps
-        // both so that every messageRef resolves, but they normalise to a single constant
-        val model = testSubscribeNewsletterModel(
-            messages = listOf(
-                RootElementDefinition.Message(id = "Message_1", name = "Message_FormSubmitted"),
-                RootElementDefinition.Message(id = "Message_2", name = "Message_FormSubmitted"),
-            ),
-        )
-
-        // when
-        val result = underTest.buildApiFile(testProcessModelApi(model = model))
-
-        // then: a duplicate property would not compile, so the collapsing has to happen before emitting
-        assertThat(result.content.split("val MESSAGE_FORM_SUBMITTED").size - 1).isEqualTo(1)
         assertKotlinSyntaxValid(result.content)
     }
 

@@ -38,12 +38,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
         ApiObjectType.ELEMENTS to ElementsWriter(),
         ApiObjectType.CALL_ACTIVITIES to CallActivitiesWriter(),
-        ApiObjectType.MESSAGES to MessagesWriter(),
-        ApiObjectType.SERVICE_TASKS to ServiceTasksWriter(),
         ApiObjectType.TIMERS to TimersWriter(),
-        ApiObjectType.ERRORS to ErrorsWriter(),
-        ApiObjectType.ESCALATIONS to EscalationsWriter(),
-        ApiObjectType.SIGNALS to SignalsWriter(),
         ApiObjectType.VARIABLES to VariablesWriter(),
         ApiObjectType.FLOW to FlowWriter(),
         ApiObjectType.VARIANTS to VariantsWriter(),
@@ -209,51 +204,6 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private inner class MessagesWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val messageNameClass = ClassName(RUNTIME_PACKAGE, "MessageName")
-            val messagesBuilder = TypeSpec.objectBuilder("Messages")
-                .addKdoc("BPMN message names used to correlate messages to running process instances.")
-            modelApi.model.definitions.messages.asApiConstants().forEach { message ->
-                messagesBuilder.addProperty(createTypedAttribute(message, messageNameClass))
-            }
-            builder.addType(messagesBuilder.build())
-        }
-    }
-
-    /**
-     * `ServiceTasks` intentionally emits `const val String` rather than a typed wrapper.
-     * Its primary call site is `@JobWorker(type = ServiceTasks.X)` — Kotlin annotation arguments
-     * require compile-time constants, which rules out `@JvmInline value class` instances.
-     */
-    private inner class ServiceTasksWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val tasksBuilder = TypeSpec.objectBuilder("ServiceTasks")
-                .addKdoc(
-                    "Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.\n" +
-                        "Kept as `const val String` because annotation arguments must be compile-time constants.",
-                )
-            modelApi.model.serviceTasks.asApiConstants()
-                .forEach { task -> tasksBuilder.addProperty(createAttribute(task)) }
-            builder.addType(tasksBuilder.build())
-        }
-    }
-
-    private inner class SignalsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val signalNameClass = ClassName(RUNTIME_PACKAGE, "SignalName")
-            val signalsBuilder = TypeSpec.objectBuilder("Signals")
-                .addKdoc("BPMN signal names broadcast and caught by signal events.")
-            modelApi.model.definitions.signals.asApiConstants().forEach { signal ->
-                signalsBuilder.addProperty(createTypedAttribute(signal, signalNameClass))
-            }
-            builder.addType(signalsBuilder.build())
-        }
-    }
-
     private inner class VariablesWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
@@ -291,38 +241,6 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private class ErrorsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnErrorClass = ClassName(RUNTIME_PACKAGE, "BpmnError")
-            val errorsBuilder = TypeSpec.objectBuilder("Errors")
-                .addKdoc("BPMN error definitions with name and code, as thrown and caught by the process.")
-            modelApi.model.definitions.errors.asApiConstants().forEach {
-                val (errorName, errorCode) = it.getValue()
-                val instanceBuilder = PropertySpec.builder(it.getName(), bpmnErrorClass)
-                val variable = instanceBuilder.initializer("BpmnError(\"$errorName\", \"$errorCode\")")
-                errorsBuilder.addProperty(variable.build())
-            }
-            builder.addType(errorsBuilder.build())
-        }
-    }
-
-    private class EscalationsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnEscalationClass = ClassName(RUNTIME_PACKAGE, "BpmnEscalation")
-            val escalationsBuilder = TypeSpec.objectBuilder("Escalations")
-                .addKdoc("BPMN escalation definitions with name and code, as thrown and caught by the process.")
-            modelApi.model.definitions.escalations.asApiConstants().forEach {
-                val (escalationName, escalationCode) = it.getValue()
-                val instanceBuilder = PropertySpec.builder(it.getName(), bpmnEscalationClass)
-                val variable = instanceBuilder.initializer("BpmnEscalation(\"$escalationName\", \"$escalationCode\")")
-                escalationsBuilder.addProperty(variable.build())
-            }
-            builder.addType(escalationsBuilder.build())
-        }
-    }
-
     private inner class TimersWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
@@ -339,18 +257,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private fun createAttribute(variable: VariableMapping<String>): PropertySpec = PropertySpec.builder(variable.getName(), String::class)
-        .addModifiers(KModifier.CONST)
-        .initializer("%L", stringLiteral(variable.getValue()))
-        .build()
-
     private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): PropertySpec = PropertySpec.builder(variable.getName(), wrapperClass)
         .initializer("%T(%L)", wrapperClass, stringLiteral(variable.getValue()))
         .build()
-
-    private fun stringLiteral(value: String): CodeBlock = if (value.contains("\${")) {
-        CodeBlock.of("\$\$\"\"\"%L\"\"\"", value)
-    } else {
-        CodeBlock.of("%S", value)
-    }
 }

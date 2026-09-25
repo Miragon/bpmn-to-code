@@ -249,7 +249,7 @@ function renderResults(files, language) {
             <div class="code-file-header">
                 <div>
                     <div class="code-file-title">${escapeHtml(file.fileName)}</div>
-                    <div class="code-file-meta">Process: ${escapeHtml(file.processId)}</div>
+                    <div class="code-file-meta">${file.processId ? `Process: ${escapeHtml(file.processId)}` : 'Shared across processes'}</div>
                 </div>
                 <div class="code-file-actions">
                     <button class="btn-copy" onclick="copyToClipboard(${files.indexOf(file)})">

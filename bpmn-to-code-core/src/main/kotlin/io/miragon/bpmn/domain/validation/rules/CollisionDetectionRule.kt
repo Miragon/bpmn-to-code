@@ -8,8 +8,9 @@ import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
- * Flags when distinct BPMN elements collapse to the same generated constant name, causing ID clashes.
- * Runs post-merge, so it also catches collisions introduced by combining models.
+ * Flags when distinct BPMN elements collapse to the same generated constant name within one Process API,
+ * causing ID clashes. Runs post-merge, so it also catches collisions introduced by combining models.
+ * Identifiers generated once for all processes are checked by [SharedDefinitionCollisionRule].
  */
 class CollisionDetectionRule(
     private val collisionDetectionService: CollisionDetectionService = CollisionDetectionService(),

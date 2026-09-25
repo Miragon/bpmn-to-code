@@ -61,14 +61,16 @@ class GradlePluginDependencyResolutionSmokeTest {
             .withArguments("generateBpmnModelApi")
             .build()
 
-        // then: the task succeeds and generates only ProcessApi Kotlin files (shared types ship via runtime artifact)
+        // then: the task succeeds and generates the ProcessApi and shared definition Kotlin files (runtime types ship via runtime artifact)
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
         val packageDir = File(projectDir, "build/generated/io/miragon/smoketest")
         assertThat(packageDir).isDirectory()
         val generatedFiles = requireNotNull(packageDir.listFiles())
         assertThat(generatedFiles).isNotEmpty()
         assertThat(generatedFiles).allSatisfy { file -> assertThat(file.isFile).isTrue() }
-        assertThat(generatedFiles).allSatisfy { file -> assertThat(file.name).endsWith("ProcessApi.kt") }
+        assertThat(generatedFiles).allSatisfy { file -> assertThat(file.name).endsWith(".kt") }
+        assertThat(generatedFiles.map { it.name }).anyMatch { it.endsWith("ProcessApi.kt") }
+        assertThat(generatedFiles.map { it.name }).contains("ServiceTasks.kt")
     }
 
     @Test
