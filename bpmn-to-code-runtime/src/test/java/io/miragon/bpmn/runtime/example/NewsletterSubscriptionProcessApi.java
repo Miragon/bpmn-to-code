@@ -117,7 +117,7 @@ public final class NewsletterSubscriptionProcessApi {
   }
 
   public static final class Errors {
-    public static final BpmnError ERROR_INVALID_MAIL = new BpmnError("Error_InvalidMail", "500");
+    public static final BpmnError ERROR_INVALID_MAIL_500 = new BpmnError("Error_InvalidMail", "500");
   }
 
   public static final class Signals {

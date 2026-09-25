@@ -132,7 +132,7 @@ object NewsletterSubscriptionProcessApi {
   }
 
   object Errors {
-    val ERROR_INVALID_MAIL: BpmnError = BpmnError("Error_InvalidMail", "500")
+    val ERROR_INVALID_MAIL_500: BpmnError = BpmnError("Error_InvalidMail", "500")
   }
 
   object Signals {

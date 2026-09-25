@@ -115,7 +115,7 @@ public static class NewsletterSubscriptionProcessApi
     /// </summary>
     public static class Errors
     {
-        public static class ErrorInvalidMail
+        public static class ErrorInvalidMail500
         {
             public const string Reference = "Error_InvalidMail";
             public const string Code = "500";

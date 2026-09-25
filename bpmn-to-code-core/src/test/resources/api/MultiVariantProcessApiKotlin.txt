@@ -103,7 +103,7 @@ object SendNewsletterProcessApi {
    * BPMN escalation definitions with name and code, as thrown and caught by the process.
    */
   object Escalations {
-    val ESCALATION_NOTIFY_SUPPORT: BpmnEscalation =
+    val ESCALATION_NOTIFY_SUPPORT_200: BpmnEscalation =
         BpmnEscalation("escalation_notifySupport", "200")
   }
 

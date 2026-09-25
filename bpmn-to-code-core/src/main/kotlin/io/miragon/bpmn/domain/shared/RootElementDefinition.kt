@@ -58,9 +58,9 @@ sealed interface RootElementDefinition {
         private val code: String?,
     ) : RootElementDefinition,
         VariableMapping<Pair<String, String>> {
-        override fun getName() = name?.toUpperSnakeCase() ?: ""
+        override fun getName() = getRawName().toUpperSnakeCase()
         override fun getValue() = (name ?: "") to (code ?: "")
-        override fun getRawName() = name ?: ""
+        override fun getRawName() = nameWithCode(name, code)
     }
 
     /**
@@ -72,8 +72,14 @@ sealed interface RootElementDefinition {
         private val code: String?,
     ) : RootElementDefinition,
         VariableMapping<Pair<String, String>> {
-        override fun getName() = name?.toUpperSnakeCase() ?: ""
+        override fun getName() = getRawName().toUpperSnakeCase()
         override fun getValue() = (name ?: "") to (code ?: "")
-        override fun getRawName() = name ?: ""
+        override fun getRawName() = nameWithCode(name, code)
     }
+}
+
+private fun nameWithCode(name: String?, code: String?): String = when {
+    name.isNullOrEmpty() -> ""
+    code.isNullOrEmpty() -> name
+    else -> "${name}_$code"
 }

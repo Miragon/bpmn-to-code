@@ -96,7 +96,7 @@ public final class SendNewsletterProcessApi {
    * BPMN escalation definitions with name and code, as thrown and caught by the process.
    */
   public static final class Escalations {
-    public static final BpmnEscalation ESCALATION_NOTIFY_SUPPORT = new BpmnEscalation("escalation_notifySupport", "200");
+    public static final BpmnEscalation ESCALATION_NOTIFY_SUPPORT_200 = new BpmnEscalation("escalation_notifySupport", "200");
   }
 
   /**

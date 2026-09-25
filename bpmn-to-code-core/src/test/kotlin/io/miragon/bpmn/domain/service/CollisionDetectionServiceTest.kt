@@ -266,7 +266,7 @@ class CollisionDetectionServiceTest {
         // then: one Error collision is reported
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("Error")
-        assertThat(collisions[0].constantName).isEqualTo("ERROR_INVALID_MAIL")
+        assertThat(collisions[0].constantName).isEqualTo("ERROR_INVALID_MAIL_400")
     }
 
     @Test
