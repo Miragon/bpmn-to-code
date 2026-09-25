@@ -5,6 +5,7 @@ import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.RootElementDefinition
@@ -35,7 +36,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
     }
 
     private fun serviceTasks(serviceTasks: List<ServiceTaskDefinition>): TypeSpec? = serviceTasks.ifNotEmpty {
-        val tasksBuilder = TypeSpec.classBuilder("ServiceTasks").addModifiers(PUBLIC, FINAL)
+        val tasksBuilder = TypeSpec.classBuilder(SharedDefinitionType.SERVICE_TASKS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc(
                 "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
                     "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
@@ -46,7 +47,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun messages(messages: List<RootElementDefinition.Message>): TypeSpec? = messages.ifNotEmpty {
         val messageNameClass = ClassName.get(RUNTIME_PACKAGE, "MessageName")
-        val messagesBuilder = TypeSpec.classBuilder("Messages").addModifiers(PUBLIC, FINAL)
+        val messagesBuilder = TypeSpec.classBuilder(SharedDefinitionType.MESSAGES.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN message names used to correlate messages to running process instances.\n")
         messages.forEach { message -> messagesBuilder.addField(createTypedAttribute(message, messageNameClass)) }
         messagesBuilder.build()
@@ -54,7 +55,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun signals(signals: List<RootElementDefinition.Signal>): TypeSpec? = signals.ifNotEmpty {
         val signalNameClass = ClassName.get(RUNTIME_PACKAGE, "SignalName")
-        val signalsBuilder = TypeSpec.classBuilder("Signals").addModifiers(PUBLIC, FINAL)
+        val signalsBuilder = TypeSpec.classBuilder(SharedDefinitionType.SIGNALS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN signal names broadcast and caught by signal events.\n")
         signals.forEach { signal -> signalsBuilder.addField(createTypedAttribute(signal, signalNameClass)) }
         signalsBuilder.build()
@@ -62,7 +63,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun errors(errors: List<RootElementDefinition.Error>): TypeSpec? = errors.ifNotEmpty {
         val bpmnErrorClass = ClassName.get(RUNTIME_PACKAGE, "BpmnError")
-        val errorsBuilder = TypeSpec.classBuilder("Errors").addModifiers(PUBLIC, FINAL)
+        val errorsBuilder = TypeSpec.classBuilder(SharedDefinitionType.ERRORS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN error definitions with name and code, as thrown and caught by the processes.\n")
         errors.forEach { errorsBuilder.addField(createNameAndCodeAttribute(it, bpmnErrorClass)) }
         errorsBuilder.build()
@@ -70,7 +71,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun escalations(escalations: List<RootElementDefinition.Escalation>): TypeSpec? = escalations.ifNotEmpty {
         val bpmnEscalationClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEscalation")
-        val escalationsBuilder = TypeSpec.classBuilder("Escalations").addModifiers(PUBLIC, FINAL)
+        val escalationsBuilder = TypeSpec.classBuilder(SharedDefinitionType.ESCALATIONS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN escalation definitions with name and code, as thrown and caught by the processes.\n")
         escalations.forEach { escalationsBuilder.addField(createNameAndCodeAttribute(it, bpmnEscalationClass)) }
         escalationsBuilder.build()

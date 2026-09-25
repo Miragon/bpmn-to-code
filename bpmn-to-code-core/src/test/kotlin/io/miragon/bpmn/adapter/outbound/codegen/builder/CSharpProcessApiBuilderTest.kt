@@ -7,8 +7,10 @@ import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
@@ -123,11 +125,32 @@ class CSharpProcessApiBuilderTest {
     fun `node carries job type, variables and call-activity mappings`() {
         val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
 
-        assertThat(result.content).contains("public const string JobType = \"newsletter.sendWelcomeMail\";")
+        assertThat(result.content).contains("public const string JobType = ServiceTasks.NewsletterSendWelcomeMail;")
         assertThat(result.content).contains("public Runtime.VariableName.Input SubscriptionId { get; } = new(\"subscriptionId\");")
         assertThat(result.content).contains("public Runtime.ProcessId CalledProcess { get; } = new(\"abort-registration\");")
-        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(\"Message_FormSubmitted\");")
-        assertThat(result.content).contains("public Runtime.BpmnError Error { get; } = new(\"Error_InvalidMail\", \"500\");")
+        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.MessageFormSubmitted);")
+        assertThat(result.content).contains("public Runtime.BpmnError Error { get; } = new(Errors.ErrorInvalidMail500.Reference, Errors.ErrorInvalidMail500.Code);")
+    }
+
+    @Test
+    fun `node references a shared constant under the name its shared class gives it`() {
+        // given: a message named exactly like the shared class, which renames the constant (CS0542)
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Event(
+                    id = "onMessage",
+                    shape = EventShape.START_EVENT,
+                    eventDefinitions = listOf(EventDefinitionInstance.Message(MessageReference(messageRef = "Messages"))),
+                ),
+            ),
+            messages = listOf(RootElementDefinition.Message(id = "Messages", name = "Messages")),
+        )
+
+        // when: we build the process API file
+        val result = underTest.buildApiFile(csharpApi(model))
+
+        // then: the node points at the renamed constant
+        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.Messages_);")
     }
 
     @Test

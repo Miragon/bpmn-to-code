@@ -195,7 +195,7 @@ class ProcessPathKotlinApiTest {
 
     @Test
     fun `nodes expose their display name, typed sequence-flow edges and their own facets`() {
-        assertThat(Newsletter.UserTaskConfirmRegistration.name).isEqualTo("Confirm registration")
+        assertThat(Newsletter.ReceiveTaskConfirmRegistration.name).isEqualTo("Confirm registration")
         assertThat(Newsletter.StartEventSubmitRegistrationForm.name).isNull()
 
         val edge = Newsletter.StartEventSubmitRegistrationForm.flows().flowSubmitToIncrementCounter
@@ -211,7 +211,7 @@ class ProcessPathKotlinApiTest {
         assertThat(Newsletter.ErrorEventInvalidMail.error).isEqualTo(BpmnError("Error_InvalidMail", "500"))
 
         assertThat(Newsletter.TimerEveryDay.timer).isEqualTo(BpmnTimer("Duration", "PT1M"))
-        assertThat(Newsletter.TimerEveryDay.attachedTo).isEqualTo(Newsletter.UserTaskConfirmRegistration)
+        assertThat(Newsletter.TimerEveryDay.attachedTo).isEqualTo(Newsletter.ReceiveTaskConfirmRegistration)
         assertThat(Newsletter.TimerEveryDay.isInterrupting).isFalse()
 
         assertThat(Newsletter.CallActivityAbortRegistration.calledProcess).isEqualTo(ProcessId("abort-registration"))

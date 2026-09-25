@@ -77,7 +77,7 @@ object NewsletterSubscriptionProcessApi {
   object Flow {
     object StartEventSubmitRegistrationForm : AbstractFlowNode(ElementId("startEvent_submitRegistrationForm"), "MESSAGE_START_EVENT", "Submit newsletter form"),
         HasSuccessors<StartEventSubmitRegistrationForm.Next>, HasFlows<StartEventSubmitRegistrationForm.Flows> {
-      val message: MessageName = MessageName("Message_FormSubmitted")
+      val message: MessageName = Messages.MESSAGE_FORM_SUBMITTED
       override fun then(): Next = Next
       override fun flows(): Flows = Flows
       object Variables { val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId") }
@@ -90,18 +90,18 @@ object NewsletterSubscriptionProcessApi {
 
     object ServiceTaskSendConfirmationMail : AbstractFlowNode(ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK", "Send confirmation mail"),
         HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasFlows<ServiceTaskSendConfirmationMail.Flows> {
-      const val JOB_TYPE: String = "newsletter.sendConfirmationMail"
+      const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL
       override fun then(): Next = Next
       override fun flows(): Flows = Flows
       object Variables { val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId") }
-      object Next { val userTaskConfirmRegistration get() = UserTaskConfirmRegistration }
+      object Next { val receiveTaskConfirmRegistration get() = ReceiveTaskConfirmRegistration }
       object Flows { /* one typed edge per outgoing sequence flow */ }
     }
 
     object TimerEveryDay : AbstractFlowNode(ElementId("timer_everyDay"), "TIMER_BOUNDARY_EVENT", "Every day"),
         HasSuccessors<TimerEveryDay.Next>, HasFlows<TimerEveryDay.Flows> {
       val timer: BpmnTimer = BpmnTimer("Duration", "PT1M")
-      val attachedTo: UserTaskConfirmRegistration get() = UserTaskConfirmRegistration
+      val attachedTo: ReceiveTaskConfirmRegistration get() = ReceiveTaskConfirmRegistration
       val isInterrupting: Boolean = false
       // …
     }
@@ -158,7 +158,7 @@ public final class NewsletterSubscriptionProcessApi {
 
         public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode
                 implements HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasFlows<ServiceTaskSendConfirmationMail.Flows> {
-            public static final String JOB_TYPE = "newsletter.sendConfirmationMail";
+            public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL;
 
             public ServiceTaskSendConfirmationMail() {
                 super(new ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK", "Send confirmation mail");
@@ -171,11 +171,11 @@ public final class NewsletterSubscriptionProcessApi {
                 public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
             }
             public static final class Next {
-                public UserTaskConfirmRegistration userTaskConfirmRegistration() { return new UserTaskConfirmRegistration(); }
+                public ReceiveTaskConfirmRegistration receiveTaskConfirmRegistration() { return new ReceiveTaskConfirmRegistration(); }
             }
             public static final class Flows {
-                public SequenceFlow<UserTaskConfirmRegistration> flowConfirmationMailToConfirm() {
-                    return new SequenceFlow<>(new ElementId("flow_confirmationMailToConfirm"), null, null, false, new UserTaskConfirmRegistration());
+                public SequenceFlow<ReceiveTaskConfirmRegistration> flowConfirmationMailToConfirm() {
+                    return new SequenceFlow<>(new ElementId("flow_confirmationMailToConfirm"), null, null, false, new ReceiveTaskConfirmRegistration());
                 }
             }
         }
@@ -211,7 +211,7 @@ public static class NewsletterSubscriptionProcessApi
         {
             public static readonly ServiceTaskSendConfirmationMail Instance = new();
             private ServiceTaskSendConfirmationMail() { }
-            public const string JobType = "newsletter.sendConfirmationMail";
+            public const string JobType = ServiceTasks.NewsletterSendConfirmationMail;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_sendConfirmationMail");
             public string ElementType => "SERVICE_TASK";
@@ -226,13 +226,13 @@ public static class NewsletterSubscriptionProcessApi
             public Successors Next => new();
             public sealed class Successors
             {
-                public UserTaskConfirmRegistration UserTaskConfirmRegistration => UserTaskConfirmRegistration.Instance;
+                public ReceiveTaskConfirmRegistration ReceiveTaskConfirmRegistration => ReceiveTaskConfirmRegistration.Instance;
             }
 
             public SequenceFlows Flows => new();
             public sealed class SequenceFlows
             {
-                public Runtime.SequenceFlow<UserTaskConfirmRegistration> FlowConfirmationMailToConfirm => new(new("flow_confirmationMailToConfirm"), null, null, false, UserTaskConfirmRegistration.Instance);
+                public Runtime.SequenceFlow<ReceiveTaskConfirmRegistration> FlowConfirmationMailToConfirm => new(new("flow_confirmationMailToConfirm"), null, null, false, ReceiveTaskConfirmRegistration.Instance);
             }
         }
         // …
@@ -263,11 +263,11 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | Member | Present on | Type | Mirrors in JSON |
 |---|---|---|---|
 | `id`, `elementType`, `name` | every node | `ElementId`, `String`, `String?` | `id`, `type`, `name` |
-| `JOB_TYPE` | tasks and events with an implementation | `const String` | `implementation.jobType` |
+| `JOB_TYPE` | tasks and events with an implementation | `const String`, referring to `ServiceTasks` | `implementation.jobType` |
 | `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut` | `variables[]` |
 | `calledProcess`, `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
 | `timer` | timer events | `BpmnTimer` | `eventDefinitions[timer]` |
-| `message` / `signal` / `error` / `escalation` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnError` / `BpmnEscalation` | `eventDefinitions[*]` |
+| `message` / `signal` / `error` / `escalation` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnError` / `BpmnEscalation`, referring to the shared definition | `eventDefinitions[*]` |
 | `attachedTo` | boundary events | the host node | `attachedToRef` |
 | `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
 | `then()` → `Next` | nodes with successors | the reachable nodes, boundary events included | `outgoing` |
@@ -280,10 +280,12 @@ final fields (`.timer`, `.calledProcess`), `attachedTo()` as a method, and `JOB_
 and keeps `JobType` a `const` on the class.
 
 ::: tip `ServiceTasks.X` or `Flow.X.JOB_TYPE`?
-Both hold the same string, keyed differently. `ServiceTasks` has **one constant per distinct job type**
-(two tasks sharing a worker share the constant) and is the canonical argument for `@JobWorker(type = …)`.
-`Flow.<Task>.JOB_TYPE` tells you which job type **this element** uses — handy in tests that go from an
-element to its worker.
+Both are the same constant: `Flow.<Task>.JOB_TYPE` **is** `ServiceTasks.X`. `ServiceTasks` has **one
+constant per distinct job type** across all processes of the run and is the canonical argument for
+`@JobWorker(type = …)`; `Flow.<Task>.JOB_TYPE` tells you which of them **this element** uses — handy in
+tests that go from an element to its worker. Messages, signals, errors and escalations work the same way:
+`Flow.X.message` is the `Messages` constant. Only a value that no root element of the model declares is
+written on the node itself.
 :::
 
 ### Sequence flows as typed edges
@@ -358,7 +360,7 @@ val path = ProcessPath.from(Flow.StartEventSubmitRegistrationForm)
     .inside {                                               // walk its interior, resume on the subprocess node
         enter { it.startEventRequestReceived }
             .then { it.serviceTaskSendConfirmationMail }
-            .then { it.userTaskConfirmRegistration }
+            .then { it.receiveTaskConfirmRegistration }
             .then { it.endEventSubscriptionConfirmed }
     }
     .then { it.gatewaySplitNotifications }                  // checked — continues after the subprocess

@@ -76,16 +76,16 @@ data class FlowGraph(
      *   event whether it interrupts the parent scope.
      */
     data class NodeFacets(
-        val jobType: String? = null,
+        val jobType: SharedValue<String>? = null,
         val variables: List<VariableFacet> = emptyList(),
         val calledProcessId: String? = null,
         val inputs: List<MappingFacet> = emptyList(),
         val outputs: List<MappingFacet> = emptyList(),
         val timer: TimerFacet? = null,
-        val message: String? = null,
-        val signal: String? = null,
-        val error: NamedCode? = null,
-        val escalation: NamedCode? = null,
+        val message: SharedValue<String>? = null,
+        val signal: SharedValue<String>? = null,
+        val error: SharedValue<NamedCode>? = null,
+        val escalation: SharedValue<NamedCode>? = null,
         val attachedTo: FlowEdge? = null,
         val isInterrupting: Boolean? = null,
     )
@@ -111,5 +111,24 @@ data class FlowGraph(
     data class NamedCode(
         val name: String,
         val code: String,
+    )
+
+    /**
+     * A node's job type, message, signal, error or escalation. [constant] names the shared definition holding
+     * [value]; it is `null` when no root element of the model declares the value, as then no shared constant
+     * exists and the node has to carry the value itself.
+     */
+    data class SharedValue<T>(
+        val value: T,
+        val constant: SharedConstant?,
+    )
+
+    /**
+     * A constant of the shared definition files: [name] as Kotlin and Java declare it, [rawName] as the source
+     * of the C# member name.
+     */
+    data class SharedConstant(
+        val name: String,
+        val rawName: String,
     )
 }

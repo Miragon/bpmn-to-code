@@ -121,7 +121,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class EscalationEndEventNofitySupport extends AbstractFlowNode {
-        public final BpmnEscalation escalation = new BpmnEscalation("escalation_notifySupport", "200");
+        public final BpmnEscalation escalation = Escalations.ESCALATION_NOTIFY_SUPPORT_200;
 
         public EscalationEndEventNofitySupport() {
           super(new ElementId("escalationEndEvent_nofitySupport"), "ESCALATION_END_EVENT");
@@ -171,7 +171,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class EventMailRejected extends AbstractFlowNode implements HasSuccessors<EventMailRejected.Next>, HasFlows<EventMailRejected.Flows> {
-        public final MessageName message = new MessageName("Message_MailRejected");
+        public final MessageName message = Messages.MESSAGE_MAIL_REJECTED;
 
         public final boolean isInterrupting = true;
 
@@ -203,7 +203,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class EventMailRejectedAgain extends AbstractFlowNode implements HasSuccessors<EventMailRejectedAgain.Next>, HasFlows<EventMailRejectedAgain.Flows> {
-        public final MessageName message = new MessageName("Message_MailRejectedAgain");
+        public final MessageName message = Messages.MESSAGE_MAIL_REJECTED_AGAIN;
 
         public EventMailRejectedAgain() {
           super(new ElementId("event_mailRejectedAgain"), "MESSAGE_INTERMEDIATE_CATCH_EVENT");
@@ -324,7 +324,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class ServiceTaskAnalyzeError extends AbstractFlowNode implements HasSuccessors<ServiceTaskAnalyzeError.Next>, HasFlows<ServiceTaskAnalyzeError.Flows> {
-        public static final String JOB_TYPE = "newsletter.analyzeSendError";
+        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_ANALYZE_SEND_ERROR;
 
         public ServiceTaskAnalyzeError() {
           super(new ElementId("serviceTask_analyzeError"), "SERVICE_TASK");
@@ -354,7 +354,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class ServiceTaskLoadSubscribers extends AbstractFlowNode implements HasSuccessors<ServiceTaskLoadSubscribers.Next>, HasFlows<ServiceTaskLoadSubscribers.Flows> {
-        public static final String JOB_TYPE = "newsletter.loadSubscribers";
+        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_LOAD_SUBSCRIBERS;
 
         public ServiceTaskLoadSubscribers() {
           super(new ElementId("serviceTask_loadSubscribers"), "SERVICE_TASK");
@@ -390,7 +390,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class ServiceTaskNotifyAuthor extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyAuthor.Next>, HasFlows<ServiceTaskNotifyAuthor.Flows> {
-        public static final String JOB_TYPE = "newsletter.notifyAuthor";
+        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_NOTIFY_AUTHOR;
 
         public ServiceTaskNotifyAuthor() {
           super(new ElementId("serviceTask_notifyAuthor"), "SERVICE_TASK");
@@ -420,7 +420,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class ServiceTaskSendMailAgain extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendMailAgain.Next>, HasFlows<ServiceTaskSendMailAgain.Flows> {
-        public static final String JOB_TYPE = "newsletter.sendMailToSubscriber";
+        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER;
 
         public ServiceTaskSendMailAgain() {
           super(new ElementId("serviceTask_sendMailAgain"), "SERVICE_TASK");
@@ -450,7 +450,7 @@ public final class SendNewsletterProcessApi {
       }
 
       public static final class ServiceTaskSendToSubscriber extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendToSubscriber.Next>, HasFlows<ServiceTaskSendToSubscriber.Flows> {
-        public static final String JOB_TYPE = "newsletter.sendMailToSubscriber";
+        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER;
 
         public ServiceTaskSendToSubscriber() {
           super(new ElementId("serviceTask_sendToSubscriber"), "SERVICE_TASK");

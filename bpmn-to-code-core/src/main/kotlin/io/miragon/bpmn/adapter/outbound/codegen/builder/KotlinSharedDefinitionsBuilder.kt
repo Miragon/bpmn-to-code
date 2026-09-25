@@ -7,6 +7,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.RootElementDefinition
@@ -39,7 +40,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
      * require compile-time constants, which rules out `@JvmInline value class` instances.
      */
     private fun serviceTasks(serviceTasks: List<ServiceTaskDefinition>): TypeSpec? = serviceTasks.ifNotEmpty {
-        val tasksBuilder = TypeSpec.objectBuilder("ServiceTasks")
+        val tasksBuilder = TypeSpec.objectBuilder(SharedDefinitionType.SERVICE_TASKS.typeName)
             .addKdoc(
                 "Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.\n" +
                     "Kept as `const val String` because annotation arguments must be compile-time constants.",
@@ -50,7 +51,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
 
     private fun messages(messages: List<RootElementDefinition.Message>): TypeSpec? = messages.ifNotEmpty {
         val messageNameClass = ClassName(RUNTIME_PACKAGE, "MessageName")
-        val messagesBuilder = TypeSpec.objectBuilder("Messages")
+        val messagesBuilder = TypeSpec.objectBuilder(SharedDefinitionType.MESSAGES.typeName)
             .addKdoc("BPMN message names used to correlate messages to running process instances.")
         messages.forEach { message -> messagesBuilder.addProperty(createTypedAttribute(message, messageNameClass)) }
         messagesBuilder.build()
@@ -58,7 +59,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
 
     private fun signals(signals: List<RootElementDefinition.Signal>): TypeSpec? = signals.ifNotEmpty {
         val signalNameClass = ClassName(RUNTIME_PACKAGE, "SignalName")
-        val signalsBuilder = TypeSpec.objectBuilder("Signals")
+        val signalsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.SIGNALS.typeName)
             .addKdoc("BPMN signal names broadcast and caught by signal events.")
         signals.forEach { signal -> signalsBuilder.addProperty(createTypedAttribute(signal, signalNameClass)) }
         signalsBuilder.build()
@@ -66,7 +67,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
 
     private fun errors(errors: List<RootElementDefinition.Error>): TypeSpec? = errors.ifNotEmpty {
         val bpmnErrorClass = ClassName(RUNTIME_PACKAGE, "BpmnError")
-        val errorsBuilder = TypeSpec.objectBuilder("Errors")
+        val errorsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.ERRORS.typeName)
             .addKdoc("BPMN error definitions with name and code, as thrown and caught by the processes.")
         errors.forEach { errorsBuilder.addProperty(createNameAndCodeAttribute(it, bpmnErrorClass)) }
         errorsBuilder.build()
@@ -74,7 +75,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
 
     private fun escalations(escalations: List<RootElementDefinition.Escalation>): TypeSpec? = escalations.ifNotEmpty {
         val bpmnEscalationClass = ClassName(RUNTIME_PACKAGE, "BpmnEscalation")
-        val escalationsBuilder = TypeSpec.objectBuilder("Escalations")
+        val escalationsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.ESCALATIONS.typeName)
             .addKdoc("BPMN escalation definitions with name and code, as thrown and caught by the processes.")
         escalations.forEach { escalationsBuilder.addProperty(createNameAndCodeAttribute(it, bpmnEscalationClass)) }
         escalationsBuilder.build()

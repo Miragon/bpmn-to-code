@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -18,11 +19,11 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> {
         val definitions = api.definitions
         return listOfNotNull(
-            constants(api, "ServiceTasks", "Job worker task types — the task type a C# worker subscribes to.", definitions.serviceTasks),
-            constants(api, "Messages", "BPMN message names used to correlate messages to running process instances.", definitions.messages),
-            constants(api, "Signals", "BPMN signal names broadcast and caught by signal events.", definitions.signals),
-            nameAndCodes(api, "Errors", "BPMN error definitions with name and code, as thrown and caught by the processes.", definitions.errors),
-            nameAndCodes(api, "Escalations", "BPMN escalation definitions with name and code, as thrown and caught by the processes.", definitions.escalations),
+            constants(api, SharedDefinitionType.SERVICE_TASKS.typeName, "Job worker task types — the task type a C# worker subscribes to.", definitions.serviceTasks),
+            constants(api, SharedDefinitionType.MESSAGES.typeName, "BPMN message names used to correlate messages to running process instances.", definitions.messages),
+            constants(api, SharedDefinitionType.SIGNALS.typeName, "BPMN signal names broadcast and caught by signal events.", definitions.signals),
+            nameAndCodes(api, SharedDefinitionType.ERRORS.typeName, "BPMN error definitions with name and code, as thrown and caught by the processes.", definitions.errors),
+            nameAndCodes(api, SharedDefinitionType.ESCALATIONS.typeName, "BPMN escalation definitions with name and code, as thrown and caught by the processes.", definitions.escalations),
         )
     }
 

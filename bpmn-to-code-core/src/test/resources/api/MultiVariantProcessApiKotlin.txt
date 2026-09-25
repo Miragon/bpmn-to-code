@@ -53,10 +53,7 @@ object SendNewsletterProcessApi {
         id = ElementId("escalationEndEvent_nofitySupport"),
         elementType = "ESCALATION_END_EVENT",
       ) {
-        val escalation: BpmnEscalation = BpmnEscalation(
-          name = "escalation_notifySupport",
-          code = "200",
-        )
+        val escalation: BpmnEscalation = Escalations.ESCALATION_NOTIFY_SUPPORT_200
       }
 
       object EscalationEndEventNofitySupportAfterRepeatedError : AbstractFlowNode(
@@ -106,7 +103,7 @@ object SendNewsletterProcessApi {
         id = ElementId("event_mailRejected"),
         elementType = "MESSAGE_START_EVENT",
       ), HasSuccessors<EventMailRejected.Next>, HasFlows<EventMailRejected.Flows> {
-        val message: MessageName = MessageName("Message_MailRejected")
+        val message: MessageName = Messages.MESSAGE_MAIL_REJECTED
 
         val isInterrupting: Boolean = true
 
@@ -135,7 +132,7 @@ object SendNewsletterProcessApi {
         id = ElementId("event_mailRejectedAgain"),
         elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
       ), HasSuccessors<EventMailRejectedAgain.Next>, HasFlows<EventMailRejectedAgain.Flows> {
-        val message: MessageName = MessageName("Message_MailRejectedAgain")
+        val message: MessageName = Messages.MESSAGE_MAIL_REJECTED_AGAIN
 
         override fun then(): Next = Next
 
@@ -250,7 +247,7 @@ object SendNewsletterProcessApi {
         id = ElementId("serviceTask_analyzeError"),
         elementType = "SERVICE_TASK",
       ), HasSuccessors<ServiceTaskAnalyzeError.Next>, HasFlows<ServiceTaskAnalyzeError.Flows> {
-        const val JOB_TYPE: String = "newsletter.analyzeSendError"
+        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_ANALYZE_SEND_ERROR
 
         override fun then(): Next = Next
 
@@ -278,7 +275,7 @@ object SendNewsletterProcessApi {
         elementType = "SERVICE_TASK",
       ), HasSuccessors<ServiceTaskLoadSubscribers.Next>,
           HasFlows<ServiceTaskLoadSubscribers.Flows> {
-        const val JOB_TYPE: String = "newsletter.loadSubscribers"
+        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_LOAD_SUBSCRIBERS
 
         override fun then(): Next = Next
 
@@ -311,7 +308,7 @@ object SendNewsletterProcessApi {
         id = ElementId("serviceTask_notifyAuthor"),
         elementType = "SERVICE_TASK",
       ), HasSuccessors<ServiceTaskNotifyAuthor.Next>, HasFlows<ServiceTaskNotifyAuthor.Flows> {
-        const val JOB_TYPE: String = "newsletter.notifyAuthor"
+        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_NOTIFY_AUTHOR
 
         override fun then(): Next = Next
 
@@ -338,7 +335,7 @@ object SendNewsletterProcessApi {
         id = ElementId("serviceTask_sendMailAgain"),
         elementType = "SERVICE_TASK",
       ), HasSuccessors<ServiceTaskSendMailAgain.Next>, HasFlows<ServiceTaskSendMailAgain.Flows> {
-        const val JOB_TYPE: String = "newsletter.sendMailToSubscriber"
+        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER
 
         override fun then(): Next = Next
 
@@ -366,7 +363,7 @@ object SendNewsletterProcessApi {
         elementType = "SERVICE_TASK",
       ), HasSuccessors<ServiceTaskSendToSubscriber.Next>,
           HasFlows<ServiceTaskSendToSubscriber.Flows> {
-        const val JOB_TYPE: String = "newsletter.sendMailToSubscriber"
+        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER
 
         override fun then(): Next = Next
 
