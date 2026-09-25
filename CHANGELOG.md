@@ -3,6 +3,45 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.0.0](https://github.com/Miragon/bpmn-to-code/compare/v5.2.0...v6.0.0) (2026-09-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **codegen:** generate shared definition APIs instead of per-process registries ([#105](https://github.com/Miragon/bpmn-to-code/issues/105))
+* **codegen:** reshape Relations into a leaner Flow navigation api ([#97](https://github.com/Miragon/bpmn-to-code/issues/97))
+* **json:** drop redundant variables facet and modeler metadata ([#94](https://github.com/Miragon/bpmn-to-code/issues/94))
+* **codegen:** drop redundant Flows and Compensations API sections ([#85](https://github.com/Miragon/bpmn-to-code/issues/85))
+* **core:** typed process navigation via reshaped Relations ([#55](https://github.com/Miragon/bpmn-to-code/issues/55))
+* **domain,json:** BPMN-aligned sealed domain model and process JSON v2 ([#81](https://github.com/Miragon/bpmn-to-code/issues/81))
+
+### Features
+
+* **codegen:** document Timers, Errors, Escalations and Signals sections ([#102](https://github.com/Miragon/bpmn-to-code/issues/102)) ([b286d7e](https://github.com/Miragon/bpmn-to-code/commit/b286d7e7b095f97182aae018c903f67805dd2ffd))
+* **codegen:** generate C# process api (beta) ([#90](https://github.com/Miragon/bpmn-to-code/issues/90)) ([a03b492](https://github.com/Miragon/bpmn-to-code/commit/a03b4928763892fa07718036f6fd87fa2244c241))
+* **codegen:** generate shared definition APIs instead of per-process registries ([#105](https://github.com/Miragon/bpmn-to-code/issues/105)) ([de87da7](https://github.com/Miragon/bpmn-to-code/commit/de87da782de8372dc73f6beccc84dde462939c3d))
+* **core:** bundle process-model JSON schema in the jar ([#86](https://github.com/Miragon/bpmn-to-code/issues/86)) ([a1f9fe9](https://github.com/Miragon/bpmn-to-code/commit/a1f9fe9d80f6d7a57a1841c20633cbccd98644c2))
+* **core:** typed process navigation via reshaped Relations ([#55](https://github.com/Miragon/bpmn-to-code/issues/55)) ([3bcb956](https://github.com/Miragon/bpmn-to-code/commit/3bcb9560d6ed0351e035b38eed0a4457ad435e99))
+* **domain,json:** BPMN-aligned sealed domain model and process JSON v2 ([#81](https://github.com/Miragon/bpmn-to-code/issues/81)) ([a1d21b9](https://github.com/Miragon/bpmn-to-code/commit/a1d21b9710059adc96266657ebb7add07aea2681))
+* **json:** emit isDefault on sequence flows ([#100](https://github.com/Miragon/bpmn-to-code/issues/100)) ([94e6da6](https://github.com/Miragon/bpmn-to-code/commit/94e6da6c82b4cf8d1ffa0d05624e5ebb2a945977))
+* **json:** expose interrupting flag on boundary and event sub-process start events ([#78](https://github.com/Miragon/bpmn-to-code/issues/78)) ([21353f4](https://github.com/Miragon/bpmn-to-code/commit/21353f4b7e30335debc8a5546e37d446f213edbb))
+* **json:** expose zeebe message-subscription correlationKey in message-event properties ([#80](https://github.com/Miragon/bpmn-to-code/issues/80)) ([8cb7e18](https://github.com/Miragon/bpmn-to-code/commit/8cb7e182586238758a76eb29e0c4c67cbc8691ec))
+* **web:** make server port configurable via PORT env var ([#93](https://github.com/Miragon/bpmn-to-code/issues/93)) ([95fc034](https://github.com/Miragon/bpmn-to-code/commit/95fc034177603e5beff67e41ea5a7a54ce1a4301))
+
+
+### Bug Fixes
+
+* **samples:** rename C8 receive task id from userTask_ to receiveTask_confirmRegistration ([a205b0f](https://github.com/Miragon/bpmn-to-code/commit/a205b0f051b117fb34b4b56334ea527fa2037eb2))
+* **samples:** rename C8 receive task id to receiveTask_confirmRegistration ([#106](https://github.com/Miragon/bpmn-to-code/issues/106)) ([a205b0f](https://github.com/Miragon/bpmn-to-code/commit/a205b0f051b117fb34b4b56334ea527fa2037eb2))
+* **web:** rebake version.properties when projectVersion changes ([#99](https://github.com/Miragon/bpmn-to-code/issues/99)) ([ad0cdb3](https://github.com/Miragon/bpmn-to-code/commit/ad0cdb3cecb39fded1c60096a3cf5351a4a1cce5))
+
+
+### Code Refactoring
+
+* **codegen:** drop redundant Flows and Compensations API sections ([#85](https://github.com/Miragon/bpmn-to-code/issues/85)) ([2f90f6f](https://github.com/Miragon/bpmn-to-code/commit/2f90f6f6c6a554c8a9b7591f9a921673c79257b1))
+* **codegen:** reshape Relations into a leaner Flow navigation api ([#97](https://github.com/Miragon/bpmn-to-code/issues/97)) ([017b70f](https://github.com/Miragon/bpmn-to-code/commit/017b70f8b6753a78cb4d2897f3633ae0ab3ec345))
+* **json:** drop redundant variables facet and modeler metadata ([#94](https://github.com/Miragon/bpmn-to-code/issues/94)) ([33850e3](https://github.com/Miragon/bpmn-to-code/commit/33850e3f7dc3a2fb74a8561d6edd696a09c0a11c))
+
 ## [5.2.0](https://github.com/Miragon/bpmn-to-code/compare/v5.1.0...v5.2.0) (2026-08-03)
 
 
