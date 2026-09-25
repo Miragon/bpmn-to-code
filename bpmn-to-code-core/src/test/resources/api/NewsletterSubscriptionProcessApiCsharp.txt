@@ -23,6 +23,7 @@ public static class NewsletterSubscriptionProcessApi
         public const string ErrorEventInvalidMail = "errorEvent_invalidMail";
         public const string GatewayJoinNotifications = "gateway_joinNotifications";
         public const string GatewaySplitNotifications = "gateway_splitNotifications";
+        public const string ReceiveTaskConfirmRegistration = "receiveTask_confirmRegistration";
         public const string ServiceTaskDecrementSubscriptionCounter = "serviceTask_decrementSubscriptionCounter";
         public const string ServiceTaskIncrementSubscriptionCounter = "serviceTask_incrementSubscriptionCounter";
         public const string ServiceTaskNotifyCommunity = "serviceTask_notifyCommunity";
@@ -33,7 +34,6 @@ public static class NewsletterSubscriptionProcessApi
         public const string SubProcessConfirmation = "subProcess_confirmation";
         public const string TimerAfter3Days = "timer_after3Days";
         public const string TimerEveryDay = "timer_everyDay";
-        public const string UserTaskConfirmRegistration = "userTask_confirmRegistration";
     }
 
     /// <summary>

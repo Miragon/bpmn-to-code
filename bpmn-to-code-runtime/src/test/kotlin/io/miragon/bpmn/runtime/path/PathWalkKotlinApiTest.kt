@@ -21,7 +21,7 @@ class PathWalkKotlinApiTest {
             .inside(Newsletter.SubProcessConfirmation) { s ->
                 PathWalk.from(s.startEventRequestReceived)
                     .then { it.serviceTaskSendConfirmationMail }
-                    .then { it.userTaskConfirmRegistration }
+                    .then { it.receiveTaskConfirmRegistration }
                     .end { it.endEventSubscriptionConfirmed }
             }
             .then { it.gatewaySplitNotifications }
@@ -35,7 +35,7 @@ class PathWalkKotlinApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "endEvent_subscriptionConfirmed",
             "gateway_splitNotifications",
             "serviceTask_sendWelcomeMail",
@@ -50,7 +50,7 @@ class PathWalkKotlinApiTest {
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .enter(Newsletter.SubProcessConfirmation) { it.startEventRequestReceived }
             .then { it.serviceTaskSendConfirmationMail }
-            .then { it.userTaskConfirmRegistration }
+            .then { it.receiveTaskConfirmRegistration }
             .interruptedBy(Newsletter.SubProcessConfirmation) { it.timerAfter3Days }
             .then { it.callActivityAbortRegistration }
             .end { it.compensationEndEventRegistrationAborted }
@@ -61,7 +61,7 @@ class PathWalkKotlinApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_after3Days",
             "callActivity_abortRegistration",
             "compensationEndEvent_registrationAborted",
@@ -94,10 +94,10 @@ class PathWalkKotlinApiTest {
             .then { it.serviceTaskIncrementSubscriptionCounter }
             .enter(Newsletter.SubProcessConfirmation) { it.startEventRequestReceived }
             .then { it.serviceTaskSendConfirmationMail }
-            .then { it.userTaskConfirmRegistration }
+            .then { it.receiveTaskConfirmRegistration }
             .then { it.timerEveryDay }
             .then { it.serviceTaskSendConfirmationMail }
-            .then { it.userTaskConfirmRegistration }
+            .then { it.receiveTaskConfirmRegistration }
             .end { it.endEventSubscriptionConfirmed }
 
         assertThat(trail.ids).containsExactly(
@@ -105,10 +105,10 @@ class PathWalkKotlinApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_everyDay",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "endEvent_subscriptionConfirmed",
         )
         assertThat(trail.distinctIds).containsExactly(
@@ -116,7 +116,7 @@ class PathWalkKotlinApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_everyDay",
             "endEvent_subscriptionConfirmed",
         )

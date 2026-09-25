@@ -25,7 +25,7 @@ class PathWalkJavaApiTest {
             .inside(Flow.subProcessConfirmation(), s ->
                 PathWalk.from(s.startEventRequestReceived())
                     .then(n -> n.serviceTaskSendConfirmationMail())
-                    .then(n -> n.userTaskConfirmRegistration())
+                    .then(n -> n.receiveTaskConfirmRegistration())
                     .end(n -> n.endEventSubscriptionConfirmed()))
             .then(n -> n.gatewaySplitNotifications())
             .then(n -> n.serviceTaskSendWelcomeMail())
@@ -38,7 +38,7 @@ class PathWalkJavaApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "endEvent_subscriptionConfirmed",
             "gateway_splitNotifications",
             "serviceTask_sendWelcomeMail",
@@ -53,7 +53,7 @@ class PathWalkJavaApiTest {
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
             .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
             .then(n -> n.serviceTaskSendConfirmationMail())
-            .then(n -> n.userTaskConfirmRegistration())
+            .then(n -> n.receiveTaskConfirmRegistration())
             .interruptedBy(Flow.subProcessConfirmation(), n -> n.timerAfter3Days())
             .then(n -> n.callActivityAbortRegistration())
             .end(n -> n.compensationEndEventRegistrationAborted())
@@ -64,7 +64,7 @@ class PathWalkJavaApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_after3Days",
             "callActivity_abortRegistration",
             "compensationEndEvent_registrationAborted"
@@ -97,10 +97,10 @@ class PathWalkJavaApiTest {
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
             .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
             .then(n -> n.serviceTaskSendConfirmationMail())
-            .then(n -> n.userTaskConfirmRegistration())
+            .then(n -> n.receiveTaskConfirmRegistration())
             .then(n -> n.timerEveryDay())
             .then(n -> n.serviceTaskSendConfirmationMail())
-            .then(n -> n.userTaskConfirmRegistration())
+            .then(n -> n.receiveTaskConfirmRegistration())
             .end(n -> n.endEventSubscriptionConfirmed());
 
         assertThat(trail.getIds()).containsExactly(
@@ -108,10 +108,10 @@ class PathWalkJavaApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_everyDay",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "endEvent_subscriptionConfirmed"
         );
         assertThat(trail.getDistinctIds()).containsExactly(
@@ -119,7 +119,7 @@ class PathWalkJavaApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_everyDay",
             "endEvent_subscriptionConfirmed"
         );

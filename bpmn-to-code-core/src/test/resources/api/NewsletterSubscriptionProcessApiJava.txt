@@ -42,6 +42,8 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final ElementId GATEWAY_SPLIT_NOTIFICATIONS = new ElementId("gateway_splitNotifications");
 
+    public static final ElementId RECEIVE_TASK_CONFIRM_REGISTRATION = new ElementId("receiveTask_confirmRegistration");
+
     public static final ElementId SERVICE_TASK_DECREMENT_SUBSCRIPTION_COUNTER = new ElementId("serviceTask_decrementSubscriptionCounter");
 
     public static final ElementId SERVICE_TASK_INCREMENT_SUBSCRIPTION_COUNTER = new ElementId("serviceTask_incrementSubscriptionCounter");
@@ -61,8 +63,6 @@ public final class NewsletterSubscriptionProcessApi {
     public static final ElementId TIMER_AFTER_3_DAYS = new ElementId("timer_after3Days");
 
     public static final ElementId TIMER_EVERY_DAY = new ElementId("timer_everyDay");
-
-    public static final ElementId USER_TASK_CONFIRM_REGISTRATION = new ElementId("userTask_confirmRegistration");
   }
 
   /**
@@ -388,6 +388,10 @@ public final class NewsletterSubscriptionProcessApi {
         return new EndEventSubscriptionConfirmed();
       }
 
+      public ReceiveTaskConfirmRegistration receiveTaskConfirmRegistration() {
+        return new ReceiveTaskConfirmRegistration();
+      }
+
       public ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
         return new ServiceTaskSendConfirmationMail();
       }
@@ -398,10 +402,6 @@ public final class NewsletterSubscriptionProcessApi {
 
       public TimerEveryDay timerEveryDay() {
         return new TimerEveryDay();
-      }
-
-      public UserTaskConfirmRegistration userTaskConfirmRegistration() {
-        return new UserTaskConfirmRegistration();
       }
 
       public static final class Next {
@@ -430,6 +430,29 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
+      public static final class ReceiveTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<ReceiveTaskConfirmRegistration.Next> {
+        public final String name = "Confirm registration";
+
+        public ReceiveTaskConfirmRegistration() {
+          super(new ElementId("receiveTask_confirmRegistration"), "RECEIVE_TASK");
+        }
+
+        @Override
+        public Next then() {
+          return new Next();
+        }
+
+        public static final class Next {
+          public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
+            return new EndEventSubscriptionConfirmed();
+          }
+
+          public TimerEveryDay timerEveryDay() {
+            return new TimerEveryDay();
+          }
+        }
+      }
+
       public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendConfirmationMail.Next> {
         public ServiceTaskSendConfirmationMail() {
           super(new ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK");
@@ -441,8 +464,8 @@ public final class NewsletterSubscriptionProcessApi {
         }
 
         public static final class Next {
-          public UserTaskConfirmRegistration userTaskConfirmRegistration() {
-            return new UserTaskConfirmRegistration();
+          public ReceiveTaskConfirmRegistration receiveTaskConfirmRegistration() {
+            return new ReceiveTaskConfirmRegistration();
           }
         }
       }
@@ -477,29 +500,6 @@ public final class NewsletterSubscriptionProcessApi {
         public static final class Next {
           public ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() {
             return new ServiceTaskSendConfirmationMail();
-          }
-        }
-      }
-
-      public static final class UserTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<UserTaskConfirmRegistration.Next> {
-        public final String name = "Confirm registration";
-
-        public UserTaskConfirmRegistration() {
-          super(new ElementId("userTask_confirmRegistration"), "RECEIVE_TASK");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        public static final class Next {
-          public EndEventSubscriptionConfirmed endEventSubscriptionConfirmed() {
-            return new EndEventSubscriptionConfirmed();
-          }
-
-          public TimerEveryDay timerEveryDay() {
-            return new TimerEveryDay();
           }
         }
       }

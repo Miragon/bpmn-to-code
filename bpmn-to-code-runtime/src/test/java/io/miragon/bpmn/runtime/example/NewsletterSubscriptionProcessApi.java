@@ -62,7 +62,7 @@ public final class NewsletterSubscriptionProcessApi {
 
     public static final ElementId TIMER_EVERY_DAY = new ElementId("timer_everyDay");
 
-    public static final ElementId USER_TASK_CONFIRM_REGISTRATION = new ElementId("userTask_confirmRegistration");
+    public static final ElementId RECEIVE_TASK_CONFIRM_REGISTRATION = new ElementId("receiveTask_confirmRegistration");
   }
 
   /**
@@ -397,8 +397,8 @@ public final class NewsletterSubscriptionProcessApi {
         return new TimerEveryDay();
       }
 
-      public UserTaskConfirmRegistration userTaskConfirmRegistration() {
-        return new UserTaskConfirmRegistration();
+      public ReceiveTaskConfirmRegistration receiveTaskConfirmRegistration() {
+        return new ReceiveTaskConfirmRegistration();
       }
 
       public static final class Next {
@@ -438,8 +438,8 @@ public final class NewsletterSubscriptionProcessApi {
         }
 
         public static final class Next {
-          public UserTaskConfirmRegistration userTaskConfirmRegistration() {
-            return new UserTaskConfirmRegistration();
+          public ReceiveTaskConfirmRegistration receiveTaskConfirmRegistration() {
+            return new ReceiveTaskConfirmRegistration();
           }
         }
       }
@@ -478,11 +478,11 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class UserTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<UserTaskConfirmRegistration.Next> {
+      public static final class ReceiveTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<ReceiveTaskConfirmRegistration.Next> {
         public final String name = "Confirm registration";
 
-        public UserTaskConfirmRegistration() {
-          super(new ElementId("userTask_confirmRegistration"), "RECEIVE_TASK");
+        public ReceiveTaskConfirmRegistration() {
+          super(new ElementId("receiveTask_confirmRegistration"), "RECEIVE_TASK");
         }
 
         @Override

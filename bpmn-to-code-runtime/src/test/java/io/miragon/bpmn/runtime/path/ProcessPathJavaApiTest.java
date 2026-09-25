@@ -35,8 +35,8 @@ class ProcessPathJavaApiTest {
         var p3 = inside(p2, sub -> {
             var i0 = enter(sub, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
             var i1 = then(i0, Flow.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-            var i2 = then(i1, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
-            return then(i2, Flow.SubProcessConfirmation.UserTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
+            var i2 = then(i1, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
+            return then(i2, Flow.SubProcessConfirmation.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
         });
         var p4 = then(p3, Flow.SubProcessConfirmation.Next::gatewaySplitNotifications);
         var p5 = then(p4, Flow.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
@@ -48,7 +48,7 @@ class ProcessPathJavaApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "endEvent_subscriptionConfirmed",
             "gateway_splitNotifications",
             "serviceTask_sendWelcomeMail",
@@ -66,7 +66,7 @@ class ProcessPathJavaApiTest {
         var p2 = onto(p1, Flow.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
         var p3 = enter(p2, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
         var p4 = then(p3, Flow.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-        var p5 = then(p4, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
+        var p5 = then(p4, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
         var p6 = interruptedBy(p5, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Next::timerAfter3Days);
         var p7 = then(p6, Flow.TimerAfter3Days.Next::callActivityAbortRegistration);
         var p8 = then(p7, Flow.CallActivityAbortRegistration.Next::compensationEndEventRegistrationAborted);
@@ -76,7 +76,7 @@ class ProcessPathJavaApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_after3Days",
             "callActivity_abortRegistration",
             "compensationEndEvent_registrationAborted"
@@ -109,21 +109,21 @@ class ProcessPathJavaApiTest {
         var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
         var p2 = enter(p1, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Start::startEventRequestReceived);
         var p3 = then(p2, Flow.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-        var p4 = then(p3, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
-        var p5 = then(p4, Flow.SubProcessConfirmation.UserTaskConfirmRegistration.Next::timerEveryDay);
+        var p4 = then(p3, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
+        var p5 = then(p4, Flow.SubProcessConfirmation.ReceiveTaskConfirmRegistration.Next::timerEveryDay);
         var p6 = then(p5, Flow.SubProcessConfirmation.TimerEveryDay.Next::serviceTaskSendConfirmationMail);
-        var p7 = then(p6, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::userTaskConfirmRegistration);
-        var p8 = then(p7, Flow.SubProcessConfirmation.UserTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
+        var p7 = then(p6, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
+        var p8 = then(p7, Flow.SubProcessConfirmation.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
 
         assertThat(p8.getIds()).containsExactly(
             "startEvent_submitRegistrationForm",
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_everyDay",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "endEvent_subscriptionConfirmed"
         );
         assertThat(p8.getDistinctIds()).containsExactly(
@@ -131,7 +131,7 @@ class ProcessPathJavaApiTest {
             "serviceTask_incrementSubscriptionCounter",
             "startEvent_requestReceived",
             "serviceTask_sendConfirmationMail",
-            "userTask_confirmRegistration",
+            "receiveTask_confirmRegistration",
             "timer_everyDay",
             "endEvent_subscriptionConfirmed"
         );

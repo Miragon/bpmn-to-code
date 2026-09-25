@@ -50,6 +50,9 @@ object NewsletterSubscriptionProcessApi {
 
     val GATEWAY_SPLIT_NOTIFICATIONS: ElementId = ElementId("gateway_splitNotifications")
 
+    val RECEIVE_TASK_CONFIRM_REGISTRATION: ElementId =
+        ElementId("receiveTask_confirmRegistration")
+
     val SERVICE_TASK_DECREMENT_SUBSCRIPTION_COUNTER: ElementId =
         ElementId("serviceTask_decrementSubscriptionCounter")
 
@@ -73,8 +76,6 @@ object NewsletterSubscriptionProcessApi {
     val TIMER_AFTER_3_DAYS: ElementId = ElementId("timer_after3Days")
 
     val TIMER_EVERY_DAY: ElementId = ElementId("timer_everyDay")
-
-    val USER_TASK_CONFIRM_REGISTRATION: ElementId = ElementId("userTask_confirmRegistration")
   }
 
   /**
@@ -269,13 +270,28 @@ object NewsletterSubscriptionProcessApi {
 
       object EndEventSubscriptionConfirmed : AbstractFlowNode(ElementId("endEvent_subscriptionConfirmed"), "END_EVENT")
 
+      object ReceiveTaskConfirmRegistration : AbstractFlowNode(ElementId("receiveTask_confirmRegistration"), "RECEIVE_TASK"),
+          HasSuccessors<ReceiveTaskConfirmRegistration.Next> {
+        val name: String = "Confirm registration"
+
+        override fun then(): Next = Next
+
+        object Next {
+          val endEventSubscriptionConfirmed: EndEventSubscriptionConfirmed
+            get() = EndEventSubscriptionConfirmed
+
+          val timerEveryDay: TimerEveryDay
+            get() = TimerEveryDay
+        }
+      }
+
       object ServiceTaskSendConfirmationMail : AbstractFlowNode(ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK"),
           HasSuccessors<ServiceTaskSendConfirmationMail.Next> {
         override fun then(): Next = Next
 
         object Next {
-          val userTaskConfirmRegistration: UserTaskConfirmRegistration
-            get() = UserTaskConfirmRegistration
+          val receiveTaskConfirmRegistration: ReceiveTaskConfirmRegistration
+            get() = ReceiveTaskConfirmRegistration
         }
       }
 
@@ -296,21 +312,6 @@ object NewsletterSubscriptionProcessApi {
         object Next {
           val serviceTaskSendConfirmationMail: ServiceTaskSendConfirmationMail
             get() = ServiceTaskSendConfirmationMail
-        }
-      }
-
-      object UserTaskConfirmRegistration : AbstractFlowNode(ElementId("userTask_confirmRegistration"), "RECEIVE_TASK"),
-          HasSuccessors<UserTaskConfirmRegistration.Next> {
-        val name: String = "Confirm registration"
-
-        override fun then(): Next = Next
-
-        object Next {
-          val endEventSubscriptionConfirmed: EndEventSubscriptionConfirmed
-            get() = EndEventSubscriptionConfirmed
-
-          val timerEveryDay: TimerEveryDay
-            get() = TimerEveryDay
         }
       }
     }

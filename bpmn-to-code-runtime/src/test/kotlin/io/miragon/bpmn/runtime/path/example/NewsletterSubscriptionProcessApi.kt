@@ -74,7 +74,7 @@ object NewsletterSubscriptionProcessApi {
 
     val TIMER_EVERY_DAY: ElementId = ElementId("timer_everyDay")
 
-    val USER_TASK_CONFIRM_REGISTRATION: ElementId = ElementId("userTask_confirmRegistration")
+    val RECEIVE_TASK_CONFIRM_REGISTRATION: ElementId = ElementId("receiveTask_confirmRegistration")
   }
 
   /**
@@ -271,8 +271,8 @@ object NewsletterSubscriptionProcessApi {
         override fun then(): Next = Next
 
         object Next {
-          val userTaskConfirmRegistration: UserTaskConfirmRegistration
-            get() = UserTaskConfirmRegistration
+          val receiveTaskConfirmRegistration: ReceiveTaskConfirmRegistration
+            get() = ReceiveTaskConfirmRegistration
         }
       }
 
@@ -296,8 +296,8 @@ object NewsletterSubscriptionProcessApi {
         }
       }
 
-      object UserTaskConfirmRegistration : AbstractFlowNode(ElementId("userTask_confirmRegistration"), "RECEIVE_TASK"),
-          HasSuccessors<UserTaskConfirmRegistration.Next> {
+      object ReceiveTaskConfirmRegistration : AbstractFlowNode(ElementId("receiveTask_confirmRegistration"), "RECEIVE_TASK"),
+          HasSuccessors<ReceiveTaskConfirmRegistration.Next> {
         val name: String = "Confirm registration"
 
         override fun then(): Next = Next

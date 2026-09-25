@@ -24,13 +24,13 @@ class FlowGraphFactoryTest {
         // given: five nodes declare parentId = subProcess_confirmation -> they live in the inner scope, not root
         assertThat(graph.nodes.map { it.propertyName })
             .contains("subProcessConfirmation", "startEventSubmitRegistrationForm", "serviceTaskIncrementSubscriptionCounter")
-            .doesNotContain("userTaskConfirmRegistration", "startEventRequestReceived", "timerEveryDay")
+            .doesNotContain("receiveTaskConfirmRegistration", "startEventRequestReceived", "timerEveryDay")
 
         val subProcess = graph.node("subProcessConfirmation")
         assertThat(subProcess.inner).isNotNull
         assertThat(subProcess.inner!!.nodes.map { it.propertyName })
             .containsExactlyInAnyOrder(
-                "userTaskConfirmRegistration",
+                "receiveTaskConfirmRegistration",
                 "serviceTaskSendConfirmationMail",
                 "endEventSubscriptionConfirmed",
                 "startEventRequestReceived",
@@ -63,7 +63,7 @@ class FlowGraphFactoryTest {
         assertThat(inner.node("startEventRequestReceived").isStart).isTrue()
         assertThat(inner.node("startEventRequestReceived").successors.map { it.propertyName })
             .containsExactly("serviceTaskSendConfirmationMail")
-        assertThat(inner.node("userTaskConfirmRegistration").successors.map { it.propertyName })
+        assertThat(inner.node("receiveTaskConfirmRegistration").successors.map { it.propertyName })
             .containsExactly("endEventSubscriptionConfirmed", "timerEveryDay")
     }
 
@@ -88,8 +88,8 @@ class FlowGraphFactoryTest {
         assertThat(serviceTask.objectName).isEqualTo("ServiceTaskIncrementSubscriptionCounter")
         assertThat(serviceTask.name).isNull() // no displayName in the model
 
-        // userTaskConfirmRegistration declares displayName "Confirm registration"
-        val confirm = graph.node("subProcessConfirmation").inner!!.node("userTaskConfirmRegistration")
+        // receiveTaskConfirmRegistration declares displayName "Confirm registration"
+        val confirm = graph.node("subProcessConfirmation").inner!!.node("receiveTaskConfirmRegistration")
         assertThat(confirm.name).isEqualTo("Confirm registration")
     }
 
