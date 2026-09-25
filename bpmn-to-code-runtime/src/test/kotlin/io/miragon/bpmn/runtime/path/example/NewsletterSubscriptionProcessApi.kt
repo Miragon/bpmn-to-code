@@ -5,15 +5,12 @@ package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BpmnEngine
-import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.InputOutputMapping
-import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
-import io.miragon.bpmn.runtime.SignalName
 import io.miragon.bpmn.runtime.VariableName
 import kotlin.String
 import kotlin.Suppress
@@ -102,42 +99,10 @@ object NewsletterSubscriptionProcessApi {
     }
   }
 
-  /**
-   * BPMN message names used to correlate messages to running process instances.
-   */
-  object Messages {
-    val MESSAGE_FORM_SUBMITTED: MessageName = MessageName("Message_FormSubmitted")
-  }
-
-  /**
-   * Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.
-   * Kept as `const val String` because annotation arguments must be compile-time constants.
-   */
-  object ServiceTasks {
-    const val NEWSLETTER_SEND_CONFIRMATION_MAIL: String = "#{newsletterSendConfirmationMail}"
-
-    const val NEWSLETTER_SEND_WELCOME_MAIL: String = $$"""${newsletterSendWelcomeMail}"""
-
-    const val COUNTER_CLASS: String = "counterClass"
-
-    const val NEWSLETTER_NOTIFY_COMMUNITY: String = "newsletter.notifyCommunity"
-
-    const val NEWSLETTER_REGISTRATION_COMPLETED: String = "newsletter.registrationCompleted"
-  }
-
   object Timers {
     val TIMER_AFTER_3_DAYS: BpmnTimer = BpmnTimer("Duration", $$"""${testVariable}""")
 
     val TIMER_EVERY_DAY: BpmnTimer = BpmnTimer("Duration", "PT1M")
-  }
-
-  object Errors {
-    val ERROR_INVALID_MAIL: BpmnError = BpmnError("Error_InvalidMail", "500")
-  }
-
-  object Signals {
-    val SIGNAL_REGISTRATION_NOT_POSSIBLE: SignalName =
-        SignalName("Signal_RegistrationNotPossible")
   }
 
   /**

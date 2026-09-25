@@ -19,7 +19,7 @@ data class GenerateResponse(
     data class GeneratedFile(
         val fileName: String,
         val content: String,
-        val processId: String,
+        val processId: String?,
     )
 
     @Serializable

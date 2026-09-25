@@ -1,6 +1,8 @@
 # 📦 Generated API
 
-One file per BPMN process, containing type-safe constants for all extracted elements.
+One file per BPMN process with everything that belongs to that process, plus one file per kind of
+[shared definition](#shared-definitions) — job types, messages, signals, errors and escalations — generated
+once for all processes of a run.
 
 ## Structure
 
@@ -13,17 +15,39 @@ sections:
 | `PROCESS_ENGINE` | The engine the API was generated for, as a typed `BpmnEngine` enum (`ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
 | `Elements` | All flow node IDs (tasks, events, gateways, subprocesses) |
 | `CallActivities` | Per call activity: the called `PROCESS_ID` plus `Inputs` / `Outputs` variable mappings (`InputOutputMapping`) |
-| `Messages` | Message names from message events and receive tasks |
-| `ServiceTasks` | Worker types / topics / delegate expressions from service tasks |
 | `Timers` | Timer configurations with type and value (`BpmnTimer`) |
-| `Errors` | Error definitions with name and code (`BpmnError`) |
-| `Signals` | Signal names from signal events |
 | `Variables` | Per-element variables, split into `Inputs` / `Outputs` sub-objects by direction |
 | `Flow` | Typed navigation graph: each element exposes `id` / `elementType` / `name` and its successors behind `then()` (implements `FlowNode` / `HasSuccessors`); a subprocess opens its interior via `start()` (`FlowScope`) |
 
 > The full process shape — every sequence flow (with `sourceRef` / `targetRef` / `conditionExpression` / `isDefault`) and every element — lives in the [JSON export](/surface/json). The generated code API focuses on what JVM code references at compile time.
 
 Sections are only included when the BPMN model contains matching elements.
+
+## Shared definitions
+
+Job types, message names, signal names, errors and escalations identify something the engine resolves
+across process boundaries: two processes subscribing to the same message or served by the same worker
+use the same value. They are therefore not nested in a Process API but generated once per run, each
+kind in its own file next to the Process APIs:
+
+| File | Contents |
+|------|----------|
+| `ServiceTasks` | Worker types / topics / delegate expressions from service tasks |
+| `Messages` | Message names from message events and receive tasks (`MessageName`) |
+| `Signals` | Signal names from signal events (`SignalName`) |
+| `Errors` | Error definitions with name and code (`BpmnError`) |
+| `Escalations` | Escalation definitions with name and code (`BpmnEscalation`) |
+
+Each value appears once, no matter how many processes use it, and a file is only generated when at least
+one process contains a matching element. Errors and escalations are named `NAME_CODE`
+(`ERROR_INVALID_MAIL_500`) because the engine matches them by code — the same name with another code is a
+different error. Without a code the constant is named after the name alone.
+
+::: warning One `packagePath` per generation run
+The shared files are named after their kind, not after a process. Two generation runs (Gradle tasks or
+Maven executions) writing into the same package overwrite each other's `ServiceTasks`, `Messages`, … —
+give each run its own `packagePath`, or generate all related BPMN files in one run.
+:::
 
 ::: warning C# (beta) omits `Flow`
 The C# target generates the constants sections only. `Flow` (and, for merged models, `Variants`)
@@ -87,27 +111,9 @@ object NewsletterSubscriptionProcessApi {
     }
   }
 
-  object Messages {
-    const val MESSAGE_FORM_SUBMITTED: String = "Message_FormSubmitted"
-  }
-
-  object ServiceTasks {
-    const val NEWSLETTER_SEND_CONFIRMATION_MAIL: String = "#{newsletterSendConfirmationMail}"
-    const val NEWSLETTER_SEND_WELCOME_MAIL: String = "\${newsletterSendWelcomeMail}"
-    const val NEWSLETTER_REGISTRATION_COMPLETED: String = "newsletter.registrationCompleted"
-  }
-
   object Timers {
     val TIMER_EVERY_DAY: BpmnTimer = BpmnTimer("Duration", "PT1M")
     val TIMER_AFTER_3_DAYS: BpmnTimer = BpmnTimer("Duration", "\${testVariable}")
-  }
-
-  object Errors {
-    val ERROR_INVALID_MAIL: BpmnError = BpmnError("Error_InvalidMail", "500")
-  }
-
-  object Signals {
-    const val SIGNAL_REGISTRATION_NOT_POSSIBLE: String = "Signal_RegistrationNotPossible"
   }
 
   object Variables {
@@ -139,6 +145,28 @@ object NewsletterSubscriptionProcessApi {
     // ... one nested node per element; terminal elements are `AbstractFlowNode(...)` with no `then()`
   }
 }
+
+// ServiceTasks.kt — shared by all processes of the run
+object ServiceTasks {
+  const val NEWSLETTER_SEND_CONFIRMATION_MAIL: String = "#{newsletterSendConfirmationMail}"
+  const val NEWSLETTER_SEND_WELCOME_MAIL: String = "\${newsletterSendWelcomeMail}"
+  const val NEWSLETTER_REGISTRATION_COMPLETED: String = "newsletter.registrationCompleted"
+}
+
+// Messages.kt
+object Messages {
+  val MESSAGE_FORM_SUBMITTED: MessageName = MessageName("Message_FormSubmitted")
+}
+
+// Errors.kt
+object Errors {
+  val ERROR_INVALID_MAIL_500: BpmnError = BpmnError("Error_InvalidMail", "500")
+}
+
+// Signals.kt
+object Signals {
+  val SIGNAL_REGISTRATION_NOT_POSSIBLE: SignalName = SignalName("Signal_RegistrationNotPossible")
+}
 ```
 
 ```java [Java]
@@ -147,7 +175,6 @@ package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BpmnEngine;
-import io.miragon.bpmn.runtime.BpmnError;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.HasSuccessors;
@@ -162,12 +189,15 @@ public class NewsletterSubscriptionProcessApi {
         // ... same constants as Kotlin, with Java syntax
     }
 
-    public static class Messages {
-        public static final String MESSAGE_FORM_SUBMITTED = "Message_FormSubmitted";
-    }
-
-    // ... same structure for ServiceTasks, Timers, Errors, Signals, Variables, Flow
+    // ... same structure for CallActivities, Timers, Variables, Flow
 }
+
+// Messages.java — shared by all processes of the run
+public final class Messages {
+    public static final MessageName MESSAGE_FORM_SUBMITTED = new MessageName("Message_FormSubmitted");
+}
+
+// ... same structure for ServiceTasks, Signals, Errors, Escalations
 ```
 
 :::

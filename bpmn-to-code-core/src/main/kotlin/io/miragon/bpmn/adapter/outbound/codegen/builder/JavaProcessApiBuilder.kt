@@ -39,12 +39,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
         ApiObjectType.ELEMENTS to ElementsWriter(),
         ApiObjectType.CALL_ACTIVITIES to CallActivitiesWriter(),
-        ApiObjectType.MESSAGES to MessagesWriter(),
-        ApiObjectType.SERVICE_TASKS to ServiceTasksWriter(),
         ApiObjectType.TIMERS to TimersWriter(),
-        ApiObjectType.ERRORS to ErrorsWriter(),
-        ApiObjectType.ESCALATIONS to EscalationsWriter(),
-        ApiObjectType.SIGNALS to SignalsWriter(),
         ApiObjectType.VARIABLES to VariablesWriter(),
         ApiObjectType.FLOW to FlowWriter(),
         ApiObjectType.VARIANTS to VariantsWriter(),
@@ -211,46 +206,6 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         }
     }
 
-    private inner class MessagesWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val messageNameClass = ClassName.get(RUNTIME_PACKAGE, "MessageName")
-            val messagesBuilder = TypeSpec.classBuilder("Messages").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc("BPMN message names used to correlate messages to running process instances.\n")
-            modelApi.model.definitions.messages.asApiConstants().forEach { message ->
-                messagesBuilder.addField(createTypedAttribute(message, messageNameClass))
-            }
-            builder.addType(messagesBuilder.build())
-        }
-    }
-
-    private inner class ServiceTasksWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val tasksBuilder = TypeSpec.classBuilder("ServiceTasks").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc(
-                    "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
-                        "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
-                )
-            modelApi.model.serviceTasks.asApiConstants()
-                .forEach { task -> tasksBuilder.addField(createAttribute(task)) }
-            builder.addType(tasksBuilder.build())
-        }
-    }
-
-    private inner class SignalsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val signalNameClass = ClassName.get(RUNTIME_PACKAGE, "SignalName")
-            val signalsBuilder = TypeSpec.classBuilder("Signals").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc("BPMN signal names broadcast and caught by signal events.\n")
-            modelApi.model.definitions.signals.asApiConstants().forEach { signal ->
-                signalsBuilder.addField(createTypedAttribute(signal, signalNameClass))
-            }
-            builder.addType(signalsBuilder.build())
-        }
-    }
-
     private inner class VariablesWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
@@ -289,38 +244,6 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         }
     }
 
-    private class ErrorsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnErrorClass = ClassName.get(RUNTIME_PACKAGE, "BpmnError")
-            val errorsBuilder = TypeSpec.classBuilder("Errors").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc("BPMN error definitions with name and code, as thrown and caught by the process.\n")
-            modelApi.model.definitions.errors.asApiConstants().forEach {
-                val (errorName, errorCode) = it.getValue()
-                val instanceBuilder = FieldSpec.builder(bpmnErrorClass, it.getName())
-                val variable = instanceBuilder.addModifiers(PUBLIC, STATIC, FINAL)
-                errorsBuilder.addField(variable.initializer("new \$T(\$S, \$S)", bpmnErrorClass, errorName, errorCode).build())
-            }
-            builder.addType(errorsBuilder.build())
-        }
-    }
-
-    private class EscalationsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnEscalationClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEscalation")
-            val escalationsBuilder = TypeSpec.classBuilder("Escalations").addModifiers(PUBLIC, STATIC, FINAL)
-                .addJavadoc("BPMN escalation definitions with name and code, as thrown and caught by the process.\n")
-            modelApi.model.definitions.escalations.asApiConstants().forEach {
-                val (escalationName, escalationCode) = it.getValue()
-                val instanceBuilder = FieldSpec.builder(bpmnEscalationClass, it.getName())
-                val variable = instanceBuilder.addModifiers(PUBLIC, STATIC, FINAL)
-                escalationsBuilder.addField(variable.initializer("new \$T(\$S, \$S)", bpmnEscalationClass, escalationName, escalationCode).build())
-            }
-            builder.addType(escalationsBuilder.build())
-        }
-    }
-
     private class TimersWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
@@ -336,11 +259,6 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             builder.addType(timersBuilder.build())
         }
     }
-
-    private fun createAttribute(variable: VariableMapping<*>): FieldSpec = FieldSpec.builder(String::class.java, variable.getName())
-        .addModifiers(PUBLIC, STATIC, FINAL)
-        .initializer("\$S", variable.getValue())
-        .build()
 
     private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): FieldSpec = FieldSpec.builder(wrapperClass, variable.getName())
         .addModifiers(PUBLIC, STATIC, FINAL)

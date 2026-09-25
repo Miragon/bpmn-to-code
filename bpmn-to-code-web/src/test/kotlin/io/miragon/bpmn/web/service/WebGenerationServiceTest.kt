@@ -41,6 +41,11 @@ class WebGenerationServiceTest {
         assertThat(generatedFile.content).describedAs("Should contain process ID").contains("newsletterSubscription")
         assertThat(generatedFile.processId).describedAs("Should carry the process id").isEqualTo("newsletterSubscription")
 
+        // and: the shared definitions are separate files that belong to no process
+        val serviceTasksFile = response.files.single { it.fileName == "ServiceTasks.kt" }
+        assertThat(serviceTasksFile.processId).isNull()
+        assertThat(serviceTasksFile.content).contains("newsletter.sendConfirmationMail")
+
         // and: the bundled runtime sources and dependency snippet ride along with the response
         assertThat(response.libraryFiles).describedAs("Should bundle runtime library sources").isNotEmpty()
         assertThat(response.runtimeDependency).describedAs("Should include the runtime dependency").isNotNull()

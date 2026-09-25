@@ -38,10 +38,11 @@ object NewsletterSubscriptionProcessApi {
     const val ACTIVITY_CONFIRM_REGISTRATION = "Activity_ConfirmRegistration"
     const val ACTIVITY_SEND_WELCOME_MAIL    = "Activity_SendWelcomeMail"
   }
+}
 
-  object Messages {
-    const val MESSAGE_SUBSCRIPTION_CONFIRMED = "Message_SubscriptionConfirmed"
-  }
+// Shared by all processes that use the same message
+object Messages {
+  val MESSAGE_SUBSCRIPTION_CONFIRMED = MessageName("Message_SubscriptionConfirmed")
 }
 ```
 

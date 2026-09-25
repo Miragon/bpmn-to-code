@@ -3,15 +3,12 @@ package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BpmnEngine;
-import io.miragon.bpmn.runtime.BpmnError;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.InputOutputMapping;
-import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
-import io.miragon.bpmn.runtime.SignalName;
 import io.miragon.bpmn.runtime.VariableName;
 import java.lang.Override;
 import java.lang.String;
@@ -87,41 +84,10 @@ public final class NewsletterSubscriptionProcessApi {
     }
   }
 
-  /**
-   * BPMN message names used to correlate messages to running process instances.
-   */
-  public static final class Messages {
-    public static final MessageName MESSAGE_FORM_SUBMITTED = new MessageName("Message_FormSubmitted");
-  }
-
-  /**
-   * Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.
-   * Kept as {@code public static final String} because annotation arguments must be compile-time constants.
-   */
-  public static final class ServiceTasks {
-    public static final String NEWSLETTER_SEND_CONFIRMATION_MAIL = "#{newsletterSendConfirmationMail}";
-
-    public static final String NEWSLETTER_SEND_WELCOME_MAIL = "${newsletterSendWelcomeMail}";
-
-    public static final String COUNTER_CLASS = "counterClass";
-
-    public static final String NEWSLETTER_NOTIFY_COMMUNITY = "newsletter.notifyCommunity";
-
-    public static final String NEWSLETTER_REGISTRATION_COMPLETED = "newsletter.registrationCompleted";
-  }
-
   public static final class Timers {
     public static final BpmnTimer TIMER_AFTER_3_DAYS = new BpmnTimer("Duration", "${testVariable}");
 
     public static final BpmnTimer TIMER_EVERY_DAY = new BpmnTimer("Duration", "PT1M");
-  }
-
-  public static final class Errors {
-    public static final BpmnError ERROR_INVALID_MAIL = new BpmnError("Error_InvalidMail", "500");
-  }
-
-  public static final class Signals {
-    public static final SignalName SIGNAL_REGISTRATION_NOT_POSSIBLE = new SignalName("Signal_RegistrationNotPossible");
   }
 
   /**

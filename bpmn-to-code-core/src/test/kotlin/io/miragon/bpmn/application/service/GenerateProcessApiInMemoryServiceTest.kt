@@ -41,7 +41,15 @@ class GenerateProcessApiInMemoryServiceTest {
             processId = "test",
         )
         every { bpmnService.extract(any(), any()) } returns dummyModel
+        val sharedFile = GeneratedApiFile(
+            fileName = "ServiceTasks.kt",
+            packagePath = "com.example",
+            content = "// generated code",
+            language = OutputLanguage.KOTLIN,
+            processId = null,
+        )
         every { codeGenerator.generateCode(any()) } returns listOf(expectedGeneratedFile)
+        every { codeGenerator.generateSharedCode(any()) } returns listOf(sharedFile)
         val command = GenerateProcessApiInMemoryUseCase.Command(
             bpmnContents = listOf(bpmnInput),
             packagePath = "com.example",
@@ -55,8 +63,8 @@ class GenerateProcessApiInMemoryServiceTest {
         // then: BpmnFile is created, models are extracted, code is generated
         verify { bpmnService.extract(match { it.fileName == "test.bpmn" }, eq(ProcessEngine.ZEEBE)) }
         verify { codeGenerator.generateCode(match { it.model.processId == dummyModel.processId }) }
-        assertThat(result).hasSize(1)
-        assertThat(result[0]).isEqualTo(expectedGeneratedFile)
+        verify { codeGenerator.generateSharedCode(match { it.packagePath == "com.example" }) }
+        assertThat(result).containsExactly(expectedGeneratedFile, sharedFile)
         confirmVerified(codeGenerator, bpmnService)
     }
 

@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.service.GenerateProcessApiInMemoryService
+import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import org.assertj.core.api.Assertions.assertThat
@@ -25,36 +26,47 @@ class NestedSubProcessCompilationTest {
 
     @Test
     fun `generated java for nested subprocesses compiles`() {
-        val generated = generate(OutputLanguage.JAVA)
-        val errors = compileJava(generated.fileName, generated.content)
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/nested-subprocess.bpmn")).readText()
+        assertCompiles(generate(listOf(bpmnXml)))
+    }
+
+    @Test
+    fun `generated java of two processes sharing job types and messages compiles`() {
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn")).readText()
+        val copy = bpmnXml.replace("id=\"newsletterSubscription\"", "id=\"newsletterSubscriptionCopy\"")
+        val generated = generate(listOf(bpmnXml, copy))
+        assertThat(generated.map { it.fileName }).contains("ServiceTasks.java", "Messages.java")
+        assertThat(generated.filter { it.fileName == "ServiceTasks.java" }).hasSize(1)
+        assertCompiles(generated)
+    }
+
+    private fun assertCompiles(generated: List<GeneratedApiFile>) {
+        val errors = compileJava(generated)
         assertThat(errors)
             .withFailMessage { "Generated Java did not compile:\n${errors.joinToString("\n")}" }
             .isEmpty()
     }
 
-    private fun generate(language: OutputLanguage) = service.generateProcessApi(
+    private fun generate(bpmnXmls: List<String>) = service.generateProcessApi(
         GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = listOf(
-                GenerateProcessApiInMemoryUseCase.BpmnInput(
-                    bpmnXml = requireNotNull(javaClass.getResource("/bpmn/nested-subprocess.bpmn")).readText(),
-                    processName = "nested-subprocess.bpmn",
-                ),
-            ),
+            bpmnContents = bpmnXmls.mapIndexed { index, bpmnXml ->
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = bpmnXml, processName = "process-$index.bpmn")
+            },
             packagePath = "de.gen",
-            outputLanguage = language,
+            outputLanguage = OutputLanguage.JAVA,
             engine = ProcessEngine.ZEEBE,
         ),
-    ).single()
+    )
 
-    private fun compileJava(fileName: String, source: String): List<String> {
+    private fun compileJava(generated: List<GeneratedApiFile>): List<String> {
         val compiler = requireNotNull(ToolProvider.getSystemJavaCompiler()) { "JDK (not JRE) required to run this test" }
         val workDir = Files.createTempDirectory("nav-compile").toFile()
-        val sourceFile = File(workDir, fileName).apply { writeText(source) }
+        val sourceFiles = generated.map { File(workDir, it.fileName).apply { writeText(it.content) } }
         val outDir = File(workDir, "out").apply { mkdirs() }
 
         val diagnostics = DiagnosticCollector<JavaFileObject>()
         val fileManager = compiler.getStandardFileManager(diagnostics, null, null)
-        val units = fileManager.getJavaFileObjectsFromFiles(listOf(sourceFile))
+        val units = fileManager.getJavaFileObjectsFromFiles(sourceFiles)
         // Reuse this JVM's classpath so the runtime interfaces (a test dependency) resolve during attribution.
         val options = listOf("-classpath", System.getProperty("java.class.path"), "-d", outDir.absolutePath)
         compiler.getTask(null, fileManager, diagnostics, options, null, units).call()

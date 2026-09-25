@@ -55,6 +55,7 @@ Document decisions that:
 - [ADR 003: Generated API Structure](003-generated-api-structure.md) - Structure of generated Process APIs
 - [ADR 005: Strategy Pattern for Code Generation](005-strategy-pattern-code-generation.md) - Language-specific builders (Java/Kotlin)
 - [ADR 020: C# Output — Templated Emission, Constants Only](020-csharp-constants-only-output.md) - Beta C# target without the JVM runtime
+- [ADR 021: Shared Definition APIs](021-shared-definition-apis.md) - Job types, messages, signals, errors and escalations generated once per run
 
 ### Multi-Engine Support
 - [ADR 004: Strategy Pattern for Multi-Engine](004-strategy-pattern-multi-engine.md) - Supporting Camunda 7 and Zeebe

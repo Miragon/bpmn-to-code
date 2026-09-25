@@ -190,7 +190,7 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects collisions in Messages`() {
+    fun `findSharedCollisions detects collisions in Messages`() {
         // given: two messages that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -201,7 +201,7 @@ class CollisionDetectionServiceTest {
         )
 
         // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
+        val collisions = underTest.findSharedCollisions(listOf(model))
 
         // then: one Message collision is reported
         assertThat(collisions).hasSize(1)
@@ -210,7 +210,7 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects collisions in ServiceTasks`() {
+    fun `findSharedCollisions detects collisions in ServiceTasks`() {
         // given: two service tasks with implementations that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -221,7 +221,7 @@ class CollisionDetectionServiceTest {
         )
 
         // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
+        val collisions = underTest.findSharedCollisions(listOf(model))
 
         // then: one ServiceTask collision is reported
         assertThat(collisions).hasSize(1)
@@ -230,7 +230,7 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects collisions in Signals`() {
+    fun `findSharedCollisions detects collisions in Signals`() {
         // given: two signals that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -241,7 +241,7 @@ class CollisionDetectionServiceTest {
         )
 
         // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
+        val collisions = underTest.findSharedCollisions(listOf(model))
 
         // then: one Signal collision is reported
         assertThat(collisions).hasSize(1)
@@ -250,7 +250,7 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects collisions in Errors`() {
+    fun `findSharedCollisions detects collisions in Errors`() {
         // given: two errors that normalize to the same constant
         val model = testProcessModel(
             processId = "TestProcess",
@@ -261,12 +261,12 @@ class CollisionDetectionServiceTest {
         )
 
         // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
+        val collisions = underTest.findSharedCollisions(listOf(model))
 
         // then: one Error collision is reported
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("Error")
-        assertThat(collisions[0].constantName).isEqualTo("ERROR_INVALID_MAIL")
+        assertThat(collisions[0].constantName).isEqualTo("ERROR_INVALID_MAIL_400")
     }
 
     @Test
@@ -347,10 +347,9 @@ class CollisionDetectionServiceTest {
         // when: checking for collisions
         val collisions = underTest.findCollisions(model)
 
-        // then: three collisions are detected, one per type
-        assertThat(collisions).hasSize(3)
-        assertThat(collisions.map { it.variableType }).containsExactlyInAnyOrder(
-            "FlowNode",
+        // then: the flow node collision is process-local, the message and signal collisions are shared
+        assertThat(collisions.map { it.variableType }).containsExactly("FlowNode")
+        assertThat(underTest.findSharedCollisions(listOf(model)).map { it.variableType }).containsExactlyInAnyOrder(
             "Message",
             "Signal",
         )
@@ -376,5 +375,57 @@ class CollisionDetectionServiceTest {
         // then: only the colliding pair is reported
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].constantName).isEqualTo("END_EVENT_COMPLETE")
+    }
+
+    @Test
+    fun `findSharedCollisions detects collisions in Escalations`() {
+        // given: two escalations that normalize to the same constant
+        val model = testProcessModel(
+            processId = "TestProcess",
+            escalations = listOf(
+                RootElementDefinition.Escalation(id = "esc1", name = "notify.support", code = "200"),
+                RootElementDefinition.Escalation(id = "esc2", name = "notify-support", code = "200"),
+            ),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findSharedCollisions(listOf(model))
+
+        // then: one Escalation collision is reported
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].variableType).isEqualTo("Escalation")
+        assertThat(collisions[0].constantName).isEqualTo("NOTIFY_SUPPORT_200")
+    }
+
+    @Test
+    fun `findSharedCollisions detects collisions across processes`() {
+        // given: two processes whose job types normalize to the same constant
+        val first = testProcessModel(
+            processId = "first",
+            flowNodes = listOf(jobWorkerTask(id = "task1", jobType = "newsletter.sendMail")),
+        )
+        val second = testProcessModel(
+            processId = "second",
+            flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findSharedCollisions(listOf(first, second))
+
+        // then: one ServiceTask collision names both processes
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].variableType).isEqualTo("ServiceTask")
+        assertThat(collisions[0].processId).isEqualTo("first, second")
+        assertThat(collisions[0].conflictingIds).containsExactly("newsletter-sendMail", "newsletter.sendMail")
+    }
+
+    @Test
+    fun `findSharedCollisions ignores the same identifier used by two processes`() {
+        // given: two processes sharing the same job type
+        val first = testProcessModel(processId = "first", flowNodes = listOf(jobWorkerTask(id = "task1", jobType = "newsletter.sendMail")))
+        val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter.sendMail")))
+
+        // when / then: no collision is reported
+        assertThat(underTest.findSharedCollisions(listOf(first, second))).isEmpty()
     }
 }

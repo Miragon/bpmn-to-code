@@ -135,6 +135,7 @@ result.assertNoViolations("empty-process")  // custom: assert a specific rule pr
 | Process has no ID | `MISSING_PROCESS_ID` | ERROR | Process element missing the `id` attribute |
 | Process is empty | `EMPTY_PROCESS` | ERROR | Process with no flow nodes |
 | Variable name collision | `COLLISION_DETECTION` | ERROR | Two different IDs normalize to the same constant name |
+| Shared definition collision | `SHARED_DEFINITION_COLLISION` | ERROR | Two different job types, messages, signals, errors or escalations — across all loaded processes — normalize to the same constant name |
 
 ## Optional Rules (opt-in)
 

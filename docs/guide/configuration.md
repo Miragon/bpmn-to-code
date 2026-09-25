@@ -9,7 +9,7 @@ All plugin parameters, available for both the Gradle and Maven plugins.
 | `baseDir` | `String` | yes | — | Base directory for resolving relative paths |
 | `filePattern` | `String` | yes | — | Glob pattern to locate BPMN files (e.g. `src/main/resources/**/*.bpmn`) |
 | `outputFolderPath` | `String` | yes | — | Directory where generated code is written |
-| `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`) |
+| `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`). Use one package per generation run — the [shared definition files](/guide/generated-api#shared-definitions) of two runs in the same package overwrite each other |
 | `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (beta) |
 | `processEngine` | `ProcessEngine` | yes | — | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
 
@@ -39,8 +39,8 @@ messages, service tasks, timers, errors, escalations, signals and variables.
 
 The typed navigation DSL (`Flow` / `Variants`) is **not** generated. Every node of it derives from
 `bpmn-to-code-runtime`, which is a JVM artifact; until a C# counterpart exists, a partial navigation API
-could not compile. In exchange, the generated `.cs` file has **no dependencies at all** — drop it into a
-project and it builds.
+could not compile. In exchange, the generated `.cs` files have **no dependencies at all** — drop them into a
+project and they build.
 
 Direction of a process variable, which the JVM APIs carry in a wrapper type, is documented on each
 constant instead so it still shows up in IntelliSense.

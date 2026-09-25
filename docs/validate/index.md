@@ -20,7 +20,8 @@ bpmn-to-code can validate your BPMN models against a set of built-in rules — i
 | `missing-element-id` | ERROR | Flow node with no ID · **mandatory** |
 | `missing-process-id` | ERROR | Process with no `id` attribute · **mandatory** |
 | `empty-process` | ERROR | Process with no flow nodes |
-| `collision-detection` | ERROR | Two different element IDs that normalize to the same constant name (post-merge) · **mandatory** |
+| `collision-detection` | ERROR | Two different element IDs, timers or variables of one process that normalize to the same constant name (post-merge) · **mandatory** |
+| `shared-definition-collision` | ERROR | Two different job types, messages, signals, errors or escalations — in any of the processes — that normalize to the same shared constant name · **mandatory** |
 | `engine-mismatch` | ERROR / WARN | Model's target engine (from its XML namespace) differs from the selected one |
 
 **Mandatory** rules are integrity-critical — they guarantee the generated code can emit a valid, unique constant name. Because they protect code generation, they stay active during both generation and build-time validation and **cannot be turned off** via `disabledRules`; listing one has no effect (a warning is logged). The [Testing Module](/validate/testing) generates no code, so it does not enforce this.

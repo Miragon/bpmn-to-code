@@ -2,9 +2,11 @@ package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.service.GenerateProcessApiInMemoryService
+import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -33,9 +35,20 @@ class CSharpCompilationTest {
         "/bpmn/nested-subprocess.bpmn, ZEEBE",
     )
     fun `generated csharp compiles`(bpmnResource: String, engine: ProcessEngine) {
-        val generated = generate(bpmnResource, engine)
+        val bpmnXml = requireNotNull(javaClass.getResource(bpmnResource)).readText()
+        assertCompiles(generate(listOf(bpmnXml), engine))
+    }
+
+    @Test
+    fun `generated csharp of two processes sharing job types and messages compiles`() {
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn")).readText()
+        val copy = bpmnXml.replace("id=\"newsletterSubscription\"", "id=\"newsletterSubscriptionCopy\"")
+        assertCompiles(generate(listOf(bpmnXml, copy), ProcessEngine.ZEEBE))
+    }
+
+    private fun assertCompiles(generated: List<GeneratedApiFile>) {
         val projectDir = Files.createTempDirectory("csharp-compile").toFile()
-        File(projectDir, generated.fileName).writeText(generated.content)
+        generated.forEach { File(projectDir, it.fileName).writeText(it.content) }
         File(projectDir, "generated.csproj").writeText(CSPROJ)
 
         val result = runDotnetBuild(projectDir)
@@ -45,19 +58,16 @@ class CSharpCompilationTest {
             .isZero()
     }
 
-    private fun generate(bpmnResource: String, engine: ProcessEngine) = service.generateProcessApi(
+    private fun generate(bpmnXmls: List<String>, engine: ProcessEngine) = service.generateProcessApi(
         GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = listOf(
-                GenerateProcessApiInMemoryUseCase.BpmnInput(
-                    bpmnXml = requireNotNull(javaClass.getResource(bpmnResource)).readText(),
-                    processName = bpmnResource.substringAfterLast('/'),
-                ),
-            ),
+            bpmnContents = bpmnXmls.mapIndexed { index, bpmnXml ->
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = bpmnXml, processName = "process-$index.bpmn")
+            },
             packagePath = "De.Gen",
             outputLanguage = OutputLanguage.CSHARP,
             engine = engine,
         ),
-    ).single()
+    )
 
     private fun runDotnetBuild(projectDir: File): ProcessResult {
         val process = ProcessBuilder("dotnet", "build", "--nologo", "-v", "q")

@@ -3,16 +3,13 @@ package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BpmnEngine;
-import io.miragon.bpmn.runtime.BpmnEscalation;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasSuccessors;
-import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.VariableName;
 import java.lang.Override;
-import java.lang.String;
 
 public final class SendNewsletterProcessApi {
   public static final ProcessId PROCESS_ID = new ProcessId("sendNewsletter");
@@ -63,40 +60,10 @@ public final class SendNewsletterProcessApi {
   }
 
   /**
-   * BPMN message names used to correlate messages to running process instances.
-   */
-  public static final class Messages {
-    public static final MessageName MESSAGE_MAIL_REJECTED = new MessageName("Message_MailRejected");
-
-    public static final MessageName MESSAGE_MAIL_REJECTED_AGAIN = new MessageName("Message_MailRejectedAgain");
-  }
-
-  /**
-   * Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.
-   * Kept as {@code public static final String} because annotation arguments must be compile-time constants.
-   */
-  public static final class ServiceTasks {
-    public static final String NEWSLETTER_ANALYZE_SEND_ERROR = "newsletter.analyzeSendError";
-
-    public static final String NEWSLETTER_LOAD_SUBSCRIBERS = "newsletter.loadSubscribers";
-
-    public static final String NEWSLETTER_NOTIFY_AUTHOR = "newsletter.notifyAuthor";
-
-    public static final String NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER = "newsletter.sendMailToSubscriber";
-  }
-
-  /**
    * Timer definitions of timer events, with their type (Date, Duration or Cycle) and expression.
    */
   public static final class Timers {
     public static final BpmnTimer TIMER_NO_REJECTION_FOR_ONE_DAY = new BpmnTimer("Duration", "PT1D");
-  }
-
-  /**
-   * BPMN escalation definitions with name and code, as thrown and caught by the process.
-   */
-  public static final class Escalations {
-    public static final BpmnEscalation ESCALATION_NOTIFY_SUPPORT = new BpmnEscalation("escalation_notifySupport", "200");
   }
 
   /**

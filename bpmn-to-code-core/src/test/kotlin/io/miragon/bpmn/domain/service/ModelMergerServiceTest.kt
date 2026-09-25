@@ -103,7 +103,7 @@ class ModelMergerServiceTest {
         val sortedModel = result.first()
         assertThat(sortedModel.flowNodes.map { it.getRawName() }).containsExactly("a-node", "m-node", "z-node")
         assertThat(sortedModel.variables.map { it.getRawName() }).containsExactly("alphaVar", "zetaVar")
-        assertThat(sortedModel.definitions.escalations.map { it.getRawName() }).containsExactly("aEscalation", "mEscalation", "zEscalation")
+        assertThat(sortedModel.definitions.escalations.map { it.getRawName() }).containsExactly("aEscalation_100", "mEscalation_200", "zEscalation_300")
     }
 
     @Test
@@ -211,11 +211,11 @@ class ModelMergerServiceTest {
         assertThat(result).hasSize(1)
         val merged = result.first()
         assertThat(merged.isMerged).isTrue()
-        assertThat(merged.definitions.errors.map { it.getRawName() }).containsExactly("ERROR_1", "ERROR_2", "ERROR_3")
+        assertThat(merged.definitions.errors.map { it.getRawName() }).containsExactly("ERROR_1_400", "ERROR_2_500", "ERROR_3_600")
         assertThat(merged.definitions.signals.map { it.getRawName() }).containsExactly("SIGNAL_1", "SIGNAL_2", "SIGNAL_3")
         assertThat(merged.definitions.messages.map { it.getRawName() }).containsExactly("MSG_1", "MSG_2", "MSG_3")
         assertThat(merged.flowNodes.map { it.getRawName() }).containsExactly("node-1", "node-2", "node-3")
-        assertThat(merged.definitions.escalations.map { it.getRawName() }).containsExactly("ESC_1", "ESC_2", "ESC_3")
+        assertThat(merged.definitions.escalations.map { it.getRawName() }).containsExactly("ESC_1_100", "ESC_2_200", "ESC_3_300")
         assertThat(merged.variants).hasSize(2)
     }
 

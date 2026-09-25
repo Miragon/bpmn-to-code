@@ -27,12 +27,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
         ApiObjectType.ELEMENTS to ElementsWriter(),
         ApiObjectType.CALL_ACTIVITIES to CallActivitiesWriter(),
-        ApiObjectType.MESSAGES to MessagesWriter(),
-        ApiObjectType.SERVICE_TASKS to ServiceTasksWriter(),
         ApiObjectType.TIMERS to TimersWriter(),
-        ApiObjectType.ERRORS to ErrorsWriter(),
-        ApiObjectType.ESCALATIONS to EscalationsWriter(),
-        ApiObjectType.SIGNALS to SignalsWriter(),
         ApiObjectType.VARIABLES to VariablesWriter(),
     )
 
@@ -88,42 +83,6 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         }
     }
 
-    private class MessagesWriter : ObjectWriter<CSharpWriter> {
-
-        override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            builder.docComment("BPMN message names used to correlate messages to running process instances.")
-            builder.staticClass("Messages") {
-                modelApi.model.definitions.messages.asApiConstants().forEach { message ->
-                    builder.constant(message.getRawName().toPascalCase(), message.getValue())
-                }
-            }
-        }
-    }
-
-    private class ServiceTasksWriter : ObjectWriter<CSharpWriter> {
-
-        override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            builder.docComment("Job worker task types — the task type a C# worker subscribes to.")
-            builder.staticClass("ServiceTasks") {
-                modelApi.model.serviceTasks.asApiConstants().forEach { task ->
-                    builder.constant(task.getRawName().toPascalCase(), task.getValue())
-                }
-            }
-        }
-    }
-
-    private class SignalsWriter : ObjectWriter<CSharpWriter> {
-
-        override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            builder.docComment("BPMN signal names broadcast and caught by signal events.")
-            builder.staticClass("Signals") {
-                modelApi.model.definitions.signals.asApiConstants().forEach { signal ->
-                    builder.constant(signal.getRawName().toPascalCase(), signal.getValue())
-                }
-            }
-        }
-    }
-
     private class TimersWriter : ObjectWriter<CSharpWriter> {
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
@@ -134,38 +93,6 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
                     builder.staticClass(timer.getRawName().toPascalCase()) {
                         builder.constant("Type", timerType)
                         builder.constant("Value", timerValue)
-                    }
-                }
-            }
-        }
-    }
-
-    private class ErrorsWriter : ObjectWriter<CSharpWriter> {
-
-        override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            builder.docComment("BPMN error definitions with name and code, as thrown and caught by the process.")
-            builder.staticClass("Errors") {
-                builder.forEachSeparated(modelApi.model.definitions.errors.asApiConstants()) { error ->
-                    val (errorName, errorCode) = error.getValue()
-                    builder.staticClass(error.getRawName().toPascalCase()) {
-                        builder.constant("Reference", errorName)
-                        builder.constant("Code", errorCode)
-                    }
-                }
-            }
-        }
-    }
-
-    private class EscalationsWriter : ObjectWriter<CSharpWriter> {
-
-        override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            builder.docComment("BPMN escalation definitions with name and code, as thrown and caught by the process.")
-            builder.staticClass("Escalations") {
-                builder.forEachSeparated(modelApi.model.definitions.escalations.asApiConstants()) { escalation ->
-                    val (escalationName, escalationCode) = escalation.getValue()
-                    builder.staticClass(escalation.getRawName().toPascalCase()) {
-                        builder.constant("Reference", escalationName)
-                        builder.constant("Code", escalationCode)
                     }
                 }
             }
