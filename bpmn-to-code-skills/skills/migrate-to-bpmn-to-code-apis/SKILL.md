@@ -37,7 +37,7 @@ Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references 
 | timer | `Api.Flow.Node.timer` (`BpmnTimer`) | `Api.Flow.node().timer` | `Api.Flow.Node.Instance.Timer` |
 | sequence flow | `Api.Flow.Node.Flows.flowX` (`SequenceFlow<Target>`) | `Api.Flow.node().flows().flowX()` | `Api.Flow.Node.Instance.Flows.FlowX` |
 
-Only `ServiceTasks.X` and `Flow.Node.JOB_TYPE` / `JobType` are plain string constants; every other member is a
+Only `ServiceTasks.X` and `Flow.Node.JOB_TYPE` / `JobType` (which refers to `ServiceTasks.X`) are plain string constants; every other member is a
 typed wrapper. A wrapper is not a drop-in for a `String` parameter — reach the raw string with `.value`
 (Kotlin), `.getValue()` (Java) or `.Value` (C#).
 

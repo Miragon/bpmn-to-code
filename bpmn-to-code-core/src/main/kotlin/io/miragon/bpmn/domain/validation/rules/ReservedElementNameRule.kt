@@ -11,10 +11,11 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 /**
  * Rejects element ids and variant names whose generated name would shadow a part of the Process API itself.
  *
- * Every element becomes a nested type inside `Flow`, next to the holders (`Next`, `Flows`, `Start`, …), the
- * registries and the runtime types the nodes are built from. An element named like one of those would
- * shadow it in at least one target language and the generated file would not compile; an element whose
- * accessor is named like a `java.lang.Object` method breaks the Java output the same way.
+ * Every element becomes a nested type inside `Flow`, next to the holders (`Next`, `Flows`, `Start`, …), and
+ * refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
+ * element named like one of those would shadow it in at least one target language and the generated file
+ * would not compile; an element whose accessor is named like a `java.lang.Object` method breaks the Java
+ * output the same way.
  * A merged model renders each variant as its own `Flow` under `FlowVariants.<Variant>`, so a variant name
  * must not be reserved either, nor match an element of its own variant (Java and C# reject a nested type
  * named like its enclosing type). Runs post-merge, like the collision check it complements.

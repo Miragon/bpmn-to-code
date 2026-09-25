@@ -103,7 +103,7 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("endEvent_registrationCompleted"),
       elementType = "END_EVENT",
     ) {
-      const val JOB_TYPE: String = "newsletter.registrationCompleted"
+      const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_REGISTRATION_COMPLETED
 
       object Variables {
         val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId")
@@ -114,7 +114,7 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("endEvent_registrationNotPossible"),
       elementType = "SIGNAL_END_EVENT",
     ) {
-      val signal: SignalName = SignalName("Signal_RegistrationNotPossible")
+      val signal: SignalName = Signals.SIGNAL_REGISTRATION_NOT_POSSIBLE
     }
 
     object EndEventSubscriptionConfirmed : AbstractFlowNode(
@@ -126,10 +126,7 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("errorEvent_invalidMail"),
       elementType = "ERROR_BOUNDARY_EVENT",
     ), HasSuccessors<ErrorEventInvalidMail.Next>, HasFlows<ErrorEventInvalidMail.Flows> {
-      val error: BpmnError = BpmnError(
-        name = "Error_InvalidMail",
-        code = "500",
-      )
+      val error: BpmnError = Errors.ERROR_INVALID_MAIL_500
 
       val attachedTo: SubProcessConfirmation
         get() = SubProcessConfirmation
@@ -223,7 +220,7 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("serviceTask_decrementSubscriptionCounter"),
       elementType = "SERVICE_TASK",
     ) {
-      const val JOB_TYPE: String = "counterClass"
+      const val JOB_TYPE: String = ServiceTasks.COUNTER_CLASS
     }
 
     object ServiceTaskIncrementSubscriptionCounter : AbstractFlowNode(
@@ -231,7 +228,7 @@ object NewsletterSubscriptionProcessApi {
       elementType = "SERVICE_TASK",
     ), HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next>,
         HasFlows<ServiceTaskIncrementSubscriptionCounter.Flows> {
-      const val JOB_TYPE: String = "counterClass"
+      const val JOB_TYPE: String = ServiceTasks.COUNTER_CLASS
 
       override fun then(): Next = Next
 
@@ -261,7 +258,7 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("serviceTask_notifyCommunity"),
       elementType = "SERVICE_TASK",
     ), HasSuccessors<ServiceTaskNotifyCommunity.Next>, HasFlows<ServiceTaskNotifyCommunity.Flows> {
-      const val JOB_TYPE: String = "newsletter.notifyCommunity"
+      const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_NOTIFY_COMMUNITY
 
       override fun then(): Next = Next
 
@@ -289,7 +286,7 @@ object NewsletterSubscriptionProcessApi {
       elementType = "SERVICE_TASK",
     ), HasSuccessors<ServiceTaskSendConfirmationMail.Next>,
         HasFlows<ServiceTaskSendConfirmationMail.Flows> {
-      const val JOB_TYPE: String = "#{newsletterSendConfirmationMail}"
+      const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL
 
       override fun then(): Next = Next
 
@@ -322,7 +319,7 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("serviceTask_sendWelcomeMail"),
       elementType = "SERVICE_TASK",
     ), HasSuccessors<ServiceTaskSendWelcomeMail.Next>, HasFlows<ServiceTaskSendWelcomeMail.Flows> {
-      const val JOB_TYPE: String = $$"""${newsletterSendWelcomeMail}"""
+      const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_WELCOME_MAIL
 
       override fun then(): Next = Next
 
@@ -383,7 +380,7 @@ object NewsletterSubscriptionProcessApi {
       elementType = "MESSAGE_START_EVENT",
     ), HasSuccessors<StartEventSubmitRegistrationForm.Next>,
         HasFlows<StartEventSubmitRegistrationForm.Flows> {
-      val message: MessageName = MessageName("Message_FormSubmitted")
+      val message: MessageName = Messages.MESSAGE_FORM_SUBMITTED
 
       override fun then(): Next = Next
 

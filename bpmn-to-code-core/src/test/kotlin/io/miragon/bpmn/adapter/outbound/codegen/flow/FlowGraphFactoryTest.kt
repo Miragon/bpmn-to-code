@@ -3,6 +3,8 @@ package io.miragon.bpmn.adapter.outbound.codegen.flow
 import io.miragon.bpmn.adapter.outbound.codegen.builder.buildSubscribeNewsletterFlowNodes
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.jobWorkerTask
@@ -135,7 +137,7 @@ class FlowGraphFactoryTest {
     fun `service task carries its job type and directional variables`() {
         val facets = subscribeGraph.node("serviceTaskSendWelcomeMail").facets
 
-        assertThat(facets.jobType).isEqualTo("#{sendWelcome}")
+        assertThat(facets.jobType?.value).isEqualTo("#{sendWelcome}")
         assertThat(facets.variables).singleElement().satisfies({
             assertThat(it.constantName).isEqualTo("SUBSCRIPTION_ID")
             assertThat(it.rawName).isEqualTo("subscriptionId")
@@ -147,8 +149,14 @@ class FlowGraphFactoryTest {
 
     @Test
     fun `end event with a job worker implementation carries the job type too`() {
-        assertThat(subscribeGraph.node("endEventRegistrationCompleted").facets.jobType).isEqualTo("newsletter.completed")
-        assertThat(subscribeGraph.node("serviceTaskDecrementSubscriptionCounter").facets.jobType).isEqualTo("counterClass")
+        assertThat(subscribeGraph.node("endEventRegistrationCompleted").facets.jobType?.value).isEqualTo("newsletter.completed")
+        assertThat(subscribeGraph.node("serviceTaskDecrementSubscriptionCounter").facets.jobType?.value).isEqualTo("counterClass")
+    }
+
+    @Test
+    fun `job type points at its shared ServiceTasks constant`() {
+        assertThat(subscribeGraph.node("endEventRegistrationCompleted").facets.jobType)
+            .isEqualTo(SharedValue("newsletter.completed", SharedConstant(name = "NEWSLETTER_COMPLETED", rawName = "newsletter.completed")))
     }
 
     @Test
@@ -212,10 +220,40 @@ class FlowGraphFactoryTest {
 
     @Test
     fun `events carry their message, signal and error references`() {
-        assertThat(subscribeGraph.node("startEventSubmitRegistrationForm").facets.message).isEqualTo("Message_FormSubmitted")
-        assertThat(subscribeGraph.node("endEventRegistrationNotPossible").facets.signal).isEqualTo("Signal_RegistrationNotPossible")
-        assertThat(subscribeGraph.node("errorEventInvalidMail").facets.error).isEqualTo(NamedCode("Error_InvalidMail", "500"))
+        assertThat(subscribeGraph.node("startEventSubmitRegistrationForm").facets.message?.value).isEqualTo("Message_FormSubmitted")
+        assertThat(subscribeGraph.node("endEventRegistrationNotPossible").facets.signal?.value).isEqualTo("Signal_RegistrationNotPossible")
+        assertThat(subscribeGraph.node("errorEventInvalidMail").facets.error?.value).isEqualTo(NamedCode("Error_InvalidMail", "500"))
         assertThat(subscribeGraph.node("compensationEventOnSubscriptionCounter").facets.message).isNull()
+    }
+
+    @Test
+    fun `event references point at their shared constants`() {
+        assertThat(subscribeGraph.node("startEventSubmitRegistrationForm").facets.message?.constant)
+            .isEqualTo(SharedConstant(name = "MESSAGE_FORM_SUBMITTED", rawName = "Message_FormSubmitted"))
+        assertThat(subscribeGraph.node("endEventRegistrationNotPossible").facets.signal?.constant)
+            .isEqualTo(SharedConstant(name = "SIGNAL_REGISTRATION_NOT_POSSIBLE", rawName = "Signal_RegistrationNotPossible"))
+        assertThat(subscribeGraph.node("errorEventInvalidMail").facets.error?.constant)
+            .isEqualTo(SharedConstant(name = "ERROR_INVALID_MAIL_500", rawName = "Error_InvalidMail_500"))
+    }
+
+    @Test
+    fun `event reference without a matching root element keeps its value but has no shared constant`() {
+        // given: an error event declaring name and code inline, with a ref that no root element resolves
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Event(
+                    id = "onError",
+                    shape = EventShape.END_EVENT,
+                    eventDefinitions = listOf(EventDefinitionInstance.Error(errorRef = "missing", errorName = "Error_Inline", errorCode = "7")),
+                ),
+            ),
+        )
+
+        // when
+        val graph = FlowGraphFactory.build(model)
+
+        // then: the shared Errors file will not contain it, so the node must not reference it
+        assertThat(graph.node("onError").facets.error).isEqualTo(SharedValue(NamedCode("Error_Inline", "7"), null))
     }
 
     @Test
@@ -234,8 +272,9 @@ class FlowGraphFactoryTest {
         )
         val graph = FlowGraphFactory.build(model)
 
-        assertThat(graph.node("onMessage").facets.message).isEqualTo("Message_Registered")
-        assertThat(graph.node("onEscalation").facets.escalation).isEqualTo(NamedCode("Escalation_Late", "42"))
+        assertThat(graph.node("onMessage").facets.message?.value).isEqualTo("Message_Registered")
+        assertThat(graph.node("onEscalation").facets.escalation)
+            .isEqualTo(SharedValue(NamedCode("Escalation_Late", "42"), SharedConstant(name = "ESCALATION_LATE_42", rawName = "Escalation_Late_42")))
     }
 
     @Test
@@ -301,7 +340,7 @@ class FlowGraphFactoryTest {
 
         assertThat(graph.nodes).hasSize(1)
         assertThat(graph.node("lonely").flows).isEmpty()
-        assertThat(graph.node("lonely").facets.jobType).isEqualTo("lonely.worker")
+        assertThat(graph.node("lonely").facets.jobType?.value).isEqualTo("lonely.worker")
     }
 
     private fun startEvent(id: String, vararg definitions: EventDefinitionInstance) = FlowNodeDefinition.Event(

@@ -174,7 +174,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class EndEventRegistrationCompleted extends AbstractFlowNode {
-      public static final String JOB_TYPE = "newsletter.registrationCompleted";
+      public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_REGISTRATION_COMPLETED;
 
       public EndEventRegistrationCompleted() {
         super(new ElementId("endEvent_registrationCompleted"), "END_EVENT");
@@ -186,7 +186,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class EndEventRegistrationNotPossible extends AbstractFlowNode {
-      public final SignalName signal = new SignalName("Signal_RegistrationNotPossible");
+      public final SignalName signal = Signals.SIGNAL_REGISTRATION_NOT_POSSIBLE;
 
       public EndEventRegistrationNotPossible() {
         super(new ElementId("endEvent_registrationNotPossible"), "SIGNAL_END_EVENT");
@@ -200,7 +200,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class ErrorEventInvalidMail extends AbstractFlowNode implements HasSuccessors<ErrorEventInvalidMail.Next>, HasFlows<ErrorEventInvalidMail.Flows> {
-      public final BpmnError error = new BpmnError("Error_InvalidMail", "500");
+      public final BpmnError error = Errors.ERROR_INVALID_MAIL_500;
 
       public final boolean isInterrupting = true;
 
@@ -300,7 +300,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class ServiceTaskDecrementSubscriptionCounter extends AbstractFlowNode {
-      public static final String JOB_TYPE = "counterClass";
+      public static final String JOB_TYPE = ServiceTasks.COUNTER_CLASS;
 
       public ServiceTaskDecrementSubscriptionCounter() {
         super(new ElementId("serviceTask_decrementSubscriptionCounter"), "SERVICE_TASK");
@@ -308,7 +308,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class ServiceTaskIncrementSubscriptionCounter extends AbstractFlowNode implements HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next>, HasFlows<ServiceTaskIncrementSubscriptionCounter.Flows> {
-      public static final String JOB_TYPE = "counterClass";
+      public static final String JOB_TYPE = ServiceTasks.COUNTER_CLASS;
 
       public ServiceTaskIncrementSubscriptionCounter() {
         super(new ElementId("serviceTask_incrementSubscriptionCounter"), "SERVICE_TASK");
@@ -342,7 +342,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class ServiceTaskNotifyCommunity extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyCommunity.Next>, HasFlows<ServiceTaskNotifyCommunity.Flows> {
-      public static final String JOB_TYPE = "newsletter.notifyCommunity";
+      public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_NOTIFY_COMMUNITY;
 
       public ServiceTaskNotifyCommunity() {
         super(new ElementId("serviceTask_notifyCommunity"), "SERVICE_TASK");
@@ -372,7 +372,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasFlows<ServiceTaskSendConfirmationMail.Flows> {
-      public static final String JOB_TYPE = "#{newsletterSendConfirmationMail}";
+      public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL;
 
       public ServiceTaskSendConfirmationMail() {
         super(new ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK");
@@ -408,7 +408,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class ServiceTaskSendWelcomeMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendWelcomeMail.Next>, HasFlows<ServiceTaskSendWelcomeMail.Flows> {
-      public static final String JOB_TYPE = "${newsletterSendWelcomeMail}";
+      public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_WELCOME_MAIL;
 
       public ServiceTaskSendWelcomeMail() {
         super(new ElementId("serviceTask_sendWelcomeMail"), "SERVICE_TASK");
@@ -474,7 +474,7 @@ public final class NewsletterSubscriptionProcessApi {
     }
 
     public static final class StartEventSubmitRegistrationForm extends AbstractFlowNode implements HasSuccessors<StartEventSubmitRegistrationForm.Next>, HasFlows<StartEventSubmitRegistrationForm.Flows> {
-      public final MessageName message = new MessageName("Message_FormSubmitted");
+      public final MessageName message = Messages.MESSAGE_FORM_SUBMITTED;
 
       public StartEventSubmitRegistrationForm() {
         super(new ElementId("startEvent_submitRegistrationForm"), "MESSAGE_START_EVENT");

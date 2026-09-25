@@ -48,7 +48,9 @@ internal class CSharpWriter {
         }
     }
 
-    fun constant(name: String, value: String) = line("public const string ${disambiguate(name)} = ${stringLiteral(value)};")
+    fun constant(name: String, value: String) = constantExpression(name, stringLiteral(value))
+
+    fun constantExpression(name: String, expression: String) = line("public const string ${disambiguate(name)} = $expression;")
 
     /**
      * The singleton of the enclosing node class: a private constructor plus a static `Instance` field. The
@@ -70,7 +72,7 @@ internal class CSharpWriter {
      * called `Elements` or a timer event called `Timer` would otherwise produce. The JVM builders never hit
      * this because their members are UPPER_SNAKE_CASE or camelCase and so can never equal a PascalCase type name.
      */
-    private fun disambiguate(name: String) = if (name == enclosingTypes.lastOrNull()) name + "_" else name
+    private fun disambiguate(name: String) = disambiguated(name, enclosingTypes.lastOrNull())
 
     /**
      * Emits an XML documentation comment. Multi-line text becomes one `<para>` per line so the
@@ -116,6 +118,12 @@ internal class CSharpWriter {
         }
 
         fun nullableStringLiteral(value: String?): String = value?.let { stringLiteral(it) } ?: "null"
+
+        /**
+         * The name a member declared as [name] ends up with inside [enclosingType] — for code outside that type
+         * that has to reference the member.
+         */
+        fun disambiguated(name: String, enclosingType: String?): String = if (name == enclosingType) name + "_" else name
 
         /**
          * PascalCase identifier for a BPMN name, derived from the UPPER_SNAKE_CASE form so that the

@@ -162,7 +162,7 @@ public static class NewsletterSubscriptionProcessApi
         {
             public static readonly EndEventRegistrationCompleted Instance = new();
             private EndEventRegistrationCompleted() { }
-            public const string JobType = "newsletter.registrationCompleted";
+            public const string JobType = ServiceTasks.NewsletterRegistrationCompleted;
 
             public Runtime.ElementId Id { get; } = new("endEvent_registrationCompleted");
             public string ElementType => "END_EVENT";
@@ -183,7 +183,7 @@ public static class NewsletterSubscriptionProcessApi
             public Runtime.ElementId Id { get; } = new("endEvent_registrationNotPossible");
             public string ElementType => "SIGNAL_END_EVENT";
             public string? Name => null;
-            public Runtime.SignalName Signal { get; } = new("Signal_RegistrationNotPossible");
+            public Runtime.SignalName Signal { get; } = new(Signals.SignalRegistrationNotPossible);
         }
 
         public sealed class EndEventSubscriptionConfirmed : Runtime.IFlowNode
@@ -204,7 +204,7 @@ public static class NewsletterSubscriptionProcessApi
             public Runtime.ElementId Id { get; } = new("errorEvent_invalidMail");
             public string ElementType => "ERROR_BOUNDARY_EVENT";
             public string? Name => null;
-            public Runtime.BpmnError Error { get; } = new("Error_InvalidMail", "500");
+            public Runtime.BpmnError Error { get; } = new(Errors.ErrorInvalidMail500.Reference, Errors.ErrorInvalidMail500.Code);
             public SubProcessConfirmation AttachedTo => SubProcessConfirmation.Instance;
             public bool IsInterrupting => true;
 
@@ -271,7 +271,7 @@ public static class NewsletterSubscriptionProcessApi
         {
             public static readonly ServiceTaskDecrementSubscriptionCounter Instance = new();
             private ServiceTaskDecrementSubscriptionCounter() { }
-            public const string JobType = "counterClass";
+            public const string JobType = ServiceTasks.CounterClass;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_decrementSubscriptionCounter");
             public string ElementType => "SERVICE_TASK";
@@ -282,7 +282,7 @@ public static class NewsletterSubscriptionProcessApi
         {
             public static readonly ServiceTaskIncrementSubscriptionCounter Instance = new();
             private ServiceTaskIncrementSubscriptionCounter() { }
-            public const string JobType = "counterClass";
+            public const string JobType = ServiceTasks.CounterClass;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_incrementSubscriptionCounter");
             public string ElementType => "SERVICE_TASK";
@@ -306,7 +306,7 @@ public static class NewsletterSubscriptionProcessApi
         {
             public static readonly ServiceTaskNotifyCommunity Instance = new();
             private ServiceTaskNotifyCommunity() { }
-            public const string JobType = "newsletter.notifyCommunity";
+            public const string JobType = ServiceTasks.NewsletterNotifyCommunity;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_notifyCommunity");
             public string ElementType => "SERVICE_TASK";
@@ -329,7 +329,7 @@ public static class NewsletterSubscriptionProcessApi
         {
             public static readonly ServiceTaskSendConfirmationMail Instance = new();
             private ServiceTaskSendConfirmationMail() { }
-            public const string JobType = "#{newsletterSendConfirmationMail}";
+            public const string JobType = ServiceTasks.NewsletterSendConfirmationMail;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_sendConfirmationMail");
             public string ElementType => "SERVICE_TASK";
@@ -359,7 +359,7 @@ public static class NewsletterSubscriptionProcessApi
         {
             public static readonly ServiceTaskSendWelcomeMail Instance = new();
             private ServiceTaskSendWelcomeMail() { }
-            public const string JobType = "${newsletterSendWelcomeMail}";
+            public const string JobType = ServiceTasks.NewsletterSendWelcomeMail;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_sendWelcomeMail");
             public string ElementType => "SERVICE_TASK";
@@ -420,7 +420,7 @@ public static class NewsletterSubscriptionProcessApi
             public Runtime.ElementId Id { get; } = new("startEvent_submitRegistrationForm");
             public string ElementType => "MESSAGE_START_EVENT";
             public string? Name => null;
-            public Runtime.MessageName Message { get; } = new("Message_FormSubmitted");
+            public Runtime.MessageName Message { get; } = new(Messages.MessageFormSubmitted);
 
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables

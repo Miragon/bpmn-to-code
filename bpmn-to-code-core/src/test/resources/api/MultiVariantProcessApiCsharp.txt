@@ -137,7 +137,7 @@ public static class SendNewsletterProcessApi
                 public Runtime.ElementId Id { get; } = new("escalationEndEvent_nofitySupport");
                 public string ElementType => "ESCALATION_END_EVENT";
                 public string? Name => null;
-                public Runtime.BpmnEscalation Escalation { get; } = new("escalation_notifySupport", "200");
+                public Runtime.BpmnEscalation Escalation { get; } = new(Escalations.EscalationNotifySupport200.Reference, Escalations.EscalationNotifySupport200.Code);
             }
 
             public sealed class EscalationEndEventNofitySupportAfterRepeatedError : Runtime.IFlowNode
@@ -182,7 +182,7 @@ public static class SendNewsletterProcessApi
                 public Runtime.ElementId Id { get; } = new("event_mailRejected");
                 public string ElementType => "MESSAGE_START_EVENT";
                 public string? Name => null;
-                public Runtime.MessageName Message { get; } = new("Message_MailRejected");
+                public Runtime.MessageName Message { get; } = new(Messages.MessageMailRejected);
                 public bool IsInterrupting => true;
 
                 public Successors Next => new();
@@ -206,7 +206,7 @@ public static class SendNewsletterProcessApi
                 public Runtime.ElementId Id { get; } = new("event_mailRejectedAgain");
                 public string ElementType => "MESSAGE_INTERMEDIATE_CATCH_EVENT";
                 public string? Name => null;
-                public Runtime.MessageName Message { get; } = new("Message_MailRejectedAgain");
+                public Runtime.MessageName Message { get; } = new(Messages.MessageMailRejectedAgain);
 
                 public Successors Next => new();
                 public sealed class Successors
@@ -289,7 +289,7 @@ public static class SendNewsletterProcessApi
             {
                 public static readonly ServiceTaskAnalyzeError Instance = new();
                 private ServiceTaskAnalyzeError() { }
-                public const string JobType = "newsletter.analyzeSendError";
+                public const string JobType = ServiceTasks.NewsletterAnalyzeSendError;
 
                 public Runtime.ElementId Id { get; } = new("serviceTask_analyzeError");
                 public string ElementType => "SERVICE_TASK";
@@ -312,7 +312,7 @@ public static class SendNewsletterProcessApi
             {
                 public static readonly ServiceTaskLoadSubscribers Instance = new();
                 private ServiceTaskLoadSubscribers() { }
-                public const string JobType = "newsletter.loadSubscribers";
+                public const string JobType = ServiceTasks.NewsletterLoadSubscribers;
 
                 public Runtime.ElementId Id { get; } = new("serviceTask_loadSubscribers");
                 public string ElementType => "SERVICE_TASK";
@@ -342,7 +342,7 @@ public static class SendNewsletterProcessApi
             {
                 public static readonly ServiceTaskNotifyAuthor Instance = new();
                 private ServiceTaskNotifyAuthor() { }
-                public const string JobType = "newsletter.notifyAuthor";
+                public const string JobType = ServiceTasks.NewsletterNotifyAuthor;
 
                 public Runtime.ElementId Id { get; } = new("serviceTask_notifyAuthor");
                 public string ElementType => "SERVICE_TASK";
@@ -365,7 +365,7 @@ public static class SendNewsletterProcessApi
             {
                 public static readonly ServiceTaskSendMailAgain Instance = new();
                 private ServiceTaskSendMailAgain() { }
-                public const string JobType = "newsletter.sendMailToSubscriber";
+                public const string JobType = ServiceTasks.NewsletterSendMailToSubscriber;
 
                 public Runtime.ElementId Id { get; } = new("serviceTask_sendMailAgain");
                 public string ElementType => "SERVICE_TASK";
@@ -388,7 +388,7 @@ public static class SendNewsletterProcessApi
             {
                 public static readonly ServiceTaskSendToSubscriber Instance = new();
                 private ServiceTaskSendToSubscriber() { }
-                public const string JobType = "newsletter.sendMailToSubscriber";
+                public const string JobType = ServiceTasks.NewsletterSendMailToSubscriber;
 
                 public Runtime.ElementId Id { get; } = new("serviceTask_sendToSubscriber");
                 public string ElementType => "SERVICE_TASK";

@@ -4,6 +4,8 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
@@ -12,15 +14,19 @@ import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.RootElements
+import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
+import io.miragon.bpmn.domain.shared.VariableMapping
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
 /**
  * Collects a node's own data into [NodeFacets], mirroring the sealed [FlowNodeDefinition] hierarchy.
  *
  * Event references (message, signal, error, escalation) are resolved through the model's root-element
- * [RootElements] by ref first, so a node shows the same name and code as the registry constant, and fall back
- * to what the event definition itself declares.
+ * [RootElements] by ref first, so a node shows the same name and code as the shared constant, and fall back
+ * to what the event definition itself declares. Job types and root elements are exactly what the shared
+ * definition files are collected from, so a value found there becomes a [SharedValue] pointing at its
+ * constant — the constant name depends on the value alone, whichever process declared it.
  */
 internal class FlowFacetsFactory(
     private val names: Map<String, FlowNaming.Names>,
@@ -37,20 +43,22 @@ internal class FlowFacetsFactory(
             inputs = callActivity?.inputMappings.toMappingFacets(),
             outputs = callActivity?.outputMappings.toMappingFacets(),
             timer = event?.firstDefinition<EventDefinitionInstance.Timer>()?.toFacet(),
-            message = node.messageReference()?.resolveName(),
-            signal = event?.firstDefinition<EventDefinitionInstance.Signal>()?.resolveName(),
-            error = event?.firstDefinition<EventDefinitionInstance.Error>()?.resolve(),
-            escalation = event?.firstDefinition<EventDefinitionInstance.Escalation>()?.resolve(),
+            message = node.messageReference()?.resolveName()?.sharedIn(definitions.messages),
+            signal = event?.firstDefinition<EventDefinitionInstance.Signal>()?.resolveName()?.sharedIn(definitions.signals),
+            error = event?.firstDefinition<EventDefinitionInstance.Error>()?.resolve()?.let { it.sharedIn(definitions.errors, it.name to it.code) },
+            escalation = event?.firstDefinition<EventDefinitionInstance.Escalation>()?.resolve()?.let { it.sharedIn(definitions.escalations, it.name to it.code) },
             attachedTo = event?.attachedToRef?.let { names[it] }?.let { FlowEdge(it.propertyName, it.objectName) },
             isInterrupting = event?.isInterrupting(),
         )
     }
 
-    private fun FlowNodeDefinition.jobType(): String? = when (this) {
-        is FlowNodeDefinition.Activity.Task -> implementation?.reference
-        is FlowNodeDefinition.Event -> implementation?.reference
+    private fun FlowNodeDefinition.jobType(): SharedValue<String>? = when (this) {
+        is FlowNodeDefinition.Activity.Task -> implementation
+        is FlowNodeDefinition.Event -> implementation
         else -> null
-    }?.ifBlank { null }
+    }?.let { ServiceTaskDefinition(id, it) }
+        ?.takeIf { it.getRawName().isNotBlank() }
+        ?.let { serviceTask -> serviceTask.getValue().sharedIn(listOf(serviceTask)) }
 
     private fun List<VariableDefinition>.toVariableFacets(): List<VariableFacet> = groupBy { it.getRawName() }
         .toSortedMap()
@@ -87,6 +95,15 @@ internal class FlowFacetsFactory(
         ?: (escalationName to (escalationCode ?: "")).toNamedCode()
 
     private fun Pair<String?, String>.toNamedCode(): NamedCode? = first?.ifBlank { null }?.let { NamedCode(name = it, code = second) }
+
+    /**
+     * The shared constant is the definition whose value equals [definitionValue] — the job type, the resolved
+     * name, or name and code.
+     */
+    private fun <T> T.sharedIn(candidates: List<VariableMapping<*>>, definitionValue: Any? = this): SharedValue<T> {
+        val definition = candidates.firstOrNull { it.getValue() == definitionValue }
+        return SharedValue(this, definition?.let { SharedConstant(name = it.getName(), rawName = it.getRawName()) })
+    }
 
     private fun FlowNodeDefinition.Event.isInterrupting(): Boolean? = when (shape) {
         EventShape.BOUNDARY_EVENT -> interrupting ?: true

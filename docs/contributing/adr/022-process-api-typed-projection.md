@@ -42,7 +42,9 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 4. **Registries stay shared** where BPMN itself models a shared identity: root elements (`Messages`, `Errors`,
    `Signals`, `Escalations`) and job types (`ServiceTasks`, one `const` per distinct type, the canonical
    argument for `@JobWorker`) are the shared definition files of [ADR 021](021-shared-definition-apis.md).
-   A node repeats the same value inline (`message: MessageName`).
+   A node refers to that shared constant instead of repeating the value (`JOB_TYPE = ServiceTasks.X`,
+   `message: MessageName = Messages.X`), so a value exists once per run and a node shows where it comes
+   from. Only a value no root element declares — an unresolved reference — is written on the node itself.
 5. **C# reaches parity by inlining its runtime.** The runtime types are emitted into every generated file
    as a nested `Runtime` class, so the file still has no dependencies and two files never clash. Nodes are
    sealed singletons (`Flow.X.Instance`) navigated by instance, because static members cannot chain;
