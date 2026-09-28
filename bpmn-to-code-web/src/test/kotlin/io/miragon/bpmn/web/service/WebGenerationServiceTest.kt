@@ -76,8 +76,9 @@ class WebGenerationServiceTest {
         val generatedFile = response.files.first()
         assertThat(generatedFile.fileName).describedAs("Should generate C# file").endsWith(".cs")
         assertThat(generatedFile.content).contains("public static class", "newsletterSubscription")
+        assertThat(generatedFile.content).describedAs("Should carry Flow with inlined runtime types").contains("public static class Flow", "public static class Runtime")
 
-        // and: no JVM runtime is offered, because the generated C# depends on nothing
+        // and: no JVM runtime is offered, because the generated C# inlines its own runtime types
         assertThat(response.libraryFiles).describedAs("Should not bundle jvm runtime sources").isEmpty()
         assertThat(response.runtimeDependency).describedAs("Should not offer a jvm dependency").isNull()
     }

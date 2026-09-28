@@ -46,6 +46,6 @@ val processApiBuilders = mapOf(
 
 Builders generate identical API structures with language-specific syntax.
 
-> **Amended by [ADR 020](020-csharp-constants-only-output.md).** That last sentence no longer holds for
-> every target: the C# builder emits a constants-only subset and uses templated emission rather than a
-> poet library, because no C# equivalent of `bpmn-to-code-runtime` exists.
+> **Amended by [ADR 020](020-csharp-constants-only-output.md) and [ADR 022](022-process-api-typed-projection.md).**
+> The C# builder uses templated emission rather than a poet library and inlines the runtime types it needs
+> into each generated file; since ADR 022 it emits the same API surface as the JVM builders.

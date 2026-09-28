@@ -65,7 +65,7 @@ class GradlePluginSmokeTest {
     }
 
     @Test
-    fun `generateBpmnModelApi writes cs files with constants for CSHARP`(@TempDir projectDir: File) {
+    fun `generateBpmnModelApi writes a cs file with Flow for CSHARP`(@TempDir projectDir: File) {
         // given: a JVM project (the plugin only wires itself when a JVM plugin is present) targeting C#
         writeProject(projectDir, "ZEEBE", Target.CSHARP, "c8-subscribe-newsletter.bpmn")
 
@@ -76,11 +76,11 @@ class GradlePluginSmokeTest {
             .withArguments("generateBpmnModelApi")
             .build()
 
-        // then: the Process API .cs file carries the constants sections (no Flow yet), next to the shared definition files
+        // then: the Process API .cs file carries the navigation, next to the shared definition files
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
         val generated = assertGeneratedFiles(projectDir, ".cs")
         val processApi = generated.single { it.name == "NewsletterSubscriptionProcessApi.cs" }
-        assertThat(processApi.readText()).contains("public static class Elements").doesNotContain("public static class Flow")
+        assertThat(processApi.readText()).contains("public static class Flow", "public static class Runtime")
         assertThat(generated.map { it.name }).contains("ServiceTasks.cs", "Messages.cs")
     }
 

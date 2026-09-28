@@ -63,8 +63,8 @@ class WebGenerationService(
     }
 
     /**
-     * `bpmn-to-code-runtime` is a JVM artifact, and the C# output deliberately depends on nothing, so
-     * offering its sources or a Gradle/Maven coordinate alongside a `.cs` file would be nonsense.
+     * `bpmn-to-code-runtime` is a JVM artifact, and the C# output inlines its own runtime types into each
+     * file, so offering the JVM sources or a Gradle/Maven coordinate alongside a `.cs` file would be nonsense.
      */
     private fun OutputLanguage.runsOnJvm() = this != OutputLanguage.CSHARP
 
