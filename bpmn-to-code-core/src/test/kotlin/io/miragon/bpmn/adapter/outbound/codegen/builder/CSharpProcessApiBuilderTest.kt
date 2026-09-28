@@ -1,22 +1,12 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpRuntimeTypes
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
-import io.miragon.bpmn.domain.shared.EventDefinitionInstance
-import io.miragon.bpmn.domain.shared.EventShape
-import io.miragon.bpmn.domain.shared.FlowNodeDefinition
-import io.miragon.bpmn.domain.shared.GatewayKind
-import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.shared.RootElementDefinition
-import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
-import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
-import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.testSendNewsletterModel
 import io.miragon.bpmn.domain.testSubscribeNewsletterModel
@@ -54,12 +44,13 @@ class CSharpProcessApiBuilderTest {
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
         assertThat(result.language).isEqualTo(OutputLanguage.CSHARP)
 
-        assertThat(result.content).isEqualTo(golden("/api/NewsletterSubscriptionProcessApiCsharp.txt", result.content))
+        val expectedFile = File(requireNotNull(javaClass.getResource("/api/NewsletterSubscriptionProcessApiCsharp.txt")).toURI())
+        assertThat(result.content).isEqualTo(expectedFile.readText())
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped Flow for merged model`() {
-        // given: a merged model with a single variant
+    fun `buildApiFile omits the navigation sections that need the jvm runtime`() {
+        // given: a merged model, whose navigation the jvm builders emit as a Variants section
         val send = testSendNewsletterModel(variantName = "send")
         val merged = ProcessModel(
             processId = send.processId,
@@ -72,139 +63,46 @@ class CSharpProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: the navigation sits under FlowVariants.Send, with the gateway's conditional and default flows named after their targets
-        assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiCsharp.txt", result.content))
-        assertThat(result.content).contains("public static class FlowVariants", "public static class Send")
-        assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<EndEventNoSubscribers> ToEndEventNoSubscribers => new(new(\"flow_noSubscribers\"), \"No\", \"\${subscribers.size() > 0}\", false, EndEventNoSubscribers.Instance);",
-        )
-        assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<ServiceTaskSendToSubscriber> ToServiceTaskSendToSubscriber => new(new(\"flow_hasSubscribers\"), \"Yes\", null, true, ServiceTaskSendToSubscriber.Instance);",
-        )
+        // then: neither navigation section is generated, but the constants are
+        assertThat(result.content).doesNotContain("class Variants", "class Flow")
+        assertThat(result.content).contains("public static class Elements")
     }
 
     @Test
-    fun `several flows to the same element share one outgoing-flows property as a list`() {
-        // given: a gateway with two conditional flows that both lead to the same task
-        val model = testProcessModel(
-            flowNodes = listOf(
-                FlowNodeDefinition.Gateway(id = "split", kind = GatewayKind.EXCLUSIVE, outgoing = listOf("flow_small", "flow_vip")),
-                FlowNodeDefinition.Unknown(id = "approve", incoming = listOf("flow_small", "flow_vip")),
-            ),
-            sequenceFlows = listOf(
-                SequenceFlowDefinition("flow_small", "split", "approve", conditionExpression = "=amount < 100"),
-                SequenceFlowDefinition("flow_vip", "split", "approve", conditionExpression = "=customer.isVip"),
-            ),
+    fun `buildApiFile omits relations for an unmerged model`() {
+        // given: a plain, unmerged model
+        val modelApi = testProcessModelApi(
+            packagePath = "de.emaarco.example",
+            language = OutputLanguage.CSHARP,
+            model = testSubscribeNewsletterModel(),
         )
 
-        // when
-        val result = underTest.buildApiFile(csharpApi(model))
+        // when: we build the process API file
+        val result = underTest.buildApiFile(modelApi)
 
-        // then: one stable name for both flows, typed as a read-only list
-        assertThat(result.content).contains(
-            "public System.Collections.Generic.IReadOnlyList<Runtime.SequenceFlow<Approve>> ToApprove => new Runtime.SequenceFlow<Approve>[] {",
-        )
+        // then: the navigation DSL is absent
+        assertThat(result.content).doesNotContain("class Flow")
     }
 
     @Test
-    fun `file header marks the file as generated and enables nullable annotations`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
-
-        assertThat(result.content.lines().take(4)).containsExactly(
-            "// <auto-generated/>",
-            "// Generated by bpmn-to-code",
-            "#nullable enable",
-            "#pragma warning disable CS1591",
-        )
-    }
-
-    @Test
-    fun `runtime types are inlined exactly once as a nested Runtime class`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
-
-        assertThat(result.content.split("public static class Runtime")).hasSize(2)
-        CSharpRuntimeTypes.SOURCE.lines().filter { it.isNotBlank() }.forEach { line ->
-            assertThat(result.content).contains(line.trim())
+    fun `renames a member that would collide with its enclosing type`() {
+        // given: a model whose first flow node is named exactly like the section that will contain it
+        val defaultModel = testSubscribeNewsletterModel()
+        val collidingNodes = defaultModel.flowNodes.mapIndexed { index, node ->
+            if (index == 0) node.withId("Elements") else node
         }
-    }
-
-    @Test
-    fun `flat Flow lists subprocess interior nodes as direct children with Start on the subprocess`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
-
-        assertThat(result.content).contains("        public sealed class StartEventRequestReceived : Runtime.IFlowNode")
-        assertThat(result.content).contains("public Interior Start => new();")
-        assertThat(result.content).contains("public StartEventRequestReceived StartEventRequestReceived => StartEventRequestReceived.Instance;")
-    }
-
-    @Test
-    fun `boundary event exposes its host and whether it interrupts`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
-
-        assertThat(result.content).contains("public UserTaskConfirmRegistration AttachedTo => UserTaskConfirmRegistration.Instance;")
-        assertThat(result.content).contains("public bool IsInterrupting => false;")
-        assertThat(result.content).contains("public Runtime.BpmnTimer Timer { get; } = new(\"Duration\", \"PT1M\");")
-    }
-
-    @Test
-    fun `node carries job type, variables and call-activity mappings`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
-
-        assertThat(result.content).contains("public const string JobType = ServiceTasks.NewsletterSendWelcomeMail;")
-        assertThat(result.content).contains("public Runtime.VariableName.Input SubscriptionId { get; } = new(\"subscriptionId\");")
-        assertThat(result.content).contains("public Runtime.ProcessId CalledProcess { get; } = new(\"abort-registration\");")
-        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.MessageFormSubmitted);")
-        assertThat(result.content).contains("public Runtime.BpmnError Error { get; } = new(Errors.ErrorInvalidMail500.Reference, Errors.ErrorInvalidMail500.Code);")
-    }
-
-    @Test
-    fun `node references a shared constant under the name its shared class gives it`() {
-        // given: a message named exactly like the shared class, which renames the constant (CS0542)
-        val model = testProcessModel(
-            flowNodes = listOf(
-                FlowNodeDefinition.Event(
-                    id = "onMessage",
-                    shape = EventShape.START_EVENT,
-                    eventDefinitions = listOf(EventDefinitionInstance.Message(MessageReference(messageRef = "Messages"))),
-                ),
-            ),
-            messages = listOf(RootElementDefinition.Message(id = "Messages", name = "Messages")),
+        val modelApi = testProcessModelApi(
+            model = testSubscribeNewsletterModel(flowNodes = collidingNodes),
+            packagePath = "de.emaarco.example",
+            language = OutputLanguage.CSHARP,
         )
 
         // when: we build the process API file
-        val result = underTest.buildApiFile(csharpApi(model))
+        val result = underTest.buildApiFile(modelApi)
 
-        // then: the node points at the renamed constant
-        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.Messages_);")
-    }
-
-    @Test
-    fun `eager initializers never reference another node, so static initialisation cannot cycle`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
-
-        val eagerInitializers = result.content.lines().filter { it.contains("{ get; } = ") }
-        assertThat(eagerInitializers).isNotEmpty()
-        assertThat(eagerInitializers).noneMatch { it.contains(".Instance") }
-    }
-
-    @Test
-    fun `renames a facet member that would collide with its node's class name`() {
-        // given: a timer event whose id folds to the same name as its Timer property
-        val model = testProcessModel(
-            flowNodes = listOf(
-                FlowNodeDefinition.Event(
-                    id = "timer",
-                    shape = EventShape.INTERMEDIATE_CATCH_EVENT,
-                    eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "PT1M")),
-                ),
-            ),
-        )
-
-        // when: we build the process API file
-        val result = underTest.buildApiFile(csharpApi(model))
-
-        // then: the property is renamed, because C# rejects a member named like its enclosing type (CS0542)
-        assertThat(result.content).contains("public Runtime.BpmnTimer Timer_ { get; } = new(\"Duration\", \"PT1M\");")
+        // then: the constant is renamed, because C# rejects a member named like its enclosing type (CS0542)
+        assertThat(result.content).contains("public const string Elements_ = \"Elements\";")
+        assertThat(result.content).doesNotContain("public const string Elements =")
     }
 
     @Test
@@ -212,30 +110,18 @@ class CSharpProcessApiBuilderTest {
         // given: a model with flow nodes whose ids use dashes
         val defaultModel = testSubscribeNewsletterModel()
         val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.getName().replace("_", "-")) }
-        val modelApi = csharpApi(testSubscribeNewsletterModel(flowNodes = modifiedNodes))
+        val modelApi = testProcessModelApi(
+            model = testSubscribeNewsletterModel(flowNodes = modifiedNodes),
+            packagePath = "de.emaarco.example",
+            language = OutputLanguage.CSHARP,
+        )
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
         // then: dashes never leak into an identifier, only into the string values
-        val declarations = result.content.lines().filter {
-            it.contains("public const string") || it.contains("public static class") || it.contains("public sealed class")
-        }
+        val declarations = result.content.lines().filter { it.contains("public const string") || it.contains("public static class") }
         assertThat(declarations).isNotEmpty()
         assertThat(declarations.map { it.substringBefore("=") }).noneMatch { it.contains("-") }
-    }
-
-    private fun csharpApi(model: ProcessModel) = testProcessModelApi(
-        model = model,
-        packagePath = "de.emaarco.example",
-        language = OutputLanguage.CSHARP,
-    )
-
-    private fun golden(path: String, generated: String): String {
-        if (System.getProperty("golden.update") == "true") {
-            File("src/test/resources$path").writeText(generated)
-            return generated
-        }
-        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 }

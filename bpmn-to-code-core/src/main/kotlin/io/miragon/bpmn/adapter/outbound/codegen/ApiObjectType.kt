@@ -10,6 +10,8 @@ package io.miragon.bpmn.adapter.outbound.codegen
  * Per-element data (ids, variables, timers, call-activity mappings) has no section of its own: it lives on
  * the nodes of [FLOW] (or of each variant's flow under [FLOW_VARIANTS]). Things shared across processes — root
  * elements and job types — are no section either: they are generated once per run as shared definitions.
+ * [ELEMENTS], [CALL_ACTIVITIES], [TIMERS] and [VARIABLES] are the constants-only sections of the C# beta output,
+ * which has no `Flow` yet.
  */
 internal enum class ApiObjectType {
 
@@ -17,4 +19,8 @@ internal enum class ApiObjectType {
     PROCESS_ENGINE,
     FLOW,
     FLOW_VARIANTS,
+    ELEMENTS,
+    CALL_ACTIVITIES,
+    TIMERS,
+    VARIABLES,
 }

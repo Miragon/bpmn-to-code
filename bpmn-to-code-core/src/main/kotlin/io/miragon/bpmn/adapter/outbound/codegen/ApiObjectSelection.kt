@@ -26,6 +26,10 @@ internal object ApiObjectSelection {
             ApiObjectType.PROCESS_ID, ApiObjectType.PROCESS_ENGINE -> true
             ApiObjectType.FLOW -> !model.isMerged && model.allFlowNodes.isNotEmpty()
             ApiObjectType.FLOW_VARIANTS -> model.isMerged
+            ApiObjectType.ELEMENTS -> true
+            ApiObjectType.CALL_ACTIVITIES -> model.callActivities.isNotEmpty()
+            ApiObjectType.TIMERS -> model.timers.isNotEmpty()
+            ApiObjectType.VARIABLES -> model.variables.isNotEmpty()
         }
     }
 }

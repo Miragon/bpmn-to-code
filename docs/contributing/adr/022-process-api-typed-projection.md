@@ -2,7 +2,8 @@
 
 ## Status
 Accepted — supersedes the section layout of [ADR 003](003-generated-api-structure.md) (its naming rules still
-apply) and [ADR 020](020-csharp-constants-only-output.md); builds on [ADR 021](021-shared-definition-apis.md).
+apply); builds on [ADR 021](021-shared-definition-apis.md). The C# beta output stays constants-only
+([ADR 020](020-csharp-constants-only-output.md)).
 
 ## Context
 
@@ -16,9 +17,6 @@ Sequence flows were lost entirely on the code side: the navigation graph reduced
 node, so id, label, `conditionExpression` and `isDefault` existed only in the [JSON export](018-process-json-v2.md).
 A test could not ask "which condition guards this edge" without parsing JSON.
 
-C# emitted constants only ([ADR 020](020-csharp-constants-only-output.md)), because `Flow` needed runtime
-types that existed as a JVM artifact and nothing else.
-
 ## Decision
 
 The generated code becomes the typed projection of the JSON v2 model: **everything JSON hangs on a
@@ -31,8 +29,8 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 2. **Nodes carry their facets**, mirroring the sealed `FlowNodeDefinition` hierarchy: `id` / `elementType` /
    `name` on all; `JOB_TYPE` on tasks and events with an implementation; `Variables`; `calledProcess` with
    `Inputs` / `Outputs` on call activities; `timer`; `message` / `signal` / `error` / `escalation`;
-   `attachedTo`, `isInterrupting` and the marker `BoundaryEvent` on boundary events. The `Elements`, `Variables`, `CallActivities` and
-   `Timers` sections are removed.
+   `attachedTo`, `isInterrupting` and the marker `BoundaryEvent` on boundary events. The `Elements`,
+   `Variables`, `CallActivities` and `Timers` sections are removed from the Kotlin and Java output.
 3. **Outgoing sequence flows are named after the element they lead to.** Each node with outgoing flows
    exposes `outgoingFlows()` / `OutgoingFlows` with one `to<Element>` entry per target: a
    `SequenceFlow<Target>(id, name, conditionExpression, isDefault, target)`, or a list of them when several
@@ -48,33 +46,26 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
    A node refers to that shared constant instead of repeating the value (`JOB_TYPE = ServiceTasks.X`,
    `message: MessageName = Messages.X`), so a value exists once per run and a node shows where it comes
    from. Only a value no root element declares — an unresolved reference — is written on the node itself.
-5. **C# reaches parity by inlining its runtime.** The runtime types are emitted into every generated file
-   as a nested `Runtime` class, so the file still has no dependencies and two files never clash. Nodes are
-   sealed singletons (`Flow.X.Instance`) navigated by instance, because static members cannot chain;
-   `JobType` stays a `const`. This reverses ADR 020's rejection of inlining: with the type set this small and
-   no NuGet pipeline, a package would cost more than the duplication.
-6. **Member names follow JSON v2** (`conditionExpression`, `isInterrupting`, `isDefault`); references that
+5. **Member names follow JSON v2** (`conditionExpression`, `isInterrupting`, `isDefault`); references that
    hold the resolved value drop the `Ref` suffix (`attachedTo`, `calledProcess`).
-7. **One reserved-name rule.** An element whose generated name would shadow a holder (`Flow`, `Next`,
+6. **One reserved-name rule.** An element whose generated name would shadow a holder (`Flow`, `Next`,
    `Instance`, …), a runtime type or a `java.lang.Object` method breaks compilation in at least one language,
    so the mandatory `reserved-element-name` rule rejects it explicitly rather than each language renaming
-   silently. C#-only CS0542 cases (a facet named like its node) keep the existing `_` suffix.
+   silently.
 
 ## Consequences
 
 ### Positive
 - One tree instead of five parallel ones; a node's data is where its id is.
-- Conditions and default markers are readable and assertable in code, in all three languages.
-- C# ships the full API, without a runtime package to publish and version.
+- Conditions and default markers are readable and assertable in code, by the element they lead to.
 - Collision detection mirrors the generated scopes exactly: model-wide for nodes, run-wide for the shared
-  registries, per node for variables, sequence flows and call-activity mappings.
+  registries, per node for variables and call-activity mappings.
 
 ### Negative
 - Breaking for 5.x consumers: `Elements.X` → `Flow.X.id`, `Variables.Node.V` → `Flow.Node.Variables.V`,
   `CallActivities.Node.*` → `Flow.Node.*`, `Timers.T` → `Flow.T.timer`, nested interior nodes → flat.
-  C# consumers lose `const string` element ids (`Flow.X.Instance.Id.Value` is an instance property).
-- Longer generated files, C# in particular (the runtime block repeats per file).
-- Per-file C# runtime types are unrelated across processes; generic .NET tooling needs its own abstraction.
+- Until C# gets `Flow` as well, the constants-only C# sections (`Elements`, `CallActivities`, `Timers`,
+  `Variables`) live on next to the node-centric Kotlin and Java output.
 
 ## Alternatives Considered
 
@@ -85,13 +76,9 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 - **One holder mixing successors and sequence flows.** Autocomplete mixes both kinds, and a flow picked in
   `then { … }` does not compile.
 - **`Next` returning transitions instead of elements** (`SequenceFlow` / `BoundaryAttachment`, named after the
-  target). BPMN-faithful, but Java and C# need `.getTarget()` / `.Target` on every chained step, `then().x`
+  target). BPMN-faithful, but Java needs `.getTarget()` on every chained step, `then().x`
   stops being `Flow.X`, and several flows to one target need a third type or a renaming special case. Evaluated
   against eight user personas together with the options above; the target-named `OutgoingFlows` next to an
   unchanged `Next` won clearly.
 - **Label-based names.** Prettier for `Yes` / `No`, but needs a sanitiser, breaks on relabelling and is
   non-local (adding a second `No` renames the first).
-- **C# NuGet runtime.** The clean long-term answer; deferred because publishing and versioning it is a larger
-  effort than the generator, and inlining is reversible.
-- **`ProcessPath.via { it.flows.x }`.** No engine assertion library consumes sequence-flow ids today and
-  `then` already checks the edge; can be added additively later.
