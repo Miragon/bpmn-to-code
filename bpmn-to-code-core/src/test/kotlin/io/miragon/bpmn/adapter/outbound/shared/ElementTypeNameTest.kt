@@ -94,9 +94,9 @@ class ElementTypeNameTest {
         val cases: List<Pair<EventDefinitionInstance, String>> = listOf(
             EventDefinitionInstance.Timer() to "TIMER_BOUNDARY_EVENT",
             EventDefinitionInstance.Message(MessageReference("m", "m")) to "MESSAGE_BOUNDARY_EVENT",
-            EventDefinitionInstance.Error("e", "e", "1") to "ERROR_BOUNDARY_EVENT",
-            EventDefinitionInstance.Signal("s", "s") to "SIGNAL_BOUNDARY_EVENT",
-            EventDefinitionInstance.Escalation("esc", "esc", "2") to "ESCALATION_BOUNDARY_EVENT",
+            EventDefinitionInstance.Error(errorRef = "e", errorName = "e", errorCode = "1") to "ERROR_BOUNDARY_EVENT",
+            EventDefinitionInstance.Signal(signalRef = "s", signalName = "s") to "SIGNAL_BOUNDARY_EVENT",
+            EventDefinitionInstance.Escalation(escalationRef = "esc", escalationName = "esc", escalationCode = "2") to "ESCALATION_BOUNDARY_EVENT",
             EventDefinitionInstance.Compensation() to "COMPENSATION_BOUNDARY_EVENT",
             EventDefinitionInstance.Conditional("=x") to "BOUNDARY_EVENT",
             EventDefinitionInstance.Link("link") to "BOUNDARY_EVENT",
@@ -132,7 +132,7 @@ class ElementTypeNameTest {
             shape = EventShape.BOUNDARY_EVENT,
             eventDefinitions = listOf(
                 EventDefinitionInstance.Link("link"),
-                EventDefinitionInstance.Error("e", "e", "1"),
+                EventDefinitionInstance.Error(errorRef = "e", errorName = "e", errorCode = "1"),
                 EventDefinitionInstance.Timer(),
             ),
         )

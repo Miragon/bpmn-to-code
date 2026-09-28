@@ -184,7 +184,7 @@ fun subscribeNewsletterFlowNodes(): List<FlowNodeDefinition> = listOf(
         shape = EventShape.END_EVENT,
         displayName = "Registration aborted",
         incoming = listOf("flow_abortToRegistrationAborted"),
-        eventDefinitions = listOf(EventDefinitionInstance.Compensation()),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = null)),
     ),
     FlowNodeDefinition.Event(
         id = "compensationEvent_onSubscriptionCounter",
@@ -192,7 +192,7 @@ fun subscribeNewsletterFlowNodes(): List<FlowNodeDefinition> = listOf(
         displayName = "Registration aborted",
         attachedToRef = "serviceTask_incrementSubscriptionCounter",
         interrupting = true,
-        eventDefinitions = listOf(EventDefinitionInstance.Compensation()),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = null)),
     ),
     FlowNodeDefinition.Activity.Task(
         id = "serviceTask_decrementSubscriptionCounter",
@@ -213,7 +213,7 @@ fun subscribeNewsletterFlowNodes(): List<FlowNodeDefinition> = listOf(
         displayName = "Registration not possible",
         incoming = listOf("flow_invalidMailToNotPossible"),
         eventDefinitions = listOf(
-            EventDefinitionInstance.Signal("Signal_RegistrationNotPossible", "Signal_RegistrationNotPossible"),
+            EventDefinitionInstance.Signal(signalRef = "Signal_RegistrationNotPossible", signalName = "Signal_RegistrationNotPossible"),
         ),
     ),
     FlowNodeDefinition.Event(
@@ -223,7 +223,7 @@ fun subscribeNewsletterFlowNodes(): List<FlowNodeDefinition> = listOf(
         attachedToRef = "subProcess_confirmation",
         interrupting = true,
         outgoing = listOf("flow_invalidMailToNotPossible"),
-        eventDefinitions = listOf(EventDefinitionInstance.Error("Error_InvalidMail", "Error_InvalidMail", "500")),
+        eventDefinitions = listOf(EventDefinitionInstance.Error(errorRef = "Error_InvalidMail", errorName = "Error_InvalidMail", errorCode = "500")),
     ),
     jobWorkerTask(
         id = "serviceTask_incrementSubscriptionCounter",
@@ -452,7 +452,7 @@ private fun errorHandlingNodes(): List<FlowNodeDefinition> = listOf(
         shape = EventShape.END_EVENT,
         incoming = listOf("flow_cannotSendAgain"),
         eventDefinitions = listOf(
-            EventDefinitionInstance.Escalation("escalation_notifySupport", "escalation_notifySupport", "200"),
+            EventDefinitionInstance.Escalation(escalationRef = "escalation_notifySupport", escalationName = "escalation_notifySupport", escalationCode = "200"),
         ),
     ),
     FlowNodeDefinition.Event(

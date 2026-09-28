@@ -69,14 +69,14 @@ internal fun buildSubscribeNewsletterFlowNodes(
         id = "compensationEndEvent_registrationAborted",
         shape = EventShape.END_EVENT,
         incoming = listOf("flow_abortToRegistrationAborted"),
-        eventDefinitions = listOf(EventDefinitionInstance.Compensation()),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = null)),
     ),
     FlowNodeDefinition.Event(
         id = "compensationEvent_onSubscriptionCounter",
         shape = EventShape.BOUNDARY_EVENT,
         attachedToRef = "serviceTask_incrementSubscriptionCounter",
         interrupting = true,
-        eventDefinitions = listOf(EventDefinitionInstance.Compensation()),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = null)),
     ),
     jobWorkerTask(
         id = "serviceTask_decrementSubscriptionCounter",
@@ -94,7 +94,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         shape = EventShape.END_EVENT,
         incoming = listOf("flow_invalidMailToNotPossible"),
         eventDefinitions = listOf(
-            EventDefinitionInstance.Signal("Signal_RegistrationNotPossible", "Signal_RegistrationNotPossible"),
+            EventDefinitionInstance.Signal(signalRef = "Signal_RegistrationNotPossible", signalName = "Signal_RegistrationNotPossible"),
         ),
     ),
     FlowNodeDefinition.Event(
@@ -103,7 +103,7 @@ internal fun buildSubscribeNewsletterFlowNodes(
         attachedToRef = "subProcess_confirmation",
         interrupting = true,
         outgoing = listOf("flow_invalidMailToNotPossible"),
-        eventDefinitions = listOf(EventDefinitionInstance.Error("Error_InvalidMail", "Error_InvalidMail", "500")),
+        eventDefinitions = listOf(EventDefinitionInstance.Error(errorRef = "Error_InvalidMail", errorName = "Error_InvalidMail", errorCode = "500")),
     ),
     jobWorkerTask(
         id = "serviceTask_incrementSubscriptionCounter",
