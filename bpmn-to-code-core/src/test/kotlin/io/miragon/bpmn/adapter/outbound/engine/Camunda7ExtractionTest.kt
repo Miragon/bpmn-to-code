@@ -400,6 +400,14 @@ class Camunda7ExtractionTest {
         assertThat(bpmnModel.referencedDefinitionIds()).doesNotContain("message_subscriptionConfirmed")
     }
 
+    @Test
+    fun `extract reads a catch-all error boundary event without errorRef`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-catch-all-error.bpmn")).toURI())
+        val bpmnModel = underTest.read(file.readBytes())
+        val boundaryEvent = bpmnModel.allFlowNodes.single { it.id == "BoundaryEvent_catchAllError" } as FlowNodeDefinition.Event
+        assertThat(boundaryEvent.eventDefinitions).containsExactly(EventDefinitionInstance.Error(errorRef = null, errorName = null, errorCode = null))
+    }
+
     private companion object {
         const val CAMUNDA_7_NAMESPACE = "http://camunda.org/schema/1.0/bpmn"
     }

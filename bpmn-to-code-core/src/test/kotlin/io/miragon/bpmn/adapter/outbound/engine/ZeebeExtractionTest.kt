@@ -112,9 +112,9 @@ class ZeebeExtractionTest {
             .filterIsInstance<EventDefinitionInstance.Message>().single()
         assertThat(formMessage.reference.messageName).isEqualTo("Message_FormSubmitted")
         assertThat(event("endEvent_registrationNotPossible").eventDefinitions)
-            .containsExactly(EventDefinitionInstance.Signal("signal_registrationNotPossible", "Signal_RegistrationNotPossible"))
+            .containsExactly(EventDefinitionInstance.Signal(signalRef = "signal_registrationNotPossible", signalName = "Signal_RegistrationNotPossible"))
         assertThat(event("errorEvent_invalidMail").eventDefinitions)
-            .containsExactly(EventDefinitionInstance.Error("error_invalidMail", "Error_InvalidMail", "500"))
+            .containsExactly(EventDefinitionInstance.Error(errorRef = "error_invalidMail", errorName = "Error_InvalidMail", errorCode = "500"))
         assertThat(event("compensationEndEvent_registrationAborted").eventDefinitions)
             .allMatch { it is EventDefinitionInstance.Compensation }
 
@@ -314,5 +314,13 @@ class ZeebeExtractionTest {
         val file = File(requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn")).toURI())
         val bpmnModel = underTest.read(file.readBytes())
         assertThat(bpmnModel.isExecutable).isTrue()
+    }
+
+    @Test
+    fun `extract reads a catch-all error boundary event without errorRef`() {
+        val file = File(requireNotNull(javaClass.getResource("/bpmn/c8-catch-all-error.bpmn")).toURI())
+        val bpmnModel = underTest.read(file.readBytes())
+        val boundaryEvent = bpmnModel.allFlowNodes.single { it.id == "BoundaryEvent_catchAllError" } as FlowNodeDefinition.Event
+        assertThat(boundaryEvent.eventDefinitions).containsExactly(EventDefinitionInstance.Error(errorRef = null, errorName = null, errorCode = null))
     }
 }
