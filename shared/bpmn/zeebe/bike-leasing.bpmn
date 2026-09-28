@@ -162,7 +162,7 @@
       <bpmn:outgoing>flow_forkToOrderBike</bpmn:outgoing>
       <bpmn:outgoing>flow_forkToIssueInsurancePolicy</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:serviceTask id="serviceTask_orderBike" name="Order bike" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="8">
+    <bpmn:serviceTask id="serviceTask_orderBike" name="Order bike" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="8" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2Zy8+">
       <bpmn:extensionElements>
         <zeebe:taskDefinition type="io.camunda:http-json:1" />
         <zeebe:ioMapping>
@@ -172,6 +172,12 @@
           <zeebe:input source="={bikeId: bikeId}" target="body" />
           <zeebe:output source="=response.body.orderId" target="orderId" />
         </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="retryBackoff" value="PT30S" />
+        </zeebe:taskHeaders>
+        <zeebe:properties>
+          <zeebe:property name="camundaModeler:exampleOutputJson" value="{ &quot;orderId&quot;: &quot;o-1&quot; }" />
+        </zeebe:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>flow_forkToOrderBike</bpmn:incoming>
       <bpmn:outgoing>flow_orderBikeToJoin</bpmn:outgoing>

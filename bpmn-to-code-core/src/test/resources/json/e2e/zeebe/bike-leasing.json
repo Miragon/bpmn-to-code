@@ -518,7 +518,21 @@
                             "source": "=response.body.orderId"
                         }
                     ]
-                }
+                },
+                "extensions": [
+                    {
+                        "$type": "zeebe:taskHeaders",
+                        "children": [
+                            {
+                                "$type": "zeebe:header",
+                                "attributes": {
+                                    "key": "retryBackoff",
+                                    "value": "PT30S"
+                                }
+                            }
+                        ]
+                    }
+                ]
             },
             {
                 "id": "boundary_compensateOrder",

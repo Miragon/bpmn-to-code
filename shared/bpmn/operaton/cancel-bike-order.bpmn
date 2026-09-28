@@ -22,10 +22,19 @@
     <bpmn:exclusiveGateway id="gateway_cancellationPossible" name="Cancellation possible?" default="flow_cancellationPossibleToMergeReturn">
       <bpmn:incoming>flow_requestCancellationToCancellationPossible</bpmn:incoming>
       <bpmn:outgoing>flow_cancellationPossibleToMergeReturn</bpmn:outgoing>
-      <bpmn:outgoing>flow_cancellationNotPossibleToClarifyReturn</bpmn:outgoing>
+      <bpmn:outgoing>flow_cancellationNotPossibleToCollectClarifications</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:boundaryEvent id="boundary_cancellationFailed" name="Cancellation failed" attachedToRef="serviceTask_requestCancellation" operaton:asyncAfter="true">
+      <bpmn:outgoing>flow_cancellationFailedToCollectClarifications</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="errorEventDefinition_cancellationFailed" />
+    </bpmn:boundaryEvent>
+    <bpmn:exclusiveGateway id="gateway_collectClarifications">
+      <bpmn:incoming>flow_cancellationNotPossibleToCollectClarifications</bpmn:incoming>
+      <bpmn:incoming>flow_cancellationFailedToCollectClarifications</bpmn:incoming>
+      <bpmn:outgoing>flow_collectClarificationsToClarifyReturn</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:userTask id="userTask_clarifyReturn" name="Clarify return" operaton:asyncAfter="true">
-      <bpmn:incoming>flow_cancellationNotPossibleToClarifyReturn</bpmn:incoming>
+      <bpmn:incoming>flow_collectClarificationsToClarifyReturn</bpmn:incoming>
       <bpmn:outgoing>flow_clarifyReturnToMergeReturn</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:exclusiveGateway id="gateway_mergeReturn">
@@ -49,9 +58,11 @@
     <bpmn:sequenceFlow id="flow_cancellationRequiredToRequestCancellation" sourceRef="startEvent_cancellationRequired" targetRef="serviceTask_requestCancellation" />
     <bpmn:sequenceFlow id="flow_requestCancellationToCancellationPossible" sourceRef="serviceTask_requestCancellation" targetRef="gateway_cancellationPossible" />
     <bpmn:sequenceFlow id="flow_cancellationPossibleToMergeReturn" name="Yes" sourceRef="gateway_cancellationPossible" targetRef="gateway_mergeReturn" />
-    <bpmn:sequenceFlow id="flow_cancellationNotPossibleToClarifyReturn" name="No" sourceRef="gateway_cancellationPossible" targetRef="userTask_clarifyReturn">
+    <bpmn:sequenceFlow id="flow_cancellationNotPossibleToCollectClarifications" name="No" sourceRef="gateway_cancellationPossible" targetRef="gateway_collectClarifications">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!cancellationPossible}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_cancellationFailedToCollectClarifications" sourceRef="boundary_cancellationFailed" targetRef="gateway_collectClarifications" />
+    <bpmn:sequenceFlow id="flow_collectClarificationsToClarifyReturn" sourceRef="gateway_collectClarifications" targetRef="userTask_clarifyReturn" />
     <bpmn:sequenceFlow id="flow_clarifyReturnToMergeReturn" sourceRef="userTask_clarifyReturn" targetRef="gateway_mergeReturn" />
     <bpmn:sequenceFlow id="flow_mergeReturnToBookCancellationCosts" sourceRef="gateway_mergeReturn" targetRef="serviceTask_bookCancellationCosts" />
     <bpmn:sequenceFlow id="flow_bookCancellationCostsToBikeOrderCancelled" sourceRef="serviceTask_bookCancellationCosts" targetRef="endEvent_bikeOrderCancelled" />
@@ -73,6 +84,9 @@
           <dc:Bounds x="380" y="143" width="100" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_collectClarifications_di" bpmnElement="gateway_collectClarifications">
+        <dc:Bounds x="405" y="285" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="userTask_clarifyReturn_di" bpmnElement="userTask_clarifyReturn">
         <dc:Bounds x="510" y="270" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -86,6 +100,12 @@
         <dc:Bounds x="912" y="182" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="880" y="225" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_cancellationFailed_di" bpmnElement="boundary_cancellationFailed">
+        <dc:Bounds x="272" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="310" y="258" width="100" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="flow_cancellationRequiredToRequestCancellation_di" bpmnElement="flow_cancellationRequiredToRequestCancellation">
@@ -103,13 +123,21 @@
           <dc:Bounds x="551" y="182" width="19" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow_cancellationNotPossibleToClarifyReturn_di" bpmnElement="flow_cancellationNotPossibleToClarifyReturn">
+      <bpmndi:BPMNEdge id="flow_cancellationNotPossibleToCollectClarifications_di" bpmnElement="flow_cancellationNotPossibleToCollectClarifications">
         <di:waypoint x="430" y="225" />
-        <di:waypoint x="430" y="310" />
-        <di:waypoint x="510" y="310" />
+        <di:waypoint x="430" y="285" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="438" y="260" width="15" height="14" />
+          <dc:Bounds x="438" y="245" width="15" height="14" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_cancellationFailedToCollectClarifications_di" bpmnElement="flow_cancellationFailedToCollectClarifications">
+        <di:waypoint x="290" y="258" />
+        <di:waypoint x="290" y="310" />
+        <di:waypoint x="405" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_collectClarificationsToClarifyReturn_di" bpmnElement="flow_collectClarificationsToClarifyReturn">
+        <di:waypoint x="455" y="310" />
+        <di:waypoint x="510" y="310" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow_clarifyReturnToMergeReturn_di" bpmnElement="flow_clarifyReturnToMergeReturn">
         <di:waypoint x="610" y="310" />

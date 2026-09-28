@@ -264,8 +264,8 @@ class ZeebeExtractionTest {
 
     @Test
     fun `extract reads a catch-all error boundary event without errorRef`() {
-        val bpmnModel = extract("zeebe/catch-all-error")
-        val boundaryEvent = bpmnModel.allFlowNodes.single { it.id == "boundary_anyError" } as FlowNodeDefinition.Event
+        val bpmnModel = extract("zeebe/cancel-bike-order")
+        val boundaryEvent = bpmnModel.allFlowNodes.single { it.id == "boundary_cancellationFailed" } as FlowNodeDefinition.Event
         assertThat(boundaryEvent.eventDefinitions).containsExactly(EventDefinitionInstance.Error(errorRef = null, errorName = null, errorCode = null))
     }
 
