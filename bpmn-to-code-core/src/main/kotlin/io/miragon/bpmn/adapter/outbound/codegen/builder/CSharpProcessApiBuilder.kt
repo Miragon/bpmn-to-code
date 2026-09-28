@@ -3,6 +3,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.flow.VariableNameSubtype
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter

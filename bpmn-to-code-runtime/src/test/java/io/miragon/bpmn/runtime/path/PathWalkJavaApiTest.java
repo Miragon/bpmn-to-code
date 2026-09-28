@@ -18,6 +18,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PathWalkJavaApiTest {
 
     @Test
+    void viaWalksChosenSequenceFlowsAndRecordsThemNextToTheElements() {
+        var walk = PathWalk.from(Flow.startEventSubmitRegistrationForm())
+            .via(n -> n.outgoingFlows().toServiceTaskIncrementSubscriptionCounter())
+            .via(n -> n.outgoingFlows().toSubProcessConfirmation());
+
+        assertThat(walk.getIds()).containsExactly(
+            "startEvent_submitRegistrationForm",
+            "serviceTask_incrementSubscriptionCounter",
+            "subProcess_confirmation"
+        );
+        assertThat(walk.getFlowIds()).containsExactly("flow_submitToIncrementCounter", "flow_incrementCounterToConfirmation");
+    }
+
+    @Test
     void happyPathWalksTheSubprocessInteriorViaInside() {
         var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())

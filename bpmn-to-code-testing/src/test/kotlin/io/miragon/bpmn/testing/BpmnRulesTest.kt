@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test
 class BpmnRulesTest {
 
     @Test
-    fun `all() returns all 12 built-in rules`() {
+    fun `all() returns all 13 built-in rules`() {
         val rules = BpmnRules.all()
-        assertThat(rules).hasSize(12)
+        assertThat(rules).hasSize(13)
     }
 
     @Test
@@ -29,6 +29,7 @@ class BpmnRulesTest {
         assertThat(BpmnRules.EMPTY_PROCESS.id).isEqualTo("empty-process")
         assertThat(BpmnRules.MISSING_PROCESS_ID.id).isEqualTo("missing-process-id")
         assertThat(BpmnRules.COLLISION_DETECTION.id).isEqualTo("collision-detection")
+        assertThat(BpmnRules.RESERVED_ELEMENT_NAME.id).isEqualTo("reserved-element-name")
         assertThat(BpmnRules.SHARED_DEFINITION_COLLISION.id).isEqualTo("shared-definition-collision")
     }
 

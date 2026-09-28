@@ -79,7 +79,7 @@ internal class BpmnStructureReader(
 
     /**
      * Default-flow ids, collected once. BPMN puts `default` on the *source* element, which is also where
-     * the domain model keeps it; sequence flows carry the derived flag for the generated `Flows` object.
+     * the domain model keeps it; sequence flows carry the derived flag for the generated `OutgoingFlows` object.
      */
     private val defaultFlowIds: Set<String> by lazy {
         val fromExclusive = model.getModelElementsByType(ExclusiveGateway::class.java).mapNotNull { it.default?.id }

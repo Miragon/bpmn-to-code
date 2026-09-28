@@ -3,7 +3,9 @@ package io.miragon.bpmn.runtime.path
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
+import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.SequenceFlow
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -23,6 +25,39 @@ class ProcessPathTest {
         assertThat(path.ids).containsExactly("Start", "Mid", "End")
         assertThat(path.nodes.map { it.id.value }).containsExactly("Start", "Mid", "End")
         assertThat(path.current).isEqualTo(End)
+    }
+
+    @Test
+    fun `via walks a chosen outgoing sequence flow and records its target and the flow`() {
+        val path = ProcessPath.from(Start)
+            .via { it.toMid }
+
+        assertThat(path.ids).containsExactly("Start", "Mid")
+        assertThat(path.flowIds).containsExactly("flow_startToMid")
+        assertThat(path.current).isEqualTo(Mid)
+    }
+
+    @Test
+    fun `then records no sequence flow and later steps keep the flows recorded so far`() {
+        val path = ProcessPath.from(Start)
+            .via { it.toMid }
+            .then { it.end }
+
+        assertThat(path.ids).containsExactly("Start", "Mid", "End")
+        assertThat(path.flowIds).containsExactly("flow_startToMid")
+    }
+
+    @OptIn(RiskyNavigation::class)
+    @Test
+    fun `re-anchoring and walking an interior keep the flows recorded so far`() {
+        val path = ProcessPath.from(Start)
+            .via { it.toMid }
+            .jumpTo(Sub)
+            .inside { enter { it.innerStart } }
+            .then { it.end }
+
+        assertThat(path.ids).containsExactly("Start", "Mid", "InnerStart", "End")
+        assertThat(path.flowIds).containsExactly("flow_startToMid")
     }
 
     @Test
@@ -124,11 +159,15 @@ class ProcessPathTest {
         }
     }
 
-    private object Start : AbstractFlowNode(ElementId("Start"), "START_EVENT"), HasSuccessors<Start.Next> {
+    private object Start : AbstractFlowNode(ElementId("Start"), "START_EVENT"), HasSuccessors<Start.Next>, HasOutgoingFlows<Start.OutgoingFlows> {
         override fun then(): Next = Next
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
         object Next {
             val mid: Mid get() = Mid
             val sub: Sub get() = Sub
+        }
+        object OutgoingFlows {
+            val toMid: SequenceFlow<Mid> get() = SequenceFlow(ElementId("flow_startToMid"), null, null, false, Mid)
         }
     }
 

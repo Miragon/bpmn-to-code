@@ -1,13 +1,12 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.domain.shared.VariableDirection
 
 /**
- * Nested subtype of the generated `VariableName` sealed interface chosen per variable.
- * `simpleName` is the nested class/record name emitted by the shared-types builders
- * (`KotlinSharedTypesBuilder` / `JavaSharedTypesBuilder`).
+ * Nested subtype of the runtime `VariableName` sealed interface chosen per variable: `simpleName` is the nested
+ * class name the generated code references.
  */
-internal enum class VariableNameSubtype(val simpleName: String) {
+enum class VariableNameSubtype(val simpleName: String) {
     INPUT("Input"),
     OUTPUT("Output"),
     IN_OUT("InOut"),

@@ -14,6 +14,7 @@ class MavenMojoSmokeTest {
         "CAMUNDA_7, KOTLIN, c7-subscribe-newsletter.bpmn",
         "OPERATON, KOTLIN, operaton-subscribe-newsletter.bpmn",
         "ZEEBE, JAVA, c8-subscribe-newsletter.bpmn",
+        "ZEEBE, CSHARP, c8-subscribe-newsletter.bpmn",
     )
     fun `mojo generates output files`(
         engine: String,
@@ -42,7 +43,11 @@ class MavenMojoSmokeTest {
         assertThat(packageDir).isDirectory()
         val generatedFiles = requireNotNull(packageDir.listFiles())
         assertThat(generatedFiles).isNotEmpty()
-        val expectedExt = if (language == "KOTLIN") ".kt" else ".java"
+        val expectedExt = when (language) {
+            "KOTLIN" -> ".kt"
+            "JAVA" -> ".java"
+            else -> ".cs"
+        }
         assertThat(generatedFiles).allSatisfy { file -> assertThat(file.isFile).isTrue() }
         assertThat(generatedFiles).allSatisfy { file -> assertThat(file.name).endsWith(expectedExt) }
     }

@@ -4,10 +4,14 @@ import com.sun.source.util.JavacTask
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
+import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
+import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.testSendNewsletterModel
 import io.miragon.bpmn.domain.testSubscribeNewsletterModel
@@ -49,8 +53,7 @@ class JavaProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.java")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
-        val expectedFile = File(requireNotNull(javaClass.getResource("/api/NewsletterSubscriptionProcessApiJava.txt")).toURI())
-        assertThat(result.content).isEqualToIgnoringWhitespace(expectedFile.readText())
+        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/NewsletterSubscriptionProcessApiJava.txt", result.content))
         assertJavaSyntaxValid(result.fileName, result.content)
     }
 
@@ -73,6 +76,28 @@ class JavaProcessApiBuilderTest {
     }
 
     @Test
+    fun `several flows to the same element share one outgoing-flows method as a list`() {
+        // given: a gateway with two conditional flows that both lead to the same task
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Gateway(id = "split", kind = GatewayKind.EXCLUSIVE, outgoing = listOf("flow_small", "flow_vip")),
+                FlowNodeDefinition.Unknown(id = "approve", incoming = listOf("flow_small", "flow_vip")),
+            ),
+            sequenceFlows = listOf(
+                SequenceFlowDefinition("flow_small", "split", "approve", conditionExpression = "=amount < 100"),
+                SequenceFlowDefinition("flow_vip", "split", "approve", conditionExpression = "=customer.isVip"),
+            ),
+        )
+
+        // when
+        val result = underTest.buildApiFile(testProcessModelApi(model = model, language = OutputLanguage.JAVA))
+
+        // then: one stable name for both flows, typed as a list
+        assertThat(result.content).contains("public List<SequenceFlow<Approve>> toApprove()")
+        assertJavaSyntaxValid(result.fileName, result.content)
+    }
+
+    @Test
     fun `buildApiFile generates variant-scoped Flow for merged model`() {
         // given: a merged model with a single variant
         val send = testSendNewsletterModel(variantName = "send")
@@ -89,10 +114,17 @@ class JavaProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains Variants section instead of a flat Flow
-        val expectedFile = File(requireNotNull(javaClass.getResource("/api/MultiVariantProcessApiJava.txt")).toURI())
-        assertThat(result.content).isEqualToIgnoringWhitespace(expectedFile.readText())
+        // then: output contains FlowVariants section instead of a flat Flow
+        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/MultiVariantProcessApiJava.txt", result.content))
         assertJavaSyntaxValid(result.fileName, result.content)
+    }
+
+    private fun golden(path: String, generated: String): String {
+        if (System.getProperty("golden.update") == "true") {
+            File("src/test/resources$path").writeText(generated)
+            return generated
+        }
+        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 
     private fun assertJavaSyntaxValid(fileName: String, source: String) {

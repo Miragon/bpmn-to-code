@@ -3,15 +3,16 @@ package io.miragon.bpmn.adapter.outbound.codegen.flow
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 
 /**
- * Derives the navigation identifiers for elements.
+ * Derives the navigation identifiers for elements and sequence flows.
  *
- * Names come from the element id's [toCamelCase] form — the same basis the `CallActivities` / `Variables`
- * nested objects use, and the one guarded by the mandatory `collision-detection` rule. That rule rejects any
- * model whose ids collapse to the same name before generation runs, so within a scope the names are already
- * guaranteed unique and no disambiguation is needed here.
+ * Names come from the id's [toCamelCase] form — the one guarded by the mandatory `collision-detection`
+ * rule. That rule rejects any model whose ids collapse to the same name before generation runs, so across the
+ * whole model the names are already guaranteed unique and no disambiguation is needed here.
  *
  * - object name = PascalCase of the id (`serviceTask_increment` -> `ServiceTaskIncrement`)
  * - property/accessor name = the same, first letter lowercased (`serviceTaskIncrement`)
+ * - outgoing-flows property = `to` + the target's object name (`toEndEventNoSubscribers`); the target is a
+ *   node, so the name inherits its uniqueness
  */
 internal object FlowNaming {
 
@@ -21,12 +22,14 @@ internal object FlowNaming {
     data class Names(val objectName: String, val propertyName: String)
 
     /**
-     * Assigns [Names] to every node in a scope, keyed by element id.
+     * Assigns [Names] to every node of the model, keyed by element id.
      */
-    fun assignScope(nodes: List<FlowNodeWithId>): Map<String, Names> = nodes.associate { node ->
+    fun assign(nodes: List<FlowNodeWithId>): Map<String, Names> = nodes.associate { node ->
         val objectName = node.definition.getRawName().toCamelCase()
         node.id to Names(objectName, decapitalize(objectName))
     }
+
+    fun outgoingFlowsProperty(target: Names): String = "to${target.objectName}"
 
     private fun decapitalize(name: String): String = name.replaceFirstChar { it.lowercaseChar() }
 }

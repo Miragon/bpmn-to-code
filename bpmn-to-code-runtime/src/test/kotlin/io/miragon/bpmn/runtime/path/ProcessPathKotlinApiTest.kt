@@ -1,5 +1,11 @@
 package io.miragon.bpmn.runtime.path
 
+import io.miragon.bpmn.runtime.BoundaryEvent
+import io.miragon.bpmn.runtime.BpmnError
+import io.miragon.bpmn.runtime.BpmnTimer
+import io.miragon.bpmn.runtime.MessageName
+import io.miragon.bpmn.runtime.ProcessId
+import io.miragon.bpmn.runtime.VariableName
 import io.miragon.bpmn.runtime.path.example.NewsletterSubscriptionProcessApi.Flow.SubProcessConfirmation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -186,6 +192,49 @@ class ProcessPathKotlinApiTest {
         assertThat(Newsletter.CallActivityAbortRegistration.elementType).isEqualTo("CALL_ACTIVITY")
         assertThat(Newsletter.ServiceTaskSendWelcomeMail.elementType).isEqualTo("SERVICE_TASK")
         assertThat(Newsletter.GatewaySplitNotifications.id.value).isEqualTo("gateway_splitNotifications")
+    }
+
+    @Test
+    fun `nodes expose their display name, outgoing sequence flows named after their targets and their own facets`() {
+        assertThat(Newsletter.ReceiveTaskConfirmRegistration.name).isEqualTo("Confirm registration")
+        assertThat(Newsletter.StartEventSubmitRegistrationForm.name).isNull()
+
+        val flow = Newsletter.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter
+        assertThat(flow.id.value).isEqualTo("flow_submitToIncrementCounter")
+        assertThat(flow.target).isEqualTo(Newsletter.ServiceTaskIncrementSubscriptionCounter)
+        assertThat(flow.conditionExpression).isNull()
+        assertThat(flow.isDefault).isFalse()
+        assertThat(flow).isEqualTo(Newsletter.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter)
+
+        val input: VariableName.Input = Newsletter.ServiceTaskSendConfirmationMail.Variables.SUBSCRIPTION_ID
+        assertThat(input.value).isEqualTo("subscriptionId")
+        assertThat(Newsletter.ServiceTaskSendWelcomeMail.JOB_TYPE).isEqualTo("\${newsletterSendWelcomeMail}")
+        assertThat(Newsletter.StartEventSubmitRegistrationForm.message).isEqualTo(MessageName("Message_FormSubmitted"))
+        assertThat(Newsletter.ErrorEventInvalidMail.error).isEqualTo(BpmnError("Error_InvalidMail", "500"))
+
+        assertThat(Newsletter.TimerEveryDay.timer).isEqualTo(BpmnTimer("Duration", "PT1M"))
+        assertThat(Newsletter.TimerEveryDay.attachedTo).isEqualTo(Newsletter.ReceiveTaskConfirmRegistration)
+        assertThat(Newsletter.TimerEveryDay.isInterrupting).isFalse()
+        assertThat(Newsletter.TimerEveryDay).isInstanceOf(BoundaryEvent::class.java)
+        assertThat(Newsletter.ReceiveTaskConfirmRegistration).isNotInstanceOf(BoundaryEvent::class.java)
+
+        assertThat(Newsletter.CallActivityAbortRegistration.calledProcess).isEqualTo(ProcessId("abort-registration"))
+        assertThat(Newsletter.CallActivityAbortRegistration.Inputs.CHILD_SUBSCRIPTION_ID.target).isEqualTo("childSubscriptionId")
+        assertThat(Newsletter.CallActivityAbortRegistration.Outputs.ABORT_RESULT.source).isEqualTo("childAbortResult")
+    }
+
+    @Test
+    fun `via walks chosen sequence flows and records them next to the elements`() {
+        val path = ProcessPath.from(Newsletter.StartEventSubmitRegistrationForm)
+            .via { it.toServiceTaskIncrementSubscriptionCounter }
+            .via { it.toSubProcessConfirmation }
+
+        assertThat(path.ids).containsExactly(
+            "startEvent_submitRegistrationForm",
+            "serviceTask_incrementSubscriptionCounter",
+            "subProcess_confirmation",
+        )
+        assertThat(path.flowIds).containsExactly("flow_submitToIncrementCounter", "flow_incrementCounterToConfirmation")
     }
 
     @Test

@@ -21,6 +21,7 @@ import io.miragon.bpmn.domain.validation.rules.MissingProcessIdRule
 import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
 import io.miragon.bpmn.domain.validation.rules.MissingSignalNameRule
 import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
+import io.miragon.bpmn.domain.validation.rules.ReservedElementNameRule
 import io.miragon.bpmn.domain.validation.rules.SharedDefinitionCollisionRule
 
 class BpmnValidationService(
@@ -109,6 +110,7 @@ class BpmnValidationService(
             EmptyProcessRule(),
             MissingProcessIdRule(),
             CollisionDetectionRule(),
+            ReservedElementNameRule(),
         )
 
         private fun builtInCrossModelRules() = listOf(

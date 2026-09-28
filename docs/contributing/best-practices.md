@@ -89,7 +89,7 @@ See the engine pages for details: [Camunda 7](/engines/camunda7) · [Operaton](/
 - **Reduced coupling**: Process API doesn't leak implementation details from worker code
 - **Better maintainability**: All variable contracts are visible in the BPMN model
 
-**Impact:** If a variable isn't explicitly defined through one of the above mechanisms, it won't appear in your generated Process API's `Variables` object.
+**Impact:** If a variable isn't explicitly defined through one of the above mechanisms, it won't appear in the `Variables` holder of the element's `Flow` node in your generated Process API.
 
 ### When I/O Mappings Aren't Available
 
@@ -113,7 +113,7 @@ Some elements don't support I/O mappings — for example, **message start events
 </bpmn:extensionElements>
 ```
 
-Values land in the element's `Inputs` / `Outputs` sub-object accordingly. Works on any BPMN element. See [Camunda 7](/engines/camunda7#additional-input-output-variables-extension-properties) and [Operaton](/engines/operaton#additional-input-output-variables-extension-properties) engine pages for full details.
+Values become `VariableName.Input` / `VariableName.Output` entries in the element's `Variables` holder on its `Flow` node. Works on any BPMN element. See [Camunda 7](/engines/camunda7#additional-input-output-variables-extension-properties) and [Operaton](/engines/operaton#additional-input-output-variables-extension-properties) engine pages for full details.
 
 ## Multi-Environment Modeling
 

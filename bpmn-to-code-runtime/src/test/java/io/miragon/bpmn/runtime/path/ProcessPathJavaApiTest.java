@@ -1,6 +1,11 @@
 package io.miragon.bpmn.runtime.path;
 
+import io.miragon.bpmn.runtime.BoundaryEvent;
+import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.FlowNode;
+import io.miragon.bpmn.runtime.MessageName;
+import io.miragon.bpmn.runtime.ProcessId;
+import io.miragon.bpmn.runtime.VariableName;
 import io.miragon.bpmn.runtime.example.NewsletterSubscriptionProcessApi.Flow;
 import org.junit.jupiter.api.Test;
 
@@ -34,9 +39,9 @@ class ProcessPathJavaApiTest {
         var p2 = onto(p1, Flow.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
         var p3 = inside(p2, sub -> {
             var i0 = enter(sub, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-            var i1 = then(i0, Flow.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-            var i2 = then(i1, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
-            return then(i2, Flow.SubProcessConfirmation.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
+            var i1 = then(i0, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
+            var i2 = then(i1, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
+            return then(i2, Flow.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
         });
         var p4 = then(p3, Flow.SubProcessConfirmation.Next::gatewaySplitNotifications);
         var p5 = then(p4, Flow.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
@@ -65,8 +70,8 @@ class ProcessPathJavaApiTest {
         var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
         var p2 = onto(p1, Flow.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
         var p3 = enter(p2, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-        var p4 = then(p3, Flow.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-        var p5 = then(p4, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
+        var p4 = then(p3, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
+        var p5 = then(p4, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
         var p6 = interruptedBy(p5, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Next::timerAfter3Days);
         var p7 = then(p6, Flow.TimerAfter3Days.Next::callActivityAbortRegistration);
         var p8 = then(p7, Flow.CallActivityAbortRegistration.Next::compensationEndEventRegistrationAborted);
@@ -89,7 +94,7 @@ class ProcessPathJavaApiTest {
         var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
         var p2 = onto(p1, Flow.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
         var p3 = enter(p2, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-        var p4 = then(p3, Flow.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
+        var p4 = then(p3, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
         var p5 = interruptedBy(p4, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Next::errorEventInvalidMail);
         var p6 = then(p5, Flow.ErrorEventInvalidMail.Next::endEventRegistrationNotPossible);
 
@@ -108,12 +113,12 @@ class ProcessPathJavaApiTest {
         var p0 = ProcessPath.from(Flow.startEventSubmitRegistrationForm());
         var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
         var p2 = enter(p1, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-        var p3 = then(p2, Flow.SubProcessConfirmation.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-        var p4 = then(p3, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
-        var p5 = then(p4, Flow.SubProcessConfirmation.ReceiveTaskConfirmRegistration.Next::timerEveryDay);
-        var p6 = then(p5, Flow.SubProcessConfirmation.TimerEveryDay.Next::serviceTaskSendConfirmationMail);
-        var p7 = then(p6, Flow.SubProcessConfirmation.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
-        var p8 = then(p7, Flow.SubProcessConfirmation.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
+        var p3 = then(p2, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
+        var p4 = then(p3, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
+        var p5 = then(p4, Flow.ReceiveTaskConfirmRegistration.Next::timerEveryDay);
+        var p6 = then(p5, Flow.TimerEveryDay.Next::serviceTaskSendConfirmationMail);
+        var p7 = then(p6, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
+        var p8 = then(p7, Flow.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
 
         assertThat(p8.getIds()).containsExactly(
             "startEvent_submitRegistrationForm",
@@ -196,6 +201,32 @@ class ProcessPathJavaApiTest {
         assertThat(Flow.callActivityAbortRegistration().getElementType()).isEqualTo("CALL_ACTIVITY");
         assertThat(Flow.serviceTaskSendWelcomeMail().getElementType()).isEqualTo("SERVICE_TASK");
         assertThat(Flow.gatewaySplitNotifications().getId().getValue()).isEqualTo("gateway_splitNotifications");
+    }
+
+    @Test
+    void nodesExposeTheirDisplayNameOutgoingSequenceFlowsAndTheirOwnFacets() {
+        assertThat(Flow.receiveTaskConfirmRegistration().getName()).isEqualTo("Confirm registration");
+        assertThat(Flow.startEventSubmitRegistrationForm().getName()).isNull();
+
+        var flow = Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter();
+        assertThat(flow.getId().getValue()).isEqualTo("flow_submitToIncrementCounter");
+        assertThat(flow.getTarget()).isEqualTo(Flow.serviceTaskIncrementSubscriptionCounter());
+        assertThat(flow.getConditionExpression()).isNull();
+        assertThat(flow.isDefault()).isFalse();
+        assertThat(flow).isEqualTo(Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter());
+        assertThat(Flow.timerEveryDay()).isInstanceOf(BoundaryEvent.class);
+
+        VariableName.Input input = Flow.ServiceTaskSendConfirmationMail.Variables.SUBSCRIPTION_ID;
+        assertThat(input.getValue()).isEqualTo("subscriptionId");
+        assertThat(Flow.ServiceTaskSendWelcomeMail.JOB_TYPE).isEqualTo("${newsletterSendWelcomeMail}");
+        assertThat(Flow.startEventSubmitRegistrationForm().message).isEqualTo(new MessageName("Message_FormSubmitted"));
+
+        assertThat(Flow.timerEveryDay().timer).isEqualTo(new BpmnTimer("Duration", "PT1M"));
+        assertThat(Flow.timerEveryDay().attachedTo()).isEqualTo(Flow.receiveTaskConfirmRegistration());
+        assertThat(Flow.timerEveryDay().isInterrupting).isFalse();
+
+        assertThat(Flow.callActivityAbortRegistration().calledProcess).isEqualTo(new ProcessId("abort-registration"));
+        assertThat(Flow.CallActivityAbortRegistration.Inputs.CHILD_SUBSCRIPTION_ID.getTarget()).isEqualTo("childSubscriptionId");
     }
 
     @Test

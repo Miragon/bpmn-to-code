@@ -1,27 +1,24 @@
 # 📦 Generated API
 
-One file per BPMN process with everything that belongs to that process, plus one file per kind of
-[shared definition](#shared-definitions) — job types, messages, signals, errors and escalations — generated
-once for all processes of a run.
+One file per BPMN process — a typed, compile-checked projection of the process model — plus one file per
+kind of [shared definition](#shared-definitions): job types, messages, signals, errors and escalations,
+generated once for all processes of a run.
 
 ## Structure
 
 The generated Process API is an `object` (Kotlin), `class` (Java) or `static class` (C#) with nested
-sections:
+sections. It is the code-side twin of the [JSON export](/surface/json): everything JSON hangs on a
+`flowNode` hangs on a node of `Flow`; everything under `definitions` is a [shared definition](#shared-definitions).
 
 | Section | Contents |
 |---------|----------|
-| `PROCESS_ID` | The process identifier from the BPMN model |
+| `PROCESS_ID` | The process identifier from the BPMN model (`ProcessId`) |
 | `PROCESS_ENGINE` | The engine the API was generated for, as a typed `BpmnEngine` enum (`ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
-| `Elements` | All flow node IDs (tasks, events, gateways, subprocesses) |
-| `CallActivities` | Per call activity: the called `PROCESS_ID` plus `Inputs` / `Outputs` variable mappings (`InputOutputMapping`) |
-| `Timers` | Timer configurations with type and value (`BpmnTimer`) |
-| `Variables` | Per-element variables, split into `Inputs` / `Outputs` sub-objects by direction |
-| `Flow` | Typed navigation graph: each element exposes `id` / `elementType` / `name` and its successors behind `then()` (implements `FlowNode` / `HasSuccessors`); a subprocess opens its interior via `start()` (`FlowScope`) |
+| `Flow` | One node per element, flat, carrying the element's own data (job type, variables, timer, …), its successors behind `then()` and its outgoing sequence flows behind `outgoingFlows()`, named after the elements they lead to |
+| `FlowVariants` | For merged models only: one `Flow` per BPMN file, named after its `variantName` (`FlowVariants.<Variant>.<Node>`) |
 
-> The full process shape — every sequence flow (with `sourceRef` / `targetRef` / `conditionExpression` / `isDefault`) and every element — lives in the [JSON export](/surface/json). The generated code API focuses on what JVM code references at compile time.
-
-Sections are only included when the BPMN model contains matching elements.
+Element ids, variables, timers and call-activity mappings have no section of their own: they live on
+the node that declares them.
 
 ## Shared definitions
 
@@ -32,7 +29,7 @@ kind in its own file next to the Process APIs:
 
 | File | Contents |
 |------|----------|
-| `ServiceTasks` | Worker types / topics / delegate expressions from service tasks |
+| `ServiceTasks` | One `const` per distinct worker type / topic / delegate expression — **the constant to use in `@JobWorker(type = …)`** |
 | `Messages` | Message names from message events and receive tasks (`MessageName`) |
 | `Signals` | Signal names from signal events (`SignalName`) |
 | `Errors` | Error definitions with name and code (`BpmnError`) |
@@ -43,24 +40,22 @@ one process contains a matching element. Errors and escalations are named `NAME_
 (`ERROR_INVALID_MAIL_500`) because the engine matches them by code — the same name with another code is a
 different error. Without a code the constant is named after the name alone.
 
+::: warning C# (beta) omits `Flow`
+The C# target generates the constants sections only: process id, engine, element ids, call activities,
+timers and variables per process, plus the shared definitions. `Flow` derives every node from
+`bpmn-to-code-runtime`, a JVM artifact with no C# counterpart yet, so it is left out rather than emitted
+half-working. See [Output Languages](/guide/configuration#output-languages).
+:::
+
 ::: warning One `packagePath` per generation run
 The shared files are named after their kind, not after a process. Two generation runs (Gradle tasks or
 Maven executions) writing into the same package overwrite each other's `ServiceTasks`, `Messages`, … —
 give each run its own `packagePath`, or generate all related BPMN files in one run.
 :::
 
-::: warning C# (beta) omits `Flow`
-The C# target generates the constants sections only. `Flow` (and, for merged models, `Variants`)
-derives every node from `bpmn-to-code-runtime`, a JVM artifact with no C# counterpart yet, so it is left
-out rather than emitted half-working. C# also has no wrapper types at all — every value is a plain
-`const string`, which is why the generated `.cs` file needs no dependency. Variable direction is carried
-in an XML doc comment instead of in the type. See
-[Output Languages](/guide/configuration#output-languages).
-:::
-
 ## Full Example
 
-Given a newsletter subscription BPMN process, bpmn-to-code generates:
+Given a newsletter subscription BPMN process, bpmn-to-code generates (abridged):
 
 ::: code-group
 
@@ -71,78 +66,63 @@ Given a newsletter subscription BPMN process, bpmn-to-code generates:
 package de.emaarco.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnEngine
-import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
-import io.miragon.bpmn.runtime.InputOutputMapping
+import io.miragon.bpmn.runtime.FlowScope
+import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
+import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.VariableName
 
 object NewsletterSubscriptionProcessApi {
-  const val PROCESS_ID: String = "newsletterSubscription"
+  val PROCESS_ID: ProcessId = ProcessId("newsletterSubscription")
   val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
 
-  object Elements {
-    const val ACTIVITY_CONFIRM_REGISTRATION: String = "Activity_ConfirmRegistration"
-    const val ACTIVITY_SEND_CONFIRMATION_MAIL: String = "Activity_SendConfirmationMail"
-    const val ACTIVITY_SEND_WELCOME_MAIL: String = "Activity_SendWelcomeMail"
-    const val CALL_ACTIVITY_ABORT_REGISTRATION: String = "CallActivity_AbortRegistration"
-    const val END_EVENT_REGISTRATION_COMPLETED: String = "EndEvent_RegistrationCompleted"
-    const val END_EVENT_SUBSCRIPTION_CONFIRMED: String = "EndEvent_SubscriptionConfirmed"
-    const val START_EVENT_SUBMIT_REGISTRATION_FORM: String = "StartEvent_SubmitRegistrationForm"
-    const val SUB_PROCESS_CONFIRMATION: String = "SubProcess_Confirmation"
-    const val TIMER_EVERY_DAY: String = "Timer_EveryDay"
-    // ... all other elements
-  }
-
-  object CallActivities {
-    object CallActivityAbortRegistration {
-      val PROCESS_ID: ProcessId = ProcessId("abort-registration")
-
-      object Inputs {
-        val CHILD_SUBSCRIPTION_ID: InputOutputMapping = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
-      }
-
-      object Outputs {
-        val ABORT_RESULT: InputOutputMapping = InputOutputMapping(target = "abortResult", source = "childAbortResult")
-      }
-    }
-  }
-
-  object Timers {
-    val TIMER_EVERY_DAY: BpmnTimer = BpmnTimer("Duration", "PT1M")
-    val TIMER_AFTER_3_DAYS: BpmnTimer = BpmnTimer("Duration", "\${testVariable}")
-  }
-
-  object Variables {
-    object ActivitySendConfirmationMail {
-      object Inputs {
-        val SUBSCRIPTION_ID: VariableName = VariableName("subscriptionId")
-      }
-    }
-
-    object StartEventSubmitRegistrationForm {
-      object Outputs {
-        val SUBSCRIPTION_ID: VariableName = VariableName("subscriptionId")
-      }
-    }
-  }
-
   object Flow {
-    // Typed navigation graph: each element is a node exposing `id`, `elementType`, `name`,
-    // and the elements reachable from it behind `then()`. Start a walk at any node, e.g. `Flow.StartEventSubmitRegistrationForm`.
-    object ActivityConfirmRegistration :
-        AbstractFlowNode(ElementId("Activity_ConfirmRegistration"), "RECEIVE_TASK"),
-        HasSuccessors<ActivityConfirmRegistration.Next> {
-      val name: String = "Confirm registration"
+    object StartEventSubmitRegistrationForm : AbstractFlowNode(ElementId("startEvent_submitRegistrationForm"), "MESSAGE_START_EVENT", "Submit newsletter form"),
+        HasSuccessors<StartEventSubmitRegistrationForm.Next>, HasOutgoingFlows<StartEventSubmitRegistrationForm.OutgoingFlows> {
+      val message: MessageName = Messages.MESSAGE_FORM_SUBMITTED
       override fun then(): Next = Next
-      object Next {
-        val endEventSubscriptionConfirmed get() = EndEventSubscriptionConfirmed
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
+      object Variables { val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId") }
+      object Next { val serviceTaskIncrementSubscriptionCounter get() = ServiceTaskIncrementSubscriptionCounter }
+      object OutgoingFlows {
+        val toServiceTaskIncrementSubscriptionCounter: SequenceFlow<ServiceTaskIncrementSubscriptionCounter>
+          get() = SequenceFlow(id = ElementId("flow_submitToIncrementCounter"), name = null, conditionExpression = null, isDefault = false, target = ServiceTaskIncrementSubscriptionCounter)
       }
     }
-    // ... one nested node per element; terminal elements are `AbstractFlowNode(...)` with no `then()`
+
+    object ServiceTaskSendConfirmationMail : AbstractFlowNode(ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK", "Send confirmation mail"),
+        HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasOutgoingFlows<ServiceTaskSendConfirmationMail.OutgoingFlows> {
+      const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL
+      override fun then(): Next = Next
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
+      object Variables { val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId") }
+      object Next { val receiveTaskConfirmRegistration get() = ReceiveTaskConfirmRegistration }
+      object OutgoingFlows { /* one SequenceFlow per element it leads to, named to<Element> */ }
+    }
+
+    object TimerEveryDay : AbstractFlowNode(ElementId("timer_everyDay"), "TIMER_BOUNDARY_EVENT", "Every day"),
+        HasSuccessors<TimerEveryDay.Next>, HasOutgoingFlows<TimerEveryDay.OutgoingFlows>, BoundaryEvent {
+      val timer: BpmnTimer = BpmnTimer("Duration", "PT1M")
+      val attachedTo: ReceiveTaskConfirmRegistration get() = ReceiveTaskConfirmRegistration
+      val isInterrupting: Boolean = false
+      // …
+    }
+
+    object SubProcessConfirmation : AbstractFlowNode(ElementId("subProcess_confirmation"), "SUB_PROCESS", "Subscription Confirmation"),
+        HasSuccessors<SubProcessConfirmation.Next>, HasOutgoingFlows<SubProcessConfirmation.OutgoingFlows>, FlowScope<SubProcessConfirmation.Start> {
+      override fun start(): Start = Start
+      object Start { val startEventRequestReceived get() = StartEventRequestReceived }
+      // …
+    }
+
+    object EndEventRegistrationCompleted : AbstractFlowNode(ElementId("endEvent_registrationCompleted"), "END_EVENT", "Registration completed")
+    // … one nested object per element, including those inside subprocesses
   }
 }
 
@@ -173,23 +153,42 @@ object Signals {
 // Generated by bpmn-to-code
 package de.emaarco.example;
 
-import io.miragon.bpmn.runtime.AbstractFlowNode;
-import io.miragon.bpmn.runtime.BpmnEngine;
-import io.miragon.bpmn.runtime.BpmnTimer;
-import io.miragon.bpmn.runtime.ElementId;
-import io.miragon.bpmn.runtime.HasSuccessors;
+import io.miragon.bpmn.runtime.*;
 
-public class NewsletterSubscriptionProcessApi {
-    public static final String PROCESS_ID = "newsletterSubscription";
+public final class NewsletterSubscriptionProcessApi {
+    public static final ProcessId PROCESS_ID = new ProcessId("newsletterSubscription");
     public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
-    public static class Elements {
-        public static final String ACTIVITY_CONFIRM_REGISTRATION = "Activity_ConfirmRegistration";
-        public static final String ACTIVITY_SEND_WELCOME_MAIL = "Activity_SendWelcomeMail";
-        // ... same constants as Kotlin, with Java syntax
-    }
+    public static final class Flow {
+        public static StartEventSubmitRegistrationForm startEventSubmitRegistrationForm() { return new StartEventSubmitRegistrationForm(); }
+        public static ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() { return new ServiceTaskSendConfirmationMail(); }
+        // … one static accessor per element
 
-    // ... same structure for CallActivities, Timers, Variables, Flow
+        public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode
+                implements HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasOutgoingFlows<ServiceTaskSendConfirmationMail.OutgoingFlows> {
+            public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL;
+
+            public ServiceTaskSendConfirmationMail() {
+                super(new ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK", "Send confirmation mail");
+            }
+
+            @Override public Next then() { return new Next(); }
+            @Override public OutgoingFlows outgoingFlows() { return new OutgoingFlows(); }
+
+            public static final class Variables {
+                public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
+            }
+            public static final class Next {
+                public ReceiveTaskConfirmRegistration receiveTaskConfirmRegistration() { return new ReceiveTaskConfirmRegistration(); }
+            }
+            public static final class OutgoingFlows {
+                public SequenceFlow<ReceiveTaskConfirmRegistration> toReceiveTaskConfirmRegistration() {
+                    return new SequenceFlow<>(new ElementId("flow_confirmationMailToConfirm"), null, null, false, new ReceiveTaskConfirmRegistration());
+                }
+            }
+        }
+        // …
+    }
 }
 
 // Messages.java — shared by all processes of the run
@@ -202,45 +201,98 @@ public final class Messages {
 
 :::
 
-## Flow — typed navigation graph
+## Flow — the process as typed nodes
 
-`Flow` is a **typed navigation graph** of the process flow. Each element is a nested node exposing its
-`id` (`ElementId`), `elementType`, optional display `name`, and the elements reachable from it behind
-`then()`. The return type of every `then()` step is the next node, so **a path that doesn't exist in the
-model doesn't compile** — regenerate after a model change and the affected step breaks the build at that exact
-edge. (Full per-element adjacency in a walkable, language-neutral form is still available in the [JSON
-export](/surface/json).)
+`Flow` holds **one node per element**, and every node is a direct child of `Flow` whatever its subprocess
+depth — so `Flow.StartEventRequestReceived` is addressed by its own name even though it sits inside
+`SubProcess_Confirmation`. Element names are derived from ids (`serviceTask_sendMail` → `ServiceTaskSendMail`),
+and the mandatory `collision-detection` and `reserved-element-name` rules guarantee they are unique and do
+not shadow the API itself.
+
+Each node extends **`AbstractFlowNode`** and exposes:
+
+| Member | Present on | Type | Mirrors in JSON |
+|---|---|---|---|
+| `id`, `elementType`, `name` | every node | `ElementId`, `String`, `String?` | `id`, `type`, `name` |
+| `JOB_TYPE` | tasks and events with an implementation | `const String`, referring to `ServiceTasks` | `implementation.jobType` |
+| `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut` | `variables[]` |
+| `calledProcess`, `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
+| `timer` | timer events | `BpmnTimer` | `eventDefinitions[timer]` |
+| `message` / `signal` / `error` / `escalation` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnError` / `BpmnEscalation`, referring to the shared definition | `eventDefinitions[*]` |
+| `attachedTo`, marker `BoundaryEvent` | boundary events | the host node | `attachedToRef` |
+| `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
+| `then()` → `Next` | nodes with successors | the reachable nodes, boundary events included | `outgoing` |
+| `outgoingFlows()` → `OutgoingFlows` | nodes with outgoing sequence flows | one `to<Element>` per element the flows lead to: a `SequenceFlow<Target>`, or a `List` when several flows lead there | `sequenceFlows[]` |
+| `start()` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
+
+Java mirrors the shape with methods: `Flow.serviceTaskSendConfirmationMail().then()`, facets as public
+final fields (`.timer`, `.calledProcess`), `attachedTo()` as a method, and `JOB_TYPE` as a
+`public static final String`.
+
+::: tip `ServiceTasks.X` or `Flow.X.JOB_TYPE`?
+Both are the same constant: `Flow.<Task>.JOB_TYPE` **is** `ServiceTasks.X`. `ServiceTasks` has **one
+constant per distinct job type** across all processes of the run and is the canonical argument for
+`@JobWorker(type = …)`; `Flow.<Task>.JOB_TYPE` tells you which of them **this element** uses — handy in
+tests that go from an element to its worker. Messages, signals, errors and escalations work the same way:
+`Flow.X.message` is the `Messages` constant. Only a value that no root element of the model declares is
+written on the node itself.
+:::
+
+### Outgoing sequence flows
+
+`OutgoingFlows` lists the outgoing sequence flows of a node, **named after the element each flow leads to**
+(`to<Element>`), so a condition is found by where it goes — not by a flow id that the modeler usually leaves
+as `Flow_1csfyyz`. Each entry is a `SequenceFlow<Target>` carrying the flow's `id`, label, raw
+`conditionExpression` (`${…}` on Camunda 7 / Operaton, `=…` FEEL on Zeebe), `isDefault` marker and typed
+`target`.
 
 ```kotlin
-object Flow {
-  object ServiceTaskIncrementSubscriptionCounter :
-      AbstractFlowNode(ElementId("serviceTask_incrementSubscriptionCounter"), "SERVICE_TASK"),
-      HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next> {
-    override fun then(): Next = Next
-    object Next { val subProcessConfirmation get() = SubProcessConfirmation }
-  }
+val flows = Flow.GatewayHasSubscribers.outgoingFlows()
 
-  object SubProcessConfirmation :
-      AbstractFlowNode(ElementId("SubProcess_Confirmation"), "SUB_PROCESS"),
-      HasSuccessors<SubProcessConfirmation.Next>, FlowScope<SubProcessConfirmation.Start> {
-    override fun then(): Next = Next                        // what follows the subprocess (+ boundary events)
-    override fun start(): Start = Start                     // the interior's start event(s)
-    object Next { val activitySendWelcomeMail get() = ActivitySendWelcomeMail }
-    object Start { val startEventRequestReceived get() = StartEventRequestReceived }
-    object StartEventRequestReceived : /* … */              // interior nodes are nested on the subprocess
-  }
+assertThat(flows.toEndEventNoSubscribers.conditionExpression).isEqualTo("=subscribers.size() > 0")
+assertThat(flows.toEndEventNoSubscribers.target).isEqualTo(Flow.EndEventNoSubscribers)
+assertThat(flows.toServiceTaskSendToSubscriber.isDefault).isTrue()
+```
 
-  // terminal element — no then()
-  object EndEventRegistrationCompleted : AbstractFlowNode(ElementId("EndEvent_RegistrationCompleted"), "END_EVENT")
+```java
+var flows = Flow.gatewayHasSubscribers().outgoingFlows();
+assertThat(flows.toEndEventNoSubscribers().getConditionExpression()).isEqualTo("=subscribers.size() > 0");
+assertThat(flows.toServiceTaskSendToSubscriber().isDefault()).isTrue();
+```
+
+When **several sequence flows lead to the same element**, the entry keeps its name and becomes a list —
+no flow is lost and no other entry is renamed:
+
+```kotlin
+val toApprove: List<SequenceFlow<TaskApprove>> = Flow.GatewayAmount.outgoingFlows().toTaskApprove
+assertThat(toApprove.map { it.conditionExpression }).containsExactly("=amount < 100", "=customer.isVip")
+```
+
+Boundary events are **not** sequence flows: they appear in the host's `Next` (so a walk can leave through
+them), point back at their host via `attachedTo` and implement the marker interface `BoundaryEvent`, but
+never appear in `OutgoingFlows`.
+
+### Navigation
+
+`then()` returns the node's `Next`, whose properties are the reachable elements — continuations and boundary
+events alike. The return type of every step is the next node, so **a path that doesn't exist in the model
+doesn't compile**: regenerate after a model change and the affected step breaks the build at that exact edge.
+A subprocess additionally implements `FlowScope` and opens its interior via `start()`.
+
+```kotlin
+object SubProcessConfirmation :
+    AbstractFlowNode(ElementId("subProcess_confirmation"), "SUB_PROCESS", "Subscription Confirmation"),
+    HasSuccessors<SubProcessConfirmation.Next>, HasOutgoingFlows<SubProcessConfirmation.OutgoingFlows>, FlowScope<SubProcessConfirmation.Start> {
+  override fun then(): Next = Next                          // what follows the subprocess (+ its boundary events)
+  override fun outgoingFlows(): OutgoingFlows = OutgoingFlows  // its outgoing sequence flow(s)
+  override fun start(): Start = Start     // the interior's start event(s)
+  object Next { val gatewaySplitNotifications get() = GatewaySplitNotifications; val timerAfter3Days get() = TimerAfter3Days }
+  object Start { val startEventRequestReceived get() = StartEventRequestReceived }
 }
 ```
 
-- **`then()`** = the elements reachable next, **boundary events** and continuations alike. **Subprocesses**
-  nest their interior nodes and open them via **`start()`** = the interior's start event(s). Java mirrors this
-  with methods (`Flow.subProcessConfirmation().then()…`).
-- Every node extends **`AbstractFlowNode`** (the base carrying `id` + `elementType` from the **`FlowNode`**
-  contract); nodes with successors also implement **`HasSuccessors<Next>`**, subprocesses additionally
-  **`FlowScope<Start>`** — shared supertypes for generic tooling.
+Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `name`), **`HasSuccessors<Next>`**,
+**`HasOutgoingFlows<OutgoingFlows>`**, **`FlowScope<Start>`** and the marker **`BoundaryEvent`**.
 
 ### Asserting flow in process tests — `ProcessPath`
 
@@ -267,19 +319,19 @@ val path = ProcessPath.from(Flow.StartEventSubmitRegistrationForm)
     .onto { it.subProcessConfirmation }                     // step onto the subprocess (checked, not recorded)
     .inside {                                               // walk its interior, resume on the subprocess node
         enter { it.startEventRequestReceived }
-            .then { it.activitySendConfirmationMail }
-            .then { it.activityConfirmRegistration }
+            .then { it.serviceTaskSendConfirmationMail }
+            .then { it.receiveTaskConfirmRegistration }
             .then { it.endEventSubscriptionConfirmed }
     }
     .then { it.gatewaySplitNotifications }                  // checked — continues after the subprocess
-    .then { it.activitySendWelcomeMail }
+    .then { it.serviceTaskSendWelcomeMail }
     .then { it.gatewayJoinNotifications }
     .then { it.endEventRegistrationCompleted }
 
 assertThat(instance).isEnded.hasPassedInOrder(*path.ids.toTypedArray())
 ```
 
-Start with `ProcessPath.from(Flow.<Node>)` — every node is a nested object reachable flat, so no accessor is
+Start with `ProcessPath.from(Flow.<Node>)` — every node is a direct child of `Flow`, so no accessor is
 needed to get hold of the start event.
 
 - **Edge steps** — `then { it.successor }` — the lambda's `it` is the current node's `Next`, so `it.`
@@ -305,12 +357,12 @@ needed to get hold of the start event.
 
 ```kotlin
 val welcomeBranch = ProcessPath.from(Flow.GatewaySplitNotifications)
-    .then { it.activitySendWelcomeMail }
+    .then { it.serviceTaskSendWelcomeMail }
     .then { it.gatewayJoinNotifications }
     .then { it.endEventRegistrationCompleted }
     .nodes
 val notifyBranch = ProcessPath.from(Flow.GatewaySplitNotifications)
-    .then { it.activityNotifyCommunity }
+    .then { it.serviceTaskNotifyCommunity }
     .then { it.gatewayJoinNotifications }
     .then { it.endEventRegistrationCompleted }
     .nodes
@@ -319,6 +371,26 @@ assertThat(pi).hasPassed(*nodesOf(welcomeBranch, notifyBranch).map { it.id.value
 
 > The guarantee is **structural single-step adjacency**, not token-accurate reachability (a valid path is one
 > the model allows, not necessarily one the engine executes at runtime — XOR picks one branch, AND runs all).
+> `ids` holds element ids only, which is what engine assertions consume; the branch a gateway takes is
+> expressed by the successor you pick, and its condition is readable in `OutgoingFlows`.
+
+To pin **which sequence flow** a step takes — a gateway's default flow, or one of several flows to the same
+element — walk it with `via`. The lambda's `it` is the node's `OutgoingFlows`; the target is recorded in `ids`
+as usual and the flow itself in `flowIds`, ready to compare against the engine's taken sequence flows:
+
+```kotlin
+val path = ProcessPath.from(Flow.StartEvent)
+    .then { it.gatewayHasSubscribers }
+    .via { it.toEndEventNoSubscribers }
+
+assertThat(path.ids).containsExactly("startEvent", "gateway_hasSubscribers", "endEvent_noSubscribers")
+assertThat(path.flowIds).containsExactly("flow_noSubscribers")
+
+// several flows to the same element: pick one
+.via { it.toTaskApprove.first { flow -> flow.conditionExpression == "=customer.isVip" } }
+```
+
+Only `via` records a flow; `then` picks an element and records none.
 
 ### From Java
 
@@ -332,55 +404,67 @@ var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
     .getIds();
 ```
 
+`via` / `endVia` walk a sequence flow; Java cannot name the node's `OutgoingFlows` type in the step, so the
+lambda receives the current node: `.via(n -> n.outgoingFlows().toSubProcessConfirmation())`, and `getFlowIds()`
+returns the flows walked this way.
+
 Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end` (an end event can't continue
 a chain) and subprocess descent names the subprocess explicitly (`enter(Flow.subProcessConfirmation(), …)` /
 `inside(Flow.subProcessConfirmation(), …)`). The raw extension steps are also reachable from Java as static calls
 (`ProcessPathStepsKt.then(path, n -> n.x())`) — checked but not fluent; prefer `PathWalk`.
 
-## Per-Element Variables with Direction
+## Variables with Direction
 
-Every variable is associated with the element that declares it **and** with the direction in which it flows. The `Variables.<Element>` object splits its constants into nested `Inputs` / `Outputs` sub-objects so consumers can tell whether a variable is read by the element or written by it:
+Every variable sits on the node that declares it, and its direction is encoded in the wrapper type:
+`VariableName.Input` when the element reads it, `VariableName.Output` when it writes it, `VariableName.InOut`
+when it does both. Consumer APIs that take a specific subtype (`fun setOutput(v: VariableName.Output)`) get
+compile-time direction enforcement.
 
 ```kotlin
-object Variables {
-    object ActivitySendConfirmationMail {
-        object Inputs {
-            val SUBSCRIPTION_ID: VariableName = VariableName("subscriptionId")
-        }
+object Flow {
+  object ServiceTaskSendConfirmationMail : /* … */ {
+    object Variables {
+      val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId")
     }
+  }
 
-    object StartEventSubmitRegistrationForm {
-        object Outputs {
-            val SUBSCRIPTION_ID: VariableName = VariableName("subscriptionId")
-        }
+  object StartEventSubmitRegistrationForm : /* … */ {
+    object Variables {
+      val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId")
     }
+  }
 }
 ```
 
-A sub-object is only emitted when it contains at least one variable — one-sided splits (`Inputs` only or `Outputs` only) are legal. An element without any directional variables is omitted from `Variables` entirely.
+`Variables` is only emitted on nodes that declare at least one variable.
 
 ## Call-Activity Variable Mappings
 
-Call activities map variables between the parent process and the called child process. Unlike the plain `Variables` section — which only carries the parent-scope variable name — `CallActivities` exposes the **full mapping**: the `target` (the name the variable gets in the receiving scope) together with its `source` / `sourceExpression` (the origin). Each call activity becomes a nested object holding the called `PROCESS_ID` plus `Inputs` (variables passed **into** the child) and `Outputs` (variables returned **to** the parent):
+A call activity node carries the called process plus the **full mapping** between the parent process and the
+called child: `Inputs` (variables passed **into** the child) and `Outputs` (variables returned **to** the
+parent), each entry an `InputOutputMapping` holding the `target` (the name the variable gets in the receiving
+scope) together with its `source` / `sourceExpression` (the origin). Constant names derive from the `target`.
 
 ```kotlin
-object CallActivities {
-    object CallActivityAbortRegistration {
-        val PROCESS_ID: ProcessId = ProcessId("abort-registration")
+object Flow {
+  object CallActivityAbortRegistration : /* … */ {
+    val calledProcess: ProcessId = ProcessId("abort-registration")
 
-        object Inputs {
-            val CHILD_SUBSCRIPTION_ID: InputOutputMapping = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
-            val CHILD_REASON_CODE: InputOutputMapping = InputOutputMapping(target = "childReasonCode", sourceExpression = "\${reasonCode}")
-        }
-
-        object Outputs {
-            val ABORT_RESULT: InputOutputMapping = InputOutputMapping(target = "abortResult", source = "childAbortResult")
-        }
+    object Variables {
+      val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId")   // the parent-scope view
     }
+
+    object Inputs {
+      val CHILD_SUBSCRIPTION_ID: InputOutputMapping = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
+      val CHILD_REASON_CODE: InputOutputMapping = InputOutputMapping(target = "childReasonCode", sourceExpression = "\${reasonCode}")
+    }
+
+    object Outputs {
+      val ABORT_RESULT: InputOutputMapping = InputOutputMapping(target = "abortResult", source = "childAbortResult")
+    }
+  }
 }
 ```
-
-Each mapping is an `InputOutputMapping`; constant names are derived from the `target`. `Inputs` / `Outputs` are only emitted when non-empty.
 
 ```kotlin
 data class InputOutputMapping(
@@ -408,11 +492,16 @@ Variables are extracted from direction-aware BPMN sources. See the engine-specif
 - [Operaton](/engines/operaton) — same patterns as Camunda 7, using the `operaton:` namespace
 
 ::: info
-bpmn-to-code **only extracts variables from explicit BPMN definitions**. Variables only referenced in expressions (sequence flows, gateway conditions, script tasks) are intentionally ignored. This is by design — the BPMN model should be the single source of truth for its variable contract.
+bpmn-to-code **only extracts variables from explicit BPMN definitions**. Variables only referenced in expressions (sequence flows, gateway conditions, script tasks) are intentionally ignored. This is by design — the BPMN model should be the single source of truth for its variable contract. The expressions themselves remain readable on the sequence flows in `OutgoingFlows`.
 :::
 
 ## Model Merging
 
-When multiple BPMN files share the same `processId`, bpmn-to-code **merges them into a single API**. The generated API contains the superset of all elements across all files.
+When multiple BPMN files share the same `processId`, bpmn-to-code **merges them into a single API**. The
+registries at the root hold the superset across all files; the navigation is emitted **per variant** under
+`FlowVariants.<VariantName>`, which takes the place of `Flow` — so each file's nodes, facets and sequence
+flows stay exactly as that file declares them (`FlowVariants.Augsburg.ServiceTaskX.Variables.ORDER_ID`).
+A variant name must not be reserved by the API nor name an element of its own variant; the
+`reserved-element-name` rule rejects both.
 
 This is useful for process variants (e.g. dev vs prod configurations) that share the same process identifier. If multiple files define the same `processId`, use the `variantName` BPMN extension property to distinguish them and prevent silent overwrites in the JSON output.

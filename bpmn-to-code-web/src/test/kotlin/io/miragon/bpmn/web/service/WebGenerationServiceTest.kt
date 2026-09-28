@@ -38,6 +38,7 @@ class WebGenerationServiceTest {
         val generatedFile = response.files.first()
         assertThat(generatedFile.fileName).describedAs("Should generate Kotlin file").endsWith(".kt")
         assertThat(generatedFile.content).describedAs("Should contain Kotlin object declaration").contains("object")
+        assertThat(generatedFile.content).describedAs("Should carry the node-centric Flow").contains("object Flow").doesNotContain("object Elements")
         assertThat(generatedFile.content).describedAs("Should contain process ID").contains("newsletterSubscription")
         assertThat(generatedFile.processId).describedAs("Should carry the process id").isEqualTo("newsletterSubscription")
 
