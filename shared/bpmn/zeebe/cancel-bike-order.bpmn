@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="definitions_cancelBikeOrder" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:message id="message_bikeOrderCancelled" name="miravelo.bikeOrderCancelled" />
+  <bpmn:process id="cancelBikeOrder" name="MiraVelo Cancel Bike Order" isExecutable="true">
+    <bpmn:startEvent id="startEvent_cancellationRequired" name="Cancellation required">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=orderIds" target="orderIds" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>flow_cancellationRequiredToRequestCancellation</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="serviceTask_requestCancellation" name="Request cancellation">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="miravelo.requestCancellation" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=cancellationPossible" target="cancellationPossible" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>flow_cancellationRequiredToRequestCancellation</bpmn:incoming>
+      <bpmn:outgoing>flow_requestCancellationToCancellationPossible</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="gateway_cancellationPossible" name="Cancellation possible?" default="flow_cancellationPossibleToMergeReturn">
+      <bpmn:incoming>flow_requestCancellationToCancellationPossible</bpmn:incoming>
+      <bpmn:outgoing>flow_cancellationPossibleToMergeReturn</bpmn:outgoing>
+      <bpmn:outgoing>flow_cancellationNotPossibleToClarifyReturn</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="userTask_clarifyReturn" name="Clarify return">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+      </bpmn:extensionElements>
+      <bpmn:incoming>flow_cancellationNotPossibleToClarifyReturn</bpmn:incoming>
+      <bpmn:outgoing>flow_clarifyReturnToMergeReturn</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="gateway_mergeReturn">
+      <bpmn:incoming>flow_cancellationPossibleToMergeReturn</bpmn:incoming>
+      <bpmn:incoming>flow_clarifyReturnToMergeReturn</bpmn:incoming>
+      <bpmn:outgoing>flow_mergeReturnToBookCancellationCosts</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="serviceTask_bookCancellationCosts" name="Book cancellation costs">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="miravelo.bookCancellationCosts" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=cancellationCosts" target="cancellationCosts" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>flow_mergeReturnToBookCancellationCosts</bpmn:incoming>
+      <bpmn:outgoing>flow_bookCancellationCostsToBikeOrderCancelled</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="endEvent_bikeOrderCancelled" name="Bike order cancelled">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="miravelo.bikeOrderCancelled" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>flow_bookCancellationCostsToBikeOrderCancelled</bpmn:incoming>
+      <bpmn:messageEventDefinition id="messageEventDefinition_bikeOrderCancelled" messageRef="message_bikeOrderCancelled" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_cancellationRequiredToRequestCancellation" sourceRef="startEvent_cancellationRequired" targetRef="serviceTask_requestCancellation" />
+    <bpmn:sequenceFlow id="flow_requestCancellationToCancellationPossible" sourceRef="serviceTask_requestCancellation" targetRef="gateway_cancellationPossible" />
+    <bpmn:sequenceFlow id="flow_cancellationPossibleToMergeReturn" name="Yes" sourceRef="gateway_cancellationPossible" targetRef="gateway_mergeReturn" />
+    <bpmn:sequenceFlow id="flow_cancellationNotPossibleToClarifyReturn" name="No" sourceRef="gateway_cancellationPossible" targetRef="userTask_clarifyReturn">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=not(cancellationPossible)</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_clarifyReturnToMergeReturn" sourceRef="userTask_clarifyReturn" targetRef="gateway_mergeReturn" />
+    <bpmn:sequenceFlow id="flow_mergeReturnToBookCancellationCosts" sourceRef="gateway_mergeReturn" targetRef="serviceTask_bookCancellationCosts" />
+    <bpmn:sequenceFlow id="flow_bookCancellationCostsToBikeOrderCancelled" sourceRef="serviceTask_bookCancellationCosts" targetRef="endEvent_bikeOrderCancelled" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="diagram_cancelBikeOrder">
+    <bpmndi:BPMNPlane id="plane_cancelBikeOrder" bpmnElement="cancelBikeOrder">
+      <bpmndi:BPMNShape id="startEvent_cancellationRequired_di" bpmnElement="startEvent_cancellationRequired">
+        <dc:Bounds x="152" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="120" y="225" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_requestCancellation_di" bpmnElement="serviceTask_requestCancellation">
+        <dc:Bounds x="240" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_cancellationPossible_di" bpmnElement="gateway_cancellationPossible">
+        <dc:Bounds x="405" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="380" y="143" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="userTask_clarifyReturn_di" bpmnElement="userTask_clarifyReturn">
+        <dc:Bounds x="510" y="270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_mergeReturn_di" bpmnElement="gateway_mergeReturn">
+        <dc:Bounds x="665" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_bookCancellationCosts_di" bpmnElement="serviceTask_bookCancellationCosts">
+        <dc:Bounds x="750" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_bikeOrderCancelled_di" bpmnElement="endEvent_bikeOrderCancelled">
+        <dc:Bounds x="912" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="880" y="225" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_cancellationRequiredToRequestCancellation_di" bpmnElement="flow_cancellationRequiredToRequestCancellation">
+        <di:waypoint x="188" y="200" />
+        <di:waypoint x="240" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_requestCancellationToCancellationPossible_di" bpmnElement="flow_requestCancellationToCancellationPossible">
+        <di:waypoint x="340" y="200" />
+        <di:waypoint x="405" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_cancellationPossibleToMergeReturn_di" bpmnElement="flow_cancellationPossibleToMergeReturn">
+        <di:waypoint x="455" y="200" />
+        <di:waypoint x="665" y="200" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="551" y="182" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_cancellationNotPossibleToClarifyReturn_di" bpmnElement="flow_cancellationNotPossibleToClarifyReturn">
+        <di:waypoint x="430" y="225" />
+        <di:waypoint x="430" y="310" />
+        <di:waypoint x="510" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="438" y="260" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_clarifyReturnToMergeReturn_di" bpmnElement="flow_clarifyReturnToMergeReturn">
+        <di:waypoint x="610" y="310" />
+        <di:waypoint x="690" y="310" />
+        <di:waypoint x="690" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_mergeReturnToBookCancellationCosts_di" bpmnElement="flow_mergeReturnToBookCancellationCosts">
+        <di:waypoint x="715" y="200" />
+        <di:waypoint x="750" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_bookCancellationCostsToBikeOrderCancelled_di" bpmnElement="flow_bookCancellationCostsToBikeOrderCancelled">
+        <di:waypoint x="850" y="200" />
+        <di:waypoint x="912" y="200" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

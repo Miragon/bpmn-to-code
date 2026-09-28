@@ -1,0 +1,936 @@
+{
+    "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
+    "formatVersion": "2.0",
+    "process": {
+        "id": "bikeLeasing",
+        "name": "MiraVelo Bike Leasing",
+        "engine": "CAMUNDA_7",
+        "flowNodes": [
+            {
+                "id": "startEvent_leasingRequestReceived",
+                "type": "startEvent",
+                "name": "Leasing request received",
+                "outgoing": [
+                    "flow_leasingRequestReceivedToValidateApplication"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "message",
+                        "messageRef": "message_leasingRequestReceived"
+                    }
+                ],
+                "extensions": [
+                    {
+                        "$type": "camunda:properties",
+                        "children": [
+                            {
+                                "$type": "camunda:property",
+                                "attributes": {
+                                    "name": "additionalInputVariables",
+                                    "value": "applicationId, bikeIds, monthlyNetIncome, age"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true
+                }
+            },
+            {
+                "id": "serviceTask_validateApplication",
+                "type": "serviceTask",
+                "name": "Validate application",
+                "incoming": [
+                    "flow_leasingRequestReceivedToValidateApplication"
+                ],
+                "outgoing": [
+                    "flow_validateApplicationToCheckCreditRating"
+                ],
+                "boundaryEventRefs": [
+                    "boundary_applicationInvalid"
+                ],
+                "implementation": {
+                    "type": "delegateExpression",
+                    "expression": "${validateApplicationDelegate}"
+                }
+            },
+            {
+                "id": "boundary_applicationInvalid",
+                "type": "boundaryEvent",
+                "name": "Application invalid",
+                "outgoing": [
+                    "flow_applicationInvalidToCollectRejections"
+                ],
+                "attachedToRef": "serviceTask_validateApplication",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "error",
+                        "errorRef": "error_applicationInvalid"
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true
+                }
+            },
+            {
+                "id": "gateway_collectRejections",
+                "type": "exclusiveGateway",
+                "incoming": [
+                    "flow_isSolventToCollectRejections",
+                    "flow_applicationInvalidToCollectRejections",
+                    "flow_contractNotSignedToCollectRejections"
+                ],
+                "outgoing": [
+                    "flow_collectRejectionsToSendRejection"
+                ]
+            },
+            {
+                "id": "serviceTask_sendRejection",
+                "type": "serviceTask",
+                "name": "Send rejection",
+                "incoming": [
+                    "flow_collectRejectionsToSendRejection"
+                ],
+                "outgoing": [
+                    "flow_sendRejectionToApplicationRejected"
+                ],
+                "implementation": {
+                    "type": "externalTask",
+                    "topic": "miravelo.sendRejection"
+                },
+                "engineAttributes": {
+                    "camunda:type": "external"
+                }
+            },
+            {
+                "id": "endEvent_applicationRejected",
+                "type": "endEvent",
+                "name": "Application rejected",
+                "incoming": [
+                    "flow_sendRejectionToApplicationRejected"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "terminate"
+                    }
+                ]
+            },
+            {
+                "id": "businessRuleTask_checkCreditRating",
+                "type": "businessRuleTask",
+                "name": "Check credit rating",
+                "incoming": [
+                    "flow_validateApplicationToCheckCreditRating"
+                ],
+                "outgoing": [
+                    "flow_checkCreditRatingToIsSolvent"
+                ],
+                "engineAttributes": {
+                    "camunda:decisionRef": "checkCreditRating",
+                    "camunda:mapDecisionResult": "singleEntry",
+                    "camunda:resultVariable": "solvent"
+                }
+            },
+            {
+                "id": "gateway_isSolvent",
+                "type": "exclusiveGateway",
+                "name": "Solvent?",
+                "incoming": [
+                    "flow_checkCreditRatingToIsSolvent"
+                ],
+                "outgoing": [
+                    "flow_isSolventToConcludeContract",
+                    "flow_isSolventToCollectRejections"
+                ],
+                "default": "flow_isSolventToConcludeContract"
+            },
+            {
+                "id": "subProcess_concludeContract",
+                "type": "subProcess",
+                "name": "Conclude contract",
+                "incoming": [
+                    "flow_isSolventToConcludeContract"
+                ],
+                "outgoing": [
+                    "flow_concludeContractToFork"
+                ],
+                "boundaryEventRefs": [
+                    "boundary_compensateContract",
+                    "boundary_contractNotSigned",
+                    "timer_signatureReminder"
+                ],
+                "flowNodes": [
+                    {
+                        "id": "startEvent_customerEligible",
+                        "type": "startEvent",
+                        "name": "Customer eligible",
+                        "outgoing": [
+                            "flow_customerEligibleToSendContract"
+                        ]
+                    },
+                    {
+                        "id": "serviceTask_sendContract",
+                        "type": "serviceTask",
+                        "name": "Send contract",
+                        "incoming": [
+                            "flow_customerEligibleToSendContract"
+                        ],
+                        "outgoing": [
+                            "flow_sendContractToAwaitSignature"
+                        ],
+                        "implementation": {
+                            "type": "delegateExpression",
+                            "expression": "${sendContractDelegate}"
+                        },
+                        "ioMapping": {
+                            "inputs": [
+                                {
+                                    "target": "applicationId",
+                                    "source": "${applicationId}"
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "target": "contractId",
+                                    "source": "${contractId}"
+                                }
+                            ]
+                        },
+                        "extensions": [
+                            {
+                                "$type": "camunda:inputOutput",
+                                "children": [
+                                    {
+                                        "$type": "camunda:inputParameter",
+                                        "attributes": {
+                                            "name": "applicationId"
+                                        },
+                                        "body": "${applicationId}"
+                                    },
+                                    {
+                                        "$type": "camunda:outputParameter",
+                                        "attributes": {
+                                            "name": "contractId"
+                                        },
+                                        "body": "${contractId}"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "gateway_awaitSignature",
+                        "type": "eventBasedGateway",
+                        "name": "Await signature",
+                        "incoming": [
+                            "flow_sendContractToAwaitSignature"
+                        ],
+                        "outgoing": [
+                            "flow_awaitSignatureToContractSigned",
+                            "flow_awaitSignatureToSignatureDeadline"
+                        ]
+                    },
+                    {
+                        "id": "event_contractSigned",
+                        "type": "intermediateCatchEvent",
+                        "name": "Contract signed",
+                        "incoming": [
+                            "flow_awaitSignatureToContractSigned"
+                        ],
+                        "outgoing": [
+                            "flow_contractSignedToContractConcluded"
+                        ],
+                        "eventDefinitions": [
+                            {
+                                "type": "message",
+                                "messageRef": "message_contractSigned"
+                            }
+                        ],
+                        "engineAttributes": {
+                            "camunda:asyncAfter": true
+                        }
+                    },
+                    {
+                        "id": "endEvent_contractConcluded",
+                        "type": "endEvent",
+                        "name": "Contract concluded",
+                        "incoming": [
+                            "flow_contractSignedToContractConcluded"
+                        ]
+                    },
+                    {
+                        "id": "timer_signatureDeadline",
+                        "type": "intermediateCatchEvent",
+                        "name": "14 days passed",
+                        "incoming": [
+                            "flow_awaitSignatureToSignatureDeadline"
+                        ],
+                        "outgoing": [
+                            "flow_signatureDeadlineToContractNotSigned"
+                        ],
+                        "eventDefinitions": [
+                            {
+                                "type": "timer",
+                                "timerType": "DURATION",
+                                "expression": "P14D"
+                            }
+                        ],
+                        "engineAttributes": {
+                            "camunda:asyncAfter": true
+                        }
+                    },
+                    {
+                        "id": "endEvent_contractNotSigned",
+                        "type": "endEvent",
+                        "name": "Contract not signed",
+                        "incoming": [
+                            "flow_signatureDeadlineToContractNotSigned"
+                        ],
+                        "eventDefinitions": [
+                            {
+                                "type": "escalation",
+                                "escalationRef": "escalation_contractNotSigned"
+                            }
+                        ]
+                    }
+                ],
+                "sequenceFlows": [
+                    {
+                        "id": "flow_awaitSignatureToContractSigned",
+                        "sourceRef": "gateway_awaitSignature",
+                        "targetRef": "event_contractSigned"
+                    },
+                    {
+                        "id": "flow_awaitSignatureToSignatureDeadline",
+                        "sourceRef": "gateway_awaitSignature",
+                        "targetRef": "timer_signatureDeadline"
+                    },
+                    {
+                        "id": "flow_contractSignedToContractConcluded",
+                        "sourceRef": "event_contractSigned",
+                        "targetRef": "endEvent_contractConcluded"
+                    },
+                    {
+                        "id": "flow_customerEligibleToSendContract",
+                        "sourceRef": "startEvent_customerEligible",
+                        "targetRef": "serviceTask_sendContract"
+                    },
+                    {
+                        "id": "flow_sendContractToAwaitSignature",
+                        "sourceRef": "serviceTask_sendContract",
+                        "targetRef": "gateway_awaitSignature"
+                    },
+                    {
+                        "id": "flow_signatureDeadlineToContractNotSigned",
+                        "sourceRef": "timer_signatureDeadline",
+                        "targetRef": "endEvent_contractNotSigned"
+                    }
+                ]
+            },
+            {
+                "id": "boundary_compensateContract",
+                "type": "boundaryEvent",
+                "name": "Contract to revoke",
+                "attachedToRef": "subProcess_concludeContract",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "compensation",
+                        "waitForCompletion": false
+                    }
+                ]
+            },
+            {
+                "id": "boundary_contractNotSigned",
+                "type": "boundaryEvent",
+                "name": "Contract not signed",
+                "outgoing": [
+                    "flow_contractNotSignedToCollectRejections"
+                ],
+                "attachedToRef": "subProcess_concludeContract",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "escalation",
+                        "escalationRef": "escalation_contractNotSigned"
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true
+                }
+            },
+            {
+                "id": "timer_signatureReminder",
+                "type": "boundaryEvent",
+                "name": "7 days passed",
+                "outgoing": [
+                    "flow_signatureReminderToSendReminderMail"
+                ],
+                "attachedToRef": "subProcess_concludeContract",
+                "cancelActivity": false,
+                "eventDefinitions": [
+                    {
+                        "type": "timer",
+                        "timerType": "DURATION",
+                        "expression": "P7D"
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true
+                }
+            },
+            {
+                "id": "serviceTask_sendReminderMail",
+                "type": "serviceTask",
+                "name": "Send reminder mail",
+                "incoming": [
+                    "flow_signatureReminderToSendReminderMail"
+                ],
+                "outgoing": [
+                    "flow_sendReminderMailToCustomerReminded"
+                ],
+                "implementation": {
+                    "type": "expression",
+                    "expression": "${mailService.sendReminder(applicationId)}"
+                }
+            },
+            {
+                "id": "endEvent_customerReminded",
+                "type": "endEvent",
+                "name": "Customer reminded",
+                "incoming": [
+                    "flow_sendReminderMailToCustomerReminded"
+                ]
+            },
+            {
+                "id": "gateway_fork",
+                "type": "parallelGateway",
+                "incoming": [
+                    "flow_concludeContractToFork"
+                ],
+                "outgoing": [
+                    "flow_forkToOrderBike",
+                    "flow_forkToIssueInsurancePolicy"
+                ]
+            },
+            {
+                "id": "serviceTask_issueInsurancePolicy",
+                "type": "serviceTask",
+                "name": "Issue insurance policy",
+                "incoming": [
+                    "flow_forkToIssueInsurancePolicy"
+                ],
+                "outgoing": [
+                    "flow_issueInsurancePolicyToJoin"
+                ],
+                "boundaryEventRefs": [
+                    "boundary_compensateInsurance"
+                ],
+                "implementation": {
+                    "type": "javaClass",
+                    "className": "io.miravelo.leasing.IssueInsurancePolicyDelegate"
+                },
+                "multiInstance": {
+                    "sequential": true,
+                    "inputCollection": "${bikeIds}",
+                    "inputElement": "bikeId"
+                },
+                "engineAttributes": {
+                    "camunda:asyncBefore": true,
+                    "camunda:exclusive": false
+                }
+            },
+            {
+                "id": "boundary_compensateInsurance",
+                "type": "boundaryEvent",
+                "name": "Policy to cancel",
+                "attachedToRef": "serviceTask_issueInsurancePolicy",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "compensation",
+                        "waitForCompletion": false
+                    }
+                ]
+            },
+            {
+                "id": "gateway_join",
+                "type": "parallelGateway",
+                "incoming": [
+                    "flow_orderBikeToJoin",
+                    "flow_issueInsurancePolicyToJoin"
+                ],
+                "outgoing": [
+                    "flow_joinToHandoverReported"
+                ]
+            },
+            {
+                "id": "receiveTask_handoverReported",
+                "type": "receiveTask",
+                "name": "Await bike handover",
+                "incoming": [
+                    "flow_joinToHandoverReported"
+                ],
+                "outgoing": [
+                    "flow_handoverReportedToWithdrawalPeriodElapsed"
+                ],
+                "messageRef": "message_handoverReported",
+                "engineAttributes": {
+                    "camunda:asyncAfter": true
+                }
+            },
+            {
+                "id": "timer_withdrawalPeriodElapsed",
+                "type": "intermediateCatchEvent",
+                "name": "Withdrawal period elapsed",
+                "incoming": [
+                    "flow_handoverReportedToWithdrawalPeriodElapsed"
+                ],
+                "outgoing": [
+                    "flow_withdrawalPeriodElapsedToLeasingActive"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "timer",
+                        "timerType": "DURATION",
+                        "expression": "${withdrawalPeriod}"
+                    }
+                ],
+                "engineAttributes": {
+                    "camunda:asyncAfter": true
+                }
+            },
+            {
+                "id": "endEvent_leasingActive",
+                "type": "endEvent",
+                "name": "Leasing active",
+                "incoming": [
+                    "flow_withdrawalPeriodElapsedToLeasingActive"
+                ]
+            },
+            {
+                "id": "serviceTask_orderBike",
+                "type": "serviceTask",
+                "name": "Order bike",
+                "incoming": [
+                    "flow_forkToOrderBike"
+                ],
+                "outgoing": [
+                    "flow_orderBikeToJoin"
+                ],
+                "boundaryEventRefs": [
+                    "boundary_compensateOrder"
+                ],
+                "implementation": {
+                    "type": "externalTask",
+                    "topic": "miravelo.orderBike"
+                },
+                "multiInstance": {
+                    "sequential": false,
+                    "inputCollection": "${bikeIds}",
+                    "inputElement": "bikeId"
+                },
+                "engineAttributes": {
+                    "camunda:type": "external"
+                }
+            },
+            {
+                "id": "boundary_compensateOrder",
+                "type": "boundaryEvent",
+                "name": "Order to cancel",
+                "attachedToRef": "serviceTask_orderBike",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "compensation",
+                        "waitForCompletion": false
+                    }
+                ]
+            },
+            {
+                "id": "callActivity_cancelBikeOrder",
+                "type": "callActivity",
+                "name": "Cancel bike order",
+                "isForCompensation": true,
+                "calledElement": {
+                    "processId": "cancelBikeOrder"
+                },
+                "extensions": [
+                    {
+                        "$type": "camunda:in",
+                        "attributes": {
+                            "businessKey": "#{execution.processBusinessKey}"
+                        }
+                    },
+                    {
+                        "$type": "camunda:in",
+                        "attributes": {
+                            "source": "orderIds",
+                            "target": "orderIds"
+                        }
+                    },
+                    {
+                        "$type": "camunda:out",
+                        "attributes": {
+                            "source": "cancellationCosts",
+                            "target": "cancellationCosts"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "serviceTask_cancelContract",
+                "type": "serviceTask",
+                "name": "Cancel contract",
+                "isForCompensation": true,
+                "implementation": {
+                    "type": "delegateExpression",
+                    "expression": "${cancelContractDelegate}"
+                }
+            },
+            {
+                "id": "serviceTask_cancelPolicy",
+                "type": "serviceTask",
+                "name": "Cancel policy",
+                "isForCompensation": true,
+                "implementation": {
+                    "type": "externalTask",
+                    "topic": "miravelo.cancelPolicy"
+                },
+                "engineAttributes": {
+                    "camunda:type": "external"
+                }
+            },
+            {
+                "id": "subProcess_addressChanged",
+                "type": "subProcess",
+                "name": "Delivery address changed",
+                "triggeredByEvent": true,
+                "flowNodes": [
+                    {
+                        "id": "startEvent_addressChanged",
+                        "type": "startEvent",
+                        "name": "Address changed",
+                        "outgoing": [
+                            "flow_addressChangedToUpdateDeliveryAddress"
+                        ],
+                        "isInterrupting": false,
+                        "eventDefinitions": [
+                            {
+                                "type": "message",
+                                "messageRef": "message_addressChanged"
+                            }
+                        ],
+                        "extensions": [
+                            {
+                                "$type": "camunda:properties",
+                                "children": [
+                                    {
+                                        "$type": "camunda:property",
+                                        "attributes": {
+                                            "name": "additionalInputVariables",
+                                            "value": "street, city"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "userTask_updateDeliveryAddress",
+                        "type": "userTask",
+                        "name": "Update delivery address",
+                        "incoming": [
+                            "flow_addressChangedToUpdateDeliveryAddress"
+                        ],
+                        "outgoing": [
+                            "flow_updateDeliveryAddressToDeliveryAddressUpdated"
+                        ],
+                        "ioMapping": {
+                            "inputs": [
+                                {
+                                    "target": "deliveryAddress",
+                                    "source": "${deliveryAddress}"
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "target": "deliveryAddress",
+                                    "source": "${deliveryAddress}"
+                                }
+                            ]
+                        },
+                        "extensions": [
+                            {
+                                "$type": "camunda:inputOutput",
+                                "children": [
+                                    {
+                                        "$type": "camunda:inputParameter",
+                                        "attributes": {
+                                            "name": "deliveryAddress"
+                                        },
+                                        "body": "${deliveryAddress}"
+                                    },
+                                    {
+                                        "$type": "camunda:outputParameter",
+                                        "attributes": {
+                                            "name": "deliveryAddress"
+                                        },
+                                        "body": "${deliveryAddress}"
+                                    }
+                                ]
+                            }
+                        ],
+                        "engineAttributes": {
+                            "camunda:asyncAfter": true
+                        }
+                    },
+                    {
+                        "id": "endEvent_deliveryAddressUpdated",
+                        "type": "endEvent",
+                        "name": "Delivery address updated",
+                        "incoming": [
+                            "flow_updateDeliveryAddressToDeliveryAddressUpdated"
+                        ]
+                    }
+                ],
+                "sequenceFlows": [
+                    {
+                        "id": "flow_addressChangedToUpdateDeliveryAddress",
+                        "sourceRef": "startEvent_addressChanged",
+                        "targetRef": "userTask_updateDeliveryAddress"
+                    },
+                    {
+                        "id": "flow_updateDeliveryAddressToDeliveryAddressUpdated",
+                        "sourceRef": "userTask_updateDeliveryAddress",
+                        "targetRef": "endEvent_deliveryAddressUpdated"
+                    }
+                ]
+            },
+            {
+                "id": "subProcess_applicationWithdrawn",
+                "type": "subProcess",
+                "name": "Application withdrawn",
+                "triggeredByEvent": true,
+                "flowNodes": [
+                    {
+                        "id": "startEvent_applicationWithdrawn",
+                        "type": "startEvent",
+                        "name": "Application withdrawn",
+                        "outgoing": [
+                            "flow_applicationWithdrawnToReverseApplication"
+                        ],
+                        "isInterrupting": true,
+                        "eventDefinitions": [
+                            {
+                                "type": "message",
+                                "messageRef": "message_applicationWithdrawn"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "event_reverseApplication",
+                        "type": "intermediateThrowEvent",
+                        "name": "Application reversed",
+                        "incoming": [
+                            "flow_applicationWithdrawnToReverseApplication"
+                        ],
+                        "outgoing": [
+                            "flow_reverseApplicationToSendCancellationConfirmation"
+                        ],
+                        "eventDefinitions": [
+                            {
+                                "type": "compensation",
+                                "waitForCompletion": false
+                            }
+                        ]
+                    },
+                    {
+                        "id": "serviceTask_sendCancellationConfirmation",
+                        "type": "serviceTask",
+                        "name": "Send cancellation confirmation",
+                        "incoming": [
+                            "flow_reverseApplicationToSendCancellationConfirmation"
+                        ],
+                        "outgoing": [
+                            "flow_sendCancellationConfirmationToApplicationCancelled"
+                        ],
+                        "implementation": {
+                            "type": "externalTask",
+                            "topic": "miravelo.sendCancellationConfirmation"
+                        },
+                        "engineAttributes": {
+                            "camunda:type": "external"
+                        }
+                    },
+                    {
+                        "id": "endEvent_applicationCancelled",
+                        "type": "endEvent",
+                        "name": "Application cancelled",
+                        "incoming": [
+                            "flow_sendCancellationConfirmationToApplicationCancelled"
+                        ]
+                    }
+                ],
+                "sequenceFlows": [
+                    {
+                        "id": "flow_applicationWithdrawnToReverseApplication",
+                        "sourceRef": "startEvent_applicationWithdrawn",
+                        "targetRef": "event_reverseApplication"
+                    },
+                    {
+                        "id": "flow_reverseApplicationToSendCancellationConfirmation",
+                        "sourceRef": "event_reverseApplication",
+                        "targetRef": "serviceTask_sendCancellationConfirmation"
+                    },
+                    {
+                        "id": "flow_sendCancellationConfirmationToApplicationCancelled",
+                        "sourceRef": "serviceTask_sendCancellationConfirmation",
+                        "targetRef": "endEvent_applicationCancelled"
+                    }
+                ]
+            }
+        ],
+        "sequenceFlows": [
+            {
+                "id": "flow_applicationInvalidToCollectRejections",
+                "sourceRef": "boundary_applicationInvalid",
+                "targetRef": "gateway_collectRejections"
+            },
+            {
+                "id": "flow_checkCreditRatingToIsSolvent",
+                "sourceRef": "businessRuleTask_checkCreditRating",
+                "targetRef": "gateway_isSolvent"
+            },
+            {
+                "id": "flow_collectRejectionsToSendRejection",
+                "sourceRef": "gateway_collectRejections",
+                "targetRef": "serviceTask_sendRejection"
+            },
+            {
+                "id": "flow_concludeContractToFork",
+                "sourceRef": "subProcess_concludeContract",
+                "targetRef": "gateway_fork"
+            },
+            {
+                "id": "flow_contractNotSignedToCollectRejections",
+                "sourceRef": "boundary_contractNotSigned",
+                "targetRef": "gateway_collectRejections"
+            },
+            {
+                "id": "flow_forkToIssueInsurancePolicy",
+                "sourceRef": "gateway_fork",
+                "targetRef": "serviceTask_issueInsurancePolicy"
+            },
+            {
+                "id": "flow_forkToOrderBike",
+                "sourceRef": "gateway_fork",
+                "targetRef": "serviceTask_orderBike"
+            },
+            {
+                "id": "flow_handoverReportedToWithdrawalPeriodElapsed",
+                "sourceRef": "receiveTask_handoverReported",
+                "targetRef": "timer_withdrawalPeriodElapsed"
+            },
+            {
+                "id": "flow_isSolventToCollectRejections",
+                "sourceRef": "gateway_isSolvent",
+                "targetRef": "gateway_collectRejections",
+                "name": "No",
+                "conditionExpression": "${!solvent}"
+            },
+            {
+                "id": "flow_isSolventToConcludeContract",
+                "sourceRef": "gateway_isSolvent",
+                "targetRef": "subProcess_concludeContract",
+                "name": "Yes",
+                "isDefault": true
+            },
+            {
+                "id": "flow_issueInsurancePolicyToJoin",
+                "sourceRef": "serviceTask_issueInsurancePolicy",
+                "targetRef": "gateway_join"
+            },
+            {
+                "id": "flow_joinToHandoverReported",
+                "sourceRef": "gateway_join",
+                "targetRef": "receiveTask_handoverReported"
+            },
+            {
+                "id": "flow_leasingRequestReceivedToValidateApplication",
+                "sourceRef": "startEvent_leasingRequestReceived",
+                "targetRef": "serviceTask_validateApplication"
+            },
+            {
+                "id": "flow_orderBikeToJoin",
+                "sourceRef": "serviceTask_orderBike",
+                "targetRef": "gateway_join"
+            },
+            {
+                "id": "flow_sendRejectionToApplicationRejected",
+                "sourceRef": "serviceTask_sendRejection",
+                "targetRef": "endEvent_applicationRejected"
+            },
+            {
+                "id": "flow_sendReminderMailToCustomerReminded",
+                "sourceRef": "serviceTask_sendReminderMail",
+                "targetRef": "endEvent_customerReminded"
+            },
+            {
+                "id": "flow_signatureReminderToSendReminderMail",
+                "sourceRef": "timer_signatureReminder",
+                "targetRef": "serviceTask_sendReminderMail"
+            },
+            {
+                "id": "flow_validateApplicationToCheckCreditRating",
+                "sourceRef": "serviceTask_validateApplication",
+                "targetRef": "businessRuleTask_checkCreditRating"
+            },
+            {
+                "id": "flow_withdrawalPeriodElapsedToLeasingActive",
+                "sourceRef": "timer_withdrawalPeriodElapsed",
+                "targetRef": "endEvent_leasingActive"
+            }
+        ]
+    },
+    "definitions": {
+        "messages": [
+            {
+                "id": "message_addressChanged",
+                "name": "miravelo.addressChanged"
+            },
+            {
+                "id": "message_applicationWithdrawn",
+                "name": "miravelo.applicationWithdrawn"
+            },
+            {
+                "id": "message_contractSigned",
+                "name": "miravelo.contractSigned"
+            },
+            {
+                "id": "message_handoverReported",
+                "name": "miravelo.handoverReported"
+            },
+            {
+                "id": "message_leasingRequestReceived",
+                "name": "miravelo.leasingRequestReceived"
+            }
+        ],
+        "errors": [
+            {
+                "id": "error_applicationInvalid",
+                "name": "miravelo.applicationInvalid",
+                "errorCode": "applicationInvalid"
+            }
+        ],
+        "escalations": [
+            {
+                "id": "escalation_contractNotSigned",
+                "name": "miravelo.contractNotSigned",
+                "escalationCode": "contractNotSigned"
+            }
+        ]
+    }
+}

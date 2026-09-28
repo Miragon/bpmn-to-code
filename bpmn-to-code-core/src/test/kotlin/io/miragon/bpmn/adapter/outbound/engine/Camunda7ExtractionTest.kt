@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.engine
 
 import io.miragon.bpmn.adapter.outbound.engine.dialect.CamundaDialect
+import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.CompensationDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
@@ -26,302 +27,274 @@ class Camunda7ExtractionTest {
 
     @Test
     fun `extract returns valid ProcessModel`() {
-        // given: the Camunda 7 newsletter BPMN file from classpath
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
-        val file = File(resourceUrl.toURI())
-
-        // when: extracting the model
-        val bpmnModel = underTest.read(file.readBytes())
+        // given: the Camunda 7 bike-leasing BPMN file from classpath
+        val bpmnModel = extract("bike-leasing")
 
         fun node(id: String) = bpmnModel.allFlowNodes.single { it.id == id }
 
         // --- process-level metadata ---
-        assertThat(bpmnModel.processId).isEqualTo("newsletterSubscription")
-        assertThat(bpmnModel.variantName).isEqualTo("withApproval")
+        assertThat(bpmnModel.processId).isEqualTo("bikeLeasing")
+        assertThat(bpmnModel.variantName).isEqualTo("corporate")
         assertThat(bpmnModel.detectedEngine).isEqualTo(ProcessEngine.CAMUNDA_7)
         assertThat(bpmnModel.isExecutable).isTrue()
 
         // --- root vs. nested scope ---
-        // the five nodes that lived in the sub-process (old parentId "subProcess_confirmation") must not be
-        // at the root, but must be reachable through allFlowNodes with their parent set on the graph
         val nestedIds = listOf(
-            "userTask_confirmRegistration",
-            "serviceTask_sendConfirmationMail",
-            "endEvent_subscriptionConfirmed",
-            "startEvent_requestReceived",
-            "timer_everyDay",
+            "startEvent_customerEligible",
+            "serviceTask_sendContract",
+            "gateway_awaitSignature",
+            "event_contractSigned",
+            "endEvent_contractConcluded",
+            "timer_signatureDeadline",
+            "endEvent_contractNotSigned",
         )
-        assertThat(bpmnModel.flowNodes.map { it.id }).containsExactlyInAnyOrder(
-            "callActivity_abortRegistration",
-            "serviceTask_sendWelcomeMail",
-            "serviceTask_notifyCommunity",
-            "gateway_splitNotifications",
-            "gateway_joinNotifications",
-            "compensationEndEvent_registrationAborted",
-            "compensationEvent_onSubscriptionCounter",
-            "serviceTask_decrementSubscriptionCounter",
-            "endEvent_registrationCompleted",
-            "endEvent_registrationNotPossible",
-            "errorEvent_invalidMail",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_submitRegistrationForm",
-            "subProcess_confirmation",
-            "timer_after3Days",
-        )
+        assertThat(bpmnModel.flowNodes.map { it.id }).containsExactlyInAnyOrderElementsOf(ROOT_NODE_IDS)
         assertThat(bpmnModel.flowNodes.map { it.id }).doesNotContainAnyElementsOf(nestedIds)
         assertThat(bpmnModel.allFlowNodes.map { it.id }).containsAll(nestedIds)
-        nestedIds.forEach { assertThat(bpmnModel.graph.parentIdOf(it)).isEqualTo("subProcess_confirmation") }
+        nestedIds.forEach { assertThat(bpmnModel.graph.parentIdOf(it)).isEqualTo("subProcess_concludeContract") }
 
         // --- sub-process: kind and children ---
-        val subProcess = node("subProcess_confirmation") as FlowNodeDefinition.Activity.SubProcess
+        val subProcess = node("subProcess_concludeContract") as FlowNodeDefinition.Activity.SubProcess
         assertThat(subProcess.kind).isEqualTo(SubProcessKind.PLAIN)
         assertThat(subProcess.flowNodes.map { it.id }).containsExactlyInAnyOrderElementsOf(nestedIds)
 
         // --- node kinds ---
-        assertThat((node("userTask_confirmRegistration") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.USER)
-        val compensationHandler = node("serviceTask_decrementSubscriptionCounter") as FlowNodeDefinition.Activity.Task
-        assertThat(compensationHandler.kind).isEqualTo(TaskKind.SERVICE)
-        assertThat(compensationHandler.implementation).isEqualTo(TaskImplementation.DelegateExpression("counterClass"))
-        assertThat((node("serviceTask_sendWelcomeMail") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.SERVICE)
-        assertThat((node("gateway_splitNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
-        assertThat((node("gateway_joinNotifications") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
-        assertThat(node("callActivity_abortRegistration")).isInstanceOf(FlowNodeDefinition.Activity.CallActivity::class.java)
+        assertThat((node("businessRuleTask_checkCreditRating") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.BUSINESS_RULE)
+        assertThat((node("userTask_updateDeliveryAddress") as FlowNodeDefinition.Activity.Task).kind).isEqualTo(TaskKind.USER)
+        val handover = node("receiveTask_handoverReported") as FlowNodeDefinition.Activity.Task
+        assertThat(handover.kind).isEqualTo(TaskKind.RECEIVE)
+        assertThat(handover.message?.messageName).isEqualTo("miravelo.handoverReported")
+        assertThat((node("gateway_isSolvent") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.EXCLUSIVE)
+        assertThat((node("gateway_awaitSignature") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.EVENT_BASED)
+        assertThat((node("gateway_fork") as FlowNodeDefinition.Gateway).kind).isEqualTo(GatewayKind.PARALLEL)
+        assertThat(node("callActivity_cancelBikeOrder")).isInstanceOf(FlowNodeDefinition.Activity.CallActivity::class.java)
 
-        // --- service-task implementations (old IMPL_KIND -> type, IMPL_VALUE -> reference) ---
+        // --- service-task implementations: every Camunda 7 flavour is represented ---
         val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
-        assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.DelegateExpression("\${newsletterSendWelcomeMail}"))
-        assertThat(implementations["serviceTask_sendConfirmationMail"]).isEqualTo(TaskImplementation.ExternalTask("#{newsletterSendConfirmationMail}"))
-        assertThat(implementations["endEvent_registrationCompleted"]).isEqualTo(TaskImplementation.ExternalTask("newsletter.registrationCompleted"))
-        assertThat(implementations["serviceTask_incrementSubscriptionCounter"]).isEqualTo(TaskImplementation.DelegateExpression("counterClass"))
-        assertThat(implementations["serviceTask_notifyCommunity"]).isEqualTo(TaskImplementation.DelegateExpression("\${newsletterNotifyCommunity}"))
+        assertThat(implementations["serviceTask_validateApplication"]).isEqualTo(TaskImplementation.DelegateExpression("\${validateApplicationDelegate}"))
+        assertThat(implementations["serviceTask_orderBike"]).isEqualTo(TaskImplementation.ExternalTask("miravelo.orderBike"))
+        assertThat(implementations["serviceTask_issueInsurancePolicy"]).isEqualTo(TaskImplementation.JavaClass("io.miravelo.leasing.IssueInsurancePolicyDelegate"))
+        assertThat(implementations["serviceTask_sendReminderMail"]).isEqualTo(TaskImplementation.Expression("\${mailService.sendReminder(applicationId)}"))
+        assertThat(implementations["serviceTask_cancelContract"]).isEqualTo(TaskImplementation.DelegateExpression("\${cancelContractDelegate}"))
 
         // --- event definitions ---
-        val timerAfter = node("timer_after3Days") as FlowNodeDefinition.Event
-        assertThat(timerAfter.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
-        assertThat(timerAfter.interrupting).isTrue()
-        assertThat(timerAfter.attachedToRef).isEqualTo("subProcess_confirmation")
-        assertThat(timerAfter.eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "\${testVariable}"))
+        val applicationInvalid = node("boundary_applicationInvalid") as FlowNodeDefinition.Event
+        assertThat(applicationInvalid.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
+        assertThat(applicationInvalid.interrupting).isTrue()
+        assertThat(applicationInvalid.attachedToRef).isEqualTo("serviceTask_validateApplication")
+        val error = applicationInvalid.eventDefinitions.filterIsInstance<EventDefinitionInstance.Error>().single()
+        assertThat(error.errorName).isEqualTo("miravelo.applicationInvalid")
+        assertThat(error.errorCode).isEqualTo("applicationInvalid")
+        assertThat(bpmnModel.definitions.errors.map { it.getValue() }).containsExactly("miravelo.applicationInvalid" to "applicationInvalid")
 
-        val timerEveryDay = node("timer_everyDay") as FlowNodeDefinition.Event
-        assertThat(timerEveryDay.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
-        assertThat(timerEveryDay.interrupting).isFalse()
-        assertThat(timerEveryDay.attachedToRef).isEqualTo("userTask_confirmRegistration")
-        assertThat(timerEveryDay.eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "PT1M"))
+        val reminder = node("timer_signatureReminder") as FlowNodeDefinition.Event
+        assertThat(reminder.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
+        assertThat(reminder.interrupting).isFalse()
+        assertThat(reminder.attachedToRef).isEqualTo("subProcess_concludeContract")
 
-        val submitForm = node("startEvent_submitRegistrationForm") as FlowNodeDefinition.Event
-        assertThat(submitForm.shape).isEqualTo(EventShape.START_EVENT)
-        assertThat(submitForm.eventDefinitions.filterIsInstance<EventDefinitionInstance.Message>().single().reference.messageName)
-            .isEqualTo("Message_FormSubmitted")
+        val requestReceived = node("startEvent_leasingRequestReceived") as FlowNodeDefinition.Event
+        assertThat(requestReceived.shape).isEqualTo(EventShape.START_EVENT)
+        assertThat(requestReceived.eventDefinitions.filterIsInstance<EventDefinitionInstance.Message>().single().reference.messageName)
+            .isEqualTo("miravelo.leasingRequestReceived")
 
-        val notPossible = node("endEvent_registrationNotPossible") as FlowNodeDefinition.Event
-        assertThat(notPossible.shape).isEqualTo(EventShape.END_EVENT)
-        assertThat(notPossible.eventDefinitions.filterIsInstance<EventDefinitionInstance.Signal>().single().signalName)
-            .isEqualTo("Signal_RegistrationNotPossible")
+        val rejected = node("endEvent_applicationRejected") as FlowNodeDefinition.Event
+        assertThat(rejected.shape).isEqualTo(EventShape.END_EVENT)
+        assertThat(rejected.eventDefinitions).containsExactly(EventDefinitionInstance.Terminate)
 
-        val invalidMail = node("errorEvent_invalidMail") as FlowNodeDefinition.Event
-        assertThat(invalidMail.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
-        assertThat(invalidMail.interrupting).isTrue()
-        assertThat(invalidMail.attachedToRef).isEqualTo("subProcess_confirmation")
-        val error = invalidMail.eventDefinitions.filterIsInstance<EventDefinitionInstance.Error>().single()
-        assertThat(error.errorName).isEqualTo("Error_InvalidMail")
-        assertThat(error.errorCode).isEqualTo("500")
-        assertThat(bpmnModel.definitions.errors.map { it.getValue() }).contains("Error_InvalidMail" to "500")
-
-        val abortedEnd = node("compensationEndEvent_registrationAborted") as FlowNodeDefinition.Event
-        assertThat(abortedEnd.shape).isEqualTo(EventShape.END_EVENT)
-        assertThat(abortedEnd.eventDefinitions).anyMatch { it is EventDefinitionInstance.Compensation }
-
-        val onCounter = node("compensationEvent_onSubscriptionCounter") as FlowNodeDefinition.Event
-        assertThat(onCounter.shape).isEqualTo(EventShape.BOUNDARY_EVENT)
-        assertThat(onCounter.interrupting).isTrue()
-        assertThat(onCounter.attachedToRef).isEqualTo("serviceTask_incrementSubscriptionCounter")
-        assertThat(onCounter.eventDefinitions).anyMatch { it is EventDefinitionInstance.Compensation }
+        val reverseApplication = node("event_reverseApplication") as FlowNodeDefinition.Event
+        assertThat(reverseApplication.shape).isEqualTo(EventShape.INTERMEDIATE_THROW_EVENT)
+        assertThat(reverseApplication.eventDefinitions).allMatch { it is EventDefinitionInstance.Compensation }
 
         // --- derived timers ---
         assertThat(bpmnModel.timers).containsExactlyInAnyOrder(
-            TimerDefinition("timer_after3Days", TimerType.DURATION, "\${testVariable}"),
-            TimerDefinition("timer_everyDay", TimerType.DURATION, "PT1M"),
+            TimerDefinition("timer_signatureDeadline", TimerType.DURATION, "P14D"),
+            TimerDefinition("timer_signatureReminder", TimerType.DURATION, "P7D"),
+            TimerDefinition("timer_withdrawalPeriodElapsed", TimerType.DURATION, "\${withdrawalPeriod}"),
         )
 
         // --- derived compensations ---
         assertThat(bpmnModel.compensations).containsExactlyInAnyOrder(
-            CompensationDefinition("compensationEndEvent_registrationAborted", CompensationDefinition.Type.THROWING, activityRef = "serviceTask_incrementSubscriptionCounter", waitForCompletion = false),
-            CompensationDefinition("compensationEvent_onSubscriptionCounter", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
+            CompensationDefinition("boundary_compensateContract", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
+            CompensationDefinition("boundary_compensateOrder", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
+            CompensationDefinition("boundary_compensateInsurance", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
+            CompensationDefinition("event_reverseApplication", CompensationDefinition.Type.THROWING, activityRef = null, waitForCompletion = false),
         )
 
-        // --- call activity ---
-        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
+        // --- call activity (the compensation handler of the bike order) ---
+        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.hasCalledElement()).isTrue()
-        assertThat(callActivity.getValue()).isEqualTo("abort-registration")
-        assertThat(callActivity.inputMappings).containsExactlyInAnyOrder(
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "subscriptionId", target = "childSubscriptionId"),
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, sourceExpression = "\${reasonCode}", target = "childReasonCode"),
-        )
-        assertThat(callActivity.outputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "childAbortResult", target = "abortResult"),
-        )
-        assertThat(callActivity.propagateAllInputVariables).isNull()
-        assertThat(callActivity.propagateAllOutputVariables).isNull()
+        assertThat(callActivity.getValue()).isEqualTo("cancelBikeOrder")
 
         // --- sequence flows: root scope vs. sub-process scope ---
-        val subProcessInternalFlows = listOf("flow_requestToConfirmationMail", "flow_everyDayToConfirmationMail", "flow_confirmationMailToConfirm", "flow_confirmToConfirmed")
+        val subProcessInternalFlows = listOf(
+            "flow_customerEligibleToSendContract",
+            "flow_sendContractToAwaitSignature",
+            "flow_awaitSignatureToContractSigned",
+            "flow_contractSignedToContractConcluded",
+            "flow_awaitSignatureToSignatureDeadline",
+            "flow_signatureDeadlineToContractNotSigned",
+        )
         assertThat(bpmnModel.sequenceFlows.map { it.id }).doesNotContainAnyElementsOf(subProcessInternalFlows)
-        assertThat(bpmnModel.sequenceFlows.map { it.id }).contains("flow_confirmationToSplit", "flow_incrementCounterToConfirmation")
+        assertThat(bpmnModel.sequenceFlows.map { it.id }).contains("flow_isSolventToConcludeContract", "flow_concludeContractToFork")
         assertThat(subProcess.sequenceFlows.map { it.id }).containsExactlyInAnyOrderElementsOf(subProcessInternalFlows)
-        assertThat(bpmnModel.graph.allSequenceFlows).hasSize(15)
+        assertThat(bpmnModel.graph.allSequenceFlows).hasSize(30)
         assertThat(bpmnModel.graph.allSequenceFlows).contains(
-            SequenceFlowDefinition("flow_confirmationMailToConfirm", "serviceTask_sendConfirmationMail", "userTask_confirmRegistration"),
-            SequenceFlowDefinition("flow_after3DaysToAbort", "timer_after3Days", "callActivity_abortRegistration"),
+            SequenceFlowDefinition("flow_sendContractToAwaitSignature", "serviceTask_sendContract", "gateway_awaitSignature"),
+            SequenceFlowDefinition("flow_signatureReminderToSendReminderMail", "timer_signatureReminder", "serviceTask_sendReminderMail"),
         )
 
         // --- messages registry ---
-        assertThat(bpmnModel.definitions.messages.map { it.getValue() }).contains("Message_FormSubmitted")
+        assertThat(bpmnModel.definitions.messages.map { it.getValue() }).containsExactlyInAnyOrder(
+            "miravelo.leasingRequestReceived",
+            "miravelo.contractSigned",
+            "miravelo.handoverReported",
+            "miravelo.applicationWithdrawn",
+            "miravelo.addressChanged",
+        )
 
         // --- boundary attachments ---
-        assertThat(bpmnModel.graph.attachedElementsOf(node("subProcess_confirmation")))
-            .containsExactlyInAnyOrder("errorEvent_invalidMail", "timer_after3Days")
-        assertThat(bpmnModel.graph.attachedElementsOf(node("serviceTask_incrementSubscriptionCounter")))
-            .containsExactly("compensationEvent_onSubscriptionCounter")
-        assertThat(bpmnModel.graph.attachedElementsOf(node("userTask_confirmRegistration")))
-            .containsExactly("timer_everyDay")
+        assertThat(bpmnModel.graph.attachedElementsOf(node("subProcess_concludeContract")))
+            .containsExactlyInAnyOrder("boundary_compensateContract", "boundary_contractNotSigned", "timer_signatureReminder")
+        assertThat(bpmnModel.graph.attachedElementsOf(node("serviceTask_validateApplication")))
+            .containsExactly("boundary_applicationInvalid")
 
         // --- node-to-node adjacency (derived through sequence flows) ---
-        assertThat(bpmnModel.graph.previousElementsOf(node("callActivity_abortRegistration"))).containsExactly("timer_after3Days")
-        assertThat(bpmnModel.graph.followingElementsOf(node("callActivity_abortRegistration"))).containsExactly("compensationEndEvent_registrationAborted")
-        assertThat(bpmnModel.graph.previousElementsOf(node("subProcess_confirmation"))).containsExactly("serviceTask_incrementSubscriptionCounter")
-        assertThat(bpmnModel.graph.followingElementsOf(node("gateway_splitNotifications")))
-            .containsExactlyInAnyOrder("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity")
+        assertThat(bpmnModel.graph.previousElementsOf(node("gateway_collectRejections")))
+            .containsExactlyInAnyOrder("gateway_isSolvent", "boundary_applicationInvalid", "boundary_contractNotSigned")
+        assertThat(bpmnModel.graph.followingElementsOf(node("gateway_fork")))
+            .containsExactlyInAnyOrder("serviceTask_orderBike", "serviceTask_issueInsurancePolicy")
+        assertThat(bpmnModel.graph.previousElementsOf(node("subProcess_concludeContract"))).containsExactly("gateway_isSolvent")
+    }
+
+    @Test
+    fun `extract reads the membership process`() {
+        // given: the Camunda 7 membership model — send task, timer cycle, signal end and compensation end
+        val bpmnModel = extract("membership")
+
+        fun event(id: String) = bpmnModel.allFlowNodes.single { it.id == id } as FlowNodeDefinition.Event
+
+        // then
+        val sendTask = bpmnModel.allFlowNodes.single { it.id == "sendTask_sendConfirmationMail" } as FlowNodeDefinition.Activity.Task
+        assertThat(sendTask.kind).isEqualTo(TaskKind.SEND)
+        assertThat(event("timer_resendDaily").eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.CYCLE, "R/P1D"))
+        assertThat(event("timer_resendDaily").interrupting).isFalse()
+        assertThat(event("timer_confirmationExpired").eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "P3DT12H"))
+        assertThat(event("endEvent_membershipActivated").eventDefinitions.filterIsInstance<EventDefinitionInstance.Signal>().single().signalName)
+            .isEqualTo("miravelo.memberActivated")
+        assertThat(bpmnModel.compensations).contains(
+            CompensationDefinition("endEvent_membershipDeclined", CompensationDefinition.Type.THROWING, activityRef = "serviceTask_claimMembership", waitForCompletion = false),
+        )
+        val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
+        assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.Expression("\${mailService.sendWelcomeMail(email)}"))
+        assertThat(implementations["serviceTask_notifyCommunity"]).isEqualTo(TaskImplementation.JavaClass("io.miravelo.membership.NotifyCommunityDelegate"))
+    }
+
+    @Test
+    fun `extract reads the implementation of a message end event`() {
+        val bpmnModel = extract("cancel-bike-order")
+        val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
+        assertThat(implementations["endEvent_bikeOrderCancelled"]).isEqualTo(TaskImplementation.ExternalTask("miravelo.bikeOrderCancelled"))
     }
 
     @Test
     fun `extract captures call-activity input and output mapping targets`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
-        val bpmnModel = underTest.read(File(resourceUrl.toURI()).readBytes())
-        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
-        assertThat(callActivity.inputMappings).containsExactlyInAnyOrder(
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "subscriptionId", target = "childSubscriptionId"),
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, sourceExpression = "\${reasonCode}", target = "childReasonCode"),
+        val callActivity = extract("bike-leasing").callActivities.single { it.id == "callActivity_cancelBikeOrder" }
+        assertThat(callActivity.inputMappings).containsExactly(
+            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "orderIds", target = "orderIds"),
         )
         assertThat(callActivity.outputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "childAbortResult", target = "abortResult"),
+            CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "cancellationCosts", target = "cancellationCosts"),
         )
     }
 
     @Test
     fun `extract returns variantName from process-level extension properties`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        assertThat(bpmnModel.variantName).isEqualTo("withApproval")
+        assertThat(extract("bike-leasing").variantName).isEqualTo("corporate")
     }
 
     @Test
     fun `extract returns null variantName when not specified`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-send-newsletter.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        assertThat(bpmnModel.variantName).isNull()
+        assertThat(extract("membership").variantName).isNull()
     }
 
     @Test
-    fun `extract returns additionalInputVariables and additionalOutputVariables from camunda properties`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-additional-variables.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        assertThat(bpmnModel.variables).containsExactlyInAnyOrder(
-            VariableDefinition("orderId", VariableDirection.INPUT, "\${orderId}"),
-            VariableDefinition("orderId", VariableDirection.OUTPUT, "\${orderId}"),
-            VariableDefinition("orderId", VariableDirection.INPUT),
-            VariableDefinition("orderId", VariableDirection.OUTPUT),
-            VariableDefinition("customerEmail", VariableDirection.OUTPUT),
-            VariableDefinition("amount", VariableDirection.OUTPUT),
-            VariableDefinition("shipmentId", VariableDirection.OUTPUT),
-            VariableDefinition("cancellationReason", VariableDirection.INPUT),
-            VariableDefinition("retryCount", VariableDirection.INPUT),
+    fun `extract returns additionalInputVariables from camunda properties`() {
+        val bpmnModel = extract("bike-leasing")
+        val startEvent = bpmnModel.allFlowNodes.single { it.id == "startEvent_leasingRequestReceived" }
+        assertThat(startEvent.variables).containsExactlyInAnyOrder(
+            VariableDefinition("applicationId", VariableDirection.INPUT),
+            VariableDefinition("bikeIds", VariableDirection.INPUT),
+            VariableDefinition("monthlyNetIncome", VariableDirection.INPUT),
+            VariableDefinition("age", VariableDirection.INPUT),
         )
     }
 
     @Test
     fun `extract preserves direction when the same variable name is both input and output on one element`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-additional-variables.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        val activity = bpmnModel.flowNodes.single { it.id == "Activity_ProcessOrder" }
-        assertThat(activity.variables).contains(
-            VariableDefinition("orderId", VariableDirection.INPUT, "\${orderId}"),
-            VariableDefinition("orderId", VariableDirection.OUTPUT, "\${orderId}"),
+        val bpmnModel = extract("bike-leasing")
+        val userTask = bpmnModel.allFlowNodes.single { it.id == "userTask_updateDeliveryAddress" }
+        assertThat(userTask.variables).containsExactlyInAnyOrder(
+            VariableDefinition("deliveryAddress", VariableDirection.INPUT, "\${deliveryAddress}"),
+            VariableDefinition("deliveryAddress", VariableDirection.OUTPUT, "\${deliveryAddress}"),
         )
     }
 
     @Test
     fun `extract returns additionalInputVariables for non-interrupting message start event in event subprocess`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-additional-variables.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        // StartEvent_OrderCancelled is nested inside an event sub-process, so it lives under allFlowNodes
-        val startEvent = bpmnModel.allFlowNodes.single { it.id == "StartEvent_OrderCancelled" }
+        val bpmnModel = extract("bike-leasing")
+        // startEvent_addressChanged is nested inside an event sub-process, so it lives under allFlowNodes
+        val startEvent = bpmnModel.allFlowNodes.single { it.id == "startEvent_addressChanged" }
         assertThat(startEvent.variables).containsExactlyInAnyOrder(
-            VariableDefinition("cancellationReason", VariableDirection.INPUT),
-            VariableDefinition("retryCount", VariableDirection.INPUT),
+            VariableDefinition("street", VariableDirection.INPUT),
+            VariableDefinition("city", VariableDirection.INPUT),
         )
     }
 
     @Test
     fun `extract returns multi-instance variables`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-send-newsletter.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        assertThat(bpmnModel.variables).containsExactlyInAnyOrder(
-            VariableDefinition("test", VariableDirection.INPUT, "null"),
-            VariableDefinition("authors", VariableDirection.INPUT, "\${authors}"),
-            VariableDefinition("author", VariableDirection.INPUT, "author"),
-            VariableDefinition("author", VariableDirection.OUTPUT, "\${author}"),
-            VariableDefinition("subscribers", VariableDirection.INPUT, "\${subscribers}"),
-            VariableDefinition("subscribers", VariableDirection.OUTPUT, "\${subscribers}"),
-            VariableDefinition("subscriber", VariableDirection.INPUT, "subscriber"),
-        )
+        val bpmnModel = extract("bike-leasing")
+        listOf("serviceTask_orderBike", "serviceTask_issueInsurancePolicy").forEach { id ->
+            assertThat(bpmnModel.allFlowNodes.single { it.id == id }.variables).containsExactlyInAnyOrder(
+                VariableDefinition("bikeIds", VariableDirection.INPUT, "\${bikeIds}"),
+                VariableDefinition("bikeId", VariableDirection.INPUT, "bikeId"),
+            )
+        }
     }
 
     @Test
     fun `extract detects event subprocess type and extracts escalations`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-send-newsletter.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
+        val bpmnModel = extract("bike-leasing")
 
-        val eventSubProcess = bpmnModel.flowNodes.single { it.id == "eventSubProcess_errorHandling" }
-        assertThat(eventSubProcess).isInstanceOf(FlowNodeDefinition.Activity.SubProcess::class.java)
-        assertThat((eventSubProcess as FlowNodeDefinition.Activity.SubProcess).kind).isEqualTo(SubProcessKind.EVENT)
+        listOf("subProcess_applicationWithdrawn", "subProcess_addressChanged").forEach { id ->
+            val eventSubProcess = bpmnModel.flowNodes.single { it.id == id } as FlowNodeDefinition.Activity.SubProcess
+            assertThat(eventSubProcess.kind).isEqualTo(SubProcessKind.EVENT)
+        }
 
-        // the event subprocess start event carries the isInterrupting flag; a regular start event has none.
-        // event_mailRejected is nested in the event sub-process, so it lives under allFlowNodes.
-        val mailRejected = bpmnModel.allFlowNodes.single { it.id == "event_mailRejected" } as FlowNodeDefinition.Event
-        assertThat(mailRejected.interrupting).isTrue()
-        val editionCreated = bpmnModel.allFlowNodes.single { it.id == "startEvent_editionCreated" } as FlowNodeDefinition.Event
-        assertThat(editionCreated.interrupting).isNull()
+        // the event subprocess start event carries the isInterrupting flag; a regular start event has none
+        fun startEvent(id: String) = bpmnModel.allFlowNodes.single { it.id == id } as FlowNodeDefinition.Event
+        assertThat(startEvent("startEvent_applicationWithdrawn").interrupting).isTrue()
+        assertThat(startEvent("startEvent_addressChanged").interrupting).isFalse()
+        assertThat(startEvent("startEvent_leasingRequestReceived").interrupting).isNull()
 
-        // both escalation end events reference the same bpmn:Escalation root element, so the registry — now
-        // keyed by that root element — holds a single entry (name-to-code via getValue()).
-        assertThat(bpmnModel.definitions.escalations.map { it.getValue() }).containsExactly("escalation_notifySupport" to "200")
-        listOf("escalationEndEvent_nofitySupport", "escalationEndEvent_nofitySupportAfterRepeatedError").forEach { id ->
+        // the escalation end event and the escalation boundary event reference the same bpmn:Escalation root
+        // element, so the registry — keyed by that root element — holds a single entry
+        assertThat(bpmnModel.definitions.escalations.map { it.getValue() }).containsExactly("miravelo.contractNotSigned" to "contractNotSigned")
+        listOf("endEvent_contractNotSigned", "boundary_contractNotSigned").forEach { id ->
             val event = bpmnModel.allFlowNodes.single { it.id == id } as FlowNodeDefinition.Event
             val escalation = event.eventDefinitions.filterIsInstance<EventDefinitionInstance.Escalation>().single()
-            assertThat(escalation.escalationName).isEqualTo("escalation_notifySupport")
-            assertThat(escalation.escalationCode).isEqualTo("200")
+            assertThat(escalation.escalationName).isEqualTo("miravelo.contractNotSigned")
+            assertThat(escalation.escalationCode).isEqualTo("contractNotSigned")
         }
     }
 
     @Test
     fun `extract marks default sequence flow correctly`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-send-newsletter.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-
-        val flowsById = bpmnModel.sequenceFlows.associateBy { it.id }
-        assertThat(flowsById["flow_hasSubscribers"]).isEqualTo(
-            SequenceFlowDefinition("flow_hasSubscribers", "gateway_hasSubscribers", "serviceTask_sendToSubscriber", flowName = "Yes", isDefault = true),
+        val flowsById = extract("bike-leasing").sequenceFlows.associateBy { it.id }
+        assertThat(flowsById["flow_isSolventToConcludeContract"]).isEqualTo(
+            SequenceFlowDefinition("flow_isSolventToConcludeContract", "gateway_isSolvent", "subProcess_concludeContract", flowName = "Yes", isDefault = true),
         )
-        assertThat(flowsById["flow_noSubscribers"]).isEqualTo(
-            SequenceFlowDefinition("flow_noSubscribers", "gateway_hasSubscribers", "endEvent_noSubscribers", flowName = "No", conditionExpression = "\${subscribers.size() > 0}"),
+        assertThat(flowsById["flow_isSolventToCollectRejections"]).isEqualTo(
+            SequenceFlowDefinition("flow_isSolventToCollectRejections", "gateway_isSolvent", "gateway_collectRejections", flowName = "No", conditionExpression = "\${!solvent}"),
         )
     }
 
@@ -356,59 +329,98 @@ class Camunda7ExtractionTest {
 
     @Test
     fun `extract leaves propagate-all null when variables=all is not declared`() {
-        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn"))
-        val file = File(resourceUrl.toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_abortRegistration" }
+        val callActivity = extract("bike-leasing").callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.propagateAllInputVariables).isNull()
         assertThat(callActivity.propagateAllOutputVariables).isNull()
     }
 
     @Test
     fun `extract marks a process with isExecutable false as non-executable`() {
-        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-non-executable.bpmn")).toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        assertThat(bpmnModel.isExecutable).isFalse()
+        assertThat(extract("non-executable").isExecutable).isFalse()
     }
 
     @Test
     fun `extract marks a process with isExecutable true as executable`() {
-        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn")).toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        assertThat(bpmnModel.isExecutable).isTrue()
+        assertThat(extract("bike-leasing").isExecutable).isTrue()
     }
 
     @Test
     fun `extract treats an absent isExecutable attribute as executable`() {
-        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-no-executable-attr.bpmn")).toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        assertThat(bpmnModel.isExecutable).isTrue()
+        assertThat(extract("no-executable-attr").isExecutable).isTrue()
     }
 
     @Test
     fun `extract keeps root elements that no flow node references`() {
-        // given: the fixture declares Message_SubscriptionConfirmed but no element points at it
-        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-subscribe-newsletter.bpmn")).toURI())
+        // given: a model that declares a message no element points at
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                              xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                              targetNamespace="http://bpmn.io/schema/bpmn">
+              <bpmn:message id="message_leasingRequestReceived" name="miravelo.leasingRequestReceived" />
+              <bpmn:message id="message_contractSigned" name="miravelo.contractSigned" />
+              <bpmn:process id="leasingRequest" isExecutable="true">
+                <bpmn:startEvent id="startEvent_leasingRequestReceived">
+                  <bpmn:messageEventDefinition id="messageEventDefinition_leasingRequestReceived" messageRef="message_leasingRequestReceived" />
+                </bpmn:startEvent>
+              </bpmn:process>
+            </bpmn:definitions>
+        """.trimIndent()
 
         // when
-        val bpmnModel = underTest.read(file.readBytes())
+        val bpmnModel = underTest.read(xml.toByteArray())
 
         // then: the model mirrors the file rather than silently dropping the declaration —
         // UnreferencedRootElementRule is what reports it
         assertThat(bpmnModel.definitions.messages.map { it.getValue() })
-            .containsExactlyInAnyOrder("Message_FormSubmitted", "Message_SubscriptionConfirmed")
-        assertThat(bpmnModel.referencedDefinitionIds()).doesNotContain("message_subscriptionConfirmed")
+            .containsExactlyInAnyOrder("miravelo.leasingRequestReceived", "miravelo.contractSigned")
+        assertThat(bpmnModel.referencedDefinitionIds()).doesNotContain("message_contractSigned")
     }
 
     @Test
     fun `extract reads a catch-all error boundary event without errorRef`() {
-        val file = File(requireNotNull(javaClass.getResource("/bpmn/c7-catch-all-error.bpmn")).toURI())
-        val bpmnModel = underTest.read(file.readBytes())
-        val boundaryEvent = bpmnModel.allFlowNodes.single { it.id == "BoundaryEvent_catchAllError" } as FlowNodeDefinition.Event
+        val bpmnModel = extract("catch-all-error")
+        val boundaryEvent = bpmnModel.allFlowNodes.single { it.id == "boundary_anyError" } as FlowNodeDefinition.Event
         assertThat(boundaryEvent.eventDefinitions).containsExactly(EventDefinitionInstance.Error(errorRef = null, errorName = null, errorCode = null))
+    }
+
+    private fun extract(fixture: String): ProcessModel {
+        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/c7/$fixture.bpmn"))
+        return underTest.read(File(resourceUrl.toURI()).readBytes())
     }
 
     private companion object {
         const val CAMUNDA_7_NAMESPACE = "http://camunda.org/schema/1.0/bpmn"
+
+        val ROOT_NODE_IDS = listOf(
+            "startEvent_leasingRequestReceived",
+            "serviceTask_validateApplication",
+            "boundary_applicationInvalid",
+            "businessRuleTask_checkCreditRating",
+            "gateway_isSolvent",
+            "subProcess_concludeContract",
+            "boundary_compensateContract",
+            "boundary_contractNotSigned",
+            "timer_signatureReminder",
+            "serviceTask_sendReminderMail",
+            "endEvent_customerReminded",
+            "serviceTask_cancelContract",
+            "gateway_collectRejections",
+            "serviceTask_sendRejection",
+            "endEvent_applicationRejected",
+            "gateway_fork",
+            "serviceTask_orderBike",
+            "boundary_compensateOrder",
+            "callActivity_cancelBikeOrder",
+            "serviceTask_issueInsurancePolicy",
+            "boundary_compensateInsurance",
+            "serviceTask_cancelPolicy",
+            "gateway_join",
+            "receiveTask_handoverReported",
+            "timer_withdrawalPeriodElapsed",
+            "endEvent_leasingActive",
+            "subProcess_applicationWithdrawn",
+            "subProcess_addressChanged",
+        )
     }
 }

@@ -30,9 +30,11 @@ class CSharpCompilationTest {
 
     @ParameterizedTest
     @CsvSource(
-        "/bpmn/c8-subscribe-newsletter.bpmn, ZEEBE",
-        "/bpmn/c7-subscribe-newsletter.bpmn, CAMUNDA_7",
-        "/bpmn/operaton-subscribe-newsletter.bpmn, OPERATON",
+        "/bpmn/zeebe/bike-leasing.bpmn, ZEEBE",
+        "/bpmn/c7/bike-leasing.bpmn, CAMUNDA_7",
+        "/bpmn/operaton/bike-leasing.bpmn, OPERATON",
+        "/bpmn/zeebe/membership.bpmn, ZEEBE",
+        "/bpmn/c7/membership.bpmn, CAMUNDA_7",
         "/bpmn/nested-subprocess.bpmn, ZEEBE",
     )
     fun `generated csharp compiles`(bpmnResource: String, engine: ProcessEngine) {
@@ -43,8 +45,8 @@ class CSharpCompilationTest {
 
     @Test
     fun `generated csharp of two processes sharing job types and messages compiles`() {
-        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn")).readText()
-        val copy = bpmnXml.replace("id=\"newsletterSubscription\"", "id=\"newsletterSubscriptionCopy\"")
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn")).readText()
+        val copy = bpmnXml.replace("id=\"bikeLeasing\"", "id=\"bikeLeasingCopy\"")
         val projectDir = project(csproj(), generateFromXml(listOf(bpmnXml, copy), ProcessEngine.ZEEBE))
 
         assertCompiles(projectDir)
@@ -62,7 +64,7 @@ class CSharpCompilationTest {
     @ParameterizedTest
     @ValueSource(strings = ["<Nullable>disable</Nullable>", "<GenerateDocumentationFile>true</GenerateDocumentationFile>"])
     fun `generated csharp compiles whatever the consuming project's nullable and documentation settings`(setting: String) {
-        val projectDir = project(csproj(setting), generate(listOf("/bpmn/c8-subscribe-newsletter.bpmn"), ProcessEngine.ZEEBE))
+        val projectDir = project(csproj(setting), generate(listOf("/bpmn/zeebe/bike-leasing.bpmn"), ProcessEngine.ZEEBE))
 
         assertCompiles(projectDir)
     }
@@ -72,7 +74,7 @@ class CSharpCompilationTest {
         // given: two APIs of one run in the same namespace, each inlining its own runtime types, plus code that uses them
         val projectDir = project(
             csproj(),
-            generate(listOf("/bpmn/c8-subscribe-newsletter.bpmn", "/bpmn/nested-subprocess.bpmn"), ProcessEngine.ZEEBE),
+            generate(listOf("/bpmn/zeebe/bike-leasing.bpmn", "/bpmn/nested-subprocess.bpmn"), ProcessEngine.ZEEBE),
         )
         File(projectDir, "Consumer.cs").writeText(CONSUMER)
 
@@ -180,7 +182,7 @@ class CSharpCompilationTest {
         val CONSUMER = """
             using System;
             using De.Gen;
-            using Api = De.Gen.NewsletterSubscriptionProcessApi;
+            using Api = De.Gen.BikeLeasingProcessApi;
 
             namespace De.Gen.Consumer;
 
@@ -193,14 +195,14 @@ class CSharpCompilationTest {
 
             public static class Consumer
             {
-                [JobType(ServiceTasks.NewsletterSendConfirmationMail)]
-                [JobType(Api.Flow.ServiceTaskSendConfirmationMail.JobType)]
+                [JobType(ServiceTasks.MiraveloSendContract)]
+                [JobType(Api.Flow.ServiceTaskSendContract.JobType)]
                 public static string Describe(string jobType)
                 {
                     switch (jobType)
                     {
-                        case ServiceTasks.NewsletterSendConfirmationMail:
-                            return "confirmation";
+                        case ServiceTasks.MiraveloSendContract:
+                            return "contract";
                         default:
                             return "other";
                     }
@@ -208,25 +210,25 @@ class CSharpCompilationTest {
 
                 public static void Navigate()
                 {
-                    var start = Api.Flow.StartEventSubmitRegistrationForm.Instance;
-                    var edge = start.OutgoingFlows.ToServiceTaskIncrementSubscriptionCounter;
+                    var start = Api.Flow.StartEventLeasingRequestReceived.Instance;
+                    var edge = start.OutgoingFlows.ToServiceTaskValidateApplication;
                     string? condition = edge.ConditionExpression;
                     bool isDefault = edge.IsDefault;
-                    Api.Flow.ServiceTaskIncrementSubscriptionCounter target = edge.Target;
+                    Api.Flow.ServiceTaskValidateApplication target = edge.Target;
                     Api.Runtime.ISequenceFlow generic = edge;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
-                    if (!edge.Equals(start.OutgoingFlows.ToServiceTaskIncrementSubscriptionCounter)) throw new InvalidOperationException();
-                    Api.Runtime.IBoundaryEvent boundary = Api.Flow.TimerEveryDay.Instance;
+                    if (!edge.Equals(start.OutgoingFlows.ToServiceTaskValidateApplication)) throw new InvalidOperationException();
+                    Api.Runtime.IBoundaryEvent boundary = Api.Flow.TimerSignatureReminder.Instance;
 
-                    var counter = start.Next.ServiceTaskIncrementSubscriptionCounter;
-                    var subProcess = counter.Next.SubProcessConfirmation;
-                    var innerStart = subProcess.Start.StartEventRequestReceived;
+                    var creditRating = start.Next.ServiceTaskValidateApplication.Next.BusinessRuleTaskCheckCreditRating;
+                    var subProcess = creditRating.Next.GatewayIsSolvent.Next.SubProcessConcludeContract;
+                    var innerStart = subProcess.Start.StartEventCustomerEligible;
                     string? innerName = innerStart.Name;
-                    string hostId = Api.Flow.TimerEveryDay.Instance.AttachedTo.Id.Value;
-                    bool interrupts = Api.Flow.TimerEveryDay.Instance.IsInterrupting;
-                    Api.Runtime.VariableName.Input input = Api.Flow.ServiceTaskSendConfirmationMail.Instance.Variables.SubscriptionId;
-                    Api.Runtime.ProcessId called = Api.Flow.CallActivityAbortRegistration.Instance.CalledProcess;
-                    Api.Runtime.InputOutputMapping mapping = Api.Flow.CallActivityAbortRegistration.Instance.Inputs.SubscriptionId;
+                    string hostId = Api.Flow.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
+                    bool interrupts = Api.Flow.TimerSignatureReminder.Instance.IsInterrupting;
+                    Api.Runtime.VariableName.Input input = Api.Flow.ServiceTaskSendContract.Instance.Variables.ApplicationId;
+                    Api.Runtime.ProcessId called = Api.Flow.CallActivityCancelBikeOrder.Instance.CalledProcess;
+                    Api.Runtime.InputOutputMapping mapping = Api.Flow.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
 
                     NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.Flow.StartEventRoot.Instance.Id;
                     Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id}");

@@ -90,7 +90,7 @@ class NormalisedExtensionTest {
     @Test
     fun `zeebe extensions leave out the elements the dialect reads in full`() {
         // given: the Camunda 8 model, whose nodes carry ioMapping, taskDefinition and calledElement
-        val model = extract(ZeebeDialect(), "c8-subscribe-newsletter")
+        val model = extract(ZeebeDialect(), "zeebe/bike-leasing")
 
         // when: looking at every extension the nodes kept
         val types = model.allFlowNodes.flatMap { node -> node.extensions.map { it.type } }
@@ -102,17 +102,17 @@ class NormalisedExtensionTest {
     @Test
     fun `the normalised fields still carry that information`() {
         // given: the same model
-        val model = extract(ZeebeDialect(), "c8-subscribe-newsletter")
+        val model = extract(ZeebeDialect(), "zeebe/bike-leasing")
 
         // then: what was left out of extensions is present in typed form, so nothing was lost
-        val task = model.allFlowNodes.single { it.id == "serviceTask_sendConfirmationMail" }
+        val task = model.allFlowNodes.single { it.id == "serviceTask_sendContract" }
             as FlowNodeDefinition.Activity.Task
-        assertThat(task.implementation?.reference).isEqualTo("newsletter.sendConfirmationMail")
-        assertThat(task.ioMapping?.inputs?.map { it.target }).contains("subscriptionId")
+        assertThat(task.implementation?.reference).isEqualTo("miravelo.sendContract")
+        assertThat(task.ioMapping?.inputs?.map { it.target }).contains("applicationId")
 
-        val callActivity = model.allFlowNodes.single { it.id == "callActivity_abortRegistration" }
+        val callActivity = model.allFlowNodes.single { it.id == "callActivity_cancelBikeOrder" }
             as FlowNodeDefinition.Activity.CallActivity
-        assertThat(callActivity.definition.getValue()).isEqualTo("abort-registration")
+        assertThat(callActivity.definition.getValue()).isEqualTo("cancelBikeOrder")
     }
 
     @Test
@@ -133,7 +133,7 @@ class NormalisedExtensionTest {
     @Test
     fun `camunda extensions keep inputOutput because the dialect only reads part of it`() {
         // given: the Camunda 7 model
-        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
+        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7/bike-leasing")
 
         // when: looking at the extensions
         val types = model.allFlowNodes.flatMap { node -> node.extensions.map { it.type } }
@@ -146,21 +146,21 @@ class NormalisedExtensionTest {
     @Test
     fun `engine attributes leave out the one the dialect read`() {
         // given: the Camunda 7 model, whose compensation handler carries camunda:delegateExpression
-        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
+        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7/bike-leasing")
 
         // when: looking at the node that has it
-        val handler = model.allFlowNodes.single { it.id == "serviceTask_decrementSubscriptionCounter" }
+        val handler = model.allFlowNodes.single { it.id == "serviceTask_cancelContract" }
             as FlowNodeDefinition.Activity.Task
 
         // then: the attribute is reported once, as a typed implementation
-        assertThat(handler.implementation).isEqualTo(TaskImplementation.DelegateExpression("counterClass"))
+        assertThat(handler.implementation).isEqualTo(TaskImplementation.DelegateExpression("\${cancelContractDelegate}"))
         assertThat(handler.engineAttributes).doesNotContainKey("camunda:delegateExpression")
     }
 
     @Test
     fun `engine attributes keep the ones the dialect does not read`() {
         // given: the Camunda 7 model
-        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
+        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7/bike-leasing")
 
         // when: looking at a node with execution attributes beyond the implementation
         val keys = model.allFlowNodes.flatMap { it.engineAttributes.keys }

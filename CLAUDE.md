@@ -88,6 +88,7 @@ Tests are organized by layer:
 - Unit tests for domain services and builders
 - Integration tests for adapters and extractors
 - Test resources include sample BPMN files and expected API outputs
+- Shared BPMN test models live in `shared/bpmn/{c7,zeebe,operaton}/` (MiraVelo domain) and follow the modeling guideline in [`docs/contributing/best-practices.md`](docs/contributing/best-practices.md#naming-conventions)
 
 The project uses JUnit 5, AssertJ, and MockK for testing. Use [`testBpmnModel()`](bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/domain/TestBpmnModel.kt) or domain-specific builders like [`buildSubscribeNewsletterFlowNodes()`](bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/adapter/outbound/codegen/builder/NewsletterFlowNodes.kt) to programmatically construct test models instead of parsing BPMN files or hand-building domain objects.
 

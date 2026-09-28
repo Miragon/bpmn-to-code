@@ -18,25 +18,25 @@ class ExtractProcessModelsServiceTest {
     @Test
     fun `extracts one model per resource, in the order they were given`() {
         // given: two BPMN files targeting the same engine
-        val resources = listOf(resource("c8-subscribe-newsletter.bpmn"), resource("c8-send-newsletter.bpmn"))
+        val resources = listOf(resource("zeebe/bike-leasing.bpmn"), resource("zeebe/membership.bpmn"))
 
         // when: extracting them
         val models = underTest.extractProcessModels(command(resources))
 
         // then: each resource yields its own model, and the order is preserved
-        assertThat(models.map { it.processId }).containsExactly("newsletterSubscription", "sendNewsletter")
+        assertThat(models.map { it.processId }).containsExactly("bikeLeasing", "membership")
     }
 
     @Test
     fun `the models carry what the engine dialect resolved`() {
         // given: the Camunda 8 model
-        val models = underTest.extractProcessModels(command(listOf(resource("c8-subscribe-newsletter.bpmn"))))
+        val models = underTest.extractProcessModels(command(listOf(resource("zeebe/bike-leasing.bpmn"))))
 
         // then: extraction really ran — a job type only the Zeebe dialect produces is present
         val implementations = models.single().allFlowNodes
             .filterIsInstance<FlowNodeDefinition.Activity.Task>()
             .mapNotNull { it.implementation }
-        assertThat(implementations).contains(TaskImplementation.JobWorker("newsletter.sendConfirmationMail"))
+        assertThat(implementations).contains(TaskImplementation.JobWorker("miravelo.sendContract"))
     }
 
     @Test
@@ -49,19 +49,19 @@ class ExtractProcessModelsServiceTest {
     fun `the plugin wires the use case by default`() {
         // when: going through the inbound entry point without injecting anything
         val models = ExtractProcessModelsPlugin().execute(
-            listOf(resource("c8-subscribe-newsletter.bpmn")),
+            listOf(resource("zeebe/bike-leasing.bpmn")),
             ProcessEngine.ZEEBE,
         )
 
         // then
-        assertThat(models.single().processId).isEqualTo("newsletterSubscription")
+        assertThat(models.single().processId).isEqualTo("bikeLeasing")
     }
 
     @Test
     fun `a broken resource fails with the file that caused it`() {
         // given: one good file and one that is not XML
         val resources = listOf(
-            resource("c8-subscribe-newsletter.bpmn"),
+            resource("zeebe/bike-leasing.bpmn"),
             BpmnResource(fileName = "broken.bpmn", content = "<bpmn:definitions".toByteArray()),
         )
 

@@ -17,31 +17,31 @@ import java.io.File
  *
  * Each engine spells them differently — `zeebe:loopCharacteristics` / `zeebe:ioMapping` versus
  * `camunda:collection` / `camunda:inputOutput` — but they normalise onto the same domain shape. Only the
- * expressions themselves stay engine-specific, because they are preserved verbatim (FEEL `=subscribers`,
- * JUEL `${'$'}{subscribers}`, plain `subscribers`).
+ * expressions themselves stay engine-specific, because they are preserved verbatim (FEEL `=bikeIds`,
+ * JUEL `${'$'}{bikeIds}`).
  */
 class ActivityFacetExtractionTest {
 
     @Test
     fun `zeebe extract reads multi-instance loop characteristics`() {
         // given
-        val model = extract(ProcessModelReader(ZeebeDialect()), "c8-send-newsletter")
+        val model = extract(ProcessModelReader(ZeebeDialect()), "zeebe/bike-leasing")
 
         // then: isSequential comes from BPMN, the collection bindings from zeebe:loopCharacteristics
-        assertThat(model.multiInstanceOf("serviceTask_sendToSubscriber")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = true,
-                inputCollection = "=subscribers",
-                inputElement = "subscriber",
-            ),
-        )
-        assertThat(model.multiInstanceOf("serviceTask_notifyAuthor")).isEqualTo(
+        assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
             MultiInstanceDefinition(
                 sequential = false,
-                inputCollection = "=authors",
-                inputElement = "author",
-                outputCollection = "results",
-                outputElement = "=result",
+                inputCollection = "=bikeIds",
+                inputElement = "bikeId",
+                outputCollection = "orderIds",
+                outputElement = "=orderId",
+            ),
+        )
+        assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
+            MultiInstanceDefinition(
+                sequential = true,
+                inputCollection = "=bikeIds",
+                inputElement = "bikeId",
             ),
         )
     }
@@ -49,24 +49,24 @@ class ActivityFacetExtractionTest {
     @Test
     fun `zeebe extract reads io mappings`() {
         // given
-        val model = extract(ProcessModelReader(ZeebeDialect()), "c8-send-newsletter")
+        val model = extract(ProcessModelReader(ZeebeDialect()), "zeebe/bike-leasing")
 
         // then: zeebe:input and zeebe:output keep source and target verbatim
-        assertThat(model.ioMappingOf("serviceTask_loadSubscribers")).isEqualTo(
+        assertThat(model.ioMappingOf("serviceTask_sendContract")).isEqualTo(
             IoMapping(
-                outputs = listOf(
-                    IoMapping.Parameter(target = "subscribers", source = "=subscribers"),
-                    IoMapping.Parameter(target = "author", source = "=author"),
-                ),
+                inputs = listOf(IoMapping.Parameter(target = "applicationId", source = "=applicationId")),
+                outputs = listOf(IoMapping.Parameter(target = "contractId", source = "=contractId")),
             ),
         )
-        assertThat(model.ioMappingOf("serviceTask_publishNewsletter")).isEqualTo(
+        assertThat(model.ioMappingOf("serviceTask_orderBike")).isEqualTo(
             IoMapping(
                 inputs = listOf(
+                    IoMapping.Parameter(target = "authentication.type", source = "noAuth"),
                     IoMapping.Parameter(target = "method", source = "POST"),
-                    IoMapping.Parameter(target = "url", source = "https://api.example.com/newsletter"),
+                    IoMapping.Parameter(target = "url", source = "https://supplier.miravelo.example/orders"),
+                    IoMapping.Parameter(target = "body", source = "={bikeId: bikeId}"),
                 ),
-                outputs = listOf(IoMapping.Parameter(target = "apiResponse", source = "=response")),
+                outputs = listOf(IoMapping.Parameter(target = "orderId", source = "=response.body.orderId")),
             ),
         )
     }
@@ -74,21 +74,21 @@ class ActivityFacetExtractionTest {
     @Test
     fun `camunda 7 extract reads multi-instance loop characteristics`() {
         // given
-        val model = extract(ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)), "c7-send-newsletter")
+        val model = extract(ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)), "c7/bike-leasing")
 
         // then: camunda:collection and camunda:elementVariable normalise onto the same fields as Zeebe
-        assertThat(model.multiInstanceOf("serviceTask_sendToSubscriber")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = true,
-                inputCollection = "\${subscribers}",
-                inputElement = "subscriber",
-            ),
-        )
-        assertThat(model.multiInstanceOf("serviceTask_notifyAuthor")).isEqualTo(
+        assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
             MultiInstanceDefinition(
                 sequential = false,
-                inputCollection = "\${authors}",
-                inputElement = "author",
+                inputCollection = "\${bikeIds}",
+                inputElement = "bikeId",
+            ),
+        )
+        assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
+            MultiInstanceDefinition(
+                sequential = true,
+                inputCollection = "\${bikeIds}",
+                inputElement = "bikeId",
             ),
         )
     }
@@ -96,40 +96,35 @@ class ActivityFacetExtractionTest {
     @Test
     fun `camunda 7 extract reads io mappings`() {
         // given
-        val model = extract(ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)), "c7-send-newsletter")
+        val model = extract(ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)), "c7/bike-leasing")
 
         // then: the parameter name becomes the target, the element body the source
-        assertThat(model.ioMappingOf("serviceTask_loadSubscribers")).isEqualTo(
+        assertThat(model.ioMappingOf("serviceTask_sendContract")).isEqualTo(
             IoMapping(
-                outputs = listOf(
-                    IoMapping.Parameter(target = "subscribers", source = "\${subscribers}"),
-                    IoMapping.Parameter(target = "author", source = "\${author}"),
-                ),
+                inputs = listOf(IoMapping.Parameter(target = "applicationId", source = "\${applicationId}")),
+                outputs = listOf(IoMapping.Parameter(target = "contractId", source = "\${contractId}")),
             ),
-        )
-        assertThat(model.ioMappingOf("serviceTask_notifyAuthor")).isEqualTo(
-            IoMapping(inputs = listOf(IoMapping.Parameter(target = "test", source = "null"))),
         )
     }
 
     @Test
     fun `operaton extract reads multi-instance loop characteristics`() {
         // given
-        val model = extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton-send-newsletter")
+        val model = extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton/bike-leasing")
 
         // then: the operaton namespace carries the identical vocabulary (ADR 010)
-        assertThat(model.multiInstanceOf("serviceTask_sendToSubscriber")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = true,
-                inputCollection = "subscribers",
-                inputElement = "subscriber",
-            ),
-        )
-        assertThat(model.multiInstanceOf("serviceTask_notifyAuthor")).isEqualTo(
+        assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
             MultiInstanceDefinition(
                 sequential = false,
-                inputCollection = "authors",
-                inputElement = "author",
+                inputCollection = "\${bikeIds}",
+                inputElement = "bikeId",
+            ),
+        )
+        assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
+            MultiInstanceDefinition(
+                sequential = true,
+                inputCollection = "\${bikeIds}",
+                inputElement = "bikeId",
             ),
         )
     }
@@ -137,56 +132,50 @@ class ActivityFacetExtractionTest {
     @Test
     fun `operaton extract reads io mappings`() {
         // given
-        val model = extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton-send-newsletter")
+        val model = extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton/bike-leasing")
 
         // then
-        assertThat(model.ioMappingOf("serviceTask_loadSubscribers")).isEqualTo(
+        assertThat(model.ioMappingOf("serviceTask_sendContract")).isEqualTo(
             IoMapping(
-                outputs = listOf(
-                    IoMapping.Parameter(target = "subscribers", source = "\${subscribers}"),
-                    IoMapping.Parameter(target = "author", source = "\${author}"),
-                ),
+                inputs = listOf(IoMapping.Parameter(target = "applicationId", source = "\${applicationId}")),
+                outputs = listOf(IoMapping.Parameter(target = "contractId", source = "\${contractId}")),
             ),
         )
     }
 
     @Test
     fun `an activity without loop characteristics or io mapping reports neither facet`() {
-        // given: the same task in all three dialects, configured with neither facet
-        val models = listOf(
-            extract(ProcessModelReader(ZeebeDialect()), "c8-send-newsletter"),
-            extract(ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)), "c7-send-newsletter"),
-            extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton-send-newsletter"),
-        )
+        // given: the same process in all three dialects
+        val models = bikeLeasingPerEngine()
 
         // then: absent facets stay null instead of collapsing to an empty object
         models.forEach { model ->
-            assertThat(model.multiInstanceOf("serviceTask_loadSubscribers")).isNull()
-            assertThat(model.ioMappingOf("serviceTask_sendToSubscriber")).isNull()
+            assertThat(model.multiInstanceOf("serviceTask_sendContract")).isNull()
+            assertThat(model.ioMappingOf("serviceTask_issueInsurancePolicy")).isNull()
         }
     }
 
     @Test
     fun `the same logical loop normalises identically across engines`() {
         // given: the same process modelled for all three engines
-        val models = listOf(
-            extract(ProcessModelReader(ZeebeDialect()), "c8-send-newsletter"),
-            extract(ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)), "c7-send-newsletter"),
-            extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton-send-newsletter"),
-        )
+        val models = bikeLeasingPerEngine()
 
         // then: everything but the engine's own expression syntax agrees
-        assertThat(models.map { it.multiInstanceOf("serviceTask_sendToSubscriber")?.sequential })
-            .containsOnly(true)
-        assertThat(models.map { it.multiInstanceOf("serviceTask_notifyAuthor")?.sequential })
+        assertThat(models.map { it.multiInstanceOf("serviceTask_orderBike")?.sequential })
             .containsOnly(false)
-        assertThat(models.map { it.multiInstanceOf("serviceTask_sendToSubscriber")?.inputElement })
-            .containsOnly("subscriber")
-        assertThat(models.map { it.multiInstanceOf("serviceTask_notifyAuthor")?.inputElement })
-            .containsOnly("author")
-        assertThat(models.map { it.ioMappingOf("serviceTask_loadSubscribers")?.outputs?.map { output -> output.target } })
-            .containsOnly(listOf("subscribers", "author"))
+        assertThat(models.map { it.multiInstanceOf("serviceTask_issueInsurancePolicy")?.sequential })
+            .containsOnly(true)
+        assertThat(models.map { it.multiInstanceOf("serviceTask_orderBike")?.inputElement })
+            .containsOnly("bikeId")
+        assertThat(models.map { it.ioMappingOf("serviceTask_sendContract")?.outputs?.map { output -> output.target } })
+            .containsOnly(listOf("contractId"))
     }
+
+    private fun bikeLeasingPerEngine(): List<ProcessModel> = listOf(
+        extract(ProcessModelReader(ZeebeDialect()), "zeebe/bike-leasing"),
+        extract(ProcessModelReader(CamundaDialect(CAMUNDA_7_NAMESPACE)), "c7/bike-leasing"),
+        extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton/bike-leasing"),
+    )
 
     private fun extract(reader: ProcessModelReader, fixture: String): ProcessModel {
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/$fixture.bpmn"))

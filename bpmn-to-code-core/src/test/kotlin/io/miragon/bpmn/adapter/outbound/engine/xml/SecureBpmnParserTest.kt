@@ -40,7 +40,7 @@ class SecureBpmnParserTest {
 
     @Test
     fun `parses valid BPMN files without DOCTYPE`() {
-        val bytes = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/c8-subscribe-newsletter.bpmn")).readBytes()
+        val bytes = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes()
         assertThatCode { SecureBpmnParser.readModelFromBytes(bytes) }
             .doesNotThrowAnyException()
     }
