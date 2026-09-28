@@ -21,17 +21,38 @@ When using bpmn-to-code, your element IDs and names directly shape the generated
 
 ### Recommended Naming Patterns
 
-**Use consistent prefixes** to improve generated API organization and readability:
-- Tasks: `Activity_SendEmail`, `Activity_ProcessPayment`
-- Events: `StartEvent_FormSubmitted`, `EndEvent_OrderCompleted`
-- Timers: `Timer_After3Days`, `Timer_EveryMorning`
-- Messages: `Message_OrderReceived`, `Message_PaymentConfirmed`
-- Errors: `Error_InvalidData`, `Error_PaymentFailed`
-- Signals: `Signal_CancellationRequested`
+**Use a `type_camelCase` ID** — the prefix mirrors the BPMN element type, the description says what the element does:
+
+| Element | Example |
+|---|---|
+| Start Event | `startEvent_leasingRequestReceived` |
+| Intermediate Event | `event_contractSigned` |
+| Boundary Event | `boundary_applicationInvalid`, `timer_signatureReminder` |
+| End Event | `endEvent_leasingActive` |
+| Service Task | `serviceTask_orderBike` |
+| User Task | `userTask_clarifyAlternative` |
+| Send / Receive Task | `sendTask_sendConfirmationMail`, `receiveTask_handoverReported` |
+| Business Rule Task | `businessRuleTask_checkCreditRating` |
+| Gateway | `gateway_isSolvent` |
+| Sub-Process | `subProcess_concludeContract` |
+| Call Activity | `callActivity_cancelBikeOrder` |
+| Sequence Flow | `flow_isSolventToOrderBike` |
+
+**Root elements** use the same shape: `message_contractSigned`, `signal_memberActivated`, `error_applicationInvalid`, `escalation_contractNotSigned`.
+
+**Process IDs** are camelCase and describe the business capability: `bikeLeasing`, `cancelBikeOrder`.
+
+**Message and signal names** follow `<domain>.<state>`: `miravelo.contractSigned`, `miravelo.memberActivated`.
+
+**Job types and external-task topics** follow `<domain>.<elementIdWithoutPrefix>`: `miravelo.orderBike`.
+
+**Label every flow leaving a gateway** so the answer to the gateway question is visible (`Yes` / `No`).
+
+The example models used in this repository's tests follow these rules; see `shared/bpmn/`.
 
 **Avoid:**
-- Generic IDs: `Task_1`, `Event_abc123`
-- Special characters beyond underscores
+- Generated IDs: `Task_1`, `Activity_0x7f3a`, `Flow_1abc`
+- Special characters beyond the single underscore after the type prefix
 - IDs that don't reflect the element's purpose
 
 **Benefits:**
