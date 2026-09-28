@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
 import io.miragon.bpmn.domain.shared.EventShape
@@ -21,7 +22,7 @@ import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
  * subprocess it sits in; names are unique model-wide, guaranteed by the mandatory `collision-detection` rule.
  * A subprocess keeps its scope only as [FlowGraphNode.interiorStarts]: the start events directly inside it.
  * Sequence-flow continuation and boundary edges are unified into one successor list, each edge named after
- * the element it points to, while [FlowGraphNode.flows] keeps every sequence flow as its own typed edge.
+ * the element it points to, while [FlowGraphNode.outgoingFlows] keeps every sequence flow, grouped by its target.
  * Call activities stay opaque (no descent into the called process).
  */
 object FlowGraphFactory {
@@ -52,8 +53,9 @@ object FlowGraphFactory {
             elementType = ElementTypeName.of(definition),
             name = definition.displayName,
             isStart = definition.isStartEvent(),
+            isBoundaryEvent = definition is FlowNodeDefinition.Event && definition.shape == EventShape.BOUNDARY_EVENT,
             successors = buildSuccessors(definition, names, graph),
-            flows = buildFlows(definition, names, graph),
+            outgoingFlows = buildOutgoingFlows(definition, names, graph),
             interiorStarts = buildInteriorStarts(node, allNodes, names, graph),
             facets = facets.of(definition),
         )
@@ -90,27 +92,24 @@ object FlowGraphFactory {
         .map { it.toEdge() }
 
     /**
-     * One typed edge per outgoing sequence flow whose target is a known node; nothing is collapsed.
+     * The outgoing sequence flows whose target is a known node, grouped by that target; no flow is dropped.
      */
-    private fun buildFlows(
+    private fun buildOutgoingFlows(
         node: FlowNodeDefinition,
         names: Map<String, FlowNaming.Names>,
         graph: ProcessGraph,
-    ): List<SequenceFlowEdge> = graph.outgoingFlowsOf(node)
-        .mapNotNull { flow -> names[flow.targetRef]?.let { target -> flow.toEdge(target) } }
+    ): List<FlowsToTarget> = graph.outgoingFlowsOf(node)
+        .mapNotNull { flow -> names[flow.targetRef]?.let { target -> target to flow.toEdge() } }
+        .groupBy({ (target, _) -> target }, { (_, flow) -> flow })
+        .map { (target, flows) -> FlowsToTarget(FlowNaming.outgoingFlowsProperty(target), target.toEdge(), flows.sortedBy { it.id }) }
         .sortedBy { it.propertyName }
 
-    private fun SequenceFlowDefinition.toEdge(target: FlowNaming.Names): SequenceFlowEdge {
-        val flowId = requireNotNull(id) { "a resolved sequence flow always has an id" }
-        return SequenceFlowEdge(
-            propertyName = FlowNaming.flowProperty(flowId),
-            id = flowId,
-            name = flowName,
-            conditionExpression = conditionExpression,
-            isDefault = isDefault,
-            target = target.toEdge(),
-        )
-    }
+    private fun SequenceFlowDefinition.toEdge(): SequenceFlowEdge = SequenceFlowEdge(
+        id = requireNotNull(id) { "a resolved sequence flow always has an id" },
+        name = flowName,
+        conditionExpression = conditionExpression,
+        isDefault = isDefault,
+    )
 
     private fun FlowNaming.Names.toEdge(): FlowEdge = FlowEdge(propertyName = propertyName, objectName = objectName)
 

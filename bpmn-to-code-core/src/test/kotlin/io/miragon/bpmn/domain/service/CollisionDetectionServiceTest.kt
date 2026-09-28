@@ -247,7 +247,7 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects sequence flows of one node that fold to the same property name`() {
+    fun `findCollisions ignores sequence flow ids, because outgoing flows are named after their targets`() {
         // given: a gateway with two outgoing flows whose ids differ only in separator
         val model = testProcessModel(
             processId = "TestProcess",
@@ -266,11 +266,8 @@ class CollisionDetectionServiceTest {
         // when: checking for collisions
         val collisions = underTest.findCollisions(model)
 
-        // then: one SequenceFlow collision on the gateway's Flows holder
-        assertThat(collisions).hasSize(1)
-        assertThat(collisions[0].variableType).isEqualTo("SequenceFlow")
-        assertThat(collisions[0].constantName).isEqualTo("FlowYes")
-        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("flow_yes", "flow-yes")
+        // then: the flows become toA / toB, so their folding ids do not clash
+        assertThat(collisions).isEmpty()
     }
 
     @Test

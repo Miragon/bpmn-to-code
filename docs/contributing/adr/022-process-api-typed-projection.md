@@ -31,14 +31,17 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 2. **Nodes carry their facets**, mirroring the sealed `FlowNodeDefinition` hierarchy: `id` / `elementType` /
    `name` on all; `JOB_TYPE` on tasks and events with an implementation; `Variables`; `calledProcess` with
    `Inputs` / `Outputs` on call activities; `timer`; `message` / `signal` / `error` / `escalation`;
-   `attachedTo` and `isInterrupting` on boundary events. The `Elements`, `Variables`, `CallActivities` and
+   `attachedTo`, `isInterrupting` and the marker `BoundaryEvent` on boundary events. The `Elements`, `Variables`, `CallActivities` and
    `Timers` sections are removed.
-3. **Sequence flows are typed edges.** Each node with outgoing flows exposes `flows()` / `Flows`, one
-   `SequenceFlow<Target>(id, name, conditionExpression, isDefault, target)` per flow, named after the
-   **flow id**. `then()` / `Next` stays the node-level view (flows and boundary attachments collapsed by target),
-   so `ProcessPath` / `PathWalk` are unchanged. Edge names come from ids, not labels: labels such as
-   `"> 3 days"` are not identifiers, are the most volatile part of a model, and a label-based fallback would
-   make one edge's name depend on its siblings.
+3. **Outgoing sequence flows are named after the element they lead to.** Each node with outgoing flows
+   exposes `outgoingFlows()` / `OutgoingFlows` with one `to<Element>` entry per target: a
+   `SequenceFlow<Target>(id, name, conditionExpression, isDefault, target)`, or a list of them when several
+   flows lead to the same element — the name stays stable and no flow is lost. Flow ids are not used for
+   names: modelers rarely rename them (`Flow_1csfyyz`), whereas element names already exist and are unique.
+   `then()` / `Next` stays the element-level view (flows and boundary attachments collapsed by target), so
+   existing `ProcessPath` / `PathWalk` steps are unchanged; the additional `via` step walks a chosen sequence
+   flow and records it in `flowIds`. Labels are not used either: they are not identifiers and are the most
+   volatile part of a model.
 4. **Registries stay shared** where BPMN itself models a shared identity: root elements (`Messages`, `Errors`,
    `Signals`, `Escalations`) and job types (`ServiceTasks`, one `const` per distinct type, the canonical
    argument for `@JobWorker`) are the shared definition files of [ADR 021](021-shared-definition-apis.md).
@@ -77,10 +80,17 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 
 - **Keep the sections and add `Flows` only.** Leaves the duplication in place and every element named three
   times.
-- **`Next` returning edges instead of nodes.** One access path, but it rewrites `ProcessPath` / `PathWalk` and
-  makes boundary attachments a second edge kind; rejected in favour of the additive `Flows` holder.
-- **Label-based edge names.** Prettier for `Yes` / `No`, but needs a sanitiser, breaks on relabelling and is
-  non-local (adding a second `No` renames the first); id naming is the rule nodes already use.
+- **Name outgoing flows after their flow id** (the first 6.0 draft). Consistent, but unreadable with the
+  modeler's default ids, and a condition could only be found by knowing its flow id.
+- **One holder mixing successors and sequence flows.** Autocomplete mixes both kinds, and a flow picked in
+  `then { … }` does not compile.
+- **`Next` returning transitions instead of elements** (`SequenceFlow` / `BoundaryAttachment`, named after the
+  target). BPMN-faithful, but Java and C# need `.getTarget()` / `.Target` on every chained step, `then().x`
+  stops being `Flow.X`, and several flows to one target need a third type or a renaming special case. Evaluated
+  against eight user personas together with the options above; the target-named `OutgoingFlows` next to an
+  unchanged `Next` won clearly.
+- **Label-based names.** Prettier for `Yes` / `No`, but needs a sanitiser, breaks on relabelling and is
+  non-local (adding a second `No` renames the first).
 - **C# NuGet runtime.** The clean long-term answer; deferred because publishing and versioning it is a larger
   effort than the generator, and inlining is reversible.
 - **`ProcessPath.via { it.flows.x }`.** No engine assertion library consumes sequence-flow ids today and

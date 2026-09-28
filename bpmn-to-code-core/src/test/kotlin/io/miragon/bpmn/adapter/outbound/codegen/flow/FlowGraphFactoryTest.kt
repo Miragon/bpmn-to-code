@@ -293,22 +293,25 @@ class FlowGraphFactoryTest {
     // --- Sequence-flow edges --------------------------------------------------------------------------------
 
     @Test
-    fun `exclusive gateway exposes one typed edge per outgoing flow with label, condition and default marker`() {
+    fun `exclusive gateway names its outgoing flows after the elements they lead to, with label, condition and default marker`() {
         val gateway = FlowGraphFactory.build(testSendNewsletterModel()).node("gatewayHasSubscribers")
 
-        assertThat(gateway.flows.map { it.propertyName }).containsExactly("flowHasSubscribers", "flowNoSubscribers")
-        val (hasSubscribers, noSubscribers) = gateway.flows
+        val toSubscriber = gateway.outgoingFlows.single { it.target.objectName == "ServiceTaskSendToSubscriber" }
+        assertThat(toSubscriber.propertyName).isEqualTo("toServiceTaskSendToSubscriber")
+        val hasSubscribers = toSubscriber.flows.single()
         assertThat(hasSubscribers.id).isEqualTo("flow_hasSubscribers")
         assertThat(hasSubscribers.isDefault).isTrue()
         assertThat(hasSubscribers.conditionExpression).isNull()
-        assertThat(hasSubscribers.target.objectName).isEqualTo("ServiceTaskSendToSubscriber")
+
+        val noSubscribers = gateway.outgoingFlows.single { it.target.objectName != "ServiceTaskSendToSubscriber" }.flows.single()
+        assertThat(noSubscribers.id).isEqualTo("flow_noSubscribers")
         assertThat(noSubscribers.isDefault).isFalse()
         assertThat(noSubscribers.conditionExpression).isEqualTo("\${subscribers.size() > 0}")
         assertThat(noSubscribers.name).isEqualTo("No")
     }
 
     @Test
-    fun `parallel flows to one target stay separate edges but collapse to one successor`() {
+    fun `several flows to one target share one name but keep every flow`() {
         val model = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Gateway(id = "split", kind = GatewayKind.INCLUSIVE, outgoing = listOf("flow_a", "flow_b")),
@@ -322,15 +325,19 @@ class FlowGraphFactoryTest {
         val split = FlowGraphFactory.build(model).node("split")
 
         assertThat(split.successors.map { it.propertyName }).containsExactly("target")
-        assertThat(split.flows.map { it.conditionExpression }).containsExactly("=a", "=b")
+        val toTarget = split.outgoingFlows.single()
+        assertThat(toTarget.propertyName).isEqualTo("toTarget")
+        assertThat(toTarget.flows.map { it.conditionExpression }).containsExactly("=a", "=b")
     }
 
     @Test
-    fun `boundary attachments are successors but never sequence-flow edges`() {
+    fun `boundary attachments are successors, marked as boundary events and never outgoing flows`() {
         val subProcess = subscribeGraph.node("subProcessConfirmation")
 
         assertThat(subProcess.successors.map { it.propertyName }).contains("timerAfter3Days")
-        assertThat(subProcess.flows.map { it.target.propertyName }).containsExactly("gatewaySplitNotifications")
+        assertThat(subProcess.outgoingFlows.map { it.target.propertyName }).containsExactly("gatewaySplitNotifications")
+        assertThat(subscribeGraph.node("timerAfter3Days").isBoundaryEvent).isTrue()
+        assertThat(subProcess.isBoundaryEvent).isFalse()
     }
 
     @Test
@@ -339,7 +346,7 @@ class FlowGraphFactoryTest {
         val graph = FlowGraphFactory.build(model)
 
         assertThat(graph.nodes).hasSize(1)
-        assertThat(graph.node("lonely").flows).isEmpty()
+        assertThat(graph.node("lonely").outgoingFlows).isEmpty()
         assertThat(graph.node("lonely").facets.jobType?.value).isEqualTo("lonely.worker")
     }
 

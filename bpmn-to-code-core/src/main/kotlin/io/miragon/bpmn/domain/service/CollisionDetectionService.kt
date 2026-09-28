@@ -17,7 +17,7 @@ import io.miragon.bpmn.domain.validation.model.CollisionDetail
  * because the two elements could differ and only the first would be emitted.
  *
  * Each check mirrors one scope of the generated API: flow nodes are named model-wide (the flat `Flow`),
- * variables, sequence flows and call-activity mappings per node, and the shared definitions across all
+ * variables and call-activity mappings per node, and the shared definitions across all
  * models of a run ([findSharedCollisions]).
  */
 class CollisionDetectionService {
@@ -27,7 +27,7 @@ class CollisionDetectionService {
         val collisions = mutableListOf<CollisionDetail>()
         collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode") { it.getRawName().toCamelCase() })
         collisions.addAll(findRepeatedIds(modelId, model.allFlowNodes))
-        model.allFlowNodes.forEach { node -> collisions.addAll(findCollisionsOn(modelId, node, model)) }
+        model.allFlowNodes.forEach { node -> collisions.addAll(findCollisionsOn(modelId, node)) }
         return collisions.distinctBy { Triple(it.processId, it.variableType, it.conflictingIds) }
     }
 
@@ -60,10 +60,9 @@ class CollisionDetectionService {
         }
     }
 
-    private fun findCollisionsOn(processId: String, node: FlowNodeDefinition, model: ProcessModel): List<CollisionDetail> {
+    private fun findCollisionsOn(processId: String, node: FlowNodeDefinition): List<CollisionDetail> {
         val collisions = mutableListOf<CollisionDetail>()
         collisions.addAll(findCollisionsIn(processId, node.variables, "Variable"))
-        collisions.addAll(findCollisionsIn(processId, model.graph.outgoingFlowsOf(node), "SequenceFlow") { it.getRawName().toCamelCase() })
         (node as? FlowNodeDefinition.Activity.CallActivity)?.definition?.let { callActivity ->
             collisions.addAll(findMappingCollisions(processId, callActivity.inputMappings))
             collisions.addAll(findMappingCollisions(processId, callActivity.outputMappings))

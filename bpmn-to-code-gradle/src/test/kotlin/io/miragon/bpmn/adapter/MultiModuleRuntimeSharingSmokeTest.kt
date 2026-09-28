@@ -119,7 +119,7 @@ class MultiModuleRuntimeSharingSmokeTest {
 
             object $callerName {
                 fun run(gateway: EngineGateway): String {
-                    val edge = NewsletterSubscriptionProcessApi.Flow.StartEventSubmitRegistrationForm.flows().flowSubmitToIncrementCounter
+                    val edge = NewsletterSubscriptionProcessApi.Flow.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter
                     return gateway.start(NewsletterSubscriptionProcessApi.PROCESS_ID) + gateway.follow(edge)
                 }
             }

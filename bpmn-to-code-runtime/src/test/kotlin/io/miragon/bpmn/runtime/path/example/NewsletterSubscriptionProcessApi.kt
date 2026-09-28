@@ -4,12 +4,13 @@
 package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
-import io.miragon.bpmn.runtime.HasFlows
+import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.InputOutputMapping
 import io.miragon.bpmn.runtime.MessageName
@@ -36,12 +37,12 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("callActivity_abortRegistration"),
       elementType = "CALL_ACTIVITY",
     ), HasSuccessors<CallActivityAbortRegistration.Next>,
-        HasFlows<CallActivityAbortRegistration.Flows> {
+        HasOutgoingFlows<CallActivityAbortRegistration.OutgoingFlows> {
       val calledProcess: ProcessId = ProcessId("abort-registration")
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Variables {
         val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId")
@@ -71,8 +72,8 @@ object NewsletterSubscriptionProcessApi {
           get() = CompensationEndEventRegistrationAborted
       }
 
-      object Flows {
-        val flowAbortToRegistrationAborted:
+      object OutgoingFlows {
+        val toCompensationEndEventRegistrationAborted:
             SequenceFlow<CompensationEndEventRegistrationAborted>
           get() = SequenceFlow(
             id = ElementId("flow_abortToRegistrationAborted"),
@@ -92,7 +93,7 @@ object NewsletterSubscriptionProcessApi {
     object CompensationEventOnSubscriptionCounter : AbstractFlowNode(
       id = ElementId("compensationEvent_onSubscriptionCounter"),
       elementType = "COMPENSATION_BOUNDARY_EVENT",
-    ) {
+    ), BoundaryEvent {
       val attachedTo: ServiceTaskIncrementSubscriptionCounter
         get() = ServiceTaskIncrementSubscriptionCounter
 
@@ -125,7 +126,8 @@ object NewsletterSubscriptionProcessApi {
     object ErrorEventInvalidMail : AbstractFlowNode(
       id = ElementId("errorEvent_invalidMail"),
       elementType = "ERROR_BOUNDARY_EVENT",
-    ), HasSuccessors<ErrorEventInvalidMail.Next>, HasFlows<ErrorEventInvalidMail.Flows> {
+    ), HasSuccessors<ErrorEventInvalidMail.Next>,
+        HasOutgoingFlows<ErrorEventInvalidMail.OutgoingFlows>, BoundaryEvent {
       val error: BpmnError = Errors.ERROR_INVALID_MAIL_500
 
       val attachedTo: SubProcessConfirmation
@@ -135,15 +137,15 @@ object NewsletterSubscriptionProcessApi {
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val endEventRegistrationNotPossible: EndEventRegistrationNotPossible
           get() = EndEventRegistrationNotPossible
       }
 
-      object Flows {
-        val flowInvalidMailToNotPossible: SequenceFlow<EndEventRegistrationNotPossible>
+      object OutgoingFlows {
+        val toEndEventRegistrationNotPossible: SequenceFlow<EndEventRegistrationNotPossible>
           get() = SequenceFlow(
             id = ElementId("flow_invalidMailToNotPossible"),
             name = null,
@@ -157,18 +159,19 @@ object NewsletterSubscriptionProcessApi {
     object GatewayJoinNotifications : AbstractFlowNode(
       id = ElementId("gateway_joinNotifications"),
       elementType = "PARALLEL_GATEWAY",
-    ), HasSuccessors<GatewayJoinNotifications.Next>, HasFlows<GatewayJoinNotifications.Flows> {
+    ), HasSuccessors<GatewayJoinNotifications.Next>,
+        HasOutgoingFlows<GatewayJoinNotifications.OutgoingFlows> {
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val endEventRegistrationCompleted: EndEventRegistrationCompleted
           get() = EndEventRegistrationCompleted
       }
 
-      object Flows {
-        val flowJoinToRegistrationCompleted: SequenceFlow<EndEventRegistrationCompleted>
+      object OutgoingFlows {
+        val toEndEventRegistrationCompleted: SequenceFlow<EndEventRegistrationCompleted>
           get() = SequenceFlow(
             id = ElementId("flow_joinToRegistrationCompleted"),
             name = null,
@@ -182,10 +185,11 @@ object NewsletterSubscriptionProcessApi {
     object GatewaySplitNotifications : AbstractFlowNode(
       id = ElementId("gateway_splitNotifications"),
       elementType = "PARALLEL_GATEWAY",
-    ), HasSuccessors<GatewaySplitNotifications.Next>, HasFlows<GatewaySplitNotifications.Flows> {
+    ), HasSuccessors<GatewaySplitNotifications.Next>,
+        HasOutgoingFlows<GatewaySplitNotifications.OutgoingFlows> {
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val serviceTaskNotifyCommunity: ServiceTaskNotifyCommunity
@@ -195,8 +199,8 @@ object NewsletterSubscriptionProcessApi {
           get() = ServiceTaskSendWelcomeMail
       }
 
-      object Flows {
-        val flowSplitToNotifyCommunity: SequenceFlow<ServiceTaskNotifyCommunity>
+      object OutgoingFlows {
+        val toServiceTaskNotifyCommunity: SequenceFlow<ServiceTaskNotifyCommunity>
           get() = SequenceFlow(
             id = ElementId("flow_splitToNotifyCommunity"),
             name = null,
@@ -205,7 +209,7 @@ object NewsletterSubscriptionProcessApi {
             target = ServiceTaskNotifyCommunity,
           )
 
-        val flowSplitToWelcomeMail: SequenceFlow<ServiceTaskSendWelcomeMail>
+        val toServiceTaskSendWelcomeMail: SequenceFlow<ServiceTaskSendWelcomeMail>
           get() = SequenceFlow(
             id = ElementId("flow_splitToWelcomeMail"),
             name = null,
@@ -221,10 +225,10 @@ object NewsletterSubscriptionProcessApi {
       elementType = "RECEIVE_TASK",
       name = "Confirm registration",
     ), HasSuccessors<ReceiveTaskConfirmRegistration.Next>,
-        HasFlows<ReceiveTaskConfirmRegistration.Flows> {
+        HasOutgoingFlows<ReceiveTaskConfirmRegistration.OutgoingFlows> {
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val endEventSubscriptionConfirmed: EndEventSubscriptionConfirmed
@@ -234,8 +238,8 @@ object NewsletterSubscriptionProcessApi {
           get() = TimerEveryDay
       }
 
-      object Flows {
-        val flowConfirmToConfirmed: SequenceFlow<EndEventSubscriptionConfirmed>
+      object OutgoingFlows {
+        val toEndEventSubscriptionConfirmed: SequenceFlow<EndEventSubscriptionConfirmed>
           get() = SequenceFlow(
             id = ElementId("flow_confirmToConfirmed"),
             name = null,
@@ -257,12 +261,12 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("serviceTask_incrementSubscriptionCounter"),
       elementType = "SERVICE_TASK",
     ), HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next>,
-        HasFlows<ServiceTaskIncrementSubscriptionCounter.Flows> {
+        HasOutgoingFlows<ServiceTaskIncrementSubscriptionCounter.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.COUNTER_CLASS
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val compensationEventOnSubscriptionCounter: CompensationEventOnSubscriptionCounter
@@ -272,8 +276,8 @@ object NewsletterSubscriptionProcessApi {
           get() = SubProcessConfirmation
       }
 
-      object Flows {
-        val flowIncrementCounterToConfirmation: SequenceFlow<SubProcessConfirmation>
+      object OutgoingFlows {
+        val toSubProcessConfirmation: SequenceFlow<SubProcessConfirmation>
           get() = SequenceFlow(
             id = ElementId("flow_incrementCounterToConfirmation"),
             name = null,
@@ -287,20 +291,21 @@ object NewsletterSubscriptionProcessApi {
     object ServiceTaskNotifyCommunity : AbstractFlowNode(
       id = ElementId("serviceTask_notifyCommunity"),
       elementType = "SERVICE_TASK",
-    ), HasSuccessors<ServiceTaskNotifyCommunity.Next>, HasFlows<ServiceTaskNotifyCommunity.Flows> {
+    ), HasSuccessors<ServiceTaskNotifyCommunity.Next>,
+        HasOutgoingFlows<ServiceTaskNotifyCommunity.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_NOTIFY_COMMUNITY
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val gatewayJoinNotifications: GatewayJoinNotifications
           get() = GatewayJoinNotifications
       }
 
-      object Flows {
-        val flowNotifyCommunityToJoin: SequenceFlow<GatewayJoinNotifications>
+      object OutgoingFlows {
+        val toGatewayJoinNotifications: SequenceFlow<GatewayJoinNotifications>
           get() = SequenceFlow(
             id = ElementId("flow_notifyCommunityToJoin"),
             name = null,
@@ -315,12 +320,12 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("serviceTask_sendConfirmationMail"),
       elementType = "SERVICE_TASK",
     ), HasSuccessors<ServiceTaskSendConfirmationMail.Next>,
-        HasFlows<ServiceTaskSendConfirmationMail.Flows> {
+        HasOutgoingFlows<ServiceTaskSendConfirmationMail.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Variables {
         val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId")
@@ -333,8 +338,8 @@ object NewsletterSubscriptionProcessApi {
           get() = ReceiveTaskConfirmRegistration
       }
 
-      object Flows {
-        val flowConfirmationMailToConfirm: SequenceFlow<ReceiveTaskConfirmRegistration>
+      object OutgoingFlows {
+        val toReceiveTaskConfirmRegistration: SequenceFlow<ReceiveTaskConfirmRegistration>
           get() = SequenceFlow(
             id = ElementId("flow_confirmationMailToConfirm"),
             name = null,
@@ -348,12 +353,13 @@ object NewsletterSubscriptionProcessApi {
     object ServiceTaskSendWelcomeMail : AbstractFlowNode(
       id = ElementId("serviceTask_sendWelcomeMail"),
       elementType = "SERVICE_TASK",
-    ), HasSuccessors<ServiceTaskSendWelcomeMail.Next>, HasFlows<ServiceTaskSendWelcomeMail.Flows> {
+    ), HasSuccessors<ServiceTaskSendWelcomeMail.Next>,
+        HasOutgoingFlows<ServiceTaskSendWelcomeMail.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_WELCOME_MAIL
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Variables {
         val SUBSCRIPTION_ID: VariableName.InOut = VariableName.InOut("subscriptionId")
@@ -364,8 +370,8 @@ object NewsletterSubscriptionProcessApi {
           get() = GatewayJoinNotifications
       }
 
-      object Flows {
-        val flowWelcomeMailToJoin: SequenceFlow<GatewayJoinNotifications>
+      object OutgoingFlows {
+        val toGatewayJoinNotifications: SequenceFlow<GatewayJoinNotifications>
           get() = SequenceFlow(
             id = ElementId("flow_welcomeMailToJoin"),
             name = null,
@@ -379,10 +385,11 @@ object NewsletterSubscriptionProcessApi {
     object StartEventRequestReceived : AbstractFlowNode(
       id = ElementId("startEvent_requestReceived"),
       elementType = "START_EVENT",
-    ), HasSuccessors<StartEventRequestReceived.Next>, HasFlows<StartEventRequestReceived.Flows> {
+    ), HasSuccessors<StartEventRequestReceived.Next>,
+        HasOutgoingFlows<StartEventRequestReceived.OutgoingFlows> {
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Variables {
         val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId")
@@ -393,8 +400,8 @@ object NewsletterSubscriptionProcessApi {
           get() = ServiceTaskSendConfirmationMail
       }
 
-      object Flows {
-        val flowRequestToConfirmationMail: SequenceFlow<ServiceTaskSendConfirmationMail>
+      object OutgoingFlows {
+        val toServiceTaskSendConfirmationMail: SequenceFlow<ServiceTaskSendConfirmationMail>
           get() = SequenceFlow(
             id = ElementId("flow_requestToConfirmationMail"),
             name = null,
@@ -409,12 +416,12 @@ object NewsletterSubscriptionProcessApi {
       id = ElementId("startEvent_submitRegistrationForm"),
       elementType = "MESSAGE_START_EVENT",
     ), HasSuccessors<StartEventSubmitRegistrationForm.Next>,
-        HasFlows<StartEventSubmitRegistrationForm.Flows> {
+        HasOutgoingFlows<StartEventSubmitRegistrationForm.OutgoingFlows> {
       val message: MessageName = Messages.MESSAGE_FORM_SUBMITTED
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Variables {
         val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId")
@@ -425,8 +432,8 @@ object NewsletterSubscriptionProcessApi {
           get() = ServiceTaskIncrementSubscriptionCounter
       }
 
-      object Flows {
-        val flowSubmitToIncrementCounter:
+      object OutgoingFlows {
+        val toServiceTaskIncrementSubscriptionCounter:
             SequenceFlow<ServiceTaskIncrementSubscriptionCounter>
           get() = SequenceFlow(
             id = ElementId("flow_submitToIncrementCounter"),
@@ -441,11 +448,12 @@ object NewsletterSubscriptionProcessApi {
     object SubProcessConfirmation : AbstractFlowNode(
       id = ElementId("subProcess_confirmation"),
       elementType = "SUB_PROCESS",
-    ), HasSuccessors<SubProcessConfirmation.Next>, HasFlows<SubProcessConfirmation.Flows>,
+    ), HasSuccessors<SubProcessConfirmation.Next>,
+        HasOutgoingFlows<SubProcessConfirmation.OutgoingFlows>,
         FlowScope<SubProcessConfirmation.Start> {
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       override fun start(): Start = Start
 
@@ -460,8 +468,8 @@ object NewsletterSubscriptionProcessApi {
           get() = TimerAfter3Days
       }
 
-      object Flows {
-        val flowConfirmationToSplit: SequenceFlow<GatewaySplitNotifications>
+      object OutgoingFlows {
+        val toGatewaySplitNotifications: SequenceFlow<GatewaySplitNotifications>
           get() = SequenceFlow(
             id = ElementId("flow_confirmationToSplit"),
             name = null,
@@ -480,7 +488,8 @@ object NewsletterSubscriptionProcessApi {
     object TimerAfter3Days : AbstractFlowNode(
       id = ElementId("timer_after3Days"),
       elementType = "TIMER_BOUNDARY_EVENT",
-    ), HasSuccessors<TimerAfter3Days.Next>, HasFlows<TimerAfter3Days.Flows> {
+    ), HasSuccessors<TimerAfter3Days.Next>, HasOutgoingFlows<TimerAfter3Days.OutgoingFlows>,
+        BoundaryEvent {
       val timer: BpmnTimer = BpmnTimer(
         type = "Duration",
         timerValue = $$"""${testVariable}""",
@@ -493,15 +502,15 @@ object NewsletterSubscriptionProcessApi {
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val callActivityAbortRegistration: CallActivityAbortRegistration
           get() = CallActivityAbortRegistration
       }
 
-      object Flows {
-        val flowAfter3DaysToAbort: SequenceFlow<CallActivityAbortRegistration>
+      object OutgoingFlows {
+        val toCallActivityAbortRegistration: SequenceFlow<CallActivityAbortRegistration>
           get() = SequenceFlow(
             id = ElementId("flow_after3DaysToAbort"),
             name = null,
@@ -515,7 +524,8 @@ object NewsletterSubscriptionProcessApi {
     object TimerEveryDay : AbstractFlowNode(
       id = ElementId("timer_everyDay"),
       elementType = "TIMER_BOUNDARY_EVENT",
-    ), HasSuccessors<TimerEveryDay.Next>, HasFlows<TimerEveryDay.Flows> {
+    ), HasSuccessors<TimerEveryDay.Next>, HasOutgoingFlows<TimerEveryDay.OutgoingFlows>,
+        BoundaryEvent {
       val timer: BpmnTimer = BpmnTimer(
         type = "Duration",
         timerValue = "PT1M",
@@ -528,15 +538,15 @@ object NewsletterSubscriptionProcessApi {
 
       override fun then(): Next = Next
 
-      override fun flows(): Flows = Flows
+      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
       object Next {
         val serviceTaskSendConfirmationMail: ServiceTaskSendConfirmationMail
           get() = ServiceTaskSendConfirmationMail
       }
 
-      object Flows {
-        val flowEveryDayToConfirmationMail: SequenceFlow<ServiceTaskSendConfirmationMail>
+      object OutgoingFlows {
+        val toServiceTaskSendConfirmationMail: SequenceFlow<ServiceTaskSendConfirmationMail>
           get() = SequenceFlow(
             id = ElementId("flow_everyDayToConfirmationMail"),
             name = null,

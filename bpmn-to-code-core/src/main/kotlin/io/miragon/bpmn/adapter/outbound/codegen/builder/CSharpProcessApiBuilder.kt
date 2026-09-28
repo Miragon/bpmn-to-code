@@ -102,7 +102,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     /**
      * Renders the process as a typed navigation graph: one nested singleton class per element exposing its
      * `Id`, `ElementType` and `Name`, its facets, its successors behind `Next`, its sequence flows behind
-     * `Flows`; every node is a direct child of `Flow`, and a subprocess opens its interior via `Start`.
+     * `OutgoingFlows`; every node is a direct child of `Flow`, and a subprocess opens its interior via `Start`.
      */
     private fun writeFlow(builder: CSharpWriter, graph: ProcessGraph, definitions: RootElements, className: String = "Flow") {
         builder.docComment(

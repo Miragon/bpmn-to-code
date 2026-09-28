@@ -145,7 +145,7 @@ class GradlePluginSmokeTest {
 
                 object UsesApi {
                     fun describe(): String {
-                        val edge = Flow.StartEventSubmitRegistrationForm.flows().flowSubmitToIncrementCounter
+                        val edge = Flow.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter
                         val condition: String? = edge.conditionExpression
                         val input = Flow.CallActivityAbortRegistration.Variables.SUBSCRIPTION_ID
                         val mapping = Flow.CallActivityAbortRegistration.Inputs.SUBSCRIPTION_ID
@@ -169,7 +169,7 @@ class GradlePluginSmokeTest {
 
                 public final class UsesApi {
                     public static String describe() {
-                        var edge = Flow.startEventSubmitRegistrationForm().flows().flowSubmitToIncrementCounter();
+                        var edge = Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter();
                         String condition = edge.getConditionExpression();
                         var input = Flow.CallActivityAbortRegistration.Variables.SUBSCRIPTION_ID;
                         var mapping = Flow.CallActivityAbortRegistration.Inputs.SUBSCRIPTION_ID;

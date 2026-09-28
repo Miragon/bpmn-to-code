@@ -50,6 +50,15 @@ class CSharpCompilationTest {
         assertCompiles(projectDir)
     }
 
+    @Test
+    fun `generated csharp with several sequence flows to the same element compiles`() {
+        val generated = generateFromXml(listOf(TWO_FLOWS_TO_ONE_TASK), ProcessEngine.ZEEBE)
+        assertThat(generated.single { it.processId == "approval" }.content)
+            .contains("IReadOnlyList<Runtime.SequenceFlow<TaskApprove>> ToTaskApprove")
+
+        assertCompiles(project(csproj(), generated))
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["<Nullable>disable</Nullable>", "<GenerateDocumentationFile>true</GenerateDocumentationFile>"])
     fun `generated csharp compiles whatever the consuming project's nullable and documentation settings`(setting: String) {
@@ -131,6 +140,40 @@ class CSharpCompilationTest {
         """.trimIndent()
 
         /**
+         * A gateway whose two conditional flows both lead to the same task, so `OutgoingFlows` exposes a list.
+         */
+        val TWO_FLOWS_TO_ONE_TASK = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+              <bpmn:process id="approval" isExecutable="true">
+                <bpmn:startEvent id="startEvent"><bpmn:outgoing>flow_start</bpmn:outgoing></bpmn:startEvent>
+                <bpmn:exclusiveGateway id="gateway_amount" default="flow_else">
+                  <bpmn:incoming>flow_start</bpmn:incoming>
+                  <bpmn:outgoing>flow_small</bpmn:outgoing>
+                  <bpmn:outgoing>flow_vip</bpmn:outgoing>
+                  <bpmn:outgoing>flow_else</bpmn:outgoing>
+                </bpmn:exclusiveGateway>
+                <bpmn:task id="task_approve">
+                  <bpmn:incoming>flow_small</bpmn:incoming>
+                  <bpmn:incoming>flow_vip</bpmn:incoming>
+                  <bpmn:outgoing>flow_approved</bpmn:outgoing>
+                </bpmn:task>
+                <bpmn:endEvent id="endEvent_approved"><bpmn:incoming>flow_approved</bpmn:incoming></bpmn:endEvent>
+                <bpmn:endEvent id="endEvent_manual"><bpmn:incoming>flow_else</bpmn:incoming></bpmn:endEvent>
+                <bpmn:sequenceFlow id="flow_start" sourceRef="startEvent" targetRef="gateway_amount" />
+                <bpmn:sequenceFlow id="flow_small" sourceRef="gateway_amount" targetRef="task_approve">
+                  <bpmn:conditionExpression>=amount &lt; 100</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+                <bpmn:sequenceFlow id="flow_vip" sourceRef="gateway_amount" targetRef="task_approve">
+                  <bpmn:conditionExpression>=customer.isVip</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+                <bpmn:sequenceFlow id="flow_else" sourceRef="gateway_amount" targetRef="endEvent_manual" />
+                <bpmn:sequenceFlow id="flow_approved" sourceRef="task_approve" targetRef="endEvent_approved" />
+              </bpmn:process>
+            </bpmn:definitions>
+        """.trimIndent()
+
+        /**
          * What a consumer writes against the generated API: attribute arguments and switch labels from the
          * constants, navigation over `Flow`, and edge / facet reads — all of which must resolve and compile.
          */
@@ -166,13 +209,14 @@ class CSharpCompilationTest {
                 public static void Navigate()
                 {
                     var start = Api.Flow.StartEventSubmitRegistrationForm.Instance;
-                    var edge = start.Flows.FlowSubmitToIncrementCounter;
+                    var edge = start.OutgoingFlows.ToServiceTaskIncrementSubscriptionCounter;
                     string? condition = edge.ConditionExpression;
                     bool isDefault = edge.IsDefault;
                     Api.Flow.ServiceTaskIncrementSubscriptionCounter target = edge.Target;
                     Api.Runtime.ISequenceFlow generic = edge;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
-                    if (!edge.Equals(start.Flows.FlowSubmitToIncrementCounter)) throw new InvalidOperationException();
+                    if (!edge.Equals(start.OutgoingFlows.ToServiceTaskIncrementSubscriptionCounter)) throw new InvalidOperationException();
+                    Api.Runtime.IBoundaryEvent boundary = Api.Flow.TimerEveryDay.Instance;
 
                     var counter = start.Next.ServiceTaskIncrementSubscriptionCounter;
                     var subProcess = counter.Next.SubProcessConfirmation;
@@ -185,7 +229,7 @@ class CSharpCompilationTest {
                     Api.Runtime.InputOutputMapping mapping = Api.Flow.CallActivityAbortRegistration.Instance.Inputs.SubscriptionId;
 
                     NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.Flow.StartEventRoot.Instance.Id;
-                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other}");
+                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id}");
                 }
             }
         """.trimIndent()

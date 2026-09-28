@@ -7,7 +7,7 @@ import io.miragon.bpmn.runtime.BpmnEscalation;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.FlowScope;
-import io.miragon.bpmn.runtime.HasFlows;
+import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
@@ -134,7 +134,7 @@ public final class SendNewsletterProcessApi {
         }
       }
 
-      public static final class EventGatewayAfterSendingAgain extends AbstractFlowNode implements HasSuccessors<EventGatewayAfterSendingAgain.Next>, HasFlows<EventGatewayAfterSendingAgain.Flows> {
+      public static final class EventGatewayAfterSendingAgain extends AbstractFlowNode implements HasSuccessors<EventGatewayAfterSendingAgain.Next>, HasOutgoingFlows<EventGatewayAfterSendingAgain.OutgoingFlows> {
         public EventGatewayAfterSendingAgain() {
           super(new ElementId("eventGateway_afterSendingAgain"), "EVENT_BASED_GATEWAY");
         }
@@ -145,8 +145,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -159,18 +159,18 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<EventMailRejectedAgain> flowEventGatewayToMailRejectedAgain() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<EventMailRejectedAgain> toEventMailRejectedAgain() {
             return new SequenceFlow<>(new ElementId("flow_eventGatewayToMailRejectedAgain"), null, null, false, new EventMailRejectedAgain());
           }
 
-          public SequenceFlow<TimerNoRejectionForOneDay> flowEventGatewayToTimer() {
+          public SequenceFlow<TimerNoRejectionForOneDay> toTimerNoRejectionForOneDay() {
             return new SequenceFlow<>(new ElementId("flow_eventGatewayToTimer"), null, null, false, new TimerNoRejectionForOneDay());
           }
         }
       }
 
-      public static final class EventMailRejected extends AbstractFlowNode implements HasSuccessors<EventMailRejected.Next>, HasFlows<EventMailRejected.Flows> {
+      public static final class EventMailRejected extends AbstractFlowNode implements HasSuccessors<EventMailRejected.Next>, HasOutgoingFlows<EventMailRejected.OutgoingFlows> {
         public final MessageName message = Messages.MESSAGE_MAIL_REJECTED;
 
         public final boolean isInterrupting = true;
@@ -185,8 +185,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -195,14 +195,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<ServiceTaskAnalyzeError> flowMailRejectedToAnalyze() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<ServiceTaskAnalyzeError> toServiceTaskAnalyzeError() {
             return new SequenceFlow<>(new ElementId("flow_mailRejectedToAnalyze"), null, null, false, new ServiceTaskAnalyzeError());
           }
         }
       }
 
-      public static final class EventMailRejectedAgain extends AbstractFlowNode implements HasSuccessors<EventMailRejectedAgain.Next>, HasFlows<EventMailRejectedAgain.Flows> {
+      public static final class EventMailRejectedAgain extends AbstractFlowNode implements HasSuccessors<EventMailRejectedAgain.Next>, HasOutgoingFlows<EventMailRejectedAgain.OutgoingFlows> {
         public final MessageName message = Messages.MESSAGE_MAIL_REJECTED_AGAIN;
 
         public EventMailRejectedAgain() {
@@ -215,8 +215,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -226,8 +226,8 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError> flowMailRejectedAgainToEscalation(
+        public static final class OutgoingFlows {
+          public SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError> toEscalationEndEventNofitySupportAfterRepeatedError(
               ) {
             return new SequenceFlow<>(new ElementId("flow_mailRejectedAgainToEscalation"), null, null, false, new EscalationEndEventNofitySupportAfterRepeatedError());
           }
@@ -251,7 +251,7 @@ public final class SendNewsletterProcessApi {
         }
       }
 
-      public static final class GatewayCanSendAgain extends AbstractFlowNode implements HasSuccessors<GatewayCanSendAgain.Next>, HasFlows<GatewayCanSendAgain.Flows> {
+      public static final class GatewayCanSendAgain extends AbstractFlowNode implements HasSuccessors<GatewayCanSendAgain.Next>, HasOutgoingFlows<GatewayCanSendAgain.OutgoingFlows> {
         public GatewayCanSendAgain() {
           super(new ElementId("gateway_canSendAgain"), "EXCLUSIVE_GATEWAY");
         }
@@ -262,8 +262,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -276,18 +276,18 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<ServiceTaskSendMailAgain> flowCanSendAgain() {
-            return new SequenceFlow<>(new ElementId("flow_canSendAgain"), "Yes", null, true, new ServiceTaskSendMailAgain());
+        public static final class OutgoingFlows {
+          public SequenceFlow<EscalationEndEventNofitySupport> toEscalationEndEventNofitySupport() {
+            return new SequenceFlow<>(new ElementId("flow_cannotSendAgain"), "No", "${rejection.reason == \"PERMANENT\"}", false, new EscalationEndEventNofitySupport());
           }
 
-          public SequenceFlow<EscalationEndEventNofitySupport> flowCannotSendAgain() {
-            return new SequenceFlow<>(new ElementId("flow_cannotSendAgain"), "No", "${rejection.reason == \"PERMANENT\"}", false, new EscalationEndEventNofitySupport());
+          public SequenceFlow<ServiceTaskSendMailAgain> toServiceTaskSendMailAgain() {
+            return new SequenceFlow<>(new ElementId("flow_canSendAgain"), "Yes", null, true, new ServiceTaskSendMailAgain());
           }
         }
       }
 
-      public static final class GatewayHasSubscribers extends AbstractFlowNode implements HasSuccessors<GatewayHasSubscribers.Next>, HasFlows<GatewayHasSubscribers.Flows> {
+      public static final class GatewayHasSubscribers extends AbstractFlowNode implements HasSuccessors<GatewayHasSubscribers.Next>, HasOutgoingFlows<GatewayHasSubscribers.OutgoingFlows> {
         public GatewayHasSubscribers() {
           super(new ElementId("gateway_hasSubscribers"), "EXCLUSIVE_GATEWAY");
         }
@@ -298,8 +298,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -312,18 +312,18 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<ServiceTaskSendToSubscriber> flowHasSubscribers() {
-            return new SequenceFlow<>(new ElementId("flow_hasSubscribers"), "Yes", null, true, new ServiceTaskSendToSubscriber());
+        public static final class OutgoingFlows {
+          public SequenceFlow<EndEventNoSubscribers> toEndEventNoSubscribers() {
+            return new SequenceFlow<>(new ElementId("flow_noSubscribers"), "No", "${subscribers.size() > 0}", false, new EndEventNoSubscribers());
           }
 
-          public SequenceFlow<EndEventNoSubscribers> flowNoSubscribers() {
-            return new SequenceFlow<>(new ElementId("flow_noSubscribers"), "No", "${subscribers.size() > 0}", false, new EndEventNoSubscribers());
+          public SequenceFlow<ServiceTaskSendToSubscriber> toServiceTaskSendToSubscriber() {
+            return new SequenceFlow<>(new ElementId("flow_hasSubscribers"), "Yes", null, true, new ServiceTaskSendToSubscriber());
           }
         }
       }
 
-      public static final class ServiceTaskAnalyzeError extends AbstractFlowNode implements HasSuccessors<ServiceTaskAnalyzeError.Next>, HasFlows<ServiceTaskAnalyzeError.Flows> {
+      public static final class ServiceTaskAnalyzeError extends AbstractFlowNode implements HasSuccessors<ServiceTaskAnalyzeError.Next>, HasOutgoingFlows<ServiceTaskAnalyzeError.OutgoingFlows> {
         public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_ANALYZE_SEND_ERROR;
 
         public ServiceTaskAnalyzeError() {
@@ -336,8 +336,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -346,14 +346,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<GatewayCanSendAgain> flowAnalyzeToCanSendAgain() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<GatewayCanSendAgain> toGatewayCanSendAgain() {
             return new SequenceFlow<>(new ElementId("flow_analyzeToCanSendAgain"), null, null, false, new GatewayCanSendAgain());
           }
         }
       }
 
-      public static final class ServiceTaskLoadSubscribers extends AbstractFlowNode implements HasSuccessors<ServiceTaskLoadSubscribers.Next>, HasFlows<ServiceTaskLoadSubscribers.Flows> {
+      public static final class ServiceTaskLoadSubscribers extends AbstractFlowNode implements HasSuccessors<ServiceTaskLoadSubscribers.Next>, HasOutgoingFlows<ServiceTaskLoadSubscribers.OutgoingFlows> {
         public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_LOAD_SUBSCRIBERS;
 
         public ServiceTaskLoadSubscribers() {
@@ -366,8 +366,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Variables {
@@ -382,14 +382,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<GatewayHasSubscribers> flowLoadSubscribersToGateway() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<GatewayHasSubscribers> toGatewayHasSubscribers() {
             return new SequenceFlow<>(new ElementId("flow_loadSubscribersToGateway"), null, null, false, new GatewayHasSubscribers());
           }
         }
       }
 
-      public static final class ServiceTaskNotifyAuthor extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyAuthor.Next>, HasFlows<ServiceTaskNotifyAuthor.Flows> {
+      public static final class ServiceTaskNotifyAuthor extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyAuthor.Next>, HasOutgoingFlows<ServiceTaskNotifyAuthor.OutgoingFlows> {
         public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_NOTIFY_AUTHOR;
 
         public ServiceTaskNotifyAuthor() {
@@ -402,8 +402,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -412,14 +412,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<EndEventEditionSent> flowNotifyAuthorToEditionSent() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<EndEventEditionSent> toEndEventEditionSent() {
             return new SequenceFlow<>(new ElementId("flow_notifyAuthorToEditionSent"), null, null, false, new EndEventEditionSent());
           }
         }
       }
 
-      public static final class ServiceTaskSendMailAgain extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendMailAgain.Next>, HasFlows<ServiceTaskSendMailAgain.Flows> {
+      public static final class ServiceTaskSendMailAgain extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendMailAgain.Next>, HasOutgoingFlows<ServiceTaskSendMailAgain.OutgoingFlows> {
         public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER;
 
         public ServiceTaskSendMailAgain() {
@@ -432,8 +432,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -442,14 +442,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<EventGatewayAfterSendingAgain> flowSendAgainToEventGateway() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<EventGatewayAfterSendingAgain> toEventGatewayAfterSendingAgain() {
             return new SequenceFlow<>(new ElementId("flow_sendAgainToEventGateway"), null, null, false, new EventGatewayAfterSendingAgain());
           }
         }
       }
 
-      public static final class ServiceTaskSendToSubscriber extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendToSubscriber.Next>, HasFlows<ServiceTaskSendToSubscriber.Flows> {
+      public static final class ServiceTaskSendToSubscriber extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendToSubscriber.Next>, HasOutgoingFlows<ServiceTaskSendToSubscriber.OutgoingFlows> {
         public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER;
 
         public ServiceTaskSendToSubscriber() {
@@ -462,8 +462,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -472,14 +472,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<ServiceTaskNotifyAuthor> flowSendToNotifyAuthor() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<ServiceTaskNotifyAuthor> toServiceTaskNotifyAuthor() {
             return new SequenceFlow<>(new ElementId("flow_sendToNotifyAuthor"), null, null, false, new ServiceTaskNotifyAuthor());
           }
         }
       }
 
-      public static final class StartEventEditionCreated extends AbstractFlowNode implements HasSuccessors<StartEventEditionCreated.Next>, HasFlows<StartEventEditionCreated.Flows> {
+      public static final class StartEventEditionCreated extends AbstractFlowNode implements HasSuccessors<StartEventEditionCreated.Next>, HasOutgoingFlows<StartEventEditionCreated.OutgoingFlows> {
         public StartEventEditionCreated() {
           super(new ElementId("startEvent_editionCreated"), "START_EVENT");
         }
@@ -490,8 +490,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -500,14 +500,14 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<ServiceTaskLoadSubscribers> flowEditionToLoadSubscribers() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<ServiceTaskLoadSubscribers> toServiceTaskLoadSubscribers() {
             return new SequenceFlow<>(new ElementId("flow_editionToLoadSubscribers"), null, null, false, new ServiceTaskLoadSubscribers());
           }
         }
       }
 
-      public static final class TimerNoRejectionForOneDay extends AbstractFlowNode implements HasSuccessors<TimerNoRejectionForOneDay.Next>, HasFlows<TimerNoRejectionForOneDay.Flows> {
+      public static final class TimerNoRejectionForOneDay extends AbstractFlowNode implements HasSuccessors<TimerNoRejectionForOneDay.Next>, HasOutgoingFlows<TimerNoRejectionForOneDay.OutgoingFlows> {
         public final BpmnTimer timer = new BpmnTimer("Duration", "PT1D");
 
         public TimerNoRejectionForOneDay() {
@@ -520,8 +520,8 @@ public final class SendNewsletterProcessApi {
         }
 
         @Override
-        public Flows flows() {
-          return new Flows();
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
         }
 
         public static final class Next {
@@ -530,8 +530,8 @@ public final class SendNewsletterProcessApi {
           }
         }
 
-        public static final class Flows {
-          public SequenceFlow<EndEventIssueResolved> flowTimerToIssueResolved() {
+        public static final class OutgoingFlows {
+          public SequenceFlow<EndEventIssueResolved> toEndEventIssueResolved() {
             return new SequenceFlow<>(new ElementId("flow_timerToIssueResolved"), null, null, false, new EndEventIssueResolved());
           }
         }

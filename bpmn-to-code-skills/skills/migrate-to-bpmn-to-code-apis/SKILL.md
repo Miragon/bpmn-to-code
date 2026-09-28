@@ -29,13 +29,13 @@ Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references 
 | Section | Kotlin | Java | C# |
 |---|---|---|---|
 | process id | `Api.PROCESS_ID` (`ProcessId`) | same | `Api.ProcessId` (`const string`) |
-| registries | `Api.Messages.X` (`MessageName`), `Api.Signals.X` (`SignalName`), `Api.Errors.X` (`BpmnError`), `Api.Escalations.X`, `Api.ServiceTasks.X` (`const String`) | same | `Api.Messages.X` (`const string`), `Api.Errors.X.Reference` / `.Code`, `Api.ServiceTasks.X` |
+| shared definitions | `Messages.X` (`MessageName`), `Signals.X` (`SignalName`), `Errors.X` (`BpmnError`), `Escalations.X`, `ServiceTasks.X` (`const String`) | same | `Messages.X` (`const string`), `Errors.X.Reference` / `.Code`, `ServiceTasks.X` |
 | element id | `Api.Flow.Node.id` (`ElementId`) | `Api.Flow.node().getId()` | `Api.Flow.Node.Instance.Id` |
 | job type of one element | `Api.Flow.Node.JOB_TYPE` (`const String`) | `Api.Flow.Node.JOB_TYPE` | `Api.Flow.Node.JobType` (`const string`) |
 | variable | `Api.Flow.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.Flow.Node.Instance.Variables.V` |
 | call activity | `Api.Flow.Node.calledProcess` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.Flow.node().calledProcess`, `Api.Flow.Node.Inputs.M` | `Api.Flow.Node.Instance.CalledProcess`, `.Inputs.M` |
 | timer | `Api.Flow.Node.timer` (`BpmnTimer`) | `Api.Flow.node().timer` | `Api.Flow.Node.Instance.Timer` |
-| sequence flow | `Api.Flow.Node.Flows.flowX` (`SequenceFlow<Target>`) | `Api.Flow.node().flows().flowX()` | `Api.Flow.Node.Instance.Flows.FlowX` |
+| sequence flow | `Api.Flow.Node.outgoingFlows().to<Target>` (`SequenceFlow<Target>`) | `Api.Flow.node().outgoingFlows().to<Target>()` | `Api.Flow.Node.Instance.OutgoingFlows.To<Target>` |
 
 Only `ServiceTasks.X` and `Flow.Node.JOB_TYPE` / `JobType` (which refers to `ServiceTasks.X`) are plain string constants; every other member is a
 typed wrapper. A wrapper is not a drop-in for a `String` parameter — reach the raw string with `.value`
@@ -159,7 +159,7 @@ Locate the generated API files as in Mode A Step 1 and parse the **current** (6.
 Flag, do not auto-rewrite:
 
 - **C# `const` usages**: `Elements.X` in a `switch` label or attribute has no 6.0 equivalent, because `Flow.X.Instance.Id` is an instance property. Propose `ServiceTasks.X` / `Flow.X.JobType` where the code actually meant a job type, otherwise ask.
-- **Element ids that 6.0 rejects**: an element named `Flow`, `Next`, `Start`, `Flows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
+- **Element ids that 6.0 rejects**: an element named `Flow`, `Next`, `Start`, `OutgoingFlows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
 
 ### Step 3 – Present, confirm, apply, verify
 

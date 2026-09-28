@@ -1,5 +1,6 @@
 package io.miragon.bpmn.runtime.path;
 
+import io.miragon.bpmn.runtime.BoundaryEvent;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.MessageName;
@@ -203,15 +204,17 @@ class ProcessPathJavaApiTest {
     }
 
     @Test
-    void nodesExposeTheirDisplayNameTypedSequenceFlowEdgesAndTheirOwnFacets() {
+    void nodesExposeTheirDisplayNameOutgoingSequenceFlowsAndTheirOwnFacets() {
         assertThat(Flow.receiveTaskConfirmRegistration().getName()).isEqualTo("Confirm registration");
         assertThat(Flow.startEventSubmitRegistrationForm().getName()).isNull();
 
-        var edge = Flow.startEventSubmitRegistrationForm().flows().flowSubmitToIncrementCounter();
-        assertThat(edge.getTarget()).isEqualTo(Flow.serviceTaskIncrementSubscriptionCounter());
-        assertThat(edge.getConditionExpression()).isNull();
-        assertThat(edge.isDefault()).isFalse();
-        assertThat(edge).isEqualTo(Flow.startEventSubmitRegistrationForm().flows().flowSubmitToIncrementCounter());
+        var flow = Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter();
+        assertThat(flow.getId().getValue()).isEqualTo("flow_submitToIncrementCounter");
+        assertThat(flow.getTarget()).isEqualTo(Flow.serviceTaskIncrementSubscriptionCounter());
+        assertThat(flow.getConditionExpression()).isNull();
+        assertThat(flow.isDefault()).isFalse();
+        assertThat(flow).isEqualTo(Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter());
+        assertThat(Flow.timerEveryDay()).isInstanceOf(BoundaryEvent.class);
 
         VariableName.Input input = Flow.ServiceTaskSendConfirmationMail.Variables.SUBSCRIPTION_ID;
         assertThat(input.getValue()).isEqualTo("subscriptionId");

@@ -21,10 +21,11 @@ data class FlowGraph(
      * @property elementType the flat `elementType` string (see `ElementTypeName`).
      * @property name the element's display name, or `null` when the model declares none.
      * @property isStart whether this node is a start event of its scope.
+     * @property isBoundaryEvent whether this node is a boundary event, reached from its host without a sequence flow.
      * @property successors the reachable next elements — sequence-flow continuation and boundary edges unified,
      *   each named after the element it points to.
-     * @property flows the outgoing sequence flows as typed edges, one per flow — parallel flows to the same
-     *   target stay separate here, unlike in [successors].
+     * @property outgoingFlows the outgoing sequence flows, grouped by the element they lead to and named after it;
+     *   boundary edges are not sequence flows and never appear here.
      * @property interiorStarts for a subprocess, the start events directly inside it; empty for every other node
      *   and for a subprocess without a start event.
      * @property facets the element's own data (job type, variables, timer, …), mirroring the BPMN subtype.
@@ -36,8 +37,9 @@ data class FlowGraph(
         val elementType: String,
         val name: String?,
         val isStart: Boolean,
+        val isBoundaryEvent: Boolean,
         val successors: List<FlowEdge>,
-        val flows: List<SequenceFlowEdge>,
+        val outgoingFlows: List<FlowsToTarget>,
         val interiorStarts: List<FlowEdge>,
         val facets: NodeFacets,
     )
@@ -54,18 +56,28 @@ data class FlowGraph(
     )
 
     /**
-     * One outgoing `bpmn:sequenceFlow`, named after its own id.
+     * The outgoing sequence flows of a node that lead to the same element.
      *
-     * @property propertyName camelCase of the flow id — the property emitted in the source node's `Flows` holder.
+     * @property propertyName `to` + the target's object name — the property emitted in the node's `OutgoingFlows`.
+     * @property flows usually exactly one; several when more than one sequence flow leads to [target], which the
+     *   generated property then exposes as a list under the same name.
+     */
+    data class FlowsToTarget(
+        val propertyName: String,
+        val target: FlowEdge,
+        val flows: List<SequenceFlowEdge>,
+    )
+
+    /**
+     * One outgoing `bpmn:sequenceFlow`.
+     *
      * @property conditionExpression the raw expression text, or `null` for an unconditional flow.
      */
     data class SequenceFlowEdge(
-        val propertyName: String,
         val id: String,
         val name: String?,
         val conditionExpression: String?,
         val isDefault: Boolean,
-        val target: FlowEdge,
     )
 
     /**

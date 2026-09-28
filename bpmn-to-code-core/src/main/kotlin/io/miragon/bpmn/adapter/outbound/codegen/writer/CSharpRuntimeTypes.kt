@@ -20,6 +20,11 @@ internal object CSharpRuntimeTypes {
             string? Name { get; }
         }
 
+        /// <summary>Marks a boundary event: one of its host's successors, reached without a sequence flow.</summary>
+        public interface IBoundaryEvent : IFlowNode
+        {
+        }
+
         /// <summary>A sequence flow without its target type, for generic tooling.</summary>
         public interface ISequenceFlow
         {

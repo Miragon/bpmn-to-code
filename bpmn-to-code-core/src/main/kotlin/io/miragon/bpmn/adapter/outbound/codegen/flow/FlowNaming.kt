@@ -11,7 +11,8 @@ import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
  *
  * - object name = PascalCase of the id (`serviceTask_increment` -> `ServiceTaskIncrement`)
  * - property/accessor name = the same, first letter lowercased (`serviceTaskIncrement`)
- * - sequence-flow property = the flow id's property form (`flow_noSubscribers` -> `flowNoSubscribers`)
+ * - outgoing-flows property = `to` + the target's object name (`toEndEventNoSubscribers`); the target is a
+ *   node, so the name inherits its uniqueness
  */
 internal object FlowNaming {
 
@@ -28,7 +29,7 @@ internal object FlowNaming {
         node.id to Names(objectName, decapitalize(objectName))
     }
 
-    fun flowProperty(flowId: String): String = decapitalize(flowId.toCamelCase())
+    fun outgoingFlowsProperty(target: Names): String = "to${target.objectName}"
 
     private fun decapitalize(name: String): String = name.replaceFirstChar { it.lowercaseChar() }
 }

@@ -1,7 +1,8 @@
 package io.miragon.bpmn.runtime
 
 /**
- * One outgoing `bpmn:sequenceFlow` of a generated `Flow` node, as exposed by its `Flows` holder.
+ * One outgoing `bpmn:sequenceFlow` of a generated `Flow` node, as exposed by its `OutgoingFlows` holder
+ * under the name of the element it leads to.
  *
  * [conditionExpression] is the raw expression text from the model (`${…}` for Camunda 7 / Operaton,
  * `=…` FEEL for Zeebe) or `null` when the flow is unconditional; [isDefault] marks the source's

@@ -9,7 +9,7 @@ import io.miragon.bpmn.runtime.BpmnEscalation
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
-import io.miragon.bpmn.runtime.HasFlows
+import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
@@ -65,10 +65,10 @@ object SendNewsletterProcessApi {
         id = ElementId("eventGateway_afterSendingAgain"),
         elementType = "EVENT_BASED_GATEWAY",
       ), HasSuccessors<EventGatewayAfterSendingAgain.Next>,
-          HasFlows<EventGatewayAfterSendingAgain.Flows> {
+          HasOutgoingFlows<EventGatewayAfterSendingAgain.OutgoingFlows> {
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val eventMailRejectedAgain: EventMailRejectedAgain
@@ -78,8 +78,8 @@ object SendNewsletterProcessApi {
             get() = TimerNoRejectionForOneDay
         }
 
-        object Flows {
-          val flowEventGatewayToMailRejectedAgain: SequenceFlow<EventMailRejectedAgain>
+        object OutgoingFlows {
+          val toEventMailRejectedAgain: SequenceFlow<EventMailRejectedAgain>
             get() = SequenceFlow(
               id = ElementId("flow_eventGatewayToMailRejectedAgain"),
               name = null,
@@ -88,7 +88,7 @@ object SendNewsletterProcessApi {
               target = EventMailRejectedAgain,
             )
 
-          val flowEventGatewayToTimer: SequenceFlow<TimerNoRejectionForOneDay>
+          val toTimerNoRejectionForOneDay: SequenceFlow<TimerNoRejectionForOneDay>
             get() = SequenceFlow(
               id = ElementId("flow_eventGatewayToTimer"),
               name = null,
@@ -102,22 +102,22 @@ object SendNewsletterProcessApi {
       object EventMailRejected : AbstractFlowNode(
         id = ElementId("event_mailRejected"),
         elementType = "MESSAGE_START_EVENT",
-      ), HasSuccessors<EventMailRejected.Next>, HasFlows<EventMailRejected.Flows> {
+      ), HasSuccessors<EventMailRejected.Next>, HasOutgoingFlows<EventMailRejected.OutgoingFlows> {
         val message: MessageName = Messages.MESSAGE_MAIL_REJECTED
 
         val isInterrupting: Boolean = true
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val serviceTaskAnalyzeError: ServiceTaskAnalyzeError
             get() = ServiceTaskAnalyzeError
         }
 
-        object Flows {
-          val flowMailRejectedToAnalyze: SequenceFlow<ServiceTaskAnalyzeError>
+        object OutgoingFlows {
+          val toServiceTaskAnalyzeError: SequenceFlow<ServiceTaskAnalyzeError>
             get() = SequenceFlow(
               id = ElementId("flow_mailRejectedToAnalyze"),
               name = null,
@@ -131,12 +131,13 @@ object SendNewsletterProcessApi {
       object EventMailRejectedAgain : AbstractFlowNode(
         id = ElementId("event_mailRejectedAgain"),
         elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
-      ), HasSuccessors<EventMailRejectedAgain.Next>, HasFlows<EventMailRejectedAgain.Flows> {
+      ), HasSuccessors<EventMailRejectedAgain.Next>,
+          HasOutgoingFlows<EventMailRejectedAgain.OutgoingFlows> {
         val message: MessageName = Messages.MESSAGE_MAIL_REJECTED_AGAIN
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val escalationEndEventNofitySupportAfterRepeatedError:
@@ -144,8 +145,8 @@ object SendNewsletterProcessApi {
             get() = EscalationEndEventNofitySupportAfterRepeatedError
         }
 
-        object Flows {
-          val flowMailRejectedAgainToEscalation:
+        object OutgoingFlows {
+          val toEscalationEndEventNofitySupportAfterRepeatedError:
               SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError>
             get() = SequenceFlow(
               id = ElementId("flow_mailRejectedAgainToEscalation"),
@@ -172,10 +173,11 @@ object SendNewsletterProcessApi {
       object GatewayCanSendAgain : AbstractFlowNode(
         id = ElementId("gateway_canSendAgain"),
         elementType = "EXCLUSIVE_GATEWAY",
-      ), HasSuccessors<GatewayCanSendAgain.Next>, HasFlows<GatewayCanSendAgain.Flows> {
+      ), HasSuccessors<GatewayCanSendAgain.Next>,
+          HasOutgoingFlows<GatewayCanSendAgain.OutgoingFlows> {
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val escalationEndEventNofitySupport: EscalationEndEventNofitySupport
@@ -185,17 +187,9 @@ object SendNewsletterProcessApi {
             get() = ServiceTaskSendMailAgain
         }
 
-        object Flows {
-          val flowCanSendAgain: SequenceFlow<ServiceTaskSendMailAgain>
-            get() = SequenceFlow(
-              id = ElementId("flow_canSendAgain"),
-              name = "Yes",
-              conditionExpression = null,
-              isDefault = true,
-              target = ServiceTaskSendMailAgain,
-            )
-
-          val flowCannotSendAgain: SequenceFlow<EscalationEndEventNofitySupport>
+        object OutgoingFlows {
+          val toEscalationEndEventNofitySupport:
+              SequenceFlow<EscalationEndEventNofitySupport>
             get() = SequenceFlow(
               id = ElementId("flow_cannotSendAgain"),
               name = "No",
@@ -203,16 +197,26 @@ object SendNewsletterProcessApi {
               isDefault = false,
               target = EscalationEndEventNofitySupport,
             )
+
+          val toServiceTaskSendMailAgain: SequenceFlow<ServiceTaskSendMailAgain>
+            get() = SequenceFlow(
+              id = ElementId("flow_canSendAgain"),
+              name = "Yes",
+              conditionExpression = null,
+              isDefault = true,
+              target = ServiceTaskSendMailAgain,
+            )
         }
       }
 
       object GatewayHasSubscribers : AbstractFlowNode(
         id = ElementId("gateway_hasSubscribers"),
         elementType = "EXCLUSIVE_GATEWAY",
-      ), HasSuccessors<GatewayHasSubscribers.Next>, HasFlows<GatewayHasSubscribers.Flows> {
+      ), HasSuccessors<GatewayHasSubscribers.Next>,
+          HasOutgoingFlows<GatewayHasSubscribers.OutgoingFlows> {
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val endEventNoSubscribers: EndEventNoSubscribers
@@ -222,17 +226,8 @@ object SendNewsletterProcessApi {
             get() = ServiceTaskSendToSubscriber
         }
 
-        object Flows {
-          val flowHasSubscribers: SequenceFlow<ServiceTaskSendToSubscriber>
-            get() = SequenceFlow(
-              id = ElementId("flow_hasSubscribers"),
-              name = "Yes",
-              conditionExpression = null,
-              isDefault = true,
-              target = ServiceTaskSendToSubscriber,
-            )
-
-          val flowNoSubscribers: SequenceFlow<EndEventNoSubscribers>
+        object OutgoingFlows {
+          val toEndEventNoSubscribers: SequenceFlow<EndEventNoSubscribers>
             get() = SequenceFlow(
               id = ElementId("flow_noSubscribers"),
               name = "No",
@@ -240,26 +235,36 @@ object SendNewsletterProcessApi {
               isDefault = false,
               target = EndEventNoSubscribers,
             )
+
+          val toServiceTaskSendToSubscriber: SequenceFlow<ServiceTaskSendToSubscriber>
+            get() = SequenceFlow(
+              id = ElementId("flow_hasSubscribers"),
+              name = "Yes",
+              conditionExpression = null,
+              isDefault = true,
+              target = ServiceTaskSendToSubscriber,
+            )
         }
       }
 
       object ServiceTaskAnalyzeError : AbstractFlowNode(
         id = ElementId("serviceTask_analyzeError"),
         elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskAnalyzeError.Next>, HasFlows<ServiceTaskAnalyzeError.Flows> {
+      ), HasSuccessors<ServiceTaskAnalyzeError.Next>,
+          HasOutgoingFlows<ServiceTaskAnalyzeError.OutgoingFlows> {
         const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_ANALYZE_SEND_ERROR
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val gatewayCanSendAgain: GatewayCanSendAgain
             get() = GatewayCanSendAgain
         }
 
-        object Flows {
-          val flowAnalyzeToCanSendAgain: SequenceFlow<GatewayCanSendAgain>
+        object OutgoingFlows {
+          val toGatewayCanSendAgain: SequenceFlow<GatewayCanSendAgain>
             get() = SequenceFlow(
               id = ElementId("flow_analyzeToCanSendAgain"),
               name = null,
@@ -274,12 +279,12 @@ object SendNewsletterProcessApi {
         id = ElementId("serviceTask_loadSubscribers"),
         elementType = "SERVICE_TASK",
       ), HasSuccessors<ServiceTaskLoadSubscribers.Next>,
-          HasFlows<ServiceTaskLoadSubscribers.Flows> {
+          HasOutgoingFlows<ServiceTaskLoadSubscribers.OutgoingFlows> {
         const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_LOAD_SUBSCRIBERS
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Variables {
           val AUTHOR: VariableName.Output = VariableName.Output("author")
@@ -292,8 +297,8 @@ object SendNewsletterProcessApi {
             get() = GatewayHasSubscribers
         }
 
-        object Flows {
-          val flowLoadSubscribersToGateway: SequenceFlow<GatewayHasSubscribers>
+        object OutgoingFlows {
+          val toGatewayHasSubscribers: SequenceFlow<GatewayHasSubscribers>
             get() = SequenceFlow(
               id = ElementId("flow_loadSubscribersToGateway"),
               name = null,
@@ -307,20 +312,21 @@ object SendNewsletterProcessApi {
       object ServiceTaskNotifyAuthor : AbstractFlowNode(
         id = ElementId("serviceTask_notifyAuthor"),
         elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskNotifyAuthor.Next>, HasFlows<ServiceTaskNotifyAuthor.Flows> {
+      ), HasSuccessors<ServiceTaskNotifyAuthor.Next>,
+          HasOutgoingFlows<ServiceTaskNotifyAuthor.OutgoingFlows> {
         const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_NOTIFY_AUTHOR
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val endEventEditionSent: EndEventEditionSent
             get() = EndEventEditionSent
         }
 
-        object Flows {
-          val flowNotifyAuthorToEditionSent: SequenceFlow<EndEventEditionSent>
+        object OutgoingFlows {
+          val toEndEventEditionSent: SequenceFlow<EndEventEditionSent>
             get() = SequenceFlow(
               id = ElementId("flow_notifyAuthorToEditionSent"),
               name = null,
@@ -334,20 +340,21 @@ object SendNewsletterProcessApi {
       object ServiceTaskSendMailAgain : AbstractFlowNode(
         id = ElementId("serviceTask_sendMailAgain"),
         elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskSendMailAgain.Next>, HasFlows<ServiceTaskSendMailAgain.Flows> {
+      ), HasSuccessors<ServiceTaskSendMailAgain.Next>,
+          HasOutgoingFlows<ServiceTaskSendMailAgain.OutgoingFlows> {
         const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val eventGatewayAfterSendingAgain: EventGatewayAfterSendingAgain
             get() = EventGatewayAfterSendingAgain
         }
 
-        object Flows {
-          val flowSendAgainToEventGateway: SequenceFlow<EventGatewayAfterSendingAgain>
+        object OutgoingFlows {
+          val toEventGatewayAfterSendingAgain: SequenceFlow<EventGatewayAfterSendingAgain>
             get() = SequenceFlow(
               id = ElementId("flow_sendAgainToEventGateway"),
               name = null,
@@ -362,20 +369,20 @@ object SendNewsletterProcessApi {
         id = ElementId("serviceTask_sendToSubscriber"),
         elementType = "SERVICE_TASK",
       ), HasSuccessors<ServiceTaskSendToSubscriber.Next>,
-          HasFlows<ServiceTaskSendToSubscriber.Flows> {
+          HasOutgoingFlows<ServiceTaskSendToSubscriber.OutgoingFlows> {
         const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val serviceTaskNotifyAuthor: ServiceTaskNotifyAuthor
             get() = ServiceTaskNotifyAuthor
         }
 
-        object Flows {
-          val flowSendToNotifyAuthor: SequenceFlow<ServiceTaskNotifyAuthor>
+        object OutgoingFlows {
+          val toServiceTaskNotifyAuthor: SequenceFlow<ServiceTaskNotifyAuthor>
             get() = SequenceFlow(
               id = ElementId("flow_sendToNotifyAuthor"),
               name = null,
@@ -389,18 +396,19 @@ object SendNewsletterProcessApi {
       object StartEventEditionCreated : AbstractFlowNode(
         id = ElementId("startEvent_editionCreated"),
         elementType = "START_EVENT",
-      ), HasSuccessors<StartEventEditionCreated.Next>, HasFlows<StartEventEditionCreated.Flows> {
+      ), HasSuccessors<StartEventEditionCreated.Next>,
+          HasOutgoingFlows<StartEventEditionCreated.OutgoingFlows> {
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val serviceTaskLoadSubscribers: ServiceTaskLoadSubscribers
             get() = ServiceTaskLoadSubscribers
         }
 
-        object Flows {
-          val flowEditionToLoadSubscribers: SequenceFlow<ServiceTaskLoadSubscribers>
+        object OutgoingFlows {
+          val toServiceTaskLoadSubscribers: SequenceFlow<ServiceTaskLoadSubscribers>
             get() = SequenceFlow(
               id = ElementId("flow_editionToLoadSubscribers"),
               name = null,
@@ -414,7 +422,8 @@ object SendNewsletterProcessApi {
       object TimerNoRejectionForOneDay : AbstractFlowNode(
         id = ElementId("timer_noRejectionForOneDay"),
         elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
-      ), HasSuccessors<TimerNoRejectionForOneDay.Next>, HasFlows<TimerNoRejectionForOneDay.Flows> {
+      ), HasSuccessors<TimerNoRejectionForOneDay.Next>,
+          HasOutgoingFlows<TimerNoRejectionForOneDay.OutgoingFlows> {
         val timer: BpmnTimer = BpmnTimer(
           type = "Duration",
           timerValue = "PT1D",
@@ -422,15 +431,15 @@ object SendNewsletterProcessApi {
 
         override fun then(): Next = Next
 
-        override fun flows(): Flows = Flows
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
           val endEventIssueResolved: EndEventIssueResolved
             get() = EndEventIssueResolved
         }
 
-        object Flows {
-          val flowTimerToIssueResolved: SequenceFlow<EndEventIssueResolved>
+        object OutgoingFlows {
+          val toEndEventIssueResolved: SequenceFlow<EndEventIssueResolved>
             get() = SequenceFlow(
               id = ElementId("flow_timerToIssueResolved"),
               name = null,

@@ -2,12 +2,13 @@
 package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
+import io.miragon.bpmn.runtime.BoundaryEvent;
 import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnError;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.FlowScope;
-import io.miragon.bpmn.runtime.HasFlows;
+import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.InputOutputMapping;
 import io.miragon.bpmn.runtime.MessageName;
@@ -110,7 +111,7 @@ public final class NewsletterSubscriptionProcessApi {
       return new TimerEveryDay();
     }
 
-    public static final class CallActivityAbortRegistration extends AbstractFlowNode implements HasSuccessors<CallActivityAbortRegistration.Next>, HasFlows<CallActivityAbortRegistration.Flows> {
+    public static final class CallActivityAbortRegistration extends AbstractFlowNode implements HasSuccessors<CallActivityAbortRegistration.Next>, HasOutgoingFlows<CallActivityAbortRegistration.OutgoingFlows> {
       public final ProcessId calledProcess = new ProcessId("abort-registration");
 
       public CallActivityAbortRegistration() {
@@ -123,8 +124,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Variables {
@@ -147,8 +148,8 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<CompensationEndEventRegistrationAborted> flowAbortToRegistrationAborted(
+      public static final class OutgoingFlows {
+        public SequenceFlow<CompensationEndEventRegistrationAborted> toCompensationEndEventRegistrationAborted(
             ) {
           return new SequenceFlow<>(new ElementId("flow_abortToRegistrationAborted"), null, null, false, new CompensationEndEventRegistrationAborted());
         }
@@ -161,7 +162,7 @@ public final class NewsletterSubscriptionProcessApi {
       }
     }
 
-    public static final class CompensationEventOnSubscriptionCounter extends AbstractFlowNode {
+    public static final class CompensationEventOnSubscriptionCounter extends AbstractFlowNode implements BoundaryEvent {
       public final boolean isInterrupting = true;
 
       public CompensationEventOnSubscriptionCounter() {
@@ -199,7 +200,7 @@ public final class NewsletterSubscriptionProcessApi {
       }
     }
 
-    public static final class ErrorEventInvalidMail extends AbstractFlowNode implements HasSuccessors<ErrorEventInvalidMail.Next>, HasFlows<ErrorEventInvalidMail.Flows> {
+    public static final class ErrorEventInvalidMail extends AbstractFlowNode implements HasSuccessors<ErrorEventInvalidMail.Next>, HasOutgoingFlows<ErrorEventInvalidMail.OutgoingFlows>, BoundaryEvent {
       public final BpmnError error = Errors.ERROR_INVALID_MAIL_500;
 
       public final boolean isInterrupting = true;
@@ -218,8 +219,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -228,14 +229,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<EndEventRegistrationNotPossible> flowInvalidMailToNotPossible() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<EndEventRegistrationNotPossible> toEndEventRegistrationNotPossible() {
           return new SequenceFlow<>(new ElementId("flow_invalidMailToNotPossible"), null, null, false, new EndEventRegistrationNotPossible());
         }
       }
     }
 
-    public static final class GatewayJoinNotifications extends AbstractFlowNode implements HasSuccessors<GatewayJoinNotifications.Next>, HasFlows<GatewayJoinNotifications.Flows> {
+    public static final class GatewayJoinNotifications extends AbstractFlowNode implements HasSuccessors<GatewayJoinNotifications.Next>, HasOutgoingFlows<GatewayJoinNotifications.OutgoingFlows> {
       public GatewayJoinNotifications() {
         super(new ElementId("gateway_joinNotifications"), "PARALLEL_GATEWAY");
       }
@@ -246,8 +247,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -256,14 +257,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<EndEventRegistrationCompleted> flowJoinToRegistrationCompleted() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<EndEventRegistrationCompleted> toEndEventRegistrationCompleted() {
           return new SequenceFlow<>(new ElementId("flow_joinToRegistrationCompleted"), null, null, false, new EndEventRegistrationCompleted());
         }
       }
     }
 
-    public static final class GatewaySplitNotifications extends AbstractFlowNode implements HasSuccessors<GatewaySplitNotifications.Next>, HasFlows<GatewaySplitNotifications.Flows> {
+    public static final class GatewaySplitNotifications extends AbstractFlowNode implements HasSuccessors<GatewaySplitNotifications.Next>, HasOutgoingFlows<GatewaySplitNotifications.OutgoingFlows> {
       public GatewaySplitNotifications() {
         super(new ElementId("gateway_splitNotifications"), "PARALLEL_GATEWAY");
       }
@@ -274,8 +275,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -288,18 +289,18 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<ServiceTaskNotifyCommunity> flowSplitToNotifyCommunity() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<ServiceTaskNotifyCommunity> toServiceTaskNotifyCommunity() {
           return new SequenceFlow<>(new ElementId("flow_splitToNotifyCommunity"), null, null, false, new ServiceTaskNotifyCommunity());
         }
 
-        public SequenceFlow<ServiceTaskSendWelcomeMail> flowSplitToWelcomeMail() {
+        public SequenceFlow<ServiceTaskSendWelcomeMail> toServiceTaskSendWelcomeMail() {
           return new SequenceFlow<>(new ElementId("flow_splitToWelcomeMail"), null, null, false, new ServiceTaskSendWelcomeMail());
         }
       }
     }
 
-    public static final class ReceiveTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<ReceiveTaskConfirmRegistration.Next>, HasFlows<ReceiveTaskConfirmRegistration.Flows> {
+    public static final class ReceiveTaskConfirmRegistration extends AbstractFlowNode implements HasSuccessors<ReceiveTaskConfirmRegistration.Next>, HasOutgoingFlows<ReceiveTaskConfirmRegistration.OutgoingFlows> {
       public ReceiveTaskConfirmRegistration() {
         super(new ElementId("receiveTask_confirmRegistration"), "RECEIVE_TASK", "Confirm registration");
       }
@@ -310,8 +311,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -324,8 +325,8 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<EndEventSubscriptionConfirmed> flowConfirmToConfirmed() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<EndEventSubscriptionConfirmed> toEndEventSubscriptionConfirmed() {
           return new SequenceFlow<>(new ElementId("flow_confirmToConfirmed"), null, null, false, new EndEventSubscriptionConfirmed());
         }
       }
@@ -339,7 +340,7 @@ public final class NewsletterSubscriptionProcessApi {
       }
     }
 
-    public static final class ServiceTaskIncrementSubscriptionCounter extends AbstractFlowNode implements HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next>, HasFlows<ServiceTaskIncrementSubscriptionCounter.Flows> {
+    public static final class ServiceTaskIncrementSubscriptionCounter extends AbstractFlowNode implements HasSuccessors<ServiceTaskIncrementSubscriptionCounter.Next>, HasOutgoingFlows<ServiceTaskIncrementSubscriptionCounter.OutgoingFlows> {
       public static final String JOB_TYPE = ServiceTasks.COUNTER_CLASS;
 
       public ServiceTaskIncrementSubscriptionCounter() {
@@ -352,8 +353,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -366,14 +367,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<SubProcessConfirmation> flowIncrementCounterToConfirmation() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<SubProcessConfirmation> toSubProcessConfirmation() {
           return new SequenceFlow<>(new ElementId("flow_incrementCounterToConfirmation"), null, null, false, new SubProcessConfirmation());
         }
       }
     }
 
-    public static final class ServiceTaskNotifyCommunity extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyCommunity.Next>, HasFlows<ServiceTaskNotifyCommunity.Flows> {
+    public static final class ServiceTaskNotifyCommunity extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyCommunity.Next>, HasOutgoingFlows<ServiceTaskNotifyCommunity.OutgoingFlows> {
       public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_NOTIFY_COMMUNITY;
 
       public ServiceTaskNotifyCommunity() {
@@ -386,8 +387,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -396,14 +397,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<GatewayJoinNotifications> flowNotifyCommunityToJoin() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<GatewayJoinNotifications> toGatewayJoinNotifications() {
           return new SequenceFlow<>(new ElementId("flow_notifyCommunityToJoin"), null, null, false, new GatewayJoinNotifications());
         }
       }
     }
 
-    public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasFlows<ServiceTaskSendConfirmationMail.Flows> {
+    public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasOutgoingFlows<ServiceTaskSendConfirmationMail.OutgoingFlows> {
       public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL;
 
       public ServiceTaskSendConfirmationMail() {
@@ -416,8 +417,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Variables {
@@ -432,14 +433,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<ReceiveTaskConfirmRegistration> flowConfirmationMailToConfirm() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<ReceiveTaskConfirmRegistration> toReceiveTaskConfirmRegistration() {
           return new SequenceFlow<>(new ElementId("flow_confirmationMailToConfirm"), null, null, false, new ReceiveTaskConfirmRegistration());
         }
       }
     }
 
-    public static final class ServiceTaskSendWelcomeMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendWelcomeMail.Next>, HasFlows<ServiceTaskSendWelcomeMail.Flows> {
+    public static final class ServiceTaskSendWelcomeMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendWelcomeMail.Next>, HasOutgoingFlows<ServiceTaskSendWelcomeMail.OutgoingFlows> {
       public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_WELCOME_MAIL;
 
       public ServiceTaskSendWelcomeMail() {
@@ -452,8 +453,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Variables {
@@ -466,14 +467,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<GatewayJoinNotifications> flowWelcomeMailToJoin() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<GatewayJoinNotifications> toGatewayJoinNotifications() {
           return new SequenceFlow<>(new ElementId("flow_welcomeMailToJoin"), null, null, false, new GatewayJoinNotifications());
         }
       }
     }
 
-    public static final class StartEventRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventRequestReceived.Next>, HasFlows<StartEventRequestReceived.Flows> {
+    public static final class StartEventRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventRequestReceived.Next>, HasOutgoingFlows<StartEventRequestReceived.OutgoingFlows> {
       public StartEventRequestReceived() {
         super(new ElementId("startEvent_requestReceived"), "START_EVENT");
       }
@@ -484,8 +485,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Variables {
@@ -498,14 +499,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<ServiceTaskSendConfirmationMail> flowRequestToConfirmationMail() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<ServiceTaskSendConfirmationMail> toServiceTaskSendConfirmationMail() {
           return new SequenceFlow<>(new ElementId("flow_requestToConfirmationMail"), null, null, false, new ServiceTaskSendConfirmationMail());
         }
       }
     }
 
-    public static final class StartEventSubmitRegistrationForm extends AbstractFlowNode implements HasSuccessors<StartEventSubmitRegistrationForm.Next>, HasFlows<StartEventSubmitRegistrationForm.Flows> {
+    public static final class StartEventSubmitRegistrationForm extends AbstractFlowNode implements HasSuccessors<StartEventSubmitRegistrationForm.Next>, HasOutgoingFlows<StartEventSubmitRegistrationForm.OutgoingFlows> {
       public final MessageName message = Messages.MESSAGE_FORM_SUBMITTED;
 
       public StartEventSubmitRegistrationForm() {
@@ -518,8 +519,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Variables {
@@ -532,15 +533,15 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<ServiceTaskIncrementSubscriptionCounter> flowSubmitToIncrementCounter(
+      public static final class OutgoingFlows {
+        public SequenceFlow<ServiceTaskIncrementSubscriptionCounter> toServiceTaskIncrementSubscriptionCounter(
             ) {
           return new SequenceFlow<>(new ElementId("flow_submitToIncrementCounter"), null, null, false, new ServiceTaskIncrementSubscriptionCounter());
         }
       }
     }
 
-    public static final class SubProcessConfirmation extends AbstractFlowNode implements HasSuccessors<SubProcessConfirmation.Next>, HasFlows<SubProcessConfirmation.Flows>, FlowScope<SubProcessConfirmation.Start> {
+    public static final class SubProcessConfirmation extends AbstractFlowNode implements HasSuccessors<SubProcessConfirmation.Next>, HasOutgoingFlows<SubProcessConfirmation.OutgoingFlows>, FlowScope<SubProcessConfirmation.Start> {
       public SubProcessConfirmation() {
         super(new ElementId("subProcess_confirmation"), "SUB_PROCESS");
       }
@@ -551,8 +552,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       @Override
@@ -574,8 +575,8 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<GatewaySplitNotifications> flowConfirmationToSplit() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<GatewaySplitNotifications> toGatewaySplitNotifications() {
           return new SequenceFlow<>(new ElementId("flow_confirmationToSplit"), null, null, false, new GatewaySplitNotifications());
         }
       }
@@ -587,7 +588,7 @@ public final class NewsletterSubscriptionProcessApi {
       }
     }
 
-    public static final class TimerAfter3Days extends AbstractFlowNode implements HasSuccessors<TimerAfter3Days.Next>, HasFlows<TimerAfter3Days.Flows> {
+    public static final class TimerAfter3Days extends AbstractFlowNode implements HasSuccessors<TimerAfter3Days.Next>, HasOutgoingFlows<TimerAfter3Days.OutgoingFlows>, BoundaryEvent {
       public final BpmnTimer timer = new BpmnTimer("Duration", "${testVariable}");
 
       public final boolean isInterrupting = true;
@@ -606,8 +607,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -616,14 +617,14 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<CallActivityAbortRegistration> flowAfter3DaysToAbort() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<CallActivityAbortRegistration> toCallActivityAbortRegistration() {
           return new SequenceFlow<>(new ElementId("flow_after3DaysToAbort"), null, null, false, new CallActivityAbortRegistration());
         }
       }
     }
 
-    public static final class TimerEveryDay extends AbstractFlowNode implements HasSuccessors<TimerEveryDay.Next>, HasFlows<TimerEveryDay.Flows> {
+    public static final class TimerEveryDay extends AbstractFlowNode implements HasSuccessors<TimerEveryDay.Next>, HasOutgoingFlows<TimerEveryDay.OutgoingFlows>, BoundaryEvent {
       public final BpmnTimer timer = new BpmnTimer("Duration", "PT1M");
 
       public final boolean isInterrupting = false;
@@ -642,8 +643,8 @@ public final class NewsletterSubscriptionProcessApi {
       }
 
       @Override
-      public Flows flows() {
-        return new Flows();
+      public OutgoingFlows outgoingFlows() {
+        return new OutgoingFlows();
       }
 
       public static final class Next {
@@ -652,8 +653,8 @@ public final class NewsletterSubscriptionProcessApi {
         }
       }
 
-      public static final class Flows {
-        public SequenceFlow<ServiceTaskSendConfirmationMail> flowEveryDayToConfirmationMail() {
+      public static final class OutgoingFlows {
+        public SequenceFlow<ServiceTaskSendConfirmationMail> toServiceTaskSendConfirmationMail() {
           return new SequenceFlow<>(new ElementId("flow_everyDayToConfirmationMail"), null, null, false, new ServiceTaskSendConfirmationMail());
         }
       }

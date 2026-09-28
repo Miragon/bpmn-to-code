@@ -1,5 +1,6 @@
 package io.miragon.bpmn.runtime.path
 
+import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.MessageName
@@ -194,15 +195,16 @@ class ProcessPathKotlinApiTest {
     }
 
     @Test
-    fun `nodes expose their display name, typed sequence-flow edges and their own facets`() {
+    fun `nodes expose their display name, outgoing sequence flows named after their targets and their own facets`() {
         assertThat(Newsletter.ReceiveTaskConfirmRegistration.name).isEqualTo("Confirm registration")
         assertThat(Newsletter.StartEventSubmitRegistrationForm.name).isNull()
 
-        val edge = Newsletter.StartEventSubmitRegistrationForm.flows().flowSubmitToIncrementCounter
-        assertThat(edge.target).isEqualTo(Newsletter.ServiceTaskIncrementSubscriptionCounter)
-        assertThat(edge.conditionExpression).isNull()
-        assertThat(edge.isDefault).isFalse()
-        assertThat(edge).isEqualTo(Newsletter.StartEventSubmitRegistrationForm.flows().flowSubmitToIncrementCounter)
+        val flow = Newsletter.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter
+        assertThat(flow.id.value).isEqualTo("flow_submitToIncrementCounter")
+        assertThat(flow.target).isEqualTo(Newsletter.ServiceTaskIncrementSubscriptionCounter)
+        assertThat(flow.conditionExpression).isNull()
+        assertThat(flow.isDefault).isFalse()
+        assertThat(flow).isEqualTo(Newsletter.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter)
 
         val input: VariableName.Input = Newsletter.ServiceTaskSendConfirmationMail.Variables.SUBSCRIPTION_ID
         assertThat(input.value).isEqualTo("subscriptionId")
@@ -213,10 +215,26 @@ class ProcessPathKotlinApiTest {
         assertThat(Newsletter.TimerEveryDay.timer).isEqualTo(BpmnTimer("Duration", "PT1M"))
         assertThat(Newsletter.TimerEveryDay.attachedTo).isEqualTo(Newsletter.ReceiveTaskConfirmRegistration)
         assertThat(Newsletter.TimerEveryDay.isInterrupting).isFalse()
+        assertThat(Newsletter.TimerEveryDay).isInstanceOf(BoundaryEvent::class.java)
+        assertThat(Newsletter.ReceiveTaskConfirmRegistration).isNotInstanceOf(BoundaryEvent::class.java)
 
         assertThat(Newsletter.CallActivityAbortRegistration.calledProcess).isEqualTo(ProcessId("abort-registration"))
         assertThat(Newsletter.CallActivityAbortRegistration.Inputs.CHILD_SUBSCRIPTION_ID.target).isEqualTo("childSubscriptionId")
         assertThat(Newsletter.CallActivityAbortRegistration.Outputs.ABORT_RESULT.source).isEqualTo("childAbortResult")
+    }
+
+    @Test
+    fun `via walks chosen sequence flows and records them next to the elements`() {
+        val path = ProcessPath.from(Newsletter.StartEventSubmitRegistrationForm)
+            .via { it.toServiceTaskIncrementSubscriptionCounter }
+            .via { it.toSubProcessConfirmation }
+
+        assertThat(path.ids).containsExactly(
+            "startEvent_submitRegistrationForm",
+            "serviceTask_incrementSubscriptionCounter",
+            "subProcess_confirmation",
+        )
+        assertThat(path.flowIds).containsExactly("flow_submitToIncrementCounter", "flow_incrementCounterToConfirmation")
     }
 
     @Test

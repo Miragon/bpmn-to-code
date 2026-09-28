@@ -23,6 +23,11 @@ public static class NewsletterSubscriptionProcessApi
             string? Name { get; }
         }
 
+        /// <summary>Marks a boundary event: one of its host's successors, reached without a sequence flow.</summary>
+        public interface IBoundaryEvent : IFlowNode
+        {
+        }
+
         /// <summary>A sequence flow without its target type, for generic tooling.</summary>
         public interface ISequenceFlow
         {
@@ -129,10 +134,10 @@ public static class NewsletterSubscriptionProcessApi
                 public CompensationEndEventRegistrationAborted CompensationEndEventRegistrationAborted => CompensationEndEventRegistrationAborted.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<CompensationEndEventRegistrationAborted> FlowAbortToRegistrationAborted => new(new("flow_abortToRegistrationAborted"), null, null, false, CompensationEndEventRegistrationAborted.Instance);
+                public Runtime.SequenceFlow<CompensationEndEventRegistrationAborted> ToCompensationEndEventRegistrationAborted => new(new("flow_abortToRegistrationAborted"), null, null, false, CompensationEndEventRegistrationAborted.Instance);
             }
         }
 
@@ -146,7 +151,7 @@ public static class NewsletterSubscriptionProcessApi
             public string? Name => null;
         }
 
-        public sealed class CompensationEventOnSubscriptionCounter : Runtime.IFlowNode
+        public sealed class CompensationEventOnSubscriptionCounter : Runtime.IBoundaryEvent
         {
             public static readonly CompensationEventOnSubscriptionCounter Instance = new();
             private CompensationEventOnSubscriptionCounter() { }
@@ -196,7 +201,7 @@ public static class NewsletterSubscriptionProcessApi
             public string? Name => null;
         }
 
-        public sealed class ErrorEventInvalidMail : Runtime.IFlowNode
+        public sealed class ErrorEventInvalidMail : Runtime.IBoundaryEvent
         {
             public static readonly ErrorEventInvalidMail Instance = new();
             private ErrorEventInvalidMail() { }
@@ -214,10 +219,10 @@ public static class NewsletterSubscriptionProcessApi
                 public EndEventRegistrationNotPossible EndEventRegistrationNotPossible => EndEventRegistrationNotPossible.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventRegistrationNotPossible> FlowInvalidMailToNotPossible => new(new("flow_invalidMailToNotPossible"), null, null, false, EndEventRegistrationNotPossible.Instance);
+                public Runtime.SequenceFlow<EndEventRegistrationNotPossible> ToEndEventRegistrationNotPossible => new(new("flow_invalidMailToNotPossible"), null, null, false, EndEventRegistrationNotPossible.Instance);
             }
         }
 
@@ -236,10 +241,10 @@ public static class NewsletterSubscriptionProcessApi
                 public EndEventRegistrationCompleted EndEventRegistrationCompleted => EndEventRegistrationCompleted.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventRegistrationCompleted> FlowJoinToRegistrationCompleted => new(new("flow_joinToRegistrationCompleted"), null, null, false, EndEventRegistrationCompleted.Instance);
+                public Runtime.SequenceFlow<EndEventRegistrationCompleted> ToEndEventRegistrationCompleted => new(new("flow_joinToRegistrationCompleted"), null, null, false, EndEventRegistrationCompleted.Instance);
             }
         }
 
@@ -259,11 +264,11 @@ public static class NewsletterSubscriptionProcessApi
                 public ServiceTaskSendWelcomeMail ServiceTaskSendWelcomeMail => ServiceTaskSendWelcomeMail.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskNotifyCommunity> FlowSplitToNotifyCommunity => new(new("flow_splitToNotifyCommunity"), null, null, false, ServiceTaskNotifyCommunity.Instance);
-                public Runtime.SequenceFlow<ServiceTaskSendWelcomeMail> FlowSplitToWelcomeMail => new(new("flow_splitToWelcomeMail"), null, null, false, ServiceTaskSendWelcomeMail.Instance);
+                public Runtime.SequenceFlow<ServiceTaskNotifyCommunity> ToServiceTaskNotifyCommunity => new(new("flow_splitToNotifyCommunity"), null, null, false, ServiceTaskNotifyCommunity.Instance);
+                public Runtime.SequenceFlow<ServiceTaskSendWelcomeMail> ToServiceTaskSendWelcomeMail => new(new("flow_splitToWelcomeMail"), null, null, false, ServiceTaskSendWelcomeMail.Instance);
             }
         }
 
@@ -283,10 +288,10 @@ public static class NewsletterSubscriptionProcessApi
                 public TimerEveryDay TimerEveryDay => TimerEveryDay.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventSubscriptionConfirmed> FlowConfirmToConfirmed => new(new("flow_confirmToConfirmed"), null, null, false, EndEventSubscriptionConfirmed.Instance);
+                public Runtime.SequenceFlow<EndEventSubscriptionConfirmed> ToEndEventSubscriptionConfirmed => new(new("flow_confirmToConfirmed"), null, null, false, EndEventSubscriptionConfirmed.Instance);
             }
         }
 
@@ -318,10 +323,10 @@ public static class NewsletterSubscriptionProcessApi
                 public SubProcessConfirmation SubProcessConfirmation => SubProcessConfirmation.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<SubProcessConfirmation> FlowIncrementCounterToConfirmation => new(new("flow_incrementCounterToConfirmation"), null, null, false, SubProcessConfirmation.Instance);
+                public Runtime.SequenceFlow<SubProcessConfirmation> ToSubProcessConfirmation => new(new("flow_incrementCounterToConfirmation"), null, null, false, SubProcessConfirmation.Instance);
             }
         }
 
@@ -341,10 +346,10 @@ public static class NewsletterSubscriptionProcessApi
                 public GatewayJoinNotifications GatewayJoinNotifications => GatewayJoinNotifications.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayJoinNotifications> FlowNotifyCommunityToJoin => new(new("flow_notifyCommunityToJoin"), null, null, false, GatewayJoinNotifications.Instance);
+                public Runtime.SequenceFlow<GatewayJoinNotifications> ToGatewayJoinNotifications => new(new("flow_notifyCommunityToJoin"), null, null, false, GatewayJoinNotifications.Instance);
             }
         }
 
@@ -371,10 +376,10 @@ public static class NewsletterSubscriptionProcessApi
                 public ReceiveTaskConfirmRegistration ReceiveTaskConfirmRegistration => ReceiveTaskConfirmRegistration.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ReceiveTaskConfirmRegistration> FlowConfirmationMailToConfirm => new(new("flow_confirmationMailToConfirm"), null, null, false, ReceiveTaskConfirmRegistration.Instance);
+                public Runtime.SequenceFlow<ReceiveTaskConfirmRegistration> ToReceiveTaskConfirmRegistration => new(new("flow_confirmationMailToConfirm"), null, null, false, ReceiveTaskConfirmRegistration.Instance);
             }
         }
 
@@ -400,10 +405,10 @@ public static class NewsletterSubscriptionProcessApi
                 public GatewayJoinNotifications GatewayJoinNotifications => GatewayJoinNotifications.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayJoinNotifications> FlowWelcomeMailToJoin => new(new("flow_welcomeMailToJoin"), null, null, false, GatewayJoinNotifications.Instance);
+                public Runtime.SequenceFlow<GatewayJoinNotifications> ToGatewayJoinNotifications => new(new("flow_welcomeMailToJoin"), null, null, false, GatewayJoinNotifications.Instance);
             }
         }
 
@@ -428,10 +433,10 @@ public static class NewsletterSubscriptionProcessApi
                 public ServiceTaskSendConfirmationMail ServiceTaskSendConfirmationMail => ServiceTaskSendConfirmationMail.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskSendConfirmationMail> FlowRequestToConfirmationMail => new(new("flow_requestToConfirmationMail"), null, null, false, ServiceTaskSendConfirmationMail.Instance);
+                public Runtime.SequenceFlow<ServiceTaskSendConfirmationMail> ToServiceTaskSendConfirmationMail => new(new("flow_requestToConfirmationMail"), null, null, false, ServiceTaskSendConfirmationMail.Instance);
             }
         }
 
@@ -457,10 +462,10 @@ public static class NewsletterSubscriptionProcessApi
                 public ServiceTaskIncrementSubscriptionCounter ServiceTaskIncrementSubscriptionCounter => ServiceTaskIncrementSubscriptionCounter.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskIncrementSubscriptionCounter> FlowSubmitToIncrementCounter => new(new("flow_submitToIncrementCounter"), null, null, false, ServiceTaskIncrementSubscriptionCounter.Instance);
+                public Runtime.SequenceFlow<ServiceTaskIncrementSubscriptionCounter> ToServiceTaskIncrementSubscriptionCounter => new(new("flow_submitToIncrementCounter"), null, null, false, ServiceTaskIncrementSubscriptionCounter.Instance);
             }
         }
 
@@ -481,10 +486,10 @@ public static class NewsletterSubscriptionProcessApi
                 public TimerAfter3Days TimerAfter3Days => TimerAfter3Days.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewaySplitNotifications> FlowConfirmationToSplit => new(new("flow_confirmationToSplit"), null, null, false, GatewaySplitNotifications.Instance);
+                public Runtime.SequenceFlow<GatewaySplitNotifications> ToGatewaySplitNotifications => new(new("flow_confirmationToSplit"), null, null, false, GatewaySplitNotifications.Instance);
             }
 
             public Interior Start => new();
@@ -494,7 +499,7 @@ public static class NewsletterSubscriptionProcessApi
             }
         }
 
-        public sealed class TimerAfter3Days : Runtime.IFlowNode
+        public sealed class TimerAfter3Days : Runtime.IBoundaryEvent
         {
             public static readonly TimerAfter3Days Instance = new();
             private TimerAfter3Days() { }
@@ -512,14 +517,14 @@ public static class NewsletterSubscriptionProcessApi
                 public CallActivityAbortRegistration CallActivityAbortRegistration => CallActivityAbortRegistration.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<CallActivityAbortRegistration> FlowAfter3DaysToAbort => new(new("flow_after3DaysToAbort"), null, null, false, CallActivityAbortRegistration.Instance);
+                public Runtime.SequenceFlow<CallActivityAbortRegistration> ToCallActivityAbortRegistration => new(new("flow_after3DaysToAbort"), null, null, false, CallActivityAbortRegistration.Instance);
             }
         }
 
-        public sealed class TimerEveryDay : Runtime.IFlowNode
+        public sealed class TimerEveryDay : Runtime.IBoundaryEvent
         {
             public static readonly TimerEveryDay Instance = new();
             private TimerEveryDay() { }
@@ -537,10 +542,10 @@ public static class NewsletterSubscriptionProcessApi
                 public ServiceTaskSendConfirmationMail ServiceTaskSendConfirmationMail => ServiceTaskSendConfirmationMail.Instance;
             }
 
-            public SequenceFlows Flows => new();
-            public sealed class SequenceFlows
+            public OutgoingSequenceFlows OutgoingFlows => new();
+            public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskSendConfirmationMail> FlowEveryDayToConfirmationMail => new(new("flow_everyDayToConfirmationMail"), null, null, false, ServiceTaskSendConfirmationMail.Instance);
+                public Runtime.SequenceFlow<ServiceTaskSendConfirmationMail> ToServiceTaskSendConfirmationMail => new(new("flow_everyDayToConfirmationMail"), null, null, false, ServiceTaskSendConfirmationMail.Instance);
             }
         }
     }

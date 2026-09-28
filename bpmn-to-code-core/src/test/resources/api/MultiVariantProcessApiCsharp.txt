@@ -23,6 +23,11 @@ public static class SendNewsletterProcessApi
             string? Name { get; }
         }
 
+        /// <summary>Marks a boundary event: one of its host's successors, reached without a sequence flow.</summary>
+        public interface IBoundaryEvent : IFlowNode
+        {
+        }
+
         /// <summary>A sequence flow without its target type, for generic tooling.</summary>
         public interface ISequenceFlow
         {
@@ -166,11 +171,11 @@ public static class SendNewsletterProcessApi
                     public TimerNoRejectionForOneDay TimerNoRejectionForOneDay => TimerNoRejectionForOneDay.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EventMailRejectedAgain> FlowEventGatewayToMailRejectedAgain => new(new("flow_eventGatewayToMailRejectedAgain"), null, null, false, EventMailRejectedAgain.Instance);
-                    public Runtime.SequenceFlow<TimerNoRejectionForOneDay> FlowEventGatewayToTimer => new(new("flow_eventGatewayToTimer"), null, null, false, TimerNoRejectionForOneDay.Instance);
+                    public Runtime.SequenceFlow<EventMailRejectedAgain> ToEventMailRejectedAgain => new(new("flow_eventGatewayToMailRejectedAgain"), null, null, false, EventMailRejectedAgain.Instance);
+                    public Runtime.SequenceFlow<TimerNoRejectionForOneDay> ToTimerNoRejectionForOneDay => new(new("flow_eventGatewayToTimer"), null, null, false, TimerNoRejectionForOneDay.Instance);
                 }
             }
 
@@ -191,10 +196,10 @@ public static class SendNewsletterProcessApi
                     public ServiceTaskAnalyzeError ServiceTaskAnalyzeError => ServiceTaskAnalyzeError.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskAnalyzeError> FlowMailRejectedToAnalyze => new(new("flow_mailRejectedToAnalyze"), null, null, false, ServiceTaskAnalyzeError.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskAnalyzeError> ToServiceTaskAnalyzeError => new(new("flow_mailRejectedToAnalyze"), null, null, false, ServiceTaskAnalyzeError.Instance);
                 }
             }
 
@@ -214,10 +219,10 @@ public static class SendNewsletterProcessApi
                     public EscalationEndEventNofitySupportAfterRepeatedError EscalationEndEventNofitySupportAfterRepeatedError => EscalationEndEventNofitySupportAfterRepeatedError.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError> FlowMailRejectedAgainToEscalation => new(new("flow_mailRejectedAgainToEscalation"), null, null, false, EscalationEndEventNofitySupportAfterRepeatedError.Instance);
+                    public Runtime.SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError> ToEscalationEndEventNofitySupportAfterRepeatedError => new(new("flow_mailRejectedAgainToEscalation"), null, null, false, EscalationEndEventNofitySupportAfterRepeatedError.Instance);
                 }
             }
 
@@ -253,11 +258,11 @@ public static class SendNewsletterProcessApi
                     public ServiceTaskSendMailAgain ServiceTaskSendMailAgain => ServiceTaskSendMailAgain.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskSendMailAgain> FlowCanSendAgain => new(new("flow_canSendAgain"), "Yes", null, true, ServiceTaskSendMailAgain.Instance);
-                    public Runtime.SequenceFlow<EscalationEndEventNofitySupport> FlowCannotSendAgain => new(new("flow_cannotSendAgain"), "No", "${rejection.reason == \"PERMANENT\"}", false, EscalationEndEventNofitySupport.Instance);
+                    public Runtime.SequenceFlow<EscalationEndEventNofitySupport> ToEscalationEndEventNofitySupport => new(new("flow_cannotSendAgain"), "No", "${rejection.reason == \"PERMANENT\"}", false, EscalationEndEventNofitySupport.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskSendMailAgain> ToServiceTaskSendMailAgain => new(new("flow_canSendAgain"), "Yes", null, true, ServiceTaskSendMailAgain.Instance);
                 }
             }
 
@@ -277,11 +282,11 @@ public static class SendNewsletterProcessApi
                     public ServiceTaskSendToSubscriber ServiceTaskSendToSubscriber => ServiceTaskSendToSubscriber.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskSendToSubscriber> FlowHasSubscribers => new(new("flow_hasSubscribers"), "Yes", null, true, ServiceTaskSendToSubscriber.Instance);
-                    public Runtime.SequenceFlow<EndEventNoSubscribers> FlowNoSubscribers => new(new("flow_noSubscribers"), "No", "${subscribers.size() > 0}", false, EndEventNoSubscribers.Instance);
+                    public Runtime.SequenceFlow<EndEventNoSubscribers> ToEndEventNoSubscribers => new(new("flow_noSubscribers"), "No", "${subscribers.size() > 0}", false, EndEventNoSubscribers.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskSendToSubscriber> ToServiceTaskSendToSubscriber => new(new("flow_hasSubscribers"), "Yes", null, true, ServiceTaskSendToSubscriber.Instance);
                 }
             }
 
@@ -301,10 +306,10 @@ public static class SendNewsletterProcessApi
                     public GatewayCanSendAgain GatewayCanSendAgain => GatewayCanSendAgain.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<GatewayCanSendAgain> FlowAnalyzeToCanSendAgain => new(new("flow_analyzeToCanSendAgain"), null, null, false, GatewayCanSendAgain.Instance);
+                    public Runtime.SequenceFlow<GatewayCanSendAgain> ToGatewayCanSendAgain => new(new("flow_analyzeToCanSendAgain"), null, null, false, GatewayCanSendAgain.Instance);
                 }
             }
 
@@ -331,10 +336,10 @@ public static class SendNewsletterProcessApi
                     public GatewayHasSubscribers GatewayHasSubscribers => GatewayHasSubscribers.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<GatewayHasSubscribers> FlowLoadSubscribersToGateway => new(new("flow_loadSubscribersToGateway"), null, null, false, GatewayHasSubscribers.Instance);
+                    public Runtime.SequenceFlow<GatewayHasSubscribers> ToGatewayHasSubscribers => new(new("flow_loadSubscribersToGateway"), null, null, false, GatewayHasSubscribers.Instance);
                 }
             }
 
@@ -354,10 +359,10 @@ public static class SendNewsletterProcessApi
                     public EndEventEditionSent EndEventEditionSent => EndEventEditionSent.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EndEventEditionSent> FlowNotifyAuthorToEditionSent => new(new("flow_notifyAuthorToEditionSent"), null, null, false, EndEventEditionSent.Instance);
+                    public Runtime.SequenceFlow<EndEventEditionSent> ToEndEventEditionSent => new(new("flow_notifyAuthorToEditionSent"), null, null, false, EndEventEditionSent.Instance);
                 }
             }
 
@@ -377,10 +382,10 @@ public static class SendNewsletterProcessApi
                     public EventGatewayAfterSendingAgain EventGatewayAfterSendingAgain => EventGatewayAfterSendingAgain.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EventGatewayAfterSendingAgain> FlowSendAgainToEventGateway => new(new("flow_sendAgainToEventGateway"), null, null, false, EventGatewayAfterSendingAgain.Instance);
+                    public Runtime.SequenceFlow<EventGatewayAfterSendingAgain> ToEventGatewayAfterSendingAgain => new(new("flow_sendAgainToEventGateway"), null, null, false, EventGatewayAfterSendingAgain.Instance);
                 }
             }
 
@@ -400,10 +405,10 @@ public static class SendNewsletterProcessApi
                     public ServiceTaskNotifyAuthor ServiceTaskNotifyAuthor => ServiceTaskNotifyAuthor.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskNotifyAuthor> FlowSendToNotifyAuthor => new(new("flow_sendToNotifyAuthor"), null, null, false, ServiceTaskNotifyAuthor.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskNotifyAuthor> ToServiceTaskNotifyAuthor => new(new("flow_sendToNotifyAuthor"), null, null, false, ServiceTaskNotifyAuthor.Instance);
                 }
             }
 
@@ -422,10 +427,10 @@ public static class SendNewsletterProcessApi
                     public ServiceTaskLoadSubscribers ServiceTaskLoadSubscribers => ServiceTaskLoadSubscribers.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskLoadSubscribers> FlowEditionToLoadSubscribers => new(new("flow_editionToLoadSubscribers"), null, null, false, ServiceTaskLoadSubscribers.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskLoadSubscribers> ToServiceTaskLoadSubscribers => new(new("flow_editionToLoadSubscribers"), null, null, false, ServiceTaskLoadSubscribers.Instance);
                 }
             }
 
@@ -445,10 +450,10 @@ public static class SendNewsletterProcessApi
                     public EndEventIssueResolved EndEventIssueResolved => EndEventIssueResolved.Instance;
                 }
 
-                public SequenceFlows Flows => new();
-                public sealed class SequenceFlows
+                public OutgoingSequenceFlows OutgoingFlows => new();
+                public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EndEventIssueResolved> FlowTimerToIssueResolved => new(new("flow_timerToIssueResolved"), null, null, false, EndEventIssueResolved.Instance);
+                    public Runtime.SequenceFlow<EndEventIssueResolved> ToEndEventIssueResolved => new(new("flow_timerToIssueResolved"), null, null, false, EndEventIssueResolved.Instance);
                 }
             }
         }

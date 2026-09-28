@@ -7,6 +7,7 @@ import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
@@ -15,9 +16,10 @@ import javax.lang.model.element.Modifier.STATIC
 /**
  * Emits the typed navigation graph of a Java process API `Flow` class: one nested node class per flow node,
  * carrying its metadata via `AbstractFlowNode`, its own facets (see [JavaFacetWriter]), its reachable
- * successors behind `then()` and its outgoing sequence flows as typed edges behind `flows()`. All nodes are
- * direct children of `Flow`, whatever their subprocess depth; a subprocess class additionally is a
- * `FlowScope` whose `start()` yields the interior's start elements. `Flow` also exposes a static accessor
+ * successors behind `then()` and its outgoing sequence flows behind `outgoingFlows()`, named after the
+ * elements they lead to. All nodes are direct children of `Flow`, whatever their subprocess depth; a subprocess
+ * class additionally is a `FlowScope` whose `start()` yields the interior's start elements, and a boundary event
+ * is marked `BoundaryEvent`. `Flow` also exposes a static accessor
  * method per node, since a Java nested class has to be instantiated to be used as a value.
  */
 internal class JavaFlowWriter {
@@ -38,8 +40,8 @@ internal class JavaFlowWriter {
         if (node.successors.isNotEmpty()) {
             addSuccessors(classBuilder, node)
         }
-        if (node.flows.isNotEmpty()) {
-            addFlows(classBuilder, node)
+        if (node.outgoingFlows.isNotEmpty()) {
+            addOutgoingFlows(classBuilder, node)
         }
         if (node.interiorStarts.isNotEmpty()) {
             addInteriorStarts(classBuilder, node)
@@ -53,8 +55,11 @@ internal class JavaFlowWriter {
         if (node.successors.isNotEmpty()) {
             classBuilder.addSuperinterface(ownHolderInterface("HasSuccessors", node, NEXT_HOLDER))
         }
-        if (node.flows.isNotEmpty()) {
-            classBuilder.addSuperinterface(ownHolderInterface("HasFlows", node, FLOWS_HOLDER))
+        if (node.outgoingFlows.isNotEmpty()) {
+            classBuilder.addSuperinterface(ownHolderInterface("HasOutgoingFlows", node, OUTGOING_FLOWS_HOLDER))
+        }
+        if (node.isBoundaryEvent) {
+            classBuilder.addSuperinterface(ClassName.get(RUNTIME_PACKAGE, "BoundaryEvent"))
         }
     }
 
@@ -76,10 +81,10 @@ internal class JavaFlowWriter {
         classBuilder.addType(accessorHolder(NEXT_HOLDER, node.successors.map { it.propertyName to it.objectName }))
     }
 
-    private fun addFlows(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.addMethod(accessorMethod("flows", FLOWS_HOLDER))
-        val holder = TypeSpec.classBuilder(FLOWS_HOLDER).addModifiers(PUBLIC, STATIC, FINAL)
-        node.flows.forEach { holder.addMethod(flowEdgeMethod(it)) }
+    private fun addOutgoingFlows(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
+        classBuilder.addMethod(accessorMethod("outgoingFlows", OUTGOING_FLOWS_HOLDER))
+        val holder = TypeSpec.classBuilder(OUTGOING_FLOWS_HOLDER).addModifiers(PUBLIC, STATIC, FINAL)
+        node.outgoingFlows.forEach { holder.addMethod(outgoingFlowsMethod(it)) }
         classBuilder.addType(holder.build())
     }
 
@@ -111,28 +116,38 @@ internal class JavaFlowWriter {
         return methodBuilder.build()
     }
 
-    private fun flowEdgeMethod(edge: SequenceFlowEdge): MethodSpec {
-        val sequenceFlowClass = ClassName.get(RUNTIME_PACKAGE, "SequenceFlow")
-        val targetClass = ClassName.get("", edge.target.objectName)
-        return MethodSpec.methodBuilder(edge.propertyName).addModifiers(PUBLIC)
-            .returns(ParameterizedTypeName.get(sequenceFlowClass, targetClass))
-            .addStatement(
-                "return new \$T<>(new \$T(\$S), \$S, \$S, \$L, new \$T())",
-                sequenceFlowClass,
-                ClassName.get(RUNTIME_PACKAGE, "ElementId"),
-                edge.id,
-                edge.name,
-                edge.conditionExpression,
-                edge.isDefault,
-                targetClass,
-            )
-            .build()
+    /**
+     * A single flow to the target is a `SequenceFlow<Target>`; several flows to the same target keep the name and
+     * become a `List<SequenceFlow<Target>>`, so no flow is lost and no sibling is renamed.
+     */
+    private fun outgoingFlowsMethod(flowsToTarget: FlowsToTarget): MethodSpec {
+        val targetClass = ClassName.get("", flowsToTarget.target.objectName)
+        val sequenceFlowType = ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "SequenceFlow"), targetClass)
+        val constructions = flowsToTarget.flows.map { sequenceFlowConstruction(it, targetClass) }
+        val method = MethodSpec.methodBuilder(flowsToTarget.propertyName).addModifiers(PUBLIC)
+        return when (constructions.size) {
+            1 -> method.returns(sequenceFlowType).addStatement("return \$L", constructions.single())
+
+            else -> method.returns(ParameterizedTypeName.get(ClassName.get(List::class.java), sequenceFlowType))
+                .addStatement("return \$T.of(\$L)", List::class.java, CodeBlock.join(constructions, ", "))
+        }.build()
     }
+
+    private fun sequenceFlowConstruction(flow: SequenceFlowEdge, targetClass: ClassName): CodeBlock = CodeBlock.of(
+        "new \$T<>(new \$T(\$S), \$S, \$S, \$L, new \$T())",
+        ClassName.get(RUNTIME_PACKAGE, "SequenceFlow"),
+        ClassName.get(RUNTIME_PACKAGE, "ElementId"),
+        flow.id,
+        flow.name,
+        flow.conditionExpression,
+        flow.isDefault,
+        targetClass,
+    )
 
     private companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
         private const val NEXT_HOLDER = "Next"
-        private const val FLOWS_HOLDER = "Flows"
+        private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"
         private const val START_HOLDER = "Start"
     }
 }

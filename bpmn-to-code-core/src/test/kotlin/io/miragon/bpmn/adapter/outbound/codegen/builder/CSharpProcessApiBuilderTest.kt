@@ -7,10 +7,12 @@ import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.RootElementDefinition
+import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
@@ -70,14 +72,37 @@ class CSharpProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: the navigation sits under FlowVariants.Send, with the gateway's conditional and default edges
+        // then: the navigation sits under FlowVariants.Send, with the gateway's conditional and default flows named after their targets
         assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiCsharp.txt", result.content))
         assertThat(result.content).contains("public static class FlowVariants", "public static class Send")
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<EndEventNoSubscribers> FlowNoSubscribers => new(new(\"flow_noSubscribers\"), \"No\", \"\${subscribers.size() > 0}\", false, EndEventNoSubscribers.Instance);",
+            "public Runtime.SequenceFlow<EndEventNoSubscribers> ToEndEventNoSubscribers => new(new(\"flow_noSubscribers\"), \"No\", \"\${subscribers.size() > 0}\", false, EndEventNoSubscribers.Instance);",
         )
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<ServiceTaskSendToSubscriber> FlowHasSubscribers => new(new(\"flow_hasSubscribers\"), \"Yes\", null, true, ServiceTaskSendToSubscriber.Instance);",
+            "public Runtime.SequenceFlow<ServiceTaskSendToSubscriber> ToServiceTaskSendToSubscriber => new(new(\"flow_hasSubscribers\"), \"Yes\", null, true, ServiceTaskSendToSubscriber.Instance);",
+        )
+    }
+
+    @Test
+    fun `several flows to the same element share one outgoing-flows property as a list`() {
+        // given: a gateway with two conditional flows that both lead to the same task
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Gateway(id = "split", kind = GatewayKind.EXCLUSIVE, outgoing = listOf("flow_small", "flow_vip")),
+                FlowNodeDefinition.Unknown(id = "approve", incoming = listOf("flow_small", "flow_vip")),
+            ),
+            sequenceFlows = listOf(
+                SequenceFlowDefinition("flow_small", "split", "approve", conditionExpression = "=amount < 100"),
+                SequenceFlowDefinition("flow_vip", "split", "approve", conditionExpression = "=customer.isVip"),
+            ),
+        )
+
+        // when
+        val result = underTest.buildApiFile(csharpApi(model))
+
+        // then: one stable name for both flows, typed as a read-only list
+        assertThat(result.content).contains(
+            "public System.Collections.Generic.IReadOnlyList<Runtime.SequenceFlow<Approve>> ToApprove => new Runtime.SequenceFlow<Approve>[] {",
         )
     }
 

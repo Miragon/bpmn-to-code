@@ -2,7 +2,9 @@ package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
+import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.SequenceFlow
 
 /**
  * Edge step: advance to a real successor of the current node and record it. The lambda's parameter `it` is
@@ -10,7 +12,17 @@ import io.miragon.bpmn.runtime.HasSuccessors
  */
 fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.then(pick: (NEXT) -> M): ProcessPath<M> {
     val node = pick(current.then())
-    return ProcessPath(current = node, recorded = nodes + node)
+    return moveTo(node, listOf(node))
+}
+
+/**
+ * Sequence-flow step: advance along an outgoing sequence flow of the current node and record both its target and
+ * the flow itself (see [ProcessPath.flowIds]). The lambda's parameter `it` is the current node's `OutgoingFlows`,
+ * so `it.to<Element>` autocompletes; where several flows lead to the same element, pick one of the list.
+ */
+fun <OUTGOING, M : FlowNode> ProcessPath<out HasOutgoingFlows<OUTGOING>>.via(pick: (OUTGOING) -> SequenceFlow<M>): ProcessPath<M> {
+    val flow = pick(current.outgoingFlows())
+    return moveTo(flow.target, listOf(flow.target), listOf(flow))
 }
 
 /**
@@ -22,7 +34,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.thenMultipleTimes(
     pick: (NEXT) -> M,
 ): ProcessPath<M> {
     val node = pick(current.then())
-    return ProcessPath(current = node, recorded = nodes + List(repeatTimes) { node })
+    return moveTo(node, List(repeatTimes) { node })
 }
 
 /**
@@ -35,7 +47,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.thenMultipleTimes(
  */
 fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.onto(subprocess: (NEXT) -> M): ProcessPath<M> {
     val node = subprocess(current.then())
-    return ProcessPath(current = node, recorded = nodes)
+    return moveTo(node, emptyList())
 }
 
 /**
@@ -49,7 +61,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.onto(subprocess: (
  */
 fun <START, M : FlowNode> ProcessPath<out FlowScope<START>>.enter(pick: (START) -> M): ProcessPath<M> {
     val node = pick(current.start())
-    return ProcessPath(current = node, recorded = nodes + node)
+    return moveTo(node, listOf(node))
 }
 
 /**
@@ -58,7 +70,7 @@ fun <START, M : FlowNode> ProcessPath<out FlowScope<START>>.enter(pick: (START) 
  */
 fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (START) -> M): ProcessPath<M> {
     val node = pick(scope.start())
-    return ProcessPath(current = node, recorded = nodes + node)
+    return moveTo(node, listOf(node))
 }
 
 /**
@@ -72,7 +84,7 @@ fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(
     pick: (NEXT) -> M,
 ): ProcessPath<M> {
     val node = pick(carrier.then())
-    return ProcessPath(current = node, recorded = nodes + node)
+    return moveTo(node, listOf(node))
 }
 
 /**
@@ -87,7 +99,7 @@ fun <START, N : FlowScope<START>> ProcessPath<N>.inside(
     block: ProcessPath<N>.() -> ProcessPath<*>,
 ): ProcessPath<N> {
     val walked = ProcessPath(current = current, recorded = emptyList<FlowNode>()).block()
-    return ProcessPath(current = current, recorded = nodes + walked.nodes)
+    return moveTo(current, walked.nodes, walked.flows)
 }
 
 /**
@@ -103,4 +115,4 @@ fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> = branches.flatMap 
  * [RiskyNavigation] so every use is an explicit `@OptIn`; prefer the checked steps.
  */
 @RiskyNavigation
-fun <M : FlowNode> ProcessPath<*>.jumpTo(node: M): ProcessPath<M> = ProcessPath(current = node, recorded = nodes)
+fun <M : FlowNode> ProcessPath<*>.jumpTo(node: M): ProcessPath<M> = moveTo(node, emptyList())
