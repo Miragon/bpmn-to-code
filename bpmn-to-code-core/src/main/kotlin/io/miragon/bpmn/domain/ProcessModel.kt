@@ -42,6 +42,11 @@ data class ProcessModel(
     val detectedEngine: ProcessEngine? = null,
     val variantName: String? = null,
     val variants: List<Variant> = emptyList(),
+    /**
+     * Bare file name the model was read from, for error messages only. Never emit it into generated
+     * output, or renaming a file would change the generated code. Null once several files are merged.
+     */
+    val sourceFileName: String? = null,
 ) {
 
     val graph: ProcessGraph by lazy { ProcessGraph(flowNodes, sequenceFlows) }

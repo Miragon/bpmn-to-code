@@ -481,16 +481,16 @@ class ModelMergerServiceTest {
     }
 
     @Test
-    fun `rejects a process id defined in several files and names the files`() {
-        // given: two files defining the same process id
-        val sources = listOf(
-            "bike-leasing-v1.bpmn" to testProcessModel(processId = "bike-leasing"),
-            "bike-leasing-v2.bpmn" to testProcessModel(processId = "bike-leasing"),
-            "bike-return.bpmn" to testProcessModel(processId = "bike-return"),
+    fun `rejects a process id defined in several files unless variants are enabled`() {
+        // given: two variants of one process, each from its own file
+        val models = listOf(
+            testProcessModel(processId = "bike-leasing", variantName = "v2", sourceFileName = "bike-leasing-v2.bpmn"),
+            testProcessModel(processId = "bike-leasing", variantName = "v1", sourceFileName = "bike-leasing-v1.bpmn"),
+            testProcessModel(processId = "bike-return", sourceFileName = "bike-return.bpmn"),
         )
 
-        // when / then
-        assertThatThrownBy { underTest.requireUniqueProcessIds(sources) }
+        // when / then: merging without variants fails naming both files
+        assertThatThrownBy { underTest.mergeModels(models, enableVariants = false) }
             .isInstanceOf(DuplicateProcessIdException::class.java)
             .hasMessageContaining("'bike-leasing'")
             .hasMessageContaining("bike-leasing-v1.bpmn, bike-leasing-v2.bpmn")
@@ -498,14 +498,17 @@ class ModelMergerServiceTest {
     }
 
     @Test
-    fun `accepts process ids that are each defined in one file`() {
+    fun `merges process ids that are each defined in one file when variants are disabled`() {
         // given: every process id comes from its own file
-        val sources = listOf(
-            "bike-leasing.bpmn" to testProcessModel(processId = "bike-leasing"),
-            "bike-return.bpmn" to testProcessModel(processId = "bike-return"),
+        val models = listOf(
+            testProcessModel(processId = "bike-leasing", sourceFileName = "bike-leasing.bpmn"),
+            testProcessModel(processId = "bike-return", sourceFileName = "bike-return.bpmn"),
         )
 
-        // when / then
-        underTest.requireUniqueProcessIds(sources)
+        // when: merging without variants
+        val result = underTest.mergeModels(models, enableVariants = false)
+
+        // then: each process is kept on its own
+        assertThat(result.map { it.processId }).containsExactly("bike-leasing", "bike-return")
     }
 }

@@ -14,19 +14,16 @@ class ModelMergerService {
      * A process backed by several files gains one [Variant] per file, with [ProcessModel.flowNodes]
      * holding their union.
      */
-    fun mergeModels(models: List<ProcessModel>): List<ProcessModel> {
+    fun mergeModels(models: List<ProcessModel>, enableVariants: Boolean = true): List<ProcessModel> {
         val groupedModels = models.groupBy { it.processId }.entries.sortedBy { it.key }
-        return groupedModels.map { (processId, modelsOfProcess) -> merge(processId, modelsOfProcess).sortContent() }
+        return groupedModels.map { (processId, modelsOfProcess) ->
+            merge(processId, modelsOfProcess, enableVariants).sortContent()
+        }
     }
 
-    fun requireUniqueProcessIds(modelsByFileName: List<Pair<String, ProcessModel>>) {
-        val fileNamesByProcessId = modelsByFileName.groupBy({ (_, model) -> model.processId }, { (fileName, _) -> fileName })
-        val duplicate = fileNamesByProcessId.entries.firstOrNull { it.value.size > 1 } ?: return
-        throw DuplicateProcessIdException(duplicate.key, duplicate.value)
-    }
-
-    private fun merge(processId: String, models: List<ProcessModel>): ProcessModel {
+    private fun merge(processId: String, models: List<ProcessModel>, enableVariants: Boolean): ProcessModel {
         if (models.size == 1) return models.first().deduplicated()
+        if (!enableVariants) throw DuplicateProcessIdException(processId, models.mapNotNull { it.sourceFileName })
         requireVariantNames(processId, models)
         val sorted = models.sortedBy { requireNotNull(it.variantName) }
         val merged = mergeScopes(sorted.map { it.scope() })

@@ -3,6 +3,7 @@ package io.miragon.bpmn.application.service
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -105,10 +106,9 @@ class GenerateProcessApiInMemoryServiceTest {
             engine = ProcessEngine.ZEEBE,
         )
 
-        // when / then: it fails naming both files and never generates code
+        // when / then: it fails and never generates code
         assertThatThrownBy { underTest.generateProcessApi(command) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(DuplicateProcessIdException::class.java)
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
     }
 

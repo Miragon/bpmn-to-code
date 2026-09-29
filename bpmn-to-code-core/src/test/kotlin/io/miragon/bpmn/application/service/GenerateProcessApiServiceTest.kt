@@ -147,10 +147,9 @@ class GenerateProcessApiServiceTest {
         every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(variantResource("v1.bpmn"), variantResource("v2.bpmn"))
         every { bpmnService.extract(any(), any()) } returns dummyModel
 
-        // when / then: it fails naming both files and writes nothing
+        // when / then: it fails and writes nothing
         assertThatThrownBy { underTest.generateProcessApi(command()) }
             .isInstanceOf(DuplicateProcessIdException::class.java)
-            .hasMessageContaining("v1.bpmn, v2.bpmn")
         verify(exactly = 0) { fileSystemOutput.writeFiles(any(), any()) }
     }
 

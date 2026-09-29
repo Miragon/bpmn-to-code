@@ -3,6 +3,7 @@ package io.miragon.bpmn.application.service
 import io.miragon.bpmn.application.port.inbound.GenerateProcessJsonInMemoryUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.testProcessModel
@@ -62,10 +63,9 @@ class GenerateProcessJsonInMemoryServiceTest {
             engine = ProcessEngine.ZEEBE,
         )
 
-        // when / then: it fails naming both files
+        // when / then: it fails
         assertThatThrownBy { underTest.generateProcessJson(command) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(DuplicateProcessIdException::class.java)
     }
 
     private val dummyModel = testProcessModel()

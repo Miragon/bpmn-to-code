@@ -30,6 +30,7 @@ fun testProcessModel(
     escalations: List<RootElementDefinition.Escalation> = emptyList(),
     detectedEngine: ProcessEngine? = null,
     variants: List<ProcessModel.Variant> = emptyList(),
+    sourceFileName: String? = null,
 ) = ProcessModel(
     processId = processId,
     processName = processName,
@@ -39,6 +40,7 @@ fun testProcessModel(
     definitions = RootElements(messages, signals, errors, escalations),
     detectedEngine = detectedEngine,
     variants = variants,
+    sourceFileName = sourceFileName,
 )
 
 fun testProcessModelApi(
