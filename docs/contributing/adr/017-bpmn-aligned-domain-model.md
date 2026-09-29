@@ -88,6 +88,9 @@ fields — that is the shape consumers read. `FlowScope` is the shape the pair t
 and `ModelMergerService` merges and sorts one. Before it had a name, those two had independently grown their
 own private `Scope` DTO for exactly this.
 
+> **Update (2026-09):** Merging and sorting a scope are now `FlowScope.merge(...)` and `FlowScope.sorted()`, and
+> `ProcessModel.mergeByProcessId(...)` replaces `ModelMergerService`.
+
 Because merging, validation, collision detection and the code builders all reason over a flat node set,
 `ProcessModel` exposes a derived DFS-flattened view:
 

@@ -13,7 +13,6 @@ import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
-import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class GenerateProcessJsonService(
@@ -23,14 +22,13 @@ class GenerateProcessJsonService(
     private val fileSaver: SaveProcessJsonPort = ProcessJsonFileSaver(),
 ) : GenerateProcessJsonFromFilesystemUseCase {
 
-    private val modelMergerService = ModelMergerService()
-
     override fun generateProcessJson(command: GenerateProcessJsonFromFilesystemUseCase.Command) {
         val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val models = inputFiles.map { bpmnExtractor.extract(it, command.engine) }
         validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
-        val mergedModels = modelMergerService.mergeModels(inputFiles.zip(models, ::toSourcedModel), command.enableVariants)
+        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(inputFiles.zip(models, ::toSourcedModel))
+        val mergedModels = ProcessModel.mergeByProcessId(models)
         validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         val generatedFiles = mergedModels.map { jsonGenerator.generateJson(it) }
         fileSaver.writeFiles(generatedFiles, command.outputFolderPath)

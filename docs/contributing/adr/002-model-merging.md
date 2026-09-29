@@ -44,3 +44,7 @@ All elements from variants are combined using `distinctBy { it.getName() }` to c
 
 ## Implementation
 Merging occurs in `ModelMergerService` before code generation, ensuring single API per process ID.
+
+> **Update (2026-09):** `ModelMergerService` is gone. `ProcessModel.mergeByProcessId(models)` merges the models,
+> `FlowScope.merge(...)` and `FlowScope.sorted()` merge and sort one scope, and
+> `SourcedProcessModel.requireUniqueProcessIds(...)` rejects duplicate ids when variants are disabled.

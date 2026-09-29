@@ -3,7 +3,6 @@ package io.miragon.bpmn.testing
 import io.miragon.bpmn.adapter.inbound.ExtractProcessModelsPlugin
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
-import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
@@ -122,7 +121,7 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
             return ValidationResult(preMergeViolations)
         }
 
-        val mergedModels = ModelMergerService().mergeModels(models)
+        val mergedModels = ProcessModel.mergeByProcessId(models)
         val postMergeViolations = mergedModels.flatMap { merged ->
             val ctx = SingleModelValidationContext(merged, engine)
             val violations = postMergeRules.flatMap { it.validate(ctx) }

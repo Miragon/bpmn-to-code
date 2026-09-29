@@ -10,7 +10,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
  */
 data class CrossModelValidationContext(val models: List<ProcessModel>, val engine: ProcessEngine) {
 
-    // Process ids are unique after merging (ModelMergerService returns one model per id).
+    // Process ids are unique after merging (ProcessModel.mergeByProcessId returns one model per id).
     private val byProcessId = models.associateBy { it.processId }
 
     /**
