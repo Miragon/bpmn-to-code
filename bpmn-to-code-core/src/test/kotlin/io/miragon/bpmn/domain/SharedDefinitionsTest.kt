@@ -1,17 +1,13 @@
-package io.miragon.bpmn.domain.service
+package io.miragon.bpmn.domain
 
-import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.RootElementDefinition
-import io.miragon.bpmn.domain.testProcessModel
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class SharedDefinitionsServiceTest {
-
-    private val underTest = SharedDefinitionsService()
+class SharedDefinitionsTest {
 
     @Test
-    fun `collect keeps one entry for a job type and message shared by two processes`() {
+    fun `from keeps one entry for a job type and message shared by two processes`() {
         // given: two processes using the same job type and message
         val first = testProcessModel(
             processId = "first",
@@ -25,7 +21,7 @@ class SharedDefinitionsServiceTest {
         )
 
         // when: collecting the shared definitions
-        val result = underTest.collect(listOf(first, second))
+        val result = SharedDefinitions.from(listOf(first, second))
 
         // then: each identifier appears once
         assertThat(result.serviceTasks.map { it.getValue() }).containsExactly("newsletter.sendMail")
@@ -33,7 +29,7 @@ class SharedDefinitionsServiceTest {
     }
 
     @Test
-    fun `collect keeps errors with the same name and different codes apart`() {
+    fun `from keeps errors with the same name and different codes apart`() {
         // given: two errors sharing a name
         val model = testProcessModel(
             errors = listOf(
@@ -43,26 +39,26 @@ class SharedDefinitionsServiceTest {
         )
 
         // when: collecting the shared definitions
-        val result = underTest.collect(listOf(model))
+        val result = SharedDefinitions.from(listOf(model))
 
         // then: both errors are kept, sorted
         assertThat(result.errors.map { it.getValue() }).containsExactly("InvalidMail" to "400", "InvalidMail" to "500")
     }
 
     @Test
-    fun `collect skips definitions without a name`() {
+    fun `from skips definitions without a name`() {
         // given: a signal without a name
         val model = testProcessModel(signals = listOf(RootElementDefinition.Signal(id = "Signal_1", name = null)))
 
         // when: collecting the shared definitions
-        val result = underTest.collect(listOf(model))
+        val result = SharedDefinitions.from(listOf(model))
 
         // then: nothing is collected
         assertThat(result.signals).isEmpty()
     }
 
     @Test
-    fun `collect keeps one entry for root elements of one process that share a name`() {
+    fun `from keeps one entry for root elements of one process that share a name`() {
         // given: two message root elements with the same name and their own ids
         val model = testProcessModel(
             messages = listOf(
@@ -72,7 +68,7 @@ class SharedDefinitionsServiceTest {
         )
 
         // when: collecting the shared definitions
-        val result = underTest.collect(listOf(model))
+        val result = SharedDefinitions.from(listOf(model))
 
         // then: a duplicate constant would not compile, so only one entry remains
         assertThat(result.messages.map { it.getValue() }).containsExactly("Message_FormSubmitted")
