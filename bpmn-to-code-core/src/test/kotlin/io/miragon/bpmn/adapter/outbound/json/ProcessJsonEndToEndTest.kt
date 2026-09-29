@@ -1,11 +1,10 @@
 package io.miragon.bpmn.adapter.outbound.json
 
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonInMemoryPlugin
+import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import java.io.File
 
 /**
  * Snapshots the **whole** pipeline: a real BPMN file in, the published JSON out.
@@ -35,16 +34,7 @@ class ProcessJsonEndToEndTest {
         val generated = underTest.execute(listOf(input), engine).single().content
 
         // then: it matches the committed snapshot byte for byte
-        assertThat(generated).isEqualToIgnoringWhitespace(golden(fixture, generated))
-    }
-
-    private fun golden(fixture: String, generated: String): String {
-        val path = "/json/e2e/$fixture.json"
-        if (System.getProperty("golden.update") == "true") {
-            File("src/test/resources$path").apply { parentFile.mkdirs() }.writeText(generated)
-            return generated
-        }
-        return readResource(path)
+        assertMatchesGolden(generated, "/json/e2e/$fixture.json")
     }
 
     private fun readResource(path: String): String = requireNotNull(javaClass.getResourceAsStream(path)) { "missing resource $path" }
