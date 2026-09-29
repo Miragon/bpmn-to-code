@@ -1,5 +1,7 @@
 package io.miragon.bpmn.domain.service
 
+import io.miragon.bpmn.domain.DuplicateProcessIdException
+import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
@@ -477,5 +479,37 @@ class ModelMergerServiceTest {
         assertThatThrownBy { underTest.mergeModels(listOf(model1, model2)) }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("variantName")
+    }
+
+    @Test
+    fun `rejects a process id defined in several files unless variants are enabled`() {
+        // given: two variants of one process, each from its own file
+        val models = listOf(
+            SourcedProcessModel("bike-leasing-v2.bpmn", testProcessModel(processId = "bike-leasing", variantName = "v2")),
+            SourcedProcessModel("bike-leasing-v1.bpmn", testProcessModel(processId = "bike-leasing", variantName = "v1")),
+            SourcedProcessModel("bike-return.bpmn", testProcessModel(processId = "bike-return")),
+        )
+
+        // when / then: merging without variants fails naming both files
+        assertThatThrownBy { underTest.mergeModels(models, enableVariants = false) }
+            .isInstanceOf(DuplicateProcessIdException::class.java)
+            .hasMessageContaining("'bike-leasing'")
+            .hasMessageContaining("bike-leasing-v1.bpmn, bike-leasing-v2.bpmn")
+            .hasMessageContaining("enableVariants")
+    }
+
+    @Test
+    fun `merges process ids that are each defined in one file when variants are disabled`() {
+        // given: every process id comes from its own file
+        val models = listOf(
+            SourcedProcessModel("bike-leasing.bpmn", testProcessModel(processId = "bike-leasing")),
+            SourcedProcessModel("bike-return.bpmn", testProcessModel(processId = "bike-return")),
+        )
+
+        // when: merging without variants
+        val result = underTest.mergeModels(models, enableVariants = false)
+
+        // then: each process is kept on its own
+        assertThat(result.map { it.processId }).containsExactly("bike-leasing", "bike-return")
     }
 }

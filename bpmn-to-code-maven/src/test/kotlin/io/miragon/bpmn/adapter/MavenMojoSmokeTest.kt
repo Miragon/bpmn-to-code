@@ -1,6 +1,8 @@
 package io.miragon.bpmn.adapter
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -50,6 +52,28 @@ class MavenMojoSmokeTest {
         }
         assertThat(generatedFiles).allSatisfy { file -> assertThat(file.isFile).isTrue() }
         assertThat(generatedFiles).allSatisfy { file -> assertThat(file.name).endsWith(expectedExt) }
+    }
+
+    @Test
+    fun `mojo rejects files sharing a process id unless variants are enabled`(@TempDir projectDir: File) {
+        // given: the same process copied into two files
+        val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
+        val bpmnBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes()
+        File(resourcesDir, "bike-leasing-a.bpmn").writeBytes(bpmnBytes)
+        File(resourcesDir, "bike-leasing-b.bpmn").writeBytes(bpmnBytes)
+        val mojo = BpmnModelMojo()
+        setField(mojo, "baseDir", projectDir.absolutePath)
+        setField(mojo, "filePattern", "src/main/resources/*.bpmn")
+        setField(mojo, "outputFolderPath", File(projectDir, "build/generated").absolutePath)
+        setField(mojo, "packagePath", "io.miragon.smoketest")
+        setField(mojo, "outputLanguage", "KOTLIN")
+        setField(mojo, "processEngine", "ZEEBE")
+
+        // when / then: the mojo fails naming both files
+        assertThatThrownBy { mojo.execute() }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("bike-leasing-a.bpmn, bike-leasing-b.bpmn")
+            .hasMessageContaining("enableVariants")
     }
 
     private fun setField(obj: Any, name: String, value: Any) {

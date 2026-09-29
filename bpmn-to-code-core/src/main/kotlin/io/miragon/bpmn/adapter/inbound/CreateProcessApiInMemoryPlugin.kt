@@ -17,12 +17,14 @@ class CreateProcessApiInMemoryPlugin(
         outputLanguage: OutputLanguage,
         engine: ProcessEngine,
         validationConfig: ValidationConfig = ValidationConfig(),
+        enableVariants: Boolean = false,
     ): List<GeneratedApiFile> = useCase.generateProcessApi(
         GenerateProcessApiInMemoryUseCase.Command(
             packagePath = packagePath,
             outputLanguage = outputLanguage,
             engine = engine,
             validationConfig = validationConfig,
+            enableVariants = enableVariants,
             bpmnContents = bpmnContents.map {
                 GenerateProcessApiInMemoryUseCase.BpmnInput(
                     bpmnXml = it.bpmnXml,

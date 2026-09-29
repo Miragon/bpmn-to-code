@@ -18,5 +18,6 @@ data class GenerateJsonRequest(
     @Serializable
     data class JsonGenerationConfig(
         val processEngine: ProcessEngine,
+        val enableVariants: Boolean = false,
     )
 }

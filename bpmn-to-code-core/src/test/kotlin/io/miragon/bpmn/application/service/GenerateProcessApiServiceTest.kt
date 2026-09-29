@@ -7,6 +7,7 @@ import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnResource
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -17,6 +18,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class GenerateProcessApiServiceTest {
@@ -138,6 +140,35 @@ class GenerateProcessApiServiceTest {
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
         verify { fileSystemOutput.writeFiles(emptyList(), "outputFolder") }
     }
+
+    @Test
+    fun `generateProcessApi rejects files sharing a process id unless variants are enabled`() {
+        // given: two files defining the same process id
+        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(variantResource("v1.bpmn"), variantResource("v2.bpmn"))
+        every { bpmnService.extract(any(), any()) } returns dummyModel
+
+        // when / then: it fails naming both files and writes nothing
+        assertThatThrownBy { underTest.generateProcessApi(command()) }
+            .isInstanceOf(DuplicateProcessIdException::class.java)
+            .hasMessageContaining("v1.bpmn, v2.bpmn")
+        verify(exactly = 0) { fileSystemOutput.writeFiles(any(), any()) }
+    }
+
+    @Test
+    fun `generateProcessApi merges files sharing a process id into variants when enabled`() {
+        // given: two variants of the same process and variants enabled
+        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(variantResource("v1.bpmn"), variantResource("v2.bpmn"))
+        every { bpmnService.extract(match { it.fileName == "v1.bpmn" }, any()) } returns dummyModel.copy(variantName = "v1")
+        every { bpmnService.extract(match { it.fileName == "v2.bpmn" }, any()) } returns dummyModel.copy(variantName = "v2")
+
+        // when: generateProcessApi is invoked
+        val results = underTest.generateProcessApi(command().copy(enableVariants = true))
+
+        // then: one merged process backed by both files
+        assertThat(results).containsExactly(BpmnFileResult(dummyModel.processId, listOf("v1.bpmn", "v2.bpmn")))
+    }
+
+    private fun variantResource(fileName: String) = BpmnResource(fileName = fileName, content = "<bpmn></bpmn>".encodeToByteArray())
 
     private val dummyModel = ProcessModel(
         processId = "newsletterSubscription",

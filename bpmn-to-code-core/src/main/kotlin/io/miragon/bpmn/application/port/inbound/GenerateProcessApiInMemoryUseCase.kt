@@ -14,6 +14,7 @@ interface GenerateProcessApiInMemoryUseCase {
         val outputLanguage: OutputLanguage,
         val engine: ProcessEngine,
         val validationConfig: ValidationConfig = ValidationConfig(),
+        val enableVariants: Boolean = false,
     )
 
     data class BpmnInput(

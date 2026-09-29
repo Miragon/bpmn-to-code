@@ -15,6 +15,7 @@ class CreateProcessJsonFilesystemPlugin(
         outputFolderPath: String,
         engine: ProcessEngine,
         validationConfig: ValidationConfig = ValidationConfig(),
+        enableVariants: Boolean = false,
     ) = useCase.generateProcessJson(
         GenerateProcessJsonFromFilesystemUseCase.Command(
             baseDir = baseDir,
@@ -22,6 +23,7 @@ class CreateProcessJsonFilesystemPlugin(
             outputFolderPath = outputFolderPath,
             engine = engine,
             validationConfig = validationConfig,
+            enableVariants = enableVariants,
         ),
     )
 }

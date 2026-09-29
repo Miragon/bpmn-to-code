@@ -1,5 +1,6 @@
 package io.miragon.bpmn.web.service
 
+import io.ktor.http.HttpStatusCode
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.web.model.GenerateJsonRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -61,6 +62,48 @@ class WebJsonGenerationServiceTest {
         assertThat(response.success).isFalse()
         assertThat(response.error).isNotNull()
         assertThat(response.files).isEmpty()
+    }
+
+    @Test
+    fun `should reject files sharing a process id unless variants are enabled`() {
+        // given: two variants of the same process without enabling variants
+        val request = variantRequest(enableVariants = false)
+
+        // when: generating JSON
+        val response = underTest.generate(request)
+
+        // then: a bad request names both files and the opt-in flag
+        assertThat(response.success).isFalse()
+        assertThat(response.statusCode).isEqualTo(HttpStatusCode.BadRequest)
+        assertThat(response.error).contains("corporate, private", "enableVariants")
+    }
+
+    @Test
+    fun `should merge files sharing a process id into one JSON when variants are enabled`() {
+        // given: two variants of the same process with variants enabled
+        val request = variantRequest(enableVariants = true)
+
+        // when: generating JSON
+        val response = underTest.generate(request)
+
+        // then: one JSON file for the merged process
+        assertThat(response.success).describedAs("Generation should succeed but got: ${response.error}").isTrue()
+        assertThat(response.files).hasSize(1)
+    }
+
+    private fun variantRequest(enableVariants: Boolean): GenerateJsonRequest {
+        val corporateXml = String(Base64.getDecoder().decode(loadSampleBase64("examples/zeebe-bike-leasing.bpmn")))
+        val privateXml = corporateXml.replace("name=\"variantName\" value=\"corporate\"", "name=\"variantName\" value=\"private\"")
+        return GenerateJsonRequest(
+            files = listOf(
+                GenerateJsonRequest.BpmnFileData(fileName = "corporate.bpmn", content = Base64.getEncoder().encodeToString(corporateXml.encodeToByteArray())),
+                GenerateJsonRequest.BpmnFileData(fileName = "private.bpmn", content = Base64.getEncoder().encodeToString(privateXml.encodeToByteArray())),
+            ),
+            config = GenerateJsonRequest.JsonGenerationConfig(
+                processEngine = ProcessEngine.ZEEBE,
+                enableVariants = enableVariants,
+            ),
+        )
     }
 
     private fun loadSampleBase64(resourcePath: String): String {

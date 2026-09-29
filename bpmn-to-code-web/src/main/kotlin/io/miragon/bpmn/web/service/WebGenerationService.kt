@@ -2,6 +2,7 @@ package io.miragon.bpmn.web.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiInMemoryPlugin
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.validation.BpmnValidationException
@@ -20,12 +21,12 @@ class WebGenerationService(
     fun generate(request: GenerateRequest): GenerateResponse {
         val config = request.config
         logger.info { "Generating API for ${request.files.size} file(s) [${config.outputLanguage}, ${config.processEngine}]" }
-        try {
+        return try {
             val bpmnInputs = request.files.map { this.buildCommand(it) }
             val generatedApiFiles = this.executePlugin(request.config, bpmnInputs)
             val generatedFiles = generatedApiFiles.map { mapToResponse(it) }
             val runsOnJvm = config.outputLanguage.runsOnJvm()
-            return GenerateResponse(
+            GenerateResponse(
                 success = true,
                 files = generatedFiles,
                 libraryFiles = if (runsOnJvm) librarySourceProvider.libraryFiles() else emptyList(),
@@ -33,13 +34,16 @@ class WebGenerationService(
             )
         } catch (e: BpmnValidationException) {
             logger.error(e) { "BPMN validation failed during generation" }
-            return GenerateResponse.fromValidationException(e)
+            GenerateResponse.fromValidationException(e)
+        } catch (e: DuplicateProcessIdException) {
+            logger.warn { e.message }
+            GenerateResponse.fromDuplicateProcessIdException(e)
         } catch (e: IllegalStateException) {
             logger.error(e) { "Unexpected error during generation" }
-            return GenerateResponse.unknownError()
+            GenerateResponse.unknownError()
         } catch (e: IllegalArgumentException) {
             logger.error(e) { "Unexpected error during generation" }
-            return GenerateResponse.unknownError()
+            GenerateResponse.unknownError()
         }
     }
 
@@ -51,6 +55,7 @@ class WebGenerationService(
         packagePath = "com.example.process",
         outputLanguage = config.outputLanguage,
         engine = config.processEngine,
+        enableVariants = config.enableVariants,
     )
 
     private fun buildCommand(file: GenerateRequest.BpmnFileData): CreateProcessApiInMemoryPlugin.BpmnInput {

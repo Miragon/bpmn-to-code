@@ -75,6 +75,7 @@ class GenerateProcessApiDeterministicOrderTest {
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
             engine = ProcessEngine.ZEEBE,
+            enableVariants = true,
         )
         return underTest.generateProcessApi(command)
     }

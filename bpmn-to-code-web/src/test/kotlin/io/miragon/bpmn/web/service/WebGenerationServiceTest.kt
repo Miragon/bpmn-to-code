@@ -1,5 +1,6 @@
 package io.miragon.bpmn.web.service
 
+import io.ktor.http.HttpStatusCode
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.web.model.GenerateRequest
@@ -187,13 +188,12 @@ class WebGenerationServiceTest {
 
     @Test
     fun `should process up to 3 BPMN files successfully`() {
-        // given: a request with 3 identical BPMN files
-        val c8Base64 = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")
+        // given: a request with 3 different BPMN processes
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(fileName = "zeebe-bike-leasing.bpmn", content = c8Base64),
-                GenerateRequest.BpmnFileData(fileName = "zeebe-bike-leasing-copy1.bpmn", content = c8Base64),
-                GenerateRequest.BpmnFileData(fileName = "zeebe-bike-leasing-copy2.bpmn", content = c8Base64),
+                GenerateRequest.BpmnFileData(fileName = "bike-leasing.bpmn", content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")),
+                GenerateRequest.BpmnFileData(fileName = "membership.bpmn", content = loadBpmnBase64("bpmn/zeebe/membership.bpmn")),
+                GenerateRequest.BpmnFileData(fileName = "welcome-package.bpmn", content = loadBpmnBase64("bpmn/zeebe/welcome-package.bpmn")),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
@@ -208,6 +208,30 @@ class WebGenerationServiceTest {
         assertThat(response.error).isNull()
         assertThat(response.success).describedAs("Should successfully process 3 files").isTrue()
         assertThat(response.files).describedAs("Should generate at least one API file").isNotEmpty()
+    }
+
+    @Test
+    fun `should reject files sharing a process id unless variants are enabled`() {
+        // given: the same process uploaded twice without enabling variants
+        val c8Base64 = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")
+        val request = GenerateRequest(
+            files = listOf(
+                GenerateRequest.BpmnFileData(fileName = "bike-leasing-a.bpmn", content = c8Base64),
+                GenerateRequest.BpmnFileData(fileName = "bike-leasing-b.bpmn", content = c8Base64),
+            ),
+            config = GenerateRequest.GenerationConfig(
+                outputLanguage = OutputLanguage.KOTLIN,
+                processEngine = ProcessEngine.ZEEBE,
+            ),
+        )
+
+        // when: generating the API
+        val response = underTest.generate(request)
+
+        // then: a bad request names both files and the opt-in flag
+        assertThat(response.success).isFalse()
+        assertThat(response.statusCode).isEqualTo(HttpStatusCode.BadRequest)
+        assertThat(response.error).contains("bike-leasing-a, bike-leasing-b", "enableVariants")
     }
 
     private fun loadBpmnBase64(resourcePath: String): String {

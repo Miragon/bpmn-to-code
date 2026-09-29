@@ -12,6 +12,7 @@ interface GenerateProcessJsonInMemoryUseCase {
         val bpmnContents: List<BpmnInput>,
         val engine: ProcessEngine,
         val validationConfig: ValidationConfig = ValidationConfig(),
+        val enableVariants: Boolean = false,
     )
 
     data class BpmnInput(

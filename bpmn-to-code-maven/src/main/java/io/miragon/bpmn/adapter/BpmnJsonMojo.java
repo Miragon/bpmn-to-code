@@ -30,6 +30,9 @@ public class BpmnJsonMojo extends AbstractMojo {
 	@Parameter(property = "processEngine")
 	private String processEngine;
 
+	@Parameter(property = "enableVariants", defaultValue = "false")
+	private boolean enableVariants;
+
 	/**
 	 * Default constructor for maven purposes
 	 */
@@ -41,7 +44,7 @@ public class BpmnJsonMojo extends AbstractMojo {
 	public void execute() {
 		CreateProcessJsonFilesystemPlugin plugin = new CreateProcessJsonFilesystemPlugin();
 		ProcessEngine engine = ProcessEngine.valueOf(processEngine);
-		plugin.execute(baseDir, filePattern, outputFolderPath, engine, new ValidationConfig());
+		plugin.execute(baseDir, filePattern, outputFolderPath, engine, new ValidationConfig(), enableVariants);
 		getLog().info("BPMN JSON files generated successfully");
 	}
 

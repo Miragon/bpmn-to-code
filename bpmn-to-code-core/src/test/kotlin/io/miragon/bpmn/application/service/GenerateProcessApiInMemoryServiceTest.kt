@@ -3,6 +3,7 @@ package io.miragon.bpmn.application.service
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -89,6 +90,52 @@ class GenerateProcessApiInMemoryServiceTest {
             .extracting("violations")
             .matches { (it as List<*>).size == 1 }
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
+    }
+
+    @Test
+    fun `service rejects files sharing a process id unless variants are enabled`() {
+        // given: two files defining the same process id
+        every { bpmnService.extract(any(), any()) } returns dummyModel
+        val command = GenerateProcessApiInMemoryUseCase.Command(
+            bpmnContents = listOf(
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v1</bpmn>", processName = "v1.bpmn"),
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v2</bpmn>", processName = "v2.bpmn"),
+            ),
+            packagePath = "com.example",
+            outputLanguage = OutputLanguage.KOTLIN,
+            engine = ProcessEngine.ZEEBE,
+        )
+
+        // when / then: it fails naming both files and never generates code
+        assertThatThrownBy { underTest.generateProcessApi(command) }
+            .isInstanceOf(DuplicateProcessIdException::class.java)
+            .hasMessageContaining("v1.bpmn, v2.bpmn")
+        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+    }
+
+    @Test
+    fun `service merges files sharing a process id into variants when enabled`() {
+        // given: two variants of the same process and variants enabled
+        every { bpmnService.extract(match { it.fileName == "v1.bpmn" }, any()) } returns dummyModel.copy(variantName = "v1")
+        every { bpmnService.extract(match { it.fileName == "v2.bpmn" }, any()) } returns dummyModel.copy(variantName = "v2")
+        val command = GenerateProcessApiInMemoryUseCase.Command(
+            bpmnContents = listOf(
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v1</bpmn>", processName = "v1.bpmn"),
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v2</bpmn>", processName = "v2.bpmn"),
+            ),
+            packagePath = "com.example",
+            outputLanguage = OutputLanguage.KOTLIN,
+            engine = ProcessEngine.ZEEBE,
+            enableVariants = true,
+        )
+
+        // when: generateProcessApi is called
+        underTest.generateProcessApi(command)
+
+        // then: a single merged model with both variants is generated
+        verify(exactly = 1) {
+            codeGenerator.generateCode(match { api -> api.model.variants.map { it.variantName } == listOf("v1", "v2") })
+        }
     }
 
     private val dummyModel = ProcessModel(
