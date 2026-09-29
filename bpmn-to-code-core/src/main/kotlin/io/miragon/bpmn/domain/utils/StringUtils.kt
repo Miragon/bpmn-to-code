@@ -13,7 +13,7 @@ object StringUtils {
      * @sample toUpperSnakeCase will convert io.camunda:http-json:1 to IO_CAMUNDA_HTTP_JSON_1
      */
     fun String.toUpperSnakeCase(): String = this
-        .replace(Regex("[#\${}]"), "") // Strip expression language syntax
+        .replace(Regex($$"[#${}]"), "") // Strip expression language syntax
         .replace(Regex("(?<=[a-zA-Z])(?=[0-9])"), "_") // Boundary between a letter and a digit
         .replace(Regex("(?<=[0-9])(?=[a-zA-Z])"), "_") // Boundary between a digit and a letter
         .replace(Regex("(?<=[a-z])(?=[A-Z])"), "_") // camelCase word boundary
@@ -30,7 +30,7 @@ object StringUtils {
      * @sample removeExpressionSyntax("#{sendMailDelegate}") returns "sendMailDelegate"
      * @sample removeExpressionSyntax("normalString") returns "normalString"
      */
-    fun String.removeExpressionSyntax(): String = this.replace(Regex("[#\${}]"), "")
+    fun String.removeExpressionSyntax(): String = this.replace(Regex($$"[#${}]"), "")
 
     /**
      * Converts a string with underscores to CamelCase, capitalising the first letter of each segment.

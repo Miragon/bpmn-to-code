@@ -132,7 +132,7 @@ class FlowGraphFactoryTest {
     fun `service task carries its job type and directional variables`() {
         val facets = leasingGraph.node("serviceTaskSendContract").facets
 
-        assertThat(facets.jobType?.value).isEqualTo("\${sendContractDelegate}")
+        assertThat(facets.jobType?.value).isEqualTo($$"${sendContractDelegate}")
         assertThat(facets.variables.associate { it.rawName to it.subtype }).containsExactlyInAnyOrderEntriesOf(
             mapOf("applicationId" to VariableNameSubtype.INPUT, "contractId" to VariableNameSubtype.OUTPUT),
         )
@@ -154,7 +154,7 @@ class FlowGraphFactoryTest {
     @Test
     fun `end event with a message implementation carries the job type too`() {
         assertThat(cancellationGraph.node("endEventBikeOrderCancelled").facets.jobType?.value).isEqualTo("miravelo.bikeOrderCancelled")
-        assertThat(leasingGraph.node("serviceTaskCancelContract").facets.jobType?.value).isEqualTo("\${cancelContractDelegate}")
+        assertThat(leasingGraph.node("serviceTaskCancelContract").facets.jobType?.value).isEqualTo($$"${cancelContractDelegate}")
     }
 
     @Test
@@ -169,7 +169,7 @@ class FlowGraphFactoryTest {
 
         assertThat(facets.calledProcessId).isEqualTo("cancelBikeOrder")
         assertThat(facets.inputs.map { it.constantName }).containsExactly("APPLICATION_ID", "ORDER_IDS")
-        assertThat(facets.inputs.first().sourceExpression).isEqualTo("\${applicationId}")
+        assertThat(facets.inputs.first().sourceExpression).isEqualTo($$"${applicationId}")
         assertThat(facets.inputs.last().source).isEqualTo("orderIds")
         assertThat(facets.outputs.map { it.target }).containsExactly("cancellationCosts")
     }
@@ -198,7 +198,7 @@ class FlowGraphFactoryTest {
     fun `intermediate timer carries its expression but no host`() {
         val facets = leasingGraph.node("timerWithdrawalPeriodElapsed").facets
 
-        assertThat(facets.timer).isEqualTo(TimerFacet(TimerType.DURATION, "\${withdrawalPeriod}"))
+        assertThat(facets.timer).isEqualTo(TimerFacet(TimerType.DURATION, $$"${withdrawalPeriod}"))
         assertThat(facets.attachedTo).isNull()
     }
 
@@ -331,7 +331,7 @@ class FlowGraphFactoryTest {
         val notPossible = gateway.outgoingFlows.single { it.target.objectName != "GatewayMergeReturn" }.flows.single()
         assertThat(notPossible.id).isEqualTo("flow_cancellationNotPossibleToCollectClarifications")
         assertThat(notPossible.isDefault).isFalse()
-        assertThat(notPossible.conditionExpression).isEqualTo("\${!cancellationPossible}")
+        assertThat(notPossible.conditionExpression).isEqualTo($$"${!cancellationPossible}")
         assertThat(notPossible.name).isEqualTo("No")
     }
 

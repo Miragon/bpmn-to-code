@@ -7,6 +7,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
@@ -43,7 +44,7 @@ internal class KotlinFacetWriter {
 
     private fun jobTypeProperty(jobType: SharedValue<String>): PropertySpec = PropertySpec.builder("JOB_TYPE", String::class)
         .addModifiers(KModifier.CONST)
-        .initializer(jobType.constant?.let { sharedReference(SharedDefinitionType.SERVICE_TASKS, it) } ?: kotlinStringLiteral(jobType.value))
+        .initializer(jobType.constant?.let { sharedReference(SharedDefinitionType.SERVICE_TASKS, it) } ?: stringLiteral(jobType.value))
         .build()
 
     /**
@@ -72,16 +73,16 @@ internal class KotlinFacetWriter {
         return PropertySpec.builder(name, wrapperClass).initializer(wrappedInitializer(wrapperClass, value)).build()
     }
 
-    private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of("%T(%L)", wrapperClass, kotlinStringLiteral(value))
+    private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of("%T(%L)", wrapperClass, stringLiteral(value))
 
     private fun timerProperty(timer: TimerFacet): PropertySpec {
         val timerClass = ClassName(RUNTIME_PACKAGE, "BpmnTimer")
         val type = CodeBlock.of("%T.%L", ClassName(RUNTIME_PACKAGE, "TimerType"), timer.type.name)
-        val initializer = kotlinNamedInitializer(timerClass, "type" to type, "timerValue" to kotlinStringLiteral(timer.expression))
+        val initializer = KotlinCodeFormat.namedCall(timerClass, "type" to type, "timerValue" to stringLiteral(timer.expression), placement = KotlinCodeFormat.Placement.INITIALIZER)
         return PropertySpec.builder("TIMER", timerClass).initializer(initializer).build()
     }
 
-    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = kotlinNamedInitializer(wrapperClass, "name" to kotlinStringLiteral(value.name), "code" to kotlinStringLiteral(value.code))
+    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = KotlinCodeFormat.namedCall(wrapperClass, "name" to stringLiteral(value.name), "code" to stringLiteral(value.code), placement = KotlinCodeFormat.Placement.INITIALIZER)
 
     private fun attachedToProperty(hostObjectName: String): PropertySpec = PropertySpec.builder("attachedTo", ClassName("", hostObjectName))
         .addModifiers(KModifier.OVERRIDE)
@@ -114,11 +115,12 @@ internal class KotlinFacetWriter {
         return holder.build()
     }
 
-    private fun mappingInitializer(mappingClass: ClassName, mapping: MappingFacet): CodeBlock = kotlinNamedInitializer(
+    private fun mappingInitializer(mappingClass: ClassName, mapping: MappingFacet): CodeBlock = KotlinCodeFormat.namedCall(
         mappingClass,
-        "target" to kotlinStringLiteral(mapping.target),
-        "source" to mapping.source?.let { kotlinStringLiteral(it) },
-        "sourceExpression" to mapping.sourceExpression?.let { kotlinStringLiteral(it) },
+        "target" to stringLiteral(mapping.target),
+        "source" to mapping.source?.let { stringLiteral(it) },
+        "sourceExpression" to mapping.sourceExpression?.let { stringLiteral(it) },
+        placement = KotlinCodeFormat.Placement.INITIALIZER,
     )
 
     private companion object {

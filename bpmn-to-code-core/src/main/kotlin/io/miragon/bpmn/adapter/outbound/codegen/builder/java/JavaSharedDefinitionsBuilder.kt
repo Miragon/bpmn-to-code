@@ -1,10 +1,13 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
-import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
-import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaErrorsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaEscalationsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaServiceTasksWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaSignalsWriter
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 
@@ -13,47 +16,17 @@ import io.miragon.bpmn.domain.SharedDefinitionsApi
  */
 internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSharedDefinitionsBuilder() {
 
-    companion object {
-        private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
-    }
+    private val writers = listOf(
+        JavaServiceTasksWriter,
+        JavaMessagesWriter,
+        JavaSignalsWriter,
+        JavaErrorsWriter,
+        JavaEscalationsWriter,
+    )
 
-    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = with(api.definitions) {
-        listOfNotNull(
-            serviceTasks.ifNotEmpty {
-                JavaSharedDefinitionHolder(
-                    type = SharedDefinitionType.SERVICE_TASKS,
-                    javadoc = "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
-                        "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
-                ).withConstants(it)
-            },
-            messages.ifNotEmpty {
-                JavaSharedDefinitionHolder(
-                    type = SharedDefinitionType.MESSAGES,
-                    javadoc = "BPMN message names used to correlate messages to running process instances.\n",
-                ).withNames(it, runtimeClass("MessageName"))
-            },
-            signals.ifNotEmpty {
-                JavaSharedDefinitionHolder(
-                    type = SharedDefinitionType.SIGNALS,
-                    javadoc = "BPMN signal names broadcast and caught by signal events.\n",
-                ).withNames(it, runtimeClass("SignalName"))
-            },
-            errors.ifNotEmpty {
-                JavaSharedDefinitionHolder(
-                    type = SharedDefinitionType.ERRORS,
-                    javadoc = "BPMN error definitions with name and code, as thrown and caught by the processes.\n",
-                ).withNamesAndCodes(it, runtimeClass("BpmnErrorDefinition"))
-            },
-            escalations.ifNotEmpty {
-                JavaSharedDefinitionHolder(
-                    type = SharedDefinitionType.ESCALATIONS,
-                    javadoc = "BPMN escalation definitions with name and code, as thrown and caught by the processes.\n",
-                ).withNamesAndCodes(it, runtimeClass("BpmnEscalationDefinition"))
-            },
-        ).map { toFile(it, api) }
-    }
-
-    private fun runtimeClass(name: String): ClassName = ClassName.get(RUNTIME_PACKAGE, name)
+    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers
+        .filter { it.shouldWrite(api.definitions) }
+        .map { toFile(it.write(api.definitions), api) }
 
     private fun toFile(type: TypeSpec, api: SharedDefinitionsApi): GeneratedApiFile {
         val javaFile = JavaFile.builder(api.packagePath, type).skipJavaLangImports(true).addFileComment(autoGenComment).build()
@@ -65,6 +38,4 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
             processId = null,
         )
     }
-
-    private fun <T> List<T>.ifNotEmpty(build: (List<T>) -> TypeSpec): TypeSpec? = if (isEmpty()) null else build(this)
 }

@@ -39,7 +39,7 @@ internal class JavaFlowWriter {
         return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
             .addJavadoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.\n")
             .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), ClassName.get(RUNTIME_PACKAGE, "FlowNode")))
-            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(nodes, ",\n")).build()
+            .addStatement($$"return $T.of(\n$L)", List::class.java, CodeBlock.join(nodes, ",\n")).build()
     }
 
     private fun buildNode(node: FlowGraphNode): TypeSpec {
@@ -62,7 +62,7 @@ internal class JavaFlowWriter {
 
     private fun extendFlowNode(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         classBuilder.superclass(ClassName.get(RUNTIME_PACKAGE, "AbstractFlowNode"))
-        classBuilder.addField(FieldSpec.builder(String::class.java, ELEMENT_ID, PUBLIC, STATIC, FINAL).initializer("\$S", node.id).build())
+        classBuilder.addField(FieldSpec.builder(String::class.java, ELEMENT_ID, PUBLIC, STATIC, FINAL).initializer($$"$S", node.id).build())
         classBuilder.addField(JavaFlowNodeType(node.objectName).instanceField())
         classBuilder.addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).addStatement(superCall(node)).build())
         if (node.successors.isNotEmpty()) {
@@ -82,7 +82,7 @@ internal class JavaFlowWriter {
             val eventTypeClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEventType")
             classBuilder.addMethod(
                 MethodSpec.methodBuilder("getEventType").addAnnotation(Override::class.java).addModifiers(PUBLIC).returns(eventTypeClass)
-                    .addStatement("return \$T.\$L", eventTypeClass, eventType).build(),
+                    .addStatement($$"return $T.$L", eventTypeClass, eventType).build(),
             )
         }
     }
@@ -90,8 +90,8 @@ internal class JavaFlowWriter {
     private fun superCall(node: FlowGraphNode): CodeBlock {
         val elementIdClass = ClassName.get(RUNTIME_PACKAGE, "ElementId")
         val elementTypeClass = ClassName.get(RUNTIME_PACKAGE, "BpmnElementType")
-        val superCall = CodeBlock.builder().add("super(new \$T(\$N), \$T.\$L", elementIdClass, ELEMENT_ID, elementTypeClass, node.elementType)
-        node.name?.let { superCall.add(", \$S", it) }
+        val superCall = CodeBlock.builder().add($$"super(new $T($N), $T.$L", elementIdClass, ELEMENT_ID, elementTypeClass, node.elementType)
+        node.name?.let { superCall.add($$", $S", it) }
         return superCall.add(")").build()
     }
 
@@ -128,13 +128,13 @@ internal class JavaFlowWriter {
     private fun accessorMethod(methodName: String, holderName: String): MethodSpec {
         val holderClass = ClassName.get("", holderName)
         return MethodSpec.methodBuilder(methodName).addAnnotation(Override::class.java).addModifiers(PUBLIC).returns(holderClass)
-            .addStatement("return new \$T()", holderClass).build()
+            .addStatement($$"return new $T()", holderClass).build()
     }
 
     private fun nodeAccessor(methodName: String, returnObjectName: String, static: Boolean): MethodSpec {
         val returnNode = JavaFlowNodeType(returnObjectName)
         val methodBuilder = MethodSpec.methodBuilder(methodName).addModifiers(PUBLIC).returns(returnNode.className)
-            .addStatement("return \$L", returnNode.instance())
+            .addStatement($$"return $L", returnNode.instance())
         if (static) {
             methodBuilder.addModifiers(STATIC)
         }
@@ -151,15 +151,15 @@ internal class JavaFlowWriter {
         val constructions = flowsToTarget.flows.map { sequenceFlowConstruction(it, target) }
         val method = MethodSpec.methodBuilder(flowsToTarget.propertyName).addModifiers(PUBLIC)
         return when (constructions.size) {
-            1 -> method.returns(sequenceFlowType).addStatement("return \$L", constructions.single())
+            1 -> method.returns(sequenceFlowType).addStatement($$"return $L", constructions.single())
 
             else -> method.returns(ParameterizedTypeName.get(ClassName.get(List::class.java), sequenceFlowType))
-                .addStatement("return \$T.of(\$L)", List::class.java, CodeBlock.join(constructions, ", "))
+                .addStatement($$"return $T.of($L)", List::class.java, CodeBlock.join(constructions, ", "))
         }.build()
     }
 
     private fun sequenceFlowConstruction(flow: SequenceFlowEdge, target: JavaFlowNodeType): CodeBlock = CodeBlock.of(
-        "new \$T<>(new \$T(\$S), \$S, \$S, \$L, \$L)",
+        $$"new $T<>(new $T($S), $S, $S, $L, $L)",
         ClassName.get(RUNTIME_PACKAGE, "SequenceFlow"),
         ClassName.get(RUNTIME_PACKAGE, "ElementId"),
         flow.id,

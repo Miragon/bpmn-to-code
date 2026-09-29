@@ -28,8 +28,8 @@ class StringUtilsTest {
 
     @Test
     fun `toUpperSnakeCase strips Spring EL expression syntax`() {
-        assertThat("\${mySpringBean}".toUpperSnakeCase()).isEqualTo("MY_SPRING_BEAN")
-        assertThat("\${someService}".toUpperSnakeCase()).isEqualTo("SOME_SERVICE")
+        assertThat($$"${mySpringBean}".toUpperSnakeCase()).isEqualTo("MY_SPRING_BEAN")
+        assertThat($$"${someService}".toUpperSnakeCase()).isEqualTo("SOME_SERVICE")
     }
 
     @Test
@@ -64,7 +64,7 @@ class StringUtilsTest {
     @Test
     fun `removeExpressionSyntax strips expression wrappers`() {
         assertThat("nothing").isEqualTo("nothing")
-        assertThat("\${authors}".removeExpressionSyntax()).isEqualTo("authors")
+        assertThat($$"${authors}".removeExpressionSyntax()).isEqualTo("authors")
         assertThat("#{sendMailDelegate}".removeExpressionSyntax()).isEqualTo("sendMailDelegate")
     }
 

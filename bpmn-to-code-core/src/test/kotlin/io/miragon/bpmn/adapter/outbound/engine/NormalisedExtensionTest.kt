@@ -113,7 +113,7 @@ class NormalisedExtensionTest {
             as FlowNodeDefinition.Activity.Task
 
         // then: the attribute is reported once, as a typed implementation
-        assertThat(handler.implementation).isEqualTo(TaskImplementation.DelegateExpression("\${cancelContractDelegate}"))
+        assertThat(handler.implementation).isEqualTo(TaskImplementation.DelegateExpression($$"${cancelContractDelegate}"))
         assertThat(handler.engineAttributes).doesNotContainKey("camunda:delegateExpression")
     }
 

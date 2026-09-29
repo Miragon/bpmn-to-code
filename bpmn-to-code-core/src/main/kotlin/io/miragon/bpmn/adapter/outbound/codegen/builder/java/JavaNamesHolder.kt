@@ -15,7 +15,7 @@ internal class JavaNamesHolder(private val constants: List<Pair<String, String>>
     fun build(): TypeSpec {
         val holder = TypeSpec.classBuilder(NAME).addModifiers(PUBLIC, STATIC, FINAL)
         constants.forEach { (name, value) ->
-            holder.addField(FieldSpec.builder(String::class.java, name, PUBLIC, STATIC, FINAL).initializer("\$S", value).build())
+            holder.addField(FieldSpec.builder(String::class.java, name, PUBLIC, STATIC, FINAL).initializer($$"$S", value).build())
         }
         return holder.build()
     }

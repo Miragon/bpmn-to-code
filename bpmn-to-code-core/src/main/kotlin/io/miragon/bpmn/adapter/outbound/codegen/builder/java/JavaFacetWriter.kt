@@ -39,7 +39,7 @@ internal class JavaFacetWriter {
         facets.attachedTo?.let { JavaFlowNodeType(it.objectName) }?.let { host ->
             getter(name = "getAttachedTo", returnType = host.className, returnValue = host.instance(), overridesBoundaryEvent = true)
         },
-        facets.isInterrupting?.let { getter(name = "isInterrupting", returnType = TypeName.BOOLEAN, returnValue = CodeBlock.of("\$L", it), overridesBoundaryEvent = facets.attachedTo != null) },
+        facets.isInterrupting?.let { getter(name = "isInterrupting", returnType = TypeName.BOOLEAN, returnValue = CodeBlock.of($$"$L", it), overridesBoundaryEvent = facets.attachedTo != null) },
     )
 
     fun holders(facets: NodeFacets): List<TypeSpec> = listOfNotNull(
@@ -49,7 +49,7 @@ internal class JavaFacetWriter {
     )
 
     private fun jobTypeField(jobType: SharedValue<String>): FieldSpec = FieldSpec.builder(String::class.java, "JOB_TYPE", PUBLIC, STATIC, FINAL)
-        .initializer(jobType.constant?.let { sharedReference(SharedDefinitionType.SERVICE_TASKS, it) } ?: CodeBlock.of("\$S", jobType.value))
+        .initializer(jobType.constant?.let { sharedReference(SharedDefinitionType.SERVICE_TASKS, it) } ?: CodeBlock.of($$"$S", jobType.value))
         .build()
 
     /**
@@ -68,26 +68,26 @@ internal class JavaFacetWriter {
         return FieldSpec.builder(wrapperClass, name, PUBLIC, STATIC, FINAL).initializer(initializer).build()
     }
 
-    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): CodeBlock = CodeBlock.of("\$T.\$N", ClassName.get("", type.typeName), constant.name)
+    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): CodeBlock = CodeBlock.of($$"$T.$N", ClassName.get("", type.typeName), constant.name)
 
     private fun wrappedField(name: String, wrapper: String, value: String): FieldSpec {
         val wrapperClass = ClassName.get(RUNTIME_PACKAGE, wrapper)
         return FieldSpec.builder(wrapperClass, name, PUBLIC, STATIC, FINAL).initializer(wrappedInitializer(wrapperClass, value)).build()
     }
 
-    private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of("new \$T(\$S)", wrapperClass, value)
+    private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of($$"new $T($S)", wrapperClass, value)
 
-    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = CodeBlock.of("new \$T(\$S, \$S)", wrapperClass, value.name, value.code)
+    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = CodeBlock.of($$"new $T($S, $S)", wrapperClass, value.name, value.code)
 
     private fun timerField(timer: TimerFacet): FieldSpec {
         val timerClass = ClassName.get(RUNTIME_PACKAGE, "BpmnTimer")
         val timerTypeClass = ClassName.get(RUNTIME_PACKAGE, "TimerType")
         return FieldSpec.builder(timerClass, "TIMER", PUBLIC, STATIC, FINAL)
-            .initializer("new \$T(\$T.\$L, \$S)", timerClass, timerTypeClass, timer.type.name, timer.expression).build()
+            .initializer($$"new $T($T.$L, $S)", timerClass, timerTypeClass, timer.type.name, timer.expression).build()
     }
 
     private fun getter(name: String, returnType: TypeName, returnValue: CodeBlock, overridesBoundaryEvent: Boolean): MethodSpec {
-        val method = MethodSpec.methodBuilder(name).addModifiers(PUBLIC).returns(returnType).addStatement("return \$L", returnValue)
+        val method = MethodSpec.methodBuilder(name).addModifiers(PUBLIC).returns(returnType).addStatement($$"return $L", returnValue)
         if (overridesBoundaryEvent) method.addAnnotation(Override::class.java)
         return method.build()
     }
@@ -98,7 +98,7 @@ internal class JavaFacetWriter {
             val subtypeClass = ClassName.get(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addField(
                 FieldSpec.builder(subtypeClass, variable.constantName, PUBLIC, STATIC, FINAL)
-                    .initializer("new \$T(\$N.\$N)", subtypeClass, JavaNamesHolder.NAME, variable.constantName).build(),
+                    .initializer($$"new $T($N.$N)", subtypeClass, JavaNamesHolder.NAME, variable.constantName).build(),
             )
         }
         return holder.addType(JavaNamesHolder(variables.map { it.constantName to it.rawName }).build()).build()
@@ -117,7 +117,7 @@ internal class JavaFacetWriter {
     }
 
     private fun mappingInitializer(mappingClass: ClassName, mapping: MappingFacet): CodeBlock = CodeBlock.builder()
-        .add("new \$T(\$S, \$S, \$S)", mappingClass, mapping.target, mapping.source, mapping.sourceExpression).build()
+        .add($$"new $T($S, $S, $S)", mappingClass, mapping.target, mapping.source, mapping.sourceExpression).build()
 
     private companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"

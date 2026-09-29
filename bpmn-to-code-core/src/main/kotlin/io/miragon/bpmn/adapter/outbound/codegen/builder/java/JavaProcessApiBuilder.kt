@@ -63,7 +63,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
             val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
-            builder.addField(fieldBuilder.initializer("new \$T(\$N.\$N)", processIdClass, JavaNamesHolder.NAME, PROCESS_ID).build())
+            builder.addField(fieldBuilder.initializer($$"new $T($N.$N)", processIdClass, JavaNamesHolder.NAME, PROCESS_ID).build())
             builder.addType(JavaNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)).build())
         }
     }
@@ -73,7 +73,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnEngineClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEngine")
             val fieldBuilder = FieldSpec.builder(bpmnEngineClass, "PROCESS_ENGINE")
-                .addModifiers(PUBLIC, FINAL, STATIC).initializer("\$T.\$L", bpmnEngineClass, modelApi.targetEngine.name)
+                .addModifiers(PUBLIC, FINAL, STATIC).initializer($$"$T.$L", bpmnEngineClass, modelApi.targetEngine.name)
             builder.addField(fieldBuilder.build())
         }
     }

@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 internal data class ProcessModelJson(
-    @EncodeDefault(EncodeDefault.Mode.ALWAYS) @SerialName("\$schema") val schema: String = SCHEMA_URL,
+    @EncodeDefault(EncodeDefault.Mode.ALWAYS) @SerialName($$"$schema") val schema: String = SCHEMA_URL,
     @EncodeDefault(EncodeDefault.Mode.ALWAYS) val formatVersion: String = FORMAT_VERSION,
     val process: ProcessJson,
     val definitions: DefinitionsJson = DefinitionsJson(),

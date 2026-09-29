@@ -69,7 +69,7 @@ class SingleModelRuleTest {
                 .fromClasspath("bpmn/output-mapping-process.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7).withRules(OutputExpressionAllowListRule()).validate().assertViolation(
                     ruleId = "output-expression-allow-list",
-                    messageContains = "\${someBean.compute()}",
+                    messageContains = $$"${someBean.compute()}",
                 )
         }
     }

@@ -78,11 +78,11 @@ class CamundaDialectExtractionTest {
 
         // --- service-task implementations: every Camunda 7 flavour is represented ---
         val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
-        assertThat(implementations["serviceTask_validateApplication"]).isEqualTo(TaskImplementation.DelegateExpression("\${validateApplicationDelegate}"))
+        assertThat(implementations["serviceTask_validateApplication"]).isEqualTo(TaskImplementation.DelegateExpression($$"${validateApplicationDelegate}"))
         assertThat(implementations["serviceTask_orderBike"]).isEqualTo(TaskImplementation.ExternalTask("miravelo.orderBike"))
         assertThat(implementations["serviceTask_issueInsurancePolicy"]).isEqualTo(TaskImplementation.JavaClass("io.miravelo.leasing.IssueInsurancePolicyDelegate"))
-        assertThat(implementations["serviceTask_sendReminderMail"]).isEqualTo(TaskImplementation.Expression("\${mailService.sendReminder(applicationId)}"))
-        assertThat(implementations["serviceTask_cancelContract"]).isEqualTo(TaskImplementation.DelegateExpression("\${cancelContractDelegate}"))
+        assertThat(implementations["serviceTask_sendReminderMail"]).isEqualTo(TaskImplementation.Expression($$"${mailService.sendReminder(applicationId)}"))
+        assertThat(implementations["serviceTask_cancelContract"]).isEqualTo(TaskImplementation.DelegateExpression($$"${cancelContractDelegate}"))
 
         // --- event definitions ---
         val applicationInvalid = node("boundary_applicationInvalid") as FlowNodeDefinition.Event
@@ -119,7 +119,7 @@ class CamundaDialectExtractionTest {
             TimerDefinition(
                 id = "timer_withdrawalPeriodElapsed",
                 type = TimerType.DURATION,
-                expression = "\${withdrawalPeriod}",
+                expression = $$"${withdrawalPeriod}",
             ),
         )
 
@@ -230,7 +230,7 @@ class CamundaDialectExtractionTest {
             ),
         )
         val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
-        assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.Expression("\${mailService.sendWelcomeMail(email)}"))
+        assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.Expression($$"${mailService.sendWelcomeMail(email)}"))
         assertThat(implementations["serviceTask_notifyCommunity"]).isEqualTo(TaskImplementation.JavaClass("io.miravelo.membership.NotifyCommunityDelegate"))
     }
 
@@ -254,7 +254,7 @@ class CamundaDialectExtractionTest {
             ),
             CallActivityDefinition.Mapping(
                 direction = VariableDirection.INPUT,
-                sourceExpression = "\${applicationId}",
+                sourceExpression = $$"${applicationId}",
                 target = "applicationId",
             ),
         )
@@ -301,12 +301,12 @@ class CamundaDialectExtractionTest {
             VariableDefinition(
                 name = "deliveryAddress",
                 direction = VariableDirection.INPUT,
-                valueExpression = "\${deliveryAddress}",
+                valueExpression = $$"${deliveryAddress}",
             ),
             VariableDefinition(
                 name = "deliveryAddress",
                 direction = VariableDirection.OUTPUT,
-                valueExpression = "\${deliveryAddress}",
+                valueExpression = $$"${deliveryAddress}",
             ),
         )
     }
@@ -332,7 +332,7 @@ class CamundaDialectExtractionTest {
                 VariableDefinition(
                     name = "bikeIds",
                     direction = VariableDirection.INPUT,
-                    valueExpression = "\${bikeIds}",
+                    valueExpression = $$"${bikeIds}",
                 ),
                 VariableDefinition(name = "bikeId", direction = VariableDirection.INPUT, valueExpression = "bikeId"),
             )
@@ -385,7 +385,7 @@ class CamundaDialectExtractionTest {
                 sourceRef = "gateway_isSolvent",
                 targetRef = "gateway_collectRejections",
                 flowName = "No",
-                conditionExpression = "\${!solvent}",
+                conditionExpression = $$"${!solvent}",
             ),
         )
     }
