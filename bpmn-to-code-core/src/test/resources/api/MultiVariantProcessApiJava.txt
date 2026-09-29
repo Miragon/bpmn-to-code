@@ -15,14 +15,15 @@ import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SequenceFlow;
 import io.miragon.bpmn.runtime.VariableName;
-import java.lang.Override;
-import java.lang.String;
 import java.util.List;
 
 public final class CancelBikeOrderProcessApi {
   public static final ProcessId PROCESS_ID = new ProcessId(Names.PROCESS_ID);
 
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
+
+  private CancelBikeOrderProcessApi() {
+  }
 
   public static final class Names {
     public static final String PROCESS_ID = "cancelBikeOrder";
@@ -32,66 +33,74 @@ public final class CancelBikeOrderProcessApi {
    * The {@code Flow} of each merged BPMN file, keyed by its {@code variantName}.
    */
   public static final class FlowVariants {
+    private FlowVariants() {
+    }
+
     /**
      * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
      */
     public static final class Retail {
+      private Retail() {
+      }
+
       /**
        * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
        */
       public static List<FlowNode> all() {
         return List.of(
-            new BoundaryCancellationFailed(),
-            new EndEventBikeOrderCancelled(),
-            new GatewayCancellationPossible(),
-            new GatewayCollectClarifications(),
-            new GatewayMergeReturn(),
-            new ServiceTaskBookCancellationCosts(),
-            new ServiceTaskRequestCancellation(),
-            new StartEventCancellationRequired(),
-            new UserTaskClarifyReturn());
+            BoundaryCancellationFailed.INSTANCE,
+            EndEventBikeOrderCancelled.INSTANCE,
+            GatewayCancellationPossible.INSTANCE,
+            GatewayCollectClarifications.INSTANCE,
+            GatewayMergeReturn.INSTANCE,
+            ServiceTaskBookCancellationCosts.INSTANCE,
+            ServiceTaskRequestCancellation.INSTANCE,
+            StartEventCancellationRequired.INSTANCE,
+            UserTaskClarifyReturn.INSTANCE);
       }
 
       public static BoundaryCancellationFailed boundaryCancellationFailed() {
-        return new BoundaryCancellationFailed();
+        return BoundaryCancellationFailed.INSTANCE;
       }
 
       public static EndEventBikeOrderCancelled endEventBikeOrderCancelled() {
-        return new EndEventBikeOrderCancelled();
+        return EndEventBikeOrderCancelled.INSTANCE;
       }
 
       public static GatewayCancellationPossible gatewayCancellationPossible() {
-        return new GatewayCancellationPossible();
+        return GatewayCancellationPossible.INSTANCE;
       }
 
       public static GatewayCollectClarifications gatewayCollectClarifications() {
-        return new GatewayCollectClarifications();
+        return GatewayCollectClarifications.INSTANCE;
       }
 
       public static GatewayMergeReturn gatewayMergeReturn() {
-        return new GatewayMergeReturn();
+        return GatewayMergeReturn.INSTANCE;
       }
 
       public static ServiceTaskBookCancellationCosts serviceTaskBookCancellationCosts() {
-        return new ServiceTaskBookCancellationCosts();
+        return ServiceTaskBookCancellationCosts.INSTANCE;
       }
 
       public static ServiceTaskRequestCancellation serviceTaskRequestCancellation() {
-        return new ServiceTaskRequestCancellation();
+        return ServiceTaskRequestCancellation.INSTANCE;
       }
 
       public static StartEventCancellationRequired startEventCancellationRequired() {
-        return new StartEventCancellationRequired();
+        return StartEventCancellationRequired.INSTANCE;
       }
 
       public static UserTaskClarifyReturn userTaskClarifyReturn() {
-        return new UserTaskClarifyReturn();
+        return UserTaskClarifyReturn.INSTANCE;
       }
 
       public static final class BoundaryCancellationFailed extends AbstractFlowNode implements HasSuccessors<BoundaryCancellationFailed.Next>, HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>, BoundaryEvent<ServiceTaskRequestCancellation> {
         public static final String ELEMENT_ID = "boundary_cancellationFailed";
 
-        public BoundaryCancellationFailed() {
+        public static final BoundaryCancellationFailed INSTANCE = new BoundaryCancellationFailed();
+
+        private BoundaryCancellationFailed() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.BOUNDARY_EVENT, "Cancellation failed");
         }
 
@@ -102,7 +111,7 @@ public final class CancelBikeOrderProcessApi {
 
         @Override
         public ServiceTaskRequestCancellation getAttachedTo() {
-          return new ServiceTaskRequestCancellation();
+          return ServiceTaskRequestCancellation.INSTANCE;
         }
 
         @Override
@@ -122,13 +131,13 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public GatewayCollectClarifications gatewayCollectClarifications() {
-            return new GatewayCollectClarifications();
+            return GatewayCollectClarifications.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<GatewayCollectClarifications> toGatewayCollectClarifications() {
-            return new SequenceFlow<>(new ElementId("flow_cancellationFailedToCollectClarifications"), null, null, false, new GatewayCollectClarifications());
+            return new SequenceFlow<>(new ElementId("flow_cancellationFailedToCollectClarifications"), null, null, false, GatewayCollectClarifications.INSTANCE);
           }
         }
       }
@@ -136,11 +145,13 @@ public final class CancelBikeOrderProcessApi {
       public static final class EndEventBikeOrderCancelled extends AbstractFlowNode implements Event {
         public static final String ELEMENT_ID = "endEvent_bikeOrderCancelled";
 
+        public static final EndEventBikeOrderCancelled INSTANCE = new EndEventBikeOrderCancelled();
+
         public static final String JOB_TYPE = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED;
 
         public static final MessageName MESSAGE = Messages.MIRAVELO_BIKE_ORDER_CANCELLED;
 
-        public EndEventBikeOrderCancelled() {
+        private EndEventBikeOrderCancelled() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.END_EVENT, "Bike order cancelled");
         }
 
@@ -153,7 +164,9 @@ public final class CancelBikeOrderProcessApi {
       public static final class GatewayCancellationPossible extends AbstractFlowNode implements HasSuccessors<GatewayCancellationPossible.Next>, HasOutgoingFlows<GatewayCancellationPossible.OutgoingFlows> {
         public static final String ELEMENT_ID = "gateway_cancellationPossible";
 
-        public GatewayCancellationPossible() {
+        public static final GatewayCancellationPossible INSTANCE = new GatewayCancellationPossible();
+
+        private GatewayCancellationPossible() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.EXCLUSIVE_GATEWAY, "Cancellation possible?");
         }
 
@@ -169,21 +182,21 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public GatewayCollectClarifications gatewayCollectClarifications() {
-            return new GatewayCollectClarifications();
+            return GatewayCollectClarifications.INSTANCE;
           }
 
           public GatewayMergeReturn gatewayMergeReturn() {
-            return new GatewayMergeReturn();
+            return GatewayMergeReturn.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<GatewayCollectClarifications> toGatewayCollectClarifications() {
-            return new SequenceFlow<>(new ElementId("flow_cancellationNotPossibleToCollectClarifications"), "No", "${!cancellationPossible}", false, new GatewayCollectClarifications());
+            return new SequenceFlow<>(new ElementId("flow_cancellationNotPossibleToCollectClarifications"), "No", "${!cancellationPossible}", false, GatewayCollectClarifications.INSTANCE);
           }
 
           public SequenceFlow<GatewayMergeReturn> toGatewayMergeReturn() {
-            return new SequenceFlow<>(new ElementId("flow_cancellationPossibleToMergeReturn"), "Yes", null, true, new GatewayMergeReturn());
+            return new SequenceFlow<>(new ElementId("flow_cancellationPossibleToMergeReturn"), "Yes", null, true, GatewayMergeReturn.INSTANCE);
           }
         }
       }
@@ -191,7 +204,9 @@ public final class CancelBikeOrderProcessApi {
       public static final class GatewayCollectClarifications extends AbstractFlowNode implements HasSuccessors<GatewayCollectClarifications.Next>, HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
         public static final String ELEMENT_ID = "gateway_collectClarifications";
 
-        public GatewayCollectClarifications() {
+        public static final GatewayCollectClarifications INSTANCE = new GatewayCollectClarifications();
+
+        private GatewayCollectClarifications() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.EXCLUSIVE_GATEWAY);
         }
 
@@ -207,13 +222,13 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public UserTaskClarifyReturn userTaskClarifyReturn() {
-            return new UserTaskClarifyReturn();
+            return UserTaskClarifyReturn.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<UserTaskClarifyReturn> toUserTaskClarifyReturn() {
-            return new SequenceFlow<>(new ElementId("flow_collectClarificationsToClarifyReturn"), null, null, false, new UserTaskClarifyReturn());
+            return new SequenceFlow<>(new ElementId("flow_collectClarificationsToClarifyReturn"), null, null, false, UserTaskClarifyReturn.INSTANCE);
           }
         }
       }
@@ -221,7 +236,9 @@ public final class CancelBikeOrderProcessApi {
       public static final class GatewayMergeReturn extends AbstractFlowNode implements HasSuccessors<GatewayMergeReturn.Next>, HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
         public static final String ELEMENT_ID = "gateway_mergeReturn";
 
-        public GatewayMergeReturn() {
+        public static final GatewayMergeReturn INSTANCE = new GatewayMergeReturn();
+
+        private GatewayMergeReturn() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.EXCLUSIVE_GATEWAY);
         }
 
@@ -237,14 +254,14 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public ServiceTaskBookCancellationCosts serviceTaskBookCancellationCosts() {
-            return new ServiceTaskBookCancellationCosts();
+            return ServiceTaskBookCancellationCosts.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<ServiceTaskBookCancellationCosts> toServiceTaskBookCancellationCosts(
               ) {
-            return new SequenceFlow<>(new ElementId("flow_mergeReturnToBookCancellationCosts"), null, null, false, new ServiceTaskBookCancellationCosts());
+            return new SequenceFlow<>(new ElementId("flow_mergeReturnToBookCancellationCosts"), null, null, false, ServiceTaskBookCancellationCosts.INSTANCE);
           }
         }
       }
@@ -252,9 +269,11 @@ public final class CancelBikeOrderProcessApi {
       public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
         public static final String ELEMENT_ID = "serviceTask_bookCancellationCosts";
 
+        public static final ServiceTaskBookCancellationCosts INSTANCE = new ServiceTaskBookCancellationCosts();
+
         public static final String JOB_TYPE = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE;
 
-        public ServiceTaskBookCancellationCosts() {
+        private ServiceTaskBookCancellationCosts() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Book cancellation costs");
         }
 
@@ -271,6 +290,9 @@ public final class CancelBikeOrderProcessApi {
         public static final class Variables {
           public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(Names.CANCELLATION_COSTS);
 
+          private Variables() {
+          }
+
           public static final class Names {
             public static final String CANCELLATION_COSTS = "cancellationCosts";
           }
@@ -278,13 +300,13 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public EndEventBikeOrderCancelled endEventBikeOrderCancelled() {
-            return new EndEventBikeOrderCancelled();
+            return EndEventBikeOrderCancelled.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<EndEventBikeOrderCancelled> toEndEventBikeOrderCancelled() {
-            return new SequenceFlow<>(new ElementId("flow_bookCancellationCostsToBikeOrderCancelled"), null, null, false, new EndEventBikeOrderCancelled());
+            return new SequenceFlow<>(new ElementId("flow_bookCancellationCostsToBikeOrderCancelled"), null, null, false, EndEventBikeOrderCancelled.INSTANCE);
           }
         }
       }
@@ -292,9 +314,11 @@ public final class CancelBikeOrderProcessApi {
       public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasSuccessors<ServiceTaskRequestCancellation.Next>, HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
         public static final String ELEMENT_ID = "serviceTask_requestCancellation";
 
+        public static final ServiceTaskRequestCancellation INSTANCE = new ServiceTaskRequestCancellation();
+
         public static final String JOB_TYPE = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION;
 
-        public ServiceTaskRequestCancellation() {
+        private ServiceTaskRequestCancellation() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Request cancellation");
         }
 
@@ -311,6 +335,9 @@ public final class CancelBikeOrderProcessApi {
         public static final class Variables {
           public static final VariableName.Output CANCELLATION_POSSIBLE = new VariableName.Output(Names.CANCELLATION_POSSIBLE);
 
+          private Variables() {
+          }
+
           public static final class Names {
             public static final String CANCELLATION_POSSIBLE = "cancellationPossible";
           }
@@ -318,17 +345,17 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public BoundaryCancellationFailed boundaryCancellationFailed() {
-            return new BoundaryCancellationFailed();
+            return BoundaryCancellationFailed.INSTANCE;
           }
 
           public GatewayCancellationPossible gatewayCancellationPossible() {
-            return new GatewayCancellationPossible();
+            return GatewayCancellationPossible.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<GatewayCancellationPossible> toGatewayCancellationPossible() {
-            return new SequenceFlow<>(new ElementId("flow_requestCancellationToCancellationPossible"), null, null, false, new GatewayCancellationPossible());
+            return new SequenceFlow<>(new ElementId("flow_requestCancellationToCancellationPossible"), null, null, false, GatewayCancellationPossible.INSTANCE);
           }
         }
       }
@@ -336,7 +363,9 @@ public final class CancelBikeOrderProcessApi {
       public static final class StartEventCancellationRequired extends AbstractFlowNode implements HasSuccessors<StartEventCancellationRequired.Next>, HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows>, Event {
         public static final String ELEMENT_ID = "startEvent_cancellationRequired";
 
-        public StartEventCancellationRequired() {
+        public static final StartEventCancellationRequired INSTANCE = new StartEventCancellationRequired();
+
+        private StartEventCancellationRequired() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Cancellation required");
         }
 
@@ -358,6 +387,9 @@ public final class CancelBikeOrderProcessApi {
         public static final class Variables {
           public static final VariableName.Input ORDER_IDS = new VariableName.Input(Names.ORDER_IDS);
 
+          private Variables() {
+          }
+
           public static final class Names {
             public static final String ORDER_IDS = "orderIds";
           }
@@ -365,13 +397,13 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public ServiceTaskRequestCancellation serviceTaskRequestCancellation() {
-            return new ServiceTaskRequestCancellation();
+            return ServiceTaskRequestCancellation.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<ServiceTaskRequestCancellation> toServiceTaskRequestCancellation() {
-            return new SequenceFlow<>(new ElementId("flow_cancellationRequiredToRequestCancellation"), null, null, false, new ServiceTaskRequestCancellation());
+            return new SequenceFlow<>(new ElementId("flow_cancellationRequiredToRequestCancellation"), null, null, false, ServiceTaskRequestCancellation.INSTANCE);
           }
         }
       }
@@ -379,7 +411,9 @@ public final class CancelBikeOrderProcessApi {
       public static final class UserTaskClarifyReturn extends AbstractFlowNode implements HasSuccessors<UserTaskClarifyReturn.Next>, HasOutgoingFlows<UserTaskClarifyReturn.OutgoingFlows> {
         public static final String ELEMENT_ID = "userTask_clarifyReturn";
 
-        public UserTaskClarifyReturn() {
+        public static final UserTaskClarifyReturn INSTANCE = new UserTaskClarifyReturn();
+
+        private UserTaskClarifyReturn() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.USER_TASK, "Clarify return");
         }
 
@@ -395,13 +429,13 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class Next {
           public GatewayMergeReturn gatewayMergeReturn() {
-            return new GatewayMergeReturn();
+            return GatewayMergeReturn.INSTANCE;
           }
         }
 
         public static final class OutgoingFlows {
           public SequenceFlow<GatewayMergeReturn> toGatewayMergeReturn() {
-            return new SequenceFlow<>(new ElementId("flow_clarifyReturnToMergeReturn"), null, null, false, new GatewayMergeReturn());
+            return new SequenceFlow<>(new ElementId("flow_clarifyReturnToMergeReturn"), null, null, false, GatewayMergeReturn.INSTANCE);
           }
         }
       }

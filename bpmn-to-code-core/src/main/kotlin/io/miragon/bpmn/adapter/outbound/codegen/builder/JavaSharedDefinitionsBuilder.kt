@@ -39,7 +39,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
     }
 
     private fun serviceTasks(serviceTasks: List<ServiceTaskDefinition>): TypeSpec? = serviceTasks.ifNotEmpty {
-        val tasksBuilder = TypeSpec.classBuilder(SharedDefinitionType.SERVICE_TASKS.typeName).addModifiers(PUBLIC, FINAL)
+        val tasksBuilder = JavaConstantHolder(SharedDefinitionType.SERVICE_TASKS.typeName).builder()
             .addJavadoc(
                 "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
                     "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
@@ -51,7 +51,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun messages(messages: List<RootElementDefinition.Message>): TypeSpec? = messages.ifNotEmpty {
         val messageNameClass = ClassName.get(RUNTIME_PACKAGE, "MessageName")
-        val messagesBuilder = TypeSpec.classBuilder(SharedDefinitionType.MESSAGES.typeName).addModifiers(PUBLIC, FINAL)
+        val messagesBuilder = JavaConstantHolder(SharedDefinitionType.MESSAGES.typeName).builder()
             .addJavadoc("BPMN message names used to correlate messages to running process instances.\n")
         messages.forEach { message -> messagesBuilder.addField(createTypedAttribute(message, messageNameClass)) }
         messagesBuilder.addMethod(all(messages, messageNameClass))
@@ -60,7 +60,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun signals(signals: List<RootElementDefinition.Signal>): TypeSpec? = signals.ifNotEmpty {
         val signalNameClass = ClassName.get(RUNTIME_PACKAGE, "SignalName")
-        val signalsBuilder = TypeSpec.classBuilder(SharedDefinitionType.SIGNALS.typeName).addModifiers(PUBLIC, FINAL)
+        val signalsBuilder = JavaConstantHolder(SharedDefinitionType.SIGNALS.typeName).builder()
             .addJavadoc("BPMN signal names broadcast and caught by signal events.\n")
         signals.forEach { signal -> signalsBuilder.addField(createTypedAttribute(signal, signalNameClass)) }
         signalsBuilder.addMethod(all(signals, signalNameClass))
@@ -69,7 +69,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun errors(errors: List<RootElementDefinition.Error>): TypeSpec? = errors.ifNotEmpty {
         val bpmnErrorClass = ClassName.get(RUNTIME_PACKAGE, "BpmnError")
-        val errorsBuilder = TypeSpec.classBuilder(SharedDefinitionType.ERRORS.typeName).addModifiers(PUBLIC, FINAL)
+        val errorsBuilder = JavaConstantHolder(SharedDefinitionType.ERRORS.typeName).builder()
             .addJavadoc("BPMN error definitions with name and code, as thrown and caught by the processes.\n")
         errors.forEach { errorsBuilder.addField(createNameAndCodeAttribute(it, bpmnErrorClass)) }
         errorsBuilder.addMethod(all(errors, bpmnErrorClass))
@@ -78,7 +78,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
 
     private fun escalations(escalations: List<RootElementDefinition.Escalation>): TypeSpec? = escalations.ifNotEmpty {
         val bpmnEscalationClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEscalation")
-        val escalationsBuilder = TypeSpec.classBuilder(SharedDefinitionType.ESCALATIONS.typeName).addModifiers(PUBLIC, FINAL)
+        val escalationsBuilder = JavaConstantHolder(SharedDefinitionType.ESCALATIONS.typeName).builder()
             .addJavadoc("BPMN escalation definitions with name and code, as thrown and caught by the processes.\n")
         escalations.forEach { escalationsBuilder.addField(createNameAndCodeAttribute(it, bpmnEscalationClass)) }
         escalationsBuilder.addMethod(all(escalations, bpmnEscalationClass))
@@ -86,7 +86,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
     }
 
     private fun toFile(type: TypeSpec, api: SharedDefinitionsApi): GeneratedApiFile {
-        val javaFile = JavaFile.builder(api.packagePath, type).addFileComment(autoGenComment).build()
+        val javaFile = JavaFile.builder(api.packagePath, type).skipJavaLangImports(true).addFileComment(autoGenComment).build()
         return GeneratedApiFile(
             fileName = "${type.name()}.java",
             packagePath = api.packagePath,

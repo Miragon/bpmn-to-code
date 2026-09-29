@@ -101,6 +101,11 @@ class RuntimeTypesTest {
         assertThat(named.hashCode()).isEqualTo(flowNode("approve-task").hashCode())
     }
 
+    @Test
+    fun `AbstractFlowNode prints its element type and id`() {
+        assertThat(flowNode("check-bike").toString()).isEqualTo("SERVICE_TASK(check-bike)")
+    }
+
     private fun flowNode(id: String): AbstractFlowNode = object : AbstractFlowNode(ElementId(id), BpmnElementType.SERVICE_TASK) {}
 
     @Test

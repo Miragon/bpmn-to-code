@@ -36,8 +36,8 @@ internal class JavaFacetWriter {
     )
 
     fun methods(facets: NodeFacets): List<MethodSpec> = listOfNotNull(
-        facets.attachedTo?.let { ClassName.get("", it.objectName) }?.let { host ->
-            getter("getAttachedTo", host, CodeBlock.of("new \$T()", host), overridesBoundaryEvent = true)
+        facets.attachedTo?.let { JavaFlowNodeType(it.objectName) }?.let { host ->
+            getter("getAttachedTo", host.className, host.instance(), overridesBoundaryEvent = true)
         },
         facets.isInterrupting?.let { getter("isInterrupting", TypeName.BOOLEAN, CodeBlock.of("\$L", it), overridesBoundaryEvent = facets.attachedTo != null) },
     )
@@ -94,7 +94,7 @@ internal class JavaFacetWriter {
     }
 
     private fun variablesHolder(variables: List<VariableFacet>): TypeSpec {
-        val holder = TypeSpec.classBuilder("Variables").addModifiers(PUBLIC, STATIC, FINAL)
+        val holder = JavaConstantHolder("Variables").builder(STATIC)
         variables.forEach { variable ->
             val subtypeClass = ClassName.get(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addField(
@@ -108,7 +108,7 @@ internal class JavaFacetWriter {
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {
         val mappingClass = ClassName.get(RUNTIME_PACKAGE, "InputOutputMapping")
-        val holder = TypeSpec.classBuilder(holderName).addModifiers(PUBLIC, STATIC, FINAL)
+        val holder = JavaConstantHolder(holderName).builder(STATIC)
         mappings.forEach { mapping ->
             holder.addField(
                 FieldSpec.builder(mappingClass, mapping.constantName, PUBLIC, STATIC, FINAL)
