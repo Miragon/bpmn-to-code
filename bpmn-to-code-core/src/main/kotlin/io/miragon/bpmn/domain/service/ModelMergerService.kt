@@ -83,9 +83,9 @@ class ModelMergerService {
      */
     private fun mergeScopes(scopes: List<FlowScope>): FlowScope {
         val nodesById = scopes
-            .flatMap { it.flowNodes }.filter { it.getRawName().isNotEmpty() }.groupBy { it.getRawName() }
+            .flatMap { it.flowNodes }.filter { !it.id.isNullOrEmpty() }.groupBy { it.id }
         val mergedNodes = nodesById.map { (_, duplicates) -> mergeNodes(duplicates) }
-        val mergedFlows = scopes.flatMap { it.sequenceFlows }.distinctBy { it.getRawName() }
+        val mergedFlows = scopes.flatMap { it.sequenceFlows }.distinctBy { it.id.orEmpty() }
         return FlowScope(mergedNodes, mergedFlows)
     }
 
@@ -118,8 +118,8 @@ class ModelMergerService {
     private fun FlowScope.sorted(): FlowScope {
         val sortedNodes = flowNodes
             .map { node -> if (node is FlowNodeDefinition.Activity.SubProcess) node.sortedRecursively() else node }
-            .sortedBy { it.getRawName() }
-        return FlowScope(sortedNodes, sequenceFlows.sortedBy { it.getRawName() })
+            .sortedBy { it.id.orEmpty() }
+        return FlowScope(sortedNodes, sequenceFlows.sortedBy { it.id.orEmpty() })
     }
 
     private fun FlowNodeDefinition.Activity.SubProcess.sortedRecursively(): FlowNodeDefinition {

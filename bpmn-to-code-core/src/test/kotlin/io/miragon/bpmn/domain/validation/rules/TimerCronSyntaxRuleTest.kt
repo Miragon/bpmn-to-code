@@ -33,6 +33,7 @@ class TimerCronSyntaxRuleTest {
         assertThat(violations).hasSize(1)
         assertThat(violations.single().elementId).isEqualTo("Timer_Bad")
         assertThat(violations.single().severity).isEqualTo(Severity.ERROR)
+        assertThat(violations.single().message).isEqualTo("Timer cycle 'not a cron' is not a valid cron expression.")
     }
 
     @Test

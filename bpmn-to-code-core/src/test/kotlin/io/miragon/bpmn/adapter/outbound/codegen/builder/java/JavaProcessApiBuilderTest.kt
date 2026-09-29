@@ -69,7 +69,7 @@ class JavaProcessApiBuilderTest {
     fun `maps content of id to valid variable name format`() {
         // given: a model with flow nodes that have slashes in their names
         val defaultModel = testBikeLeasingModel()
-        val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.getName().replace("_", "-")) }
+        val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.id?.replace("_", "-")) }
         val modelApi = testProcessModelApi(
             model = testBikeLeasingModel(flowNodes = modifiedNodes),
             packagePath = "de.emaarco.example",

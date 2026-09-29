@@ -116,7 +116,7 @@ internal class BpmnJsonMapper {
 
     private fun FlowNodeDefinition.Activity.CallActivity.toCalledElement(): CalledElementJson? {
         val calledElement = CalledElementJson(
-            processId = definition.getValue().takeIf { it.isNotEmpty() },
+            processId = definition.calledElement?.takeIf { it.isNotEmpty() },
             propagateAllInputVariables = definition.propagateAllInputVariables,
             propagateAllOutputVariables = definition.propagateAllOutputVariables,
         )

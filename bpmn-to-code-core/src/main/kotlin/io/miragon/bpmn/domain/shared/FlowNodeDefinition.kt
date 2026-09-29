@@ -1,7 +1,5 @@
 package io.miragon.bpmn.domain.shared
 
-import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
-
 /**
  * A BPMN flow node, modelled along the OMG class tree: [Gateway], [Event] and the compound [Activity]
  * family ([Activity.Task], [Activity.SubProcess], [Activity.CallActivity]).
@@ -13,7 +11,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
  * [incoming] and [outgoing] hold **sequence-flow ids**, matching `bpmn:FlowNode.incoming` / `.outgoing`.
  * Node-to-node adjacency is derived from the flows themselves — see `ProcessGraph`.
  */
-sealed interface FlowNodeDefinition : VariableMapping<String> {
+sealed interface FlowNodeDefinition {
 
     val id: String?
     val displayName: String?
@@ -22,10 +20,6 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
     val variables: List<VariableDefinition>
     val extensions: List<EngineExtension>
     val engineAttributes: Map<String, Any?>
-
-    override fun getName(): String = id?.toUpperSnakeCase().orEmpty()
-    override fun getValue(): String = id.orEmpty()
-    override fun getRawName(): String = id.orEmpty()
 
     /**
      * Unions the additive list fields of [others] into this node, used when merging process variants that

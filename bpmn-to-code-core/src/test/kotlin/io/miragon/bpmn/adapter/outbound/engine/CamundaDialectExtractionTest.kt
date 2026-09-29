@@ -3,7 +3,6 @@ package io.miragon.bpmn.adapter.outbound.engine
 import io.miragon.bpmn.adapter.outbound.engine.dialect.CamundaDialect
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
-import io.miragon.bpmn.domain.shared.CompensationDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
@@ -123,38 +122,20 @@ class CamundaDialectExtractionTest {
             ),
         )
 
-        // --- derived compensations ---
-        assertThat(bpmnModel.compensations).containsExactlyInAnyOrder(
-            CompensationDefinition(
-                id = "boundary_compensateContract",
-                type = CompensationDefinition.Type.CATCHING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
-            CompensationDefinition(
-                id = "boundary_compensateOrder",
-                type = CompensationDefinition.Type.CATCHING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
-            CompensationDefinition(
-                id = "boundary_compensateInsurance",
-                type = CompensationDefinition.Type.CATCHING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
-            CompensationDefinition(
-                id = "event_reverseApplication",
-                type = CompensationDefinition.Type.THROWING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
+        // --- compensation event definitions, per node ---
+        val compensations = bpmnModel.allFlowNodes.filterIsInstance<FlowNodeDefinition.Event>()
+            .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Compensation>().map { node.id to it } }
+        assertThat(compensations).containsExactlyInAnyOrder(
+            "boundary_compensateContract" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
+            "boundary_compensateOrder" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
+            "boundary_compensateInsurance" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
+            "event_reverseApplication" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
         )
 
         // --- call activity (the compensation handler of the bike order) ---
         val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.hasCalledElement()).isTrue()
-        assertThat(callActivity.getValue()).isEqualTo("cancelBikeOrder")
+        assertThat(callActivity.calledElement).isEqualTo("cancelBikeOrder")
 
         // --- sequence flows: root scope vs. sub-process scope ---
         val subProcessInternalFlows = listOf(
@@ -221,13 +202,8 @@ class CamundaDialectExtractionTest {
         assertThat(event("timer_confirmationExpired").eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.DURATION, "P3DT12H"))
         assertThat(event("endEvent_membershipActivated").eventDefinitions.filterIsInstance<EventDefinitionInstance.Signal>().single().signalName)
             .isEqualTo("miravelo.memberActivated")
-        assertThat(bpmnModel.compensations).contains(
-            CompensationDefinition(
-                id = "endEvent_membershipDeclined",
-                type = CompensationDefinition.Type.THROWING,
-                activityRef = "serviceTask_claimMembership",
-                waitForCompletion = false,
-            ),
+        assertThat(event("endEvent_membershipDeclined").eventDefinitions).contains(
+            EventDefinitionInstance.Compensation(activityRef = "serviceTask_claimMembership", waitForCompletion = false),
         )
         val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
         assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.Expression($$"${mailService.sendWelcomeMail(email)}"))

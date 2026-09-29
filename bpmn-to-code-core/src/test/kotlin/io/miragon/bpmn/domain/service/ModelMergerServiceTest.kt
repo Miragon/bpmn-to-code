@@ -103,7 +103,7 @@ class ModelMergerServiceTest {
 
         // then: collections should be sorted independently by their own raw name
         val sortedModel = result.first()
-        assertThat(sortedModel.flowNodes.map { it.getRawName() }).containsExactly("a-node", "m-node", "z-node")
+        assertThat(sortedModel.flowNodes.map { it.id }).containsExactly("a-node", "m-node", "z-node")
         assertThat(sortedModel.variables.map { it.getRawName() }).containsExactly("alphaVar", "zetaVar")
         assertThat(sortedModel.definitions.escalations.map { it.getRawName() }).containsExactly("aEscalation_100", "mEscalation_200", "zEscalation_300")
     }
@@ -210,7 +210,7 @@ class ModelMergerServiceTest {
         assertThat(merged.definitions.errors.map { it.getRawName() }).containsExactly("ERROR_1_400", "ERROR_2_500", "ERROR_3_600")
         assertThat(merged.definitions.signals.map { it.getRawName() }).containsExactly("SIGNAL_1", "SIGNAL_2", "SIGNAL_3")
         assertThat(merged.definitions.messages.map { it.getRawName() }).containsExactly("MSG_1", "MSG_2", "MSG_3")
-        assertThat(merged.flowNodes.map { it.getRawName() }).containsExactly("node-1", "node-2", "node-3")
+        assertThat(merged.flowNodes.map { it.id }).containsExactly("node-1", "node-2", "node-3")
         assertThat(merged.definitions.escalations.map { it.getRawName() }).containsExactly("ESC_1_100", "ESC_2_200", "ESC_3_300")
         assertThat(merged.variants).hasSize(2)
     }
@@ -254,16 +254,16 @@ class ModelMergerServiceTest {
         val mergedModel = merged
 
         // and: shared flow nodes are deduplicated
-        assertThat(mergedModel.flowNodes.map { it.getRawName() }).containsExactly("Gateway_Route", "Task_AT", "Task_DE")
+        assertThat(mergedModel.flowNodes.map { it.id }).containsExactly("Gateway_Route", "Task_AT", "Task_DE")
 
         // and: each variant preserves its own flows and flow nodes
         val deVariant = mergedModel.variants.first { it.variantName == "prodDe" }
         assertThat(deVariant.sequenceFlows).containsExactly(flowDeOnly)
-        assertThat(deVariant.flowNodes.map { it.getRawName() }).containsExactly("Gateway_Route", "Task_DE")
+        assertThat(deVariant.flowNodes.map { it.id }).containsExactly("Gateway_Route", "Task_DE")
 
         val atVariant = mergedModel.variants.first { it.variantName == "prodAt" }
         assertThat(atVariant.sequenceFlows).containsExactly(flowAtOnly)
-        assertThat(atVariant.flowNodes.map { it.getRawName() }).containsExactly("Gateway_Route", "Task_AT")
+        assertThat(atVariant.flowNodes.map { it.id }).containsExactly("Gateway_Route", "Task_AT")
 
         // and: top-level sequenceFlows holds the union across variants, so a consumer ignoring variants
         // still sees the complete process (ADR 018 — was previously returned empty)
@@ -307,7 +307,7 @@ class ModelMergerServiceTest {
 
         // then: the merged top-level flow node carries the union of all variants' variables, deduplicated
         val merged = result.first()
-        val mergedNode = merged.flowNodes.first { it.getRawName() == "MessageStart_1" }
+        val mergedNode = merged.flowNodes.first { it.id == "MessageStart_1" }
         assertThat(mergedNode.variables).containsExactlyInAnyOrder(
             VariableDefinition("varA1", VariableDirection.INPUT),
             VariableDefinition("varB1", VariableDirection.INPUT),
@@ -316,7 +316,7 @@ class ModelMergerServiceTest {
 
         // and: each variant retains its own original variables on its variant-scoped flow nodes
         val variantANode = merged.variants.first { it.variantName == "variantA" }.flowNodes
-            .first { it.getRawName() == "MessageStart_1" }
+            .first { it.id == "MessageStart_1" }
         assertThat(variantANode.variables).containsExactly(
             VariableDefinition("varA1", VariableDirection.INPUT),
             VariableDefinition("shared", VariableDirection.INPUT),
@@ -348,7 +348,7 @@ class ModelMergerServiceTest {
 
         // then: variant-only node and its variables surface in the merged top-level flow nodes
         val merged = result.first()
-        val onlyInB = merged.flowNodes.first { it.getRawName() == "Task_OnlyInB" }
+        val onlyInB = merged.flowNodes.first { it.id == "Task_OnlyInB" }
         assertThat(onlyInB.variables).containsExactly(VariableDefinition("onlyInB", VariableDirection.OUTPUT))
     }
 
@@ -373,8 +373,8 @@ class ModelMergerServiceTest {
         assertThat(shuffled.variants.map { it.variantName }).containsExactly("dev", "prod", "staging")
 
         // and: the merged base node takes its attributes from the first variant by name ("dev")
-        assertThat(forward.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-dev")
-        assertThat(shuffled.flowNodes.first { it.getRawName() == "Task_Shared" }.displayName).isEqualTo("name-from-dev")
+        assertThat(forward.flowNodes.first { it.id == "Task_Shared" }.displayName).isEqualTo("name-from-dev")
+        assertThat(shuffled.flowNodes.first { it.id == "Task_Shared" }.displayName).isEqualTo("name-from-dev")
     }
 
     @Test

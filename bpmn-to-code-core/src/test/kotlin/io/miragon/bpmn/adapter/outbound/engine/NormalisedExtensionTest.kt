@@ -73,7 +73,7 @@ class NormalisedExtensionTest {
 
         val callActivity = model.allFlowNodes.single { it.id == "callActivity_cancelBikeOrder" }
             as FlowNodeDefinition.Activity.CallActivity
-        assertThat(callActivity.definition.getValue()).isEqualTo("cancelBikeOrder")
+        assertThat(callActivity.definition.calledElement).isEqualTo("cancelBikeOrder")
     }
 
     @Test

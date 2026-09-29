@@ -25,7 +25,15 @@ class CollisionDetectionService {
     fun findCollisions(model: ProcessModel): List<CollisionDetail> {
         val modelId = model.processId
         val collisions = mutableListOf<CollisionDetail>()
-        collisions.addAll(findCollisionsIn(processId = modelId, items = model.allFlowNodes, variableType = "FlowNode") { it.getRawName().toCamelCase() })
+        collisions.addAll(
+            findCollisionsIn(
+                processId = modelId,
+                items = model.allFlowNodes,
+                variableType = "FlowNode",
+                rawName = { it.id.orEmpty() },
+                constantName = { it.id.orEmpty().toCamelCase() },
+            ),
+        )
         collisions.addAll(findRepeatedIds(modelId, model.allFlowNodes))
         model.allFlowNodes.forEach { node -> collisions.addAll(findCollisionsOn(modelId, node)) }
         return collisions.distinctBy { Triple(first = it.processId, second = it.variableType, third = it.conflictingIds) }
@@ -82,8 +90,8 @@ class CollisionDetectionService {
      * The same element id declared in two scopes (e.g. at the root and inside a subprocess) survives merging as
      * two nodes, which the flat `FlowNodes` object would emit twice under one name.
      */
-    private fun findRepeatedIds(processId: String, flowNodes: List<VariableMapping<*>>): List<CollisionDetail> = flowNodes
-        .map { it.getRawName() }
+    private fun findRepeatedIds(processId: String, flowNodes: List<FlowNodeDefinition>): List<CollisionDetail> = flowNodes
+        .map { it.id.orEmpty() }
         .filter { it.isNotEmpty() }.groupingBy { it }.eachCount().filterValues { it > 1 }.map { (id, occurrences) ->
             CollisionDetail(
                 processId = processId,

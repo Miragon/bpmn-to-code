@@ -1,5 +1,6 @@
 package io.miragon.bpmn.domain.validation.rules
 
+import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
@@ -18,13 +19,13 @@ class TimerIso8601SyntaxRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         return context.model.timers.mapNotNull { timer ->
-            val (type, value) = timer.getValue()
+            val type = timer.type ?: return@mapNotNull null
+            val value = timer.expression.orEmpty()
             if (value.isBlank() || TimerValueSyntax.isExpression(value)) return@mapNotNull null
             val valid = when (type) {
-                "Date" -> TimerValueSyntax.isValidIsoDateTime(value)
-                "Duration" -> TimerValueSyntax.isValidIsoDuration(value)
-                "Cycle" -> TimerValueSyntax.isValidIsoRepeatingInterval(value)
-                else -> return@mapNotNull null
+                TimerType.DATE -> TimerValueSyntax.isValidIsoDateTime(value)
+                TimerType.DURATION -> TimerValueSyntax.isValidIsoDuration(value)
+                TimerType.CYCLE -> TimerValueSyntax.isValidIsoRepeatingInterval(value)
             }
             if (valid) return@mapNotNull null
             ValidationViolation(
@@ -32,7 +33,7 @@ class TimerIso8601SyntaxRule : SingleModelValidationRule {
                 severity = severity,
                 elementId = timer.id,
                 processId = context.model.processId,
-                message = "Timer $type value '$value' is not valid ISO-8601.",
+                message = "Timer ${type.label} value '$value' is not valid ISO-8601.",
             )
         }
     }

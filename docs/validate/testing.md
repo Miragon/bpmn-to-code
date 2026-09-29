@@ -311,7 +311,7 @@ class CallActivityTargetExistsRule : CrossModelValidationRule {
                         severity = severity,
                         elementId = callActivity.id,
                         processId = model.processId,
-                        message = "Call activity '${callActivity.id}' references unknown process '${callActivity.getValue()}'.",
+                        message = "Call activity '${callActivity.id}' references unknown process '${callActivity.calledElement}'.",
                     )
                 }
         }
