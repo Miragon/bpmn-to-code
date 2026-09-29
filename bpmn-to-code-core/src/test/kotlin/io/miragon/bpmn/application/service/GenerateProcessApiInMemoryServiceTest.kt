@@ -3,6 +3,7 @@ package io.miragon.bpmn.application.service
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel
@@ -27,10 +28,7 @@ class GenerateProcessApiInMemoryServiceTest {
     @Test
     fun `service generates API files from BPMN content`() {
         // given: BPMN content
-        val bpmnInput = GenerateProcessApiInMemoryUseCase.BpmnInput(
-            bpmnXml = "<bpmn>test</bpmn>",
-            processName = "test.bpmn",
-        )
+        val bpmnInput = BpmnResource(fileName = "test.bpmn", content = "<bpmn>test</bpmn>".encodeToByteArray())
         val expectedGeneratedFile = GeneratedApiFile(
             fileName = "TestProcessApi.kt",
             packagePath = "com.example",
@@ -49,7 +47,7 @@ class GenerateProcessApiInMemoryServiceTest {
         every { codeGenerator.generateCode(any()) } returns listOf(expectedGeneratedFile)
         every { codeGenerator.generateSharedCode(any()) } returns listOf(sharedFile)
         val command = GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = listOf(bpmnInput),
+            resources = listOf(bpmnInput),
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
             engine = ProcessEngine.ZEEBE,
@@ -69,13 +67,10 @@ class GenerateProcessApiInMemoryServiceTest {
     @Test
     fun `service rejects a model that targets a different engine before generating`() {
         // given: a model detected as Camunda 7 but generation requested for Operaton
-        val bpmnInput = GenerateProcessApiInMemoryUseCase.BpmnInput(
-            bpmnXml = "<bpmn>camunda</bpmn>",
-            processName = "newsletter.bpmn",
-        )
+        val bpmnInput = BpmnResource(fileName = "newsletter.bpmn", content = "<bpmn>camunda</bpmn>".encodeToByteArray())
         every { bpmnService.extract(any(), any()) } returns dummyModel.copy(detectedEngine = ProcessEngine.CAMUNDA_7)
         val command = GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = listOf(bpmnInput),
+            resources = listOf(bpmnInput),
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
             engine = ProcessEngine.OPERATON,
@@ -93,9 +88,9 @@ class GenerateProcessApiInMemoryServiceTest {
         // given: two files defining the same process id
         every { bpmnService.extract(any(), any()) } returns dummyModel
         val command = GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = listOf(
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v1</bpmn>", processName = "v1.bpmn"),
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v2</bpmn>", processName = "v2.bpmn"),
+            resources = listOf(
+                BpmnResource(fileName = "v1.bpmn", content = "<bpmn>v1</bpmn>".encodeToByteArray()),
+                BpmnResource(fileName = "v2.bpmn", content = "<bpmn>v2</bpmn>".encodeToByteArray()),
             ),
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
@@ -114,9 +109,9 @@ class GenerateProcessApiInMemoryServiceTest {
         every { bpmnService.extract(match { it.fileName == "v1.bpmn" }, any()) } returns dummyModel.copy(variantName = "v1")
         every { bpmnService.extract(match { it.fileName == "v2.bpmn" }, any()) } returns dummyModel.copy(variantName = "v2")
         val command = GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = listOf(
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v1</bpmn>", processName = "v1.bpmn"),
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v2</bpmn>", processName = "v2.bpmn"),
+            resources = listOf(
+                BpmnResource(fileName = "v1.bpmn", content = "<bpmn>v1</bpmn>".encodeToByteArray()),
+                BpmnResource(fileName = "v2.bpmn", content = "<bpmn>v2</bpmn>".encodeToByteArray()),
             ),
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
@@ -139,9 +134,9 @@ class GenerateProcessApiInMemoryServiceTest {
         every { bpmnService.extract(match { it.fileName == "keep.bpmn" }, any()) } returns dummyModel
         every { bpmnService.extract(match { it.fileName == "draft.bpmn" }, any()) } returns dummyModel.copy(processId = "draftProcess", isExecutable = false)
         val command = GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = listOf(
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>keep</bpmn>", processName = "keep.bpmn"),
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>draft</bpmn>", processName = "draft.bpmn"),
+            resources = listOf(
+                BpmnResource(fileName = "keep.bpmn", content = "<bpmn>keep</bpmn>".encodeToByteArray()),
+                BpmnResource(fileName = "draft.bpmn", content = "<bpmn>draft</bpmn>".encodeToByteArray()),
             ),
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,

@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.inbound
 
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -39,15 +40,9 @@ class CreateProcessApiInMemoryPluginTest {
                     packagePath = "com.example.api",
                     outputLanguage = OutputLanguage.KOTLIN,
                     engine = ProcessEngine.ZEEBE,
-                    bpmnContents = listOf(
-                        GenerateProcessApiInMemoryUseCase.BpmnInput(
-                            bpmnXml = "<bpmn>first</bpmn>",
-                            processName = "first.bpmn",
-                        ),
-                        GenerateProcessApiInMemoryUseCase.BpmnInput(
-                            bpmnXml = "<bpmn>second</bpmn>",
-                            processName = "second.bpmn",
-                        ),
+                    resources = listOf(
+                        BpmnResource(fileName = "first.bpmn", content = "<bpmn>first</bpmn>".encodeToByteArray()),
+                        BpmnResource(fileName = "second.bpmn", content = "<bpmn>second</bpmn>".encodeToByteArray()),
                     ),
                 ),
             )

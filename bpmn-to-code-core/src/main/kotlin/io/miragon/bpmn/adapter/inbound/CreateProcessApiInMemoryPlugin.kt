@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.inbound
 
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.service.GenerateProcessApiInMemoryService
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -25,9 +26,7 @@ class CreateProcessApiInMemoryPlugin(
             engine = engine,
             validationConfig = validationConfig,
             enableVariants = enableVariants,
-            bpmnContents = bpmnContents.map {
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = it.bpmnXml, processName = it.processName)
-            },
+            resources = bpmnContents.map { BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray()) },
         ),
     )
 

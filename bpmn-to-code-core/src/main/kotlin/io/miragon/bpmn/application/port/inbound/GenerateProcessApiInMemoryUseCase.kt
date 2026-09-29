@@ -1,5 +1,6 @@
 package io.miragon.bpmn.application.port.inbound
 
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -9,13 +10,11 @@ interface GenerateProcessApiInMemoryUseCase {
     fun generateProcessApi(command: Command): List<GeneratedApiFile>
 
     data class Command(
-        val bpmnContents: List<BpmnInput>,
+        val resources: List<BpmnResource>,
         val packagePath: String,
         val outputLanguage: OutputLanguage,
         val engine: ProcessEngine,
         val validationConfig: ValidationConfig = ValidationConfig(),
         val enableVariants: Boolean = false,
     )
-
-    data class BpmnInput(val bpmnXml: String, val processName: String)
 }

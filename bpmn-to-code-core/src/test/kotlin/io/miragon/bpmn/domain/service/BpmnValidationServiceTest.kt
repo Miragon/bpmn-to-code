@@ -1,5 +1,7 @@
 package io.miragon.bpmn.domain.service
 
+import io.miragon.bpmn.domain.DuplicateProcessIdException
+import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -7,9 +9,12 @@ import io.miragon.bpmn.domain.shared.TaskImplementation
 import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
+import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
+import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -236,5 +241,79 @@ class BpmnValidationServiceTest {
 
         // then: only the given rule reports, the built-in service-task check does not run
         assertThat(violations.map { it.ruleId to it.processId }).containsExactly("empty-process" to "empty")
+    }
+
+    @Test
+    fun `validateAndMerge merges files sharing a process id into variants when enabled`() {
+        // given: two variants of one process
+        val sources = listOf(
+            SourcedProcessModel("v1.bpmn", testProcessModel(variantName = "v1")),
+            SourcedProcessModel("v2.bpmn", testProcessModel(variantName = "v2")),
+        )
+
+        // when: validating and merging with variants enabled
+        val mergedModels = underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = true)
+
+        // then: one model carries both variants
+        assertThat(mergedModels).hasSize(1)
+        assertThat(mergedModels.single().variants.map { it.variantName }).containsExactly("v1", "v2")
+    }
+
+    @Test
+    fun `validateAndMerge rejects a process id declared in several files unless variants are enabled`() {
+        val sources = listOf(
+            SourcedProcessModel("v1.bpmn", testProcessModel(variantName = "v1")),
+            SourcedProcessModel("v2.bpmn", testProcessModel(variantName = "v2")),
+        )
+
+        assertThrows<DuplicateProcessIdException> {
+            underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = false)
+        }
+    }
+
+    @Test
+    fun `validateAndMerge validates each file before rejecting a shared process id`() {
+        // given: two files of one process, one of them with a service task lacking an implementation
+        val sources = listOf(
+            SourcedProcessModel("v1.bpmn", testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))),
+            SourcedProcessModel("v2.bpmn", testProcessModel()),
+        )
+
+        // when: validating and merging with variants disabled
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = false)
+        }
+
+        // then: the pre-merge violation is reported, not the shared process id
+        assertThat(exception.violations).anyMatch { it.ruleId == "missing-service-task-implementation" }
+    }
+
+    @Test
+    fun `validateAndMerge runs the post-merge rules on the merged models`() {
+        // given: a post-merge rule that only a merged model with variants violates
+        val underTest = BpmnValidationService(rules = listOf(RejectsVariantsRule()))
+        val sources = listOf(
+            SourcedProcessModel("v1.bpmn", testProcessModel(variantName = "v1")),
+            SourcedProcessModel("v2.bpmn", testProcessModel(variantName = "v2")),
+        )
+
+        // when: validating and merging with variants enabled
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = true)
+        }
+
+        // then: the rule saw the merged model
+        assertThat(exception.violations).extracting("ruleId").containsExactly("rejects-variants")
+    }
+
+    private class RejectsVariantsRule : SingleModelValidationRule {
+        override val id = "rejects-variants"
+        override val severity = Severity.ERROR
+        override val phase = ValidationPhase.POST_MERGE
+
+        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
+            if (context.model.variants.isEmpty()) return emptyList()
+            return listOf(violation(processId = context.model.processId, message = "Variants are not allowed."))
+        }
     }
 }

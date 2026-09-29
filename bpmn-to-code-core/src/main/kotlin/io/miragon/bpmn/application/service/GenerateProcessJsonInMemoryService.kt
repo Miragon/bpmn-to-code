@@ -5,12 +5,9 @@ import io.miragon.bpmn.adapter.outbound.json.BpmnJsonGenerationAdapter
 import io.miragon.bpmn.application.port.inbound.GenerateProcessJsonInMemoryUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
-import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedJsonFile
-import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class GenerateProcessJsonInMemoryService(
     private val jsonGenerator: GenerateJsonPort = BpmnJsonGenerationAdapter(),
@@ -18,17 +15,12 @@ class GenerateProcessJsonInMemoryService(
 ) : GenerateProcessJsonInMemoryUseCase {
 
     override fun generateProcessJson(command: GenerateProcessJsonInMemoryUseCase.Command): List<GeneratedJsonFile> {
-        val validationService = BpmnValidationService(command.validationConfig)
-        val bpmnResources = command.bpmnContents.map {
-            BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray())
-        }
-        val models = bpmnResources.map { bpmnExtractor.extract(it, command.engine) }
-        validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
-        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(bpmnResources.zip(models, ::toSourcedModel))
-        val mergedModels = ProcessModel.mergeByProcessId(models)
-        validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
+        val sources = command.resources.map { SourcedProcessModel(it.fileName, bpmnExtractor.extract(it, command.engine)) }
+        val mergedModels = BpmnValidationService(command.validationConfig).validateAndMerge(
+            sources = sources,
+            engine = command.engine,
+            enableVariants = command.enableVariants,
+        )
         return mergedModels.map { jsonGenerator.generateJson(it) }
     }
-
-    private fun toSourcedModel(file: BpmnResource, model: ProcessModel) = SourcedProcessModel(file.fileName, model)
 }
