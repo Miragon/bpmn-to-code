@@ -22,10 +22,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.then(pick: (NEXT) 
  * outgoing sequence flow of the current node and record both its target and the flow itself (see
  * [ProcessPath.flowIds]). Generated Kotlin nodes record their flows through [then] instead.
  */
-fun <OUTGOING, M : FlowNode> ProcessPath<out HasOutgoingFlows<OUTGOING>>.via(pick: (OUTGOING) -> SequenceFlow<M>): ProcessPath<M> {
-    val flow = pick(current.outgoingFlows)
-    return moveTo(node = flow.target, nodesToRecord = listOf(flow.target), flowsToRecord = listOf(flow))
-}
+fun <OUTGOING, M : FlowNode> ProcessPath<out HasOutgoingFlows<OUTGOING>>.via(pick: (OUTGOING) -> SequenceFlow<M>): ProcessPath<M> = traverse(pick(current.outgoingFlows))
 
 /**
  * Successor step that records the same successor [repeatTimes] times in a row — for a sequential multi-instance
