@@ -146,6 +146,7 @@
       <bpmn:extensionElements>
         <operaton:in businessKey="#{execution.processBusinessKey}" />
         <operaton:in source="orderIds" target="orderIds" />
+        <operaton:in sourceExpression="${applicationId}" target="applicationId" />
         <operaton:out source="cancellationCosts" target="cancellationCosts" />
       </bpmn:extensionElements>
     </bpmn:callActivity>

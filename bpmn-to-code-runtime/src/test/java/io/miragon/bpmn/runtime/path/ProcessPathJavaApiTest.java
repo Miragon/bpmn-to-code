@@ -6,7 +6,7 @@ import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.VariableName;
-import io.miragon.bpmn.runtime.example.NewsletterSubscriptionProcessApi.Flow;
+import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi.Flow;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,7 +21,7 @@ import static io.miragon.bpmn.runtime.path.ProcessPathStepsKt.then;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Mirrors {@code ProcessPathKotlinApiTest} over the generated *Java* Newsletter API. Because there is no fluent
+ * Mirrors {@code ProcessPathKotlinApiTest} over the generated *Java* bike-leasing API. Because there is no fluent
  * chaining from Java, each step is a static call on {@code ProcessPathStepsKt} with the intermediate path held
  * in a local ({@code var}). This doubles as the compile contract that the generated Java navigation code
  * ({@code extends AbstractFlowNode implements HasSuccessors<Next> / FlowScope}) resolves against the runtime
@@ -34,111 +34,109 @@ class ProcessPathJavaApiTest {
     @Test
     void happyPathWalksTheSubprocessInteriorWithInsideAndContinuesCheckedAfterIt() {
 
-        var p0 = ProcessPath.from(Flow.startEventSubmitRegistrationForm());
-        var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
-        var p2 = onto(p1, Flow.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
-        var p3 = inside(p2, sub -> {
-            var i0 = enter(sub, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-            var i1 = then(i0, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-            var i2 = then(i1, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
-            return then(i2, Flow.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
+        var p0 = ProcessPath.from(Flow.startEventLeasingRequestReceived());
+        var p1 = then(p0, Flow.StartEventLeasingRequestReceived.Next::serviceTaskValidateApplication);
+        var p2 = then(p1, Flow.ServiceTaskValidateApplication.Next::businessRuleTaskCheckCreditRating);
+        var p3 = then(p2, Flow.BusinessRuleTaskCheckCreditRating.Next::gatewayIsSolvent);
+        var p4 = onto(p3, Flow.GatewayIsSolvent.Next::subProcessConcludeContract);
+        var p5 = inside(p4, sub -> {
+            var i0 = enter(sub, Flow.SubProcessConcludeContract.Start::startEventCustomerEligible);
+            var i1 = then(i0, Flow.StartEventCustomerEligible.Next::serviceTaskSendContract);
+            var i2 = then(i1, Flow.ServiceTaskSendContract.Next::gatewayAwaitSignature);
+            var i3 = then(i2, Flow.GatewayAwaitSignature.Next::eventContractSigned);
+            return then(i3, Flow.EventContractSigned.Next::endEventContractConcluded);
         });
-        var p4 = then(p3, Flow.SubProcessConfirmation.Next::gatewaySplitNotifications);
-        var p5 = then(p4, Flow.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
-        var p6 = then(p5, Flow.ServiceTaskSendWelcomeMail.Next::gatewayJoinNotifications);
-        var p7 = then(p6, Flow.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
+        var p6 = then(p5, Flow.SubProcessConcludeContract.Next::gatewayFork);
+        var p7 = then(p6, Flow.GatewayFork.Next::serviceTaskOrderBike);
+        var p8 = then(p7, Flow.ServiceTaskOrderBike.Next::gatewayJoin);
+        var p9 = then(p8, Flow.GatewayJoin.Next::receiveTaskHandoverReported);
+        var p10 = then(p9, Flow.ReceiveTaskHandoverReported.Next::timerWithdrawalPeriodElapsed);
+        var p11 = then(p10, Flow.TimerWithdrawalPeriodElapsed.Next::endEventLeasingActive);
 
-        assertThat(p7.getIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "endEvent_subscriptionConfirmed",
-            "gateway_splitNotifications",
-            "serviceTask_sendWelcomeMail",
-            "gateway_joinNotifications",
-            "endEvent_registrationCompleted"
+        assertThat(p11.getIds()).containsExactly(
+            "startEvent_leasingRequestReceived",
+            "serviceTask_validateApplication",
+            "businessRuleTask_checkCreditRating",
+            "gateway_isSolvent",
+            "startEvent_customerEligible",
+            "serviceTask_sendContract",
+            "gateway_awaitSignature",
+            "event_contractSigned",
+            "endEvent_contractConcluded",
+            "gateway_fork",
+            "serviceTask_orderBike",
+            "gateway_join",
+            "receiveTask_handoverReported",
+            "timer_withdrawalPeriodElapsed",
+            "endEvent_leasingActive"
         );
     }
 
-    // --- Subprocess boundary events -----------------------------------------------------------------------
+    // --- Boundary events ----------------------------------------------------------------------------------
 
     @Test
-    void interruptingTimerBoundaryLeavesTheSubprocessIntoTheCallActivityAndCompensationEnd() {
-        var p0 = ProcessPath.from(Flow.startEventSubmitRegistrationForm());
-        var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
-        var p2 = onto(p1, Flow.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
-        var p3 = enter(p2, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-        var p4 = then(p3, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-        var p5 = then(p4, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
-        var p6 = interruptedBy(p5, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Next::timerAfter3Days);
-        var p7 = then(p6, Flow.TimerAfter3Days.Next::callActivityAbortRegistration);
-        var p8 = then(p7, Flow.CallActivityAbortRegistration.Next::compensationEndEventRegistrationAborted);
+    void escalationBoundaryLeavesTheSubprocessEnteredViaAnExplicitScopeIntoTheTerminateEnd() {
+        var p0 = ProcessPath.from(Flow.startEventLeasingRequestReceived());
+        var p1 = then(p0, Flow.StartEventLeasingRequestReceived.Next::serviceTaskValidateApplication);
+        var p2 = then(p1, Flow.ServiceTaskValidateApplication.Next::businessRuleTaskCheckCreditRating);
+        var p3 = enter(p2, Flow.subProcessConcludeContract(), Flow.SubProcessConcludeContract.Start::startEventCustomerEligible);
+        var p4 = then(p3, Flow.StartEventCustomerEligible.Next::serviceTaskSendContract);
+        var p5 = then(p4, Flow.ServiceTaskSendContract.Next::gatewayAwaitSignature);
+        var p6 = then(p5, Flow.GatewayAwaitSignature.Next::timerSignatureDeadline);
+        var p7 = then(p6, Flow.TimerSignatureDeadline.Next::endEventContractNotSigned);
+        var p8 = interruptedBy(p7, Flow.subProcessConcludeContract(), Flow.SubProcessConcludeContract.Next::boundaryContractNotSigned);
+        var p9 = then(p8, Flow.BoundaryContractNotSigned.Next::gatewayCollectRejections);
+        var p10 = then(p9, Flow.GatewayCollectRejections.Next::serviceTaskSendRejection);
+        var p11 = then(p10, Flow.ServiceTaskSendRejection.Next::endEventApplicationRejected);
 
-        assertThat(p8.getIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "timer_after3Days",
-            "callActivity_abortRegistration",
-            "compensationEndEvent_registrationAborted"
-        );
-    }
-
-    @Test
-    void errorBoundaryLeavesTheSubprocessIntoTheSignalEndEvent() {
-        var p0 = ProcessPath.from(Flow.startEventSubmitRegistrationForm());
-        var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
-        var p2 = onto(p1, Flow.ServiceTaskIncrementSubscriptionCounter.Next::subProcessConfirmation);
-        var p3 = enter(p2, Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-        var p4 = then(p3, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-        var p5 = interruptedBy(p4, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Next::errorEventInvalidMail);
-        var p6 = then(p5, Flow.ErrorEventInvalidMail.Next::endEventRegistrationNotPossible);
-
-        assertThat(p6.getIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "errorEvent_invalidMail",
-            "endEvent_registrationNotPossible"
+        assertThat(p11.getIds()).containsExactly(
+            "startEvent_leasingRequestReceived",
+            "serviceTask_validateApplication",
+            "businessRuleTask_checkCreditRating",
+            "startEvent_customerEligible",
+            "serviceTask_sendContract",
+            "gateway_awaitSignature",
+            "timer_signatureDeadline",
+            "endEvent_contractNotSigned",
+            "boundary_contractNotSigned",
+            "gateway_collectRejections",
+            "serviceTask_sendRejection",
+            "endEvent_applicationRejected"
         );
     }
 
     @Test
-    void nonInterruptingTimerResendLoopIsWalkedInTheInteriorEnteredViaAnExplicitScope() {
-        var p0 = ProcessPath.from(Flow.startEventSubmitRegistrationForm());
-        var p1 = then(p0, Flow.StartEventSubmitRegistrationForm.Next::serviceTaskIncrementSubscriptionCounter);
-        var p2 = enter(p1, Flow.subProcessConfirmation(), Flow.SubProcessConfirmation.Start::startEventRequestReceived);
-        var p3 = then(p2, Flow.StartEventRequestReceived.Next::serviceTaskSendConfirmationMail);
-        var p4 = then(p3, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
-        var p5 = then(p4, Flow.ReceiveTaskConfirmRegistration.Next::timerEveryDay);
-        var p6 = then(p5, Flow.TimerEveryDay.Next::serviceTaskSendConfirmationMail);
-        var p7 = then(p6, Flow.ServiceTaskSendConfirmationMail.Next::receiveTaskConfirmRegistration);
-        var p8 = then(p7, Flow.ReceiveTaskConfirmRegistration.Next::endEventSubscriptionConfirmed);
+    void errorBoundaryOnATaskIsASuccessorOfTheTask() {
+        var p0 = ProcessPath.from(Flow.startEventLeasingRequestReceived());
+        var p1 = then(p0, Flow.StartEventLeasingRequestReceived.Next::serviceTaskValidateApplication);
+        var p2 = then(p1, Flow.ServiceTaskValidateApplication.Next::boundaryApplicationInvalid);
+        var p3 = then(p2, Flow.BoundaryApplicationInvalid.Next::gatewayCollectRejections);
+        var p4 = then(p3, Flow.GatewayCollectRejections.Next::serviceTaskSendRejection);
+        var p5 = then(p4, Flow.ServiceTaskSendRejection.Next::endEventApplicationRejected);
 
-        assertThat(p8.getIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "timer_everyDay",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "endEvent_subscriptionConfirmed"
+        assertThat(p5.getIds()).containsExactly(
+            "startEvent_leasingRequestReceived",
+            "serviceTask_validateApplication",
+            "boundary_applicationInvalid",
+            "gateway_collectRejections",
+            "serviceTask_sendRejection",
+            "endEvent_applicationRejected"
         );
-        assertThat(p8.getDistinctIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "timer_everyDay",
-            "endEvent_subscriptionConfirmed"
+    }
+
+    @Test
+    void nonInterruptingTimerBoundaryBranchesOffTheSubprocessIntoTheReminder() {
+        var p0 = ProcessPath.from(Flow.gatewayIsSolvent());
+        var p1 = onto(p0, Flow.GatewayIsSolvent.Next::subProcessConcludeContract);
+        var p2 = then(p1, Flow.SubProcessConcludeContract.Next::timerSignatureReminder);
+        var p3 = then(p2, Flow.TimerSignatureReminder.Next::serviceTaskSendReminderMail);
+        var p4 = then(p3, Flow.ServiceTaskSendReminderMail.Next::endEventCustomerReminded);
+
+        assertThat(p4.getIds()).containsExactly(
+            "gateway_isSolvent",
+            "timer_signatureReminder",
+            "serviceTask_sendReminderMail",
+            "endEvent_customerReminded"
         );
     }
 
@@ -146,27 +144,27 @@ class ProcessPathJavaApiTest {
 
     @Test
     void parallelBranchesAssertAsAnUnorderedSetViaNodesOf() {
-        var welcomeStart = ProcessPath.from(Flow.gatewaySplitNotifications());
-        var w1 = then(welcomeStart, Flow.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
-        var w2 = then(w1, Flow.ServiceTaskSendWelcomeMail.Next::gatewayJoinNotifications);
-        var w3 = then(w2, Flow.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
-        List<FlowNode> welcomeBranch = w3.getNodes();
+        var orderStart = ProcessPath.from(Flow.gatewayFork());
+        var o1 = then(orderStart, Flow.GatewayFork.Next::serviceTaskOrderBike);
+        var o2 = then(o1, Flow.ServiceTaskOrderBike.Next::gatewayJoin);
+        var o3 = then(o2, Flow.GatewayJoin.Next::receiveTaskHandoverReported);
+        List<FlowNode> orderBranch = o3.getNodes();
 
-        var notifyStart = ProcessPath.from(Flow.gatewaySplitNotifications());
-        var t1 = then(notifyStart, Flow.GatewaySplitNotifications.Next::serviceTaskNotifyCommunity);
-        var t2 = then(t1, Flow.ServiceTaskNotifyCommunity.Next::gatewayJoinNotifications);
-        var t3 = then(t2, Flow.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
-        List<FlowNode> notifyBranch = t3.getNodes();
+        var insuranceStart = ProcessPath.from(Flow.gatewayFork());
+        var s1 = then(insuranceStart, Flow.GatewayFork.Next::serviceTaskIssueInsurancePolicy);
+        var s2 = then(s1, Flow.ServiceTaskIssueInsurancePolicy.Next::gatewayJoin);
+        var s3 = then(s2, Flow.GatewayJoin.Next::receiveTaskHandoverReported);
+        List<FlowNode> insuranceBranch = s3.getNodes();
 
-        var ids = nodesOf(welcomeBranch, notifyBranch).stream()
+        var ids = nodesOf(orderBranch, insuranceBranch).stream()
             .map(n -> n.getId().getValue())
             .toList();
 
-        // nodesOf unions the branches and de-duplicates the shared join/end nodes by ElementId — the same as
+        // nodesOf unions the branches and de-duplicates the shared join nodes by ElementId — the same as
         // Kotlin, now that AbstractFlowNode has id-based equals/hashCode (the Java accessors return fresh
         // instances, but equal-by-id ones).
         assertThat(ids)
-            .contains("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity", "gateway_joinNotifications")
+            .contains("serviceTask_orderBike", "serviceTask_issueInsurancePolicy", "gateway_join")
             .doesNotHaveDuplicates();
     }
 
@@ -175,20 +173,20 @@ class ProcessPathJavaApiTest {
     @Test
     void jumpToReAnchorsToTheForkToWalkTheSecondParallelBranchInOneChain() {
 
-        var p0 = ProcessPath.from(Flow.gatewaySplitNotifications());
-        var p1 = then(p0, Flow.GatewaySplitNotifications.Next::serviceTaskSendWelcomeMail);
-        var p2 = jumpTo(p1, Flow.gatewaySplitNotifications());
-        var p3 = then(p2, Flow.GatewaySplitNotifications.Next::serviceTaskNotifyCommunity);
-        var p4 = then(p3, Flow.ServiceTaskNotifyCommunity.Next::gatewayJoinNotifications);
-        var p5 = then(p4, Flow.GatewayJoinNotifications.Next::endEventRegistrationCompleted);
+        var p0 = ProcessPath.from(Flow.gatewayFork());
+        var p1 = then(p0, Flow.GatewayFork.Next::serviceTaskOrderBike);
+        var p2 = jumpTo(p1, Flow.gatewayFork());
+        var p3 = then(p2, Flow.GatewayFork.Next::serviceTaskIssueInsurancePolicy);
+        var p4 = then(p3, Flow.ServiceTaskIssueInsurancePolicy.Next::gatewayJoin);
+        var p5 = then(p4, Flow.GatewayJoin.Next::receiveTaskHandoverReported);
 
         var ids = p5.getNodes().stream().map(n -> n.getId().getValue()).toList();
         assertThat(ids).containsExactly(
-            "gateway_splitNotifications",
-            "serviceTask_sendWelcomeMail",
-            "serviceTask_notifyCommunity",
-            "gateway_joinNotifications",
-            "endEvent_registrationCompleted"
+            "gateway_fork",
+            "serviceTask_orderBike",
+            "serviceTask_issueInsurancePolicy",
+            "gateway_join",
+            "receiveTask_handoverReported"
         );
     }
 
@@ -196,43 +194,43 @@ class ProcessPathJavaApiTest {
 
     @Test
     void nodesExposeTheirIdAndFlatElementTypeAcrossElementKinds() {
-        assertThat(Flow.startEventSubmitRegistrationForm().getElementType()).isEqualTo("MESSAGE_START_EVENT");
-        assertThat(Flow.gatewaySplitNotifications().getElementType()).isEqualTo("PARALLEL_GATEWAY");
-        assertThat(Flow.callActivityAbortRegistration().getElementType()).isEqualTo("CALL_ACTIVITY");
-        assertThat(Flow.serviceTaskSendWelcomeMail().getElementType()).isEqualTo("SERVICE_TASK");
-        assertThat(Flow.gatewaySplitNotifications().getId().getValue()).isEqualTo("gateway_splitNotifications");
+        assertThat(Flow.startEventLeasingRequestReceived().getElementType()).isEqualTo("MESSAGE_START_EVENT");
+        assertThat(Flow.gatewayFork().getElementType()).isEqualTo("PARALLEL_GATEWAY");
+        assertThat(Flow.callActivityCancelBikeOrder().getElementType()).isEqualTo("CALL_ACTIVITY");
+        assertThat(Flow.serviceTaskSendContract().getElementType()).isEqualTo("SERVICE_TASK");
+        assertThat(Flow.gatewayFork().getId().getValue()).isEqualTo("gateway_fork");
     }
 
     @Test
     void nodesExposeTheirDisplayNameOutgoingSequenceFlowsAndTheirOwnFacets() {
-        assertThat(Flow.receiveTaskConfirmRegistration().getName()).isEqualTo("Confirm registration");
-        assertThat(Flow.startEventSubmitRegistrationForm().getName()).isNull();
+        assertThat(Flow.receiveTaskHandoverReported().getName()).isEqualTo("Await bike handover");
+        assertThat(Flow.gatewayFork().getName()).isNull();
 
-        var flow = Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter();
-        assertThat(flow.getId().getValue()).isEqualTo("flow_submitToIncrementCounter");
-        assertThat(flow.getTarget()).isEqualTo(Flow.serviceTaskIncrementSubscriptionCounter());
+        var flow = Flow.startEventLeasingRequestReceived().outgoingFlows().toServiceTaskValidateApplication();
+        assertThat(flow.getId().getValue()).isEqualTo("flow_leasingRequestReceivedToValidateApplication");
+        assertThat(flow.getTarget()).isEqualTo(Flow.serviceTaskValidateApplication());
         assertThat(flow.getConditionExpression()).isNull();
         assertThat(flow.isDefault()).isFalse();
-        assertThat(flow).isEqualTo(Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter());
-        assertThat(Flow.timerEveryDay()).isInstanceOf(BoundaryEvent.class);
+        assertThat(flow).isEqualTo(Flow.startEventLeasingRequestReceived().outgoingFlows().toServiceTaskValidateApplication());
+        assertThat(Flow.timerSignatureReminder()).isInstanceOf(BoundaryEvent.class);
 
-        VariableName.Input input = Flow.ServiceTaskSendConfirmationMail.Variables.SUBSCRIPTION_ID;
-        assertThat(input.getValue()).isEqualTo("subscriptionId");
-        assertThat(Flow.ServiceTaskSendWelcomeMail.JOB_TYPE).isEqualTo("${newsletterSendWelcomeMail}");
-        assertThat(Flow.startEventSubmitRegistrationForm().message).isEqualTo(new MessageName("Message_FormSubmitted"));
+        VariableName.Input input = Flow.ServiceTaskSendContract.Variables.APPLICATION_ID;
+        assertThat(input.getValue()).isEqualTo("applicationId");
+        assertThat(Flow.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo("${validateApplicationDelegate}");
+        assertThat(Flow.startEventLeasingRequestReceived().message).isEqualTo(new MessageName("miravelo.leasingRequestReceived"));
 
-        assertThat(Flow.timerEveryDay().timer).isEqualTo(new BpmnTimer("Duration", "PT1M"));
-        assertThat(Flow.timerEveryDay().attachedTo()).isEqualTo(Flow.receiveTaskConfirmRegistration());
-        assertThat(Flow.timerEveryDay().isInterrupting).isFalse();
+        assertThat(Flow.timerSignatureReminder().timer).isEqualTo(new BpmnTimer("Duration", "P7D"));
+        assertThat(Flow.timerSignatureReminder().attachedTo()).isEqualTo(Flow.subProcessConcludeContract());
+        assertThat(Flow.timerSignatureReminder().isInterrupting).isFalse();
 
-        assertThat(Flow.callActivityAbortRegistration().calledProcess).isEqualTo(new ProcessId("abort-registration"));
-        assertThat(Flow.CallActivityAbortRegistration.Inputs.CHILD_SUBSCRIPTION_ID.getTarget()).isEqualTo("childSubscriptionId");
+        assertThat(Flow.callActivityCancelBikeOrder().calledProcess).isEqualTo(new ProcessId("cancelBikeOrder"));
+        assertThat(Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS.getTarget()).isEqualTo("orderIds");
     }
 
     @Test
     void compensationHandlerIsReachableOnlyByNameNotThroughTheNavigationGraph() {
-        var handler = Flow.serviceTaskDecrementSubscriptionCounter();
-        assertThat(handler.getId().getValue()).isEqualTo("serviceTask_decrementSubscriptionCounter");
+        var handler = Flow.serviceTaskCancelContract();
+        assertThat(handler.getId().getValue()).isEqualTo("serviceTask_cancelContract");
         assertThat(handler.getElementType()).isEqualTo("SERVICE_TASK");
     }
 }

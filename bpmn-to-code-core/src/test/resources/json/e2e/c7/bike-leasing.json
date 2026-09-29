@@ -572,6 +572,13 @@
                         }
                     },
                     {
+                        "$type": "camunda:in",
+                        "attributes": {
+                            "sourceExpression": "${applicationId}",
+                            "target": "applicationId"
+                        }
+                    },
+                    {
                         "$type": "camunda:out",
                         "attributes": {
                             "source": "cancellationCosts",

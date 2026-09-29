@@ -146,6 +146,7 @@
       <bpmn:extensionElements>
         <camunda:in businessKey="#{execution.processBusinessKey}" />
         <camunda:in source="orderIds" target="orderIds" />
+        <camunda:in sourceExpression="${applicationId}" target="applicationId" />
         <camunda:out source="cancellationCosts" target="cancellationCosts" />
       </bpmn:extensionElements>
     </bpmn:callActivity>

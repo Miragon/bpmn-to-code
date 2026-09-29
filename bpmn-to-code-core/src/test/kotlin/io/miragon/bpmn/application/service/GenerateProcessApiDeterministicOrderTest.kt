@@ -9,7 +9,7 @@ import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testSendNewsletterModel
+import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.withDisplayName
 import io.mockk.every
 import io.mockk.mockk
@@ -35,11 +35,11 @@ class GenerateProcessApiDeterministicOrderTest {
     private val variantNames = listOf("staging", "dev", "prod")
 
     private val modelsByName: Map<String, ProcessModel> = variantNames.associateWith { name ->
-        testSendNewsletterModel(processId = "sendNewsletter", variantName = name)
+        testCancelBikeOrderModel(variantName = name)
             .let { model ->
                 model.copy(
                     flowNodes = model.flowNodes.map { node ->
-                        if (node.id == "serviceTask_loadSubscribers") node.withDisplayName("load-$name") else node
+                        if (node.id == "serviceTask_requestCancellation") node.withDisplayName("request-$name") else node
                     },
                 )
             }

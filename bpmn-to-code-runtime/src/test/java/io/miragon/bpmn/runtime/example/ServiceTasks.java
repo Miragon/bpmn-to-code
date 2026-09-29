@@ -8,13 +8,21 @@ import java.lang.String;
  * Kept as {@code public static final String} because annotation arguments must be compile-time constants.
  */
 public final class ServiceTasks {
-  public static final String NEWSLETTER_SEND_CONFIRMATION_MAIL = "#{newsletterSendConfirmationMail}";
+  public static final String CANCEL_CONTRACT_DELEGATE = "${cancelContractDelegate}";
 
-  public static final String NEWSLETTER_SEND_WELCOME_MAIL = "${newsletterSendWelcomeMail}";
+  public static final String MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_ = "${mailService.sendReminder(applicationId)}";
 
-  public static final String COUNTER_CLASS = "counterClass";
+  public static final String SEND_CONTRACT_DELEGATE = "${sendContractDelegate}";
 
-  public static final String NEWSLETTER_NOTIFY_COMMUNITY = "newsletter.notifyCommunity";
+  public static final String VALIDATE_APPLICATION_DELEGATE = "${validateApplicationDelegate}";
 
-  public static final String NEWSLETTER_REGISTRATION_COMPLETED = "newsletter.registrationCompleted";
+  public static final String IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE = "io.miravelo.leasing.IssueInsurancePolicyDelegate";
+
+  public static final String MIRAVELO_CANCEL_POLICY = "miravelo.cancelPolicy";
+
+  public static final String MIRAVELO_ORDER_BIKE = "miravelo.orderBike";
+
+  public static final String MIRAVELO_SEND_CANCELLATION_CONFIRMATION = "miravelo.sendCancellationConfirmation";
+
+  public static final String MIRAVELO_SEND_REJECTION = "miravelo.sendRejection";
 }

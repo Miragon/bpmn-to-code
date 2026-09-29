@@ -2,8 +2,8 @@ package io.miragon.bpmn.adapter.outbound.json
 
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
-import io.miragon.bpmn.domain.testSendNewsletterModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterModel
+import io.miragon.bpmn.domain.testBikeLeasingModel
+import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import kotlinx.serialization.json.Json
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -16,28 +16,27 @@ class BpmnJsonGeneratorTest {
 
     @Test
     fun `generates correct JSON for single model`() {
-        // given: the subscribe newsletter BPMN model
-        val model = testSubscribeNewsletterModel()
+        // given: the bike-leasing BPMN model
+        val model = testBikeLeasingModel()
 
         // when: generating JSON
         val result = underTest.generate(model)
 
         // then: expect the generated JSON to match the expected snapshot
-        val expectedFile = File(javaClass.getResource("/json/NewsletterSubscriptionProcess.json")!!.toURI())
-        assertThat(result).isEqualToIgnoringWhitespace(expectedFile.readText())
+        assertThat(result).isEqualToIgnoringWhitespace(golden("/json/BikeLeasingProcess.json", result))
         assertJsonSyntaxValid(result)
     }
 
     @Test
     fun `generates JSON with variants for merged model`() {
         // given: a merged model with a single variant
-        val send = testSendNewsletterModel(variantName = "send")
+        val retail = testCancelBikeOrderModel(variantName = "retail")
         val merged = ProcessModel(
-            processId = send.processId,
-            flowNodes = send.flowNodes,
-            definitions = send.definitions,
+            processId = retail.processId,
+            flowNodes = retail.flowNodes,
+            definitions = retail.definitions,
             variants = listOf(
-                Variant("send", send.flowNodes, send.sequenceFlows),
+                Variant("retail", retail.flowNodes, retail.sequenceFlows),
             ),
         )
 
@@ -45,15 +44,14 @@ class BpmnJsonGeneratorTest {
         val result = underTest.generate(merged)
 
         // then: expect the generated JSON to match the expected snapshot
-        val expectedFile = File(javaClass.getResource("/json/MultiVariantNewsletterProcess.json")!!.toURI())
-        assertThat(result).isEqualToIgnoringWhitespace(expectedFile.readText())
+        assertThat(result).isEqualToIgnoringWhitespace(golden("/json/MultiVariantCancelBikeOrderProcess.json", result))
         assertJsonSyntaxValid(result)
     }
 
     @Test
     fun `does not emit variables - they restate ioMapping and have no bpmn element`() {
         // given: a model whose nodes carry variables in the domain
-        val model = testSubscribeNewsletterModel()
+        val model = testBikeLeasingModel()
         assertThat(model.variables).isNotEmpty()
 
         // when: generating JSON
@@ -66,28 +64,36 @@ class BpmnJsonGeneratorTest {
     @Test
     fun `emits isDefault only on the default sequence flow`() {
         // given: a model whose gateway has a default flow and a conditional sibling
-        val model = testSendNewsletterModel()
+        val model = testCancelBikeOrderModel()
 
         // when: generating JSON
         val result = underTest.generate(model)
 
         // then: the default flow carries isDefault, the conditional sibling does not
-        assertThat(result).contains("\"id\": \"flow_hasSubscribers\"")
-        assertThat(result).containsPattern("flow_hasSubscribers[\\s\\S]*?\"isDefault\": true")
+        assertThat(result).contains("\"id\": \"flow_cancellationPossibleToMergeReturn\"")
+        assertThat(result).containsPattern("flow_cancellationPossibleToMergeReturn[\\s\\S]*?\"isDefault\": true")
         assertThat(result).doesNotContain("\"isDefault\": false")
     }
 
     @Test
     fun `adapter always uses processId as filename`() {
         // given: a model
-        val model = testSubscribeNewsletterModel()
+        val model = testBikeLeasingModel()
         val adapter = BpmnJsonGenerationAdapter()
 
         // when: generating JSON via adapter
         val result = adapter.generateJson(model)
 
         // then: filename is processId.json
-        assertThat(result.fileName).isEqualTo("newsletterSubscription.json")
+        assertThat(result.fileName).isEqualTo("bikeLeasing.json")
+    }
+
+    private fun golden(path: String, generated: String): String {
+        if (System.getProperty("golden.update") == "true") {
+            File("src/test/resources$path").writeText(generated)
+            return generated
+        }
+        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 
     private fun assertJsonSyntaxValid(source: String) {

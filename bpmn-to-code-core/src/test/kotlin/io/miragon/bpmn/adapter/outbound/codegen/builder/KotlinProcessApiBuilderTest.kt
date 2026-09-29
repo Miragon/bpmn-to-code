@@ -10,10 +10,10 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
+import io.miragon.bpmn.domain.testBikeLeasingModel
+import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
-import io.miragon.bpmn.domain.testSendNewsletterModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterModel
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -34,18 +34,10 @@ class KotlinProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile generates correct process API file`() {
-        // given: a BPMN model with custom service task implementations
+        // given: the bike-leasing model, which covers every implementation kind of Camunda 7
         val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
-            model = testSubscribeNewsletterModel(
-                flowNodes = buildSubscribeNewsletterFlowNodes(
-                    confirmationMailImpl = "#{newsletterSendConfirmationMail}",
-                    welcomeMailImpl = "\${newsletterSendWelcomeMail}",
-                    registrationCompletedImpl = "newsletter.registrationCompleted",
-                    notifyCommunityImpl = "newsletter.notifyCommunity",
-                    extraVariables = listOf(VariableDefinition("testVariable", VariableDirection.INPUT)),
-                ),
-            ),
+            model = testBikeLeasingModel(),
         )
 
         // when: we build the process API file
@@ -55,7 +47,7 @@ class KotlinProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.kt")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
-        assertThat(result.content).isEqualTo(golden("/api/NewsletterSubscriptionProcessApiKotlin.txt", result.content))
+        assertThat(result.content).isEqualTo(golden("/api/BikeLeasingProcessApiKotlin.txt", result.content))
         assertKotlinSyntaxValid(result.content)
 
         // and: the Flow KDoc explains how to navigate it
@@ -88,13 +80,13 @@ class KotlinProcessApiBuilderTest {
     @Test
     fun `buildApiFile generates variant-scoped Flow for merged model`() {
         // given: a merged model with a single variant
-        val send = testSendNewsletterModel(variantName = "send")
+        val retail = testCancelBikeOrderModel(variantName = "retail")
         val merged = ProcessModel(
-            processId = send.processId,
-            flowNodes = send.flowNodes,
-            definitions = send.definitions,
+            processId = retail.processId,
+            flowNodes = retail.flowNodes,
+            definitions = retail.definitions,
             variants = listOf(
-                Variant("send", send.flowNodes, send.sequenceFlows),
+                Variant("retail", retail.flowNodes, retail.sequenceFlows),
             ),
         )
         val modelApi = BpmnModelApi(merged, OutputLanguage.KOTLIN, "de.emaarco.example", ProcessEngine.ZEEBE)

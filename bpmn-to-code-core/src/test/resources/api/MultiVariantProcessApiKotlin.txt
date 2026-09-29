@@ -4,11 +4,9 @@
 package de.emaarco.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnEngine
-import io.miragon.bpmn.runtime.BpmnEscalation
-import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
-import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
@@ -19,8 +17,8 @@ import kotlin.Boolean
 import kotlin.String
 import kotlin.Suppress
 
-object SendNewsletterProcessApi {
-  val PROCESS_ID: ProcessId = ProcessId("sendNewsletter")
+object CancelBikeOrderProcessApi {
+  val PROCESS_ID: ProcessId = ProcessId("cancelBikeOrder")
 
   val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
 
@@ -33,77 +31,15 @@ object SendNewsletterProcessApi {
      * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `then()` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess depth; a subprocess opens its interior via `start()`.
      * Intended for tooling, tests, and reasoning about the process shape.
      */
-    object Send {
-      object EndEventEditionSent : AbstractFlowNode(
-        id = ElementId("endEvent_editionSent"),
-        elementType = "END_EVENT",
-      )
-
-      object EndEventIssueResolved : AbstractFlowNode(
-        id = ElementId("endEvent_issueResolved"),
-        elementType = "END_EVENT",
-      )
-
-      object EndEventNoSubscribers : AbstractFlowNode(
-        id = ElementId("endEvent_noSubscribers"),
-        elementType = "END_EVENT",
-      )
-
-      object EscalationEndEventNofitySupport : AbstractFlowNode(
-        id = ElementId("escalationEndEvent_nofitySupport"),
-        elementType = "ESCALATION_END_EVENT",
-      ) {
-        val escalation: BpmnEscalation = Escalations.ESCALATION_NOTIFY_SUPPORT_200
-      }
-
-      object EscalationEndEventNofitySupportAfterRepeatedError : AbstractFlowNode(
-        id = ElementId("escalationEndEvent_nofitySupportAfterRepeatedError"),
-        elementType = "END_EVENT",
-      )
-
-      object EventGatewayAfterSendingAgain : AbstractFlowNode(
-        id = ElementId("eventGateway_afterSendingAgain"),
-        elementType = "EVENT_BASED_GATEWAY",
-      ), HasSuccessors<EventGatewayAfterSendingAgain.Next>,
-          HasOutgoingFlows<EventGatewayAfterSendingAgain.OutgoingFlows> {
-        override fun then(): Next = Next
-
-        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
-
-        object Next {
-          val eventMailRejectedAgain: EventMailRejectedAgain
-            get() = EventMailRejectedAgain
-
-          val timerNoRejectionForOneDay: TimerNoRejectionForOneDay
-            get() = TimerNoRejectionForOneDay
-        }
-
-        object OutgoingFlows {
-          val toEventMailRejectedAgain: SequenceFlow<EventMailRejectedAgain>
-            get() = SequenceFlow(
-              id = ElementId("flow_eventGatewayToMailRejectedAgain"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
-              target = EventMailRejectedAgain,
-            )
-
-          val toTimerNoRejectionForOneDay: SequenceFlow<TimerNoRejectionForOneDay>
-            get() = SequenceFlow(
-              id = ElementId("flow_eventGatewayToTimer"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
-              target = TimerNoRejectionForOneDay,
-            )
-        }
-      }
-
-      object EventMailRejected : AbstractFlowNode(
-        id = ElementId("event_mailRejected"),
-        elementType = "MESSAGE_START_EVENT",
-      ), HasSuccessors<EventMailRejected.Next>, HasOutgoingFlows<EventMailRejected.OutgoingFlows> {
-        val message: MessageName = Messages.MESSAGE_MAIL_REJECTED
+    object Retail {
+      object BoundaryCancellationFailed : AbstractFlowNode(
+        id = ElementId("boundary_cancellationFailed"),
+        elementType = "ERROR_BOUNDARY_EVENT",
+        name = "Cancellation failed",
+      ), HasSuccessors<BoundaryCancellationFailed.Next>,
+          HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>, BoundaryEvent {
+        val attachedTo: ServiceTaskRequestCancellation
+          get() = ServiceTaskRequestCancellation
 
         val isInterrupting: Boolean = true
 
@@ -112,340 +48,249 @@ object SendNewsletterProcessApi {
         override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
-          val serviceTaskAnalyzeError: ServiceTaskAnalyzeError
-            get() = ServiceTaskAnalyzeError
+          val gatewayCollectClarifications: GatewayCollectClarifications
+            get() = GatewayCollectClarifications
         }
 
         object OutgoingFlows {
-          val toServiceTaskAnalyzeError: SequenceFlow<ServiceTaskAnalyzeError>
+          val toGatewayCollectClarifications: SequenceFlow<GatewayCollectClarifications>
             get() = SequenceFlow(
-              id = ElementId("flow_mailRejectedToAnalyze"),
+              id = ElementId("flow_cancellationFailedToCollectClarifications"),
               name = null,
               conditionExpression = null,
               isDefault = false,
-              target = ServiceTaskAnalyzeError,
+              target = GatewayCollectClarifications,
             )
         }
       }
 
-      object EventMailRejectedAgain : AbstractFlowNode(
-        id = ElementId("event_mailRejectedAgain"),
-        elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
-      ), HasSuccessors<EventMailRejectedAgain.Next>,
-          HasOutgoingFlows<EventMailRejectedAgain.OutgoingFlows> {
-        val message: MessageName = Messages.MESSAGE_MAIL_REJECTED_AGAIN
+      object EndEventBikeOrderCancelled : AbstractFlowNode(
+        id = ElementId("endEvent_bikeOrderCancelled"),
+        elementType = "MESSAGE_END_EVENT",
+        name = "Bike order cancelled",
+      ) {
+        const val JOB_TYPE: String = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED
 
-        override fun then(): Next = Next
-
-        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
-
-        object Next {
-          val escalationEndEventNofitySupportAfterRepeatedError:
-              EscalationEndEventNofitySupportAfterRepeatedError
-            get() = EscalationEndEventNofitySupportAfterRepeatedError
-        }
-
-        object OutgoingFlows {
-          val toEscalationEndEventNofitySupportAfterRepeatedError:
-              SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError>
-            get() = SequenceFlow(
-              id = ElementId("flow_mailRejectedAgainToEscalation"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
-              target = EscalationEndEventNofitySupportAfterRepeatedError,
-            )
-        }
+        val message: MessageName = Messages.MIRAVELO_BIKE_ORDER_CANCELLED
       }
 
-      object EventSubProcessErrorHandling : AbstractFlowNode(
-        id = ElementId("eventSubProcess_errorHandling"),
-        elementType = "EVENT_SUB_PROCESS",
-      ), FlowScope<EventSubProcessErrorHandling.Start> {
-        override fun start(): Start = Start
-
-        object Start {
-          val eventMailRejected: EventMailRejected
-            get() = EventMailRejected
-        }
-      }
-
-      object GatewayCanSendAgain : AbstractFlowNode(
-        id = ElementId("gateway_canSendAgain"),
+      object GatewayCancellationPossible : AbstractFlowNode(
+        id = ElementId("gateway_cancellationPossible"),
         elementType = "EXCLUSIVE_GATEWAY",
-      ), HasSuccessors<GatewayCanSendAgain.Next>,
-          HasOutgoingFlows<GatewayCanSendAgain.OutgoingFlows> {
+        name = "Cancellation possible?",
+      ), HasSuccessors<GatewayCancellationPossible.Next>,
+          HasOutgoingFlows<GatewayCancellationPossible.OutgoingFlows> {
         override fun then(): Next = Next
 
         override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
-          val escalationEndEventNofitySupport: EscalationEndEventNofitySupport
-            get() = EscalationEndEventNofitySupport
+          val gatewayCollectClarifications: GatewayCollectClarifications
+            get() = GatewayCollectClarifications
 
-          val serviceTaskSendMailAgain: ServiceTaskSendMailAgain
-            get() = ServiceTaskSendMailAgain
+          val gatewayMergeReturn: GatewayMergeReturn
+            get() = GatewayMergeReturn
         }
 
         object OutgoingFlows {
-          val toEscalationEndEventNofitySupport:
-              SequenceFlow<EscalationEndEventNofitySupport>
+          val toGatewayCollectClarifications: SequenceFlow<GatewayCollectClarifications>
             get() = SequenceFlow(
-              id = ElementId("flow_cannotSendAgain"),
+              id = ElementId("flow_cancellationNotPossibleToCollectClarifications"),
               name = "No",
-              conditionExpression = $$"""${rejection.reason == "PERMANENT"}""",
+              conditionExpression = $$"""${!cancellationPossible}""",
               isDefault = false,
-              target = EscalationEndEventNofitySupport,
+              target = GatewayCollectClarifications,
             )
 
-          val toServiceTaskSendMailAgain: SequenceFlow<ServiceTaskSendMailAgain>
+          val toGatewayMergeReturn: SequenceFlow<GatewayMergeReturn>
             get() = SequenceFlow(
-              id = ElementId("flow_canSendAgain"),
+              id = ElementId("flow_cancellationPossibleToMergeReturn"),
               name = "Yes",
               conditionExpression = null,
               isDefault = true,
-              target = ServiceTaskSendMailAgain,
+              target = GatewayMergeReturn,
             )
         }
       }
 
-      object GatewayHasSubscribers : AbstractFlowNode(
-        id = ElementId("gateway_hasSubscribers"),
+      object GatewayCollectClarifications : AbstractFlowNode(
+        id = ElementId("gateway_collectClarifications"),
         elementType = "EXCLUSIVE_GATEWAY",
-      ), HasSuccessors<GatewayHasSubscribers.Next>,
-          HasOutgoingFlows<GatewayHasSubscribers.OutgoingFlows> {
+      ), HasSuccessors<GatewayCollectClarifications.Next>,
+          HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
         override fun then(): Next = Next
 
         override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
-          val endEventNoSubscribers: EndEventNoSubscribers
-            get() = EndEventNoSubscribers
-
-          val serviceTaskSendToSubscriber: ServiceTaskSendToSubscriber
-            get() = ServiceTaskSendToSubscriber
+          val userTaskClarifyReturn: UserTaskClarifyReturn
+            get() = UserTaskClarifyReturn
         }
 
         object OutgoingFlows {
-          val toEndEventNoSubscribers: SequenceFlow<EndEventNoSubscribers>
+          val toUserTaskClarifyReturn: SequenceFlow<UserTaskClarifyReturn>
             get() = SequenceFlow(
-              id = ElementId("flow_noSubscribers"),
-              name = "No",
-              conditionExpression = $$"""${subscribers.size() > 0}""",
-              isDefault = false,
-              target = EndEventNoSubscribers,
-            )
-
-          val toServiceTaskSendToSubscriber: SequenceFlow<ServiceTaskSendToSubscriber>
-            get() = SequenceFlow(
-              id = ElementId("flow_hasSubscribers"),
-              name = "Yes",
-              conditionExpression = null,
-              isDefault = true,
-              target = ServiceTaskSendToSubscriber,
-            )
-        }
-      }
-
-      object ServiceTaskAnalyzeError : AbstractFlowNode(
-        id = ElementId("serviceTask_analyzeError"),
-        elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskAnalyzeError.Next>,
-          HasOutgoingFlows<ServiceTaskAnalyzeError.OutgoingFlows> {
-        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_ANALYZE_SEND_ERROR
-
-        override fun then(): Next = Next
-
-        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
-
-        object Next {
-          val gatewayCanSendAgain: GatewayCanSendAgain
-            get() = GatewayCanSendAgain
-        }
-
-        object OutgoingFlows {
-          val toGatewayCanSendAgain: SequenceFlow<GatewayCanSendAgain>
-            get() = SequenceFlow(
-              id = ElementId("flow_analyzeToCanSendAgain"),
+              id = ElementId("flow_collectClarificationsToClarifyReturn"),
               name = null,
               conditionExpression = null,
               isDefault = false,
-              target = GatewayCanSendAgain,
+              target = UserTaskClarifyReturn,
             )
         }
       }
 
-      object ServiceTaskLoadSubscribers : AbstractFlowNode(
-        id = ElementId("serviceTask_loadSubscribers"),
+      object GatewayMergeReturn : AbstractFlowNode(
+        id = ElementId("gateway_mergeReturn"),
+        elementType = "EXCLUSIVE_GATEWAY",
+      ), HasSuccessors<GatewayMergeReturn.Next>,
+          HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
+        override fun then(): Next = Next
+
+        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
+
+        object Next {
+          val serviceTaskBookCancellationCosts: ServiceTaskBookCancellationCosts
+            get() = ServiceTaskBookCancellationCosts
+        }
+
+        object OutgoingFlows {
+          val toServiceTaskBookCancellationCosts:
+              SequenceFlow<ServiceTaskBookCancellationCosts>
+            get() = SequenceFlow(
+              id = ElementId("flow_mergeReturnToBookCancellationCosts"),
+              name = null,
+              conditionExpression = null,
+              isDefault = false,
+              target = ServiceTaskBookCancellationCosts,
+            )
+        }
+      }
+
+      object ServiceTaskBookCancellationCosts : AbstractFlowNode(
+        id = ElementId("serviceTask_bookCancellationCosts"),
         elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskLoadSubscribers.Next>,
-          HasOutgoingFlows<ServiceTaskLoadSubscribers.OutgoingFlows> {
-        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_LOAD_SUBSCRIBERS
+        name = "Book cancellation costs",
+      ), HasSuccessors<ServiceTaskBookCancellationCosts.Next>,
+          HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
+        const val JOB_TYPE: String = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE
 
         override fun then(): Next = Next
 
         override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Variables {
-          val AUTHOR: VariableName.Output = VariableName.Output("author")
-
-          val SUBSCRIBERS: VariableName.Output = VariableName.Output("subscribers")
+          val CANCELLATION_COSTS: VariableName.Output =
+              VariableName.Output("cancellationCosts")
         }
 
         object Next {
-          val gatewayHasSubscribers: GatewayHasSubscribers
-            get() = GatewayHasSubscribers
+          val endEventBikeOrderCancelled: EndEventBikeOrderCancelled
+            get() = EndEventBikeOrderCancelled
         }
 
         object OutgoingFlows {
-          val toGatewayHasSubscribers: SequenceFlow<GatewayHasSubscribers>
+          val toEndEventBikeOrderCancelled: SequenceFlow<EndEventBikeOrderCancelled>
             get() = SequenceFlow(
-              id = ElementId("flow_loadSubscribersToGateway"),
+              id = ElementId("flow_bookCancellationCostsToBikeOrderCancelled"),
               name = null,
               conditionExpression = null,
               isDefault = false,
-              target = GatewayHasSubscribers,
+              target = EndEventBikeOrderCancelled,
             )
         }
       }
 
-      object ServiceTaskNotifyAuthor : AbstractFlowNode(
-        id = ElementId("serviceTask_notifyAuthor"),
+      object ServiceTaskRequestCancellation : AbstractFlowNode(
+        id = ElementId("serviceTask_requestCancellation"),
         elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskNotifyAuthor.Next>,
-          HasOutgoingFlows<ServiceTaskNotifyAuthor.OutgoingFlows> {
-        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_NOTIFY_AUTHOR
+        name = "Request cancellation",
+      ), HasSuccessors<ServiceTaskRequestCancellation.Next>,
+          HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
+        const val JOB_TYPE: String = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION
 
         override fun then(): Next = Next
 
         override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
+        object Variables {
+          val CANCELLATION_POSSIBLE: VariableName.Output =
+              VariableName.Output("cancellationPossible")
+        }
+
         object Next {
-          val endEventEditionSent: EndEventEditionSent
-            get() = EndEventEditionSent
+          val boundaryCancellationFailed: BoundaryCancellationFailed
+            get() = BoundaryCancellationFailed
+
+          val gatewayCancellationPossible: GatewayCancellationPossible
+            get() = GatewayCancellationPossible
         }
 
         object OutgoingFlows {
-          val toEndEventEditionSent: SequenceFlow<EndEventEditionSent>
+          val toGatewayCancellationPossible: SequenceFlow<GatewayCancellationPossible>
             get() = SequenceFlow(
-              id = ElementId("flow_notifyAuthorToEditionSent"),
+              id = ElementId("flow_requestCancellationToCancellationPossible"),
               name = null,
               conditionExpression = null,
               isDefault = false,
-              target = EndEventEditionSent,
+              target = GatewayCancellationPossible,
             )
         }
       }
 
-      object ServiceTaskSendMailAgain : AbstractFlowNode(
-        id = ElementId("serviceTask_sendMailAgain"),
-        elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskSendMailAgain.Next>,
-          HasOutgoingFlows<ServiceTaskSendMailAgain.OutgoingFlows> {
-        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER
-
-        override fun then(): Next = Next
-
-        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
-
-        object Next {
-          val eventGatewayAfterSendingAgain: EventGatewayAfterSendingAgain
-            get() = EventGatewayAfterSendingAgain
-        }
-
-        object OutgoingFlows {
-          val toEventGatewayAfterSendingAgain: SequenceFlow<EventGatewayAfterSendingAgain>
-            get() = SequenceFlow(
-              id = ElementId("flow_sendAgainToEventGateway"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
-              target = EventGatewayAfterSendingAgain,
-            )
-        }
-      }
-
-      object ServiceTaskSendToSubscriber : AbstractFlowNode(
-        id = ElementId("serviceTask_sendToSubscriber"),
-        elementType = "SERVICE_TASK",
-      ), HasSuccessors<ServiceTaskSendToSubscriber.Next>,
-          HasOutgoingFlows<ServiceTaskSendToSubscriber.OutgoingFlows> {
-        const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER
-
-        override fun then(): Next = Next
-
-        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
-
-        object Next {
-          val serviceTaskNotifyAuthor: ServiceTaskNotifyAuthor
-            get() = ServiceTaskNotifyAuthor
-        }
-
-        object OutgoingFlows {
-          val toServiceTaskNotifyAuthor: SequenceFlow<ServiceTaskNotifyAuthor>
-            get() = SequenceFlow(
-              id = ElementId("flow_sendToNotifyAuthor"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
-              target = ServiceTaskNotifyAuthor,
-            )
-        }
-      }
-
-      object StartEventEditionCreated : AbstractFlowNode(
-        id = ElementId("startEvent_editionCreated"),
+      object StartEventCancellationRequired : AbstractFlowNode(
+        id = ElementId("startEvent_cancellationRequired"),
         elementType = "START_EVENT",
-      ), HasSuccessors<StartEventEditionCreated.Next>,
-          HasOutgoingFlows<StartEventEditionCreated.OutgoingFlows> {
+        name = "Cancellation required",
+      ), HasSuccessors<StartEventCancellationRequired.Next>,
+          HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows> {
         override fun then(): Next = Next
 
         override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
+        object Variables {
+          val ORDER_IDS: VariableName.Input = VariableName.Input("orderIds")
+        }
+
         object Next {
-          val serviceTaskLoadSubscribers: ServiceTaskLoadSubscribers
-            get() = ServiceTaskLoadSubscribers
+          val serviceTaskRequestCancellation: ServiceTaskRequestCancellation
+            get() = ServiceTaskRequestCancellation
         }
 
         object OutgoingFlows {
-          val toServiceTaskLoadSubscribers: SequenceFlow<ServiceTaskLoadSubscribers>
+          val toServiceTaskRequestCancellation: SequenceFlow<ServiceTaskRequestCancellation>
             get() = SequenceFlow(
-              id = ElementId("flow_editionToLoadSubscribers"),
+              id = ElementId("flow_cancellationRequiredToRequestCancellation"),
               name = null,
               conditionExpression = null,
               isDefault = false,
-              target = ServiceTaskLoadSubscribers,
+              target = ServiceTaskRequestCancellation,
             )
         }
       }
 
-      object TimerNoRejectionForOneDay : AbstractFlowNode(
-        id = ElementId("timer_noRejectionForOneDay"),
-        elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
-      ), HasSuccessors<TimerNoRejectionForOneDay.Next>,
-          HasOutgoingFlows<TimerNoRejectionForOneDay.OutgoingFlows> {
-        val timer: BpmnTimer = BpmnTimer(
-          type = "Duration",
-          timerValue = "PT1D",
-        )
-
+      object UserTaskClarifyReturn : AbstractFlowNode(
+        id = ElementId("userTask_clarifyReturn"),
+        elementType = "USER_TASK",
+        name = "Clarify return",
+      ), HasSuccessors<UserTaskClarifyReturn.Next>,
+          HasOutgoingFlows<UserTaskClarifyReturn.OutgoingFlows> {
         override fun then(): Next = Next
 
         override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
 
         object Next {
-          val endEventIssueResolved: EndEventIssueResolved
-            get() = EndEventIssueResolved
+          val gatewayMergeReturn: GatewayMergeReturn
+            get() = GatewayMergeReturn
         }
 
         object OutgoingFlows {
-          val toEndEventIssueResolved: SequenceFlow<EndEventIssueResolved>
+          val toGatewayMergeReturn: SequenceFlow<GatewayMergeReturn>
             get() = SequenceFlow(
-              id = ElementId("flow_timerToIssueResolved"),
+              id = ElementId("flow_clarifyReturnToMergeReturn"),
               name = null,
               conditionExpression = null,
               isDefault = false,
-              target = EndEventIssueResolved,
+              target = GatewayMergeReturn,
             )
         }
       }

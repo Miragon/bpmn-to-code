@@ -3,8 +3,6 @@
     "formatVersion": "2.0",
     "process": {
         "id": "bikeLeasing",
-        "name": "MiraVelo Bike Leasing",
-        "engine": "OPERATON",
         "flowNodes": [
             {
                 "id": "startEvent_leasingRequestReceived",
@@ -18,24 +16,7 @@
                         "type": "message",
                         "messageRef": "message_leasingRequestReceived"
                     }
-                ],
-                "extensions": [
-                    {
-                        "$type": "operaton:properties",
-                        "children": [
-                            {
-                                "$type": "operaton:property",
-                                "attributes": {
-                                    "name": "additionalInputVariables",
-                                    "value": "applicationId, bikeIds, monthlyNetIncome, age"
-                                }
-                            }
-                        ]
-                    }
-                ],
-                "engineAttributes": {
-                    "operaton:asyncAfter": true
-                }
+                ]
             },
             {
                 "id": "serviceTask_validateApplication",
@@ -69,10 +50,7 @@
                         "type": "error",
                         "errorRef": "error_applicationInvalid"
                     }
-                ],
-                "engineAttributes": {
-                    "operaton:asyncAfter": true
-                }
+                ]
             },
             {
                 "id": "gateway_collectRejections",
@@ -99,9 +77,6 @@
                 "implementation": {
                     "type": "externalTask",
                     "topic": "miravelo.sendRejection"
-                },
-                "engineAttributes": {
-                    "operaton:type": "external"
                 }
             },
             {
@@ -126,12 +101,7 @@
                 ],
                 "outgoing": [
                     "flow_checkCreditRatingToIsSolvent"
-                ],
-                "engineAttributes": {
-                    "operaton:decisionRef": "checkCreditRating",
-                    "operaton:mapDecisionResult": "singleEntry",
-                    "operaton:resultVariable": "solvent"
-                }
+                ]
             },
             {
                 "id": "gateway_isSolvent",
@@ -197,28 +167,7 @@
                                     "source": "${contractId}"
                                 }
                             ]
-                        },
-                        "extensions": [
-                            {
-                                "$type": "operaton:inputOutput",
-                                "children": [
-                                    {
-                                        "$type": "operaton:inputParameter",
-                                        "attributes": {
-                                            "name": "applicationId"
-                                        },
-                                        "body": "${applicationId}"
-                                    },
-                                    {
-                                        "$type": "operaton:outputParameter",
-                                        "attributes": {
-                                            "name": "contractId"
-                                        },
-                                        "body": "${contractId}"
-                                    }
-                                ]
-                            }
-                        ]
+                        }
                     },
                     {
                         "id": "gateway_awaitSignature",
@@ -247,10 +196,7 @@
                                 "type": "message",
                                 "messageRef": "message_contractSigned"
                             }
-                        ],
-                        "engineAttributes": {
-                            "operaton:asyncAfter": true
-                        }
+                        ]
                     },
                     {
                         "id": "endEvent_contractConcluded",
@@ -276,10 +222,7 @@
                                 "timerType": "DURATION",
                                 "expression": "P14D"
                             }
-                        ],
-                        "engineAttributes": {
-                            "operaton:asyncAfter": true
-                        }
+                        ]
                     },
                     {
                         "id": "endEvent_contractNotSigned",
@@ -298,21 +241,6 @@
                 ],
                 "sequenceFlows": [
                     {
-                        "id": "flow_awaitSignatureToContractSigned",
-                        "sourceRef": "gateway_awaitSignature",
-                        "targetRef": "event_contractSigned"
-                    },
-                    {
-                        "id": "flow_awaitSignatureToSignatureDeadline",
-                        "sourceRef": "gateway_awaitSignature",
-                        "targetRef": "timer_signatureDeadline"
-                    },
-                    {
-                        "id": "flow_contractSignedToContractConcluded",
-                        "sourceRef": "event_contractSigned",
-                        "targetRef": "endEvent_contractConcluded"
-                    },
-                    {
                         "id": "flow_customerEligibleToSendContract",
                         "sourceRef": "startEvent_customerEligible",
                         "targetRef": "serviceTask_sendContract"
@@ -321,6 +249,21 @@
                         "id": "flow_sendContractToAwaitSignature",
                         "sourceRef": "serviceTask_sendContract",
                         "targetRef": "gateway_awaitSignature"
+                    },
+                    {
+                        "id": "flow_awaitSignatureToContractSigned",
+                        "sourceRef": "gateway_awaitSignature",
+                        "targetRef": "event_contractSigned"
+                    },
+                    {
+                        "id": "flow_contractSignedToContractConcluded",
+                        "sourceRef": "event_contractSigned",
+                        "targetRef": "endEvent_contractConcluded"
+                    },
+                    {
+                        "id": "flow_awaitSignatureToSignatureDeadline",
+                        "sourceRef": "gateway_awaitSignature",
+                        "targetRef": "timer_signatureDeadline"
                     },
                     {
                         "id": "flow_signatureDeadlineToContractNotSigned",
@@ -356,10 +299,7 @@
                         "type": "escalation",
                         "escalationRef": "escalation_contractNotSigned"
                     }
-                ],
-                "engineAttributes": {
-                    "operaton:asyncAfter": true
-                }
+                ]
             },
             {
                 "id": "timer_signatureReminder",
@@ -376,10 +316,7 @@
                         "timerType": "DURATION",
                         "expression": "P7D"
                     }
-                ],
-                "engineAttributes": {
-                    "operaton:asyncAfter": true
-                }
+                ]
             },
             {
                 "id": "serviceTask_sendReminderMail",
@@ -436,10 +373,6 @@
                     "sequential": true,
                     "inputCollection": "${bikeIds}",
                     "inputElement": "bikeId"
-                },
-                "engineAttributes": {
-                    "operaton:asyncBefore": true,
-                    "operaton:exclusive": false
                 }
             },
             {
@@ -476,10 +409,7 @@
                 "outgoing": [
                     "flow_handoverReportedToWithdrawalPeriodElapsed"
                 ],
-                "messageRef": "message_handoverReported",
-                "engineAttributes": {
-                    "operaton:asyncAfter": true
-                }
+                "messageRef": "message_handoverReported"
             },
             {
                 "id": "timer_withdrawalPeriodElapsed",
@@ -497,10 +427,7 @@
                         "timerType": "DURATION",
                         "expression": "${withdrawalPeriod}"
                     }
-                ],
-                "engineAttributes": {
-                    "operaton:asyncAfter": true
-                }
+                ]
             },
             {
                 "id": "endEvent_leasingActive",
@@ -531,9 +458,6 @@
                     "sequential": false,
                     "inputCollection": "${bikeIds}",
                     "inputElement": "bikeId"
-                },
-                "engineAttributes": {
-                    "operaton:type": "external"
                 }
             },
             {
@@ -556,36 +480,7 @@
                 "isForCompensation": true,
                 "calledElement": {
                     "processId": "cancelBikeOrder"
-                },
-                "extensions": [
-                    {
-                        "$type": "operaton:in",
-                        "attributes": {
-                            "businessKey": "#{execution.processBusinessKey}"
-                        }
-                    },
-                    {
-                        "$type": "operaton:in",
-                        "attributes": {
-                            "source": "orderIds",
-                            "target": "orderIds"
-                        }
-                    },
-                    {
-                        "$type": "operaton:in",
-                        "attributes": {
-                            "sourceExpression": "${applicationId}",
-                            "target": "applicationId"
-                        }
-                    },
-                    {
-                        "$type": "operaton:out",
-                        "attributes": {
-                            "source": "cancellationCosts",
-                            "target": "cancellationCosts"
-                        }
-                    }
-                ]
+                }
             },
             {
                 "id": "serviceTask_cancelContract",
@@ -605,9 +500,6 @@
                 "implementation": {
                     "type": "externalTask",
                     "topic": "miravelo.cancelPolicy"
-                },
-                "engineAttributes": {
-                    "operaton:type": "external"
                 }
             },
             {
@@ -628,20 +520,6 @@
                             {
                                 "type": "message",
                                 "messageRef": "message_addressChanged"
-                            }
-                        ],
-                        "extensions": [
-                            {
-                                "$type": "operaton:properties",
-                                "children": [
-                                    {
-                                        "$type": "operaton:property",
-                                        "attributes": {
-                                            "name": "additionalInputVariables",
-                                            "value": "street, city"
-                                        }
-                                    }
-                                ]
                             }
                         ]
                     },
@@ -668,30 +546,6 @@
                                     "source": "${deliveryAddress}"
                                 }
                             ]
-                        },
-                        "extensions": [
-                            {
-                                "$type": "operaton:inputOutput",
-                                "children": [
-                                    {
-                                        "$type": "operaton:inputParameter",
-                                        "attributes": {
-                                            "name": "deliveryAddress"
-                                        },
-                                        "body": "${deliveryAddress}"
-                                    },
-                                    {
-                                        "$type": "operaton:outputParameter",
-                                        "attributes": {
-                                            "name": "deliveryAddress"
-                                        },
-                                        "body": "${deliveryAddress}"
-                                    }
-                                ]
-                            }
-                        ],
-                        "engineAttributes": {
-                            "operaton:asyncAfter": true
                         }
                     },
                     {
@@ -767,9 +621,6 @@
                         "implementation": {
                             "type": "externalTask",
                             "topic": "miravelo.sendCancellationConfirmation"
-                        },
-                        "engineAttributes": {
-                            "operaton:type": "external"
                         }
                     },
                     {
@@ -802,9 +653,14 @@
         ],
         "sequenceFlows": [
             {
-                "id": "flow_applicationInvalidToCollectRejections",
-                "sourceRef": "boundary_applicationInvalid",
-                "targetRef": "gateway_collectRejections"
+                "id": "flow_leasingRequestReceivedToValidateApplication",
+                "sourceRef": "startEvent_leasingRequestReceived",
+                "targetRef": "serviceTask_validateApplication"
+            },
+            {
+                "id": "flow_validateApplicationToCheckCreditRating",
+                "sourceRef": "serviceTask_validateApplication",
+                "targetRef": "businessRuleTask_checkCreditRating"
             },
             {
                 "id": "flow_checkCreditRatingToIsSolvent",
@@ -812,34 +668,11 @@
                 "targetRef": "gateway_isSolvent"
             },
             {
-                "id": "flow_collectRejectionsToSendRejection",
-                "sourceRef": "gateway_collectRejections",
-                "targetRef": "serviceTask_sendRejection"
-            },
-            {
-                "id": "flow_concludeContractToFork",
-                "sourceRef": "subProcess_concludeContract",
-                "targetRef": "gateway_fork"
-            },
-            {
-                "id": "flow_contractNotSignedToCollectRejections",
-                "sourceRef": "boundary_contractNotSigned",
-                "targetRef": "gateway_collectRejections"
-            },
-            {
-                "id": "flow_forkToIssueInsurancePolicy",
-                "sourceRef": "gateway_fork",
-                "targetRef": "serviceTask_issueInsurancePolicy"
-            },
-            {
-                "id": "flow_forkToOrderBike",
-                "sourceRef": "gateway_fork",
-                "targetRef": "serviceTask_orderBike"
-            },
-            {
-                "id": "flow_handoverReportedToWithdrawalPeriodElapsed",
-                "sourceRef": "receiveTask_handoverReported",
-                "targetRef": "timer_withdrawalPeriodElapsed"
+                "id": "flow_isSolventToConcludeContract",
+                "sourceRef": "gateway_isSolvent",
+                "targetRef": "subProcess_concludeContract",
+                "name": "Yes",
+                "isDefault": true
             },
             {
                 "id": "flow_isSolventToCollectRejections",
@@ -849,11 +682,54 @@
                 "conditionExpression": "${!solvent}"
             },
             {
-                "id": "flow_isSolventToConcludeContract",
-                "sourceRef": "gateway_isSolvent",
-                "targetRef": "subProcess_concludeContract",
-                "name": "Yes",
-                "isDefault": true
+                "id": "flow_applicationInvalidToCollectRejections",
+                "sourceRef": "boundary_applicationInvalid",
+                "targetRef": "gateway_collectRejections"
+            },
+            {
+                "id": "flow_contractNotSignedToCollectRejections",
+                "sourceRef": "boundary_contractNotSigned",
+                "targetRef": "gateway_collectRejections"
+            },
+            {
+                "id": "flow_collectRejectionsToSendRejection",
+                "sourceRef": "gateway_collectRejections",
+                "targetRef": "serviceTask_sendRejection"
+            },
+            {
+                "id": "flow_sendRejectionToApplicationRejected",
+                "sourceRef": "serviceTask_sendRejection",
+                "targetRef": "endEvent_applicationRejected"
+            },
+            {
+                "id": "flow_signatureReminderToSendReminderMail",
+                "sourceRef": "timer_signatureReminder",
+                "targetRef": "serviceTask_sendReminderMail"
+            },
+            {
+                "id": "flow_sendReminderMailToCustomerReminded",
+                "sourceRef": "serviceTask_sendReminderMail",
+                "targetRef": "endEvent_customerReminded"
+            },
+            {
+                "id": "flow_concludeContractToFork",
+                "sourceRef": "subProcess_concludeContract",
+                "targetRef": "gateway_fork"
+            },
+            {
+                "id": "flow_forkToOrderBike",
+                "sourceRef": "gateway_fork",
+                "targetRef": "serviceTask_orderBike"
+            },
+            {
+                "id": "flow_forkToIssueInsurancePolicy",
+                "sourceRef": "gateway_fork",
+                "targetRef": "serviceTask_issueInsurancePolicy"
+            },
+            {
+                "id": "flow_orderBikeToJoin",
+                "sourceRef": "serviceTask_orderBike",
+                "targetRef": "gateway_join"
             },
             {
                 "id": "flow_issueInsurancePolicyToJoin",
@@ -866,34 +742,9 @@
                 "targetRef": "receiveTask_handoverReported"
             },
             {
-                "id": "flow_leasingRequestReceivedToValidateApplication",
-                "sourceRef": "startEvent_leasingRequestReceived",
-                "targetRef": "serviceTask_validateApplication"
-            },
-            {
-                "id": "flow_orderBikeToJoin",
-                "sourceRef": "serviceTask_orderBike",
-                "targetRef": "gateway_join"
-            },
-            {
-                "id": "flow_sendRejectionToApplicationRejected",
-                "sourceRef": "serviceTask_sendRejection",
-                "targetRef": "endEvent_applicationRejected"
-            },
-            {
-                "id": "flow_sendReminderMailToCustomerReminded",
-                "sourceRef": "serviceTask_sendReminderMail",
-                "targetRef": "endEvent_customerReminded"
-            },
-            {
-                "id": "flow_signatureReminderToSendReminderMail",
-                "sourceRef": "timer_signatureReminder",
-                "targetRef": "serviceTask_sendReminderMail"
-            },
-            {
-                "id": "flow_validateApplicationToCheckCreditRating",
-                "sourceRef": "serviceTask_validateApplication",
-                "targetRef": "businessRuleTask_checkCreditRating"
+                "id": "flow_handoverReportedToWithdrawalPeriodElapsed",
+                "sourceRef": "receiveTask_handoverReported",
+                "targetRef": "timer_withdrawalPeriodElapsed"
             },
             {
                 "id": "flow_withdrawalPeriodElapsedToLeasingActive",

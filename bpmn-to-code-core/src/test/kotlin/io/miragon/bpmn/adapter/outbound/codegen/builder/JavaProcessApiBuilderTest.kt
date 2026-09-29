@@ -11,10 +11,10 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
+import io.miragon.bpmn.domain.testBikeLeasingModel
+import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
-import io.miragon.bpmn.domain.testSendNewsletterModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterModel
 import io.miragon.bpmn.domain.withId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -32,18 +32,10 @@ class JavaProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile generates correct process API file`() {
-        // given: a BPMN model with custom service task implementations
+        // given: the bike-leasing model, which covers every implementation kind of Camunda 7
         val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
-            model = testSubscribeNewsletterModel(
-                flowNodes = buildSubscribeNewsletterFlowNodes(
-                    confirmationMailImpl = "#{newsletterSendConfirmationMail}",
-                    welcomeMailImpl = "\${newsletterSendWelcomeMail}",
-                    registrationCompletedImpl = "newsletter.registrationCompleted",
-                    notifyCommunityImpl = "newsletter.notifyCommunity",
-                    extraVariables = listOf(VariableDefinition("testVariable", VariableDirection.INPUT)),
-                ),
-            ),
+            model = testBikeLeasingModel(),
         )
 
         // when: we build the process API file
@@ -53,17 +45,17 @@ class JavaProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.java")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
-        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/NewsletterSubscriptionProcessApiJava.txt", result.content))
+        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/BikeLeasingProcessApiJava.txt", result.content))
         assertJavaSyntaxValid(result.fileName, result.content)
     }
 
     @Test
     fun `maps content of id to valid variable name format`() {
         // given: a model with flow nodes that have slashes in their names
-        val defaultModel = testSubscribeNewsletterModel()
+        val defaultModel = testBikeLeasingModel()
         val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.getName().replace("_", "-")) }
         val modelApi = testProcessModelApi(
-            model = testSubscribeNewsletterModel(flowNodes = modifiedNodes),
+            model = testBikeLeasingModel(flowNodes = modifiedNodes),
             packagePath = "de.emaarco.example",
         )
 
@@ -100,13 +92,13 @@ class JavaProcessApiBuilderTest {
     @Test
     fun `buildApiFile generates variant-scoped Flow for merged model`() {
         // given: a merged model with a single variant
-        val send = testSendNewsletterModel(variantName = "send")
+        val retail = testCancelBikeOrderModel(variantName = "retail")
         val merged = ProcessModel(
-            processId = send.processId,
-            flowNodes = send.flowNodes,
-            definitions = send.definitions,
+            processId = retail.processId,
+            flowNodes = retail.flowNodes,
+            definitions = retail.definitions,
             variants = listOf(
-                Variant("send", send.flowNodes, send.sequenceFlows),
+                Variant("retail", retail.flowNodes, retail.sequenceFlows),
             ),
         )
         val modelApi = BpmnModelApi(merged, OutputLanguage.JAVA, "de.emaarco.example", ProcessEngine.ZEEBE)

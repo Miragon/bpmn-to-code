@@ -3,6 +3,9 @@ package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.BpmnError;
 
+/**
+ * BPMN error definitions with name and code, as thrown and caught by the processes.
+ */
 public final class Errors {
-  public static final BpmnError ERROR_INVALID_MAIL_500 = new BpmnError("Error_InvalidMail", "500");
+  public static final BpmnError MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID = new BpmnError("miravelo.applicationInvalid", "applicationInvalid");
 }

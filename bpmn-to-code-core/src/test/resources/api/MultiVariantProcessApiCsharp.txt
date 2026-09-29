@@ -4,9 +4,9 @@
 #pragma warning disable CS1591
 namespace de.emaarco.example;
 
-public static class SendNewsletterProcessApi
+public static class CancelBikeOrderProcessApi
 {
-    public const string ProcessId = "sendNewsletter";
+    public const string ProcessId = "cancelBikeOrder";
 
     public const string ProcessEngine = "ZEEBE";
 
@@ -102,358 +102,218 @@ public static class SendNewsletterProcessApi
         /// <para>verified by the compiler and offered by IntelliSense. Every element is a direct child of Flow, whatever its</para>
         /// <para>subprocess depth; a subprocess opens its interior via Start.</para>
         /// </summary>
-        public static class Send
+        public static class Retail
         {
-            public sealed class EndEventEditionSent : Runtime.IFlowNode
+            public sealed class BoundaryCancellationFailed : Runtime.IBoundaryEvent
             {
-                public static readonly EndEventEditionSent Instance = new();
-                private EndEventEditionSent() { }
+                public static readonly BoundaryCancellationFailed Instance = new();
+                private BoundaryCancellationFailed() { }
 
-                public Runtime.ElementId Id { get; } = new("endEvent_editionSent");
-                public string ElementType => "END_EVENT";
-                public string? Name => null;
-            }
-
-            public sealed class EndEventIssueResolved : Runtime.IFlowNode
-            {
-                public static readonly EndEventIssueResolved Instance = new();
-                private EndEventIssueResolved() { }
-
-                public Runtime.ElementId Id { get; } = new("endEvent_issueResolved");
-                public string ElementType => "END_EVENT";
-                public string? Name => null;
-            }
-
-            public sealed class EndEventNoSubscribers : Runtime.IFlowNode
-            {
-                public static readonly EndEventNoSubscribers Instance = new();
-                private EndEventNoSubscribers() { }
-
-                public Runtime.ElementId Id { get; } = new("endEvent_noSubscribers");
-                public string ElementType => "END_EVENT";
-                public string? Name => null;
-            }
-
-            public sealed class EscalationEndEventNofitySupport : Runtime.IFlowNode
-            {
-                public static readonly EscalationEndEventNofitySupport Instance = new();
-                private EscalationEndEventNofitySupport() { }
-
-                public Runtime.ElementId Id { get; } = new("escalationEndEvent_nofitySupport");
-                public string ElementType => "ESCALATION_END_EVENT";
-                public string? Name => null;
-                public Runtime.BpmnEscalation Escalation { get; } = new(Escalations.EscalationNotifySupport200.Reference, Escalations.EscalationNotifySupport200.Code);
-            }
-
-            public sealed class EscalationEndEventNofitySupportAfterRepeatedError : Runtime.IFlowNode
-            {
-                public static readonly EscalationEndEventNofitySupportAfterRepeatedError Instance = new();
-                private EscalationEndEventNofitySupportAfterRepeatedError() { }
-
-                public Runtime.ElementId Id { get; } = new("escalationEndEvent_nofitySupportAfterRepeatedError");
-                public string ElementType => "END_EVENT";
-                public string? Name => null;
-            }
-
-            public sealed class EventGatewayAfterSendingAgain : Runtime.IFlowNode
-            {
-                public static readonly EventGatewayAfterSendingAgain Instance = new();
-                private EventGatewayAfterSendingAgain() { }
-
-                public Runtime.ElementId Id { get; } = new("eventGateway_afterSendingAgain");
-                public string ElementType => "EVENT_BASED_GATEWAY";
-                public string? Name => null;
-
-                public Successors Next => new();
-                public sealed class Successors
-                {
-                    public EventMailRejectedAgain EventMailRejectedAgain => EventMailRejectedAgain.Instance;
-                    public TimerNoRejectionForOneDay TimerNoRejectionForOneDay => TimerNoRejectionForOneDay.Instance;
-                }
-
-                public OutgoingSequenceFlows OutgoingFlows => new();
-                public sealed class OutgoingSequenceFlows
-                {
-                    public Runtime.SequenceFlow<EventMailRejectedAgain> ToEventMailRejectedAgain => new(new("flow_eventGatewayToMailRejectedAgain"), null, null, false, EventMailRejectedAgain.Instance);
-                    public Runtime.SequenceFlow<TimerNoRejectionForOneDay> ToTimerNoRejectionForOneDay => new(new("flow_eventGatewayToTimer"), null, null, false, TimerNoRejectionForOneDay.Instance);
-                }
-            }
-
-            public sealed class EventMailRejected : Runtime.IFlowNode
-            {
-                public static readonly EventMailRejected Instance = new();
-                private EventMailRejected() { }
-
-                public Runtime.ElementId Id { get; } = new("event_mailRejected");
-                public string ElementType => "MESSAGE_START_EVENT";
-                public string? Name => null;
-                public Runtime.MessageName Message { get; } = new(Messages.MessageMailRejected);
+                public Runtime.ElementId Id { get; } = new("boundary_cancellationFailed");
+                public string ElementType => "ERROR_BOUNDARY_EVENT";
+                public string? Name => "Cancellation failed";
+                public ServiceTaskRequestCancellation AttachedTo => ServiceTaskRequestCancellation.Instance;
                 public bool IsInterrupting => true;
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public ServiceTaskAnalyzeError ServiceTaskAnalyzeError => ServiceTaskAnalyzeError.Instance;
+                    public GatewayCollectClarifications GatewayCollectClarifications => GatewayCollectClarifications.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskAnalyzeError> ToServiceTaskAnalyzeError => new(new("flow_mailRejectedToAnalyze"), null, null, false, ServiceTaskAnalyzeError.Instance);
+                    public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new("flow_cancellationFailedToCollectClarifications"), null, null, false, GatewayCollectClarifications.Instance);
                 }
             }
 
-            public sealed class EventMailRejectedAgain : Runtime.IFlowNode
+            public sealed class EndEventBikeOrderCancelled : Runtime.IFlowNode
             {
-                public static readonly EventMailRejectedAgain Instance = new();
-                private EventMailRejectedAgain() { }
+                public static readonly EndEventBikeOrderCancelled Instance = new();
+                private EndEventBikeOrderCancelled() { }
+                public const string JobType = ServiceTasks.MiraveloBikeOrderCancelled;
 
-                public Runtime.ElementId Id { get; } = new("event_mailRejectedAgain");
-                public string ElementType => "MESSAGE_INTERMEDIATE_CATCH_EVENT";
-                public string? Name => null;
-                public Runtime.MessageName Message { get; } = new(Messages.MessageMailRejectedAgain);
+                public Runtime.ElementId Id { get; } = new("endEvent_bikeOrderCancelled");
+                public string ElementType => "MESSAGE_END_EVENT";
+                public string? Name => "Bike order cancelled";
+                public Runtime.MessageName Message { get; } = new(Messages.MiraveloBikeOrderCancelled);
+            }
+
+            public sealed class GatewayCancellationPossible : Runtime.IFlowNode
+            {
+                public static readonly GatewayCancellationPossible Instance = new();
+                private GatewayCancellationPossible() { }
+
+                public Runtime.ElementId Id { get; } = new("gateway_cancellationPossible");
+                public string ElementType => "EXCLUSIVE_GATEWAY";
+                public string? Name => "Cancellation possible?";
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public EscalationEndEventNofitySupportAfterRepeatedError EscalationEndEventNofitySupportAfterRepeatedError => EscalationEndEventNofitySupportAfterRepeatedError.Instance;
+                    public GatewayCollectClarifications GatewayCollectClarifications => GatewayCollectClarifications.Instance;
+                    public GatewayMergeReturn GatewayMergeReturn => GatewayMergeReturn.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError> ToEscalationEndEventNofitySupportAfterRepeatedError => new(new("flow_mailRejectedAgainToEscalation"), null, null, false, EscalationEndEventNofitySupportAfterRepeatedError.Instance);
+                    public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new("flow_cancellationNotPossibleToCollectClarifications"), "No", "${!cancellationPossible}", false, GatewayCollectClarifications.Instance);
+                    public Runtime.SequenceFlow<GatewayMergeReturn> ToGatewayMergeReturn => new(new("flow_cancellationPossibleToMergeReturn"), "Yes", null, true, GatewayMergeReturn.Instance);
                 }
             }
 
-            public sealed class EventSubProcessErrorHandling : Runtime.IFlowNode
+            public sealed class GatewayCollectClarifications : Runtime.IFlowNode
             {
-                public static readonly EventSubProcessErrorHandling Instance = new();
-                private EventSubProcessErrorHandling() { }
+                public static readonly GatewayCollectClarifications Instance = new();
+                private GatewayCollectClarifications() { }
 
-                public Runtime.ElementId Id { get; } = new("eventSubProcess_errorHandling");
-                public string ElementType => "EVENT_SUB_PROCESS";
-                public string? Name => null;
-
-                public Interior Start => new();
-                public sealed class Interior
-                {
-                    public EventMailRejected EventMailRejected => EventMailRejected.Instance;
-                }
-            }
-
-            public sealed class GatewayCanSendAgain : Runtime.IFlowNode
-            {
-                public static readonly GatewayCanSendAgain Instance = new();
-                private GatewayCanSendAgain() { }
-
-                public Runtime.ElementId Id { get; } = new("gateway_canSendAgain");
+                public Runtime.ElementId Id { get; } = new("gateway_collectClarifications");
                 public string ElementType => "EXCLUSIVE_GATEWAY";
                 public string? Name => null;
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public EscalationEndEventNofitySupport EscalationEndEventNofitySupport => EscalationEndEventNofitySupport.Instance;
-                    public ServiceTaskSendMailAgain ServiceTaskSendMailAgain => ServiceTaskSendMailAgain.Instance;
+                    public UserTaskClarifyReturn UserTaskClarifyReturn => UserTaskClarifyReturn.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EscalationEndEventNofitySupport> ToEscalationEndEventNofitySupport => new(new("flow_cannotSendAgain"), "No", "${rejection.reason == \"PERMANENT\"}", false, EscalationEndEventNofitySupport.Instance);
-                    public Runtime.SequenceFlow<ServiceTaskSendMailAgain> ToServiceTaskSendMailAgain => new(new("flow_canSendAgain"), "Yes", null, true, ServiceTaskSendMailAgain.Instance);
+                    public Runtime.SequenceFlow<UserTaskClarifyReturn> ToUserTaskClarifyReturn => new(new("flow_collectClarificationsToClarifyReturn"), null, null, false, UserTaskClarifyReturn.Instance);
                 }
             }
 
-            public sealed class GatewayHasSubscribers : Runtime.IFlowNode
+            public sealed class GatewayMergeReturn : Runtime.IFlowNode
             {
-                public static readonly GatewayHasSubscribers Instance = new();
-                private GatewayHasSubscribers() { }
+                public static readonly GatewayMergeReturn Instance = new();
+                private GatewayMergeReturn() { }
 
-                public Runtime.ElementId Id { get; } = new("gateway_hasSubscribers");
+                public Runtime.ElementId Id { get; } = new("gateway_mergeReturn");
                 public string ElementType => "EXCLUSIVE_GATEWAY";
                 public string? Name => null;
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public EndEventNoSubscribers EndEventNoSubscribers => EndEventNoSubscribers.Instance;
-                    public ServiceTaskSendToSubscriber ServiceTaskSendToSubscriber => ServiceTaskSendToSubscriber.Instance;
+                    public ServiceTaskBookCancellationCosts ServiceTaskBookCancellationCosts => ServiceTaskBookCancellationCosts.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EndEventNoSubscribers> ToEndEventNoSubscribers => new(new("flow_noSubscribers"), "No", "${subscribers.size() > 0}", false, EndEventNoSubscribers.Instance);
-                    public Runtime.SequenceFlow<ServiceTaskSendToSubscriber> ToServiceTaskSendToSubscriber => new(new("flow_hasSubscribers"), "Yes", null, true, ServiceTaskSendToSubscriber.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskBookCancellationCosts> ToServiceTaskBookCancellationCosts => new(new("flow_mergeReturnToBookCancellationCosts"), null, null, false, ServiceTaskBookCancellationCosts.Instance);
                 }
             }
 
-            public sealed class ServiceTaskAnalyzeError : Runtime.IFlowNode
+            public sealed class ServiceTaskBookCancellationCosts : Runtime.IFlowNode
             {
-                public static readonly ServiceTaskAnalyzeError Instance = new();
-                private ServiceTaskAnalyzeError() { }
-                public const string JobType = ServiceTasks.NewsletterAnalyzeSendError;
+                public static readonly ServiceTaskBookCancellationCosts Instance = new();
+                private ServiceTaskBookCancellationCosts() { }
+                public const string JobType = ServiceTasks.BookCancellationCostsDelegate;
 
-                public Runtime.ElementId Id { get; } = new("serviceTask_analyzeError");
+                public Runtime.ElementId Id { get; } = new("serviceTask_bookCancellationCosts");
                 public string ElementType => "SERVICE_TASK";
-                public string? Name => null;
-
-                public Successors Next => new();
-                public sealed class Successors
-                {
-                    public GatewayCanSendAgain GatewayCanSendAgain => GatewayCanSendAgain.Instance;
-                }
-
-                public OutgoingSequenceFlows OutgoingFlows => new();
-                public sealed class OutgoingSequenceFlows
-                {
-                    public Runtime.SequenceFlow<GatewayCanSendAgain> ToGatewayCanSendAgain => new(new("flow_analyzeToCanSendAgain"), null, null, false, GatewayCanSendAgain.Instance);
-                }
-            }
-
-            public sealed class ServiceTaskLoadSubscribers : Runtime.IFlowNode
-            {
-                public static readonly ServiceTaskLoadSubscribers Instance = new();
-                private ServiceTaskLoadSubscribers() { }
-                public const string JobType = ServiceTasks.NewsletterLoadSubscribers;
-
-                public Runtime.ElementId Id { get; } = new("serviceTask_loadSubscribers");
-                public string ElementType => "SERVICE_TASK";
-                public string? Name => null;
+                public string? Name => "Book cancellation costs";
 
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
                 {
-                    public Runtime.VariableName.Output Author { get; } = new("author");
-                    public Runtime.VariableName.Output Subscribers { get; } = new("subscribers");
+                    public Runtime.VariableName.Output CancellationCosts { get; } = new("cancellationCosts");
                 }
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public GatewayHasSubscribers GatewayHasSubscribers => GatewayHasSubscribers.Instance;
+                    public EndEventBikeOrderCancelled EndEventBikeOrderCancelled => EndEventBikeOrderCancelled.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<GatewayHasSubscribers> ToGatewayHasSubscribers => new(new("flow_loadSubscribersToGateway"), null, null, false, GatewayHasSubscribers.Instance);
+                    public Runtime.SequenceFlow<EndEventBikeOrderCancelled> ToEndEventBikeOrderCancelled => new(new("flow_bookCancellationCostsToBikeOrderCancelled"), null, null, false, EndEventBikeOrderCancelled.Instance);
                 }
             }
 
-            public sealed class ServiceTaskNotifyAuthor : Runtime.IFlowNode
+            public sealed class ServiceTaskRequestCancellation : Runtime.IFlowNode
             {
-                public static readonly ServiceTaskNotifyAuthor Instance = new();
-                private ServiceTaskNotifyAuthor() { }
-                public const string JobType = ServiceTasks.NewsletterNotifyAuthor;
+                public static readonly ServiceTaskRequestCancellation Instance = new();
+                private ServiceTaskRequestCancellation() { }
+                public const string JobType = ServiceTasks.MiraveloRequestCancellation;
 
-                public Runtime.ElementId Id { get; } = new("serviceTask_notifyAuthor");
+                public Runtime.ElementId Id { get; } = new("serviceTask_requestCancellation");
                 public string ElementType => "SERVICE_TASK";
-                public string? Name => null;
+                public string? Name => "Request cancellation";
+
+                public NodeVariables Variables { get; } = new();
+                public sealed class NodeVariables
+                {
+                    public Runtime.VariableName.Output CancellationPossible { get; } = new("cancellationPossible");
+                }
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public EndEventEditionSent EndEventEditionSent => EndEventEditionSent.Instance;
+                    public BoundaryCancellationFailed BoundaryCancellationFailed => BoundaryCancellationFailed.Instance;
+                    public GatewayCancellationPossible GatewayCancellationPossible => GatewayCancellationPossible.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EndEventEditionSent> ToEndEventEditionSent => new(new("flow_notifyAuthorToEditionSent"), null, null, false, EndEventEditionSent.Instance);
+                    public Runtime.SequenceFlow<GatewayCancellationPossible> ToGatewayCancellationPossible => new(new("flow_requestCancellationToCancellationPossible"), null, null, false, GatewayCancellationPossible.Instance);
                 }
             }
 
-            public sealed class ServiceTaskSendMailAgain : Runtime.IFlowNode
+            public sealed class StartEventCancellationRequired : Runtime.IFlowNode
             {
-                public static readonly ServiceTaskSendMailAgain Instance = new();
-                private ServiceTaskSendMailAgain() { }
-                public const string JobType = ServiceTasks.NewsletterSendMailToSubscriber;
+                public static readonly StartEventCancellationRequired Instance = new();
+                private StartEventCancellationRequired() { }
 
-                public Runtime.ElementId Id { get; } = new("serviceTask_sendMailAgain");
-                public string ElementType => "SERVICE_TASK";
-                public string? Name => null;
-
-                public Successors Next => new();
-                public sealed class Successors
-                {
-                    public EventGatewayAfterSendingAgain EventGatewayAfterSendingAgain => EventGatewayAfterSendingAgain.Instance;
-                }
-
-                public OutgoingSequenceFlows OutgoingFlows => new();
-                public sealed class OutgoingSequenceFlows
-                {
-                    public Runtime.SequenceFlow<EventGatewayAfterSendingAgain> ToEventGatewayAfterSendingAgain => new(new("flow_sendAgainToEventGateway"), null, null, false, EventGatewayAfterSendingAgain.Instance);
-                }
-            }
-
-            public sealed class ServiceTaskSendToSubscriber : Runtime.IFlowNode
-            {
-                public static readonly ServiceTaskSendToSubscriber Instance = new();
-                private ServiceTaskSendToSubscriber() { }
-                public const string JobType = ServiceTasks.NewsletterSendMailToSubscriber;
-
-                public Runtime.ElementId Id { get; } = new("serviceTask_sendToSubscriber");
-                public string ElementType => "SERVICE_TASK";
-                public string? Name => null;
-
-                public Successors Next => new();
-                public sealed class Successors
-                {
-                    public ServiceTaskNotifyAuthor ServiceTaskNotifyAuthor => ServiceTaskNotifyAuthor.Instance;
-                }
-
-                public OutgoingSequenceFlows OutgoingFlows => new();
-                public sealed class OutgoingSequenceFlows
-                {
-                    public Runtime.SequenceFlow<ServiceTaskNotifyAuthor> ToServiceTaskNotifyAuthor => new(new("flow_sendToNotifyAuthor"), null, null, false, ServiceTaskNotifyAuthor.Instance);
-                }
-            }
-
-            public sealed class StartEventEditionCreated : Runtime.IFlowNode
-            {
-                public static readonly StartEventEditionCreated Instance = new();
-                private StartEventEditionCreated() { }
-
-                public Runtime.ElementId Id { get; } = new("startEvent_editionCreated");
+                public Runtime.ElementId Id { get; } = new("startEvent_cancellationRequired");
                 public string ElementType => "START_EVENT";
-                public string? Name => null;
+                public string? Name => "Cancellation required";
+
+                public NodeVariables Variables { get; } = new();
+                public sealed class NodeVariables
+                {
+                    public Runtime.VariableName.Input OrderIds { get; } = new("orderIds");
+                }
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public ServiceTaskLoadSubscribers ServiceTaskLoadSubscribers => ServiceTaskLoadSubscribers.Instance;
+                    public ServiceTaskRequestCancellation ServiceTaskRequestCancellation => ServiceTaskRequestCancellation.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskLoadSubscribers> ToServiceTaskLoadSubscribers => new(new("flow_editionToLoadSubscribers"), null, null, false, ServiceTaskLoadSubscribers.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskRequestCancellation> ToServiceTaskRequestCancellation => new(new("flow_cancellationRequiredToRequestCancellation"), null, null, false, ServiceTaskRequestCancellation.Instance);
                 }
             }
 
-            public sealed class TimerNoRejectionForOneDay : Runtime.IFlowNode
+            public sealed class UserTaskClarifyReturn : Runtime.IFlowNode
             {
-                public static readonly TimerNoRejectionForOneDay Instance = new();
-                private TimerNoRejectionForOneDay() { }
+                public static readonly UserTaskClarifyReturn Instance = new();
+                private UserTaskClarifyReturn() { }
 
-                public Runtime.ElementId Id { get; } = new("timer_noRejectionForOneDay");
-                public string ElementType => "TIMER_INTERMEDIATE_CATCH_EVENT";
-                public string? Name => null;
-                public Runtime.BpmnTimer Timer { get; } = new("Duration", "PT1D");
+                public Runtime.ElementId Id { get; } = new("userTask_clarifyReturn");
+                public string ElementType => "USER_TASK";
+                public string? Name => "Clarify return";
 
                 public Successors Next => new();
                 public sealed class Successors
                 {
-                    public EndEventIssueResolved EndEventIssueResolved => EndEventIssueResolved.Instance;
+                    public GatewayMergeReturn GatewayMergeReturn => GatewayMergeReturn.Instance;
                 }
 
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EndEventIssueResolved> ToEndEventIssueResolved => new(new("flow_timerToIssueResolved"), null, null, false, EndEventIssueResolved.Instance);
+                    public Runtime.SequenceFlow<GatewayMergeReturn> ToGatewayMergeReturn => new(new("flow_clarifyReturnToMergeReturn"), null, null, false, GatewayMergeReturn.Instance);
                 }
             }
         }

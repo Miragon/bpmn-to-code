@@ -50,8 +50,8 @@ class ProcessJsonSchemaTest {
     fun `golden json fixtures conform to the published schema`() {
         // given: the committed fixtures, which also cover the merged multi-variant shape
         val goldenFiles = listOf(
-            "/json/NewsletterSubscriptionProcess.json",
-            "/json/MultiVariantNewsletterProcess.json",
+            "/json/BikeLeasingProcess.json",
+            "/json/MultiVariantCancelBikeOrderProcess.json",
             "/json/e2e/zeebe/bike-leasing.json",
             "/json/e2e/c7/bike-leasing.json",
             "/json/e2e/operaton/bike-leasing.json",

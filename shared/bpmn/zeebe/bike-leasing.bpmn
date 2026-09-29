@@ -210,6 +210,7 @@
         <zeebe:calledElement processId="cancelBikeOrder" propagateAllChildVariables="false" propagateAllParentVariables="false" />
         <zeebe:ioMapping>
           <zeebe:input source="=orderIds" target="orderIds" />
+          <zeebe:input source="=applicationId" target="applicationId" />
           <zeebe:output source="=cancellationCosts" target="cancellationCosts" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>

@@ -211,6 +211,7 @@ class CamundaDialectExtractionTest {
         val callActivity = extract(engine, "bike-leasing").callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.inputMappings).containsExactly(
             CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "orderIds", target = "orderIds"),
+            CallActivityDefinition.Mapping(VariableDirection.INPUT, sourceExpression = "\${applicationId}", target = "applicationId"),
         )
         assertThat(callActivity.outputMappings).containsExactly(
             CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "cancellationCosts", target = "cancellationCosts"),

@@ -186,6 +186,7 @@ class ZeebeExtractionTest {
         val callActivity = extract("zeebe/bike-leasing").callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.inputMappings).containsExactly(
             CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "=orderIds", target = "orderIds"),
+            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "=applicationId", target = "applicationId"),
         )
         assertThat(callActivity.outputMappings).containsExactly(
             CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "=cancellationCosts", target = "cancellationCosts"),
