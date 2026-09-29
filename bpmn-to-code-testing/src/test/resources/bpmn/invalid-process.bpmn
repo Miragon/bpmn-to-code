@@ -4,52 +4,52 @@
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  id="Definitions_2"
+                  id="definitions_orderBike"
                   targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:message id="Message_1" />
-  <bpmn:process id="invalidProcess" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1" name="Start">
-      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+  <bpmn:message id="message_bikeOrdered" />
+  <bpmn:process id="orderBike" isExecutable="true">
+    <bpmn:startEvent id="startEvent_bikeOrderRequested" name="Bike order requested">
+      <bpmn:outgoing>flow_bikeOrderRequestedToOrderBike</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="Task_NoImpl" name="Missing implementation">
-      <bpmn:incoming>Flow_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    <bpmn:serviceTask id="serviceTask_orderBike" name="Order bike">
+      <bpmn:incoming>flow_bikeOrderRequestedToOrderBike</bpmn:incoming>
+      <bpmn:outgoing>flow_orderBikeToBikeOrdered</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:intermediateThrowEvent id="Event_Message" name="Send message">
-      <bpmn:incoming>Flow_2</bpmn:incoming>
-      <bpmn:outgoing>Flow_3</bpmn:outgoing>
-      <bpmn:messageEventDefinition messageRef="Message_1" />
+    <bpmn:intermediateThrowEvent id="event_bikeOrdered" name="Bike ordered">
+      <bpmn:incoming>flow_orderBikeToBikeOrdered</bpmn:incoming>
+      <bpmn:outgoing>flow_bikeOrderedToBikeOrderPlaced</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="messageEventDefinition_bikeOrdered" messageRef="message_bikeOrdered" />
     </bpmn:intermediateThrowEvent>
-    <bpmn:endEvent id="EndEvent_1" name="End">
-      <bpmn:incoming>Flow_3</bpmn:incoming>
+    <bpmn:endEvent id="endEvent_bikeOrderPlaced" name="Bike order placed">
+      <bpmn:incoming>flow_bikeOrderedToBikeOrderPlaced</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_NoImpl" />
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_NoImpl" targetRef="Event_Message" />
-    <bpmn:sequenceFlow id="Flow_3" sourceRef="Event_Message" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="flow_bikeOrderRequestedToOrderBike" sourceRef="startEvent_bikeOrderRequested" targetRef="serviceTask_orderBike" />
+    <bpmn:sequenceFlow id="flow_orderBikeToBikeOrdered" sourceRef="serviceTask_orderBike" targetRef="event_bikeOrdered" />
+    <bpmn:sequenceFlow id="flow_bikeOrderedToBikeOrderPlaced" sourceRef="event_bikeOrdered" targetRef="endEvent_bikeOrderPlaced" />
   </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="invalidProcess">
-      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+  <bpmndi:BPMNDiagram id="diagram_orderBike">
+    <bpmndi:BPMNPlane id="plane_orderBike" bpmnElement="orderBike">
+      <bpmndi:BPMNShape id="startEvent_bikeOrderRequested_di" bpmnElement="startEvent_bikeOrderRequested">
         <dc:Bounds x="152" y="82" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_NoImpl_di" bpmnElement="Task_NoImpl">
+      <bpmndi:BPMNShape id="serviceTask_orderBike_di" bpmnElement="serviceTask_orderBike">
         <dc:Bounds x="240" y="60" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_Message_di" bpmnElement="Event_Message">
+      <bpmndi:BPMNShape id="event_bikeOrdered_di" bpmnElement="event_bikeOrdered">
         <dc:Bounds x="392" y="82" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+      <bpmndi:BPMNShape id="endEvent_bikeOrderPlaced_di" bpmnElement="endEvent_bikeOrderPlaced">
         <dc:Bounds x="480" y="82" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+      <bpmndi:BPMNEdge id="flow_bikeOrderRequestedToOrderBike_di" bpmnElement="flow_bikeOrderRequestedToOrderBike">
         <di:waypoint x="188" y="100" />
         <di:waypoint x="240" y="100" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+      <bpmndi:BPMNEdge id="flow_orderBikeToBikeOrdered_di" bpmnElement="flow_orderBikeToBikeOrdered">
         <di:waypoint x="340" y="100" />
         <di:waypoint x="392" y="100" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+      <bpmndi:BPMNEdge id="flow_bikeOrderedToBikeOrderPlaced_di" bpmnElement="flow_bikeOrderedToBikeOrderPlaced">
         <di:waypoint x="428" y="100" />
         <di:waypoint x="480" y="100" />
       </bpmndi:BPMNEdge>

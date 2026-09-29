@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="definitions_cancelBikeOrder"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:message id="message_bikeOrderCancelled" name="miravelo.bikeOrderCancelled" />
+  <bpmn:process id="cancelBikeOrder" isExecutable="true">
+    <bpmn:startEvent id="startEvent_cancellationRequired" name="Cancellation required">
+      <bpmn:outgoing>flow_cancellationRequiredToBikeOrderCancelled</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="endEvent_bikeOrderCancelled" name="Bike order cancelled">
+      <bpmn:incoming>flow_cancellationRequiredToBikeOrderCancelled</bpmn:incoming>
+      <bpmn:messageEventDefinition id="messageEventDefinition_bikeOrderCancelled" messageRef="message_bikeOrderCancelled" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_cancellationRequiredToBikeOrderCancelled" sourceRef="startEvent_cancellationRequired" targetRef="endEvent_bikeOrderCancelled" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="diagram_cancelBikeOrder">
+    <bpmndi:BPMNPlane id="plane_cancelBikeOrder" bpmnElement="cancelBikeOrder">
+      <bpmndi:BPMNShape id="startEvent_cancellationRequired_di" bpmnElement="startEvent_cancellationRequired">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_bikeOrderCancelled_di" bpmnElement="endEvent_bikeOrderCancelled">
+        <dc:Bounds x="292" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_cancellationRequiredToBikeOrderCancelled_di" bpmnElement="flow_cancellationRequiredToBikeOrderCancelled">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="292" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

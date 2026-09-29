@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="definitions_refundDeposit"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:message id="message_bikeOrderCancelled" name="miravelo.bikeOrderCancelled" />
+  <bpmn:process id="refundDeposit" isExecutable="true">
+    <bpmn:startEvent id="startEvent_bikeOrderCancelled" name="Bike order cancelled">
+      <bpmn:outgoing>flow_bikeOrderCancelledToDepositRefunded</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="messageEventDefinition_bikeOrderCancelled" messageRef="message_bikeOrderCancelled" />
+    </bpmn:startEvent>
+    <bpmn:endEvent id="endEvent_depositRefunded" name="Deposit refunded">
+      <bpmn:incoming>flow_bikeOrderCancelledToDepositRefunded</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_bikeOrderCancelledToDepositRefunded" sourceRef="startEvent_bikeOrderCancelled" targetRef="endEvent_depositRefunded" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="diagram_refundDeposit">
+    <bpmndi:BPMNPlane id="plane_refundDeposit" bpmnElement="refundDeposit">
+      <bpmndi:BPMNShape id="startEvent_bikeOrderCancelled_di" bpmnElement="startEvent_bikeOrderCancelled">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_depositRefunded_di" bpmnElement="endEvent_depositRefunded">
+        <dc:Bounds x="292" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_bikeOrderCancelledToDepositRefunded_di" bpmnElement="flow_bikeOrderCancelledToDepositRefunded">
+        <di:waypoint x="188" y="100" />
+        <di:waypoint x="292" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

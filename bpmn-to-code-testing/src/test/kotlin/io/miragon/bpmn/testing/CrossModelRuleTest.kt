@@ -7,29 +7,30 @@ import org.junit.jupiter.api.Test
  * Covers cross-model resolution: a [io.miragon.bpmn.domain.validation.CrossModelValidationRule] can
  * reach other loaded models via [io.miragon.bpmn.domain.validation.model.CrossModelValidationContext].
  *
- * The `bpmn/order-fulfillment/` fixture is an isolated directory so that loading it as a set only
- * ever yields the parent process and its payment subprocess - see [BpmnValidator.fromClasspath].
+ * Loading a single file isolates one model, loading `bpmn/c7/` resolves the shared models against each
+ * other. The `bpmn/message-flow/` fixture is an isolated directory because no shared model catches the
+ * message thrown by `cancelBikeOrder` - see [BpmnValidator.fromClasspath].
  */
 class CrossModelRuleTest {
 
     @Test
     fun `flags a call activity whose called process is absent from the loaded models`() {
         BpmnValidator
-            .fromClasspath("bpmn/order-fulfillment/order-fulfillment.bpmn")
+            .fromClasspath("bpmn/c7/bike-leasing.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
             .validate()
             .assertViolation(
                 ruleId = BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id,
-                elementId = "CallActivity_ProcessPayment",
-                messageContains = "paymentProcessing",
+                elementId = "callActivity_cancelBikeOrder",
+                messageContains = "cancelBikeOrder",
             )
     }
 
     @Test
     fun `passes when the called process is present among the loaded models`() {
         BpmnValidator
-            .fromClasspath("bpmn/order-fulfillment/")
+            .fromClasspath("bpmn/c7/")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
             .validate()
@@ -39,14 +40,14 @@ class CrossModelRuleTest {
     @Test
     fun `warns when a thrown message has no catcher among the loaded models`() {
         BpmnValidator
-            .fromClasspath("bpmn/message-flow/order-shipping.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.UNCAUGHT_MESSAGE_THROW)
             .validate()
             .assertViolation(
                 ruleId = BpmnRules.UNCAUGHT_MESSAGE_THROW.id,
-                elementId = "EndEvent_OrderShipped",
-                messageContains = "OrderShipped",
+                elementId = "endEvent_bikeOrderCancelled",
+                messageContains = "miravelo.bikeOrderCancelled",
             )
     }
 
@@ -63,21 +64,21 @@ class CrossModelRuleTest {
     @Test
     fun `warns when a thrown signal has no subscriber among the loaded models`() {
         BpmnValidator
-            .fromClasspath("bpmn/signal-flow/registration-blocked.bpmn")
+            .fromClasspath("bpmn/c7/membership.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW)
             .validate()
             .assertViolation(
                 ruleId = BpmnRules.UNCAUGHT_SIGNAL_THROW.id,
-                elementId = "EndEvent_RegistrationBlocked",
-                messageContains = "RegistrationBlocked",
+                elementId = "endEvent_membershipActivated",
+                messageContains = "miravelo.memberActivated",
             )
     }
 
     @Test
     fun `passes when the thrown signal is caught by another loaded model`() {
         BpmnValidator
-            .fromClasspath("bpmn/signal-flow/")
+            .fromClasspath("bpmn/c7/")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW)
             .validate()
@@ -87,21 +88,21 @@ class CrossModelRuleTest {
     @Test
     fun `warns when a caught signal is never thrown among the loaded models`() {
         BpmnValidator
-            .fromClasspath("bpmn/signal-flow/registration-monitor.bpmn")
+            .fromClasspath("bpmn/c7/welcome-package.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH)
             .validate()
             .assertViolation(
                 ruleId = BpmnRules.UNPUBLISHED_SIGNAL_CATCH.id,
-                elementId = "StartEvent_RegistrationBlocked",
-                messageContains = "RegistrationBlocked",
+                elementId = "startEvent_memberActivated",
+                messageContains = "miravelo.memberActivated",
             )
     }
 
     @Test
     fun `passes when the caught signal is thrown by another loaded model`() {
         BpmnValidator
-            .fromClasspath("bpmn/signal-flow/")
+            .fromClasspath("bpmn/c7/")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH)
             .validate()

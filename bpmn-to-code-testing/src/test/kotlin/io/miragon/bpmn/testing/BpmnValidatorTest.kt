@@ -18,7 +18,7 @@ class BpmnValidatorTest {
     @Test
     fun `valid bpmn passes assertNoErrors`() {
         BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION)
             .validate()
@@ -38,7 +38,7 @@ class BpmnValidatorTest {
     @Test
     fun `custom rules are applied via withRules`() {
         BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.EMPTY_PROCESS)
             .validate()
@@ -59,7 +59,7 @@ class BpmnValidatorTest {
     @Test
     fun `disableRules switches off a mandatory rule since no code is generated`() {
         BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(AlwaysFailingMandatoryRule())
             .disableRules("always-failing-mandatory")
@@ -71,7 +71,7 @@ class BpmnValidatorTest {
     fun `missing engine throws clear error`() {
         assertThatThrownBy {
             BpmnValidator
-                .fromClasspath("bpmn/valid-process.bpmn")
+                .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
                 .validate()
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("Process engine must be set")
@@ -80,7 +80,7 @@ class BpmnValidatorTest {
     @Test
     fun `fromDirectory loads bpmn files`(@TempDir tempDir: Path) {
         // given: a BPMN file copied into a temp directory
-        val bpmnContent = javaClass.classLoader.getResourceAsStream("bpmn/valid-process.bpmn")!!
+        val bpmnContent = javaClass.classLoader.getResourceAsStream("bpmn/c7/cancel-bike-order.bpmn")!!
         Files.copy(bpmnContent, tempDir.resolve("test.bpmn"))
 
         // then: validation succeeds when loading from the directory
@@ -95,7 +95,7 @@ class BpmnValidatorTest {
     @Test
     fun `defaults to all rules when withRules is not called`() {
         BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .validate()
             .assertNoErrors()
@@ -104,7 +104,7 @@ class BpmnValidatorTest {
     @Test
     fun `failOnWarning promotes warnings to errors`() {
         val result = BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(AlwaysViolatingRule("warn-rule", Severity.WARN))
             .failOnWarning()
@@ -118,7 +118,7 @@ class BpmnValidatorTest {
     @Test
     fun `warnings in the pre-merge phase do not short-circuit post-merge rules`() {
         val result = BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(
                 AlwaysViolatingRule("pre-warn", Severity.WARN, ValidationPhase.PRE_MERGE),
@@ -133,7 +133,7 @@ class BpmnValidatorTest {
     @Test
     fun `an error in the pre-merge phase short-circuits post-merge rules`() {
         val result = BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(
                 AlwaysViolatingRule("pre-error", Severity.ERROR, ValidationPhase.PRE_MERGE),
