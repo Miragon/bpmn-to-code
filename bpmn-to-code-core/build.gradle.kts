@@ -79,4 +79,5 @@ pitest {
         "io.miragon.bpmn.adapter.outbound.json.model.*",
     )
     mutationThreshold.set(80)
+    jvmArgs.add("-Druntime.test.sources=${runtimeTestSources.absolutePath}")
 }
