@@ -20,6 +20,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
 import io.ktor.utils.io.ExperimentalKtorApi
 import io.miragon.bpmn.web.config.AppConfig
+import io.miragon.bpmn.web.config.CorsConfig
 import io.miragon.bpmn.web.model.ConfigResponse
 import io.miragon.bpmn.web.routes.generateJsonRoutes
 import io.miragon.bpmn.web.routes.generateRoutes
@@ -40,9 +41,15 @@ fun main() {
     ).start(wait = true)
 }
 
-@Suppress("LongMethod")
 fun Application.configureApp(appConfig: AppConfig) {
-    // JSON serialization
+    configureSerialization()
+    configureCors(appConfig.cors)
+    install(CallLogging)
+    configureStatusPages()
+    configureRouting(appConfig)
+}
+
+private fun Application.configureSerialization() {
     install(ContentNegotiation) {
         val jsonSettings = Json {
             prettyPrint = true
@@ -51,18 +58,19 @@ fun Application.configureApp(appConfig: AppConfig) {
         }
         json(jsonSettings)
     }
+}
 
-    // CORS configuration
+private fun Application.configureCors(cors: CorsConfig) {
     install(CORS) {
         allowHeader(HttpHeaders.ContentType)
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Options)
 
         // Configure allowed origins from environment
-        if (appConfig.cors.allowsAllOrigins()) {
+        if (cors.allowsAllOrigins()) {
             anyHost()
         } else {
-            appConfig.cors.allowedOrigins.forEach { origin ->
+            cors.allowedOrigins.forEach { origin ->
                 allowHost(
                     host = origin.removePrefix("https://").removePrefix("http://"),
                     schemes = listOf("https", "http"),
@@ -70,11 +78,9 @@ fun Application.configureApp(appConfig: AppConfig) {
             }
         }
     }
+}
 
-    // Call logging
-    install(CallLogging)
-
-    // Status pages for error handling
+private fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             logger.error(cause) { "Unhandled exception" }
@@ -82,8 +88,9 @@ fun Application.configureApp(appConfig: AppConfig) {
             call.respond(HttpStatusCode.InternalServerError, message)
         }
     }
+}
 
-    // Routing
+private fun Application.configureRouting(appConfig: AppConfig) {
     routing {
         // Serve static files (frontend)
         staticResources("/static", "static")
