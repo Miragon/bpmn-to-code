@@ -191,12 +191,12 @@ class ProcessPathKotlinApiTest {
         assertThat(BikeLeasing.ReceiveTaskHandoverReported.name).isEqualTo("Await bike handover")
         assertThat(BikeLeasing.GatewayFork.name).isNull()
 
-        val flow = BikeLeasing.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication
+        val flow = BikeLeasing.StartEventLeasingRequestReceived.next.serviceTaskValidateApplication.flow
         assertThat(flow.id.value).isEqualTo("flow_leasingRequestReceivedToValidateApplication")
         assertThat(flow.target).isEqualTo(BikeLeasing.ServiceTaskValidateApplication)
         assertThat(flow.conditionExpression).isNull()
         assertThat(flow.isDefault).isFalse()
-        assertThat(flow).isEqualTo(BikeLeasing.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication)
+        assertThat(flow).isEqualTo(BikeLeasing.StartEventLeasingRequestReceived.next.serviceTaskValidateApplication.flow)
 
         val input: VariableName.Input = BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID
         assertThat(input.value).isEqualTo("applicationId")
@@ -232,9 +232,9 @@ class ProcessPathKotlinApiTest {
     }
 
     @Test
-    fun `via walks chosen sequence flows and records them next to the elements`() {
+    fun `then records the sequence flows it walks next to the elements`() {
         val path = ProcessPath.from(BikeLeasing.BusinessRuleTaskCheckCreditRating)
-            .via { it.toGatewayIsSolvent }.via { it.toSubProcessConcludeContract }
+            .then { it.gatewayIsSolvent }.then { it.subProcessConcludeContract }
 
         assertThat(path.ids).containsExactly(
             "businessRuleTask_checkCreditRating",
@@ -242,7 +242,7 @@ class ProcessPathKotlinApiTest {
             "subProcess_concludeContract",
         )
         assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "flow_isSolventToConcludeContract")
-        assertThat(BikeLeasing.GatewayIsSolvent.outgoingFlows.toSubProcessConcludeContract.isDefault).isTrue()
+        assertThat(BikeLeasing.GatewayIsSolvent.next.subProcessConcludeContract.flow.isDefault).isTrue()
     }
 
     @Test

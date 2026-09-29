@@ -14,7 +14,7 @@ data class SequenceFlow<out TARGET : FlowNode>(
     val name: String? = null,
     val conditionExpression: String? = null,
     val isDefault: Boolean = false,
-    val target: TARGET,
-) {
+    override val target: TARGET,
+) : Successor<TARGET> {
     constructor(id: ElementId, target: TARGET) : this(id, null, null, false, target)
 }

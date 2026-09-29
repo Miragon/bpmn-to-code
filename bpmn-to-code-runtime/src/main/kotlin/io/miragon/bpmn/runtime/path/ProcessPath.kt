@@ -38,13 +38,14 @@ class ProcessPath<N : FlowNode> internal constructor(
     val distinctIds: List<String> get() = ids.distinct()
 
     /**
-     * The sequence flows walked explicitly via [via], in walk order.
+     * The sequence flows recorded so far, in walk order.
      */
     internal val flows: List<SequenceFlow<*>> get() = takenFlows
 
     /**
-     * The ids of the sequence flows walked explicitly via [via], in walk order — for comparing against the
-     * engine's taken sequence flows. Steps that pick an element ([then], [enter], …) record no flow.
+     * The ids of the recorded sequence flows, in walk order — for comparing against the engine's taken sequence
+     * flows. [then] and [onto] record the flow they walk when it is unambiguous, [via] records the picked flow;
+     * boundary events, [enter] and several flows to the same element record none.
      */
     val flowIds: List<String> get() = takenFlows.map { it.id.value }
 

@@ -52,7 +52,7 @@ class KotlinProcessApiBuilderTest {
     }
 
     @Test
-    fun `several flows to the same element share one outgoing-flows property as a list`() {
+    fun `several flows to the same element share one transition`() {
         // given: a gateway with two conditional flows that both lead to the same task
         val model = testProcessModel(
             flowNodes = listOf(
@@ -78,8 +78,8 @@ class KotlinProcessApiBuilderTest {
         // when
         val result = underTest.buildApiFile(testProcessModelApi(model = model))
 
-        // then: one stable name for both flows, typed as a list
-        assertThat(result.content).contains("val toApprove: List<SequenceFlow<Approve>>")
+        // then: one stable name for both flows, carried by one transition
+        assertThat(result.content).contains("val approve: SequenceFlows<Approve>")
         assertThat(result.content).contains("\"flow_small\"", "\"flow_vip\"")
         assertKotlinSyntaxValid(result.content)
     }

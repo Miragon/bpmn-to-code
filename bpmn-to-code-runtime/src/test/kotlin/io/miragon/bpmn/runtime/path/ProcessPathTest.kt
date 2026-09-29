@@ -1,12 +1,13 @@
 package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.AttachedBoundaryEvent
 import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
-import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.SequenceFlow
+import io.miragon.bpmn.runtime.SequenceFlows
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -27,8 +28,8 @@ class ProcessPathTest {
     }
 
     @Test
-    fun `via walks a chosen outgoing sequence flow and records its target and the flow`() {
-        val path = ProcessPath.from(Start).via { it.toMid }
+    fun `then along a transition with one flow records the flow`() {
+        val path = ProcessPath.from(Start).then { it.mid }
 
         assertThat(path.ids).containsExactly("Start", "Mid")
         assertThat(path.flowIds).containsExactly("flow_startToMid")
@@ -36,21 +37,34 @@ class ProcessPathTest {
     }
 
     @Test
-    fun `then records no sequence flow and later steps keep the flows recorded so far`() {
-        val path = ProcessPath.from(Start).via { it.toMid }.then { it.end }
+    fun `then along a transition with several flows records none of them`() {
+        val path = ProcessPath.from(Start).then { it.mid }.then { it.end }
 
         assertThat(path.ids).containsExactly("Start", "Mid", "End")
         assertThat(path.flowIds).containsExactly("flow_startToMid")
+    }
+
+    @Test
+    fun `then along a flow picked from a transition records exactly that flow`() {
+        val path = ProcessPath.from(Start).then { it.mid }.then { next -> next.end.flows.single { it.conditionExpression == "=b" } }
+
+        assertThat(path.ids).containsExactly("Start", "Mid", "End")
+        assertThat(path.flowIds).containsExactly("flow_startToMid", "flow_midToEndB")
+    }
+
+    @Test
+    fun `the flow of a transition with several flows is ambiguous`() {
+        assertThat(runCatching { Mid.next.end.flow }.exceptionOrNull()).hasMessageContaining("pick one of `flows`")
     }
 
     @OptIn(RiskyNavigation::class)
     @Test
     fun `re-anchoring and walking an interior keep the flows recorded so far`() {
         val path = ProcessPath.from(Start)
-            .via { it.toMid }.jumpTo(Sub).inside { enter { it.innerStart } }.then { it.end }
+            .then { it.mid }.jumpTo(Sub).inside { enter { it.innerStart } }.then { it.end }
 
         assertThat(path.ids).containsExactly("Start", "Mid", "InnerStart", "End")
-        assertThat(path.flowIds).containsExactly("flow_startToMid")
+        assertThat(path.flowIds).containsExactly("flow_startToMid", "flow_subToEnd")
     }
 
     @Test
@@ -59,6 +73,7 @@ class ProcessPathTest {
 
         assertThat(path.ids).containsExactly("Start", "Mid", "Mid", "Mid")
         assertThat(path.distinctIds).containsExactly("Start", "Mid")
+        assertThat(path.flowIds).containsExactly("flow_startToMid")
         assertThat(path.current).isEqualTo(Mid)
     }
 
@@ -106,7 +121,21 @@ class ProcessPathTest {
         val path = ProcessPath.from(Start).onto { it.sub }.inside { enter { it.innerStart } }.then { it.end }
 
         assertThat(path.ids).containsExactly("Start", "InnerStart", "End")
+        assertThat(path.flowIds).containsExactly("flow_startToSub", "flow_subToEnd")
         assertThat(path.current).isEqualTo(End)
+    }
+
+    @Test
+    fun `interruptedBy through an attached boundary event records no flow`() {
+        val path = ProcessPath.from(Start).onto { it.sub }.interruptedBy(Sub) { it.boundary }
+
+        assertThat(path.ids).containsExactly("Start", "Boundary")
+        assertThat(path.flowIds).containsExactly("flow_startToSub")
+    }
+
+    @Test
+    fun `sequence flows need at least one flow`() {
+        assertThat(runCatching { SequenceFlows(Mid, emptyList()) }.exceptionOrNull()).hasMessageContaining("at least one sequence flow")
     }
 
     @Test
@@ -133,25 +162,19 @@ class ProcessPathTest {
     private object Mid : AbstractFlowNode(ElementId("Mid"), BpmnElementType.TASK), HasSuccessors<Mid.Next> {
         override val next: Next get() = Next
         object Next {
-            val end: End get() = End
+            val end: SequenceFlows<End> get() = SequenceFlows(
+                End,
+                SequenceFlow(id = ElementId("flow_midToEndA"), conditionExpression = "=a", target = End),
+                SequenceFlow(id = ElementId("flow_midToEndB"), conditionExpression = "=b", target = End),
+            )
         }
     }
 
-    private object Start : AbstractFlowNode(ElementId("Start"), BpmnElementType.START_EVENT), HasSuccessors<Start.Next>, HasOutgoingFlows<Start.OutgoingFlows> {
+    private object Start : AbstractFlowNode(ElementId("Start"), BpmnElementType.START_EVENT), HasSuccessors<Start.Next> {
         override val next: Next get() = Next
-        override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
         object Next {
-            val mid: Mid get() = Mid
-            val sub: Sub get() = Sub
-        }
-        object OutgoingFlows {
-            val toMid: SequenceFlow<Mid> get() = SequenceFlow(
-                id = ElementId("flow_startToMid"),
-                name = null,
-                conditionExpression = null,
-                isDefault = false,
-                target = Mid,
-            )
+            val mid: SequenceFlows<Mid> get() = SequenceFlows(Mid, ElementId("flow_startToMid"))
+            val sub: SequenceFlows<Sub> get() = SequenceFlows(Sub, ElementId("flow_startToSub"))
         }
     }
 
@@ -161,8 +184,8 @@ class ProcessPathTest {
         override val next: Next get() = Next
         override val startEvents: Start get() = Start
         object Next {
-            val end: End get() = End
-            val boundary: Boundary get() = Boundary
+            val end: SequenceFlows<End> get() = SequenceFlows(End, ElementId("flow_subToEnd"))
+            val boundary: AttachedBoundaryEvent<Boundary> get() = AttachedBoundaryEvent(Boundary)
         }
         object Start {
             val innerStart: InnerStart get() = InnerStart
