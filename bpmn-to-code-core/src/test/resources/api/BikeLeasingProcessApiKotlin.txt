@@ -38,13 +38,11 @@ object BikeLeasingProcessApi {
   }
 
   /**
-   * Typed navigation over the process flow.
-   * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `next` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
-   * Intended for tooling, tests, and reasoning about the process shape.
+   * Typed navigation over the process flow: one nested object per BPMN element.
    */
   object FlowNodes {
     /**
-     * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+     * Every node of this flow.
      */
     val entries: List<Node> = listOf(
       BoundaryApplicationInvalid,
@@ -92,12 +90,12 @@ object BikeLeasingProcessApi {
     )
 
     /**
-     * Common supertype of this flow's nodes, so a `when` over them can be exhaustive.
+     * Common supertype of this flow's nodes.
      */
     sealed interface Node : FlowNode
 
     object BoundaryApplicationInvalid : AbstractFlowNode(
-      id = ElementId("boundary_applicationInvalid"),
+      id = ElementId(BoundaryApplicationInvalid.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Application invalid",
     ), Node, HasSuccessors<BoundaryApplicationInvalid.Next>,
@@ -129,16 +127,13 @@ object BikeLeasingProcessApi {
         val toGatewayCollectRejections: SequenceFlow<GatewayCollectRejections>
           get() = SequenceFlow(
             id = ElementId("flow_applicationInvalidToCollectRejections"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = GatewayCollectRejections,
           )
       }
     }
 
     object BoundaryCompensateContract : AbstractFlowNode(
-      id = ElementId("boundary_compensateContract"),
+      id = ElementId(BoundaryCompensateContract.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Contract to revoke",
     ), Node, BoundaryEvent<SubProcessConcludeContract> {
@@ -153,7 +148,7 @@ object BikeLeasingProcessApi {
     }
 
     object BoundaryCompensateInsurance : AbstractFlowNode(
-      id = ElementId("boundary_compensateInsurance"),
+      id = ElementId(BoundaryCompensateInsurance.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Policy to cancel",
     ), Node, BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
@@ -168,7 +163,7 @@ object BikeLeasingProcessApi {
     }
 
     object BoundaryCompensateOrder : AbstractFlowNode(
-      id = ElementId("boundary_compensateOrder"),
+      id = ElementId(BoundaryCompensateOrder.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Order to cancel",
     ), Node, BoundaryEvent<ServiceTaskOrderBike> {
@@ -183,7 +178,7 @@ object BikeLeasingProcessApi {
     }
 
     object BoundaryContractNotSigned : AbstractFlowNode(
-      id = ElementId("boundary_contractNotSigned"),
+      id = ElementId(BoundaryContractNotSigned.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Contract not signed",
     ), Node, HasSuccessors<BoundaryContractNotSigned.Next>,
@@ -215,16 +210,13 @@ object BikeLeasingProcessApi {
         val toGatewayCollectRejections: SequenceFlow<GatewayCollectRejections>
           get() = SequenceFlow(
             id = ElementId("flow_contractNotSignedToCollectRejections"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = GatewayCollectRejections,
           )
       }
     }
 
     object BusinessRuleTaskCheckCreditRating : AbstractFlowNode(
-      id = ElementId("businessRuleTask_checkCreditRating"),
+      id = ElementId(BusinessRuleTaskCheckCreditRating.ELEMENT_ID),
       elementType = BpmnElementType.BUSINESS_RULE_TASK,
       name = "Check credit rating",
     ), Node, HasSuccessors<BusinessRuleTaskCheckCreditRating.Next>,
@@ -246,16 +238,13 @@ object BikeLeasingProcessApi {
         val toGatewayIsSolvent: SequenceFlow<GatewayIsSolvent>
           get() = SequenceFlow(
             id = ElementId("flow_checkCreditRatingToIsSolvent"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = GatewayIsSolvent,
           )
       }
     }
 
     object CallActivityCancelBikeOrder : AbstractFlowNode(
-      id = ElementId("callActivity_cancelBikeOrder"),
+      id = ElementId(CallActivityCancelBikeOrder.ELEMENT_ID),
       elementType = BpmnElementType.CALL_ACTIVITY,
       name = "Cancel bike order",
     ), Node {
@@ -301,7 +290,7 @@ object BikeLeasingProcessApi {
     }
 
     object EndEventApplicationCancelled : AbstractFlowNode(
-      id = ElementId("endEvent_applicationCancelled"),
+      id = ElementId(EndEventApplicationCancelled.ELEMENT_ID),
       elementType = BpmnElementType.END_EVENT,
       name = "Application cancelled",
     ), Node, Event {
@@ -311,7 +300,7 @@ object BikeLeasingProcessApi {
     }
 
     object EndEventApplicationRejected : AbstractFlowNode(
-      id = ElementId("endEvent_applicationRejected"),
+      id = ElementId(EndEventApplicationRejected.ELEMENT_ID),
       elementType = BpmnElementType.END_EVENT,
       name = "Application rejected",
     ), Node, Event {
@@ -321,7 +310,7 @@ object BikeLeasingProcessApi {
     }
 
     object EndEventContractConcluded : AbstractFlowNode(
-      id = ElementId("endEvent_contractConcluded"),
+      id = ElementId(EndEventContractConcluded.ELEMENT_ID),
       elementType = BpmnElementType.END_EVENT,
       name = "Contract concluded",
     ), Node, Event {
@@ -331,7 +320,7 @@ object BikeLeasingProcessApi {
     }
 
     object EndEventContractNotSigned : AbstractFlowNode(
-      id = ElementId("endEvent_contractNotSigned"),
+      id = ElementId(EndEventContractNotSigned.ELEMENT_ID),
       elementType = BpmnElementType.END_EVENT,
       name = "Contract not signed",
     ), Node, Event {
@@ -343,7 +332,7 @@ object BikeLeasingProcessApi {
     }
 
     object EndEventCustomerReminded : AbstractFlowNode(
-      id = ElementId("endEvent_customerReminded"),
+      id = ElementId(EndEventCustomerReminded.ELEMENT_ID),
       elementType = BpmnElementType.END_EVENT,
       name = "Customer reminded",
     ), Node, Event {
@@ -353,7 +342,7 @@ object BikeLeasingProcessApi {
     }
 
     object EndEventDeliveryAddressUpdated : AbstractFlowNode(
-      id = ElementId("endEvent_deliveryAddressUpdated"),
+      id = ElementId(EndEventDeliveryAddressUpdated.ELEMENT_ID),
       elementType = BpmnElementType.END_EVENT,
       name = "Delivery address updated",
     ), Node, Event {
@@ -363,7 +352,7 @@ object BikeLeasingProcessApi {
     }
 
     object EndEventLeasingActive : AbstractFlowNode(
-      id = ElementId("endEvent_leasingActive"),
+      id = ElementId(EndEventLeasingActive.ELEMENT_ID),
       elementType = BpmnElementType.END_EVENT,
       name = "Leasing active",
     ), Node, Event {
@@ -373,7 +362,7 @@ object BikeLeasingProcessApi {
     }
 
     object EventContractSigned : AbstractFlowNode(
-      id = ElementId("event_contractSigned"),
+      id = ElementId(EventContractSigned.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT,
       name = "Contract signed",
     ), Node, HasSuccessors<EventContractSigned.Next>,
@@ -399,16 +388,13 @@ object BikeLeasingProcessApi {
         val toEndEventContractConcluded: SequenceFlow<EndEventContractConcluded>
           get() = SequenceFlow(
             id = ElementId("flow_contractSignedToContractConcluded"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EndEventContractConcluded,
           )
       }
     }
 
     object EventReverseApplication : AbstractFlowNode(
-      id = ElementId("event_reverseApplication"),
+      id = ElementId(EventReverseApplication.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_THROW_EVENT,
       name = "Application reversed",
     ), Node, HasSuccessors<EventReverseApplication.Next>,
@@ -433,16 +419,13 @@ object BikeLeasingProcessApi {
             SequenceFlow<ServiceTaskSendCancellationConfirmation>
           get() = SequenceFlow(
             id = ElementId("flow_reverseApplicationToSendCancellationConfirmation"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ServiceTaskSendCancellationConfirmation,
           )
       }
     }
 
     object GatewayAwaitSignature : AbstractFlowNode(
-      id = ElementId("gateway_awaitSignature"),
+      id = ElementId(GatewayAwaitSignature.ELEMENT_ID),
       elementType = BpmnElementType.EVENT_BASED_GATEWAY,
       name = "Await signature",
     ), Node, HasSuccessors<GatewayAwaitSignature.Next>,
@@ -467,25 +450,19 @@ object BikeLeasingProcessApi {
         val toEventContractSigned: SequenceFlow<EventContractSigned>
           get() = SequenceFlow(
             id = ElementId("flow_awaitSignatureToContractSigned"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EventContractSigned,
           )
 
         val toTimerSignatureDeadline: SequenceFlow<TimerSignatureDeadline>
           get() = SequenceFlow(
             id = ElementId("flow_awaitSignatureToSignatureDeadline"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = TimerSignatureDeadline,
           )
       }
     }
 
     object GatewayCollectRejections : AbstractFlowNode(
-      id = ElementId("gateway_collectRejections"),
+      id = ElementId(GatewayCollectRejections.ELEMENT_ID),
       elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
     ), Node, HasSuccessors<GatewayCollectRejections.Next>,
         HasOutgoingFlows<GatewayCollectRejections.OutgoingFlows> {
@@ -506,16 +483,13 @@ object BikeLeasingProcessApi {
         val toServiceTaskSendRejection: SequenceFlow<ServiceTaskSendRejection>
           get() = SequenceFlow(
             id = ElementId("flow_collectRejectionsToSendRejection"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ServiceTaskSendRejection,
           )
       }
     }
 
     object GatewayFork : AbstractFlowNode(
-      id = ElementId("gateway_fork"),
+      id = ElementId(GatewayFork.ELEMENT_ID),
       elementType = BpmnElementType.PARALLEL_GATEWAY,
     ), Node, HasSuccessors<GatewayFork.Next>, HasOutgoingFlows<GatewayFork.OutgoingFlows> {
       const val ELEMENT_ID: String = "gateway_fork"
@@ -538,25 +512,19 @@ object BikeLeasingProcessApi {
         val toServiceTaskIssueInsurancePolicy: SequenceFlow<ServiceTaskIssueInsurancePolicy>
           get() = SequenceFlow(
             id = ElementId("flow_forkToIssueInsurancePolicy"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ServiceTaskIssueInsurancePolicy,
           )
 
         val toServiceTaskOrderBike: SequenceFlow<ServiceTaskOrderBike>
           get() = SequenceFlow(
             id = ElementId("flow_forkToOrderBike"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ServiceTaskOrderBike,
           )
       }
     }
 
     object GatewayIsSolvent : AbstractFlowNode(
-      id = ElementId("gateway_isSolvent"),
+      id = ElementId(GatewayIsSolvent.ELEMENT_ID),
       elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
       name = "Solvent?",
     ), Node, HasSuccessors<GatewayIsSolvent.Next>,
@@ -583,7 +551,6 @@ object BikeLeasingProcessApi {
             id = ElementId("flow_isSolventToCollectRejections"),
             name = "No",
             conditionExpression = $$"""${!solvent}""",
-            isDefault = false,
             target = GatewayCollectRejections,
           )
 
@@ -591,7 +558,6 @@ object BikeLeasingProcessApi {
           get() = SequenceFlow(
             id = ElementId("flow_isSolventToConcludeContract"),
             name = "Yes",
-            conditionExpression = null,
             isDefault = true,
             target = SubProcessConcludeContract,
           )
@@ -599,7 +565,7 @@ object BikeLeasingProcessApi {
     }
 
     object GatewayJoin : AbstractFlowNode(
-      id = ElementId("gateway_join"),
+      id = ElementId(GatewayJoin.ELEMENT_ID),
       elementType = BpmnElementType.PARALLEL_GATEWAY,
     ), Node, HasSuccessors<GatewayJoin.Next>, HasOutgoingFlows<GatewayJoin.OutgoingFlows> {
       const val ELEMENT_ID: String = "gateway_join"
@@ -619,16 +585,13 @@ object BikeLeasingProcessApi {
         val toReceiveTaskHandoverReported: SequenceFlow<ReceiveTaskHandoverReported>
           get() = SequenceFlow(
             id = ElementId("flow_joinToHandoverReported"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ReceiveTaskHandoverReported,
           )
       }
     }
 
     object ReceiveTaskHandoverReported : AbstractFlowNode(
-      id = ElementId("receiveTask_handoverReported"),
+      id = ElementId(ReceiveTaskHandoverReported.ELEMENT_ID),
       elementType = BpmnElementType.RECEIVE_TASK,
       name = "Await bike handover",
     ), Node, HasSuccessors<ReceiveTaskHandoverReported.Next>,
@@ -652,16 +615,13 @@ object BikeLeasingProcessApi {
         val toTimerWithdrawalPeriodElapsed: SequenceFlow<TimerWithdrawalPeriodElapsed>
           get() = SequenceFlow(
             id = ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = TimerWithdrawalPeriodElapsed,
           )
       }
     }
 
     object ServiceTaskCancelContract : AbstractFlowNode(
-      id = ElementId("serviceTask_cancelContract"),
+      id = ElementId(ServiceTaskCancelContract.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Cancel contract",
     ), Node {
@@ -671,7 +631,7 @@ object BikeLeasingProcessApi {
     }
 
     object ServiceTaskCancelPolicy : AbstractFlowNode(
-      id = ElementId("serviceTask_cancelPolicy"),
+      id = ElementId(ServiceTaskCancelPolicy.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Cancel policy",
     ), Node {
@@ -681,7 +641,7 @@ object BikeLeasingProcessApi {
     }
 
     object ServiceTaskIssueInsurancePolicy : AbstractFlowNode(
-      id = ElementId("serviceTask_issueInsurancePolicy"),
+      id = ElementId(ServiceTaskIssueInsurancePolicy.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Issue insurance policy",
     ), Node, HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>,
@@ -721,16 +681,13 @@ object BikeLeasingProcessApi {
         val toGatewayJoin: SequenceFlow<GatewayJoin>
           get() = SequenceFlow(
             id = ElementId("flow_issueInsurancePolicyToJoin"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = GatewayJoin,
           )
       }
     }
 
     object ServiceTaskOrderBike : AbstractFlowNode(
-      id = ElementId("serviceTask_orderBike"),
+      id = ElementId(ServiceTaskOrderBike.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Order bike",
     ), Node, HasSuccessors<ServiceTaskOrderBike.Next>,
@@ -769,16 +726,13 @@ object BikeLeasingProcessApi {
         val toGatewayJoin: SequenceFlow<GatewayJoin>
           get() = SequenceFlow(
             id = ElementId("flow_orderBikeToJoin"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = GatewayJoin,
           )
       }
     }
 
     object ServiceTaskSendCancellationConfirmation : AbstractFlowNode(
-      id = ElementId("serviceTask_sendCancellationConfirmation"),
+      id = ElementId(ServiceTaskSendCancellationConfirmation.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send cancellation confirmation",
     ), Node, HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>,
@@ -802,16 +756,13 @@ object BikeLeasingProcessApi {
         val toEndEventApplicationCancelled: SequenceFlow<EndEventApplicationCancelled>
           get() = SequenceFlow(
             id = ElementId("flow_sendCancellationConfirmationToApplicationCancelled"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EndEventApplicationCancelled,
           )
       }
     }
 
     object ServiceTaskSendContract : AbstractFlowNode(
-      id = ElementId("serviceTask_sendContract"),
+      id = ElementId(ServiceTaskSendContract.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send contract",
     ), Node, HasSuccessors<ServiceTaskSendContract.Next>,
@@ -847,16 +798,13 @@ object BikeLeasingProcessApi {
         val toGatewayAwaitSignature: SequenceFlow<GatewayAwaitSignature>
           get() = SequenceFlow(
             id = ElementId("flow_sendContractToAwaitSignature"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = GatewayAwaitSignature,
           )
       }
     }
 
     object ServiceTaskSendRejection : AbstractFlowNode(
-      id = ElementId("serviceTask_sendRejection"),
+      id = ElementId(ServiceTaskSendRejection.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send rejection",
     ), Node, HasSuccessors<ServiceTaskSendRejection.Next>,
@@ -880,16 +828,13 @@ object BikeLeasingProcessApi {
         val toEndEventApplicationRejected: SequenceFlow<EndEventApplicationRejected>
           get() = SequenceFlow(
             id = ElementId("flow_sendRejectionToApplicationRejected"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EndEventApplicationRejected,
           )
       }
     }
 
     object ServiceTaskSendReminderMail : AbstractFlowNode(
-      id = ElementId("serviceTask_sendReminderMail"),
+      id = ElementId(ServiceTaskSendReminderMail.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send reminder mail",
     ), Node, HasSuccessors<ServiceTaskSendReminderMail.Next>,
@@ -913,16 +858,13 @@ object BikeLeasingProcessApi {
         val toEndEventCustomerReminded: SequenceFlow<EndEventCustomerReminded>
           get() = SequenceFlow(
             id = ElementId("flow_sendReminderMailToCustomerReminded"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EndEventCustomerReminded,
           )
       }
     }
 
     object ServiceTaskValidateApplication : AbstractFlowNode(
-      id = ElementId("serviceTask_validateApplication"),
+      id = ElementId(ServiceTaskValidateApplication.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Validate application",
     ), Node, HasSuccessors<ServiceTaskValidateApplication.Next>,
@@ -950,16 +892,13 @@ object BikeLeasingProcessApi {
             SequenceFlow<BusinessRuleTaskCheckCreditRating>
           get() = SequenceFlow(
             id = ElementId("flow_validateApplicationToCheckCreditRating"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = BusinessRuleTaskCheckCreditRating,
           )
       }
     }
 
     object StartEventAddressChanged : AbstractFlowNode(
-      id = ElementId("startEvent_addressChanged"),
+      id = ElementId(StartEventAddressChanged.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Address changed",
     ), Node, HasSuccessors<StartEventAddressChanged.Next>,
@@ -999,16 +938,13 @@ object BikeLeasingProcessApi {
         val toUserTaskUpdateDeliveryAddress: SequenceFlow<UserTaskUpdateDeliveryAddress>
           get() = SequenceFlow(
             id = ElementId("flow_addressChangedToUpdateDeliveryAddress"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = UserTaskUpdateDeliveryAddress,
           )
       }
     }
 
     object StartEventApplicationWithdrawn : AbstractFlowNode(
-      id = ElementId("startEvent_applicationWithdrawn"),
+      id = ElementId(StartEventApplicationWithdrawn.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Application withdrawn",
     ), Node, HasSuccessors<StartEventApplicationWithdrawn.Next>,
@@ -1036,16 +972,13 @@ object BikeLeasingProcessApi {
         val toEventReverseApplication: SequenceFlow<EventReverseApplication>
           get() = SequenceFlow(
             id = ElementId("flow_applicationWithdrawnToReverseApplication"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EventReverseApplication,
           )
       }
     }
 
     object StartEventCustomerEligible : AbstractFlowNode(
-      id = ElementId("startEvent_customerEligible"),
+      id = ElementId(StartEventCustomerEligible.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Customer eligible",
     ), Node, HasSuccessors<StartEventCustomerEligible.Next>,
@@ -1069,16 +1002,13 @@ object BikeLeasingProcessApi {
         val toServiceTaskSendContract: SequenceFlow<ServiceTaskSendContract>
           get() = SequenceFlow(
             id = ElementId("flow_customerEligibleToSendContract"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ServiceTaskSendContract,
           )
       }
     }
 
     object StartEventLeasingRequestReceived : AbstractFlowNode(
-      id = ElementId("startEvent_leasingRequestReceived"),
+      id = ElementId(StartEventLeasingRequestReceived.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Leasing request received",
     ), Node, HasSuccessors<StartEventLeasingRequestReceived.Next>,
@@ -1125,16 +1055,13 @@ object BikeLeasingProcessApi {
         val toServiceTaskValidateApplication: SequenceFlow<ServiceTaskValidateApplication>
           get() = SequenceFlow(
             id = ElementId("flow_leasingRequestReceivedToValidateApplication"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ServiceTaskValidateApplication,
           )
       }
     }
 
     object SubProcessAddressChanged : AbstractFlowNode(
-      id = ElementId("subProcess_addressChanged"),
+      id = ElementId(SubProcessAddressChanged.ELEMENT_ID),
       elementType = BpmnElementType.EVENT_SUB_PROCESS,
       name = "Delivery address changed",
     ), Node, FlowScope<SubProcessAddressChanged.Start> {
@@ -1150,7 +1077,7 @@ object BikeLeasingProcessApi {
     }
 
     object SubProcessApplicationWithdrawn : AbstractFlowNode(
-      id = ElementId("subProcess_applicationWithdrawn"),
+      id = ElementId(SubProcessApplicationWithdrawn.ELEMENT_ID),
       elementType = BpmnElementType.EVENT_SUB_PROCESS,
       name = "Application withdrawn",
     ), Node, FlowScope<SubProcessApplicationWithdrawn.Start> {
@@ -1166,7 +1093,7 @@ object BikeLeasingProcessApi {
     }
 
     object SubProcessConcludeContract : AbstractFlowNode(
-      id = ElementId("subProcess_concludeContract"),
+      id = ElementId(SubProcessConcludeContract.ELEMENT_ID),
       elementType = BpmnElementType.SUB_PROCESS,
       name = "Conclude contract",
     ), Node, HasSuccessors<SubProcessConcludeContract.Next>,
@@ -1201,9 +1128,6 @@ object BikeLeasingProcessApi {
         val toGatewayFork: SequenceFlow<GatewayFork>
           get() = SequenceFlow(
             id = ElementId("flow_concludeContractToFork"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = GatewayFork,
           )
       }
@@ -1215,7 +1139,7 @@ object BikeLeasingProcessApi {
     }
 
     object TimerSignatureDeadline : AbstractFlowNode(
-      id = ElementId("timer_signatureDeadline"),
+      id = ElementId(TimerSignatureDeadline.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT,
       name = "14 days passed",
     ), Node, HasSuccessors<TimerSignatureDeadline.Next>,
@@ -1244,16 +1168,13 @@ object BikeLeasingProcessApi {
         val toEndEventContractNotSigned: SequenceFlow<EndEventContractNotSigned>
           get() = SequenceFlow(
             id = ElementId("flow_signatureDeadlineToContractNotSigned"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EndEventContractNotSigned,
           )
       }
     }
 
     object TimerSignatureReminder : AbstractFlowNode(
-      id = ElementId("timer_signatureReminder"),
+      id = ElementId(TimerSignatureReminder.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "7 days passed",
     ), Node, HasSuccessors<TimerSignatureReminder.Next>,
@@ -1288,16 +1209,13 @@ object BikeLeasingProcessApi {
         val toServiceTaskSendReminderMail: SequenceFlow<ServiceTaskSendReminderMail>
           get() = SequenceFlow(
             id = ElementId("flow_signatureReminderToSendReminderMail"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = ServiceTaskSendReminderMail,
           )
       }
     }
 
     object TimerWithdrawalPeriodElapsed : AbstractFlowNode(
-      id = ElementId("timer_withdrawalPeriodElapsed"),
+      id = ElementId(TimerWithdrawalPeriodElapsed.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT,
       name = "Withdrawal period elapsed",
     ), Node, HasSuccessors<TimerWithdrawalPeriodElapsed.Next>,
@@ -1326,16 +1244,13 @@ object BikeLeasingProcessApi {
         val toEndEventLeasingActive: SequenceFlow<EndEventLeasingActive>
           get() = SequenceFlow(
             id = ElementId("flow_withdrawalPeriodElapsedToLeasingActive"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EndEventLeasingActive,
           )
       }
     }
 
     object UserTaskUpdateDeliveryAddress : AbstractFlowNode(
-      id = ElementId("userTask_updateDeliveryAddress"),
+      id = ElementId(UserTaskUpdateDeliveryAddress.ELEMENT_ID),
       elementType = BpmnElementType.USER_TASK,
       name = "Update delivery address",
     ), Node, HasSuccessors<UserTaskUpdateDeliveryAddress.Next>,
@@ -1365,9 +1280,6 @@ object BikeLeasingProcessApi {
         val toEndEventDeliveryAddressUpdated: SequenceFlow<EndEventDeliveryAddressUpdated>
           get() = SequenceFlow(
             id = ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"),
-            name = null,
-            conditionExpression = null,
-            isDefault = false,
             target = EndEventDeliveryAddressUpdated,
           )
       }

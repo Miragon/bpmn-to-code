@@ -36,14 +36,14 @@ public final class BikeLeasingProcessApi {
   }
 
   /**
-   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code FlowNodes}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
+   * Typed navigation over the process flow: one nested class per BPMN element.
    */
   public static final class FlowNodes {
     private FlowNodes() {
     }
 
     /**
-     * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+     * Every node of this flow.
      */
     public static List<FlowNode> all() {
       return List.of(

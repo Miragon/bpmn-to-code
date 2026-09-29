@@ -162,16 +162,12 @@ public static class CancelBikeOrderProcessApi
     public static class FlowVariants
     {
         /// <summary>
-        /// <para>Typed navigation over the process flow.</para>
-        /// <para>Each element is a nested singleton class (reach it as FlowNodes.Element.Instance) exposing its Id, ElementType and Name,</para>
-        /// <para>the elements reachable from it behind Next and its outgoing sequence flows behind Flows - so a full path is</para>
-        /// <para>verified by the compiler and offered by IntelliSense. Every element is a direct child of FlowNodes, whatever its</para>
-        /// <para>subprocess depth; a subprocess opens its interior via Start.</para>
+        /// Typed navigation over the process flow: one nested singleton class per BPMN element, reached as FlowNodes.Element.Instance.
         /// </summary>
         public static class Retail
         {
             /// <summary>
-            /// Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+            /// Every node of this flow.
             /// </summary>
             public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]
             {
