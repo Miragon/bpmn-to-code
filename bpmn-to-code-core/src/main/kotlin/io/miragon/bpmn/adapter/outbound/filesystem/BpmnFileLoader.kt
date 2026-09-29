@@ -21,9 +21,10 @@ internal class BpmnFileLoader : LoadBpmnFilesPort {
         val (searchDir, pattern) = resolvePattern(basePath, filePattern)
 
         val matcher = createMatcher(pattern)
-        val files = Files.walk(searchDir)
-            .filter { Files.isRegularFile(it) }
-            .filter { matcher.matches(searchDir.relativize(it)) }.toList().sortedBy { relativeSortKey(searchDir, it) }
+        val matchingFiles = Files.walk(searchDir).use { paths ->
+            paths.filter { Files.isRegularFile(it) }.filter { matcher.matches(searchDir.relativize(it)) }.toList()
+        }
+        val files = matchingFiles.sortedBy { relativeSortKey(searchDir, it) }
 
         logger.info { "Found ${files.size} files matching pattern $pattern in directory $searchDir" }
 
