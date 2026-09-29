@@ -1,13 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
-import com.squareup.kotlinpoet.AnnotationSpec
-import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
-import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.ObjectWriter
+import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -19,7 +17,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
  * Generates the type-safe API contract for a single BPMN process as a Kotlin object file.
  * References shared BPMN types (BpmnTimer, BpmnErrorDefinition, etc.) from the `bpmn-to-code-runtime` artifact.
  */
-internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
+internal class KotlinProcessApiBuilder : ProcessApiBuilder {
 
     companion object {
         private const val PROCESS_ID = "PROCESS_ID"
@@ -33,25 +31,13 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     )
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
-        val objectName = modelApi.fileName()
-        val unusedAnnotation = AnnotationSpec.builder(Suppress::class).addMember("%S", "unused").build()
-        val rootObjectBuilder = TypeSpec.objectBuilder(objectName)
-        val fileSpecBuilder = FileSpec.builder(modelApi.packagePath, objectName).addFileComment(autoGenComment)
-
+        val rootObjectBuilder = TypeSpec.objectBuilder(modelApi.fileName())
         objectWriters
             .filterKeys { ApiObjectSelection.includes(it, modelApi) }
             .forEach { (_, writer) -> writer.addTo(rootObjectBuilder, modelApi) }
-
-        fileSpecBuilder.addType(rootObjectBuilder.build()).addAnnotation(unusedAnnotation)
-        val fileSpec = fileSpecBuilder.build()
-
-        val content = KotlinCodeFormat.withoutPublicModifiers(buildString { fileSpec.writeTo(this) })
-
-        return GeneratedApiFile(
-            fileName = "$objectName.kt",
+        return KotlinSourceFile.render(
+            type = rootObjectBuilder.build(),
             packagePath = modelApi.packagePath,
-            content = content,
-            language = modelApi.outputLanguage,
             processId = modelApi.model.processId,
         )
     }

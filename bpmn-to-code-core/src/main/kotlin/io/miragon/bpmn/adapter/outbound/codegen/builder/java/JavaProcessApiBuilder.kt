@@ -1,12 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.FieldSpec
-import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
-import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.ObjectWriter
+import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -21,7 +20,7 @@ import javax.lang.model.element.Modifier.STATIC
  * Generates the type-safe API contract for a single BPMN process as a Java class file.
  * References shared BPMN types (BpmnTimer, BpmnErrorDefinition, etc.) from the `bpmn-to-code-runtime` artifact.
  */
-internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
+internal class JavaProcessApiBuilder : ProcessApiBuilder {
 
     companion object {
         private const val PROCESS_ID = "PROCESS_ID"
@@ -35,23 +34,13 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
     )
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
-        val className = modelApi.fileName()
-        val rootClassBuilder = JavaConstantHolder(className).builder()
-
+        val rootClassBuilder = JavaConstantHolder(modelApi.fileName()).builder()
         objectWriters
             .filterKeys { ApiObjectSelection.includes(it, modelApi) }
             .forEach { (_, writer) -> writer.addTo(rootClassBuilder, modelApi) }
-
-        val fileBuilder = JavaFile.builder(modelApi.packagePath, rootClassBuilder.build()).skipJavaLangImports(true)
-        val javaFile = fileBuilder.addFileComment(autoGenComment).build()
-
-        val fileContent = buildString { javaFile.writeTo(this) }
-
-        return GeneratedApiFile(
-            fileName = "${modelApi.fileName()}.java",
+        return JavaSourceFile.render(
+            type = rootClassBuilder.build(),
             packagePath = modelApi.packagePath,
-            content = fileContent,
-            language = modelApi.outputLanguage,
             processId = modelApi.model.processId,
         )
     }
