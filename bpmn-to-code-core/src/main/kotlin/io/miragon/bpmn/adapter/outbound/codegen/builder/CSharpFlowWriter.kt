@@ -35,14 +35,21 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
     }
 
     private fun writeNode(node: FlowGraphNode) {
-        val nodeInterface = runtime(if (node.isBoundaryEvent) "IBoundaryEvent" else "IFlowNode")
+        val nodeInterface = runtime(
+            when {
+                node.isBoundaryEvent -> "IBoundaryEvent"
+                node.eventType != null -> "IEvent"
+                else -> "IFlowNode"
+            },
+        )
         writer.sealedClass(node.objectName, implements = nodeInterface) {
             writer.singleton()
             facetWriter.writeMembers(node.facets)
             writer.line()
             writer.constant("ElementId", node.id)
             writer.readonlyProperty("Id", runtime("ElementId"), "new(ElementId)")
-            writer.expressionProperty("ElementType", "string", stringLiteral(node.elementType))
+            writer.expressionProperty("ElementType", runtime("BpmnElementType"), CSharpRuntimeTypes.enumMember("BpmnElementType", node.elementType))
+            node.eventType?.let { writer.expressionProperty("EventType", runtime("BpmnEventType"), CSharpRuntimeTypes.enumMember("BpmnEventType", it)) }
             writer.expressionProperty("Name", "string?", nullableStringLiteral(node.name))
             facetWriter.writeProperties(node.facets)
             facetWriter.writeHolders(node.facets)

@@ -60,8 +60,8 @@ class RuntimeTypesTest {
 
     @Test
     fun `BpmnTimer, BpmnError, BpmnEscalation carry their pair of strings`() {
-        val timer = BpmnTimer("Duration", "PT5M")
-        assertThat(timer.type).isEqualTo("Duration")
+        val timer = BpmnTimer(TimerType.DURATION, "PT5M")
+        assertThat(timer.type).isEqualTo(TimerType.DURATION)
         assertThat(timer.timerValue).isEqualTo("PT5M")
 
         val error = BpmnError("NotFound", "E_404")
@@ -87,7 +87,7 @@ class RuntimeTypesTest {
 
     @Test
     fun `AbstractFlowNode exposes the display name and defaults it to null`() {
-        val named = object : AbstractFlowNode(ElementId("approve-task"), "USER_TASK", "Approve order") {}
+        val named = object : AbstractFlowNode(ElementId("approve-task"), BpmnElementType.USER_TASK, "Approve order") {}
 
         assertThat(named.name).isEqualTo("Approve order")
         assertThat(flowNode("approve-task").name).isNull()
@@ -95,13 +95,13 @@ class RuntimeTypesTest {
 
     @Test
     fun `AbstractFlowNode equality ignores the display name`() {
-        val named = object : AbstractFlowNode(ElementId("approve-task"), "USER_TASK", "Approve order") {}
+        val named = object : AbstractFlowNode(ElementId("approve-task"), BpmnElementType.USER_TASK, "Approve order") {}
 
         assertThat(named).isEqualTo(flowNode("approve-task"))
         assertThat(named.hashCode()).isEqualTo(flowNode("approve-task").hashCode())
     }
 
-    private fun flowNode(id: String): AbstractFlowNode = object : AbstractFlowNode(ElementId(id), "SERVICE_TASK") {}
+    private fun flowNode(id: String): AbstractFlowNode = object : AbstractFlowNode(ElementId(id), BpmnElementType.SERVICE_TASK) {}
 
     @Test
     fun `SequenceFlow carries id, name, condition, default marker and its typed target`() {
@@ -129,7 +129,7 @@ class RuntimeTypesTest {
     @Test
     fun `HasOutgoingFlows exposes the node's outgoing sequence flows holder`() {
         val end = flowNode("end")
-        val start = object : AbstractFlowNode(ElementId("start"), "START_EVENT"), HasOutgoingFlows<SequenceFlow<AbstractFlowNode>> {
+        val start = object : AbstractFlowNode(ElementId("start"), BpmnElementType.START_EVENT), HasOutgoingFlows<SequenceFlow<AbstractFlowNode>> {
             override val outgoingFlows: SequenceFlow<AbstractFlowNode> = SequenceFlow(ElementId("flow_1"), null, "= ok", false, end)
         }
 
@@ -140,7 +140,8 @@ class RuntimeTypesTest {
     @Test
     fun `BoundaryEvent marks attached events among a node's successors and knows its host`() {
         val host = flowNode("task")
-        val boundary = object : AbstractFlowNode(ElementId("timer"), "TIMER_BOUNDARY_EVENT"), BoundaryEvent<AbstractFlowNode> {
+        val boundary = object : AbstractFlowNode(ElementId("timer"), BpmnElementType.BOUNDARY_EVENT), BoundaryEvent<AbstractFlowNode> {
+            override val eventType = BpmnEventType.TIMER
             override val attachedTo = host
             override val isInterrupting = false
         }
@@ -149,6 +150,16 @@ class RuntimeTypesTest {
         assertThat(successors.filterIsInstance<BoundaryEvent<*>>()).containsExactly(boundary)
         assertThat(boundary.attachedTo).isEqualTo(host)
         assertThat(boundary.isInterrupting).isFalse()
+    }
+
+    @Test
+    fun `Event exposes the event type`() {
+        val end = object : AbstractFlowNode(ElementId("end"), BpmnElementType.END_EVENT), Event {
+            override val eventType = BpmnEventType.TERMINATE
+        }
+        val successors = listOf(flowNode("next"), end)
+
+        assertThat(successors.filterIsInstance<Event>().map { it.eventType }).containsExactly(BpmnEventType.TERMINATE)
     }
 
     @Test

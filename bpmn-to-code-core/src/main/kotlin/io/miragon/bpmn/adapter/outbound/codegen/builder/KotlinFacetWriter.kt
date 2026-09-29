@@ -12,6 +12,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
@@ -25,7 +26,7 @@ internal class KotlinFacetWriter {
     fun properties(facets: NodeFacets): List<PropertySpec> = listOfNotNull(
         facets.jobType?.let { jobTypeProperty(it) },
         facets.calledProcessId?.let { wrappedProperty("CALLED_PROCESS", "ProcessId", it) },
-        facets.timer?.let { pairProperty("TIMER", "BpmnTimer", "type" to it.type, "timerValue" to it.expression) },
+        facets.timer?.let { timerProperty(it) },
         facets.message?.let { sharedProperty("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
         facets.signal?.let { sharedProperty("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
         facets.error?.let { sharedProperty("ERROR", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
@@ -73,10 +74,11 @@ internal class KotlinFacetWriter {
 
     private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of("%T(%L)", wrapperClass, kotlinStringLiteral(value))
 
-    private fun pairProperty(name: String, wrapper: String, first: Pair<String, String>, second: Pair<String, String>): PropertySpec {
-        val wrapperClass = ClassName(RUNTIME_PACKAGE, wrapper)
-        val initializer = kotlinNamedInitializer(wrapperClass, first.first to kotlinStringLiteral(first.second), second.first to kotlinStringLiteral(second.second))
-        return PropertySpec.builder(name, wrapperClass).initializer(initializer).build()
+    private fun timerProperty(timer: TimerFacet): PropertySpec {
+        val timerClass = ClassName(RUNTIME_PACKAGE, "BpmnTimer")
+        val type = CodeBlock.of("%T.%L", ClassName(RUNTIME_PACKAGE, "TimerType"), timer.type.name)
+        val initializer = kotlinNamedInitializer(timerClass, "type" to type, "timerValue" to kotlinStringLiteral(timer.expression))
+        return PropertySpec.builder("TIMER", timerClass).initializer(initializer).build()
     }
 
     private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = kotlinNamedInitializer(wrapperClass, "name" to kotlinStringLiteral(value.name), "code" to kotlinStringLiteral(value.code))

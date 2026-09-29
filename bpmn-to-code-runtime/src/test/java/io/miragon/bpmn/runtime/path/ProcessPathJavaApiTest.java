@@ -1,10 +1,13 @@
 package io.miragon.bpmn.runtime.path;
 
 import io.miragon.bpmn.runtime.BoundaryEvent;
+import io.miragon.bpmn.runtime.BpmnElementType;
+import io.miragon.bpmn.runtime.BpmnEventType;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
+import io.miragon.bpmn.runtime.TimerType;
 import io.miragon.bpmn.runtime.VariableName;
 import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi;
 import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi.Flow;
@@ -197,10 +200,11 @@ class ProcessPathJavaApiTest {
 
     @Test
     void nodesExposeTheirIdAndFlatElementTypeAcrossElementKinds() {
-        assertThat(Flow.startEventLeasingRequestReceived().getElementType()).isEqualTo("MESSAGE_START_EVENT");
-        assertThat(Flow.gatewayFork().getElementType()).isEqualTo("PARALLEL_GATEWAY");
-        assertThat(Flow.callActivityCancelBikeOrder().getElementType()).isEqualTo("CALL_ACTIVITY");
-        assertThat(Flow.serviceTaskSendContract().getElementType()).isEqualTo("SERVICE_TASK");
+        assertThat(Flow.startEventLeasingRequestReceived().getElementType()).isEqualTo(BpmnElementType.START_EVENT);
+        assertThat(Flow.startEventLeasingRequestReceived().getEventType()).isEqualTo(BpmnEventType.MESSAGE);
+        assertThat(Flow.gatewayFork().getElementType()).isEqualTo(BpmnElementType.PARALLEL_GATEWAY);
+        assertThat(Flow.callActivityCancelBikeOrder().getElementType()).isEqualTo(BpmnElementType.CALL_ACTIVITY);
+        assertThat(Flow.serviceTaskSendContract().getElementType()).isEqualTo(BpmnElementType.SERVICE_TASK);
         assertThat(Flow.gatewayFork().getId().getValue()).isEqualTo("gateway_fork");
     }
 
@@ -222,7 +226,7 @@ class ProcessPathJavaApiTest {
         assertThat(Flow.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo("${validateApplicationDelegate}");
         assertThat(Flow.StartEventLeasingRequestReceived.MESSAGE).isEqualTo(new MessageName("miravelo.leasingRequestReceived"));
 
-        assertThat(Flow.TimerSignatureReminder.TIMER).isEqualTo(new BpmnTimer("Duration", "P7D"));
+        assertThat(Flow.TimerSignatureReminder.TIMER).isEqualTo(new BpmnTimer(TimerType.DURATION, "P7D"));
         assertThat(Flow.timerSignatureReminder().getAttachedTo()).isEqualTo(Flow.subProcessConcludeContract());
         assertThat(Flow.timerSignatureReminder().isInterrupting()).isFalse();
 
@@ -257,6 +261,6 @@ class ProcessPathJavaApiTest {
     void compensationHandlerIsReachableOnlyByNameNotThroughTheNavigationGraph() {
         var handler = Flow.serviceTaskCancelContract();
         assertThat(handler.getId().getValue()).isEqualTo("serviceTask_cancelContract");
-        assertThat(handler.getElementType()).isEqualTo("SERVICE_TASK");
+        assertThat(handler.getElementType()).isEqualTo(BpmnElementType.SERVICE_TASK);
     }
 }

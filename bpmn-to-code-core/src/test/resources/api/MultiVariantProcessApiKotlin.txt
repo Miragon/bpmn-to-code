@@ -5,8 +5,11 @@ package de.emaarco.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BoundaryEvent
+import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.BpmnEngine
+import io.miragon.bpmn.runtime.BpmnEventType
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.Event
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
@@ -60,11 +63,13 @@ object CancelBikeOrderProcessApi {
 
       object BoundaryCancellationFailed : AbstractFlowNode(
         id = ElementId("boundary_cancellationFailed"),
-        elementType = "ERROR_BOUNDARY_EVENT",
+        elementType = BpmnElementType.BOUNDARY_EVENT,
         name = "Cancellation failed",
       ), Node, HasSuccessors<BoundaryCancellationFailed.Next>,
           HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>,
           BoundaryEvent<ServiceTaskRequestCancellation> {
+        override val eventType: BpmnEventType = BpmnEventType.ERROR
+
         const val ELEMENT_ID: String = "boundary_cancellationFailed"
 
         override val attachedTo: ServiceTaskRequestCancellation
@@ -97,9 +102,11 @@ object CancelBikeOrderProcessApi {
 
       object EndEventBikeOrderCancelled : AbstractFlowNode(
         id = ElementId("endEvent_bikeOrderCancelled"),
-        elementType = "MESSAGE_END_EVENT",
+        elementType = BpmnElementType.END_EVENT,
         name = "Bike order cancelled",
-      ), Node {
+      ), Node, Event {
+        override val eventType: BpmnEventType = BpmnEventType.MESSAGE
+
         const val ELEMENT_ID: String = "endEvent_bikeOrderCancelled"
 
         const val JOB_TYPE: String = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED
@@ -109,7 +116,7 @@ object CancelBikeOrderProcessApi {
 
       object GatewayCancellationPossible : AbstractFlowNode(
         id = ElementId("gateway_cancellationPossible"),
-        elementType = "EXCLUSIVE_GATEWAY",
+        elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
         name = "Cancellation possible?",
       ), Node, HasSuccessors<GatewayCancellationPossible.Next>,
           HasOutgoingFlows<GatewayCancellationPossible.OutgoingFlows> {
@@ -152,7 +159,7 @@ object CancelBikeOrderProcessApi {
 
       object GatewayCollectClarifications : AbstractFlowNode(
         id = ElementId("gateway_collectClarifications"),
-        elementType = "EXCLUSIVE_GATEWAY",
+        elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
       ), Node, HasSuccessors<GatewayCollectClarifications.Next>,
           HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
         const val ELEMENT_ID: String = "gateway_collectClarifications"
@@ -182,7 +189,7 @@ object CancelBikeOrderProcessApi {
 
       object GatewayMergeReturn : AbstractFlowNode(
         id = ElementId("gateway_mergeReturn"),
-        elementType = "EXCLUSIVE_GATEWAY",
+        elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
       ), Node, HasSuccessors<GatewayMergeReturn.Next>,
           HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
         const val ELEMENT_ID: String = "gateway_mergeReturn"
@@ -213,7 +220,7 @@ object CancelBikeOrderProcessApi {
 
       object ServiceTaskBookCancellationCosts : AbstractFlowNode(
         id = ElementId("serviceTask_bookCancellationCosts"),
-        elementType = "SERVICE_TASK",
+        elementType = BpmnElementType.SERVICE_TASK,
         name = "Book cancellation costs",
       ), Node, HasSuccessors<ServiceTaskBookCancellationCosts.Next>,
           HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
@@ -255,7 +262,7 @@ object CancelBikeOrderProcessApi {
 
       object ServiceTaskRequestCancellation : AbstractFlowNode(
         id = ElementId("serviceTask_requestCancellation"),
-        elementType = "SERVICE_TASK",
+        elementType = BpmnElementType.SERVICE_TASK,
         name = "Request cancellation",
       ), Node, HasSuccessors<ServiceTaskRequestCancellation.Next>,
           HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
@@ -300,10 +307,12 @@ object CancelBikeOrderProcessApi {
 
       object StartEventCancellationRequired : AbstractFlowNode(
         id = ElementId("startEvent_cancellationRequired"),
-        elementType = "START_EVENT",
+        elementType = BpmnElementType.START_EVENT,
         name = "Cancellation required",
       ), Node, HasSuccessors<StartEventCancellationRequired.Next>,
-          HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows> {
+          HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows>, Event {
+        override val eventType: BpmnEventType = BpmnEventType.NONE
+
         const val ELEMENT_ID: String = "startEvent_cancellationRequired"
 
         override val next: Next
@@ -339,7 +348,7 @@ object CancelBikeOrderProcessApi {
 
       object UserTaskClarifyReturn : AbstractFlowNode(
         id = ElementId("userTask_clarifyReturn"),
-        elementType = "USER_TASK",
+        elementType = BpmnElementType.USER_TASK,
         name = "Clarify return",
       ), Node, HasSuccessors<UserTaskClarifyReturn.Next>,
           HasOutgoingFlows<UserTaskClarifyReturn.OutgoingFlows> {

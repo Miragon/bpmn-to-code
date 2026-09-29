@@ -1,18 +1,15 @@
 package io.miragon.bpmn.adapter.outbound.shared
 
-import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
 
 /**
- * Renders a [FlowNodeDefinition] into the flat `elementType` string used by the **generated Process API**
- * navigation nodes (each `Flow` node's `elementType`, carried through `FlowGraphNode.elementType`).
- *
- * Tasks, gateways and activities map to their flat name; an event surfaces its first event definition as a
- * prefix on the shape (e.g. `ERROR_BOUNDARY_EVENT`), so consumers can tell a timer from an error without
- * cross-referencing. The JSON export uses the BPMN element names instead — see `BpmnTypeName`.
+ * Renders a [FlowNodeDefinition] into the `BpmnElementType` / `BpmnEventType` constant names used by the
+ * **generated Process API** navigation nodes. An event's shape and its definition are separate axes: a timer
+ * boundary event is `BOUNDARY_EVENT` with event type `TIMER`. The JSON export uses the BPMN element names
+ * instead — see `BpmnTypeName`.
  */
 internal object ElementTypeName {
 
@@ -25,24 +22,13 @@ internal object ElementTypeName {
         is FlowNodeDefinition.Unknown -> "UNKNOWN"
     }
 
-    private fun FlowNodeDefinition.Event.render(): String {
-        val definitionType = eventDefinitions.map { it.type }.firstOrNull { it in PREFIXED_TYPES }
-            ?: return shape.name
-        return "${definitionType.name}_${shape.name}"
-    }
+    private fun FlowNodeDefinition.Event.render(): String = shape.name
 
-    /**
-     * The event-definition kinds that surface as a prefix on the flat element type. Conditional, link and
-     * terminate carry no prefix — the flat Process API vocabulary renders them shape-only, e.g. `END_EVENT`.
-     */
-    private val PREFIXED_TYPES = setOf(
-        EventDefinitionInstance.Type.TIMER,
-        EventDefinitionInstance.Type.MESSAGE,
-        EventDefinitionInstance.Type.ERROR,
-        EventDefinitionInstance.Type.SIGNAL,
-        EventDefinitionInstance.Type.ESCALATION,
-        EventDefinitionInstance.Type.COMPENSATION,
-    )
+    fun eventTypeOf(event: FlowNodeDefinition.Event): String = when (event.eventDefinitions.size) {
+        0 -> "NONE"
+        1 -> event.eventDefinitions.single().type.name
+        else -> "MULTIPLE"
+    }
 
     private fun TaskKind.render(): String = when (this) {
         TaskKind.SERVICE -> "SERVICE_TASK"

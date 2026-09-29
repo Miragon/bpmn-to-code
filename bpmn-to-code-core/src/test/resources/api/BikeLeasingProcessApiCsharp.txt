@@ -8,7 +8,7 @@ public static class BikeLeasingProcessApi
 {
     public const string ProcessId = "bikeLeasing";
 
-    public const string ProcessEngine = "ZEEBE";
+    public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
     /// <summary>
     /// The runtime types this API's Flow nodes are built from; inlined so the file needs no package.
@@ -19,12 +19,18 @@ public static class BikeLeasingProcessApi
         public interface IFlowNode
         {
             ElementId Id { get; }
-            string ElementType { get; }
+            BpmnElementType ElementType { get; }
             string? Name { get; }
         }
 
+        /// <summary>Marks an event node and exposes its event definition kind.</summary>
+        public interface IEvent : IFlowNode
+        {
+            BpmnEventType EventType { get; }
+        }
+
         /// <summary>Marks a boundary event: one of its host's successors, reached without a sequence flow.</summary>
-        public interface IBoundaryEvent : IFlowNode
+        public interface IBoundaryEvent : IEvent
         {
         }
 
@@ -77,7 +83,67 @@ public static class BikeLeasingProcessApi
             public sealed record InOut(string Value) : VariableName(Value);
         }
 
-        public sealed record BpmnTimer(string Type, string TimerValue);
+        /// <summary>BPMN element type of a Flow node; an event's definition is its EventType.</summary>
+        public enum BpmnElementType
+        {
+            ServiceTask,
+            UserTask,
+            ReceiveTask,
+            SendTask,
+            ScriptTask,
+            ManualTask,
+            BusinessRuleTask,
+            Task,
+            ExclusiveGateway,
+            ParallelGateway,
+            InclusiveGateway,
+            EventBasedGateway,
+            ComplexGateway,
+            SubProcess,
+            EventSubProcess,
+            Transaction,
+            CallActivity,
+            StartEvent,
+            EndEvent,
+            IntermediateCatchEvent,
+            IntermediateThrowEvent,
+            BoundaryEvent,
+            Unknown,
+        }
+
+        /// <summary>Event definition of an event: None without one, Multiple with several.</summary>
+        public enum BpmnEventType
+        {
+            None,
+            Timer,
+            Message,
+            Error,
+            Signal,
+            Escalation,
+            Compensation,
+            Conditional,
+            Link,
+            Terminate,
+            Multiple,
+        }
+
+        /// <summary>BPMN timer definition type.</summary>
+        public enum TimerType
+        {
+            Date,
+            Duration,
+            Cycle,
+        }
+
+        /// <summary>Process engine dialect a generated Process API targets.</summary>
+        public enum BpmnEngine
+        {
+            Zeebe,
+            Camunda7,
+            Operaton,
+        }
+
+        public sealed record BpmnTimer(TimerType Type, string TimerValue);
 
         public sealed record BpmnError(string Name, string Code);
 
@@ -155,7 +221,8 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "boundary_applicationInvalid";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "ERROR_BOUNDARY_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Error;
             public string? Name => "Application invalid";
             public Runtime.BpmnError Error { get; } = new(Errors.MiraveloApplicationInvalidApplicationInvalid.Reference, Errors.MiraveloApplicationInvalidApplicationInvalid.Code);
             public ServiceTaskValidateApplication AttachedTo => ServiceTaskValidateApplication.Instance;
@@ -181,7 +248,8 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "boundary_compensateContract";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "COMPENSATION_BOUNDARY_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
             public string? Name => "Contract to revoke";
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => true;
@@ -194,7 +262,8 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "boundary_compensateInsurance";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "COMPENSATION_BOUNDARY_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
             public string? Name => "Policy to cancel";
             public ServiceTaskIssueInsurancePolicy AttachedTo => ServiceTaskIssueInsurancePolicy.Instance;
             public bool IsInterrupting => true;
@@ -207,7 +276,8 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "boundary_compensateOrder";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "COMPENSATION_BOUNDARY_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
             public string? Name => "Order to cancel";
             public ServiceTaskOrderBike AttachedTo => ServiceTaskOrderBike.Instance;
             public bool IsInterrupting => true;
@@ -220,7 +290,8 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "boundary_contractNotSigned";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "ESCALATION_BOUNDARY_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Escalation;
             public string? Name => "Contract not signed";
             public Runtime.BpmnEscalation Escalation { get; } = new(Escalations.MiraveloContractNotSignedContractNotSigned.Reference, Escalations.MiraveloContractNotSignedContractNotSigned.Code);
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
@@ -246,7 +317,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "businessRuleTask_checkCreditRating";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "BUSINESS_RULE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BusinessRuleTask;
             public string? Name => "Check credit rating";
 
             public Successors Next => new();
@@ -269,7 +340,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "callActivity_cancelBikeOrder";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "CALL_ACTIVITY";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.CallActivity;
             public string? Name => "Cancel bike order";
             public Runtime.ProcessId CalledProcess { get; } = new("cancelBikeOrder");
 
@@ -301,92 +372,100 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class EndEventApplicationCancelled : Runtime.IFlowNode
+        public sealed class EndEventApplicationCancelled : Runtime.IEvent
         {
             public static readonly EndEventApplicationCancelled Instance = new();
             private EndEventApplicationCancelled() { }
 
             public const string ElementId = "endEvent_applicationCancelled";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "END_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
             public string? Name => "Application cancelled";
         }
 
-        public sealed class EndEventApplicationRejected : Runtime.IFlowNode
+        public sealed class EndEventApplicationRejected : Runtime.IEvent
         {
             public static readonly EndEventApplicationRejected Instance = new();
             private EndEventApplicationRejected() { }
 
             public const string ElementId = "endEvent_applicationRejected";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "END_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Terminate;
             public string? Name => "Application rejected";
         }
 
-        public sealed class EndEventContractConcluded : Runtime.IFlowNode
+        public sealed class EndEventContractConcluded : Runtime.IEvent
         {
             public static readonly EndEventContractConcluded Instance = new();
             private EndEventContractConcluded() { }
 
             public const string ElementId = "endEvent_contractConcluded";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "END_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
             public string? Name => "Contract concluded";
         }
 
-        public sealed class EndEventContractNotSigned : Runtime.IFlowNode
+        public sealed class EndEventContractNotSigned : Runtime.IEvent
         {
             public static readonly EndEventContractNotSigned Instance = new();
             private EndEventContractNotSigned() { }
 
             public const string ElementId = "endEvent_contractNotSigned";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "ESCALATION_END_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Escalation;
             public string? Name => "Contract not signed";
             public Runtime.BpmnEscalation Escalation { get; } = new(Escalations.MiraveloContractNotSignedContractNotSigned.Reference, Escalations.MiraveloContractNotSignedContractNotSigned.Code);
         }
 
-        public sealed class EndEventCustomerReminded : Runtime.IFlowNode
+        public sealed class EndEventCustomerReminded : Runtime.IEvent
         {
             public static readonly EndEventCustomerReminded Instance = new();
             private EndEventCustomerReminded() { }
 
             public const string ElementId = "endEvent_customerReminded";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "END_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
             public string? Name => "Customer reminded";
         }
 
-        public sealed class EndEventDeliveryAddressUpdated : Runtime.IFlowNode
+        public sealed class EndEventDeliveryAddressUpdated : Runtime.IEvent
         {
             public static readonly EndEventDeliveryAddressUpdated Instance = new();
             private EndEventDeliveryAddressUpdated() { }
 
             public const string ElementId = "endEvent_deliveryAddressUpdated";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "END_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
             public string? Name => "Delivery address updated";
         }
 
-        public sealed class EndEventLeasingActive : Runtime.IFlowNode
+        public sealed class EndEventLeasingActive : Runtime.IEvent
         {
             public static readonly EndEventLeasingActive Instance = new();
             private EndEventLeasingActive() { }
 
             public const string ElementId = "endEvent_leasingActive";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "END_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
             public string? Name => "Leasing active";
         }
 
-        public sealed class EventContractSigned : Runtime.IFlowNode
+        public sealed class EventContractSigned : Runtime.IEvent
         {
             public static readonly EventContractSigned Instance = new();
             private EventContractSigned() { }
 
             public const string ElementId = "event_contractSigned";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "MESSAGE_INTERMEDIATE_CATCH_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateCatchEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
             public string? Name => "Contract signed";
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloContractSigned);
 
@@ -403,14 +482,15 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class EventReverseApplication : Runtime.IFlowNode
+        public sealed class EventReverseApplication : Runtime.IEvent
         {
             public static readonly EventReverseApplication Instance = new();
             private EventReverseApplication() { }
 
             public const string ElementId = "event_reverseApplication";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "COMPENSATION_INTERMEDIATE_THROW_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateThrowEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
             public string? Name => "Application reversed";
 
             public Successors Next => new();
@@ -433,7 +513,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "gateway_awaitSignature";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "EVENT_BASED_GATEWAY";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EventBasedGateway;
             public string? Name => "Await signature";
 
             public Successors Next => new();
@@ -458,7 +538,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "gateway_collectRejections";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "EXCLUSIVE_GATEWAY";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
             public string? Name => null;
 
             public Successors Next => new();
@@ -481,7 +561,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "gateway_fork";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "PARALLEL_GATEWAY";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ParallelGateway;
             public string? Name => null;
 
             public Successors Next => new();
@@ -506,7 +586,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "gateway_isSolvent";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "EXCLUSIVE_GATEWAY";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
             public string? Name => "Solvent?";
 
             public Successors Next => new();
@@ -531,7 +611,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "gateway_join";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "PARALLEL_GATEWAY";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ParallelGateway;
             public string? Name => null;
 
             public Successors Next => new();
@@ -554,7 +634,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "receiveTask_handoverReported";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "RECEIVE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ReceiveTask;
             public string? Name => "Await bike handover";
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloHandoverReported);
 
@@ -579,7 +659,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_cancelContract";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Cancel contract";
         }
 
@@ -591,7 +671,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_cancelPolicy";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Cancel policy";
         }
 
@@ -603,7 +683,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_issueInsurancePolicy";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Issue insurance policy";
 
             public NodeVariables Variables { get; } = new();
@@ -640,7 +720,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_orderBike";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Order bike";
 
             public NodeVariables Variables { get; } = new();
@@ -677,7 +757,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_sendCancellationConfirmation";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send cancellation confirmation";
 
             public Successors Next => new();
@@ -701,7 +781,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_sendContract";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send contract";
 
             public NodeVariables Variables { get; } = new();
@@ -737,7 +817,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_sendRejection";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send rejection";
 
             public Successors Next => new();
@@ -761,7 +841,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_sendReminderMail";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send reminder mail";
 
             public Successors Next => new();
@@ -785,7 +865,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "serviceTask_validateApplication";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Validate application";
 
             public Successors Next => new();
@@ -802,14 +882,15 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class StartEventAddressChanged : Runtime.IFlowNode
+        public sealed class StartEventAddressChanged : Runtime.IEvent
         {
             public static readonly StartEventAddressChanged Instance = new();
             private StartEventAddressChanged() { }
 
             public const string ElementId = "startEvent_addressChanged";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "MESSAGE_START_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
             public string? Name => "Address changed";
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloAddressChanged);
             public bool IsInterrupting => false;
@@ -839,14 +920,15 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class StartEventApplicationWithdrawn : Runtime.IFlowNode
+        public sealed class StartEventApplicationWithdrawn : Runtime.IEvent
         {
             public static readonly StartEventApplicationWithdrawn Instance = new();
             private StartEventApplicationWithdrawn() { }
 
             public const string ElementId = "startEvent_applicationWithdrawn";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "MESSAGE_START_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
             public string? Name => "Application withdrawn";
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloApplicationWithdrawn);
             public bool IsInterrupting => true;
@@ -864,14 +946,15 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class StartEventCustomerEligible : Runtime.IFlowNode
+        public sealed class StartEventCustomerEligible : Runtime.IEvent
         {
             public static readonly StartEventCustomerEligible Instance = new();
             private StartEventCustomerEligible() { }
 
             public const string ElementId = "startEvent_customerEligible";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "START_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
             public string? Name => "Customer eligible";
 
             public Successors Next => new();
@@ -887,14 +970,15 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class StartEventLeasingRequestReceived : Runtime.IFlowNode
+        public sealed class StartEventLeasingRequestReceived : Runtime.IEvent
         {
             public static readonly StartEventLeasingRequestReceived Instance = new();
             private StartEventLeasingRequestReceived() { }
 
             public const string ElementId = "startEvent_leasingRequestReceived";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "MESSAGE_START_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
             public string? Name => "Leasing request received";
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloLeasingRequestReceived);
 
@@ -934,7 +1018,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "subProcess_addressChanged";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "EVENT_SUB_PROCESS";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EventSubProcess;
             public string? Name => "Delivery address changed";
 
             public Interior Start => new();
@@ -951,7 +1035,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "subProcess_applicationWithdrawn";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "EVENT_SUB_PROCESS";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EventSubProcess;
             public string? Name => "Application withdrawn";
 
             public Interior Start => new();
@@ -968,7 +1052,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "subProcess_concludeContract";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "SUB_PROCESS";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.SubProcess;
             public string? Name => "Conclude contract";
 
             public Successors Next => new();
@@ -993,16 +1077,17 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class TimerSignatureDeadline : Runtime.IFlowNode
+        public sealed class TimerSignatureDeadline : Runtime.IEvent
         {
             public static readonly TimerSignatureDeadline Instance = new();
             private TimerSignatureDeadline() { }
 
             public const string ElementId = "timer_signatureDeadline";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "TIMER_INTERMEDIATE_CATCH_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateCatchEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Timer;
             public string? Name => "14 days passed";
-            public Runtime.BpmnTimer Timer { get; } = new("Duration", "P14D");
+            public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "P14D");
 
             public Successors Next => new();
             public sealed class Successors
@@ -1024,9 +1109,10 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "timer_signatureReminder";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "TIMER_BOUNDARY_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Timer;
             public string? Name => "7 days passed";
-            public Runtime.BpmnTimer Timer { get; } = new("Duration", "P7D");
+            public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "P7D");
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => false;
 
@@ -1043,16 +1129,17 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class TimerWithdrawalPeriodElapsed : Runtime.IFlowNode
+        public sealed class TimerWithdrawalPeriodElapsed : Runtime.IEvent
         {
             public static readonly TimerWithdrawalPeriodElapsed Instance = new();
             private TimerWithdrawalPeriodElapsed() { }
 
             public const string ElementId = "timer_withdrawalPeriodElapsed";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "TIMER_INTERMEDIATE_CATCH_EVENT";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateCatchEvent;
+            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Timer;
             public string? Name => "Withdrawal period elapsed";
-            public Runtime.BpmnTimer Timer { get; } = new("Duration", "${withdrawalPeriod}");
+            public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "${withdrawalPeriod}");
 
             public Successors Next => new();
             public sealed class Successors
@@ -1074,7 +1161,7 @@ public static class BikeLeasingProcessApi
 
             public const string ElementId = "userTask_updateDeliveryAddress";
             public Runtime.ElementId Id { get; } = new(ElementId);
-            public string ElementType => "USER_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.UserTask;
             public string? Name => "Update delivery address";
 
             public NodeVariables Variables { get; } = new();

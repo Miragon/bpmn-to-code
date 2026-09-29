@@ -72,14 +72,26 @@ internal class JavaFlowWriter {
             classBuilder.addSuperinterface(ownHolderInterface("HasOutgoingFlows", node, OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
-        if (node.isBoundaryEvent && host != null) {
-            classBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "BoundaryEvent"), ClassName.get("", host.objectName)))
+        when {
+            node.isBoundaryEvent && host != null ->
+                classBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "BoundaryEvent"), ClassName.get("", host.objectName)))
+
+            node.eventType != null -> classBuilder.addSuperinterface(ClassName.get(RUNTIME_PACKAGE, "Event"))
+        }
+        node.eventType?.let { eventType ->
+            val eventTypeClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEventType")
+            classBuilder.addMethod(
+                MethodSpec.methodBuilder("getEventType").addAnnotation(Override::class.java).addModifiers(PUBLIC).returns(eventTypeClass)
+                    .addStatement("return \$T.\$L", eventTypeClass, eventType)
+                    .build(),
+            )
         }
     }
 
     private fun superCall(node: FlowGraphNode): CodeBlock {
         val elementIdClass = ClassName.get(RUNTIME_PACKAGE, "ElementId")
-        val superCall = CodeBlock.builder().add("super(new \$T(\$N), \$S", elementIdClass, ELEMENT_ID, node.elementType)
+        val elementTypeClass = ClassName.get(RUNTIME_PACKAGE, "BpmnElementType")
+        val superCall = CodeBlock.builder().add("super(new \$T(\$N), \$T.\$L", elementIdClass, ELEMENT_ID, elementTypeClass, node.elementType)
         node.name?.let { superCall.add(", \$S", it) }
         return superCall.add(")").build()
     }

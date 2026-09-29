@@ -146,10 +146,10 @@ class GeneratedApiEnumerationKotlinTest {
         -> "activity"
     }
 
-    private fun kindOf(elementType: String): String = when {
-        elementType.endsWith("_BOUNDARY_EVENT") -> "boundary"
-        elementType.endsWith("GATEWAY") -> "gateway"
-        elementType.endsWith("EVENT") -> "event"
+    private fun kindOf(elementType: BpmnElementType): String = when {
+        elementType == BpmnElementType.BOUNDARY_EVENT -> "boundary"
+        elementType.name.endsWith("GATEWAY") -> "gateway"
+        elementType.name.endsWith("EVENT") -> "event"
         else -> "activity"
     }
 }

@@ -1,6 +1,7 @@
 package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasOutgoingFlows
@@ -148,18 +149,18 @@ class ProcessPathTest {
         assertThat(path.current).isEqualTo(Start)
     }
 
-    private object End : AbstractFlowNode(ElementId("End"), "END_EVENT")
+    private object End : AbstractFlowNode(ElementId("End"), BpmnElementType.END_EVENT)
 
-    private object Boundary : AbstractFlowNode(ElementId("Boundary"), "TIMER_BOUNDARY_EVENT")
+    private object Boundary : AbstractFlowNode(ElementId("Boundary"), BpmnElementType.BOUNDARY_EVENT)
 
-    private object Mid : AbstractFlowNode(ElementId("Mid"), "TASK"), HasSuccessors<Mid.Next> {
+    private object Mid : AbstractFlowNode(ElementId("Mid"), BpmnElementType.TASK), HasSuccessors<Mid.Next> {
         override val next: Next get() = Next
         object Next {
             val end: End get() = End
         }
     }
 
-    private object Start : AbstractFlowNode(ElementId("Start"), "START_EVENT"), HasSuccessors<Start.Next>, HasOutgoingFlows<Start.OutgoingFlows> {
+    private object Start : AbstractFlowNode(ElementId("Start"), BpmnElementType.START_EVENT), HasSuccessors<Start.Next>, HasOutgoingFlows<Start.OutgoingFlows> {
         override val next: Next get() = Next
         override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
         object Next {
@@ -171,9 +172,9 @@ class ProcessPathTest {
         }
     }
 
-    private object InnerStart : AbstractFlowNode(ElementId("InnerStart"), "START_EVENT")
+    private object InnerStart : AbstractFlowNode(ElementId("InnerStart"), BpmnElementType.START_EVENT)
 
-    private object Sub : AbstractFlowNode(ElementId("Sub"), "SUB_PROCESS"), HasSuccessors<Sub.Next>, FlowScope<Sub.Start> {
+    private object Sub : AbstractFlowNode(ElementId("Sub"), BpmnElementType.SUB_PROCESS), HasSuccessors<Sub.Next>, FlowScope<Sub.Start> {
         override val next: Next get() = Next
         override val startEvents: Start get() = Start
         object Next {

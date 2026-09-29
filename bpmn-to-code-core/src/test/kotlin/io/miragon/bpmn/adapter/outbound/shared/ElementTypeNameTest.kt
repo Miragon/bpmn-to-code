@@ -8,6 +8,8 @@ import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
+import io.miragon.bpmn.runtime.BpmnElementType
+import io.miragon.bpmn.runtime.BpmnEventType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -88,59 +90,74 @@ class ElementTypeNameTest {
     }
 
     @Test
-    fun `prefixes the concrete event definition onto the shape, shape-only for terminate, conditional and link`() {
-        // Only timer/message/error/signal/escalation/compensation surface as a prefix; conditional, link and
-        // terminate render shape-only in the flat Process API vocabulary.
-        val cases: List<Pair<EventDefinitionInstance, String>> = listOf(
-            EventDefinitionInstance.Timer() to "TIMER_BOUNDARY_EVENT",
-            EventDefinitionInstance.Message(MessageReference("m", "m")) to "MESSAGE_BOUNDARY_EVENT",
-            EventDefinitionInstance.Error(errorRef = "e", errorName = "e", errorCode = "1") to "ERROR_BOUNDARY_EVENT",
-            EventDefinitionInstance.Signal(signalRef = "s", signalName = "s") to "SIGNAL_BOUNDARY_EVENT",
-            EventDefinitionInstance.Escalation(escalationRef = "esc", escalationName = "esc", escalationCode = "2") to "ESCALATION_BOUNDARY_EVENT",
-            EventDefinitionInstance.Compensation() to "COMPENSATION_BOUNDARY_EVENT",
-            EventDefinitionInstance.Conditional("=x") to "BOUNDARY_EVENT",
-            EventDefinitionInstance.Link("link") to "BOUNDARY_EVENT",
-            EventDefinitionInstance.Terminate to "BOUNDARY_EVENT",
-        )
-        cases.forEach { (definition, expectedName) ->
-            val event = FlowNodeDefinition.Event(
-                id = "event",
-                shape = EventShape.BOUNDARY_EVENT,
-                eventDefinitions = listOf(definition),
-            )
-            assertThat(ElementTypeName.of(event)).isEqualTo(expectedName)
-        }
-        // every event-definition kind is exercised exactly once
-        assertThat(cases.map { it.first.type })
-            .containsExactlyInAnyOrder(*EventDefinitionInstance.Type.entries.toTypedArray())
-    }
-
-    @Test
-    fun `renders a terminate end event shape-only`() {
-        val terminateEnd = FlowNodeDefinition.Event(
-            id = "end",
-            shape = EventShape.END_EVENT,
-            eventDefinitions = listOf(EventDefinitionInstance.Terminate),
-        )
-        assertThat(ElementTypeName.of(terminateEnd)).isEqualTo("END_EVENT")
-    }
-
-    @Test
-    fun `selects the first prefixed event definition when several are present`() {
-        val event = FlowNodeDefinition.Event(
+    fun `renders an event shape-only, whatever its definition`() {
+        val timerBoundary = FlowNodeDefinition.Event(
             id = "event",
             shape = EventShape.BOUNDARY_EVENT,
-            eventDefinitions = listOf(
-                EventDefinitionInstance.Link("link"),
-                EventDefinitionInstance.Error(errorRef = "e", errorName = "e", errorCode = "1"),
-                EventDefinitionInstance.Timer(),
-            ),
+            eventDefinitions = listOf(EventDefinitionInstance.Timer()),
         )
-        assertThat(ElementTypeName.of(event)).isEqualTo("ERROR_BOUNDARY_EVENT")
+        assertThat(ElementTypeName.of(timerBoundary)).isEqualTo("BOUNDARY_EVENT")
+    }
+
+    @Test
+    fun `maps every event definition kind to its event type`() {
+        val definitions = allEventDefinitionKinds()
+        definitions.forEach { definition ->
+            val event = FlowNodeDefinition.Event(id = "event", shape = EventShape.END_EVENT, eventDefinitions = listOf(definition))
+            assertThat(ElementTypeName.eventTypeOf(event)).isEqualTo(definition.type.name)
+        }
+        assertThat(definitions.map { it.type }).containsExactlyInAnyOrder(*EventDefinitionInstance.Type.entries.toTypedArray())
+    }
+
+    @Test
+    fun `maps an event without definition to NONE and one with several to MULTIPLE`() {
+        val none = FlowNodeDefinition.Event(id = "start", shape = EventShape.START_EVENT)
+        val multiple = FlowNodeDefinition.Event(
+            id = "start",
+            shape = EventShape.START_EVENT,
+            eventDefinitions = listOf(EventDefinitionInstance.Timer(), EventDefinitionInstance.Signal()),
+        )
+        assertThat(ElementTypeName.eventTypeOf(none)).isEqualTo("NONE")
+        assertThat(ElementTypeName.eventTypeOf(multiple)).isEqualTo("MULTIPLE")
     }
 
     @Test
     fun `maps unknown to its element-type string`() {
         assertThat(ElementTypeName.of(FlowNodeDefinition.Unknown(id = "unknown"))).isEqualTo("UNKNOWN")
     }
+
+    @Test
+    fun `renderable element types are exactly the runtime BpmnElementType constants`() {
+        val nodes = EventShape.entries.map { FlowNodeDefinition.Event(id = "event", shape = it) } +
+            TaskKind.entries.map { FlowNodeDefinition.Activity.Task(id = "task", kind = it) } +
+            GatewayKind.entries.map { FlowNodeDefinition.Gateway(id = "gw", kind = it) } +
+            SubProcessKind.entries.map { FlowNodeDefinition.Activity.SubProcess(id = "sub", kind = it) } +
+            FlowNodeDefinition.Activity.CallActivity(id = "call", definition = CallActivityDefinition("call", "called")) +
+            FlowNodeDefinition.Unknown(id = "unknown")
+
+        assertThat(nodes.map { ElementTypeName.of(it) })
+            .containsExactlyInAnyOrderElementsOf(BpmnElementType.entries.map { it.name })
+    }
+
+    @Test
+    fun `renderable event types are exactly the runtime BpmnEventType constants`() {
+        val definitionLists = listOf(emptyList<EventDefinitionInstance>(), allEventDefinitionKinds().take(2)) +
+            allEventDefinitionKinds().map { listOf(it) }
+        val events = definitionLists.map { FlowNodeDefinition.Event(id = "event", shape = EventShape.END_EVENT, eventDefinitions = it) }
+
+        assertThat(events.map { ElementTypeName.eventTypeOf(it) })
+            .containsExactlyInAnyOrderElementsOf(BpmnEventType.entries.map { it.name })
+    }
+
+    private fun allEventDefinitionKinds(): List<EventDefinitionInstance> = listOf(
+        EventDefinitionInstance.Timer(),
+        EventDefinitionInstance.Message(MessageReference("m", "m")),
+        EventDefinitionInstance.Error(errorRef = "e", errorName = "e", errorCode = "1"),
+        EventDefinitionInstance.Signal(signalRef = "s", signalName = "s"),
+        EventDefinitionInstance.Escalation(escalationRef = "esc", escalationName = "esc", escalationCode = "2"),
+        EventDefinitionInstance.Compensation(),
+        EventDefinitionInstance.Conditional("=x"),
+        EventDefinitionInstance.Link("link"),
+        EventDefinitionInstance.Terminate,
+    )
 }

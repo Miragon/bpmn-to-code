@@ -1,5 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.flow
 
+import io.miragon.bpmn.domain.shared.TimerType
+
 /**
  * Language-agnostic intermediate representation of a process as a typed navigation graph.
  *
@@ -21,6 +23,7 @@ data class FlowGraph(
      * @property elementType the flat `elementType` string (see `ElementTypeName`).
      * @property name the element's display name, or `null` when the model declares none.
      * @property isStart whether this node is a start event of its scope.
+     * @property eventType the event's `BpmnEventType` constant name; `null` for every non-event node.
      * @property isBoundaryEvent whether this node is a boundary event, reached from its host without a sequence flow.
      * @property successors the reachable next elements — sequence-flow continuation and boundary edges unified,
      *   each named after the element it points to.
@@ -35,6 +38,7 @@ data class FlowGraph(
         val propertyName: String,
         val id: String,
         val elementType: String,
+        val eventType: String?,
         val name: String?,
         val isStart: Boolean,
         val isBoundaryEvent: Boolean,
@@ -116,7 +120,7 @@ data class FlowGraph(
     )
 
     data class TimerFacet(
-        val type: String,
+        val type: TimerType,
         val expression: String,
     )
 

@@ -33,7 +33,7 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
 
     fun writeProperties(facets: NodeFacets) {
         facets.calledProcessId?.let { writer.readonlyProperty("CalledProcess", runtime("ProcessId"), "new(${stringLiteral(it)})") }
-        facets.timer?.let { writer.readonlyProperty("Timer", runtime("BpmnTimer"), "new(${stringLiteral(it.type)}, ${stringLiteral(it.expression)})") }
+        facets.timer?.let { writer.readonlyProperty("Timer", runtime("BpmnTimer"), "new(${CSharpRuntimeTypes.enumMember("TimerType", it.type.name)}, ${stringLiteral(it.expression)})") }
         facets.message?.let { writer.readonlyProperty("Message", runtime("MessageName"), "new(${nameArgument(SharedDefinitionType.MESSAGES, it)})") }
         facets.signal?.let { writer.readonlyProperty("Signal", runtime("SignalName"), "new(${nameArgument(SharedDefinitionType.SIGNALS, it)})") }
         facets.error?.let { writer.readonlyProperty("Error", runtime("BpmnError"), "new(${namedCodeArguments(SharedDefinitionType.ERRORS, it)})") }

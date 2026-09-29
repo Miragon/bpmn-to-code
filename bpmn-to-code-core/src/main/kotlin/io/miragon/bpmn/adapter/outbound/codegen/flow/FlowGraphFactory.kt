@@ -51,6 +51,7 @@ object FlowGraphFactory {
             propertyName = ownNames.propertyName,
             id = node.id,
             elementType = ElementTypeName.of(definition),
+            eventType = (definition as? FlowNodeDefinition.Event)?.let { ElementTypeName.eventTypeOf(it) },
             name = definition.displayName,
             isStart = definition.isStartEvent(),
             isBoundaryEvent = definition is FlowNodeDefinition.Event && definition.shape == EventShape.BOUNDARY_EVENT,
