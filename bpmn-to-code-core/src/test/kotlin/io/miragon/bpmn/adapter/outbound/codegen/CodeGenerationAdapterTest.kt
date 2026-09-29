@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test
 
 class CodeGenerationAdapterTest {
 
-    private val kotlinProcessBuilder = mockk<CodeGenerationAdapter.AbstractProcessApiBuilder<*>>(relaxed = true)
-    private val kotlinSharedBuilder = mockk<CodeGenerationAdapter.AbstractSharedDefinitionsBuilder>(relaxed = true)
+    private val kotlinProcessBuilder = mockk<ProcessApiBuilder>(relaxed = true)
+    private val kotlinSharedBuilder = mockk<SharedDefinitionsBuilder>(relaxed = true)
     private val underTest = CodeGenerationAdapter(
         processApiBuilders = mapOf(OutputLanguage.KOTLIN to kotlinProcessBuilder),
         sharedDefinitionsBuilders = mapOf(OutputLanguage.KOTLIN to kotlinSharedBuilder),
