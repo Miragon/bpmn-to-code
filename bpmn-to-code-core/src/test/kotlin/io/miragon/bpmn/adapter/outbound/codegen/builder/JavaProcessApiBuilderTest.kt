@@ -50,6 +50,25 @@ class JavaProcessApiBuilderTest {
     }
 
     @Test
+    fun `flow nodes are singletons that cannot be instantiated`() {
+        // given: the bike-leasing model
+        val modelApi = testProcessModelApi(model = testBikeLeasingModel())
+
+        // when: we build the process API file
+        val result = underTest.buildApiFile(modelApi)
+
+        // then: every node is only reachable through its INSTANCE
+        val content = result.content
+        assertThat(content).doesNotContainPattern("(?<!INSTANCE = )new (?!Next|OutgoingFlows|Start)\\w+\\(\\)")
+        assertThat(content).contains("private BusinessRuleTaskCheckCreditRating()")
+        assertThat(content).contains("private Variables()")
+        assertThat(content).contains("public static final BusinessRuleTaskCheckCreditRating INSTANCE = new BusinessRuleTaskCheckCreditRating();")
+        assertThat(content).contains("return BusinessRuleTaskCheckCreditRating.INSTANCE;")
+        assertThat(content).doesNotContain("import java.lang.")
+        assertJavaSyntaxValid(result.fileName, result.content)
+    }
+
+    @Test
     fun `maps content of id to valid variable name format`() {
         // given: a model with flow nodes that have slashes in their names
         val defaultModel = testBikeLeasingModel()

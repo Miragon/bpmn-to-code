@@ -38,13 +38,13 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
         val className = modelApi.fileName()
-        val rootClassBuilder = TypeSpec.classBuilder(className).addModifiers(PUBLIC, FINAL)
+        val rootClassBuilder = JavaConstantHolder(className).builder()
 
         objectWriters
             .filterKeys { ApiObjectSelection.includes(it, modelApi) }
             .forEach { (_, writer) -> writer.addTo(rootClassBuilder, modelApi) }
 
-        val fileBuilder = JavaFile.builder(modelApi.packagePath, rootClassBuilder.build())
+        val fileBuilder = JavaFile.builder(modelApi.packagePath, rootClassBuilder.build()).skipJavaLangImports(true)
         val javaFile = fileBuilder.addFileComment(autoGenComment).build()
 
         val fileContent = buildString { javaFile.writeTo(this) }
@@ -91,7 +91,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val model = modelApi.model
-            val variantsBuilder = TypeSpec.classBuilder("FlowVariants").addModifiers(PUBLIC, STATIC, FINAL)
+            val variantsBuilder = JavaConstantHolder("FlowVariants").builder(STATIC)
                 .addJavadoc("The {@code Flow} of each merged BPMN file, keyed by its {@code variantName}.\n")
             model.variants.forEach { variant ->
                 variantsBuilder.addType(buildFlowClass(variant.graph, model.definitions, variant.variantName.toCamelCase()))
@@ -107,7 +107,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
      * opens its interior via `getStartEvents()`.
      */
     private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "Flow"): TypeSpec {
-        val flowBuilder = TypeSpec.classBuilder(className).addModifiers(PUBLIC, STATIC, FINAL)
+        val flowBuilder = JavaConstantHolder(className).builder(STATIC)
             .addJavadoc(
                 "Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, " +
                     "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +

@@ -35,6 +35,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ProcessPathJavaApiTest {
 
+    // --- Singleton nodes -----------------------------------------------------------------------------------
+
+    @Test
+    void everyAccessToANodeYieldsTheSameInstance() {
+        assertThat(Flow.gatewayJoin()).isSameAs(Flow.gatewayJoin());
+        assertThat(Flow.serviceTaskOrderBike().getNext().gatewayJoin()).isSameAs(Flow.GatewayJoin.INSTANCE);
+        assertThat(Flow.gatewayJoin()).hasToString("PARALLEL_GATEWAY(gateway_join)");
+    }
+
     // --- Sequential flow through a subprocess -------------------------------------------------------------
 
     @Test

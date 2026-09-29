@@ -173,15 +173,16 @@ public final class BikeLeasingProcessApi {
     public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
     public static final class Flow {
-        public static StartEventLeasingRequestReceived startEventLeasingRequestReceived() { return new StartEventLeasingRequestReceived(); }
-        public static ServiceTaskSendContract serviceTaskSendContract() { return new ServiceTaskSendContract(); }
+        public static StartEventLeasingRequestReceived startEventLeasingRequestReceived() { return StartEventLeasingRequestReceived.INSTANCE; }
+        public static ServiceTaskSendContract serviceTaskSendContract() { return ServiceTaskSendContract.INSTANCE; }
         // … one static accessor per element
 
         public static final class ServiceTaskSendContract extends AbstractFlowNode
                 implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
+            public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
             public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_CONTRACT;
 
-            public ServiceTaskSendContract() {
+            private ServiceTaskSendContract() {
                 super(new ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract");
             }
 
@@ -193,11 +194,11 @@ public final class BikeLeasingProcessApi {
                 public static final VariableName.Output CONTRACT_ID = new VariableName.Output("contractId");
             }
             public static final class Next {
-                public GatewayAwaitSignature gatewayAwaitSignature() { return new GatewayAwaitSignature(); }
+                public GatewayAwaitSignature gatewayAwaitSignature() { return GatewayAwaitSignature.INSTANCE; }
             }
             public static final class OutgoingFlows {
                 public SequenceFlow<GatewayAwaitSignature> toGatewayAwaitSignature() {
-                    return new SequenceFlow<>(new ElementId("flow_sendContractToAwaitSignature"), null, null, false, new GatewayAwaitSignature());
+                    return new SequenceFlow<>(new ElementId("flow_sendContractToAwaitSignature"), null, null, false, GatewayAwaitSignature.INSTANCE);
                 }
             }
         }
