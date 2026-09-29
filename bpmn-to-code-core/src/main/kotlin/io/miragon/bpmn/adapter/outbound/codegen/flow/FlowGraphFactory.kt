@@ -39,7 +39,7 @@ object FlowGraphFactory {
     private fun buildNode(
         node: FlowNodeWithId,
         allNodes: List<FlowNodeWithId>,
-        names: Map<String, FlowNaming.Names>,
+        names: Map<String, FlowEdge>,
         facets: FlowFacetsFactory,
         graph: ProcessGraph,
     ): FlowGraphNode {
@@ -52,7 +52,6 @@ object FlowGraphFactory {
             elementType = ElementTypeName.of(definition),
             eventType = (definition as? FlowNodeDefinition.Event)?.let { ElementTypeName.eventTypeOf(it) },
             name = definition.displayName,
-            isStart = definition.isStartEvent(),
             isBoundaryEvent = definition is FlowNodeDefinition.Event && definition.shape == EventShape.BOUNDARY_EVENT,
             successors = buildSuccessors(node = definition, names = names, graph = graph),
             outgoingFlows = buildOutgoingFlows(node = definition, names = names, graph = graph),
@@ -67,13 +66,13 @@ object FlowGraphFactory {
     private fun buildInteriorStarts(
         node: FlowNodeWithId,
         allNodes: List<FlowNodeWithId>,
-        names: Map<String, FlowNaming.Names>,
+        names: Map<String, FlowEdge>,
         graph: ProcessGraph,
     ): List<FlowEdge> {
         if (node.definition !is FlowNodeDefinition.Activity.SubProcess) return emptyList()
         return allNodes
             .filter { graph.parentIdOf(it.id) == node.id && it.definition.isStartEvent() }
-            .map { names.getValue(it.id).toEdge() }.sortedBy { it.propertyName }
+            .map { names.getValue(it.id) }.sortedBy { it.propertyName }
     }
 
     /**
@@ -81,24 +80,24 @@ object FlowGraphFactory {
      */
     private fun buildSuccessors(
         node: FlowNodeDefinition,
-        names: Map<String, FlowNaming.Names>,
+        names: Map<String, FlowEdge>,
         graph: ProcessGraph,
     ): List<FlowEdge> = (graph.followingElementsOf(node) + graph.attachedElementsOf(node))
         .distinct()
         .mapNotNull { targetId -> names[targetId] }
-        .distinctBy { it.objectName }.sortedBy { it.propertyName }.map { it.toEdge() }
+        .distinctBy { it.objectName }.sortedBy { it.propertyName }
 
     /**
      * The outgoing sequence flows whose target is a known node, grouped by that target; no flow is dropped.
      */
     private fun buildOutgoingFlows(
         node: FlowNodeDefinition,
-        names: Map<String, FlowNaming.Names>,
+        names: Map<String, FlowEdge>,
         graph: ProcessGraph,
     ): List<FlowsToTarget> = graph.outgoingFlowsOf(node)
         .mapNotNull { flow -> names[flow.targetRef]?.let { target -> target to flow.toEdge() } }
         .groupBy({ (target, _) -> target }, { (_, flow) -> flow })
-        .map { (target, flows) -> FlowsToTarget(propertyName = FlowNaming.outgoingFlowsProperty(target), target = target.toEdge(), flows = flows.sortedBy { it.id }) }
+        .map { (target, flows) -> FlowsToTarget(propertyName = FlowNaming.outgoingFlowsProperty(target), target = target, flows = flows.sortedBy { it.id }) }
         .sortedBy { it.propertyName }
 
     private fun SequenceFlowDefinition.toEdge(): SequenceFlowEdge = SequenceFlowEdge(
@@ -107,8 +106,6 @@ object FlowGraphFactory {
         conditionExpression = conditionExpression,
         isDefault = isDefault,
     )
-
-    private fun FlowNaming.Names.toEdge(): FlowEdge = FlowEdge(propertyName = propertyName, objectName = objectName)
 
     private fun FlowNodeDefinition.isStartEvent(): Boolean = this is FlowNodeDefinition.Event && shape == EventShape.START_EVENT
 }

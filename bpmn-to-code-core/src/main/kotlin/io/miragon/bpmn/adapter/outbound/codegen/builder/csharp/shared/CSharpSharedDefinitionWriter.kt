@@ -4,6 +4,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.disambiguated
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.shared.VariableMapping
 
@@ -30,11 +31,16 @@ internal abstract class CSharpSharedDefinitionWriter<T : Any> {
         writer.staticClass(type.typeName) {
             writeMembers(writer, ofKind)
             writer.line()
-            writer.staticListProperty(name = "All", elementType = allElementType, elements = ofKind.map { allElement(memberReference(it)) })
+            writer.staticListProperty(name = "All", elementType = allElementType, elements = ofKind.map { allElement(memberReference(it.getName())) })
         }
     }
 
+    /**
+     * How a node refers to the shared constant of this kind.
+     */
+    fun reference(constant: SharedConstant): String = "${type.typeName}.${memberReference(constant.name)}"
+
     protected fun memberName(definition: VariableMapping<T>): String = pascalCase(definition.getName())
 
-    private fun memberReference(definition: VariableMapping<T>): String = disambiguated(memberName(definition), type.typeName)
+    private fun memberReference(constantName: String): String = disambiguated(pascalCase(constantName), type.typeName)
 }

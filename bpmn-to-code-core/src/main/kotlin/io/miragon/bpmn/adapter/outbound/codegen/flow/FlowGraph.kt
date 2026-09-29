@@ -20,7 +20,6 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
      * @property id the raw BPMN element id, wrapped as `ElementId(id)` in the generated `.id`.
      * @property elementType the flat `elementType` string (see `ElementTypeName`).
      * @property name the element's display name, or `null` when the model declares none.
-     * @property isStart whether this node is a start event of its scope.
      * @property eventType the event's `BpmnEventType` constant name; `null` for every non-event node.
      * @property isBoundaryEvent whether this node is a boundary event, reached from its host without a sequence flow.
      * @property successors the reachable next elements — sequence-flow continuation and boundary edges unified,
@@ -38,7 +37,6 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val elementType: String,
         val eventType: String?,
         val name: String?,
-        val isStart: Boolean,
         val isBoundaryEvent: Boolean,
         val successors: List<FlowEdge>,
         val outgoingFlows: List<FlowsToTarget>,
@@ -93,8 +91,8 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val timer: TimerFacet? = null,
         val message: SharedValue<String>? = null,
         val signal: SharedValue<String>? = null,
-        val error: SharedValue<NamedCode>? = null,
-        val escalation: SharedValue<NamedCode>? = null,
+        val error: SharedValue<Pair<String, String>>? = null,
+        val escalation: SharedValue<Pair<String, String>>? = null,
         val attachedTo: FlowEdge? = null,
         val isInterrupting: Boolean? = null,
     )
@@ -110,12 +108,10 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
 
     data class TimerFacet(val type: TimerType, val expression: String)
 
-    data class NamedCode(val name: String, val code: String)
-
     /**
-     * A node's job type, message, signal, error or escalation. [constant] names the shared definition holding
-     * [value]; it is `null` when no root element of the model declares the value, as then no shared constant
-     * exists and the node has to carry the value itself.
+     * A node's job type, message, signal, error or escalation — an error or escalation as name and code. [constant]
+     * names the shared definition holding [value]; it is `null` when no root element of the model declares the value,
+     * as then no shared constant exists and the node has to carry the value itself.
      */
     data class SharedValue<T>(val value: T, val constant: SharedConstant?)
 

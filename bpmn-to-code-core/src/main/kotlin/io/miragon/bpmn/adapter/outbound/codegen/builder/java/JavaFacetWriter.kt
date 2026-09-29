@@ -6,12 +6,13 @@ import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.MethodSpec
 import com.palantir.javapoet.TypeName
 import com.palantir.javapoet.TypeSpec
-import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaErrorsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaEscalationsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaServiceTasksWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 import javax.lang.model.element.Modifier.FINAL
@@ -26,13 +27,13 @@ import javax.lang.model.element.Modifier.STATIC
 internal class JavaFacetWriter {
 
     fun fields(facets: NodeFacets): List<FieldSpec> = listOfNotNull(
-        facets.jobType?.let { jobTypeField(it) },
+        facets.jobType?.let { JavaServiceTasksWriter.nodeField(name = "JOB_TYPE", shared = it) },
         facets.calledProcessId?.let { wrappedField(name = "CALLED_PROCESS", wrapper = JavaRuntimeTypes.PROCESS_ID, value = it) },
         facets.timer?.let { timerField(it) },
-        facets.message?.let { sharedField(name = "MESSAGE", wrapper = JavaRuntimeTypes.MESSAGE_NAME, type = SharedDefinitionType.MESSAGES, shared = it, literal = ::wrappedInitializer) },
-        facets.signal?.let { sharedField(name = "SIGNAL", wrapper = JavaRuntimeTypes.SIGNAL_NAME, type = SharedDefinitionType.SIGNALS, shared = it, literal = ::wrappedInitializer) },
-        facets.error?.let { sharedField(name = "ERROR", wrapper = JavaRuntimeTypes.BPMN_ERROR_DEFINITION, type = SharedDefinitionType.ERRORS, shared = it, literal = ::namedCodeInitializer) },
-        facets.escalation?.let { sharedField(name = "ESCALATION", wrapper = JavaRuntimeTypes.BPMN_ESCALATION_DEFINITION, type = SharedDefinitionType.ESCALATIONS, shared = it, literal = ::namedCodeInitializer) },
+        facets.message?.let { JavaMessagesWriter.nodeField(name = "MESSAGE", shared = it) },
+        facets.signal?.let { JavaSignalsWriter.nodeField(name = "SIGNAL", shared = it) },
+        facets.error?.let { JavaErrorsWriter.nodeField(name = "ERROR", shared = it) },
+        facets.escalation?.let { JavaEscalationsWriter.nodeField(name = "ESCALATION", shared = it) },
     )
 
     fun methods(facets: NodeFacets): List<MethodSpec> = listOfNotNull(
@@ -48,32 +49,8 @@ internal class JavaFacetWriter {
         facets.outputs.takeIf { it.isNotEmpty() }?.let { mappingsHolder("Outputs", it) },
     )
 
-    private fun jobTypeField(jobType: SharedValue<String>): FieldSpec = FieldSpec.builder(String::class.java, "JOB_TYPE", PUBLIC, STATIC, FINAL)
-        .initializer(jobType.constant?.let { sharedReference(SharedDefinitionType.SERVICE_TASKS, it) } ?: CodeBlock.of($$"$S", jobType.value))
-        .build()
-
-    /**
-     * A field holding a shared definition refers to its constant, e.g. `MessageName MESSAGE = Messages.X`; only a
-     * value without a shared constant falls back to its [literal] form.
-     */
-    private fun <T> sharedField(
-        name: String,
-        wrapper: ClassName,
-        type: SharedDefinitionType,
-        shared: SharedValue<T>,
-        literal: (ClassName, T) -> CodeBlock,
-    ): FieldSpec {
-        val initializer = shared.constant?.let { sharedReference(type, it) } ?: literal(wrapper, shared.value)
-        return FieldSpec.builder(wrapper, name, PUBLIC, STATIC, FINAL).initializer(initializer).build()
-    }
-
-    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): CodeBlock = CodeBlock.of($$"$T.$N", ClassName.get("", type.typeName), constant.name)
-
-    private fun wrappedField(name: String, wrapper: ClassName, value: String): FieldSpec = FieldSpec.builder(wrapper, name, PUBLIC, STATIC, FINAL).initializer(wrappedInitializer(wrapper, value)).build()
-
-    private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of($$"new $T($S)", wrapperClass, value)
-
-    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = CodeBlock.of($$"new $T($S, $S)", wrapperClass, value.name, value.code)
+    private fun wrappedField(name: String, wrapper: ClassName, value: String): FieldSpec = FieldSpec.builder(wrapper, name, PUBLIC, STATIC, FINAL)
+        .initializer($$"new $T($S)", wrapper, value).build()
 
     private fun timerField(timer: TimerFacet): FieldSpec {
         val timerClass = JavaRuntimeTypes.BPMN_TIMER

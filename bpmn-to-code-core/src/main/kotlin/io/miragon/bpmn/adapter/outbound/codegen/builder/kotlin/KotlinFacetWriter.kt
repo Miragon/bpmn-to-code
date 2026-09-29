@@ -6,13 +6,14 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinErrorsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinEscalationsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinServiceTasksWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
@@ -25,13 +26,13 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 internal class KotlinFacetWriter {
 
     fun properties(facets: NodeFacets): List<PropertySpec> = listOfNotNull(
-        facets.jobType?.let { jobTypeProperty(it) },
+        facets.jobType?.let { KotlinServiceTasksWriter.nodeProperty(name = "JOB_TYPE", shared = it) },
         facets.calledProcessId?.let { wrappedProperty(name = "CALLED_PROCESS", wrapper = KotlinRuntimeTypes.PROCESS_ID, value = it) },
         facets.timer?.let { timerProperty(it) },
-        facets.message?.let { sharedProperty(name = "MESSAGE", wrapper = KotlinRuntimeTypes.MESSAGE_NAME, type = SharedDefinitionType.MESSAGES, shared = it, literal = ::wrappedInitializer) },
-        facets.signal?.let { sharedProperty(name = "SIGNAL", wrapper = KotlinRuntimeTypes.SIGNAL_NAME, type = SharedDefinitionType.SIGNALS, shared = it, literal = ::wrappedInitializer) },
-        facets.error?.let { sharedProperty(name = "ERROR", wrapper = KotlinRuntimeTypes.BPMN_ERROR_DEFINITION, type = SharedDefinitionType.ERRORS, shared = it, literal = ::namedCodeInitializer) },
-        facets.escalation?.let { sharedProperty(name = "ESCALATION", wrapper = KotlinRuntimeTypes.BPMN_ESCALATION_DEFINITION, type = SharedDefinitionType.ESCALATIONS, shared = it, literal = ::namedCodeInitializer) },
+        facets.message?.let { KotlinMessagesWriter.nodeProperty(name = "MESSAGE", shared = it) },
+        facets.signal?.let { KotlinSignalsWriter.nodeProperty(name = "SIGNAL", shared = it) },
+        facets.error?.let { KotlinErrorsWriter.nodeProperty(name = "ERROR", shared = it) },
+        facets.escalation?.let { KotlinEscalationsWriter.nodeProperty(name = "ESCALATION", shared = it) },
         facets.attachedTo?.let { attachedToProperty(it.objectName) },
         facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
     )
@@ -42,34 +43,8 @@ internal class KotlinFacetWriter {
         facets.outputs.takeIf { it.isNotEmpty() }?.let { mappingsHolder("Outputs", it) },
     )
 
-    private fun jobTypeProperty(jobType: SharedValue<String>): PropertySpec = PropertySpec.builder("JOB_TYPE", String::class)
-        .addModifiers(KModifier.CONST)
-        .initializer(jobType.constant?.let { sharedReference(SharedDefinitionType.SERVICE_TASKS, it) } ?: stringLiteral(jobType.value))
-        .build()
-
-    /**
-     * A property holding a shared definition refers to its constant, e.g. `val message: MessageName = Messages.X`;
-     * only a value without a shared constant falls back to its [literal] form.
-     */
-    private fun <T> sharedProperty(
-        name: String,
-        wrapper: ClassName,
-        type: SharedDefinitionType,
-        shared: SharedValue<T>,
-        literal: (ClassName, T) -> CodeBlock,
-    ): PropertySpec {
-        val initializer = shared.constant?.let { sharedReference(type, it) } ?: literal(wrapper, shared.value)
-        return PropertySpec.builder(name, wrapper).initializer(initializer).build()
-    }
-
-    /**
-     * The shared types live in the same package as the Process API, so the plain name resolves without an import.
-     */
-    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): CodeBlock = CodeBlock.of("%L.%N", type.typeName, constant.name)
-
-    private fun wrappedProperty(name: String, wrapper: ClassName, value: String): PropertySpec = PropertySpec.builder(name, wrapper).initializer(wrappedInitializer(wrapper, value)).build()
-
-    private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of("%T(%L)", wrapperClass, stringLiteral(value))
+    private fun wrappedProperty(name: String, wrapper: ClassName, value: String): PropertySpec = PropertySpec.builder(name, wrapper)
+        .initializer(CodeBlock.of("%T(%L)", wrapper, stringLiteral(value))).build()
 
     private fun timerProperty(timer: TimerFacet): PropertySpec {
         val timerClass = KotlinRuntimeTypes.BPMN_TIMER
@@ -77,8 +52,6 @@ internal class KotlinFacetWriter {
         val initializer = KotlinCodeFormat.namedCall(timerClass, "type" to type, "timerValue" to stringLiteral(timer.expression), placement = KotlinCodeFormat.Placement.INITIALIZER)
         return PropertySpec.builder("TIMER", timerClass).initializer(initializer).build()
     }
-
-    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = KotlinCodeFormat.namedCall(wrapperClass, "name" to stringLiteral(value.name), "code" to stringLiteral(value.code), placement = KotlinCodeFormat.Placement.INITIALIZER)
 
     private fun attachedToProperty(hostObjectName: String): PropertySpec = PropertySpec.builder("attachedTo", ClassName("", hostObjectName))
         .addModifiers(KModifier.OVERRIDE)

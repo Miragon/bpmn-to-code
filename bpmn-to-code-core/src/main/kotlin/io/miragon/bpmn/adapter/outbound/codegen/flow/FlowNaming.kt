@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.flow
 
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 
 /**
@@ -17,19 +18,14 @@ import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 internal object FlowNaming {
 
     /**
-     * Object/property names for one node.
+     * Names every node of the model by the edge that reaches it, keyed by element id.
      */
-    data class Names(val objectName: String, val propertyName: String)
-
-    /**
-     * Assigns [Names] to every node of the model, keyed by element id.
-     */
-    fun assign(nodes: List<FlowNodeWithId>): Map<String, Names> = nodes.associate { node ->
+    fun assign(nodes: List<FlowNodeWithId>): Map<String, FlowEdge> = nodes.associate { node ->
         val objectName = node.definition.id.orEmpty().toCamelCase()
-        node.id to Names(objectName, decapitalize(objectName))
+        node.id to FlowEdge(propertyName = decapitalize(objectName), objectName = objectName)
     }
 
-    fun outgoingFlowsProperty(target: Names): String = "to${target.objectName}"
+    fun outgoingFlowsProperty(target: FlowEdge): String = "to${target.objectName}"
 
     private fun decapitalize(name: String): String = name.replaceFirstChar { it.lowercaseChar() }
 }
