@@ -4,6 +4,7 @@ import io.miragon.bpmn.adapter.inbound.CreateProcessJsonFilesystemPlugin;
 import io.miragon.bpmn.domain.shared.ProcessEngine;
 import io.miragon.bpmn.domain.validation.model.ValidationConfig;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -41,9 +42,9 @@ public class BpmnJsonMojo extends AbstractMojo {
 	}
 
 	@Override
-	public void execute() {
+	public void execute() throws MojoFailureException {
 		CreateProcessJsonFilesystemPlugin plugin = new CreateProcessJsonFilesystemPlugin();
-		ProcessEngine engine = ProcessEngine.valueOf(processEngine);
+		ProcessEngine engine = EnumParameter.parse("processEngine", processEngine, ProcessEngine.class);
 		plugin.execute(baseDir, filePattern, outputFolderPath, engine, new ValidationConfig(), enableVariants);
 		getLog().info("BPMN JSON files generated successfully");
 	}
