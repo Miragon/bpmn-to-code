@@ -34,7 +34,7 @@ class KotlinSharedDefinitionsBuilderTest {
         val result = underTest.buildApiFiles(api).single()
 
         // then
-        assertThat(result.content).contains("const val MESSAGE_PUBLIC_REPLY: String = \"Message_public reply\"")
+        assertThat(result.content).contains("MessageName(\"Message_public reply\")")
         assertThat(result.content).doesNotContainPattern("(?m)^\\s*public ")
     }
 

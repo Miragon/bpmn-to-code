@@ -8,15 +8,15 @@ import java.util.List;
  * BPMN message names used to correlate messages to running process instances.
  */
 public final class Messages {
-  public static final MessageName MIRAVELO_ADDRESS_CHANGED = new MessageName(Names.MIRAVELO_ADDRESS_CHANGED);
+  public static final MessageName MIRAVELO_ADDRESS_CHANGED = new MessageName("miravelo.addressChanged");
 
-  public static final MessageName MIRAVELO_APPLICATION_WITHDRAWN = new MessageName(Names.MIRAVELO_APPLICATION_WITHDRAWN);
+  public static final MessageName MIRAVELO_APPLICATION_WITHDRAWN = new MessageName("miravelo.applicationWithdrawn");
 
-  public static final MessageName MIRAVELO_CONTRACT_SIGNED = new MessageName(Names.MIRAVELO_CONTRACT_SIGNED);
+  public static final MessageName MIRAVELO_CONTRACT_SIGNED = new MessageName("miravelo.contractSigned");
 
-  public static final MessageName MIRAVELO_HANDOVER_REPORTED = new MessageName(Names.MIRAVELO_HANDOVER_REPORTED);
+  public static final MessageName MIRAVELO_HANDOVER_REPORTED = new MessageName("miravelo.handoverReported");
 
-  public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName(Names.MIRAVELO_LEASING_REQUEST_RECEIVED);
+  public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
 
   public static List<MessageName> all() {
     return List.of(
@@ -25,17 +25,5 @@ public final class Messages {
         MIRAVELO_CONTRACT_SIGNED,
         MIRAVELO_HANDOVER_REPORTED,
         MIRAVELO_LEASING_REQUEST_RECEIVED);
-  }
-
-  public static final class Names {
-    public static final String MIRAVELO_ADDRESS_CHANGED = "miravelo.addressChanged";
-
-    public static final String MIRAVELO_APPLICATION_WITHDRAWN = "miravelo.applicationWithdrawn";
-
-    public static final String MIRAVELO_CONTRACT_SIGNED = "miravelo.contractSigned";
-
-    public static final String MIRAVELO_HANDOVER_REPORTED = "miravelo.handoverReported";
-
-    public static final String MIRAVELO_LEASING_REQUEST_RECEIVED = "miravelo.leasingRequestReceived";
   }
 }

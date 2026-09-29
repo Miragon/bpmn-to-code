@@ -4,7 +4,6 @@
 package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.MessageName
-import kotlin.String
 import kotlin.Suppress
 import kotlin.collections.List
 
@@ -12,17 +11,17 @@ import kotlin.collections.List
  * BPMN message names used to correlate messages to running process instances.
  */
 object Messages {
-  val MIRAVELO_ADDRESS_CHANGED: MessageName = MessageName(Names.MIRAVELO_ADDRESS_CHANGED)
+  val MIRAVELO_ADDRESS_CHANGED: MessageName = MessageName("miravelo.addressChanged")
 
   val MIRAVELO_APPLICATION_WITHDRAWN: MessageName =
-      MessageName(Names.MIRAVELO_APPLICATION_WITHDRAWN)
+      MessageName("miravelo.applicationWithdrawn")
 
-  val MIRAVELO_CONTRACT_SIGNED: MessageName = MessageName(Names.MIRAVELO_CONTRACT_SIGNED)
+  val MIRAVELO_CONTRACT_SIGNED: MessageName = MessageName("miravelo.contractSigned")
 
-  val MIRAVELO_HANDOVER_REPORTED: MessageName = MessageName(Names.MIRAVELO_HANDOVER_REPORTED)
+  val MIRAVELO_HANDOVER_REPORTED: MessageName = MessageName("miravelo.handoverReported")
 
   val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName =
-      MessageName(Names.MIRAVELO_LEASING_REQUEST_RECEIVED)
+      MessageName("miravelo.leasingRequestReceived")
 
   val entries: List<MessageName> = listOf(
     MIRAVELO_ADDRESS_CHANGED,
@@ -31,16 +30,4 @@ object Messages {
     MIRAVELO_HANDOVER_REPORTED,
     MIRAVELO_LEASING_REQUEST_RECEIVED,
   )
-
-  object Names {
-    const val MIRAVELO_ADDRESS_CHANGED: String = "miravelo.addressChanged"
-
-    const val MIRAVELO_APPLICATION_WITHDRAWN: String = "miravelo.applicationWithdrawn"
-
-    const val MIRAVELO_CONTRACT_SIGNED: String = "miravelo.contractSigned"
-
-    const val MIRAVELO_HANDOVER_REPORTED: String = "miravelo.handoverReported"
-
-    const val MIRAVELO_LEASING_REQUEST_RECEIVED: String = "miravelo.leasingRequestReceived"
-  }
 }

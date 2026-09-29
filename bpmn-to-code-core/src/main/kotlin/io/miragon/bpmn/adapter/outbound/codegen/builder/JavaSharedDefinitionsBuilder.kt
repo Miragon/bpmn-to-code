@@ -53,7 +53,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         val messageNameClass = ClassName.get(RUNTIME_PACKAGE, "MessageName")
         val messagesBuilder = TypeSpec.classBuilder(SharedDefinitionType.MESSAGES.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN message names used to correlate messages to running process instances.\n")
-        addTypedAttributesWithNames(messagesBuilder, messages, messageNameClass)
+        messages.forEach { message -> messagesBuilder.addField(createTypedAttribute(message, messageNameClass)) }
         messagesBuilder.addMethod(all(messages, messageNameClass))
         messagesBuilder.build()
     }
@@ -62,7 +62,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         val signalNameClass = ClassName.get(RUNTIME_PACKAGE, "SignalName")
         val signalsBuilder = TypeSpec.classBuilder(SharedDefinitionType.SIGNALS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN signal names broadcast and caught by signal events.\n")
-        addTypedAttributesWithNames(signalsBuilder, signals, signalNameClass)
+        signals.forEach { signal -> signalsBuilder.addField(createTypedAttribute(signal, signalNameClass)) }
         signalsBuilder.addMethod(all(signals, signalNameClass))
         signalsBuilder.build()
     }
@@ -101,17 +101,10 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         .initializer("\$S", variable.getValue())
         .build()
 
-    private fun addTypedAttributesWithNames(builder: TypeSpec.Builder, definitions: List<VariableMapping<String>>, wrapperClass: ClassName) {
-        definitions.forEach { definition ->
-            builder.addField(
-                FieldSpec.builder(wrapperClass, definition.getName())
-                    .addModifiers(PUBLIC, STATIC, FINAL)
-                    .initializer("new \$T(\$N.\$N)", wrapperClass, JAVA_NAMES_HOLDER, definition.getName())
-                    .build(),
-            )
-        }
-        builder.addType(javaNamesHolder(definitions.map { it.getName() to it.getValue() }))
-    }
+    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): FieldSpec = FieldSpec.builder(wrapperClass, variable.getName())
+        .addModifiers(PUBLIC, STATIC, FINAL)
+        .initializer("new \$T(\$S)", wrapperClass, variable.getValue())
+        .build()
 
     private fun createNameAndCodeAttribute(variable: VariableMapping<Pair<String, String>>, wrapperClass: ClassName): FieldSpec {
         val (name, code) = variable.getValue()

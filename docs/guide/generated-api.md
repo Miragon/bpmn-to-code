@@ -308,15 +308,14 @@ runtime interfaces.
 
 #### Raw names for annotations and `when` / `switch`
 
-Typed wrappers (`VariableName`, `ProcessId`, `MessageName`, `SignalName`, `ElementId`) are no compile-time
-constants, so each comes with its raw `String` in a `Names` holder next to it — `const val` in Kotlin,
-`static final String` in Java, `const string` in C#:
+The typed wrappers for variables, the process id and element ids are no compile-time constants, so each
+comes with its raw `String` next to it — `const val` in Kotlin, `static final String` in Java, `const string`
+in C#:
 
 | Typed wrapper | Raw constant (Kotlin / Java) | C# |
 |---|---|---|
 | `Flow.X.Variables.APPLICATION_ID` | `Flow.X.Variables.Names.APPLICATION_ID` | `Flow.X.NodeVariables.Names.ApplicationId` |
 | `PROCESS_ID` | `Names.PROCESS_ID` | `ProcessId` (already `const`) |
-| `Messages.X` / `Signals.X` | `Messages.Names.X` / `Signals.Names.X` | `Messages.X` / `Signals.X` (already `const`) |
 | `Flow.X.id` | `Flow.X.ELEMENT_ID` | `Flow.X.ElementId` |
 
 ```kotlin
