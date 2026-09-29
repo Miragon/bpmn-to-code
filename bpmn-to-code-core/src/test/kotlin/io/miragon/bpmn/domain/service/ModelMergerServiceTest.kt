@@ -1,6 +1,7 @@
 package io.miragon.bpmn.domain.service
 
 import io.miragon.bpmn.domain.DuplicateProcessIdException
+import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
@@ -484,9 +485,9 @@ class ModelMergerServiceTest {
     fun `rejects a process id defined in several files unless variants are enabled`() {
         // given: two variants of one process, each from its own file
         val models = listOf(
-            testProcessModel(processId = "bike-leasing", variantName = "v2", sourceFileName = "bike-leasing-v2.bpmn"),
-            testProcessModel(processId = "bike-leasing", variantName = "v1", sourceFileName = "bike-leasing-v1.bpmn"),
-            testProcessModel(processId = "bike-return", sourceFileName = "bike-return.bpmn"),
+            SourcedProcessModel("bike-leasing-v2.bpmn", testProcessModel(processId = "bike-leasing", variantName = "v2")),
+            SourcedProcessModel("bike-leasing-v1.bpmn", testProcessModel(processId = "bike-leasing", variantName = "v1")),
+            SourcedProcessModel("bike-return.bpmn", testProcessModel(processId = "bike-return")),
         )
 
         // when / then: merging without variants fails naming both files
@@ -501,8 +502,8 @@ class ModelMergerServiceTest {
     fun `merges process ids that are each defined in one file when variants are disabled`() {
         // given: every process id comes from its own file
         val models = listOf(
-            testProcessModel(processId = "bike-leasing", sourceFileName = "bike-leasing.bpmn"),
-            testProcessModel(processId = "bike-return", sourceFileName = "bike-return.bpmn"),
+            SourcedProcessModel("bike-leasing.bpmn", testProcessModel(processId = "bike-leasing")),
+            SourcedProcessModel("bike-return.bpmn", testProcessModel(processId = "bike-return")),
         )
 
         // when: merging without variants

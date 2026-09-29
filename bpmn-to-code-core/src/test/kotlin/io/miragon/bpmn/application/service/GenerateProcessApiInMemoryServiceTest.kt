@@ -106,9 +106,10 @@ class GenerateProcessApiInMemoryServiceTest {
             engine = ProcessEngine.ZEEBE,
         )
 
-        // when / then: it fails and never generates code
+        // when / then: it fails naming both files and never generates code
         assertThatThrownBy { underTest.generateProcessApi(command) }
             .isInstanceOf(DuplicateProcessIdException::class.java)
+            .hasMessageContaining("v1.bpmn, v2.bpmn")
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
     }
 

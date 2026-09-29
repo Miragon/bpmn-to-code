@@ -3,6 +3,7 @@ package io.miragon.bpmn.domain.service
 import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
+import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.FlowScope
 
@@ -14,16 +15,28 @@ class ModelMergerService {
      * A process backed by several files gains one [Variant] per file, with [ProcessModel.flowNodes]
      * holding their union.
      */
-    fun mergeModels(models: List<ProcessModel>, enableVariants: Boolean = true): List<ProcessModel> {
+    fun mergeModels(models: List<ProcessModel>): List<ProcessModel> {
         val groupedModels = models.groupBy { it.processId }.entries.sortedBy { it.key }
-        return groupedModels.map { (processId, modelsOfProcess) ->
-            merge(processId, modelsOfProcess, enableVariants).sortContent()
-        }
+        return groupedModels.map { (processId, modelsOfProcess) -> merge(processId, modelsOfProcess).sortContent() }
     }
 
-    private fun merge(processId: String, models: List<ProcessModel>, enableVariants: Boolean): ProcessModel {
+    /**
+     * Takes the file names alongside the models so a conflict can name its files, while [ProcessModel]
+     * itself stays free of anything that could leak into generated output.
+     */
+    fun mergeModels(sources: List<SourcedProcessModel>, enableVariants: Boolean): List<ProcessModel> {
+        if (!enableVariants) requireUniqueProcessIds(sources)
+        return mergeModels(sources.map { it.model })
+    }
+
+    private fun requireUniqueProcessIds(sources: List<SourcedProcessModel>) {
+        val fileNamesByProcessId = sources.groupBy({ it.model.processId }, { it.fileName })
+        val duplicate = fileNamesByProcessId.entries.firstOrNull { it.value.size > 1 } ?: return
+        throw DuplicateProcessIdException(duplicate.key, duplicate.value)
+    }
+
+    private fun merge(processId: String, models: List<ProcessModel>): ProcessModel {
         if (models.size == 1) return models.first().deduplicated()
-        if (!enableVariants) throw DuplicateProcessIdException(processId, models.mapNotNull { it.sourceFileName })
         requireVariantNames(processId, models)
         val sorted = models.sortedBy { requireNotNull(it.variantName) }
         val merged = mergeScopes(sorted.map { it.scope() })

@@ -62,9 +62,10 @@ class GenerateProcessJsonServiceTest {
         every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(resource("v1.bpmn"), resource("v2.bpmn"))
         every { bpmnExtractor.extract(any(), any()) } returns dummyModel
 
-        // when / then: it fails and writes nothing
+        // when / then: it fails naming both files and writes nothing
         assertThatThrownBy { underTest.generateProcessJson(command()) }
             .isInstanceOf(DuplicateProcessIdException::class.java)
+            .hasMessageContaining("v1.bpmn, v2.bpmn")
         verify(exactly = 0) { fileSaver.writeFiles(any(), any()) }
     }
 

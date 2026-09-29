@@ -22,7 +22,6 @@ class ExtractBpmnAdapterTest {
 
         // then: the model carries the job-worker implementations only the Zeebe dialect produces
         assertThat(result.processId).isEqualTo("bikeLeasing")
-        assertThat(result.sourceFileName).isEqualTo(bpmnResource.fileName)
         assertThat(result.serviceTasks.map { it.implementation })
             .contains(TaskImplementation.JobWorker("miravelo.validateApplication"))
     }

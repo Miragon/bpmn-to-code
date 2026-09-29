@@ -15,6 +15,7 @@ import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.service.SharedDefinitionsService
@@ -38,7 +39,7 @@ class GenerateProcessApiService(
         val executableModels = filterExecutableProcesses(extractedModels)
         val models = executableModels.map { (_, model) -> model }
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
-        val mergedModels = modelMergerService.mergeModels(models, command.enableVariants)
+        val mergedModels = modelMergerService.mergeModels(toSourcedModels(executableModels), command.enableVariants)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
         val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
         val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(mergedModels, command))
@@ -53,6 +54,8 @@ class GenerateProcessApiService(
             )
         }
     }
+
+    private fun toSourcedModels(models: List<Pair<BpmnResource, ProcessModel>>) = models.map { (file, model) -> SourcedProcessModel(file.fileName, model) }
 
     private fun filterExecutableProcesses(
         extractedModels: List<Pair<BpmnResource, ProcessModel>>,

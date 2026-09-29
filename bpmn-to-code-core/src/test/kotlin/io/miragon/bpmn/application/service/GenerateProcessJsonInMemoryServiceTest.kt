@@ -63,9 +63,10 @@ class GenerateProcessJsonInMemoryServiceTest {
             engine = ProcessEngine.ZEEBE,
         )
 
-        // when / then: it fails
+        // when / then: it fails naming both files
         assertThatThrownBy { underTest.generateProcessJson(command) }
             .isInstanceOf(DuplicateProcessIdException::class.java)
+            .hasMessageContaining("v1.bpmn, v2.bpmn")
     }
 
     private val dummyModel = testProcessModel()

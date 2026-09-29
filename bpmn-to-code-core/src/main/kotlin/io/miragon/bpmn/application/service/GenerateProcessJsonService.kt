@@ -9,6 +9,9 @@ import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.application.port.outbound.SaveProcessJsonPort
+import io.miragon.bpmn.domain.BpmnResource
+import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
@@ -27,9 +30,11 @@ class GenerateProcessJsonService(
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val models = inputFiles.map { bpmnExtractor.extract(it, command.engine) }
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
-        val mergedModels = modelMergerService.mergeModels(models, command.enableVariants)
+        val mergedModels = modelMergerService.mergeModels(inputFiles.zip(models, ::toSourcedModel), command.enableVariants)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
         val generatedFiles = mergedModels.map { jsonGenerator.generateJson(it) }
         fileSaver.writeFiles(generatedFiles, command.outputFolderPath)
     }
+
+    private fun toSourcedModel(file: BpmnResource, model: ProcessModel) = SourcedProcessModel(file.fileName, model)
 }

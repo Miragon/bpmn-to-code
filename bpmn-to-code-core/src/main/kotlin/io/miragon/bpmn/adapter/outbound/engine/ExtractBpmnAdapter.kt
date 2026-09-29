@@ -20,7 +20,7 @@ internal class ExtractBpmnAdapter(
         val dialect = dialects[engine] ?: error("No dialect found for engine: $engine")
         return try {
             logger.info { "Extracting model '${bpmnFile.fileName}' for '$engine'" }
-            ProcessModelReader(dialect).read(bpmnFile.content).copy(sourceFileName = bpmnFile.fileName)
+            ProcessModelReader(dialect).read(bpmnFile.content)
         } catch (ex: IllegalStateException) {
             throw IllegalStateException(
                 "Failed to extract file: ${bpmnFile.fileName}. Please check its a valid file for $engine",
