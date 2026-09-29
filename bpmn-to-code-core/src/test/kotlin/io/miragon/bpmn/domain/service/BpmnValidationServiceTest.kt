@@ -10,6 +10,7 @@ import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
+import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -214,5 +215,26 @@ class BpmnValidationServiceTest {
 
         // then: the missing-element-id rule still fires despite being disabled
         assertThat(exception.violations).anyMatch { it.ruleId == "missing-element-id" }
+    }
+
+    @Test
+    fun `validates with the given rules instead of the built-in ones`() {
+        // given: a service that only knows the empty-process rule
+        val underTest = BpmnValidationService(rules = listOf(EmptyProcessRule()))
+        val emptyModel = testProcessModel(processId = "empty", flowNodes = emptyList())
+        val unimplementedModel = testProcessModel(
+            processId = "unimplemented",
+            flowNodes = listOf(serviceTaskWithoutImplementation("Task_1")),
+        )
+
+        // when
+        val violations = underTest.collectViolations(
+            models = listOf(emptyModel, unimplementedModel),
+            engine = ProcessEngine.ZEEBE,
+            phase = ValidationPhase.PRE_MERGE,
+        )
+
+        // then: only the given rule reports, the built-in service-task check does not run
+        assertThat(violations.map { it.ruleId to it.processId }).containsExactly("empty-process" to "empty")
     }
 }

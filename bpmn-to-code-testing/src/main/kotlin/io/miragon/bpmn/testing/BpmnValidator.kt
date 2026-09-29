@@ -3,14 +3,13 @@ package io.miragon.bpmn.testing
 import io.miragon.bpmn.adapter.inbound.ExtractProcessModelsPlugin
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.ValidationRule
-import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import java.nio.file.Path
@@ -106,32 +105,16 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
         engine: ProcessEngine,
         activeRules: List<ValidationRule>,
     ): ValidationResult {
-        val singleModelRules = activeRules.filterIsInstance<SingleModelValidationRule>()
-        val crossModelRules = activeRules.filterIsInstance<CrossModelValidationRule>()
-        val preMergeRules = singleModelRules.filter { it.phase == ValidationPhase.PRE_MERGE }
-        val postMergeRules = singleModelRules.filter { it.phase == ValidationPhase.POST_MERGE }
-
-        val preMergeViolations = models.flatMap { model ->
-            val ctx = SingleModelValidationContext(model, engine)
-            val violations = preMergeRules.flatMap { it.validate(ctx) }
-            applyPolicy(violations)
-        }
-
+        val validationService = BpmnValidationService(rules = activeRules)
+        val preMergeFindings = validationService.collectViolations(models = models, engine = engine, phase = ValidationPhase.PRE_MERGE)
+        val preMergeViolations = applyPolicy(preMergeFindings)
         if (preMergeViolations.any { it.severity == Severity.ERROR }) {
             return ValidationResult(preMergeViolations)
         }
-
         val mergedModels = ProcessModel.mergeByProcessId(models)
-        val postMergeViolations = mergedModels.flatMap { merged ->
-            val ctx = SingleModelValidationContext(merged, engine)
-            val violations = postMergeRules.flatMap { it.validate(ctx) }
-            applyPolicy(violations)
-        }
-
-        val crossModelContext = CrossModelValidationContext(mergedModels, engine)
-        val crossModelViolations = applyPolicy(crossModelRules.flatMap { it.validate(crossModelContext) })
-
-        return ValidationResult(preMergeViolations + postMergeViolations + crossModelViolations)
+        val postMergeFindings = validationService.collectViolations(models = mergedModels, engine = engine, phase = ValidationPhase.POST_MERGE)
+        val postMergeViolations = applyPolicy(postMergeFindings)
+        return ValidationResult(preMergeViolations + postMergeViolations)
     }
 
     companion object {
