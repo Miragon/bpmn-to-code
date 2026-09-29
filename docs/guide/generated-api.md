@@ -136,12 +136,18 @@ object Messages {
 
 // Errors.kt
 object Errors {
-  val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError = BpmnError("miravelo.applicationInvalid", "applicationInvalid")
+  val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError = BpmnError(
+    name = "miravelo.applicationInvalid",
+    code = "applicationInvalid",
+  )
 }
 
 // Escalations.kt
 object Escalations {
-  val MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED: BpmnEscalation = BpmnEscalation("miravelo.contractNotSigned", "contractNotSigned")
+  val MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED: BpmnEscalation = BpmnEscalation(
+    name = "miravelo.contractNotSigned",
+    code = "contractNotSigned",
+  )
 }
 ```
 
