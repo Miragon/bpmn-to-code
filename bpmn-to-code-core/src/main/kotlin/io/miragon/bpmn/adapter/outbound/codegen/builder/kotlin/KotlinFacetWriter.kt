@@ -99,10 +99,10 @@ internal class KotlinFacetWriter {
             val subtypeClass = ClassName(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addProperty(
                 PropertySpec.builder(variable.constantName, subtypeClass)
-                    .initializer("%T(%N.%N)", subtypeClass, KOTLIN_NAMES_HOLDER, variable.constantName).build(),
+                    .initializer("%T(%N.%N)", subtypeClass, KotlinNamesHolder.NAME, variable.constantName).build(),
             )
         }
-        return holder.addType(kotlinNamesHolder(variables.map { it.constantName to it.rawName })).build()
+        return holder.addType(KotlinNamesHolder(variables.map { it.constantName to it.rawName }).build()).build()
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {
