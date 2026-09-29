@@ -15,7 +15,8 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
  * `entries` / `all()` / `All` enumeration, and refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
  * element named like one of those would shadow it in at least one target language and the generated file
  * would not compile; an element whose accessor is named like a `java.lang.Object` method breaks the Java
- * output the same way.
+ * output the same way. In C#, the members of a node (`Id`, `Name`, `Message`, `Timer`, …) are PascalCase too
+ * and shadow an element of that name wherever the node refers to it.
  * A merged model renders each variant as its own `FlowNodes` under `FlowVariants.<Variant>`, so a variant name
  * must not be reserved either, nor match an element of its own variant (Java and C# reject a nested type
  * named like its enclosing type). Runs post-merge, like the collision check it complements.
@@ -74,6 +75,19 @@ class ReservedElementNameRule : SingleModelValidationRule {
             "NodeVariables",
             "InputMappings",
             "OutputMappings",
+            "Id",
+            "Name",
+            "ElementType",
+            "EventType",
+            "AttachedTo",
+            "IsInterrupting",
+            "JobType",
+            "CalledProcess",
+            "Message",
+            "Signal",
+            "Timer",
+            "Error",
+            "Escalation",
             "ElementId",
             "ProcessId",
             "MessageName",
