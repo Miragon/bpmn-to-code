@@ -34,13 +34,13 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
      * own outgoing flows — Java cannot name the node's `OutgoingFlows` holder type here the way Kotlin's
      * [ProcessPath] `via` does.
      */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> via(pick: Function<in N, SequenceFlow<M>>): PathWalk<M, MNEXT> = PathWalk(path.walk(pick.apply(path.current)))
+    fun <M : HasSuccessors<MNEXT>, MNEXT> via(pick: Function<in N, SequenceFlow<M>>): PathWalk<M, MNEXT> = PathWalk(path.traverse(pick.apply(path.current)))
 
     /**
      * Terminal form of [via]: advances along an outgoing sequence flow to a final element (e.g. an end event) and
      * stops, yielding a [Trail].
      */
-    fun <M : FlowNode> endVia(pick: Function<in N, SequenceFlow<M>>): Trail = Trail(path.walk(pick.apply(path.current)))
+    fun <M : FlowNode> endVia(pick: Function<in N, SequenceFlow<M>>): Trail = Trail(path.traverse(pick.apply(path.current)))
 
     /**
      * Records the same successor [times] times in a row — for a sequential multi-instance activity or a
@@ -137,8 +137,6 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
         internal val flows: List<SequenceFlow<*>> get() = path.flows
     }
 
-    private fun <M : FlowNode> ProcessPath<*>.walk(flow: SequenceFlow<M>): ProcessPath<M> = moveTo(node = flow.target, nodesToRecord = listOf(flow.target), flowsToRecord = listOf(flow))
-
     companion object {
 
         /**
@@ -152,6 +150,6 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
          */
         @JvmStatic
         @SafeVarargs
-        fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> = branches.flatMap { it }.distinct()
+        fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> = io.miragon.bpmn.runtime.path.nodesOf(*branches)
     }
 }
