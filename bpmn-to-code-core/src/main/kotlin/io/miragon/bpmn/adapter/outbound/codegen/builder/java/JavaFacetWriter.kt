@@ -98,10 +98,10 @@ internal class JavaFacetWriter {
             val subtypeClass = ClassName.get(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addField(
                 FieldSpec.builder(subtypeClass, variable.constantName, PUBLIC, STATIC, FINAL)
-                    .initializer("new \$T(\$N.\$N)", subtypeClass, JAVA_NAMES_HOLDER, variable.constantName).build(),
+                    .initializer("new \$T(\$N.\$N)", subtypeClass, JavaNamesHolder.NAME, variable.constantName).build(),
             )
         }
-        return holder.addType(javaNamesHolder(variables.map { it.constantName to it.rawName })).build()
+        return holder.addType(JavaNamesHolder(variables.map { it.constantName to it.rawName }).build()).build()
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {

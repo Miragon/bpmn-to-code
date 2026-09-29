@@ -63,8 +63,8 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
             val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
-            builder.addField(fieldBuilder.initializer("new \$T(\$N.\$N)", processIdClass, JAVA_NAMES_HOLDER, PROCESS_ID).build())
-            builder.addType(javaNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)))
+            builder.addField(fieldBuilder.initializer("new \$T(\$N.\$N)", processIdClass, JavaNamesHolder.NAME, PROCESS_ID).build())
+            builder.addType(JavaNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)).build())
         }
     }
 

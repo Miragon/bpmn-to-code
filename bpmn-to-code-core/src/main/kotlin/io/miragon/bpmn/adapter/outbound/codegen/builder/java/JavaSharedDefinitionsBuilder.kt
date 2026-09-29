@@ -1,22 +1,12 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.ClassName
-import com.palantir.javapoet.CodeBlock
-import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.JavaFile
-import com.palantir.javapoet.MethodSpec
-import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.SharedDefinitionsApi
-import io.miragon.bpmn.domain.shared.RootElementDefinition
-import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
-import io.miragon.bpmn.domain.shared.VariableMapping
-import javax.lang.model.element.Modifier.FINAL
-import javax.lang.model.element.Modifier.PUBLIC
-import javax.lang.model.element.Modifier.STATIC
 
 /**
  * Generates one Java class per kind of engine-global identifier, shared by all Process APIs of a run.
@@ -27,62 +17,43 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
     }
 
-    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> {
-        val definitions = api.definitions
-        return listOfNotNull(
-            serviceTasks(definitions.serviceTasks),
-            messages(definitions.messages),
-            signals(definitions.signals),
-            errors(definitions.errors),
-            escalations(definitions.escalations),
+    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = with(api.definitions) {
+        listOfNotNull(
+            serviceTasks.ifNotEmpty {
+                JavaSharedDefinitionHolder(
+                    type = SharedDefinitionType.SERVICE_TASKS,
+                    javadoc = "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
+                        "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
+                ).withConstants(it)
+            },
+            messages.ifNotEmpty {
+                JavaSharedDefinitionHolder(
+                    type = SharedDefinitionType.MESSAGES,
+                    javadoc = "BPMN message names used to correlate messages to running process instances.\n",
+                ).withNames(it, runtimeClass("MessageName"))
+            },
+            signals.ifNotEmpty {
+                JavaSharedDefinitionHolder(
+                    type = SharedDefinitionType.SIGNALS,
+                    javadoc = "BPMN signal names broadcast and caught by signal events.\n",
+                ).withNames(it, runtimeClass("SignalName"))
+            },
+            errors.ifNotEmpty {
+                JavaSharedDefinitionHolder(
+                    type = SharedDefinitionType.ERRORS,
+                    javadoc = "BPMN error definitions with name and code, as thrown and caught by the processes.\n",
+                ).withNamesAndCodes(it, runtimeClass("BpmnErrorDefinition"))
+            },
+            escalations.ifNotEmpty {
+                JavaSharedDefinitionHolder(
+                    type = SharedDefinitionType.ESCALATIONS,
+                    javadoc = "BPMN escalation definitions with name and code, as thrown and caught by the processes.\n",
+                ).withNamesAndCodes(it, runtimeClass("BpmnEscalationDefinition"))
+            },
         ).map { toFile(it, api) }
     }
 
-    private fun serviceTasks(serviceTasks: List<ServiceTaskDefinition>): TypeSpec? = serviceTasks.ifNotEmpty {
-        val tasksBuilder = JavaConstantHolder(SharedDefinitionType.SERVICE_TASKS.typeName).builder().addJavadoc(
-            "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
-                "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
-        )
-        serviceTasks.forEach { task -> tasksBuilder.addField(createConstant(task)) }
-        tasksBuilder.addMethod(all(serviceTasks, ClassName.get(String::class.java)))
-        tasksBuilder.build()
-    }
-
-    private fun messages(messages: List<RootElementDefinition.Message>): TypeSpec? = messages.ifNotEmpty {
-        val messageNameClass = ClassName.get(RUNTIME_PACKAGE, "MessageName")
-        val messagesBuilder = JavaConstantHolder(SharedDefinitionType.MESSAGES.typeName).builder()
-            .addJavadoc("BPMN message names used to correlate messages to running process instances.\n")
-        messages.forEach { message -> messagesBuilder.addField(createTypedAttribute(message, messageNameClass)) }
-        messagesBuilder.addMethod(all(messages, messageNameClass))
-        messagesBuilder.build()
-    }
-
-    private fun signals(signals: List<RootElementDefinition.Signal>): TypeSpec? = signals.ifNotEmpty {
-        val signalNameClass = ClassName.get(RUNTIME_PACKAGE, "SignalName")
-        val signalsBuilder = JavaConstantHolder(SharedDefinitionType.SIGNALS.typeName).builder()
-            .addJavadoc("BPMN signal names broadcast and caught by signal events.\n")
-        signals.forEach { signal -> signalsBuilder.addField(createTypedAttribute(signal, signalNameClass)) }
-        signalsBuilder.addMethod(all(signals, signalNameClass))
-        signalsBuilder.build()
-    }
-
-    private fun errors(errors: List<RootElementDefinition.Error>): TypeSpec? = errors.ifNotEmpty {
-        val bpmnErrorClass = ClassName.get(RUNTIME_PACKAGE, "BpmnErrorDefinition")
-        val errorsBuilder = JavaConstantHolder(SharedDefinitionType.ERRORS.typeName).builder()
-            .addJavadoc("BPMN error definitions with name and code, as thrown and caught by the processes.\n")
-        errors.forEach { errorsBuilder.addField(createNameAndCodeAttribute(it, bpmnErrorClass)) }
-        errorsBuilder.addMethod(all(errors, bpmnErrorClass))
-        errorsBuilder.build()
-    }
-
-    private fun escalations(escalations: List<RootElementDefinition.Escalation>): TypeSpec? = escalations.ifNotEmpty {
-        val bpmnEscalationClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEscalationDefinition")
-        val escalationsBuilder = JavaConstantHolder(SharedDefinitionType.ESCALATIONS.typeName).builder()
-            .addJavadoc("BPMN escalation definitions with name and code, as thrown and caught by the processes.\n")
-        escalations.forEach { escalationsBuilder.addField(createNameAndCodeAttribute(it, bpmnEscalationClass)) }
-        escalationsBuilder.addMethod(all(escalations, bpmnEscalationClass))
-        escalationsBuilder.build()
-    }
+    private fun runtimeClass(name: String): ClassName = ClassName.get(RUNTIME_PACKAGE, name)
 
     private fun toFile(type: TypeSpec, api: SharedDefinitionsApi): GeneratedApiFile {
         val javaFile = JavaFile.builder(api.packagePath, type).skipJavaLangImports(true).addFileComment(autoGenComment).build()
@@ -95,24 +66,5 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         )
     }
 
-    private fun createConstant(variable: VariableMapping<String>): FieldSpec = FieldSpec.builder(String::class.java, variable.getName())
-        .addModifiers(PUBLIC, STATIC, FINAL).initializer("\$S", variable.getValue()).build()
-
-    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): FieldSpec = FieldSpec.builder(wrapperClass, variable.getName())
-        .addModifiers(PUBLIC, STATIC, FINAL).initializer("new \$T(\$S)", wrapperClass, variable.getValue()).build()
-
-    private fun createNameAndCodeAttribute(variable: VariableMapping<Pair<String, String>>, wrapperClass: ClassName): FieldSpec {
-        val (name, code) = variable.getValue()
-        return FieldSpec.builder(wrapperClass, variable.getName())
-            .addModifiers(PUBLIC, STATIC, FINAL).initializer("new \$T(\$S, \$S)", wrapperClass, name, code).build()
-    }
-
-    private fun all(variables: List<VariableMapping<*>>, elementType: ClassName): MethodSpec {
-        val fields = variables.map { CodeBlock.of("\$N", it.getName()) }
-        return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
-            .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), elementType))
-            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(fields, ",\n")).build()
-    }
-
-    private fun <T> List<T>.ifNotEmpty(build: () -> TypeSpec): TypeSpec? = if (isEmpty()) null else build()
+    private fun <T> List<T>.ifNotEmpty(build: (List<T>) -> TypeSpec): TypeSpec? = if (isEmpty()) null else build(this)
 }
