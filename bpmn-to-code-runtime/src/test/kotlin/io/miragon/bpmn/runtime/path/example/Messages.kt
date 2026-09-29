@@ -5,6 +5,7 @@ package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.MessageName
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * BPMN message names used to correlate messages to running process instances.
@@ -21,4 +22,12 @@ object Messages {
 
   val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName =
       MessageName("miravelo.leasingRequestReceived")
+
+  val entries: List<MessageName> = listOf(
+    MIRAVELO_ADDRESS_CHANGED,
+    MIRAVELO_APPLICATION_WITHDRAWN,
+    MIRAVELO_CONTRACT_SIGNED,
+    MIRAVELO_HANDOVER_REPORTED,
+    MIRAVELO_LEASING_REQUEST_RECEIVED,
+  )
 }

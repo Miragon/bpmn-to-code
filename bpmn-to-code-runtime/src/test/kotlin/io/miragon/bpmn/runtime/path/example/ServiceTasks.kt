@@ -5,6 +5,7 @@ package io.miragon.bpmn.runtime.path.example
 
 import kotlin.String
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.
@@ -31,4 +32,16 @@ object ServiceTasks {
       "miravelo.sendCancellationConfirmation"
 
   const val MIRAVELO_SEND_REJECTION: String = "miravelo.sendRejection"
+
+  val entries: List<String> = listOf(
+    CANCEL_CONTRACT_DELEGATE,
+    MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_,
+    SEND_CONTRACT_DELEGATE,
+    VALIDATE_APPLICATION_DELEGATE,
+    IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE,
+    MIRAVELO_CANCEL_POLICY,
+    MIRAVELO_ORDER_BIKE,
+    MIRAVELO_SEND_CANCELLATION_CONFIRMATION,
+    MIRAVELO_SEND_REJECTION,
+  )
 }

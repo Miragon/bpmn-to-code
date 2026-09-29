@@ -114,7 +114,8 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
                     "Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the " +
                     "elements reachable from it behind `then()` — so a full path is verified by the compiler and " +
                     "offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess " +
-                    "depth; a subprocess opens its interior via `start()`.\n" +
+                    "depth; a subprocess opens its interior via `start()`. `entries` lists every element, and all of " +
+                    "them implement the sealed `Node`, so a `when` over them can be exhaustive.\n" +
                     "Intended for tooling, tests, and reasoning about the process shape.",
             )
         KotlinFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))

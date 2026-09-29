@@ -20,15 +20,26 @@ import javax.lang.model.element.Modifier.STATIC
  * elements they lead to. All nodes are direct children of `Flow`, whatever their subprocess depth; a subprocess
  * class additionally is a `FlowScope` whose `start()` yields the interior's start elements, and a boundary event
  * is marked `BoundaryEvent`. `Flow` also exposes a static accessor
- * method per node, since a Java nested class has to be instantiated to be used as a value.
+ * method per node, since a Java nested class has to be instantiated to be used as a value, and `all()` listing
+ * every node.
  */
 internal class JavaFlowWriter {
 
     private val facetWriter = JavaFacetWriter()
 
     fun write(builder: TypeSpec.Builder, graph: FlowGraph) {
+        builder.addMethod(allNodes(graph))
         graph.nodes.forEach { node -> builder.addMethod(nodeAccessor(node.propertyName, node.objectName, static = true)) }
         graph.nodes.forEach { node -> builder.addType(buildNode(node)) }
+    }
+
+    private fun allNodes(graph: FlowGraph): MethodSpec {
+        val nodes = graph.nodes.map { CodeBlock.of("new \$T()", ClassName.get("", it.objectName)) }
+        return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
+            .addJavadoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.\n")
+            .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), ClassName.get(RUNTIME_PACKAGE, "FlowNode")))
+            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(nodes, ",\n"))
+            .build()
     }
 
     private fun buildNode(node: FlowGraphNode): TypeSpec {

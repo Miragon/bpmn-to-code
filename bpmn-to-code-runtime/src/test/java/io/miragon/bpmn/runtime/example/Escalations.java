@@ -2,10 +2,16 @@
 package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.BpmnEscalation;
+import java.util.List;
 
 /**
  * BPMN escalation definitions with name and code, as thrown and caught by the processes.
  */
 public final class Escalations {
   public static final BpmnEscalation MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED = new BpmnEscalation("miravelo.contractNotSigned", "contractNotSigned");
+
+  public static List<BpmnEscalation> all() {
+    return List.of(
+        MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED);
+  }
 }

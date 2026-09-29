@@ -11,8 +11,8 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 /**
  * Rejects element ids and variant names whose generated name would shadow a part of the Process API itself.
  *
- * Every element becomes a nested type inside `Flow`, next to the holders (`Next`, `OutgoingFlows`, `Start`, …), and
- * refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
+ * Every element becomes a nested type inside `Flow`, next to the holders (`Next`, `OutgoingFlows`, `Start`, …), the
+ * sealed `Node` supertype and the `all()` / `All` enumeration, and refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
  * element named like one of those would shadow it in at least one target language and the generated file
  * would not compile; an element whose accessor is named like a `java.lang.Object` method breaks the Java
  * output the same way.
@@ -66,6 +66,8 @@ class ReservedElementNameRule : SingleModelValidationRule {
 
         val RESERVED_TYPE_NAMES: Set<String> = setOf(
             "Flow",
+            "Node",
+            "All",
             "Next",
             "Start",
             "OutgoingFlows",

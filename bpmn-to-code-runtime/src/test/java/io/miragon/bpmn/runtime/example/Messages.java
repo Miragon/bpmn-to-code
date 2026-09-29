@@ -2,6 +2,7 @@
 package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.MessageName;
+import java.util.List;
 
 /**
  * BPMN message names used to correlate messages to running process instances.
@@ -16,4 +17,13 @@ public final class Messages {
   public static final MessageName MIRAVELO_HANDOVER_REPORTED = new MessageName("miravelo.handoverReported");
 
   public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
+
+  public static List<MessageName> all() {
+    return List.of(
+        MIRAVELO_ADDRESS_CHANGED,
+        MIRAVELO_APPLICATION_WITHDRAWN,
+        MIRAVELO_CONTRACT_SIGNED,
+        MIRAVELO_HANDOVER_REPORTED,
+        MIRAVELO_LEASING_REQUEST_RECEIVED);
+  }
 }

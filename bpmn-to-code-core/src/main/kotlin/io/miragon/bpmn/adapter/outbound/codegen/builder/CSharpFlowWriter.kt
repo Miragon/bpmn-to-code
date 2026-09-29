@@ -9,6 +9,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpRuntimeTypes
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.nullableStringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.writer.staticListProperty
 
 /**
  * Emits the typed navigation graph of a C# process API `Flow` class: one nested sealed singleton class per flow
@@ -16,7 +17,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.st
  * facets (see [CSharpFacetWriter]), its successors behind `Next`, its outgoing sequence flows behind
  * `OutgoingFlows` (named after the elements they lead to), and — for a subprocess — its interior's start elements
  * behind `Start`. All nodes are direct children of `Flow`, whatever their subprocess depth; a boundary event
- * additionally implements `IBoundaryEvent`.
+ * additionally implements `IBoundaryEvent`. `Flow.All` lists every node.
  *
  * Holder classes (`Successors`, `OutgoingSequenceFlows`, `Interior`) are named differently from the properties
  * that expose them (`Next`, `OutgoingFlows`, `Start`), since C# rejects a member sharing its enclosing type's
@@ -28,6 +29,8 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
     private val facetWriter = CSharpFacetWriter(writer)
 
     fun write(graph: FlowGraph) {
+        writer.staticListProperty("All", runtime("IFlowNode"), graph.nodes.map { "${it.objectName}.Instance" }, "Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
+        writer.line()
         writer.forEachSeparated(graph.nodes) { node -> writeNode(node) }
     }
 

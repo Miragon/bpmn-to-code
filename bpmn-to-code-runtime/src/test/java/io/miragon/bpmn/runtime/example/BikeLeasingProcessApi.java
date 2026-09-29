@@ -8,6 +8,7 @@ import io.miragon.bpmn.runtime.BpmnError;
 import io.miragon.bpmn.runtime.BpmnEscalation;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
+import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
@@ -18,6 +19,7 @@ import io.miragon.bpmn.runtime.SequenceFlow;
 import io.miragon.bpmn.runtime.VariableName;
 import java.lang.Override;
 import java.lang.String;
+import java.util.List;
 
 public final class BikeLeasingProcessApi {
   public static final ProcessId PROCESS_ID = new ProcessId("bikeLeasing");
@@ -25,9 +27,58 @@ public final class BikeLeasingProcessApi {
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
   /**
-   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}.
+   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}, and {@code all()} lists every element.
    */
   public static final class Flow {
+    /**
+     * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+     */
+    public static List<FlowNode> all() {
+      return List.of(
+          new BoundaryApplicationInvalid(),
+          new BoundaryCompensateContract(),
+          new BoundaryCompensateInsurance(),
+          new BoundaryCompensateOrder(),
+          new BoundaryContractNotSigned(),
+          new BusinessRuleTaskCheckCreditRating(),
+          new CallActivityCancelBikeOrder(),
+          new EndEventApplicationCancelled(),
+          new EndEventApplicationRejected(),
+          new EndEventContractConcluded(),
+          new EndEventContractNotSigned(),
+          new EndEventCustomerReminded(),
+          new EndEventDeliveryAddressUpdated(),
+          new EndEventLeasingActive(),
+          new EventContractSigned(),
+          new EventReverseApplication(),
+          new GatewayAwaitSignature(),
+          new GatewayCollectRejections(),
+          new GatewayFork(),
+          new GatewayIsSolvent(),
+          new GatewayJoin(),
+          new ReceiveTaskHandoverReported(),
+          new ServiceTaskCancelContract(),
+          new ServiceTaskCancelPolicy(),
+          new ServiceTaskIssueInsurancePolicy(),
+          new ServiceTaskOrderBike(),
+          new ServiceTaskSendCancellationConfirmation(),
+          new ServiceTaskSendContract(),
+          new ServiceTaskSendRejection(),
+          new ServiceTaskSendReminderMail(),
+          new ServiceTaskValidateApplication(),
+          new StartEventAddressChanged(),
+          new StartEventApplicationWithdrawn(),
+          new StartEventCustomerEligible(),
+          new StartEventLeasingRequestReceived(),
+          new SubProcessAddressChanged(),
+          new SubProcessApplicationWithdrawn(),
+          new SubProcessConcludeContract(),
+          new TimerSignatureDeadline(),
+          new TimerSignatureReminder(),
+          new TimerWithdrawalPeriodElapsed(),
+          new UserTaskUpdateDeliveryAddress());
+    }
+
     public static BoundaryApplicationInvalid boundaryApplicationInvalid() {
       return new BoundaryApplicationInvalid();
     }

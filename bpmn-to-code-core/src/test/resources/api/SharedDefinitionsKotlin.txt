@@ -6,6 +6,7 @@ package de.emaarco.example
 
 import kotlin.String
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.
@@ -39,6 +40,21 @@ object ServiceTasks {
       "miravelo.sendCancellationConfirmation"
 
   const val MIRAVELO_SEND_REJECTION: String = "miravelo.sendRejection"
+
+  val entries: List<String> = listOf(
+    BOOK_CANCELLATION_COSTS_DELEGATE,
+    CANCEL_CONTRACT_DELEGATE,
+    MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_,
+    SEND_CONTRACT_DELEGATE,
+    VALIDATE_APPLICATION_DELEGATE,
+    IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE,
+    MIRAVELO_BIKE_ORDER_CANCELLED,
+    MIRAVELO_CANCEL_POLICY,
+    MIRAVELO_ORDER_BIKE,
+    MIRAVELO_REQUEST_CANCELLATION,
+    MIRAVELO_SEND_CANCELLATION_CONFIRMATION,
+    MIRAVELO_SEND_REJECTION,
+  )
 }
 
 // ===== Messages.kt
@@ -49,6 +65,7 @@ package de.emaarco.example
 
 import io.miragon.bpmn.runtime.MessageName
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * BPMN message names used to correlate messages to running process instances.
@@ -67,6 +84,15 @@ object Messages {
 
   val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName =
       MessageName("miravelo.leasingRequestReceived")
+
+  val entries: List<MessageName> = listOf(
+    MIRAVELO_ADDRESS_CHANGED,
+    MIRAVELO_APPLICATION_WITHDRAWN,
+    MIRAVELO_BIKE_ORDER_CANCELLED,
+    MIRAVELO_CONTRACT_SIGNED,
+    MIRAVELO_HANDOVER_REPORTED,
+    MIRAVELO_LEASING_REQUEST_RECEIVED,
+  )
 }
 
 // ===== Errors.kt
@@ -77,6 +103,7 @@ package de.emaarco.example
 
 import io.miragon.bpmn.runtime.BpmnError
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * BPMN error definitions with name and code, as thrown and caught by the processes.
@@ -85,6 +112,10 @@ object Errors {
   val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError = BpmnError(
     name = "miravelo.applicationInvalid",
     code = "applicationInvalid",
+  )
+
+  val entries: List<BpmnError> = listOf(
+    MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID,
   )
 }
 
@@ -96,6 +127,7 @@ package de.emaarco.example
 
 import io.miragon.bpmn.runtime.BpmnEscalation
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * BPMN escalation definitions with name and code, as thrown and caught by the processes.
@@ -104,5 +136,9 @@ object Escalations {
   val MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED: BpmnEscalation = BpmnEscalation(
     name = "miravelo.contractNotSigned",
     code = "contractNotSigned",
+  )
+
+  val entries: List<BpmnEscalation> = listOf(
+    MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED,
   )
 }

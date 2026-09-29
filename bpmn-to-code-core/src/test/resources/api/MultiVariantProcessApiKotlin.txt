@@ -7,6 +7,7 @@ import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
@@ -16,6 +17,7 @@ import io.miragon.bpmn.runtime.VariableName
 import kotlin.Boolean
 import kotlin.String
 import kotlin.Suppress
+import kotlin.collections.List
 
 object CancelBikeOrderProcessApi {
   val PROCESS_ID: ProcessId = ProcessId("cancelBikeOrder")
@@ -28,15 +30,35 @@ object CancelBikeOrderProcessApi {
   object FlowVariants {
     /**
      * Typed navigation over the process flow.
-     * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `then()` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess depth; a subprocess opens its interior via `start()`.
+     * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `then()` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess depth; a subprocess opens its interior via `start()`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
      * Intended for tooling, tests, and reasoning about the process shape.
      */
     object Retail {
+      /**
+       * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+       */
+      val entries: List<Node> = listOf(
+        BoundaryCancellationFailed,
+        EndEventBikeOrderCancelled,
+        GatewayCancellationPossible,
+        GatewayCollectClarifications,
+        GatewayMergeReturn,
+        ServiceTaskBookCancellationCosts,
+        ServiceTaskRequestCancellation,
+        StartEventCancellationRequired,
+        UserTaskClarifyReturn,
+      )
+
+      /**
+       * Common supertype of this flow's nodes, so a `when` over them can be exhaustive.
+       */
+      sealed interface Node : FlowNode
+
       object BoundaryCancellationFailed : AbstractFlowNode(
         id = ElementId("boundary_cancellationFailed"),
         elementType = "ERROR_BOUNDARY_EVENT",
         name = "Cancellation failed",
-      ), HasSuccessors<BoundaryCancellationFailed.Next>,
+      ), Node, HasSuccessors<BoundaryCancellationFailed.Next>,
           HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>, BoundaryEvent {
         val attachedTo: ServiceTaskRequestCancellation
           get() = ServiceTaskRequestCancellation
@@ -68,7 +90,7 @@ object CancelBikeOrderProcessApi {
         id = ElementId("endEvent_bikeOrderCancelled"),
         elementType = "MESSAGE_END_EVENT",
         name = "Bike order cancelled",
-      ) {
+      ), Node {
         const val JOB_TYPE: String = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED
 
         val message: MessageName = Messages.MIRAVELO_BIKE_ORDER_CANCELLED
@@ -78,7 +100,7 @@ object CancelBikeOrderProcessApi {
         id = ElementId("gateway_cancellationPossible"),
         elementType = "EXCLUSIVE_GATEWAY",
         name = "Cancellation possible?",
-      ), HasSuccessors<GatewayCancellationPossible.Next>,
+      ), Node, HasSuccessors<GatewayCancellationPossible.Next>,
           HasOutgoingFlows<GatewayCancellationPossible.OutgoingFlows> {
         override fun then(): Next = Next
 
@@ -116,7 +138,7 @@ object CancelBikeOrderProcessApi {
       object GatewayCollectClarifications : AbstractFlowNode(
         id = ElementId("gateway_collectClarifications"),
         elementType = "EXCLUSIVE_GATEWAY",
-      ), HasSuccessors<GatewayCollectClarifications.Next>,
+      ), Node, HasSuccessors<GatewayCollectClarifications.Next>,
           HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
         override fun then(): Next = Next
 
@@ -142,7 +164,7 @@ object CancelBikeOrderProcessApi {
       object GatewayMergeReturn : AbstractFlowNode(
         id = ElementId("gateway_mergeReturn"),
         elementType = "EXCLUSIVE_GATEWAY",
-      ), HasSuccessors<GatewayMergeReturn.Next>,
+      ), Node, HasSuccessors<GatewayMergeReturn.Next>,
           HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
         override fun then(): Next = Next
 
@@ -170,7 +192,7 @@ object CancelBikeOrderProcessApi {
         id = ElementId("serviceTask_bookCancellationCosts"),
         elementType = "SERVICE_TASK",
         name = "Book cancellation costs",
-      ), HasSuccessors<ServiceTaskBookCancellationCosts.Next>,
+      ), Node, HasSuccessors<ServiceTaskBookCancellationCosts.Next>,
           HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
         const val JOB_TYPE: String = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE
 
@@ -204,7 +226,7 @@ object CancelBikeOrderProcessApi {
         id = ElementId("serviceTask_requestCancellation"),
         elementType = "SERVICE_TASK",
         name = "Request cancellation",
-      ), HasSuccessors<ServiceTaskRequestCancellation.Next>,
+      ), Node, HasSuccessors<ServiceTaskRequestCancellation.Next>,
           HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
         const val JOB_TYPE: String = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION
 
@@ -241,7 +263,7 @@ object CancelBikeOrderProcessApi {
         id = ElementId("startEvent_cancellationRequired"),
         elementType = "START_EVENT",
         name = "Cancellation required",
-      ), HasSuccessors<StartEventCancellationRequired.Next>,
+      ), Node, HasSuccessors<StartEventCancellationRequired.Next>,
           HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows> {
         override fun then(): Next = Next
 
@@ -272,7 +294,7 @@ object CancelBikeOrderProcessApi {
         id = ElementId("userTask_clarifyReturn"),
         elementType = "USER_TASK",
         name = "Clarify return",
-      ), HasSuccessors<UserTaskClarifyReturn.Next>,
+      ), Node, HasSuccessors<UserTaskClarifyReturn.Next>,
           HasOutgoingFlows<UserTaskClarifyReturn.OutgoingFlows> {
         override fun then(): Next = Next
 

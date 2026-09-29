@@ -40,6 +40,11 @@ one process contains a matching element. Errors and escalations are named `NAME_
 (`MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID`) because the engine matches them by code — the same name with another code is a
 different error. Without a code the constant is named after the name alone.
 
+Every file also lists its values: Kotlin `ServiceTasks.entries`, Java `ServiceTasks.all()`, C#
+`ServiceTasks.All`. That turns "every job type has a registered worker" or "every message is correlated
+somewhere" into a plain loop in a test, instead of reading the constants back via reflection. When the model gains
+a job type, the list grows with it, and the test fails until the worker exists.
+
 ::: warning One `packagePath` per generation run
 The shared files are named after their kind, not after a process. Two generation runs (Gradle tasks or
 Maven executions) writing into the same package overwrite each other's `ServiceTasks`, `Messages`, … —
@@ -356,6 +361,36 @@ object SubProcessConcludeContract :
 Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `name`), **`HasSuccessors<Next>`**,
 **`HasOutgoingFlows<OutgoingFlows>`**, **`FlowScope<Start>`** and the marker **`BoundaryEvent`**.
 
+### Enumerating elements
+
+Some tests are not about one path but about **every element** of a process: every job type has a registered
+worker, every node id exists in the deployed model, every user task has a form. For these, each `Flow` (and
+each variant under `FlowVariants`) lists its nodes: Kotlin `Flow.entries`, Java `Flow.all()`, C# `Flow.All`.
+The test becomes a plain loop, with no reflection over nested classes that would also pick up holders like
+`Next` or `Variables`.
+
+In Kotlin, every node of a process also implements that flow's sealed **`Flow.Node`**, so a `when` over it is
+exhaustive. When the model gains an element, every such `when` stops compiling until it handles the new
+element, instead of letting it slip into an `else`.
+
+```kotlin
+@Test
+fun `every node of the model is deployed`() {
+    val deployedIds = deployedModel.flowNodeIds()
+    assertThat(Flow.entries.map { it.id.value }).allMatch { it in deployedIds }
+}
+
+fun owner(node: Flow.Node): String = when (node) {
+    Flow.ServiceTaskOrderBike, Flow.ServiceTaskCancelPolicy -> "fulfilment"
+    Flow.UserTaskUpdateDeliveryAddress -> "support"
+    // … one branch per node, no `else` needed
+}
+```
+
+```java
+List<FlowNode> nodes = Flow.all();
+```
+
 ### Asserting flow in process tests — `ProcessPath`
 
 `bpmn-to-code-runtime` ships `ProcessPath`, a compile-checked path builder over the graph — so it is available
@@ -566,7 +601,8 @@ generated file as a nested `Runtime` class. Two generated files in one assembly 
 consumers reference `MyProcessApi.Runtime.ElementId`. The flip side: `AProcessApi.Runtime.IFlowNode` and
 `BProcessApi.Runtime.IFlowNode` are unrelated types, so tooling that spans several processes needs its own
 abstraction. The [shared definition](#shared-definitions) files need no runtime types: they hold plain
-`const string`s (errors and escalations as a nested class with `Reference` and `Code`).
+`const string`s (errors and escalations as a nested class with `Reference` and `Code`; their `All` lists
+`(Reference, Code)` tuples).
 
 Nodes are sealed singletons reached via `Flow.<Node>.Instance` and navigated through instance properties
 (`Instance.Next.X`, `Instance.OutgoingFlows.ToX.ConditionExpression`, `Instance.Start.X`). `ServiceTasks.X` and

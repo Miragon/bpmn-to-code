@@ -10,6 +10,7 @@ import io.miragon.bpmn.runtime.BpmnError
 import io.miragon.bpmn.runtime.BpmnEscalation
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
@@ -21,6 +22,7 @@ import io.miragon.bpmn.runtime.VariableName
 import kotlin.Boolean
 import kotlin.String
 import kotlin.Suppress
+import kotlin.collections.List
 
 object BikeLeasingProcessApi {
   val PROCESS_ID: ProcessId = ProcessId("bikeLeasing")
@@ -29,15 +31,68 @@ object BikeLeasingProcessApi {
 
   /**
    * Typed navigation over the process flow.
-   * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `then()` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess depth; a subprocess opens its interior via `start()`.
+   * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `then()` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess depth; a subprocess opens its interior via `start()`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
    * Intended for tooling, tests, and reasoning about the process shape.
    */
   object Flow {
+    /**
+     * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+     */
+    val entries: List<Node> = listOf(
+      BoundaryApplicationInvalid,
+      BoundaryCompensateContract,
+      BoundaryCompensateInsurance,
+      BoundaryCompensateOrder,
+      BoundaryContractNotSigned,
+      BusinessRuleTaskCheckCreditRating,
+      CallActivityCancelBikeOrder,
+      EndEventApplicationCancelled,
+      EndEventApplicationRejected,
+      EndEventContractConcluded,
+      EndEventContractNotSigned,
+      EndEventCustomerReminded,
+      EndEventDeliveryAddressUpdated,
+      EndEventLeasingActive,
+      EventContractSigned,
+      EventReverseApplication,
+      GatewayAwaitSignature,
+      GatewayCollectRejections,
+      GatewayFork,
+      GatewayIsSolvent,
+      GatewayJoin,
+      ReceiveTaskHandoverReported,
+      ServiceTaskCancelContract,
+      ServiceTaskCancelPolicy,
+      ServiceTaskIssueInsurancePolicy,
+      ServiceTaskOrderBike,
+      ServiceTaskSendCancellationConfirmation,
+      ServiceTaskSendContract,
+      ServiceTaskSendRejection,
+      ServiceTaskSendReminderMail,
+      ServiceTaskValidateApplication,
+      StartEventAddressChanged,
+      StartEventApplicationWithdrawn,
+      StartEventCustomerEligible,
+      StartEventLeasingRequestReceived,
+      SubProcessAddressChanged,
+      SubProcessApplicationWithdrawn,
+      SubProcessConcludeContract,
+      TimerSignatureDeadline,
+      TimerSignatureReminder,
+      TimerWithdrawalPeriodElapsed,
+      UserTaskUpdateDeliveryAddress,
+    )
+
+    /**
+     * Common supertype of this flow's nodes, so a `when` over them can be exhaustive.
+     */
+    sealed interface Node : FlowNode
+
     object BoundaryApplicationInvalid : AbstractFlowNode(
       id = ElementId("boundary_applicationInvalid"),
       elementType = "ERROR_BOUNDARY_EVENT",
       name = "Application invalid",
-    ), HasSuccessors<BoundaryApplicationInvalid.Next>,
+    ), Node, HasSuccessors<BoundaryApplicationInvalid.Next>,
         HasOutgoingFlows<BoundaryApplicationInvalid.OutgoingFlows>, BoundaryEvent {
       val error: BpmnError = Errors.MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID
 
@@ -71,7 +126,7 @@ object BikeLeasingProcessApi {
       id = ElementId("boundary_compensateContract"),
       elementType = "COMPENSATION_BOUNDARY_EVENT",
       name = "Contract to revoke",
-    ), BoundaryEvent {
+    ), Node, BoundaryEvent {
       val attachedTo: SubProcessConcludeContract
         get() = SubProcessConcludeContract
 
@@ -82,7 +137,7 @@ object BikeLeasingProcessApi {
       id = ElementId("boundary_compensateInsurance"),
       elementType = "COMPENSATION_BOUNDARY_EVENT",
       name = "Policy to cancel",
-    ), BoundaryEvent {
+    ), Node, BoundaryEvent {
       val attachedTo: ServiceTaskIssueInsurancePolicy
         get() = ServiceTaskIssueInsurancePolicy
 
@@ -93,7 +148,7 @@ object BikeLeasingProcessApi {
       id = ElementId("boundary_compensateOrder"),
       elementType = "COMPENSATION_BOUNDARY_EVENT",
       name = "Order to cancel",
-    ), BoundaryEvent {
+    ), Node, BoundaryEvent {
       val attachedTo: ServiceTaskOrderBike
         get() = ServiceTaskOrderBike
 
@@ -104,7 +159,7 @@ object BikeLeasingProcessApi {
       id = ElementId("boundary_contractNotSigned"),
       elementType = "ESCALATION_BOUNDARY_EVENT",
       name = "Contract not signed",
-    ), HasSuccessors<BoundaryContractNotSigned.Next>,
+    ), Node, HasSuccessors<BoundaryContractNotSigned.Next>,
         HasOutgoingFlows<BoundaryContractNotSigned.OutgoingFlows>, BoundaryEvent {
       val escalation: BpmnEscalation =
           Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED
@@ -139,7 +194,7 @@ object BikeLeasingProcessApi {
       id = ElementId("businessRuleTask_checkCreditRating"),
       elementType = "BUSINESS_RULE_TASK",
       name = "Check credit rating",
-    ), HasSuccessors<BusinessRuleTaskCheckCreditRating.Next>,
+    ), Node, HasSuccessors<BusinessRuleTaskCheckCreditRating.Next>,
         HasOutgoingFlows<BusinessRuleTaskCheckCreditRating.OutgoingFlows> {
       override fun then(): Next = Next
 
@@ -166,7 +221,7 @@ object BikeLeasingProcessApi {
       id = ElementId("callActivity_cancelBikeOrder"),
       elementType = "CALL_ACTIVITY",
       name = "Cancel bike order",
-    ) {
+    ), Node {
       val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
 
       object Variables {
@@ -202,25 +257,25 @@ object BikeLeasingProcessApi {
       id = ElementId("endEvent_applicationCancelled"),
       elementType = "END_EVENT",
       name = "Application cancelled",
-    )
+    ), Node
 
     object EndEventApplicationRejected : AbstractFlowNode(
       id = ElementId("endEvent_applicationRejected"),
       elementType = "END_EVENT",
       name = "Application rejected",
-    )
+    ), Node
 
     object EndEventContractConcluded : AbstractFlowNode(
       id = ElementId("endEvent_contractConcluded"),
       elementType = "END_EVENT",
       name = "Contract concluded",
-    )
+    ), Node
 
     object EndEventContractNotSigned : AbstractFlowNode(
       id = ElementId("endEvent_contractNotSigned"),
       elementType = "ESCALATION_END_EVENT",
       name = "Contract not signed",
-    ) {
+    ), Node {
       val escalation: BpmnEscalation =
           Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED
     }
@@ -229,25 +284,25 @@ object BikeLeasingProcessApi {
       id = ElementId("endEvent_customerReminded"),
       elementType = "END_EVENT",
       name = "Customer reminded",
-    )
+    ), Node
 
     object EndEventDeliveryAddressUpdated : AbstractFlowNode(
       id = ElementId("endEvent_deliveryAddressUpdated"),
       elementType = "END_EVENT",
       name = "Delivery address updated",
-    )
+    ), Node
 
     object EndEventLeasingActive : AbstractFlowNode(
       id = ElementId("endEvent_leasingActive"),
       elementType = "END_EVENT",
       name = "Leasing active",
-    )
+    ), Node
 
     object EventContractSigned : AbstractFlowNode(
       id = ElementId("event_contractSigned"),
       elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
       name = "Contract signed",
-    ), HasSuccessors<EventContractSigned.Next>,
+    ), Node, HasSuccessors<EventContractSigned.Next>,
         HasOutgoingFlows<EventContractSigned.OutgoingFlows> {
       val message: MessageName = Messages.MIRAVELO_CONTRACT_SIGNED
 
@@ -276,7 +331,7 @@ object BikeLeasingProcessApi {
       id = ElementId("event_reverseApplication"),
       elementType = "COMPENSATION_INTERMEDIATE_THROW_EVENT",
       name = "Application reversed",
-    ), HasSuccessors<EventReverseApplication.Next>,
+    ), Node, HasSuccessors<EventReverseApplication.Next>,
         HasOutgoingFlows<EventReverseApplication.OutgoingFlows> {
       override fun then(): Next = Next
 
@@ -304,7 +359,7 @@ object BikeLeasingProcessApi {
       id = ElementId("gateway_awaitSignature"),
       elementType = "EVENT_BASED_GATEWAY",
       name = "Await signature",
-    ), HasSuccessors<GatewayAwaitSignature.Next>,
+    ), Node, HasSuccessors<GatewayAwaitSignature.Next>,
         HasOutgoingFlows<GatewayAwaitSignature.OutgoingFlows> {
       override fun then(): Next = Next
 
@@ -342,7 +397,7 @@ object BikeLeasingProcessApi {
     object GatewayCollectRejections : AbstractFlowNode(
       id = ElementId("gateway_collectRejections"),
       elementType = "EXCLUSIVE_GATEWAY",
-    ), HasSuccessors<GatewayCollectRejections.Next>,
+    ), Node, HasSuccessors<GatewayCollectRejections.Next>,
         HasOutgoingFlows<GatewayCollectRejections.OutgoingFlows> {
       override fun then(): Next = Next
 
@@ -368,7 +423,7 @@ object BikeLeasingProcessApi {
     object GatewayFork : AbstractFlowNode(
       id = ElementId("gateway_fork"),
       elementType = "PARALLEL_GATEWAY",
-    ), HasSuccessors<GatewayFork.Next>, HasOutgoingFlows<GatewayFork.OutgoingFlows> {
+    ), Node, HasSuccessors<GatewayFork.Next>, HasOutgoingFlows<GatewayFork.OutgoingFlows> {
       override fun then(): Next = Next
 
       override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
@@ -406,7 +461,8 @@ object BikeLeasingProcessApi {
       id = ElementId("gateway_isSolvent"),
       elementType = "EXCLUSIVE_GATEWAY",
       name = "Solvent?",
-    ), HasSuccessors<GatewayIsSolvent.Next>, HasOutgoingFlows<GatewayIsSolvent.OutgoingFlows> {
+    ), Node, HasSuccessors<GatewayIsSolvent.Next>,
+        HasOutgoingFlows<GatewayIsSolvent.OutgoingFlows> {
       override fun then(): Next = Next
 
       override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
@@ -443,7 +499,7 @@ object BikeLeasingProcessApi {
     object GatewayJoin : AbstractFlowNode(
       id = ElementId("gateway_join"),
       elementType = "PARALLEL_GATEWAY",
-    ), HasSuccessors<GatewayJoin.Next>, HasOutgoingFlows<GatewayJoin.OutgoingFlows> {
+    ), Node, HasSuccessors<GatewayJoin.Next>, HasOutgoingFlows<GatewayJoin.OutgoingFlows> {
       override fun then(): Next = Next
 
       override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
@@ -469,7 +525,7 @@ object BikeLeasingProcessApi {
       id = ElementId("receiveTask_handoverReported"),
       elementType = "RECEIVE_TASK",
       name = "Await bike handover",
-    ), HasSuccessors<ReceiveTaskHandoverReported.Next>,
+    ), Node, HasSuccessors<ReceiveTaskHandoverReported.Next>,
         HasOutgoingFlows<ReceiveTaskHandoverReported.OutgoingFlows> {
       val message: MessageName = Messages.MIRAVELO_HANDOVER_REPORTED
 
@@ -498,7 +554,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_cancelContract"),
       elementType = "SERVICE_TASK",
       name = "Cancel contract",
-    ) {
+    ), Node {
       const val JOB_TYPE: String = ServiceTasks.CANCEL_CONTRACT_DELEGATE
     }
 
@@ -506,7 +562,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_cancelPolicy"),
       elementType = "SERVICE_TASK",
       name = "Cancel policy",
-    ) {
+    ), Node {
       const val JOB_TYPE: String = ServiceTasks.MIRAVELO_CANCEL_POLICY
     }
 
@@ -514,7 +570,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_issueInsurancePolicy"),
       elementType = "SERVICE_TASK",
       name = "Issue insurance policy",
-    ), HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>,
+    ), Node, HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>,
         HasOutgoingFlows<ServiceTaskIssueInsurancePolicy.OutgoingFlows> {
       const val JOB_TYPE: String =
           ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE
@@ -553,7 +609,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_orderBike"),
       elementType = "SERVICE_TASK",
       name = "Order bike",
-    ), HasSuccessors<ServiceTaskOrderBike.Next>,
+    ), Node, HasSuccessors<ServiceTaskOrderBike.Next>,
         HasOutgoingFlows<ServiceTaskOrderBike.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.MIRAVELO_ORDER_BIKE
 
@@ -591,7 +647,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_sendCancellationConfirmation"),
       elementType = "SERVICE_TASK",
       name = "Send cancellation confirmation",
-    ), HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>,
+    ), Node, HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>,
         HasOutgoingFlows<ServiceTaskSendCancellationConfirmation.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.MIRAVELO_SEND_CANCELLATION_CONFIRMATION
 
@@ -620,7 +676,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_sendContract"),
       elementType = "SERVICE_TASK",
       name = "Send contract",
-    ), HasSuccessors<ServiceTaskSendContract.Next>,
+    ), Node, HasSuccessors<ServiceTaskSendContract.Next>,
         HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.SEND_CONTRACT_DELEGATE
 
@@ -655,7 +711,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_sendRejection"),
       elementType = "SERVICE_TASK",
       name = "Send rejection",
-    ), HasSuccessors<ServiceTaskSendRejection.Next>,
+    ), Node, HasSuccessors<ServiceTaskSendRejection.Next>,
         HasOutgoingFlows<ServiceTaskSendRejection.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.MIRAVELO_SEND_REJECTION
 
@@ -684,7 +740,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_sendReminderMail"),
       elementType = "SERVICE_TASK",
       name = "Send reminder mail",
-    ), HasSuccessors<ServiceTaskSendReminderMail.Next>,
+    ), Node, HasSuccessors<ServiceTaskSendReminderMail.Next>,
         HasOutgoingFlows<ServiceTaskSendReminderMail.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_
 
@@ -713,7 +769,7 @@ object BikeLeasingProcessApi {
       id = ElementId("serviceTask_validateApplication"),
       elementType = "SERVICE_TASK",
       name = "Validate application",
-    ), HasSuccessors<ServiceTaskValidateApplication.Next>,
+    ), Node, HasSuccessors<ServiceTaskValidateApplication.Next>,
         HasOutgoingFlows<ServiceTaskValidateApplication.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.VALIDATE_APPLICATION_DELEGATE
 
@@ -746,7 +802,7 @@ object BikeLeasingProcessApi {
       id = ElementId("startEvent_addressChanged"),
       elementType = "MESSAGE_START_EVENT",
       name = "Address changed",
-    ), HasSuccessors<StartEventAddressChanged.Next>,
+    ), Node, HasSuccessors<StartEventAddressChanged.Next>,
         HasOutgoingFlows<StartEventAddressChanged.OutgoingFlows> {
       val message: MessageName = Messages.MIRAVELO_ADDRESS_CHANGED
 
@@ -783,7 +839,7 @@ object BikeLeasingProcessApi {
       id = ElementId("startEvent_applicationWithdrawn"),
       elementType = "MESSAGE_START_EVENT",
       name = "Application withdrawn",
-    ), HasSuccessors<StartEventApplicationWithdrawn.Next>,
+    ), Node, HasSuccessors<StartEventApplicationWithdrawn.Next>,
         HasOutgoingFlows<StartEventApplicationWithdrawn.OutgoingFlows> {
       val message: MessageName = Messages.MIRAVELO_APPLICATION_WITHDRAWN
 
@@ -814,7 +870,7 @@ object BikeLeasingProcessApi {
       id = ElementId("startEvent_customerEligible"),
       elementType = "START_EVENT",
       name = "Customer eligible",
-    ), HasSuccessors<StartEventCustomerEligible.Next>,
+    ), Node, HasSuccessors<StartEventCustomerEligible.Next>,
         HasOutgoingFlows<StartEventCustomerEligible.OutgoingFlows> {
       override fun then(): Next = Next
 
@@ -841,7 +897,7 @@ object BikeLeasingProcessApi {
       id = ElementId("startEvent_leasingRequestReceived"),
       elementType = "MESSAGE_START_EVENT",
       name = "Leasing request received",
-    ), HasSuccessors<StartEventLeasingRequestReceived.Next>,
+    ), Node, HasSuccessors<StartEventLeasingRequestReceived.Next>,
         HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows> {
       val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
 
@@ -880,7 +936,7 @@ object BikeLeasingProcessApi {
       id = ElementId("subProcess_addressChanged"),
       elementType = "EVENT_SUB_PROCESS",
       name = "Delivery address changed",
-    ), FlowScope<SubProcessAddressChanged.Start> {
+    ), Node, FlowScope<SubProcessAddressChanged.Start> {
       override fun start(): Start = Start
 
       object Start {
@@ -893,7 +949,7 @@ object BikeLeasingProcessApi {
       id = ElementId("subProcess_applicationWithdrawn"),
       elementType = "EVENT_SUB_PROCESS",
       name = "Application withdrawn",
-    ), FlowScope<SubProcessApplicationWithdrawn.Start> {
+    ), Node, FlowScope<SubProcessApplicationWithdrawn.Start> {
       override fun start(): Start = Start
 
       object Start {
@@ -906,7 +962,7 @@ object BikeLeasingProcessApi {
       id = ElementId("subProcess_concludeContract"),
       elementType = "SUB_PROCESS",
       name = "Conclude contract",
-    ), HasSuccessors<SubProcessConcludeContract.Next>,
+    ), Node, HasSuccessors<SubProcessConcludeContract.Next>,
         HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>,
         FlowScope<SubProcessConcludeContract.Start> {
       override fun then(): Next = Next
@@ -950,7 +1006,7 @@ object BikeLeasingProcessApi {
       id = ElementId("timer_signatureDeadline"),
       elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
       name = "14 days passed",
-    ), HasSuccessors<TimerSignatureDeadline.Next>,
+    ), Node, HasSuccessors<TimerSignatureDeadline.Next>,
         HasOutgoingFlows<TimerSignatureDeadline.OutgoingFlows> {
       val timer: BpmnTimer = BpmnTimer(
         type = "Duration",
@@ -982,7 +1038,7 @@ object BikeLeasingProcessApi {
       id = ElementId("timer_signatureReminder"),
       elementType = "TIMER_BOUNDARY_EVENT",
       name = "7 days passed",
-    ), HasSuccessors<TimerSignatureReminder.Next>,
+    ), Node, HasSuccessors<TimerSignatureReminder.Next>,
         HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent {
       val timer: BpmnTimer = BpmnTimer(
         type = "Duration",
@@ -1019,7 +1075,7 @@ object BikeLeasingProcessApi {
       id = ElementId("timer_withdrawalPeriodElapsed"),
       elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
       name = "Withdrawal period elapsed",
-    ), HasSuccessors<TimerWithdrawalPeriodElapsed.Next>,
+    ), Node, HasSuccessors<TimerWithdrawalPeriodElapsed.Next>,
         HasOutgoingFlows<TimerWithdrawalPeriodElapsed.OutgoingFlows> {
       val timer: BpmnTimer = BpmnTimer(
         type = "Duration",
@@ -1051,7 +1107,7 @@ object BikeLeasingProcessApi {
       id = ElementId("userTask_updateDeliveryAddress"),
       elementType = "USER_TASK",
       name = "Update delivery address",
-    ), HasSuccessors<UserTaskUpdateDeliveryAddress.Next>,
+    ), Node, HasSuccessors<UserTaskUpdateDeliveryAddress.Next>,
         HasOutgoingFlows<UserTaskUpdateDeliveryAddress.OutgoingFlows> {
       override fun then(): Next = Next
 
