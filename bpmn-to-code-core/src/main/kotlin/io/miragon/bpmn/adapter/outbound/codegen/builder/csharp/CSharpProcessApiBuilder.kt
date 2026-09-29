@@ -106,15 +106,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
      * `OutgoingFlows`; every node is a direct child of `FlowNodes`, and a subprocess opens its interior via `Start`.
      */
     private fun writeFlow(builder: CSharpWriter, graph: ProcessGraph, definitions: RootElements, className: String = "FlowNodes") {
-        builder.docComment(
-            """
-            Typed navigation over the process flow.
-            Each element is a nested singleton class (reach it as FlowNodes.Element.Instance) exposing its Id, ElementType and Name,
-            the elements reachable from it behind Next and its outgoing sequence flows behind Flows - so a full path is
-            verified by the compiler and offered by IntelliSense. Every element is a direct child of FlowNodes, whatever its
-            subprocess depth; a subprocess opens its interior via Start.
-            """.trimIndent(),
-        )
+        builder.docComment("Typed navigation over the process flow: one nested singleton class per BPMN element, reached as FlowNodes.Element.Instance.")
         builder.staticClass(className) {
             CSharpFlowWriter(builder).write(FlowGraphFactory.build(graph, definitions))
         }

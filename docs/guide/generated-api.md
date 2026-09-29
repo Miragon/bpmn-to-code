@@ -95,7 +95,7 @@ object BikeLeasingProcessApi {
       object Next { val serviceTaskValidateApplication get() = ServiceTaskValidateApplication }
       object OutgoingFlows {
         val toServiceTaskValidateApplication: SequenceFlow<ServiceTaskValidateApplication>
-          get() = SequenceFlow(id = ElementId("flow_leasingRequestReceivedToValidateApplication"), name = null, conditionExpression = null, isDefault = false, target = ServiceTaskValidateApplication)
+          get() = SequenceFlow(id = ElementId("flow_leasingRequestReceivedToValidateApplication"), target = ServiceTaskValidateApplication)
       }
     }
 

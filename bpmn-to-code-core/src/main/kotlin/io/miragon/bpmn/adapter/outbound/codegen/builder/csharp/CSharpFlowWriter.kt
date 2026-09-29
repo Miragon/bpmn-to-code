@@ -28,7 +28,7 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
     private val facetWriter = CSharpFacetWriter(writer)
 
     fun write(graph: FlowGraph) {
-        writer.staticListProperty(name = "All", elementType = CSharpRuntimeTypes.FLOW_NODE, elements = graph.nodes.map { "${it.objectName}.Instance" }, doc = "Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
+        writer.staticListProperty(name = "All", elementType = CSharpRuntimeTypes.FLOW_NODE, elements = graph.nodes.map { "${it.objectName}.Instance" }, doc = "Every node of this flow.")
         writer.line()
         writer.forEachSeparated(graph.nodes) { node -> writeNode(node) }
     }

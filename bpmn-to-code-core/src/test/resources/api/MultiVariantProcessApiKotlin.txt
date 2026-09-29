@@ -36,13 +36,11 @@ object CancelBikeOrderProcessApi {
    */
   object FlowVariants {
     /**
-     * Typed navigation over the process flow.
-     * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `next` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
-     * Intended for tooling, tests, and reasoning about the process shape.
+     * Typed navigation over the process flow: one nested object per BPMN element.
      */
     object Retail {
       /**
-       * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+       * Every node of this flow.
        */
       val entries: List<Node> = listOf(
         BoundaryCancellationFailed,
@@ -57,12 +55,12 @@ object CancelBikeOrderProcessApi {
       )
 
       /**
-       * Common supertype of this flow's nodes, so a `when` over them can be exhaustive.
+       * Common supertype of this flow's nodes.
        */
       sealed interface Node : FlowNode
 
       object BoundaryCancellationFailed : AbstractFlowNode(
-        id = ElementId("boundary_cancellationFailed"),
+        id = ElementId(BoundaryCancellationFailed.ELEMENT_ID),
         elementType = BpmnElementType.BOUNDARY_EVENT,
         name = "Cancellation failed",
       ), Node, HasSuccessors<BoundaryCancellationFailed.Next>,
@@ -92,16 +90,13 @@ object CancelBikeOrderProcessApi {
           val toGatewayCollectClarifications: SequenceFlow<GatewayCollectClarifications>
             get() = SequenceFlow(
               id = ElementId("flow_cancellationFailedToCollectClarifications"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
               target = GatewayCollectClarifications,
             )
         }
       }
 
       object EndEventBikeOrderCancelled : AbstractFlowNode(
-        id = ElementId("endEvent_bikeOrderCancelled"),
+        id = ElementId(EndEventBikeOrderCancelled.ELEMENT_ID),
         elementType = BpmnElementType.END_EVENT,
         name = "Bike order cancelled",
       ), Node, Event {
@@ -115,7 +110,7 @@ object CancelBikeOrderProcessApi {
       }
 
       object GatewayCancellationPossible : AbstractFlowNode(
-        id = ElementId("gateway_cancellationPossible"),
+        id = ElementId(GatewayCancellationPossible.ELEMENT_ID),
         elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
         name = "Cancellation possible?",
       ), Node, HasSuccessors<GatewayCancellationPossible.Next>,
@@ -142,7 +137,6 @@ object CancelBikeOrderProcessApi {
               id = ElementId("flow_cancellationNotPossibleToCollectClarifications"),
               name = "No",
               conditionExpression = $$"""${!cancellationPossible}""",
-              isDefault = false,
               target = GatewayCollectClarifications,
             )
 
@@ -150,7 +144,6 @@ object CancelBikeOrderProcessApi {
             get() = SequenceFlow(
               id = ElementId("flow_cancellationPossibleToMergeReturn"),
               name = "Yes",
-              conditionExpression = null,
               isDefault = true,
               target = GatewayMergeReturn,
             )
@@ -158,7 +151,7 @@ object CancelBikeOrderProcessApi {
       }
 
       object GatewayCollectClarifications : AbstractFlowNode(
-        id = ElementId("gateway_collectClarifications"),
+        id = ElementId(GatewayCollectClarifications.ELEMENT_ID),
         elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
       ), Node, HasSuccessors<GatewayCollectClarifications.Next>,
           HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
@@ -179,16 +172,13 @@ object CancelBikeOrderProcessApi {
           val toUserTaskClarifyReturn: SequenceFlow<UserTaskClarifyReturn>
             get() = SequenceFlow(
               id = ElementId("flow_collectClarificationsToClarifyReturn"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
               target = UserTaskClarifyReturn,
             )
         }
       }
 
       object GatewayMergeReturn : AbstractFlowNode(
-        id = ElementId("gateway_mergeReturn"),
+        id = ElementId(GatewayMergeReturn.ELEMENT_ID),
         elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
       ), Node, HasSuccessors<GatewayMergeReturn.Next>,
           HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
@@ -210,16 +200,13 @@ object CancelBikeOrderProcessApi {
               SequenceFlow<ServiceTaskBookCancellationCosts>
             get() = SequenceFlow(
               id = ElementId("flow_mergeReturnToBookCancellationCosts"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
               target = ServiceTaskBookCancellationCosts,
             )
         }
       }
 
       object ServiceTaskBookCancellationCosts : AbstractFlowNode(
-        id = ElementId("serviceTask_bookCancellationCosts"),
+        id = ElementId(ServiceTaskBookCancellationCosts.ELEMENT_ID),
         elementType = BpmnElementType.SERVICE_TASK,
         name = "Book cancellation costs",
       ), Node, HasSuccessors<ServiceTaskBookCancellationCosts.Next>,
@@ -252,16 +239,13 @@ object CancelBikeOrderProcessApi {
           val toEndEventBikeOrderCancelled: SequenceFlow<EndEventBikeOrderCancelled>
             get() = SequenceFlow(
               id = ElementId("flow_bookCancellationCostsToBikeOrderCancelled"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
               target = EndEventBikeOrderCancelled,
             )
         }
       }
 
       object ServiceTaskRequestCancellation : AbstractFlowNode(
-        id = ElementId("serviceTask_requestCancellation"),
+        id = ElementId(ServiceTaskRequestCancellation.ELEMENT_ID),
         elementType = BpmnElementType.SERVICE_TASK,
         name = "Request cancellation",
       ), Node, HasSuccessors<ServiceTaskRequestCancellation.Next>,
@@ -297,16 +281,13 @@ object CancelBikeOrderProcessApi {
           val toGatewayCancellationPossible: SequenceFlow<GatewayCancellationPossible>
             get() = SequenceFlow(
               id = ElementId("flow_requestCancellationToCancellationPossible"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
               target = GatewayCancellationPossible,
             )
         }
       }
 
       object StartEventCancellationRequired : AbstractFlowNode(
-        id = ElementId("startEvent_cancellationRequired"),
+        id = ElementId(StartEventCancellationRequired.ELEMENT_ID),
         elementType = BpmnElementType.START_EVENT,
         name = "Cancellation required",
       ), Node, HasSuccessors<StartEventCancellationRequired.Next>,
@@ -338,16 +319,13 @@ object CancelBikeOrderProcessApi {
           val toServiceTaskRequestCancellation: SequenceFlow<ServiceTaskRequestCancellation>
             get() = SequenceFlow(
               id = ElementId("flow_cancellationRequiredToRequestCancellation"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
               target = ServiceTaskRequestCancellation,
             )
         }
       }
 
       object UserTaskClarifyReturn : AbstractFlowNode(
-        id = ElementId("userTask_clarifyReturn"),
+        id = ElementId(UserTaskClarifyReturn.ELEMENT_ID),
         elementType = BpmnElementType.USER_TASK,
         name = "Clarify return",
       ), Node, HasSuccessors<UserTaskClarifyReturn.Next>,
@@ -369,9 +347,6 @@ object CancelBikeOrderProcessApi {
           val toGatewayMergeReturn: SequenceFlow<GatewayMergeReturn>
             get() = SequenceFlow(
               id = ElementId("flow_clarifyReturnToMergeReturn"),
-              name = null,
-              conditionExpression = null,
-              isDefault = false,
               target = GatewayMergeReturn,
             )
         }

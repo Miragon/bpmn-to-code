@@ -104,13 +104,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
      * opens its interior via `getStartEvents()`.
      */
     private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "FlowNodes"): TypeSpec {
-        val flowBuilder = JavaConstantHolder(className).builder(STATIC).addJavadoc(
-            "Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, " +
-                "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +
-                "{@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. " +
-                "Every element is a direct child of {@code FlowNodes}, whatever its subprocess depth; " +
-                "a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.\n",
-        )
+        val flowBuilder = JavaConstantHolder(className).builder(STATIC).addJavadoc("Typed navigation over the process flow: one nested class per BPMN element.\n")
         JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }

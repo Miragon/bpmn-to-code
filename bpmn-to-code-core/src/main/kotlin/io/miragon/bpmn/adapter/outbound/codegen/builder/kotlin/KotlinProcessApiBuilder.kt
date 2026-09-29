@@ -105,15 +105,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
      * opens its interior via `startEvents`.
      */
     private fun buildFlowObject(graph: ProcessGraph, definitions: RootElements, objectName: String = "FlowNodes"): TypeSpec {
-        val flowBuilder = TypeSpec.objectBuilder(objectName).addKdoc(
-            "Typed navigation over the process flow.\n" +
-                "Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the " +
-                "elements reachable from it behind `next` — so a full path is verified by the compiler and " +
-                "offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess " +
-                "depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of " +
-                "them implement the sealed `Node`, so a `when` over them can be exhaustive.\n" +
-                "Intended for tooling, tests, and reasoning about the process shape.",
-        )
+        val flowBuilder = TypeSpec.objectBuilder(objectName).addKdoc("Typed navigation over the process flow: one nested object per BPMN element.")
         KotlinFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }

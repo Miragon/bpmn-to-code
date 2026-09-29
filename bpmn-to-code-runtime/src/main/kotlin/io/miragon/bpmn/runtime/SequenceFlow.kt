@@ -11,8 +11,8 @@ package io.miragon.bpmn.runtime
  */
 data class SequenceFlow<out TARGET : FlowNode>(
     val id: ElementId,
-    val name: String?,
-    val conditionExpression: String?,
-    val isDefault: Boolean,
+    val name: String? = null,
+    val conditionExpression: String? = null,
+    val isDefault: Boolean = false,
     val target: TARGET,
 )

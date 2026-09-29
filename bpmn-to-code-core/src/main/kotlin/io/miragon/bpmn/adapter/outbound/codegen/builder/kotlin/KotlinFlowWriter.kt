@@ -10,7 +10,6 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.joinToCode
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.nullableStringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
@@ -38,9 +37,9 @@ internal class KotlinFlowWriter {
         val nodeInterface = TypeSpec.interfaceBuilder(NODE_INTERFACE)
             .addModifiers(KModifier.SEALED)
             .addSuperinterface(KotlinRuntimeTypes.FLOW_NODE)
-            .addKdoc("Common supertype of this flow's nodes, so a `when` over them can be exhaustive.").build()
+            .addKdoc("Common supertype of this flow's nodes.").build()
         val entries = PropertySpec.builder("entries", LIST.parameterizedBy(ClassName("", NODE_INTERFACE)))
-            .addKdoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
+            .addKdoc("Every node of this flow.")
             .initializer(KotlinCodeFormat.listOfNames(graph.nodes.map { it.objectName })).build()
         builder.addType(nodeInterface).addProperty(entries)
     }
@@ -89,7 +88,7 @@ internal class KotlinFlowWriter {
     // One named argument per line, trailing comma included, as Kotlin style wants a multi-line call.
     private fun superclassArguments(node: FlowGraphNode): CodeBlock {
         val arguments = CodeBlock.builder()
-            .add("⇥\nid = %T(%S),\nelementType = %T.%L,", KotlinRuntimeTypes.ELEMENT_ID, node.id, KotlinRuntimeTypes.BPMN_ELEMENT_TYPE, node.elementType)
+            .add("⇥\nid = %T(%N.%N),\nelementType = %T.%L,", KotlinRuntimeTypes.ELEMENT_ID, node.objectName, ELEMENT_ID, KotlinRuntimeTypes.BPMN_ELEMENT_TYPE, node.elementType)
         node.name?.let { arguments.add("\nname = %S,", it) }
         return arguments.add("⇤\n").build()
     }
@@ -149,9 +148,9 @@ internal class KotlinFlowWriter {
     private fun sequenceFlowCall(flow: SequenceFlowEdge, targetObjectName: String): CodeBlock = KotlinCodeFormat.namedCall(
         KotlinRuntimeTypes.SEQUENCE_FLOW,
         "id" to CodeBlock.of("%T(%S)", KotlinRuntimeTypes.ELEMENT_ID, flow.id),
-        "name" to nullableStringLiteral(flow.name),
-        "conditionExpression" to nullableStringLiteral(flow.conditionExpression),
-        "isDefault" to CodeBlock.of("%L", flow.isDefault),
+        "name" to flow.name?.let { stringLiteral(it) },
+        "conditionExpression" to flow.conditionExpression?.let { stringLiteral(it) },
+        "isDefault" to CodeBlock.of("%L", true).takeIf { flow.isDefault },
         "target" to CodeBlock.of("%N", targetObjectName),
     )
 

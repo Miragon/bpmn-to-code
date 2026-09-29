@@ -37,7 +37,7 @@ internal class JavaFlowWriter {
     private fun allNodes(graph: FlowGraph): MethodSpec {
         val nodes = graph.nodes.map { JavaFlowNodeType(it.objectName).instance() }
         return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
-            .addJavadoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.\n")
+            .addJavadoc("Every node of this flow.\n")
             .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), JavaRuntimeTypes.FLOW_NODE))
             .addStatement($$"return $T.of(\n$L)", List::class.java, CodeBlock.join(nodes, ",\n")).build()
     }
