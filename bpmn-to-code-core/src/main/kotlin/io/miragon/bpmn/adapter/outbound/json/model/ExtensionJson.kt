@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class ExtensionJson(
-    @SerialName("\$type") val type: String,
+    @SerialName($$"$type") val type: String,
     val attributes: Map<String, String> = emptyMap(),
     val children: List<ExtensionJson> = emptyList(),
     val body: String? = null,

@@ -51,7 +51,7 @@ class TimerIso8601SyntaxRuleTest {
     @Test
     fun `skips expression and blank values`() {
         assertThat(validate(id = "Timer_Feel", type = TimerType.DURATION, value = "=durationVar")).isEmpty()
-        assertThat(validate(id = "Timer_El", type = TimerType.DURATION, value = "\${durationVar}")).isEmpty()
+        assertThat(validate(id = "Timer_El", type = TimerType.DURATION, value = $$"${durationVar}")).isEmpty()
         assertThat(validate(id = "Timer_Blank", type = TimerType.DURATION, value = "")).isEmpty()
     }
 

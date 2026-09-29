@@ -16,9 +16,9 @@ internal class JavaFlowNodeType(objectName: String) {
     val className: ClassName = ClassName.get("", objectName)
 
     fun instanceField(): FieldSpec = FieldSpec.builder(className, INSTANCE, PUBLIC, STATIC, FINAL)
-        .initializer("new \$T()", className).build()
+        .initializer($$"new $T()", className).build()
 
-    fun instance(): CodeBlock = CodeBlock.of("\$T.\$N", className, INSTANCE)
+    fun instance(): CodeBlock = CodeBlock.of($$"$T.$N", className, INSTANCE)
 
     private companion object {
         private const val INSTANCE = "INSTANCE"

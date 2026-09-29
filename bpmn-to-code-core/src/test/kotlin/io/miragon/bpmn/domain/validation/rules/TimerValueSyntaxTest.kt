@@ -8,7 +8,7 @@ class TimerValueSyntaxTest {
     @Test
     fun `detects dynamic expressions`() {
         assertThat(TimerValueSyntax.isExpression("=cronVar")).isTrue()
-        assertThat(TimerValueSyntax.isExpression("\${var}")).isTrue()
+        assertThat(TimerValueSyntax.isExpression($$"${var}")).isTrue()
         assertThat(TimerValueSyntax.isExpression("#{var}")).isTrue()
         assertThat(TimerValueSyntax.isExpression("PT15M")).isFalse()
     }

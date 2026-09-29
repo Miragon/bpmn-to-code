@@ -57,8 +57,8 @@ private val coverageExclusions = listOf(
     "**/adapter/outbound/engine/**/*Constants*",
     "**/adapter/outbound/json/model/**",
     "**/application/port/**",
-    "**/*\$DefaultImpls*",
-    "**/*\$Companion*",
+    $$"**/*$DefaultImpls*",
+    $$"**/*$Companion*",
 )
 
 tasks.jacocoTestReport {

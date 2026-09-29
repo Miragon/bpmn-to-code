@@ -80,7 +80,7 @@ class CSharpProcessApiBuilderTest {
         assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiCsharp.txt", result.content))
         assertThat(result.content).contains("public static class FlowVariants", "public static class Retail")
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new(\"flow_cancellationNotPossibleToCollectClarifications\"), \"No\", \"\${!cancellationPossible}\", false, GatewayCollectClarifications.Instance);",
+            $$"public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new(\"flow_cancellationNotPossibleToCollectClarifications\"), \"No\", \"${!cancellationPossible}\", false, GatewayCollectClarifications.Instance);",
         )
         assertThat(result.content).contains(
             "public Runtime.SequenceFlow<GatewayMergeReturn> ToGatewayMergeReturn => new(new(\"flow_cancellationPossibleToMergeReturn\"), \"Yes\", null, true, GatewayMergeReturn.Instance);",

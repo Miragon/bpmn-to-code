@@ -200,7 +200,7 @@ class ProcessPathKotlinApiTest {
 
         val input: VariableName.Input = BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID
         assertThat(input.value).isEqualTo("applicationId")
-        assertThat(BikeLeasing.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo("\${validateApplicationDelegate}")
+        assertThat(BikeLeasing.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo($$"${validateApplicationDelegate}")
         assertThat(BikeLeasing.StartEventLeasingRequestReceived.MESSAGE).isEqualTo(MessageName("miravelo.leasingRequestReceived"))
         assertThat(BikeLeasing.BoundaryApplicationInvalid.ERROR).isEqualTo(BpmnErrorDefinition("miravelo.applicationInvalid", "applicationInvalid"))
 

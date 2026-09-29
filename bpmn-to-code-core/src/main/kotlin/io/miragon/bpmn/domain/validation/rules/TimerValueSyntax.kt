@@ -26,7 +26,7 @@ internal object TimerValueSyntax {
      * A dynamic expression (FEEL or Camunda EL) whose value is only
      * known at runtime.
      */
-    fun isExpression(value: String): Boolean = value.startsWith("=") || value.contains("\${") || value.contains("#{")
+    fun isExpression(value: String): Boolean = value.startsWith("=") || value.contains($$"${") || value.contains("#{")
 
     /**
      * Structural cron check: 6 or 7 whitespace-separated fields

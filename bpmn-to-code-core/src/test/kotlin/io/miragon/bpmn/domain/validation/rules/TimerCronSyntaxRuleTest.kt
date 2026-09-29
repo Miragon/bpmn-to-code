@@ -49,7 +49,7 @@ class TimerCronSyntaxRuleTest {
     @Test
     fun `skips expression and blank values`() {
         assertThat(validate(id = "Timer_Feel", type = TimerType.CYCLE, value = "=cronVar")).isEmpty()
-        assertThat(validate(id = "Timer_El", type = TimerType.CYCLE, value = "\${cronVar}")).isEmpty()
+        assertThat(validate(id = "Timer_El", type = TimerType.CYCLE, value = $$"${cronVar}")).isEmpty()
         assertThat(validate(id = "Timer_Blank", type = TimerType.CYCLE, value = "")).isEmpty()
     }
 

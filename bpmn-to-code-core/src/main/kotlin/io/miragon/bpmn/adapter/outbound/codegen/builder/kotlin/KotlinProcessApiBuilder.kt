@@ -47,7 +47,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         fileSpecBuilder.addType(rootObjectBuilder.build()).addAnnotation(unusedAnnotation)
         val fileSpec = fileSpecBuilder.build()
 
-        val content = buildString { fileSpec.writeTo(this) }.withoutPublicModifiers()
+        val content = KotlinCodeFormat.withoutPublicModifiers(buildString { fileSpec.writeTo(this) })
 
         return GeneratedApiFile(
             fileName = "$objectName.kt",

@@ -10,6 +10,8 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.joinToCode
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.nullableStringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
@@ -39,14 +41,14 @@ internal class KotlinFlowWriter {
             .addKdoc("Common supertype of this flow's nodes, so a `when` over them can be exhaustive.").build()
         val entries = PropertySpec.builder("entries", LIST.parameterizedBy(ClassName("", NODE_INTERFACE)))
             .addKdoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
-            .initializer(kotlinListOf(graph.nodes.map { CodeBlock.of("%N", it.objectName) })).build()
+            .initializer(KotlinCodeFormat.listOfNames(graph.nodes.map { it.objectName })).build()
         builder.addType(nodeInterface).addProperty(entries)
     }
 
     private fun buildNode(node: FlowGraphNode): TypeSpec {
         val nodeBuilder = TypeSpec.objectBuilder(node.objectName)
         extendFlowNode(nodeBuilder, node)
-        nodeBuilder.addProperty(PropertySpec.builder(ELEMENT_ID, String::class).addModifiers(KModifier.CONST).initializer("%L", kotlinStringLiteral(node.id)).build())
+        nodeBuilder.addProperty(PropertySpec.builder(ELEMENT_ID, String::class).addModifiers(KModifier.CONST).initializer("%L", stringLiteral(node.id)).build())
         facetWriter.properties(node.facets).forEach { nodeBuilder.addProperty(it) }
         facetWriter.holders(node.facets).forEach { nodeBuilder.addType(it) }
         if (node.successors.isNotEmpty()) {
@@ -144,11 +146,11 @@ internal class KotlinFlowWriter {
         return PropertySpec.builder(flowsToTarget.propertyName, type).getter(getter).build()
     }
 
-    private fun sequenceFlowCall(flow: SequenceFlowEdge, targetObjectName: String): CodeBlock = kotlinNamedCall(
+    private fun sequenceFlowCall(flow: SequenceFlowEdge, targetObjectName: String): CodeBlock = KotlinCodeFormat.namedCall(
         ClassName(RUNTIME_PACKAGE, "SequenceFlow"),
         "id" to CodeBlock.of("%T(%S)", ClassName(RUNTIME_PACKAGE, "ElementId"), flow.id),
-        "name" to kotlinNullableStringLiteral(flow.name),
-        "conditionExpression" to kotlinNullableStringLiteral(flow.conditionExpression),
+        "name" to nullableStringLiteral(flow.name),
+        "conditionExpression" to nullableStringLiteral(flow.conditionExpression),
         "isDefault" to CodeBlock.of("%L", flow.isDefault),
         "target" to CodeBlock.of("%N", targetObjectName),
     )

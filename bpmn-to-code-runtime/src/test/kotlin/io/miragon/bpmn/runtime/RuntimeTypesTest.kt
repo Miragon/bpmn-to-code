@@ -200,13 +200,13 @@ class RuntimeTypesTest {
     @Test
     fun `InputOutputMapping keeps target plus source or sourceExpression`() {
         val plain = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
-        val expression = InputOutputMapping(target = "childReasonCode", sourceExpression = "\${reasonCode}")
+        val expression = InputOutputMapping(target = "childReasonCode", sourceExpression = $$"${reasonCode}")
 
         assertThat(plain.target).isEqualTo("childSubscriptionId")
         assertThat(plain.source).isEqualTo("subscriptionId")
         assertThat(plain.sourceExpression).isNull()
 
-        assertThat(expression.sourceExpression).isEqualTo("\${reasonCode}")
+        assertThat(expression.sourceExpression).isEqualTo($$"${reasonCode}")
         assertThat(expression.source).isNull()
     }
 

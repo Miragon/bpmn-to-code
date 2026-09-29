@@ -99,11 +99,11 @@ subprojects {
 
             excludedClasses.set(
                 listOf(
-                    "*\$DefaultImpls",
-                    "*\$Companion",
-                    "*\$WhenMappings",
-                    "*\$\$serializer",
-                    "*\$\$inlined\$*",
+                    $$"*$DefaultImpls",
+                    $$"*$Companion",
+                    $$"*$WhenMappings",
+                    $$$"*$$serializer",
+                    $$$"*$$inlined$*",
                     "io.miragon.bpmn.domain.shared.*",
                     "io.miragon.bpmn.domain.validation.model.*",
                     "io.miragon.bpmn.application.port.*",

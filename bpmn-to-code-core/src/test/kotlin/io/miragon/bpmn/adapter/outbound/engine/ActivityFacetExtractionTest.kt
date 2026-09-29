@@ -74,10 +74,10 @@ class ActivityFacetExtractionTest {
 
         // then: camunda:collection and camunda:elementVariable normalise onto the same fields as Zeebe
         assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
-            MultiInstanceDefinition(sequential = false, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
+            MultiInstanceDefinition(sequential = false, inputCollection = $$"${bikeIds}", inputElement = "bikeId"),
         )
         assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
-            MultiInstanceDefinition(sequential = true, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
+            MultiInstanceDefinition(sequential = true, inputCollection = $$"${bikeIds}", inputElement = "bikeId"),
         )
     }
 
@@ -89,8 +89,8 @@ class ActivityFacetExtractionTest {
         // then: the parameter name becomes the target, the element body the source
         assertThat(model.ioMappingOf("serviceTask_sendContract")).isEqualTo(
             IoMapping(
-                inputs = listOf(IoMapping.Parameter(target = "applicationId", source = "\${applicationId}")),
-                outputs = listOf(IoMapping.Parameter(target = "contractId", source = "\${contractId}")),
+                inputs = listOf(IoMapping.Parameter(target = "applicationId", source = $$"${applicationId}")),
+                outputs = listOf(IoMapping.Parameter(target = "contractId", source = $$"${contractId}")),
             ),
         )
     }
@@ -102,10 +102,10 @@ class ActivityFacetExtractionTest {
 
         // then: the operaton namespace carries the identical vocabulary (ADR 010)
         assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
-            MultiInstanceDefinition(sequential = false, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
+            MultiInstanceDefinition(sequential = false, inputCollection = $$"${bikeIds}", inputElement = "bikeId"),
         )
         assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
-            MultiInstanceDefinition(sequential = true, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
+            MultiInstanceDefinition(sequential = true, inputCollection = $$"${bikeIds}", inputElement = "bikeId"),
         )
     }
 
@@ -117,8 +117,8 @@ class ActivityFacetExtractionTest {
         // then
         assertThat(model.ioMappingOf("serviceTask_sendContract")).isEqualTo(
             IoMapping(
-                inputs = listOf(IoMapping.Parameter(target = "applicationId", source = "\${applicationId}")),
-                outputs = listOf(IoMapping.Parameter(target = "contractId", source = "\${contractId}")),
+                inputs = listOf(IoMapping.Parameter(target = "applicationId", source = $$"${applicationId}")),
+                outputs = listOf(IoMapping.Parameter(target = "contractId", source = $$"${contractId}")),
             ),
         )
     }
