@@ -3,7 +3,6 @@ package io.miragon.bpmn.adapter;
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonFilesystemPlugin;
 import io.miragon.bpmn.domain.shared.ProcessEngine;
 import io.miragon.bpmn.domain.validation.model.ValidationConfig;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -17,19 +16,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 		defaultPhase = LifecyclePhase.NONE,
 		requiresProject = false
 )
-public class BpmnJsonMojo extends AbstractMojo {
-
-	@Parameter(property = "baseDir", defaultValue = ".")
-	private String baseDir;
-
-	@Parameter(property = "filePattern", defaultValue = "src/main/resources/*.bpmn")
-	private String filePattern;
+public class BpmnJsonMojo extends AbstractBpmnMojo {
 
 	@Parameter(property = "outputFolderPath", defaultValue = "src/main/resources/bpmn-json")
 	private String outputFolderPath;
-
-	@Parameter(property = "processEngine")
-	private String processEngine;
 
 	@Parameter(property = "enableVariants", defaultValue = "false")
 	private boolean enableVariants;
@@ -44,7 +34,7 @@ public class BpmnJsonMojo extends AbstractMojo {
 	@Override
 	public void execute() throws MojoFailureException {
 		CreateProcessJsonFilesystemPlugin plugin = new CreateProcessJsonFilesystemPlugin();
-		ProcessEngine engine = EnumParameter.parse("processEngine", processEngine, ProcessEngine.class);
+		ProcessEngine engine = processEngine();
 		plugin.execute(baseDir, filePattern, outputFolderPath, engine, new ValidationConfig(), enableVariants);
 		getLog().info("BPMN JSON files generated successfully");
 	}

@@ -5,7 +5,6 @@ import io.miragon.bpmn.domain.shared.ProcessEngine;
 import io.miragon.bpmn.domain.validation.model.ValidationConfig;
 import io.miragon.bpmn.domain.validation.ValidationResult;
 import io.miragon.bpmn.domain.validation.model.ValidationViolation;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -23,28 +22,7 @@ import java.util.Set;
 		defaultPhase = LifecyclePhase.NONE,
 		requiresProject = false
 )
-public class BpmnValidateMojo extends AbstractMojo {
-
-	/**
-	 * The base directory for the plugin execution.
-	 * Defaults to the current directory.
-	 */
-	@Parameter(property = "baseDir", defaultValue = ".")
-	private String baseDir;
-
-	/**
-	 * Pattern for locating BPMN files to validate.
-	 * Defaults to "src/main/resources/*.bpmn".
-	 */
-	@Parameter(property = "filePattern", defaultValue = "src/main/resources/*.bpmn")
-	private String filePattern;
-
-	/**
-	 * Target process-engine for validation.
-	 * Valid values: CAMUNDA_7, ZEEBE, OPERATON.
-	 */
-	@Parameter(property = "processEngine")
-	private String processEngine;
+public class BpmnValidateMojo extends AbstractBpmnMojo {
 
 	/**
 	 * Whether to treat warnings as failures.
@@ -73,7 +51,7 @@ public class BpmnValidateMojo extends AbstractMojo {
 	public void execute() throws MojoFailureException {
 		getLog().warn("[EXPERIMENTAL] The 'validate-bpmn' goal is experimental and may change in future releases.");
 		ValidateBpmnFilesystemPlugin plugin = new ValidateBpmnFilesystemPlugin();
-		ProcessEngine engine = EnumParameter.parse("processEngine", processEngine, ProcessEngine.class);
+		ProcessEngine engine = processEngine();
 		ValidationConfig config = new ValidationConfig(failOnWarning, disabledRules);
 		ValidationResult result = plugin.execute(baseDir, filePattern, engine, config);
 

@@ -69,10 +69,4 @@ class MavenMojoSmokeTest {
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("bike-leasing-a.bpmn, bike-leasing-b.bpmn").hasMessageContaining("enableVariants")
     }
-
-    private fun setField(obj: Any, name: String, value: Any) {
-        val field = obj.javaClass.getDeclaredField(name)
-        field.isAccessible = true
-        field.set(obj, value)
-    }
 }

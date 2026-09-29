@@ -7,7 +7,6 @@ import io.miragon.bpmn.domain.shared.ProcessEngine;
 import io.miragon.bpmn.domain.validation.model.ValidationConfig;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -21,21 +20,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 		defaultPhase = LifecyclePhase.NONE,
 		requiresProject = false
 )
-public class BpmnModelMojo extends AbstractMojo {
-	
-	/**
-	 * The base directory for the plugin execution.
-	 * Defaults to the current directory.
-	 */
-	@Parameter(property = "baseDir", defaultValue = ".")
-	private String baseDir;
-	
-	/**
-	 * Pattern for locating BPMN files to process.
-	 * Defaults to "src/main/resources/*.bpmn".
-	 */
-	@Parameter(property = "filePattern", defaultValue = "src/main/resources/*.bpmn")
-	private String filePattern;
+public class BpmnModelMojo extends AbstractBpmnMojo {
 	
 	/**
 	 * Output folder path where the generated API code will be written.
@@ -59,13 +44,6 @@ public class BpmnModelMojo extends AbstractMojo {
 	private String outputLanguage;
 	
 	/**
-	 * Target process-engine for the generated API.
-	 * Valid values: CAMUNDA_7, ZEEBE, OPERATON.
-	 */
-	@Parameter(property = "processEngine")
-	private String processEngine;
-	
-	/**
 	 * Merges BPMN files sharing a process id into one API with variants.
 	 * Without it, a process id defined in several files fails the build. Defaults to false.
 	 */
@@ -86,7 +64,7 @@ public class BpmnModelMojo extends AbstractMojo {
 	public void execute() throws MojoFailureException {
 		CreateProcessApiFilesystemPlugin plugin = new CreateProcessApiFilesystemPlugin();
 		OutputLanguage language = EnumParameter.parse("outputLanguage", outputLanguage, OutputLanguage.class);
-		ProcessEngine engine = EnumParameter.parse("processEngine", processEngine, ProcessEngine.class);
+		ProcessEngine engine = processEngine();
 		List<BpmnFileResult> results = plugin.execute(baseDir, filePattern, outputFolderPath, packagePath, language, engine, new ValidationConfig(), enableVariants);
 		if (results.isEmpty()) {
 			getLog().info("No BPMN models found");
