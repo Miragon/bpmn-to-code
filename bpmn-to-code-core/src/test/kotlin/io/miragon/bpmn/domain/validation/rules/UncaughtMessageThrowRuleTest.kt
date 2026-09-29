@@ -22,9 +22,17 @@ class UncaughtMessageThrowRuleTest {
         eventDefinitions = listOf(EventDefinitionInstance.Message(MessageReference(messageName = message))),
     )
 
-    private fun throwNode(id: String, message: String) = messageEvent(id, message, EventShape.INTERMEDIATE_THROW_EVENT)
+    private fun throwNode(id: String, message: String) = messageEvent(
+        id = id,
+        message = message,
+        shape = EventShape.INTERMEDIATE_THROW_EVENT,
+    )
 
-    private fun catchNode(id: String, message: String) = messageEvent(id, message, EventShape.INTERMEDIATE_CATCH_EVENT)
+    private fun catchNode(id: String, message: String) = messageEvent(
+        id = id,
+        message = message,
+        shape = EventShape.INTERMEDIATE_CATCH_EVENT,
+    )
 
     private fun model(processId: String, vararg nodes: FlowNodeDefinition) = testProcessModel(processId = processId, flowNodes = nodes.toList())
 

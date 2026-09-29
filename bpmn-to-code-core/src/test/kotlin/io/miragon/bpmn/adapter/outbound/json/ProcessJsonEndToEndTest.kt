@@ -23,11 +23,7 @@ class ProcessJsonEndToEndTest {
     private val underTest = CreateProcessJsonInMemoryPlugin()
 
     @ParameterizedTest
-    @CsvSource(
-        "ZEEBE, zeebe/bike-leasing",
-        "CAMUNDA_7, c7/bike-leasing",
-        "OPERATON, operaton/bike-leasing",
-    )
+    @CsvSource("ZEEBE, zeebe/bike-leasing", "CAMUNDA_7, c7/bike-leasing", "OPERATON, operaton/bike-leasing")
     fun `real bpmn produces the committed json`(engine: ProcessEngine, fixture: String) {
         // given: the shared fixture for this engine
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
@@ -52,6 +48,5 @@ class ProcessJsonEndToEndTest {
     }
 
     private fun readResource(path: String): String = requireNotNull(javaClass.getResourceAsStream(path)) { "missing resource $path" }
-        .bufferedReader()
-        .readText()
+        .bufferedReader().readText()
 }

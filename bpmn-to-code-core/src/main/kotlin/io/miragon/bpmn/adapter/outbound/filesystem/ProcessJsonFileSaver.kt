@@ -9,10 +9,7 @@ internal class ProcessJsonFileSaver : SaveProcessJsonPort {
 
     private val logger = KotlinLogging.logger {}
 
-    override fun writeFiles(
-        generatedFiles: List<GeneratedJsonFile>,
-        outputFolderPath: String,
-    ) {
+    override fun writeFiles(generatedFiles: List<GeneratedJsonFile>, outputFolderPath: String) {
         val outputFolder = File(outputFolderPath)
         if (!outputFolder.exists()) {
             logger.debug { "Creating output folder: $outputFolderPath" }

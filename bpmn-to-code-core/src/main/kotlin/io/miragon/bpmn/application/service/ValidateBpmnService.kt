@@ -22,12 +22,12 @@ class ValidateBpmnService(
         val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val models = inputFiles.map { bpmnService.extract(it, command.engine) }
-        val preMergeViolations = validationService.collectViolations(models, command.engine, ValidationPhase.PRE_MERGE)
+        val preMergeViolations = validationService.collectViolations(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
         if (preMergeViolations.any { it.severity == Severity.ERROR }) {
             return ValidationResult(preMergeViolations)
         }
         val mergedModels = modelMergerService.mergeModels(models)
-        val postMergeViolations = validationService.collectViolations(mergedModels, command.engine, ValidationPhase.POST_MERGE)
+        val postMergeViolations = validationService.collectViolations(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         return ValidationResult(preMergeViolations + postMergeViolations)
     }
 }

@@ -24,24 +24,19 @@ class GenerateProcessApiInMemoryService(
     private val modelMergerService = ModelMergerService()
     private val sharedDefinitionsService = SharedDefinitionsService()
 
-    override fun generateProcessApi(
-        command: GenerateProcessApiInMemoryUseCase.Command,
-    ): List<GeneratedApiFile> {
+    override fun generateProcessApi(command: GenerateProcessApiInMemoryUseCase.Command): List<GeneratedApiFile> {
         val validationService = BpmnValidationService(command.validationConfig)
         val modelsAsFiles = toBpmnFiles(command)
         val models = modelsAsFiles.map { bpmnService.extract(it, command.engine) }
-        validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
+        validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(modelsAsFiles.zip(models, ::toSourcedModel), command.enableVariants)
-        validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
+        validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toModelApi(command, it)) }
         val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(command, mergedModels))
         return (processFiles + sharedFiles).distinctBy { it.packagePath to it.fileName }
     }
 
-    private fun toModelApi(
-        command: GenerateProcessApiInMemoryUseCase.Command,
-        model: ProcessModel,
-    ) = BpmnModelApi(
+    private fun toModelApi(command: GenerateProcessApiInMemoryUseCase.Command, model: ProcessModel) = BpmnModelApi(
         model = model,
         outputLanguage = command.outputLanguage,
         packagePath = command.packagePath,
@@ -57,13 +52,8 @@ class GenerateProcessApiInMemoryService(
         packagePath = command.packagePath,
     )
 
-    private fun toBpmnFiles(
-        command: GenerateProcessApiInMemoryUseCase.Command,
-    ) = command.bpmnContents.map {
-        BpmnResource(
-            fileName = it.processName,
-            content = it.bpmnXml.encodeToByteArray(),
-        )
+    private fun toBpmnFiles(command: GenerateProcessApiInMemoryUseCase.Command) = command.bpmnContents.map {
+        BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray())
     }
 
     private fun toSourcedModel(file: BpmnResource, model: ProcessModel) = SourcedProcessModel(file.fileName, model)

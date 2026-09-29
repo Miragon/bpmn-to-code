@@ -42,10 +42,7 @@ class CollisionDetectionRuleTest {
         // given: two flow nodes whose ids keep distinct constants but fold to the same
         // PascalCase object name (previously emitted two non-compiling `object Foo`)
         val model = testProcessModel(
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "foo"),
-                FlowNodeDefinition.Unknown(id = "-foo"),
-            ),
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "foo"), FlowNodeDefinition.Unknown(id = "-foo")),
         )
 
         // when: validating

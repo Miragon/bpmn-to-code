@@ -12,9 +12,7 @@ import io.miragon.bpmn.web.model.GenerateJsonRequest
 import io.miragon.bpmn.web.model.GenerateJsonResponse
 import io.miragon.bpmn.web.service.WebJsonGenerationService
 
-fun Route.generateJsonRoutes(
-    jsonService: WebJsonGenerationService,
-) {
+fun Route.generateJsonRoutes(jsonService: WebJsonGenerationService) {
     post("/api/generate-json") {
         val request = call.receive<GenerateJsonRequest>()
 

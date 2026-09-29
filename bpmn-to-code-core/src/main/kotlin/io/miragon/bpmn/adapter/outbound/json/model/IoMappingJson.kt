@@ -16,8 +16,5 @@ internal data class IoMappingJson(
      * [target] is the variable being written, [source] the expression or static value bound to it.
      */
     @Serializable
-    data class Parameter(
-        val target: String,
-        val source: String? = null,
-    )
+    data class Parameter(val target: String, val source: String? = null)
 }

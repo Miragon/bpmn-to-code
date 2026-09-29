@@ -23,17 +23,12 @@ internal class BpmnFileLoader : LoadBpmnFilesPort {
         val matcher = createMatcher(pattern)
         val files = Files.walk(searchDir)
             .filter { Files.isRegularFile(it) }
-            .filter { matcher.matches(searchDir.relativize(it)) }
-            .toList()
-            .sortedBy { relativeSortKey(searchDir, it) }
+            .filter { matcher.matches(searchDir.relativize(it)) }.toList().sortedBy { relativeSortKey(searchDir, it) }
 
         logger.info { "Found ${files.size} files matching pattern $pattern in directory $searchDir" }
 
         return files.map { file ->
-            BpmnResource(
-                fileName = file.name,
-                content = file.readBytes(),
-            )
+            BpmnResource(fileName = file.name, content = file.readBytes())
         }
     }
 
@@ -86,10 +81,7 @@ internal class BpmnFileLoader : LoadBpmnFilesPort {
         }
     }
 
-    private data class WildcardCheckResult(
-        val position: Int,
-        val isPresent: Boolean,
-    ) {
+    private data class WildcardCheckResult(val position: Int, val isPresent: Boolean) {
         fun hasNoWildcard() = !isPresent
     }
 }

@@ -63,12 +63,10 @@ class ProcessGraph(
     private fun nestedFlows(nodes: List<FlowNodeDefinition>): List<SequenceFlowDefinition> = nodes.filterIsInstance<FlowNodeDefinition.Activity.SubProcess>()
         .flatMap { it.sequenceFlows + nestedFlows(it.flowNodes) }
 
-    private fun buildParentIndex(
-        nodes: List<FlowNodeDefinition>,
-        parentId: String?,
-    ): Map<String, String> = buildMap {
+    private fun buildParentIndex(nodes: List<FlowNodeDefinition>, parentId: String?): Map<String, String> = buildMap {
         nodes.forEach { node ->
-            if (parentId != null && node.id != null) put(node.id!!, parentId)
+            val nodeId = node.id
+            if (parentId != null && nodeId != null) put(nodeId, parentId)
             if (node is FlowNodeDefinition.Activity.SubProcess) {
                 putAll(buildParentIndex(node.flowNodes, node.id))
             }

@@ -20,10 +20,7 @@ class ValidateBpmnServiceTest {
     private val bpmnFileLoader = mockk<LoadBpmnFilesPort>()
     private val bpmnExtractor = mockk<ExtractBpmnPort>()
 
-    private val underTest = ValidateBpmnService(
-        bpmnFileLoader = bpmnFileLoader,
-        bpmnService = bpmnExtractor,
-    )
+    private val underTest = ValidateBpmnService(bpmnFileLoader = bpmnFileLoader, bpmnService = bpmnExtractor)
 
     private val command = ValidateBpmnFromFilesystemUseCase.Command(
         baseDir = "baseDir",

@@ -15,6 +15,5 @@ class SharedDefinitionsService {
     )
 
     private fun <T : VariableMapping<*>> List<T>.distinctByValue(): List<T> = filter { it.getRawName().isNotEmpty() }
-        .distinctBy { it.getValue() }
-        .sortedBy { it.getRawName() }
+        .distinctBy { it.getValue() }.sortedBy { it.getRawName() }
 }

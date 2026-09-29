@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
@@ -8,8 +8,8 @@ import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.ObjectWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
-import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.ProcessGraph
@@ -63,8 +63,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val processIdClass = ClassName(RUNTIME_PACKAGE, "ProcessId")
             val idProperty = PropertySpec.builder(PROCESS_ID, processIdClass)
-                .initializer("%T(%N.%N)", processIdClass, KOTLIN_NAMES_HOLDER, PROCESS_ID)
-                .build()
+                .initializer("%T(%N.%N)", processIdClass, KOTLIN_NAMES_HOLDER, PROCESS_ID).build()
             builder.addProperty(idProperty)
             builder.addType(kotlinNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)))
         }
@@ -75,8 +74,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnEngineClass = ClassName(RUNTIME_PACKAGE, "BpmnEngine")
             val engineProperty = PropertySpec.builder("PROCESS_ENGINE", bpmnEngineClass)
-                .initializer("%T.%L", bpmnEngineClass, modelApi.targetEngine.name)
-                .build()
+                .initializer("%T.%L", bpmnEngineClass, modelApi.targetEngine.name).build()
             builder.addProperty(engineProperty)
         }
     }
@@ -96,7 +94,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             val variantsBuilder = TypeSpec.objectBuilder("FlowVariants")
                 .addKdoc("The `FlowNodes` of each merged BPMN file, keyed by its `variantName`.")
             model.variants.forEach { variant ->
-                variantsBuilder.addType(buildFlowObject(variant.graph, model.definitions, variant.variantName.toCamelCase()))
+                variantsBuilder.addType(buildFlowObject(graph = variant.graph, definitions = model.definitions, objectName = variant.variantName.toCamelCase()))
             }
             builder.addType(variantsBuilder.build())
         }
@@ -109,16 +107,15 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
      * opens its interior via `startEvents`.
      */
     private fun buildFlowObject(graph: ProcessGraph, definitions: RootElements, objectName: String = "FlowNodes"): TypeSpec {
-        val flowBuilder = TypeSpec.objectBuilder(objectName)
-            .addKdoc(
-                "Typed navigation over the process flow.\n" +
-                    "Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the " +
-                    "elements reachable from it behind `next` — so a full path is verified by the compiler and " +
-                    "offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess " +
-                    "depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of " +
-                    "them implement the sealed `Node`, so a `when` over them can be exhaustive.\n" +
-                    "Intended for tooling, tests, and reasoning about the process shape.",
-            )
+        val flowBuilder = TypeSpec.objectBuilder(objectName).addKdoc(
+            "Typed navigation over the process flow.\n" +
+                "Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the " +
+                "elements reachable from it behind `next` — so a full path is verified by the compiler and " +
+                "offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess " +
+                "depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of " +
+                "them implement the sealed `Node`, so a `when` over them can be exhaustive.\n" +
+                "Intended for tooling, tests, and reasoning about the process shape.",
+        )
         KotlinFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }

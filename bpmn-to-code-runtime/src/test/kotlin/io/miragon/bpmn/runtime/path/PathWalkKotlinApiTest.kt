@@ -19,21 +19,17 @@ class PathWalkKotlinApiTest {
             .then { it.serviceTaskValidateApplication }
             .then { it.businessRuleTaskCheckCreditRating }
             .then { it.gatewayIsSolvent }
-            .onto { it.subProcessConcludeContract }
-            .inside(BikeLeasing.SubProcessConcludeContract) { s ->
+            .onto { it.subProcessConcludeContract }.inside(BikeLeasing.SubProcessConcludeContract) { s ->
                 PathWalk.from(s.startEventCustomerEligible)
                     .then { it.serviceTaskSendContract }
                     .then { it.gatewayAwaitSignature }
-                    .then { it.eventContractSigned }
-                    .end { it.endEventContractConcluded }
+                    .then { it.eventContractSigned }.end { it.endEventContractConcluded }
             }
             .then { it.gatewayFork }
             .then { it.serviceTaskOrderBike }
             .then { it.gatewayJoin }
             .then { it.receiveTaskHandoverReported }
-            .then { it.timerWithdrawalPeriodElapsed }
-            .end { it.endEventLeasingActive }
-            .ids
+            .then { it.timerWithdrawalPeriodElapsed }.end { it.endEventLeasingActive }.ids
 
         assertThat(ids).containsExactly(
             "startEvent_leasingRequestReceived",
@@ -60,8 +56,7 @@ class PathWalkKotlinApiTest {
             .via { it.outgoingFlows.toServiceTaskValidateApplication }
             .via { it.outgoingFlows.toBusinessRuleTaskCheckCreditRating }
             .via { it.outgoingFlows.toGatewayIsSolvent }
-            .via { it.outgoingFlows.toSubProcessConcludeContract }
-            .inside(BikeLeasing.SubProcessConcludeContract) { s ->
+            .via { it.outgoingFlows.toSubProcessConcludeContract }.inside(BikeLeasing.SubProcessConcludeContract) { s ->
                 PathWalk.from(s.startEventCustomerEligible)
                     .via { it.outgoingFlows.toServiceTaskSendContract }
                     .via { it.outgoingFlows.toGatewayAwaitSignature }
@@ -73,8 +68,7 @@ class PathWalkKotlinApiTest {
             .via { it.outgoingFlows.toGatewayJoin }
             .via { it.outgoingFlows.toReceiveTaskHandoverReported }
             .via { it.outgoingFlows.toTimerWithdrawalPeriodElapsed }
-            .endVia { it.outgoingFlows.toEndEventLeasingActive }
-            .flowIds
+            .endVia { it.outgoingFlows.toEndEventLeasingActive }.flowIds
 
         assertThat(flowIds).containsExactly(
             "flow_leasingRequestReceivedToValidateApplication",
@@ -105,9 +99,7 @@ class PathWalkKotlinApiTest {
             .then { it.timerSignatureDeadline }
             .interruptedBy(BikeLeasing.SubProcessConcludeContract) { it.boundaryContractNotSigned }
             .then { it.gatewayCollectRejections }
-            .then { it.serviceTaskSendRejection }
-            .end { it.endEventApplicationRejected }
-            .ids
+            .then { it.serviceTaskSendRejection }.end { it.endEventApplicationRejected }.ids
 
         assertThat(ids).containsExactly(
             "startEvent_leasingRequestReceived",
@@ -130,9 +122,7 @@ class PathWalkKotlinApiTest {
             .then { it.serviceTaskValidateApplication }
             .then { it.boundaryApplicationInvalid }
             .then { it.gatewayCollectRejections }
-            .then { it.serviceTaskSendRejection }
-            .end { it.endEventApplicationRejected }
-            .ids
+            .then { it.serviceTaskSendRejection }.end { it.endEventApplicationRejected }.ids
 
         assertThat(ids).containsExactly(
             "startEvent_leasingRequestReceived",
@@ -147,15 +137,10 @@ class PathWalkKotlinApiTest {
     @Test
     fun `parallel branches union into a deduplicated set via nodesOf`() {
         val orderBranch = PathWalk.from(BikeLeasing.GatewayFork)
-            .then { it.serviceTaskOrderBike }
-            .then { it.gatewayJoin }
-            .then { it.receiveTaskHandoverReported }
-            .nodes
+            .then { it.serviceTaskOrderBike }.then { it.gatewayJoin }.then { it.receiveTaskHandoverReported }.nodes
         val insuranceBranch = PathWalk.from(BikeLeasing.GatewayFork)
             .then { it.serviceTaskIssueInsurancePolicy }
-            .then { it.gatewayJoin }
-            .then { it.receiveTaskHandoverReported }
-            .nodes
+            .then { it.gatewayJoin }.then { it.receiveTaskHandoverReported }.nodes
 
         assertThat(PathWalk.nodesOf(orderBranch, insuranceBranch).map { it.id.value })
             .contains("serviceTask_orderBike", "serviceTask_issueInsurancePolicy", "gateway_join")
@@ -169,9 +154,7 @@ class PathWalkKotlinApiTest {
             .then { it.serviceTaskOrderBike }
             .jumpTo(BikeLeasing.GatewayFork)
             .then { it.serviceTaskIssueInsurancePolicy }
-            .then { it.gatewayJoin }
-            .then { it.receiveTaskHandoverReported }
-            .ids
+            .then { it.gatewayJoin }.then { it.receiveTaskHandoverReported }.ids
 
         assertThat(ids).containsExactly(
             "gateway_fork",
@@ -186,11 +169,9 @@ class PathWalkKotlinApiTest {
     fun `thenMultipleTimes records the same node repeatedly (builder mechanic, not a real flow)`() {
         // Bike leasing has no consecutively-repeating node, so this is an isolated mechanic check that also
         // exercises the instance-level nodes / ids / distinctIds accessors (mid-walk, before any end).
-        val walk = PathWalk.from(BikeLeasing.GatewayFork)
-            .thenMultipleTimes(2) { it.serviceTaskOrderBike }
+        val walk = PathWalk.from(BikeLeasing.GatewayFork).thenMultipleTimes(2) { it.serviceTaskOrderBike }
 
-        assertThat(walk.ids)
-            .containsExactly("gateway_fork", "serviceTask_orderBike", "serviceTask_orderBike")
+        assertThat(walk.ids).containsExactly("gateway_fork", "serviceTask_orderBike", "serviceTask_orderBike")
         assertThat(walk.distinctIds).containsExactly("gateway_fork", "serviceTask_orderBike")
         assertThat(walk.nodes.map { it.id.value })
             .containsExactly("gateway_fork", "serviceTask_orderBike", "serviceTask_orderBike")

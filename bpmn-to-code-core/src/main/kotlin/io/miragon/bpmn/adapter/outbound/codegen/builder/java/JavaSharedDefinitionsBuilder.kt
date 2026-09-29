@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.CodeBlock
@@ -39,11 +39,10 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
     }
 
     private fun serviceTasks(serviceTasks: List<ServiceTaskDefinition>): TypeSpec? = serviceTasks.ifNotEmpty {
-        val tasksBuilder = JavaConstantHolder(SharedDefinitionType.SERVICE_TASKS.typeName).builder()
-            .addJavadoc(
-                "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
-                    "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
-            )
+        val tasksBuilder = JavaConstantHolder(SharedDefinitionType.SERVICE_TASKS.typeName).builder().addJavadoc(
+            "Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.\n" +
+                "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
+        )
         serviceTasks.forEach { task -> tasksBuilder.addField(createConstant(task)) }
         tasksBuilder.addMethod(all(serviceTasks, ClassName.get(String::class.java)))
         tasksBuilder.build()
@@ -97,29 +96,22 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
     }
 
     private fun createConstant(variable: VariableMapping<String>): FieldSpec = FieldSpec.builder(String::class.java, variable.getName())
-        .addModifiers(PUBLIC, STATIC, FINAL)
-        .initializer("\$S", variable.getValue())
-        .build()
+        .addModifiers(PUBLIC, STATIC, FINAL).initializer("\$S", variable.getValue()).build()
 
     private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): FieldSpec = FieldSpec.builder(wrapperClass, variable.getName())
-        .addModifiers(PUBLIC, STATIC, FINAL)
-        .initializer("new \$T(\$S)", wrapperClass, variable.getValue())
-        .build()
+        .addModifiers(PUBLIC, STATIC, FINAL).initializer("new \$T(\$S)", wrapperClass, variable.getValue()).build()
 
     private fun createNameAndCodeAttribute(variable: VariableMapping<Pair<String, String>>, wrapperClass: ClassName): FieldSpec {
         val (name, code) = variable.getValue()
         return FieldSpec.builder(wrapperClass, variable.getName())
-            .addModifiers(PUBLIC, STATIC, FINAL)
-            .initializer("new \$T(\$S, \$S)", wrapperClass, name, code)
-            .build()
+            .addModifiers(PUBLIC, STATIC, FINAL).initializer("new \$T(\$S, \$S)", wrapperClass, name, code).build()
     }
 
     private fun all(variables: List<VariableMapping<*>>, elementType: ClassName): MethodSpec {
         val fields = variables.map { CodeBlock.of("\$N", it.getName()) }
         return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
             .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), elementType))
-            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(fields, ",\n"))
-            .build()
+            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(fields, ",\n")).build()
     }
 
     private fun <T> List<T>.ifNotEmpty(build: () -> TypeSpec): TypeSpec? = if (isEmpty()) null else build()

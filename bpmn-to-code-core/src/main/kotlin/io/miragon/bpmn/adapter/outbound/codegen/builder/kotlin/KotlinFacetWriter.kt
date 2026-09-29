@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -25,12 +25,12 @@ internal class KotlinFacetWriter {
 
     fun properties(facets: NodeFacets): List<PropertySpec> = listOfNotNull(
         facets.jobType?.let { jobTypeProperty(it) },
-        facets.calledProcessId?.let { wrappedProperty("CALLED_PROCESS", "ProcessId", it) },
+        facets.calledProcessId?.let { wrappedProperty(name = "CALLED_PROCESS", wrapper = "ProcessId", value = it) },
         facets.timer?.let { timerProperty(it) },
-        facets.message?.let { sharedProperty("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
-        facets.signal?.let { sharedProperty("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
-        facets.error?.let { sharedProperty("ERROR", "BpmnErrorDefinition", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
-        facets.escalation?.let { sharedProperty("ESCALATION", "BpmnEscalationDefinition", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
+        facets.message?.let { sharedProperty(name = "MESSAGE", wrapper = "MessageName", type = SharedDefinitionType.MESSAGES, shared = it, literal = ::wrappedInitializer) },
+        facets.signal?.let { sharedProperty(name = "SIGNAL", wrapper = "SignalName", type = SharedDefinitionType.SIGNALS, shared = it, literal = ::wrappedInitializer) },
+        facets.error?.let { sharedProperty(name = "ERROR", wrapper = "BpmnErrorDefinition", type = SharedDefinitionType.ERRORS, shared = it, literal = ::namedCodeInitializer) },
+        facets.escalation?.let { sharedProperty(name = "ESCALATION", wrapper = "BpmnEscalationDefinition", type = SharedDefinitionType.ESCALATIONS, shared = it, literal = ::namedCodeInitializer) },
         facets.attachedTo?.let { attachedToProperty(it.objectName) },
         facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
     )
@@ -85,8 +85,7 @@ internal class KotlinFacetWriter {
 
     private fun attachedToProperty(hostObjectName: String): PropertySpec = PropertySpec.builder("attachedTo", ClassName("", hostObjectName))
         .addModifiers(KModifier.OVERRIDE)
-        .getter(FunSpec.getterBuilder().addStatement("return %N", hostObjectName).build())
-        .build()
+        .getter(FunSpec.getterBuilder().addStatement("return %N", hostObjectName).build()).build()
 
     private fun isInterruptingProperty(isInterrupting: Boolean, overridesBoundaryEvent: Boolean): PropertySpec {
         val property = PropertySpec.builder("isInterrupting", Boolean::class).initializer("%L", isInterrupting)
@@ -100,8 +99,7 @@ internal class KotlinFacetWriter {
             val subtypeClass = ClassName(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addProperty(
                 PropertySpec.builder(variable.constantName, subtypeClass)
-                    .initializer("%T(%N.%N)", subtypeClass, KOTLIN_NAMES_HOLDER, variable.constantName)
-                    .build(),
+                    .initializer("%T(%N.%N)", subtypeClass, KOTLIN_NAMES_HOLDER, variable.constantName).build(),
             )
         }
         return holder.addType(kotlinNamesHolder(variables.map { it.constantName to it.rawName })).build()

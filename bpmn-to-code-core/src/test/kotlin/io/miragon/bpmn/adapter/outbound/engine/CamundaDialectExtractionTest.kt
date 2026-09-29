@@ -114,17 +114,41 @@ class CamundaDialectExtractionTest {
 
         // --- derived timers ---
         assertThat(bpmnModel.timers).containsExactlyInAnyOrder(
-            TimerDefinition("timer_signatureDeadline", TimerType.DURATION, "P14D"),
-            TimerDefinition("timer_signatureReminder", TimerType.DURATION, "P7D"),
-            TimerDefinition("timer_withdrawalPeriodElapsed", TimerType.DURATION, "\${withdrawalPeriod}"),
+            TimerDefinition(id = "timer_signatureDeadline", type = TimerType.DURATION, expression = "P14D"),
+            TimerDefinition(id = "timer_signatureReminder", type = TimerType.DURATION, expression = "P7D"),
+            TimerDefinition(
+                id = "timer_withdrawalPeriodElapsed",
+                type = TimerType.DURATION,
+                expression = "\${withdrawalPeriod}",
+            ),
         )
 
         // --- derived compensations ---
         assertThat(bpmnModel.compensations).containsExactlyInAnyOrder(
-            CompensationDefinition("boundary_compensateContract", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
-            CompensationDefinition("boundary_compensateOrder", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
-            CompensationDefinition("boundary_compensateInsurance", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
-            CompensationDefinition("event_reverseApplication", CompensationDefinition.Type.THROWING, activityRef = null, waitForCompletion = false),
+            CompensationDefinition(
+                id = "boundary_compensateContract",
+                type = CompensationDefinition.Type.CATCHING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
+            CompensationDefinition(
+                id = "boundary_compensateOrder",
+                type = CompensationDefinition.Type.CATCHING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
+            CompensationDefinition(
+                id = "boundary_compensateInsurance",
+                type = CompensationDefinition.Type.CATCHING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
+            CompensationDefinition(
+                id = "event_reverseApplication",
+                type = CompensationDefinition.Type.THROWING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
         )
 
         // --- call activity (the compensation handler of the bike order) ---
@@ -146,8 +170,16 @@ class CamundaDialectExtractionTest {
         assertThat(subProcess.sequenceFlows.map { it.id }).containsExactlyInAnyOrderElementsOf(subProcessInternalFlows)
         assertThat(bpmnModel.graph.allSequenceFlows).hasSize(30)
         assertThat(bpmnModel.graph.allSequenceFlows).contains(
-            SequenceFlowDefinition("flow_sendContractToAwaitSignature", "serviceTask_sendContract", "gateway_awaitSignature"),
-            SequenceFlowDefinition("flow_signatureReminderToSendReminderMail", "timer_signatureReminder", "serviceTask_sendReminderMail"),
+            SequenceFlowDefinition(
+                id = "flow_sendContractToAwaitSignature",
+                sourceRef = "serviceTask_sendContract",
+                targetRef = "gateway_awaitSignature",
+            ),
+            SequenceFlowDefinition(
+                id = "flow_signatureReminderToSendReminderMail",
+                sourceRef = "timer_signatureReminder",
+                targetRef = "serviceTask_sendReminderMail",
+            ),
         )
 
         // --- messages registry ---
@@ -190,7 +222,12 @@ class CamundaDialectExtractionTest {
         assertThat(event("endEvent_membershipActivated").eventDefinitions.filterIsInstance<EventDefinitionInstance.Signal>().single().signalName)
             .isEqualTo("miravelo.memberActivated")
         assertThat(bpmnModel.compensations).contains(
-            CompensationDefinition("endEvent_membershipDeclined", CompensationDefinition.Type.THROWING, activityRef = "serviceTask_claimMembership", waitForCompletion = false),
+            CompensationDefinition(
+                id = "endEvent_membershipDeclined",
+                type = CompensationDefinition.Type.THROWING,
+                activityRef = "serviceTask_claimMembership",
+                waitForCompletion = false,
+            ),
         )
         val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
         assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.Expression("\${mailService.sendWelcomeMail(email)}"))
@@ -210,11 +247,23 @@ class CamundaDialectExtractionTest {
     fun `extract captures call-activity input and output mapping targets`(engine: ProcessEngine) {
         val callActivity = extract(engine, "bike-leasing").callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.inputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "orderIds", target = "orderIds"),
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, sourceExpression = "\${applicationId}", target = "applicationId"),
+            CallActivityDefinition.Mapping(
+                direction = VariableDirection.INPUT,
+                source = "orderIds",
+                target = "orderIds",
+            ),
+            CallActivityDefinition.Mapping(
+                direction = VariableDirection.INPUT,
+                sourceExpression = "\${applicationId}",
+                target = "applicationId",
+            ),
         )
         assertThat(callActivity.outputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "cancellationCosts", target = "cancellationCosts"),
+            CallActivityDefinition.Mapping(
+                direction = VariableDirection.OUTPUT,
+                source = "cancellationCosts",
+                target = "cancellationCosts",
+            ),
         )
     }
 
@@ -249,8 +298,16 @@ class CamundaDialectExtractionTest {
         val bpmnModel = extract(engine, "bike-leasing")
         val userTask = bpmnModel.allFlowNodes.single { it.id == "userTask_updateDeliveryAddress" }
         assertThat(userTask.variables).containsExactlyInAnyOrder(
-            VariableDefinition("deliveryAddress", VariableDirection.INPUT, "\${deliveryAddress}"),
-            VariableDefinition("deliveryAddress", VariableDirection.OUTPUT, "\${deliveryAddress}"),
+            VariableDefinition(
+                name = "deliveryAddress",
+                direction = VariableDirection.INPUT,
+                valueExpression = "\${deliveryAddress}",
+            ),
+            VariableDefinition(
+                name = "deliveryAddress",
+                direction = VariableDirection.OUTPUT,
+                valueExpression = "\${deliveryAddress}",
+            ),
         )
     }
 
@@ -272,8 +329,12 @@ class CamundaDialectExtractionTest {
         val bpmnModel = extract(engine, "bike-leasing")
         listOf("serviceTask_orderBike", "serviceTask_issueInsurancePolicy").forEach { id ->
             assertThat(bpmnModel.allFlowNodes.single { it.id == id }.variables).containsExactlyInAnyOrder(
-                VariableDefinition("bikeIds", VariableDirection.INPUT, "\${bikeIds}"),
-                VariableDefinition("bikeId", VariableDirection.INPUT, "bikeId"),
+                VariableDefinition(
+                    name = "bikeIds",
+                    direction = VariableDirection.INPUT,
+                    valueExpression = "\${bikeIds}",
+                ),
+                VariableDefinition(name = "bikeId", direction = VariableDirection.INPUT, valueExpression = "bikeId"),
             )
         }
     }
@@ -310,10 +371,22 @@ class CamundaDialectExtractionTest {
     fun `extract marks default sequence flow correctly`(engine: ProcessEngine) {
         val flowsById = extract(engine, "bike-leasing").sequenceFlows.associateBy { it.id }
         assertThat(flowsById["flow_isSolventToConcludeContract"]).isEqualTo(
-            SequenceFlowDefinition("flow_isSolventToConcludeContract", "gateway_isSolvent", "subProcess_concludeContract", flowName = "Yes", isDefault = true),
+            SequenceFlowDefinition(
+                id = "flow_isSolventToConcludeContract",
+                sourceRef = "gateway_isSolvent",
+                targetRef = "subProcess_concludeContract",
+                flowName = "Yes",
+                isDefault = true,
+            ),
         )
         assertThat(flowsById["flow_isSolventToCollectRejections"]).isEqualTo(
-            SequenceFlowDefinition("flow_isSolventToCollectRejections", "gateway_isSolvent", "gateway_collectRejections", flowName = "No", conditionExpression = "\${!solvent}"),
+            SequenceFlowDefinition(
+                id = "flow_isSolventToCollectRejections",
+                sourceRef = "gateway_isSolvent",
+                targetRef = "gateway_collectRejections",
+                flowName = "No",
+                conditionExpression = "\${!solvent}",
+            ),
         )
     }
 
@@ -342,7 +415,11 @@ class CamundaDialectExtractionTest {
         assertThat(callActivity.propagateAllInputVariables).isTrue()
         assertThat(callActivity.propagateAllOutputVariables).isTrue()
         assertThat(callActivity.inputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "orderId", target = "businessKey"),
+            CallActivityDefinition.Mapping(
+                direction = VariableDirection.INPUT,
+                source = "orderId",
+                target = "businessKey",
+            ),
         )
     }
 

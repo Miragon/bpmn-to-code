@@ -4,20 +4,11 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GenerateJsonRequest(
-    val files: List<BpmnFileData>,
-    val config: JsonGenerationConfig,
-) {
+data class GenerateJsonRequest(val files: List<BpmnFileData>, val config: JsonGenerationConfig) {
 
     @Serializable
-    data class BpmnFileData(
-        val fileName: String,
-        val content: String,
-    )
+    data class BpmnFileData(val fileName: String, val content: String)
 
     @Serializable
-    data class JsonGenerationConfig(
-        val processEngine: ProcessEngine,
-        val enableVariants: Boolean = false,
-    )
+    data class JsonGenerationConfig(val processEngine: ProcessEngine, val enableVariants: Boolean = false)
 }

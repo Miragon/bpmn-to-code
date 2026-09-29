@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.writer
+package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.domain.BpmnModelApi
 

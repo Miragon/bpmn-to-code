@@ -38,10 +38,7 @@ class GenerateProcessApiServiceTest {
     @Test
     fun `generateProcessApi generates API file`() {
         // given: a dummy BPMN resource and a command
-        val dummyResource = BpmnResource(
-            fileName = "dummy.bpmn",
-            content = "<bpmn></bpmn>".encodeToByteArray(),
-        )
+        val dummyResource = BpmnResource(fileName = "dummy.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
         val expectedGeneratedFile = GeneratedApiFile(
             fileName = "NewsletterSubscriptionProcessApi.kt",
             packagePath = "de.emaarco.example",
@@ -149,8 +146,7 @@ class GenerateProcessApiServiceTest {
 
         // when / then: it fails naming both files and writes nothing
         assertThatThrownBy { underTest.generateProcessApi(command()) }
-            .isInstanceOf(DuplicateProcessIdException::class.java)
-            .hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(DuplicateProcessIdException::class.java).hasMessageContaining("v1.bpmn, v2.bpmn")
         verify(exactly = 0) { fileSystemOutput.writeFiles(any(), any()) }
     }
 
@@ -170,10 +166,7 @@ class GenerateProcessApiServiceTest {
 
     private fun variantResource(fileName: String) = BpmnResource(fileName = fileName, content = "<bpmn></bpmn>".encodeToByteArray())
 
-    private val dummyModel = ProcessModel(
-        processId = "newsletterSubscription",
-        flowNodes = emptyList(),
-    )
+    private val dummyModel = ProcessModel(processId = "newsletterSubscription", flowNodes = emptyList())
 
     private val nonExecutableModel = ProcessModel(
         processId = "draftProcess",

@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.TypeName
@@ -41,10 +41,7 @@ private fun namedCall(type: TypeName, arguments: Array<out Pair<String, CodeBloc
     val restoredIndent = continuationIndent.replace('⇤', '⇥')
     val argumentLines = arguments.mapNotNull { (name, value) -> value?.let { CodeBlock.of("%N = %L,", name, it) } }
     return CodeBlock.builder()
-        .add("%T(⇥\n$continuationIndent", type)
-        .add(argumentLines.joinToCode("\n"))
-        .add("⇤\n)$restoredIndent")
-        .build()
+        .add("%T(⇥\n$continuationIndent", type).add(argumentLines.joinToCode("\n")).add("⇤\n)$restoredIndent").build()
 }
 
 private val publicModifier = Regex("""(?m)^(\s*)public """)

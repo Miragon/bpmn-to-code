@@ -32,9 +32,7 @@ class ExternalModuleImportTest {
     fun `plugin module only imports domain objects or inbound adapters from core`(modulePath: String) {
         Konsist
             .scopeFromProject()
-            .files
-            .filter { file -> file.path.contains("/src/") && file.path.contains(modulePath) }
-            .assertTrue { file ->
+            .files.filter { file -> file.path.contains("/src/") && file.path.contains(modulePath) }.assertTrue { file ->
                 file.imports.none { import ->
                     forbiddenImportPrefixes.any { import.name.startsWith(it) }
                 }

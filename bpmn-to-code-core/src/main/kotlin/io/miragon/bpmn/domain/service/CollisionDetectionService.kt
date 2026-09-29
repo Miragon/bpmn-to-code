@@ -25,10 +25,10 @@ class CollisionDetectionService {
     fun findCollisions(model: ProcessModel): List<CollisionDetail> {
         val modelId = model.processId
         val collisions = mutableListOf<CollisionDetail>()
-        collisions.addAll(findCollisionsIn(modelId, model.allFlowNodes, "FlowNode") { it.getRawName().toCamelCase() })
+        collisions.addAll(findCollisionsIn(processId = modelId, items = model.allFlowNodes, variableType = "FlowNode") { it.getRawName().toCamelCase() })
         collisions.addAll(findRepeatedIds(modelId, model.allFlowNodes))
         model.allFlowNodes.forEach { node -> collisions.addAll(findCollisionsOn(modelId, node)) }
-        return collisions.distinctBy { Triple(it.processId, it.variableType, it.conflictingIds) }
+        return collisions.distinctBy { Triple(first = it.processId, second = it.variableType, third = it.conflictingIds) }
     }
 
     fun findSharedCollisions(models: List<ProcessModel>): List<CollisionDetail> = listOf(
@@ -62,7 +62,7 @@ class CollisionDetectionService {
 
     private fun findCollisionsOn(processId: String, node: FlowNodeDefinition): List<CollisionDetail> {
         val collisions = mutableListOf<CollisionDetail>()
-        collisions.addAll(findCollisionsIn(processId, node.variables, "Variable"))
+        collisions.addAll(findCollisionsIn(processId = processId, items = node.variables, variableType = "Variable"))
         (node as? FlowNodeDefinition.Activity.CallActivity)?.definition?.let { callActivity ->
             collisions.addAll(findMappingCollisions(processId, callActivity.inputMappings))
             collisions.addAll(findMappingCollisions(processId, callActivity.outputMappings))
@@ -84,11 +84,7 @@ class CollisionDetectionService {
      */
     private fun findRepeatedIds(processId: String, flowNodes: List<VariableMapping<*>>): List<CollisionDetail> = flowNodes
         .map { it.getRawName() }
-        .filter { it.isNotEmpty() }
-        .groupingBy { it }
-        .eachCount()
-        .filterValues { it > 1 }
-        .map { (id, occurrences) ->
+        .filter { it.isNotEmpty() }.groupingBy { it }.eachCount().filterValues { it > 1 }.map { (id, occurrences) ->
             CollisionDetail(
                 processId = processId,
                 variableType = "FlowNode",
@@ -102,7 +98,7 @@ class CollisionDetectionService {
         items: List<T>,
         variableType: String,
         constantName: (T) -> String = { it.getName() },
-    ): List<CollisionDetail> = findCollisionsIn(processId, items, variableType, { it.getRawName() }, constantName)
+    ): List<CollisionDetail> = findCollisionsIn(processId = processId, items = items, variableType = variableType, rawName = { it.getRawName() }, constantName = constantName)
 
     private fun <T> findCollisionsIn(
         processId: String,

@@ -22,15 +22,11 @@ class UncaughtMessageThrowRule : CrossModelValidationRule {
 
     override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
         val caughtNames = context.models
-            .flatMap { it.messageUsages() }
-            .filter { it.direction == EventDirection.CATCH }
-            .map { it.name }
-            .toSet()
+            .flatMap { it.messageUsages() }.filter { it.direction == EventDirection.CATCH }.map { it.name }.toSet()
 
         return context.models.flatMap { model ->
             model.messageUsages()
-                .filter { it.direction == EventDirection.THROW && it.name !in caughtNames }
-                .map { usage ->
+                .filter { it.direction == EventDirection.THROW && it.name !in caughtNames }.map { usage ->
                     ValidationViolation(
                         ruleId = id,
                         severity = severity,

@@ -8,10 +8,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
  * Context handed to a [io.miragon.bpmn.domain.validation.CrossModelValidationRule]. Carries every
  * loaded process model and resolves cross-process references such as a call activity's called element.
  */
-data class CrossModelValidationContext(
-    val models: List<ProcessModel>,
-    val engine: ProcessEngine,
-) {
+data class CrossModelValidationContext(val models: List<ProcessModel>, val engine: ProcessEngine) {
 
     // Process ids are unique after merging (ModelMergerService returns one model per id).
     private val byProcessId = models.associateBy { it.processId }

@@ -42,10 +42,7 @@ class GradleValidationSmokeTest {
 
         // when: running the validateBpmnModels task
         val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withPluginClasspath()
-            .withArguments("validateBpmnModels")
-            .build()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments("validateBpmnModels").build()
 
         // then: the task succeeds with a validation passed message
         assertThat(result.task(":validateBpmnModels")?.outcome).isEqualTo(TaskOutcome.SUCCESS)

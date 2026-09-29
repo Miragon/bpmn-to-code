@@ -26,9 +26,7 @@ class EmptyProcessRuleTest {
     @Test
     fun `no violations for process with elements`() {
         // given: a model with at least one flow node
-        val model = testProcessModel(
-            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_Task1")),
-        )
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Activity_Task1")))
 
         // when / then: no violations
         val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))

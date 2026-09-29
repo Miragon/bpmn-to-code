@@ -20,9 +20,7 @@ import java.util.function.Function
  * (an end event is not `HasSuccessors`, so it can't continue a chain), and descending into a subprocess names the
  * subprocess explicitly ([enter] / [inside] take the subprocess node as its [FlowScope]).
  */
-class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(
-    private val path: ProcessPath<N>,
-) {
+class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val path: ProcessPath<N>) {
 
     /**
      * Advances to a real successor and records it. `pick`'s input is the current node's `Next`, so only an
@@ -72,7 +70,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(
      */
     fun <S> inside(scope: FlowScope<S>, block: Function<S, Trail>): PathWalk<N, NEXT> {
         val interior = block.apply(scope.startEvents)
-        return PathWalk(path.moveTo(path.current, interior.nodes, interior.flows))
+        return PathWalk(path.moveTo(node = path.current, nodesToRecord = interior.nodes, flowsToRecord = interior.flows))
     }
 
     /**
@@ -139,7 +137,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(
         internal val flows: List<SequenceFlow<*>> get() = path.flows
     }
 
-    private fun <M : FlowNode> ProcessPath<*>.walk(flow: SequenceFlow<M>): ProcessPath<M> = moveTo(flow.target, listOf(flow.target), listOf(flow))
+    private fun <M : FlowNode> ProcessPath<*>.walk(flow: SequenceFlow<M>): ProcessPath<M> = moveTo(node = flow.target, nodesToRecord = listOf(flow.target), flowsToRecord = listOf(flow))
 
     companion object {
 

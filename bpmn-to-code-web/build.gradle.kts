@@ -73,9 +73,7 @@ val generateLibrarySourcesManifest by tasks.registering {
     outputs.file(outputDir.map { it.file("manifest.txt") })
     doLast {
         val dir = outputDir.get().asFile
-        val names = dir.listFiles { f -> f.isFile && f.name.endsWith(".kt") }
-            ?.map { it.name }
-            ?.sorted()
+        val names = dir.listFiles { f -> f.isFile && f.name.endsWith(".kt") }?.map { it.name }?.sorted()
             ?: emptyList()
         dir.resolve("manifest.txt").writeText(names.joinToString("\n") + "\n")
     }
@@ -141,9 +139,7 @@ val dockerImageTag = project.version.toString()
 
 val dockerExecutable: Provider<String> =
     providers.exec { commandLine("which", "docker") }
-        .standardOutput.asText
-        .map { it.trim().ifEmpty { "docker" } }
-        .orElse("docker")
+        .standardOutput.asText.map { it.trim().ifEmpty { "docker" } }.orElse("docker")
 
 tasks.register<Exec>("dockerBuild") {
     group = "docker"

@@ -27,10 +27,7 @@ class CreateProcessJsonInMemoryPluginTest {
         every { useCase.generateProcessJson(any()) } returns expectedFiles
 
         // when: execute is called with multiple inputs
-        val result = underTest.execute(
-            bpmnContents = listOf(firstInput, secondInput),
-            engine = ProcessEngine.ZEEBE,
-        )
+        val result = underTest.execute(bpmnContents = listOf(firstInput, secondInput), engine = ProcessEngine.ZEEBE)
 
         // then: use case is called with correct command mapping and returns generated files
         verify {

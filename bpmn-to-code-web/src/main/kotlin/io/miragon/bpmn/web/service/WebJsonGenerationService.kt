@@ -45,15 +45,10 @@ class WebJsonGenerationService {
     private fun buildInput(file: GenerateJsonRequest.BpmnFileData): CreateProcessJsonInMemoryPlugin.BpmnInput {
         val bpmnXml = String(Base64.getDecoder().decode(file.content))
         val processName = file.fileName.removeSuffix(".bpmn")
-        return CreateProcessJsonInMemoryPlugin.BpmnInput(
-            bpmnXml = bpmnXml,
-            processName = processName,
-        )
+        return CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = bpmnXml, processName = processName)
     }
 
-    private fun mapToResponse(
-        jsonFile: GeneratedJsonFile,
-    ) = GenerateJsonResponse.GeneratedJsonFileResponse(
+    private fun mapToResponse(jsonFile: GeneratedJsonFile) = GenerateJsonResponse.GeneratedJsonFileResponse(
         fileName = jsonFile.fileName,
         content = jsonFile.content,
         processId = jsonFile.fileName.removeSuffix(".json"),

@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.CodeBlock
@@ -27,19 +27,19 @@ internal class JavaFacetWriter {
 
     fun fields(facets: NodeFacets): List<FieldSpec> = listOfNotNull(
         facets.jobType?.let { jobTypeField(it) },
-        facets.calledProcessId?.let { wrappedField("CALLED_PROCESS", "ProcessId", it) },
+        facets.calledProcessId?.let { wrappedField(name = "CALLED_PROCESS", wrapper = "ProcessId", value = it) },
         facets.timer?.let { timerField(it) },
-        facets.message?.let { sharedField("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
-        facets.signal?.let { sharedField("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
-        facets.error?.let { sharedField("ERROR", "BpmnErrorDefinition", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
-        facets.escalation?.let { sharedField("ESCALATION", "BpmnEscalationDefinition", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
+        facets.message?.let { sharedField(name = "MESSAGE", wrapper = "MessageName", type = SharedDefinitionType.MESSAGES, shared = it, literal = ::wrappedInitializer) },
+        facets.signal?.let { sharedField(name = "SIGNAL", wrapper = "SignalName", type = SharedDefinitionType.SIGNALS, shared = it, literal = ::wrappedInitializer) },
+        facets.error?.let { sharedField(name = "ERROR", wrapper = "BpmnErrorDefinition", type = SharedDefinitionType.ERRORS, shared = it, literal = ::namedCodeInitializer) },
+        facets.escalation?.let { sharedField(name = "ESCALATION", wrapper = "BpmnEscalationDefinition", type = SharedDefinitionType.ESCALATIONS, shared = it, literal = ::namedCodeInitializer) },
     )
 
     fun methods(facets: NodeFacets): List<MethodSpec> = listOfNotNull(
         facets.attachedTo?.let { JavaFlowNodeType(it.objectName) }?.let { host ->
-            getter("getAttachedTo", host.className, host.instance(), overridesBoundaryEvent = true)
+            getter(name = "getAttachedTo", returnType = host.className, returnValue = host.instance(), overridesBoundaryEvent = true)
         },
-        facets.isInterrupting?.let { getter("isInterrupting", TypeName.BOOLEAN, CodeBlock.of("\$L", it), overridesBoundaryEvent = facets.attachedTo != null) },
+        facets.isInterrupting?.let { getter(name = "isInterrupting", returnType = TypeName.BOOLEAN, returnValue = CodeBlock.of("\$L", it), overridesBoundaryEvent = facets.attachedTo != null) },
     )
 
     fun holders(facets: NodeFacets): List<TypeSpec> = listOfNotNull(
@@ -83,8 +83,7 @@ internal class JavaFacetWriter {
         val timerClass = ClassName.get(RUNTIME_PACKAGE, "BpmnTimer")
         val timerTypeClass = ClassName.get(RUNTIME_PACKAGE, "TimerType")
         return FieldSpec.builder(timerClass, "TIMER", PUBLIC, STATIC, FINAL)
-            .initializer("new \$T(\$T.\$L, \$S)", timerClass, timerTypeClass, timer.type.name, timer.expression)
-            .build()
+            .initializer("new \$T(\$T.\$L, \$S)", timerClass, timerTypeClass, timer.type.name, timer.expression).build()
     }
 
     private fun getter(name: String, returnType: TypeName, returnValue: CodeBlock, overridesBoundaryEvent: Boolean): MethodSpec {
@@ -99,8 +98,7 @@ internal class JavaFacetWriter {
             val subtypeClass = ClassName.get(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addField(
                 FieldSpec.builder(subtypeClass, variable.constantName, PUBLIC, STATIC, FINAL)
-                    .initializer("new \$T(\$N.\$N)", subtypeClass, JAVA_NAMES_HOLDER, variable.constantName)
-                    .build(),
+                    .initializer("new \$T(\$N.\$N)", subtypeClass, JAVA_NAMES_HOLDER, variable.constantName).build(),
             )
         }
         return holder.addType(javaNamesHolder(variables.map { it.constantName to it.rawName })).build()
@@ -112,16 +110,14 @@ internal class JavaFacetWriter {
         mappings.forEach { mapping ->
             holder.addField(
                 FieldSpec.builder(mappingClass, mapping.constantName, PUBLIC, STATIC, FINAL)
-                    .initializer(mappingInitializer(mappingClass, mapping))
-                    .build(),
+                    .initializer(mappingInitializer(mappingClass, mapping)).build(),
             )
         }
         return holder.build()
     }
 
     private fun mappingInitializer(mappingClass: ClassName, mapping: MappingFacet): CodeBlock = CodeBlock.builder()
-        .add("new \$T(\$S, \$S, \$S)", mappingClass, mapping.target, mapping.source, mapping.sourceExpression)
-        .build()
+        .add("new \$T(\$S, \$S, \$S)", mappingClass, mapping.target, mapping.source, mapping.sourceExpression).build()
 
     private companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"

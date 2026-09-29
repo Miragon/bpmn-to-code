@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
@@ -35,10 +35,7 @@ class KotlinProcessApiBuilderTest {
     @Test
     fun `buildApiFile generates correct process API file`() {
         // given: the bike-leasing model, which covers every implementation kind of Camunda 7
-        val modelApi = testProcessModelApi(
-            packagePath = "de.emaarco.example",
-            model = testBikeLeasingModel(),
-        )
+        val modelApi = testProcessModelApi(packagePath = "de.emaarco.example", model = testBikeLeasingModel())
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
@@ -63,8 +60,18 @@ class KotlinProcessApiBuilderTest {
                 FlowNodeDefinition.Unknown(id = "approve", incoming = listOf("flow_small", "flow_vip")),
             ),
             sequenceFlows = listOf(
-                SequenceFlowDefinition("flow_small", "split", "approve", conditionExpression = "=amount < 100"),
-                SequenceFlowDefinition("flow_vip", "split", "approve", conditionExpression = "=customer.isVip"),
+                SequenceFlowDefinition(
+                    id = "flow_small",
+                    sourceRef = "split",
+                    targetRef = "approve",
+                    conditionExpression = "=amount < 100",
+                ),
+                SequenceFlowDefinition(
+                    id = "flow_vip",
+                    sourceRef = "split",
+                    targetRef = "approve",
+                    conditionExpression = "=customer.isVip",
+                ),
             ),
         )
 
@@ -101,10 +108,15 @@ class KotlinProcessApiBuilderTest {
             flowNodes = retail.flowNodes,
             definitions = retail.definitions,
             variants = listOf(
-                Variant("retail", retail.flowNodes, retail.sequenceFlows),
+                Variant(variantName = "retail", flowNodes = retail.flowNodes, sequenceFlows = retail.sequenceFlows),
             ),
         )
-        val modelApi = BpmnModelApi(merged, OutputLanguage.KOTLIN, "de.emaarco.example", ProcessEngine.ZEEBE)
+        val modelApi = BpmnModelApi(
+            model = merged,
+            outputLanguage = OutputLanguage.KOTLIN,
+            packagePath = "de.emaarco.example",
+            targetEngine = ProcessEngine.ZEEBE,
+        )
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
@@ -127,7 +139,11 @@ class KotlinProcessApiBuilderTest {
         @OptIn(K1Deprecation::class)
         private val kotlinEnvironment by lazy {
             val config = CompilerConfiguration.create(messageCollector = MessageCollector.NONE)
-            KotlinCoreEnvironment.createForProduction(Disposer.newDisposable(), config, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+            KotlinCoreEnvironment.createForProduction(
+                projectDisposable = Disposer.newDisposable(),
+                configuration = config,
+                configFiles = EnvironmentConfigFiles.JVM_CONFIG_FILES,
+            )
         }
 
         @OptIn(K1Deprecation::class)
@@ -139,9 +155,7 @@ class KotlinProcessApiBuilderTest {
                     errors.add(element.errorDescription)
                 }
             })
-            assertThat(errors)
-                .withFailMessage { "Kotlin syntax errors in generated output: $errors" }
-                .isEmpty()
+            assertThat(errors).withFailMessage { "Kotlin syntax errors in generated output: $errors" }.isEmpty()
         }
     }
 }

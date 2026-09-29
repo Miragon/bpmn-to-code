@@ -3,9 +3,7 @@ package io.miragon.bpmn.domain.validation
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
-data class ValidationResult(
-    val violations: List<ValidationViolation>,
-) {
+data class ValidationResult(val violations: List<ValidationViolation>) {
     val errors: List<ValidationViolation> get() = violations.filter { it.severity == Severity.ERROR }
     val warnings: List<ValidationViolation> get() = violations.filter { it.severity == Severity.WARN }
     val hasErrors: Boolean get() = errors.isNotEmpty()

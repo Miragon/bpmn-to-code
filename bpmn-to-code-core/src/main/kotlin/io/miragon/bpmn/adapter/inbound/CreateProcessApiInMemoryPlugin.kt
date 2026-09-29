@@ -26,16 +26,10 @@ class CreateProcessApiInMemoryPlugin(
             validationConfig = validationConfig,
             enableVariants = enableVariants,
             bpmnContents = bpmnContents.map {
-                GenerateProcessApiInMemoryUseCase.BpmnInput(
-                    bpmnXml = it.bpmnXml,
-                    processName = it.processName,
-                )
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = it.bpmnXml, processName = it.processName)
             },
         ),
     )
 
-    data class BpmnInput(
-        val bpmnXml: String,
-        val processName: String,
-    )
+    data class BpmnInput(val bpmnXml: String, val processName: String)
 }

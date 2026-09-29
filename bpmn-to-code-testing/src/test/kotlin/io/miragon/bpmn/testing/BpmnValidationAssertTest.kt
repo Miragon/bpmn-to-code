@@ -99,7 +99,7 @@ class BpmnValidationAssertTest {
             val result = ValidationResult(listOf(error))
             assertThatCode {
                 BpmnValidationAssert.assertThat(result)
-                    .assertViolation("test-rule", elementId = "Task_1", messageContains = "wrong")
+                    .assertViolation(ruleId = "test-rule", elementId = "Task_1", messageContains = "wrong")
             }.doesNotThrowAnyException()
         }
 
@@ -117,8 +117,7 @@ class BpmnValidationAssertTest {
             val result = ValidationResult(listOf(error))
             assertThatThrownBy {
                 BpmnValidationAssert.assertThat(result).assertViolation("test-rule", elementId = "Task_2")
-            }.isInstanceOf(AssertionError::class.java)
-                .hasMessageContaining("on element 'Task_2'")
+            }.isInstanceOf(AssertionError::class.java).hasMessageContaining("on element 'Task_2'")
         }
 
         @Test
@@ -126,8 +125,7 @@ class BpmnValidationAssertTest {
             val result = ValidationResult(listOf(error))
             assertThatThrownBy {
                 BpmnValidationAssert.assertThat(result).assertViolation("test-rule", messageContains = "missing")
-            }.isInstanceOf(AssertionError::class.java)
-                .hasMessageContaining("to contain 'missing'")
+            }.isInstanceOf(AssertionError::class.java).hasMessageContaining("to contain 'missing'")
         }
     }
 
@@ -147,8 +145,7 @@ class BpmnValidationAssertTest {
             val result = ValidationResult(listOf(error))
             assertThatThrownBy {
                 BpmnValidationAssert.assertThat(result).assertViolationCount(2)
-            }.isInstanceOf(AssertionError::class.java)
-                .hasMessageContaining("Expected 2 violation(s) but found 1")
+            }.isInstanceOf(AssertionError::class.java).hasMessageContaining("Expected 2 violation(s) but found 1")
         }
     }
 
@@ -168,8 +165,7 @@ class BpmnValidationAssertTest {
             val result = ValidationResult(listOf(error))
             assertThatThrownBy {
                 BpmnValidationAssert.assertThat(result).assertNoErrors()
-            }.isInstanceOf(AssertionError::class.java)
-                .hasMessageContaining("Expected no errors but found 1")
+            }.isInstanceOf(AssertionError::class.java).hasMessageContaining("Expected no errors but found 1")
         }
     }
 
@@ -189,8 +185,7 @@ class BpmnValidationAssertTest {
             val result = ValidationResult(listOf(warning))
             assertThatThrownBy {
                 BpmnValidationAssert.assertThat(result).assertNoWarnings()
-            }.isInstanceOf(AssertionError::class.java)
-                .hasMessageContaining("Expected no warnings but found 1")
+            }.isInstanceOf(AssertionError::class.java).hasMessageContaining("Expected no warnings but found 1")
         }
     }
 

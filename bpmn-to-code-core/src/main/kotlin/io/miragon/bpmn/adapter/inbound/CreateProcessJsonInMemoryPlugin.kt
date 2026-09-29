@@ -21,16 +21,10 @@ class CreateProcessJsonInMemoryPlugin(
             validationConfig = validationConfig,
             enableVariants = enableVariants,
             bpmnContents = bpmnContents.map {
-                GenerateProcessJsonInMemoryUseCase.BpmnInput(
-                    bpmnXml = it.bpmnXml,
-                    processName = it.processName,
-                )
+                GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = it.bpmnXml, processName = it.processName)
             },
         ),
     )
 
-    data class BpmnInput(
-        val bpmnXml: String,
-        val processName: String,
-    )
+    data class BpmnInput(val bpmnXml: String, val processName: String)
 }

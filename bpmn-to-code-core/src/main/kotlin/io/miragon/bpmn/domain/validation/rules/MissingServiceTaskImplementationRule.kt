@@ -15,8 +15,7 @@ class MissingServiceTaskImplementationRule : SingleModelValidationRule {
     override val severity = Severity.ERROR
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.serviceTasks
-        .filter { !it.hasImplementation() }
-        .map { task ->
+        .filter { !it.hasImplementation() }.map { task ->
             ValidationViolation(
                 ruleId = id,
                 severity = severity,

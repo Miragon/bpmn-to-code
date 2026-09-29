@@ -13,10 +13,7 @@ internal class ExtractBpmnAdapter(
     private val dialects: Map<ProcessEngine, EngineDialect> = ExtractBpmnAdapter.dialects,
 ) : ExtractBpmnPort {
 
-    override fun extract(
-        bpmnFile: BpmnResource,
-        engine: ProcessEngine,
-    ): ProcessModel {
+    override fun extract(bpmnFile: BpmnResource, engine: ProcessEngine): ProcessModel {
         val dialect = dialects[engine] ?: error("No dialect found for engine: $engine")
         return try {
             logger.info { "Extracting model '${bpmnFile.fileName}' for '$engine'" }

@@ -1,5 +1,8 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.adapter.outbound.codegen.builder.asGoldenText
+import io.miragon.bpmn.adapter.outbound.codegen.builder.miraVeloSharedDefinitionsApi
+import io.miragon.bpmn.adapter.outbound.codegen.builder.readGolden
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -28,7 +31,11 @@ class CSharpSharedDefinitionsBuilderTest {
     fun `renames a constant that would collide with its enclosing type`() {
         // given: a message named exactly like the shared class that will contain it
         val definitions = SharedDefinitions(messages = listOf(RootElementDefinition.Message(id = "Messages", name = "Messages")))
-        val api = SharedDefinitionsApi(definitions, OutputLanguage.CSHARP, "de.emaarco.example")
+        val api = SharedDefinitionsApi(
+            definitions = definitions,
+            outputLanguage = OutputLanguage.CSHARP,
+            packagePath = "de.emaarco.example",
+        )
 
         // when: we build the shared definition files
         val result = underTest.buildApiFiles(api).single()
@@ -41,7 +48,11 @@ class CSharpSharedDefinitionsBuilderTest {
     @Test
     fun `buildApiFiles skips kinds without definitions`() {
         // given: no shared definitions at all
-        val api = SharedDefinitionsApi(SharedDefinitions(), OutputLanguage.CSHARP, "de.emaarco.example")
+        val api = SharedDefinitionsApi(
+            definitions = SharedDefinitions(),
+            outputLanguage = OutputLanguage.CSHARP,
+            packagePath = "de.emaarco.example",
+        )
 
         // when / then: no file is generated
         assertThat(underTest.buildApiFiles(api)).isEmpty()

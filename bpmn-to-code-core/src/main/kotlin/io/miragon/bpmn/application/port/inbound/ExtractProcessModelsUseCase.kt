@@ -15,8 +15,5 @@ interface ExtractProcessModelsUseCase {
 
     fun extractProcessModels(command: Command): List<ProcessModel>
 
-    data class Command(
-        val resources: List<BpmnResource>,
-        val engine: ProcessEngine,
-    )
+    data class Command(val resources: List<BpmnResource>, val engine: ProcessEngine)
 }

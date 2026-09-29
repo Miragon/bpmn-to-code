@@ -38,9 +38,9 @@ class GenerateProcessApiService(
         val extractedModels = inputFiles.map { it to bpmnService.extract(it, command.engine) }
         val executableModels = filterExecutableProcesses(extractedModels)
         val models = executableModels.map { (_, model) -> model }
-        validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
+        validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(toSourcedModels(executableModels), command.enableVariants)
-        validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
+        validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
         val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(mergedModels, command))
         val generatedFiles = (processFiles + sharedFiles).distinctBy { it.packagePath to it.fileName }
@@ -48,10 +48,7 @@ class GenerateProcessApiService(
         val filesByProcessId = executableModels
             .groupBy({ (_, model) -> model.processId }, { (file, _) -> file.fileName })
         return mergedModels.map { model ->
-            BpmnFileResult(
-                processId = model.processId,
-                sourceFiles = filesByProcessId[model.processId] ?: emptyList(),
-            )
+            BpmnFileResult(processId = model.processId, sourceFiles = filesByProcessId[model.processId] ?: emptyList())
         }
     }
 

@@ -87,8 +87,7 @@ class NormalisedExtensionTest {
         // then: the escape hatch still works — the raw element survives with its children
         val headers = extensions.single { it.type == "zeebe:taskHeaders" }
         assertThat(headers.children.single().attributes)
-            .containsEntry("key", "retryBackoff")
-            .containsEntry("value", "PT30S")
+            .containsEntry("key", "retryBackoff").containsEntry("value", "PT30S")
     }
 
     @Test

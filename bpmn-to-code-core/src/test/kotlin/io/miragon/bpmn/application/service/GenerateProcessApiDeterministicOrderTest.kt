@@ -35,14 +35,13 @@ class GenerateProcessApiDeterministicOrderTest {
     private val variantNames = listOf("staging", "dev", "prod")
 
     private val modelsByName: Map<String, ProcessModel> = variantNames.associateWith { name ->
-        testCancelBikeOrderModel(variantName = name)
-            .let { model ->
-                model.copy(
-                    flowNodes = model.flowNodes.map { node ->
-                        if (node.id == "serviceTask_requestCancellation") node.withDisplayName("request-$name") else node
-                    },
-                )
-            }
+        testCancelBikeOrderModel(variantName = name).let { model ->
+            model.copy(
+                flowNodes = model.flowNodes.map { node ->
+                    if (node.id == "serviceTask_requestCancellation") node.withDisplayName("request-$name") else node
+                },
+            )
+        }
     }
 
     @Test

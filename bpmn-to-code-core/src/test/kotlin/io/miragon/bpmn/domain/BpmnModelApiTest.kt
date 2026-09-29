@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test
 
 class BpmnModelApiTest {
 
-    private val processIds = listOf(
-        "newsletterSubscription",
-        "newsletter-subscription",
-        "newsletter_subscription",
-    )
+    private val processIds = listOf("newsletterSubscription", "newsletter-subscription", "newsletter_subscription")
 
     @Test
     fun `fileName returns PascalCase class name regardless of ID separator style`() {

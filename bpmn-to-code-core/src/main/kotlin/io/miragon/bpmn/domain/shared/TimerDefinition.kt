@@ -11,8 +11,8 @@ data class TimerDefinition(
     val type: TimerType?,
     val expression: String?,
 ) : VariableMapping<Pair<String, String>> {
-    override fun getName() = id?.toUpperSnakeCase() ?: ""
-    override fun getValue() = (type?.label ?: "") to (expression ?: "")
-    override fun getRawName() = id ?: ""
+    override fun getName() = id?.toUpperSnakeCase().orEmpty()
+    override fun getValue() = type?.label.orEmpty() to expression.orEmpty()
+    override fun getRawName() = id.orEmpty()
     fun hasTimerType() = type != null && expression != null
 }

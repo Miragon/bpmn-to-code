@@ -15,8 +15,7 @@ class SecureBpmnParserTest {
         """.trimIndent().encodeToByteArray()
 
         assertThatThrownBy { SecureBpmnParser.readModelFromBytes(malicious) }
-            .isInstanceOf(SecurityException::class.java)
-            .hasMessageContaining("DOCTYPE")
+            .isInstanceOf(SecurityException::class.java).hasMessageContaining("DOCTYPE")
     }
 
     @Test
@@ -27,8 +26,7 @@ class SecureBpmnParserTest {
         // then: the failure names the real problem — calling it a security violation sends the reader
         // looking for a DOCTYPE that is not there
         assertThatThrownBy { SecureBpmnParser.readModelFromBytes(truncated) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .isNotInstanceOf(SecurityException::class.java)
+            .isInstanceOf(IllegalArgumentException::class.java).isNotInstanceOf(SecurityException::class.java)
     }
 
     @Test
@@ -41,7 +39,6 @@ class SecureBpmnParserTest {
     @Test
     fun `parses valid BPMN files without DOCTYPE`() {
         val bytes = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes()
-        assertThatCode { SecureBpmnParser.readModelFromBytes(bytes) }
-            .doesNotThrowAnyException()
+        assertThatCode { SecureBpmnParser.readModelFromBytes(bytes) }.doesNotThrowAnyException()
     }
 }

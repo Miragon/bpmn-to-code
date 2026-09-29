@@ -21,9 +21,17 @@ class UnpublishedSignalCatchRuleTest {
         eventDefinitions = listOf(EventDefinitionInstance.Signal(signalName = signal)),
     )
 
-    private fun throwNode(id: String, signal: String) = signalEvent(id, signal, EventShape.INTERMEDIATE_THROW_EVENT)
+    private fun throwNode(id: String, signal: String) = signalEvent(
+        id = id,
+        signal = signal,
+        shape = EventShape.INTERMEDIATE_THROW_EVENT,
+    )
 
-    private fun catchNode(id: String, signal: String) = signalEvent(id, signal, EventShape.INTERMEDIATE_CATCH_EVENT)
+    private fun catchNode(id: String, signal: String) = signalEvent(
+        id = id,
+        signal = signal,
+        shape = EventShape.INTERMEDIATE_CATCH_EVENT,
+    )
 
     private fun model(processId: String, vararg nodes: FlowNodeDefinition) = testProcessModel(processId = processId, flowNodes = nodes.toList())
 

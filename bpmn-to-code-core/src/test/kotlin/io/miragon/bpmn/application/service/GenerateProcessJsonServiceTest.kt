@@ -64,8 +64,7 @@ class GenerateProcessJsonServiceTest {
 
         // when / then: it fails naming both files and writes nothing
         assertThatThrownBy { underTest.generateProcessJson(command()) }
-            .isInstanceOf(DuplicateProcessIdException::class.java)
-            .hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(DuplicateProcessIdException::class.java).hasMessageContaining("v1.bpmn, v2.bpmn")
         verify(exactly = 0) { fileSaver.writeFiles(any(), any()) }
     }
 

@@ -31,19 +31,19 @@ class BpmnValidationServiceTest {
         val model = testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
         // when / then: no exception is thrown
-        assertDoesNotThrow { underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE) }
+        assertDoesNotThrow {
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+        }
     }
 
     @Test
     fun `throws BpmnValidationException for missing service task implementation`() {
         // given: a model with a service task that has no implementation
-        val model = testProcessModel(
-            flowNodes = listOf(serviceTaskWithoutImplementation("task1")),
-        )
+        val model = testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))
 
         // when: validating pre-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
         }
 
         // then: the missing-implementation rule fires
@@ -56,12 +56,12 @@ class BpmnValidationServiceTest {
         val underTest = BpmnValidationService(
             ValidationConfig(disabledRules = setOf("missing-service-task-implementation")),
         )
-        val model = testProcessModel(
-            flowNodes = listOf(serviceTaskWithoutImplementation("task1")),
-        )
+        val model = testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))
 
         // when / then: no exception is thrown because the rule is disabled
-        assertDoesNotThrow { underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE) }
+        assertDoesNotThrow {
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+        }
     }
 
     @Test
@@ -70,7 +70,9 @@ class BpmnValidationServiceTest {
         val model = testProcessModel(flowNodes = emptyList())
 
         // when / then: no exception is thrown
-        assertDoesNotThrow { underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE) }
+        assertDoesNotThrow {
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+        }
     }
 
     @Test
@@ -81,7 +83,7 @@ class BpmnValidationServiceTest {
 
         // when: validating pre-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
         }
 
         // then: the empty-process warning is treated as a failure
@@ -91,13 +93,11 @@ class BpmnValidationServiceTest {
     @Test
     fun `throws BpmnValidationException for flow node with null element id`() {
         // given: a model containing a flow node without an ID
-        val model = testProcessModel(
-            flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)),
-        )
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
 
         // when: validating pre-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
         }
 
         // then: the missing-element-id rule fires with ERROR severity
@@ -118,7 +118,7 @@ class BpmnValidationServiceTest {
 
         // when: validating post-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.POST_MERGE)
         }
 
         // then: the collision-detection rule fires
@@ -130,15 +130,12 @@ class BpmnValidationServiceTest {
         // given: two flow nodes whose ids keep distinct constants but fold to the same
         // PascalCase object name — previously emitted non-compiling generated code
         val model = testProcessModel(
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "foo"),
-                FlowNodeDefinition.Unknown(id = "-foo"),
-            ),
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "foo"), FlowNodeDefinition.Unknown(id = "-foo")),
         )
 
         // when: validating post-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.POST_MERGE)
         }
 
         // then: the collision-detection rule fires
@@ -153,7 +150,11 @@ class BpmnValidationServiceTest {
 
         // when: validating post-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(first, second), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+            underTest.validate(
+                models = listOf(first, second),
+                engine = ProcessEngine.ZEEBE,
+                phase = ValidationPhase.POST_MERGE,
+            )
         }
 
         // then: the shared-definition-collision rule fires
@@ -163,15 +164,17 @@ class BpmnValidationServiceTest {
     @Test
     fun `mandatory shared-definition-collision rule stays active even when disabled`() {
         // given: a service that tries to disable the mandatory shared-definition-collision rule
-        val underTest = BpmnValidationService(
-            ValidationConfig(disabledRules = setOf("shared-definition-collision")),
-        )
+        val underTest = BpmnValidationService(ValidationConfig(disabledRules = setOf("shared-definition-collision")))
         val first = testProcessModel(processId = "first", flowNodes = listOf(jobWorkerTask(id = "task1", jobType = "newsletter.sendMail")))
         val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")))
 
         // when: validating post-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(first, second), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+            underTest.validate(
+                models = listOf(first, second),
+                engine = ProcessEngine.ZEEBE,
+                phase = ValidationPhase.POST_MERGE,
+            )
         }
 
         // then: the rule still fires despite being disabled
@@ -181,9 +184,7 @@ class BpmnValidationServiceTest {
     @Test
     fun `mandatory collision-detection rule stays active even when disabled`() {
         // given: a service that tries to disable the mandatory collision-detection rule
-        val underTest = BpmnValidationService(
-            ValidationConfig(disabledRules = setOf("collision-detection")),
-        )
+        val underTest = BpmnValidationService(ValidationConfig(disabledRules = setOf("collision-detection")))
         val model = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Unknown(id = "endEvent_complete"),
@@ -193,7 +194,7 @@ class BpmnValidationServiceTest {
 
         // when: validating post-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.POST_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.POST_MERGE)
         }
 
         // then: the collision-detection rule still fires despite being disabled
@@ -203,16 +204,12 @@ class BpmnValidationServiceTest {
     @Test
     fun `mandatory missing-element-id rule stays active even when disabled`() {
         // given: a service that tries to disable the mandatory missing-element-id rule
-        val underTest = BpmnValidationService(
-            ValidationConfig(disabledRules = setOf("missing-element-id")),
-        )
-        val model = testProcessModel(
-            flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)),
-        )
+        val underTest = BpmnValidationService(ValidationConfig(disabledRules = setOf("missing-element-id")))
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
 
         // when: validating pre-merge
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(listOf(model), ProcessEngine.ZEEBE, ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
         }
 
         // then: the missing-element-id rule still fires despite being disabled

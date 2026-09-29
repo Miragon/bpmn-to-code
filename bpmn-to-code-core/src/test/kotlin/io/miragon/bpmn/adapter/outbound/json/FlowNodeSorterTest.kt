@@ -53,9 +53,9 @@ class FlowNodeSorterTest {
     fun `linear chain is sorted start to end`() {
         // given: a linear start → task → end chain
         val flows = edges("Start" to "Task", "Task" to "End")
-        val start = event("Start", EventShape.START_EVENT, flows)
+        val start = event(id = "Start", shape = EventShape.START_EVENT, flows = flows)
         val task = task("Task", flows)
-        val end = event("End", EventShape.END_EVENT, flows)
+        val end = event(id = "End", shape = EventShape.END_EVENT, flows = flows)
 
         // when: sorting the unsorted list
         val result = FlowNodeSorter.sort(listOf(task, end, start), flows)
@@ -68,10 +68,10 @@ class FlowNodeSorterTest {
     fun `start events are visited before other top-level nodes`() {
         // given: two start events feeding the same task
         val flows = edges("Start_A" to "Task", "Start_B" to "Task", "Task" to "End")
-        val startA = event("Start_A", EventShape.START_EVENT, flows)
-        val startB = event("Start_B", EventShape.START_EVENT, flows)
+        val startA = event(id = "Start_A", shape = EventShape.START_EVENT, flows = flows)
+        val startB = event(id = "Start_B", shape = EventShape.START_EVENT, flows = flows)
         val task = task("Task", flows)
-        val end = event("End", EventShape.END_EVENT, flows)
+        val end = event(id = "End", shape = EventShape.END_EVENT, flows = flows)
 
         // when: sorting
         val result = FlowNodeSorter.sort(listOf(task, end, startB, startA), flows)
@@ -86,11 +86,11 @@ class FlowNodeSorterTest {
     fun `boundary event appears after its parent`() {
         // given: a task with an attached boundary event
         val flows = edges("Start" to "Task", "Task" to "End", "Boundary" to "ErrorEnd")
-        val start = event("Start", EventShape.START_EVENT, flows)
+        val start = event(id = "Start", shape = EventShape.START_EVENT, flows = flows)
         val task = task("Task", flows)
-        val boundary = event("Boundary", EventShape.BOUNDARY_EVENT, flows, attachedToRef = "Task")
-        val end = event("End", EventShape.END_EVENT, flows)
-        val errorEnd = event("ErrorEnd", EventShape.END_EVENT, flows)
+        val boundary = event(id = "Boundary", shape = EventShape.BOUNDARY_EVENT, flows = flows, attachedToRef = "Task")
+        val end = event(id = "End", shape = EventShape.END_EVENT, flows = flows)
+        val errorEnd = event(id = "ErrorEnd", shape = EventShape.END_EVENT, flows = flows)
 
         // when: sorting
         val result = FlowNodeSorter.sort(listOf(end, errorEnd, boundary, task, start), flows)
@@ -106,11 +106,11 @@ class FlowNodeSorterTest {
         // given: a top-level scope containing a sub-process. Sub-process children are no longer inlined into
         // the parent scope — they live inside the sub-process node and are sorted by re-applying the sorter.
         val topFlows = edges("Start" to "Sub", "Sub" to "End")
-        val start = event("Start", EventShape.START_EVENT, topFlows)
+        val start = event(id = "Start", shape = EventShape.START_EVENT, flows = topFlows)
         val childFlows = edges("SubStart" to "SubTask", "SubTask" to "SubEnd")
-        val subStart = event("SubStart", EventShape.START_EVENT, childFlows)
+        val subStart = event(id = "SubStart", shape = EventShape.START_EVENT, flows = childFlows)
         val subTask = task("SubTask", childFlows)
-        val subEnd = event("SubEnd", EventShape.END_EVENT, childFlows)
+        val subEnd = event(id = "SubEnd", shape = EventShape.END_EVENT, flows = childFlows)
         val sub = FlowNodeDefinition.Activity.SubProcess(
             id = "Sub",
             kind = SubProcessKind.PLAIN,
@@ -119,7 +119,7 @@ class FlowNodeSorterTest {
             flowNodes = listOf(subEnd, subTask, subStart),
             sequenceFlows = childFlows,
         )
-        val end = event("End", EventShape.END_EVENT, topFlows)
+        val end = event(id = "End", shape = EventShape.END_EVENT, flows = topFlows)
 
         // when: sorting the top scope
         val topResult = FlowNodeSorter.sort(listOf(end, sub, start), topFlows)
@@ -138,10 +138,10 @@ class FlowNodeSorterTest {
     fun `cycles do not cause infinite loops`() {
         // given: a cyclic A ↔ B loop
         val flows = edges("Start" to "A", "A" to "B", "B" to "A", "B" to "End")
-        val start = event("Start", EventShape.START_EVENT, flows)
+        val start = event(id = "Start", shape = EventShape.START_EVENT, flows = flows)
         val a = task("A", flows)
         val b = task("B", flows)
-        val end = event("End", EventShape.END_EVENT, flows)
+        val end = event(id = "End", shape = EventShape.END_EVENT, flows = flows)
 
         // when: sorting
         val result = FlowNodeSorter.sort(listOf(b, a, end, start), flows)
@@ -155,9 +155,9 @@ class FlowNodeSorterTest {
     fun `already sorted input is idempotent`() {
         // given: nodes already in correct order
         val flows = edges("Start" to "Task", "Task" to "End")
-        val start = event("Start", EventShape.START_EVENT, flows)
+        val start = event(id = "Start", shape = EventShape.START_EVENT, flows = flows)
         val task = task("Task", flows)
-        val end = event("End", EventShape.END_EVENT, flows)
+        val end = event(id = "End", shape = EventShape.END_EVENT, flows = flows)
 
         // when: sorting
         val result = FlowNodeSorter.sort(listOf(start, task, end), flows)
@@ -176,11 +176,11 @@ class FlowNodeSorterTest {
             "Branch_A" to "End",
             "Branch_B" to "End",
         )
-        val start = event("Start", EventShape.START_EVENT, flows)
-        val gw = gateway("GW", GatewayKind.EXCLUSIVE, flows)
+        val start = event(id = "Start", shape = EventShape.START_EVENT, flows = flows)
+        val gw = gateway(id = "GW", kind = GatewayKind.EXCLUSIVE, flows = flows)
         val branchA = task("Branch_A", flows)
         val branchB = task("Branch_B", flows)
-        val end = event("End", EventShape.END_EVENT, flows)
+        val end = event(id = "End", shape = EventShape.END_EVENT, flows = flows)
 
         // when: sorting
         val result = FlowNodeSorter.sort(listOf(end, branchB, gw, branchA, start), flows)

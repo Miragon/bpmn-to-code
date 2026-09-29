@@ -10,7 +10,7 @@ data class SequenceFlowDefinition(
     val conditionExpression: String? = null,
     val isDefault: Boolean = false,
 ) : VariableMapping<String> {
-    override fun getName() = id?.toUpperSnakeCase() ?: ""
-    override fun getValue() = id ?: ""
-    override fun getRawName() = id ?: ""
+    override fun getName() = id?.toUpperSnakeCase().orEmpty()
+    override fun getValue() = id.orEmpty()
+    override fun getRawName() = id.orEmpty()
 }

@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.FieldSpec
@@ -7,8 +7,8 @@ import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.ObjectWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
-import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.ProcessGraph
@@ -73,8 +73,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val bpmnEngineClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEngine")
             val fieldBuilder = FieldSpec.builder(bpmnEngineClass, "PROCESS_ENGINE")
-                .addModifiers(PUBLIC, FINAL, STATIC)
-                .initializer("\$T.\$L", bpmnEngineClass, modelApi.targetEngine.name)
+                .addModifiers(PUBLIC, FINAL, STATIC).initializer("\$T.\$L", bpmnEngineClass, modelApi.targetEngine.name)
             builder.addField(fieldBuilder.build())
         }
     }
@@ -94,7 +93,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
             val variantsBuilder = JavaConstantHolder("FlowVariants").builder(STATIC)
                 .addJavadoc("The {@code FlowNodes} of each merged BPMN file, keyed by its {@code variantName}.\n")
             model.variants.forEach { variant ->
-                variantsBuilder.addType(buildFlowClass(variant.graph, model.definitions, variant.variantName.toCamelCase()))
+                variantsBuilder.addType(buildFlowClass(graph = variant.graph, definitions = model.definitions, className = variant.variantName.toCamelCase()))
             }
             builder.addType(variantsBuilder.build())
         }
@@ -107,14 +106,13 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
      * opens its interior via `getStartEvents()`.
      */
     private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "FlowNodes"): TypeSpec {
-        val flowBuilder = JavaConstantHolder(className).builder(STATIC)
-            .addJavadoc(
-                "Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, " +
-                    "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +
-                    "{@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. " +
-                    "Every element is a direct child of {@code FlowNodes}, whatever its subprocess depth; " +
-                    "a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.\n",
-            )
+        val flowBuilder = JavaConstantHolder(className).builder(STATIC).addJavadoc(
+            "Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, " +
+                "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +
+                "{@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. " +
+                "Every element is a direct child of {@code FlowNodes}, whatever its subprocess depth; " +
+                "a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.\n",
+        )
         JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }

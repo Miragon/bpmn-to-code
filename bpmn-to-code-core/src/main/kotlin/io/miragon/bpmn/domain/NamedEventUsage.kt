@@ -10,8 +10,4 @@ import io.miragon.bpmn.domain.shared.FlowNodeDefinition
  *
  * Produced by [ProcessModel.messageUsages] and [ProcessModel.signalUsages].
  */
-data class NamedEventUsage(
-    val node: FlowNodeDefinition,
-    val name: String,
-    val direction: EventDirection,
-)
+data class NamedEventUsage(val node: FlowNodeDefinition, val name: String, val direction: EventDirection)

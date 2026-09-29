@@ -53,10 +53,7 @@ class BpmnRulesTest {
 
     @Test
     fun `optional rules are not part of all()`() {
-        assertThat(BpmnRules.all()).doesNotContain(
-            BpmnRules.TIMER_CRON_SYNTAX,
-            BpmnRules.TIMER_ISO8601_SYNTAX,
-        )
+        assertThat(BpmnRules.all()).doesNotContain(BpmnRules.TIMER_CRON_SYNTAX, BpmnRules.TIMER_ISO8601_SYNTAX)
         assertThat(BpmnRules.all().map { it.id }).doesNotContain(
             BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id,
             BpmnRules.UNCAUGHT_MESSAGE_THROW.id,

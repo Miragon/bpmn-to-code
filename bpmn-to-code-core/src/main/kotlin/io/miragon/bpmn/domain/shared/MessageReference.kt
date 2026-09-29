@@ -8,7 +8,4 @@ package io.miragon.bpmn.domain.shared
  * for convenience; everything else about the message — including its correlation key — lives on
  * [RootElementDefinition.Message] in the model's registry.
  */
-data class MessageReference(
-    val messageRef: String? = null,
-    val messageName: String? = null,
-)
+data class MessageReference(val messageRef: String? = null, val messageName: String? = null)

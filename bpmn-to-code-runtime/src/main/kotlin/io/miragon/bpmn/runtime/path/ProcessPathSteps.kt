@@ -22,7 +22,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.then(pick: (NEXT) 
  */
 fun <OUTGOING, M : FlowNode> ProcessPath<out HasOutgoingFlows<OUTGOING>>.via(pick: (OUTGOING) -> SequenceFlow<M>): ProcessPath<M> {
     val flow = pick(current.outgoingFlows)
-    return moveTo(flow.target, listOf(flow.target), listOf(flow))
+    return moveTo(node = flow.target, nodesToRecord = listOf(flow.target), flowsToRecord = listOf(flow))
 }
 
 /**
@@ -79,10 +79,7 @@ fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (S
  * why this is a re-anchor and not expressible with [inside]. Covers interrupting timers and error boundaries;
  * `it` offers exactly the carrier's boundary events, compile-checked.
  */
-fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(
-    carrier: HasSuccessors<NEXT>,
-    pick: (NEXT) -> M,
-): ProcessPath<M> {
+fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(carrier: HasSuccessors<NEXT>, pick: (NEXT) -> M): ProcessPath<M> {
     val node = pick(carrier.next)
     return moveTo(node, listOf(node))
 }
@@ -95,11 +92,9 @@ fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(
  * subprocess is entered with its own `onto { … }.inside { … }`, each block capturing its subprocess via the
  * closure.
  */
-fun <START, N : FlowScope<START>> ProcessPath<N>.inside(
-    block: ProcessPath<N>.() -> ProcessPath<*>,
-): ProcessPath<N> {
+fun <START, N : FlowScope<START>> ProcessPath<N>.inside(block: ProcessPath<N>.() -> ProcessPath<*>): ProcessPath<N> {
     val walked = ProcessPath(current = current, recorded = emptyList<FlowNode>()).block()
-    return moveTo(current, walked.nodes, walked.flows)
+    return moveTo(node = current, nodesToRecord = walked.nodes, flowsToRecord = walked.flows)
 }
 
 /**

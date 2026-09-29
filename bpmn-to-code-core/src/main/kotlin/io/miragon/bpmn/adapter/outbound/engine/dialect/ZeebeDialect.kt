@@ -59,7 +59,7 @@ internal class ZeebeDialect : EngineDialect {
         val template = node.nonBlankAttributeNs(ZeebeModelConstants.NAMESPACE, ZeebeModelConstants.ATTRIBUTE_MODELER_TEMPLATE)
         return when (template) {
             null -> TaskImplementation.JobWorker(jobType, retries)
-            else -> TaskImplementation.Connector(jobType, template, retries)
+            else -> TaskImplementation.Connector(jobType = jobType, templateId = template, retries = retries)
         }
     }
 
@@ -76,8 +76,7 @@ internal class ZeebeDialect : EngineDialect {
         base: MultiInstanceDefinition,
     ): MultiInstanceDefinition {
         val characteristics = loop.findExtensionElements()
-            .filterByType(ZeebeModelConstants.ELEMENT_LOOP_CHARACTERISTICS)
-            .firstOrNull() ?: return base
+            .filterByType(ZeebeModelConstants.ELEMENT_LOOP_CHARACTERISTICS).firstOrNull() ?: return base
         return base.copy(
             inputCollection = characteristics.nonBlankAttribute(ZeebeModelConstants.ATTRIBUTE_INPUT_COLLECTION),
             inputElement = characteristics.nonBlankAttribute(ZeebeModelConstants.ATTRIBUTE_INPUT_ELEMENT),
@@ -88,12 +87,11 @@ internal class ZeebeDialect : EngineDialect {
 
     override fun variablesOf(node: FlowNode): List<VariableDefinition> {
         val ioMapping = ioMappingOf(node)
-        val inputs = ioMapping?.inputs.orEmpty().map { Triple(it.target, VariableDirection.INPUT, it.source) }
-        val outputs = ioMapping?.outputs.orEmpty().map { Triple(it.target, VariableDirection.OUTPUT, it.source) }
+        val inputs = ioMapping?.inputs.orEmpty().map { Triple(first = it.target, second = VariableDirection.INPUT, third = it.source) }
+        val outputs = ioMapping?.outputs.orEmpty().map { Triple(first = it.target, second = VariableDirection.OUTPUT, third = it.source) }
         val loopVariables = node.multiInstanceVariables()
         return (inputs + outputs + loopVariables)
-            .distinct()
-            .map { (name, direction, expression) -> VariableDefinition(name, direction, expression) }
+            .distinct().map { (name, direction, expression) -> VariableDefinition(name = name, direction = direction, valueExpression = expression) }
     }
 
     override fun callActivityOf(callActivity: CallActivity): CallActivityDefinition {
@@ -117,7 +115,7 @@ internal class ZeebeDialect : EngineDialect {
         val inputs = this?.inputs.orEmpty().map {
             CallActivityDefinition.Mapping(direction = VariableDirection.INPUT, source = it.source, target = it.target)
         }
-        val outputs = this?.outputs.orEmpty().map { CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = it.source, target = it.target) }
+        val outputs = this?.outputs.orEmpty().map { CallActivityDefinition.Mapping(direction = VariableDirection.OUTPUT, source = it.source, target = it.target) }
         return inputs + outputs
     }
 
@@ -127,8 +125,7 @@ internal class ZeebeDialect : EngineDialect {
      */
     private fun FlowNode.multiInstanceVariables(): List<Triple<String, VariableDirection, String?>> {
         val characteristics = getChildElementsByType(MultiInstanceLoopCharacteristics::class.java)
-            .flatMap { it.findExtensionElements() }
-            .filterByType(ZeebeModelConstants.ELEMENT_LOOP_CHARACTERISTICS)
+            .flatMap { it.findExtensionElements() }.filterByType(ZeebeModelConstants.ELEMENT_LOOP_CHARACTERISTICS)
         val inputs = characteristics.attributeValues(
             ZeebeModelConstants.ATTRIBUTE_INPUT_ELEMENT,
             ZeebeModelConstants.ATTRIBUTE_INPUT_COLLECTION,
@@ -137,8 +134,8 @@ internal class ZeebeDialect : EngineDialect {
             ZeebeModelConstants.ATTRIBUTE_OUTPUT_ELEMENT,
             ZeebeModelConstants.ATTRIBUTE_OUTPUT_COLLECTION,
         )
-        return inputs.map { Triple(it.removePrefix("="), VariableDirection.INPUT, it) } +
-            outputs.map { Triple(it.removePrefix("="), VariableDirection.OUTPUT, it) }
+        return inputs.map { Triple(first = it.removePrefix("="), second = VariableDirection.INPUT, third = it) } +
+            outputs.map { Triple(first = it.removePrefix("="), second = VariableDirection.OUTPUT, third = it) }
     }
 
     private fun List<ModelElementInstance>.attributeValues(vararg names: String): List<String> = names.flatMap { name -> mapNotNull { it.domElement.getAttribute(name) } }

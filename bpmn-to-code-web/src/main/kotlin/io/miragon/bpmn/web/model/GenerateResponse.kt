@@ -17,11 +17,7 @@ data class GenerateResponse(
 ) {
 
     @Serializable
-    data class GeneratedFile(
-        val fileName: String,
-        val content: String,
-        val processId: String?,
-    )
+    data class GeneratedFile(val fileName: String, val content: String, val processId: String?)
 
     @Serializable
     data class RuntimeDependency(
@@ -33,11 +29,7 @@ data class GenerateResponse(
     )
 
     companion object {
-        fun noFilesProvided() = GenerateResponse(
-            success = false,
-            files = emptyList(),
-            error = "No files provided",
-        )
+        fun noFilesProvided() = GenerateResponse(success = false, files = emptyList(), error = "No files provided")
 
         fun tooManyFiles() = GenerateResponse(
             success = false,
@@ -52,18 +44,14 @@ data class GenerateResponse(
             statusCode = HttpStatusCode.InternalServerError,
         )
 
-        fun fromValidationException(
-            exception: BpmnValidationException,
-        ) = GenerateResponse(
+        fun fromValidationException(exception: BpmnValidationException) = GenerateResponse(
             success = false,
             files = emptyList(),
             error = exception.message,
             statusCode = HttpStatusCode.BadRequest,
         )
 
-        fun fromDuplicateProcessIdException(
-            exception: DuplicateProcessIdException,
-        ) = GenerateResponse(
+        fun fromDuplicateProcessIdException(exception: DuplicateProcessIdException) = GenerateResponse(
             success = false,
             files = emptyList(),
             error = exception.message,

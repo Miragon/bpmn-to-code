@@ -73,13 +73,10 @@ class MultiModuleRuntimeSharingSmokeTest {
             """.trimIndent(),
         )
 
-        writeServiceModule(serviceADir, packagePath = "com.acme.service_a.bpmn", callerName = "UsesApiA")
-        writeServiceModule(serviceBDir, packagePath = "com.acme.service_b.bpmn", callerName = "UsesApiB")
+        writeServiceModule(moduleDir = serviceADir, packagePath = "com.acme.service_a.bpmn", callerName = "UsesApiA")
+        writeServiceModule(moduleDir = serviceBDir, packagePath = "com.acme.service_b.bpmn", callerName = "UsesApiB")
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments("compileKotlin")
-            .build()
+        val result = GradleRunner.create().withProjectDir(projectDir).withArguments("compileKotlin").build()
 
         assertThat(result.task(":common:compileKotlin")?.outcome).isIn(TaskOutcome.SUCCESS, TaskOutcome.UP_TO_DATE)
         assertThat(result.task(":service-a:compileKotlin")?.outcome).isEqualTo(TaskOutcome.SUCCESS)

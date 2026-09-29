@@ -1,9 +1,6 @@
 package io.miragon.bpmn.domain
 
-data class BpmnResource(
-    val fileName: String,
-    val content: ByteArray,
-) {
+data class BpmnResource(val fileName: String, val content: ByteArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is BpmnResource) return false

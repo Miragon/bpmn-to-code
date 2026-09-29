@@ -37,10 +37,7 @@ abstract class ValidateBpmnModelsTask : DefaultTask() {
         validate()
         logger.warn("[EXPERIMENTAL] The 'validateBpmnModels' task is experimental and may change in future releases.")
         val plugin = ValidateBpmnFilesystemPlugin()
-        val config = ValidationConfig(
-            failOnWarning = failOnWarning,
-            disabledRules = disabledRules,
-        )
+        val config = ValidationConfig(failOnWarning = failOnWarning, disabledRules = disabledRules)
         val result = plugin.execute(
             baseDir = baseDir,
             filePattern = filePattern,

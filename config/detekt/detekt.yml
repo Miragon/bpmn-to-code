@@ -6,6 +6,10 @@ config:
   warningsAsErrors: false
 
 complexity:
+  NamedArguments:
+    active: true
+    threshold: 2
+    ignoreArgumentsMatchingNames: true
   active: true
   CyclomaticComplexMethod:
     active: true
@@ -57,13 +61,17 @@ potential-bugs:
     active: true
   IteratorNotThrowingNoSuchElementException:
     active: true
+  # false positives under type resolution: detekt 1.23 targets Kotlin 2.0, project uses 2.4; kotlinc warns instead
   UnreachableCode:
-    active: true
+    active: false
   UselessPostfixExpression:
     active: true
 
 style:
   active: true
+  # abstract without abstract members is intentional: Gradle task types and the runtime AbstractFlowNode base
+  UnnecessaryAbstractClass:
+    active: false
   MaxLineLength:
     active: false
   NewLineAtEndOfFile:
@@ -75,8 +83,9 @@ style:
     max: 4
   UnusedImports:
     active: false
+  # false positives under type resolution: detekt 1.23 targets Kotlin 2.0, project uses 2.4; kotlinc warns instead
   UnusedPrivateMember:
-    active: true
+    active: false
   WildcardImport:
     active: false
   ForbiddenComment:

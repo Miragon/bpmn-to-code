@@ -6,7 +6,4 @@ package io.miragon.bpmn.runtime
  * @param name The error name as declared in the BPMN model.
  * @param code The error code used to match catch events at runtime.
  */
-data class BpmnErrorDefinition(
-    val name: String,
-    val code: String,
-)
+data class BpmnErrorDefinition(val name: String, val code: String)

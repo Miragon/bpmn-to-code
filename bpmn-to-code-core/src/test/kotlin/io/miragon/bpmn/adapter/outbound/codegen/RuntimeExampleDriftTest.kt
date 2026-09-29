@@ -34,6 +34,5 @@ class RuntimeExampleDriftTest {
     }
 
     private fun readResource(path: String): String = requireNotNull(javaClass.getResourceAsStream(path)) { "missing resource $path" }
-        .bufferedReader()
-        .readText()
+        .bufferedReader().readText()
 }

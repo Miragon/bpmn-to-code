@@ -56,10 +56,7 @@ class GradlePluginDependencyResolutionSmokeTest {
         )
 
         // when: running WITHOUT withPluginClasspath() so Gradle resolves from mavenLocal
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments("generateBpmnModelApi")
-            .build()
+        val result = GradleRunner.create().withProjectDir(projectDir).withArguments("generateBpmnModelApi").build()
 
         // then: the task succeeds and generates the ProcessApi and shared definition Kotlin files (runtime types ship via runtime artifact)
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
@@ -102,9 +99,7 @@ class GradlePluginDependencyResolutionSmokeTest {
 
         // when: inspecting the implementation dependencies
         val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments("dependencies", "--configuration", "implementation")
-            .build()
+            .withProjectDir(projectDir).withArguments("dependencies", "--configuration", "implementation").build()
 
         // then: bpmn-to-code-runtime is on the implementation configuration
         assertThat(result.output).contains("io.miragon:bpmn-to-code-runtime:$pluginVersion")
@@ -143,10 +138,7 @@ class GradlePluginDependencyResolutionSmokeTest {
         )
 
         // when: running WITHOUT withPluginClasspath() so Gradle resolves from mavenLocal
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments("generateBpmnModelJson")
-            .build()
+        val result = GradleRunner.create().withProjectDir(projectDir).withArguments("generateBpmnModelJson").build()
 
         // then: the task succeeds and generates JSON files
         assertThat(result.task(":generateBpmnModelJson")?.outcome).isEqualTo(TaskOutcome.SUCCESS)

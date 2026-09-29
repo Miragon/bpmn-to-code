@@ -105,11 +105,7 @@ class BpmnValidationAssert(
      */
     fun assertNoErrors(): BpmnValidationAssert {
         if (actual.errors.isNotEmpty()) {
-            failWithMessage(
-                "Expected no errors but found %d:\n%s",
-                actual.errors.size,
-                formatViolations(actual.errors),
-            )
+            failWithMessage("Expected no errors but found %d:\n%s", actual.errors.size, formatViolations(actual.errors))
         }
         return this
     }

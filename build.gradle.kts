@@ -34,7 +34,7 @@ subprojects {
     }
 
     tasks.matching { it.name == "check" }.configureEach {
-        dependsOn("detekt")
+        dependsOn("detektMain", "detektTest")
     }
 
     tasks.withType<KotlinCompile>().configureEach {

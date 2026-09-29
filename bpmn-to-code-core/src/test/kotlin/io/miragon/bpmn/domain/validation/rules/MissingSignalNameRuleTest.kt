@@ -15,9 +15,7 @@ class MissingSignalNameRuleTest {
     @Test
     fun `reports error for signal with null name`() {
         // given: a signal element with no name
-        val model = testProcessModel(
-            signals = listOf(RootElementDefinition.Signal(id = "sig1", name = null)),
-        )
+        val model = testProcessModel(signals = listOf(RootElementDefinition.Signal(id = "sig1", name = null)))
 
         // when / then: an ERROR violation is reported
         val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
@@ -28,9 +26,7 @@ class MissingSignalNameRuleTest {
     @Test
     fun `no violations for signal with name`() {
         // given: a signal element with a valid name
-        val model = testProcessModel(
-            signals = listOf(RootElementDefinition.Signal(id = "sig1", name = "MySignal")),
-        )
+        val model = testProcessModel(signals = listOf(RootElementDefinition.Signal(id = "sig1", name = "MySignal")))
 
         // when / then: no violations
         val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))

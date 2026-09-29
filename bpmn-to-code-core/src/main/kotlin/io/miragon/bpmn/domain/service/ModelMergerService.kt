@@ -48,7 +48,7 @@ class ModelMergerService {
             definitions = sorted.first().definitions.merge(sorted.drop(1).map { it.definitions }),
             isExecutable = sorted.any { it.isExecutable },
             detectedEngine = sorted.firstNotNullOfOrNull { it.detectedEngine },
-            variants = sorted.map { Variant(requireNotNull(it.variantName), it.flowNodes, it.sequenceFlows) },
+            variants = sorted.map { Variant(variantName = requireNotNull(it.variantName), flowNodes = it.flowNodes, sequenceFlows = it.sequenceFlows) },
         )
     }
 
@@ -83,9 +83,7 @@ class ModelMergerService {
      */
     private fun mergeScopes(scopes: List<FlowScope>): FlowScope {
         val nodesById = scopes
-            .flatMap { it.flowNodes }
-            .filter { it.getRawName().isNotEmpty() }
-            .groupBy { it.getRawName() }
+            .flatMap { it.flowNodes }.filter { it.getRawName().isNotEmpty() }.groupBy { it.getRawName() }
         val mergedNodes = nodesById.map { (_, duplicates) -> mergeNodes(duplicates) }
         val mergedFlows = scopes.flatMap { it.sequenceFlows }.distinctBy { it.getRawName() }
         return FlowScope(mergedNodes, mergedFlows)
@@ -95,9 +93,7 @@ class ModelMergerService {
         val base = duplicates.first()
         val merged = base.mergedWith(duplicates.drop(1))
         if (merged !is FlowNodeDefinition.Activity.SubProcess) return merged
-        val childScopes = duplicates
-            .filterIsInstance<FlowNodeDefinition.Activity.SubProcess>()
-            .map { it.scope() }
+        val childScopes = duplicates.filterIsInstance<FlowNodeDefinition.Activity.SubProcess>().map { it.scope() }
         val mergedChildren = mergeScopes(childScopes)
         return merged.copy(flowNodes = mergedChildren.flowNodes, sequenceFlows = mergedChildren.sequenceFlows)
     }

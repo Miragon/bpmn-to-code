@@ -74,7 +74,5 @@ internal object BpmnResourceLoader {
     }
 
     private fun walkForBpmnFiles(directory: Path): List<BpmnResource> = Files.walk(directory)
-        .filter { it.extension == "bpmn" }
-        .map { BpmnResource(fileName = it.name, content = it.readBytes()) }
-        .toList()
+        .filter { it.extension == "bpmn" }.map { BpmnResource(fileName = it.name, content = it.readBytes()) }.toList()
 }

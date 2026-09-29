@@ -19,16 +19,14 @@ class MissingElementIdRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val model = context.model
-        return model.allFlowNodes
-            .filter { it.id == null }
-            .map {
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = null,
-                    processId = model.processId,
-                    message = "FlowNode has no ID. Every BPMN element must have an 'id' attribute.",
-                )
-            }
+        return model.allFlowNodes.filter { it.id == null }.map {
+            ValidationViolation(
+                ruleId = id,
+                severity = severity,
+                elementId = null,
+                processId = model.processId,
+                message = "FlowNode has no ID. Every BPMN element must have an 'id' attribute.",
+            )
+        }
     }
 }

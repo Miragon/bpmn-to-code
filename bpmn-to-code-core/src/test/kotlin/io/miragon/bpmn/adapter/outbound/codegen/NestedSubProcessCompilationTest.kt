@@ -42,9 +42,7 @@ class NestedSubProcessCompilationTest {
 
     private fun assertCompiles(generated: List<GeneratedApiFile>) {
         val errors = compileJava(generated)
-        assertThat(errors)
-            .withFailMessage { "Generated Java did not compile:\n${errors.joinToString("\n")}" }
-            .isEmpty()
+        assertThat(errors).withFailMessage { "Generated Java did not compile:\n${errors.joinToString("\n")}" }.isEmpty()
     }
 
     private fun generate(bpmnXmls: List<String>) = service.generateProcessApi(
@@ -73,7 +71,6 @@ class NestedSubProcessCompilationTest {
         fileManager.close()
 
         return diagnostics.diagnostics
-            .filter { it.kind == Diagnostic.Kind.ERROR }
-            .map { "${it.lineNumber}: ${it.getMessage(null)}" }
+            .filter { it.kind == Diagnostic.Kind.ERROR }.map { "${it.lineNumber}: ${it.getMessage(null)}" }
     }
 }

@@ -60,20 +60,18 @@ data class ProcessModel(
     val serviceTasks: List<ServiceTaskDefinition>
         get() = allFlowNodes
             .mapNotNull { node -> node.taskImplementation()?.let { ServiceTaskDefinition(node.id, it) } }
-            .distinctBy { it.id to it.getRawName() }
-            .sortedBy { it.getRawName() }
+            .distinctBy { it.id to it.getRawName() }.sortedBy { it.getRawName() }
 
     val callActivities: List<CallActivityDefinition>
         get() = allFlowNodes
             .filterIsInstance<FlowNodeDefinition.Activity.CallActivity>()
-            .map { it.definition }
-            .sortedBy { it.getRawName() }
+            .map { it.definition }.sortedBy { it.getRawName() }
 
     val timers: List<TimerDefinition>
         get() = allFlowNodes
             .filterIsInstance<FlowNodeDefinition.Event>()
             .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Timer>().map { node to it } }
-            .map { (node, timer) -> TimerDefinition(node.id, timer.timerType, timer.expression) }
+            .map { (node, timer) -> TimerDefinition(id = node.id, type = timer.timerType, expression = timer.expression) }
             .sortedBy { it.getRawName() }
 
     val compensations: List<CompensationDefinition>
@@ -81,9 +79,7 @@ data class ProcessModel(
             .filterIsInstance<FlowNodeDefinition.Event>()
             .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Compensation>().map { node to it } }
             .map { (node, compensation) -> compensation.toDefinition(node) }
-            .filter { it.getRawName().isNotEmpty() }
-            .distinctBy { it.getRawName() }
-            .sortedBy { it.getRawName() }
+            .filter { it.getRawName().isNotEmpty() }.distinctBy { it.getRawName() }.sortedBy { it.getRawName() }
 
     val variables: List<VariableDefinition>
         get() = allFlowNodes.flatMap { it.variables }.distinct().sortedBy { it.getRawName() }
@@ -92,20 +88,16 @@ data class ProcessModel(
      * Every message reference in the process: message events plus send and receive tasks.
      */
     fun messageUsages(): List<NamedEventUsage> {
-        val fromEvents = allFlowNodes
-            .filterIsInstance<FlowNodeDefinition.Event>()
-            .flatMap { node ->
-                node.eventDefinitions
-                    .filterIsInstance<EventDefinitionInstance.Message>()
-                    .mapNotNull { it.reference.messageName?.let { name -> NamedEventUsage(node, name, node.shape.direction) } }
-            }
-        val fromTasks = allFlowNodes
-            .filterIsInstance<FlowNodeDefinition.Activity.Task>()
-            .mapNotNull { node ->
-                val name = node.message?.messageName ?: return@mapNotNull null
-                val direction = if (node.kind == TaskKind.SEND) EventDirection.THROW else EventDirection.CATCH
-                NamedEventUsage(node, name, direction)
-            }
+        val fromEvents = allFlowNodes.filterIsInstance<FlowNodeDefinition.Event>().flatMap { node ->
+            node.eventDefinitions
+                .filterIsInstance<EventDefinitionInstance.Message>()
+                .mapNotNull { it.reference.messageName?.let { name -> NamedEventUsage(node = node, name = name, direction = node.shape.direction) } }
+        }
+        val fromTasks = allFlowNodes.filterIsInstance<FlowNodeDefinition.Activity.Task>().mapNotNull { node ->
+            val name = node.message?.messageName ?: return@mapNotNull null
+            val direction = if (node.kind == TaskKind.SEND) EventDirection.THROW else EventDirection.CATCH
+            NamedEventUsage(node, name, direction)
+        }
         return fromEvents + fromTasks
     }
 
@@ -113,11 +105,10 @@ data class ProcessModel(
      * Every signal reference in the process.
      */
     fun signalUsages(): List<NamedEventUsage> = allFlowNodes
-        .filterIsInstance<FlowNodeDefinition.Event>()
-        .flatMap { node ->
+        .filterIsInstance<FlowNodeDefinition.Event>().flatMap { node ->
             node.eventDefinitions
                 .filterIsInstance<EventDefinitionInstance.Signal>()
-                .mapNotNull { it.signalName?.let { name -> NamedEventUsage(node, name, node.shape.direction) } }
+                .mapNotNull { it.signalName?.let { name -> NamedEventUsage(node = node, name = name, direction = node.shape.direction) } }
         }
 
     /**

@@ -18,24 +18,19 @@ class MavenMojoSmokeTest {
         "ZEEBE, JAVA, zeebe/bike-leasing.bpmn",
         "ZEEBE, CSHARP, zeebe/bike-leasing.bpmn",
     )
-    fun `mojo generates output files`(
-        engine: String,
-        language: String,
-        bpmnFile: String,
-        @TempDir projectDir: File,
-    ) {
+    fun `mojo generates output files`(engine: String, language: String, bpmnFile: String, @TempDir projectDir: File) {
         // given: a temp project directory with a BPMN resource and a configured mojo
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/$bpmnFile"))
         File(resourcesDir, File(bpmnFile).name).writeBytes(bpmnStream.readBytes())
         val outputDir = File(projectDir, "build/generated")
         val mojo = BpmnModelMojo()
-        setField(mojo, "baseDir", projectDir.absolutePath)
-        setField(mojo, "filePattern", "src/main/resources/*.bpmn")
-        setField(mojo, "outputFolderPath", outputDir.absolutePath)
-        setField(mojo, "packagePath", "io.miragon.smoketest")
-        setField(mojo, "outputLanguage", language)
-        setField(mojo, "processEngine", engine)
+        setField(obj = mojo, name = "baseDir", value = projectDir.absolutePath)
+        setField(obj = mojo, name = "filePattern", value = "src/main/resources/*.bpmn")
+        setField(obj = mojo, name = "outputFolderPath", value = outputDir.absolutePath)
+        setField(obj = mojo, name = "packagePath", value = "io.miragon.smoketest")
+        setField(obj = mojo, name = "outputLanguage", value = language)
+        setField(obj = mojo, name = "processEngine", value = engine)
 
         // when: executing the mojo
         mojo.execute()
@@ -62,18 +57,17 @@ class MavenMojoSmokeTest {
         File(resourcesDir, "bike-leasing-a.bpmn").writeBytes(bpmnBytes)
         File(resourcesDir, "bike-leasing-b.bpmn").writeBytes(bpmnBytes)
         val mojo = BpmnModelMojo()
-        setField(mojo, "baseDir", projectDir.absolutePath)
-        setField(mojo, "filePattern", "src/main/resources/*.bpmn")
-        setField(mojo, "outputFolderPath", File(projectDir, "build/generated").absolutePath)
-        setField(mojo, "packagePath", "io.miragon.smoketest")
-        setField(mojo, "outputLanguage", "KOTLIN")
-        setField(mojo, "processEngine", "ZEEBE")
+        setField(obj = mojo, name = "baseDir", value = projectDir.absolutePath)
+        setField(obj = mojo, name = "filePattern", value = "src/main/resources/*.bpmn")
+        setField(obj = mojo, name = "outputFolderPath", value = File(projectDir, "build/generated").absolutePath)
+        setField(obj = mojo, name = "packagePath", value = "io.miragon.smoketest")
+        setField(obj = mojo, name = "outputLanguage", value = "KOTLIN")
+        setField(obj = mojo, name = "processEngine", value = "ZEEBE")
 
         // when / then: the mojo fails naming both files
         assertThatThrownBy { mojo.execute() }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("bike-leasing-a.bpmn, bike-leasing-b.bpmn")
-            .hasMessageContaining("enableVariants")
+            .hasMessageContaining("bike-leasing-a.bpmn, bike-leasing-b.bpmn").hasMessageContaining("enableVariants")
     }
 
     private fun setField(obj: Any, name: String, value: Any) {

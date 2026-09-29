@@ -21,9 +21,7 @@ class WebJsonGenerationServiceTest {
                     content = loadSampleBase64("examples/zeebe-bike-leasing.bpmn"),
                 ),
             ),
-            config = GenerateJsonRequest.JsonGenerationConfig(
-                processEngine = ProcessEngine.ZEEBE,
-            ),
+            config = GenerateJsonRequest.JsonGenerationConfig(processEngine = ProcessEngine.ZEEBE),
         )
 
         // when: generating JSON
@@ -45,14 +43,9 @@ class WebJsonGenerationServiceTest {
         // given: a request with invalid Base64 content
         val request = GenerateJsonRequest(
             files = listOf(
-                GenerateJsonRequest.BpmnFileData(
-                    fileName = "invalid.bpmn",
-                    content = "not-valid-base64!!!",
-                ),
+                GenerateJsonRequest.BpmnFileData(fileName = "invalid.bpmn", content = "not-valid-base64!!!"),
             ),
-            config = GenerateJsonRequest.JsonGenerationConfig(
-                processEngine = ProcessEngine.ZEEBE,
-            ),
+            config = GenerateJsonRequest.JsonGenerationConfig(processEngine = ProcessEngine.ZEEBE),
         )
 
         // when: generating JSON

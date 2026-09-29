@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -36,12 +36,10 @@ internal class KotlinFlowWriter {
         val nodeInterface = TypeSpec.interfaceBuilder(NODE_INTERFACE)
             .addModifiers(KModifier.SEALED)
             .addSuperinterface(ClassName(RUNTIME_PACKAGE, "FlowNode"))
-            .addKdoc("Common supertype of this flow's nodes, so a `when` over them can be exhaustive.")
-            .build()
+            .addKdoc("Common supertype of this flow's nodes, so a `when` over them can be exhaustive.").build()
         val entries = PropertySpec.builder("entries", LIST.parameterizedBy(ClassName("", NODE_INTERFACE)))
             .addKdoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
-            .initializer(kotlinListOf(graph.nodes.map { CodeBlock.of("%N", it.objectName) }))
-            .build()
+            .initializer(kotlinListOf(graph.nodes.map { CodeBlock.of("%N", it.objectName) })).build()
         builder.addType(nodeInterface).addProperty(entries)
     }
 
@@ -68,10 +66,10 @@ internal class KotlinFlowWriter {
             .addSuperclassConstructorParameter(superclassArguments(node))
             .addSuperinterface(ClassName("", NODE_INTERFACE))
         if (node.successors.isNotEmpty()) {
-            nodeBuilder.addSuperinterface(ownHolderInterface("HasSuccessors", node, NEXT_HOLDER))
+            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasSuccessors", node = node, holderName = NEXT_HOLDER))
         }
         if (node.outgoingFlows.isNotEmpty()) {
-            nodeBuilder.addSuperinterface(ownHolderInterface("HasOutgoingFlows", node, OUTGOING_FLOWS_HOLDER))
+            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasOutgoingFlows", node = node, holderName = OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
         when {
@@ -113,7 +111,7 @@ internal class KotlinFlowWriter {
     }
 
     private fun addInteriorStarts(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        nodeBuilder.addSuperinterface(ownHolderInterface("FlowScope", node, START_HOLDER))
+        nodeBuilder.addSuperinterface(ownHolderInterface(interfaceName = "FlowScope", node = node, holderName = START_HOLDER))
         nodeBuilder.addProperty(accessorProperty("startEvents", START_HOLDER))
         nodeBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }
@@ -126,12 +124,10 @@ internal class KotlinFlowWriter {
 
     private fun accessorProperty(propertyName: String, holderName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", holderName))
         .addModifiers(KModifier.OVERRIDE)
-        .getter(FunSpec.getterBuilder().addStatement("return %N", holderName).build())
-        .build()
+        .getter(FunSpec.getterBuilder().addStatement("return %N", holderName).build()).build()
 
     private fun nodeAccessor(propertyName: String, objectName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", objectName))
-        .getter(FunSpec.getterBuilder().addStatement("return %N", objectName).build())
-        .build()
+        .getter(FunSpec.getterBuilder().addStatement("return %N", objectName).build()).build()
 
     /**
      * A single flow to the target is a `SequenceFlow<Target>`; several flows to the same target keep the name and

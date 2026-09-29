@@ -78,11 +78,9 @@ class ProcessJsonSchemaTest {
                 val flowIds = scope["sequenceFlows"].idsOf()
                 scope["flowNodes"].forEach { node ->
                     assertThat(node.stringsAt("incoming") + node.stringsAt("outgoing"))
-                        .describedAs("$fixture / ${node["id"].asText()} relations")
-                        .isSubsetOf(flowIds)
+                        .describedAs("$fixture / ${node["id"].asText()} relations").isSubsetOf(flowIds)
                     assertThat(node.referencedDefinitionIds())
-                        .describedAs("$fixture / ${node["id"].asText()} references")
-                        .isSubsetOf(declaredIds)
+                        .describedAs("$fixture / ${node["id"].asText()} references").isSubsetOf(declaredIds)
                 }
             }
         }
@@ -153,19 +151,9 @@ class ProcessJsonSchemaTest {
         ProcessEngine.OPERATON -> operatonFixtures
     }
 
-    private val referenceFields = listOf(
-        "messageRef",
-        "signalRef",
-        "errorRef",
-        "escalationRef",
-    )
+    private val referenceFields = listOf("messageRef", "signalRef", "errorRef", "escalationRef")
 
-    private val miraVeloModels = listOf(
-        "bike-leasing",
-        "cancel-bike-order",
-        "membership",
-        "welcome-package",
-    )
+    private val miraVeloModels = listOf("bike-leasing", "cancel-bike-order", "membership", "welcome-package")
 
     private val zeebeFixtures = (miraVeloModels + "non-executable").map { "zeebe/$it" }
 

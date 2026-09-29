@@ -5,10 +5,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GenerateRequest(
-    val files: List<BpmnFileData>,
-    val config: GenerationConfig,
-) {
+data class GenerateRequest(val files: List<BpmnFileData>, val config: GenerationConfig) {
 
     @Serializable
     data class BpmnFileData(

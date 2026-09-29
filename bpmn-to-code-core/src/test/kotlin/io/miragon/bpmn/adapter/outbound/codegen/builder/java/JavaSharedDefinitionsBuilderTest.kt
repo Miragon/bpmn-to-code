@@ -1,5 +1,8 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
+import io.miragon.bpmn.adapter.outbound.codegen.builder.asGoldenText
+import io.miragon.bpmn.adapter.outbound.codegen.builder.miraVeloSharedDefinitionsApi
+import io.miragon.bpmn.adapter.outbound.codegen.builder.readGolden
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -26,7 +29,11 @@ class JavaSharedDefinitionsBuilderTest {
     @Test
     fun `buildApiFiles skips kinds without definitions`() {
         // given: no shared definitions at all
-        val api = SharedDefinitionsApi(SharedDefinitions(), OutputLanguage.JAVA, "de.emaarco.example")
+        val api = SharedDefinitionsApi(
+            definitions = SharedDefinitions(),
+            outputLanguage = OutputLanguage.JAVA,
+            packagePath = "de.emaarco.example",
+        )
 
         // when / then: no file is generated
         assertThat(underTest.buildApiFiles(api)).isEmpty()

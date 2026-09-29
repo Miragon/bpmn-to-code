@@ -26,23 +26,21 @@ class HexagonalArchitectureTest {
 
         @Test
         fun `hexagonal architecture layers are respected`() {
-            Konsist
-                .scopeFromProject()
-                .assertArchitecture {
-                    val domainLayer = Layer("Domain", "$rootPackage.domain..")
-                    val inPortsLayer = Layer("In-Ports", "$rootPackage.application.port.inbound..")
-                    val outPortsLayer = Layer("Out-Ports", "$rootPackage.application.port.outbound..")
-                    val inAdaptersLayer = Layer("In-Adapters", "$rootPackage.adapter.inbound..")
-                    val outAdaptersLayer = Layer("Out-Adapters", "$rootPackage.adapter.outbound..")
-                    val applicationLayer = Layer("Application", "$rootPackage.application.service..")
+            Konsist.scopeFromProject().assertArchitecture {
+                val domainLayer = Layer("Domain", "$rootPackage.domain..")
+                val inPortsLayer = Layer("In-Ports", "$rootPackage.application.port.inbound..")
+                val outPortsLayer = Layer("Out-Ports", "$rootPackage.application.port.outbound..")
+                val inAdaptersLayer = Layer("In-Adapters", "$rootPackage.adapter.inbound..")
+                val outAdaptersLayer = Layer("Out-Adapters", "$rootPackage.adapter.outbound..")
+                val applicationLayer = Layer("Application", "$rootPackage.application.service..")
 
-                    domainLayer.dependsOnNothing()
-                    inPortsLayer.dependsOn(domainLayer)
-                    outPortsLayer.dependsOn(domainLayer)
-                    outAdaptersLayer.dependsOn(domainLayer, outPortsLayer)
-                    applicationLayer.dependsOn(domainLayer, inPortsLayer, outPortsLayer, outAdaptersLayer)
-                    inAdaptersLayer.dependsOn(domainLayer, inPortsLayer, applicationLayer)
-                }
+                domainLayer.dependsOnNothing()
+                inPortsLayer.dependsOn(domainLayer)
+                outPortsLayer.dependsOn(domainLayer)
+                outAdaptersLayer.dependsOn(domainLayer, outPortsLayer)
+                applicationLayer.dependsOn(domainLayer, inPortsLayer, outPortsLayer, outAdaptersLayer)
+                inAdaptersLayer.dependsOn(domainLayer, inPortsLayer, applicationLayer)
+            }
         }
 
         @Test
@@ -62,9 +60,7 @@ class HexagonalArchitectureTest {
         fun `services do not depend on other application services`() {
             Konsist
                 .scopeFromPackage("$rootPackage.application.service..")
-                .files
-                .filter { it.path.contains("/src/main/") }
-                .assertTrue { file ->
+                .files.filter { it.path.contains("/src/main/") }.assertTrue { file ->
                     file.imports.none { it.name.startsWith("$rootPackage.application.service.") }
                 }
         }
@@ -89,11 +85,8 @@ class HexagonalArchitectureTest {
         fun `each service imports exactly one inbound port`() {
             Konsist
                 .scopeFromPackage("$rootPackage.application.service..")
-                .files
-                .filter { it.path.contains("/src/main/") }
-                .assertTrue { file ->
-                    val inboundPortImports = file.imports
-                        .filter { it.name.contains(".application.port.inbound.") }
+                .files.filter { it.path.contains("/src/main/") }.assertTrue { file ->
+                    val inboundPortImports = file.imports.filter { it.name.contains(".application.port.inbound.") }
                     inboundPortImports.size == 1
                 }
         }
@@ -104,15 +97,12 @@ class HexagonalArchitectureTest {
             // but the constructor parameter TYPES must use out-port interfaces, not the concrete adapter classes.
             Konsist
                 .scopeFromPackage("$rootPackage.application.service..")
-                .files
-                .filter { it.path.contains("/src/main/") }
-                .assertTrue { file ->
+                .files.filter { it.path.contains("/src/main/") }.assertTrue { file ->
                     val outAdapterImportNames = file.imports
                         .filter { it.name.startsWith("$rootPackage.adapter.outbound.") }
                         .map { it.name.substringAfterLast(".") }
                     val constructorParamTypeNames = file.classes()
-                        .flatMap { it.primaryConstructor?.parameters ?: emptyList() }
-                        .map { it.type.name }
+                        .flatMap { it.primaryConstructor?.parameters ?: emptyList() }.map { it.type.name }
                     outAdapterImportNames.none { it in constructorParamTypeNames }
                 }
         }
@@ -129,8 +119,7 @@ class HexagonalArchitectureTest {
             Konsist
                 .scopeFromPackage("$rootPackage.application..")
                 .classesAndInterfacesAndObjects(includeNested = false, includeLocal = false)
-                .filter { it.path.contains(CORE_MAIN_PATH) }
-                .assertTrue { declaration ->
+                .filter { it.path.contains(CORE_MAIN_PATH) }.assertTrue { declaration ->
                     declaration.resideInPackage("$rootPackage.application.service..") ||
                         declaration.resideInPackage("$rootPackage.application.port..")
                 }
@@ -141,8 +130,7 @@ class HexagonalArchitectureTest {
             Konsist
                 .scopeFromPackage("$rootPackage.adapter..")
                 .classesAndInterfacesAndObjects(includeNested = false, includeLocal = false)
-                .filter { it.path.contains(CORE_MAIN_PATH) }
-                .assertTrue { declaration ->
+                .filter { it.path.contains(CORE_MAIN_PATH) }.assertTrue { declaration ->
                     declaration.resideInPackage("$rootPackage.adapter.inbound..") ||
                         declaration.resideInPackage("$rootPackage.adapter.outbound..")
                 }
@@ -158,15 +146,12 @@ class HexagonalArchitectureTest {
             // but the constructor parameter TYPES must use inbound port interfaces, not the concrete service classes.
             Konsist
                 .scopeFromPackage("$rootPackage.adapter.inbound..")
-                .files
-                .filter { it.path.contains("/src/main/") }
-                .assertTrue { file ->
+                .files.filter { it.path.contains("/src/main/") }.assertTrue { file ->
                     val serviceImportNames = file.imports
                         .filter { it.name.startsWith("$rootPackage.application.service.") }
                         .map { it.name.substringAfterLast(".") }
                     val constructorParamTypeNames = file.classes()
-                        .flatMap { it.primaryConstructor?.parameters ?: emptyList() }
-                        .map { it.type.name }
+                        .flatMap { it.primaryConstructor?.parameters ?: emptyList() }.map { it.type.name }
                     serviceImportNames.none { it in constructorParamTypeNames }
                 }
         }
@@ -175,11 +160,8 @@ class HexagonalArchitectureTest {
         fun `each in-adapter fulfils at most one use-case`() {
             Konsist
                 .scopeFromPackage("$rootPackage.adapter.inbound..")
-                .files
-                .filter { it.path.contains("/src/main/") }
-                .assertTrue { file ->
-                    val inboundPortImports = file.imports
-                        .filter { it.name.contains(".application.port.inbound.") }
+                .files.filter { it.path.contains("/src/main/") }.assertTrue { file ->
+                    val inboundPortImports = file.imports.filter { it.name.contains(".application.port.inbound.") }
                     inboundPortImports.size <= 1
                 }
         }

@@ -12,10 +12,6 @@ package io.miragon.bpmn.runtime
  *
  * `toString()` returns [target], so `.target` is optional in string contexts.
  */
-data class InputOutputMapping(
-    val target: String,
-    val source: String? = null,
-    val sourceExpression: String? = null,
-) {
+data class InputOutputMapping(val target: String, val source: String? = null, val sourceExpression: String? = null) {
     override fun toString(): String = target
 }
