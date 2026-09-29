@@ -140,11 +140,9 @@ data class FlowGraph(
     )
 
     /**
-     * A constant of the shared definition files: [name] as Kotlin and Java declare it, [rawName] as the source
-     * of the C# member name.
+     * A constant of the shared definition files, as Kotlin and Java declare it and the C# member name is derived from.
      */
     data class SharedConstant(
         val name: String,
-        val rawName: String,
     )
 }

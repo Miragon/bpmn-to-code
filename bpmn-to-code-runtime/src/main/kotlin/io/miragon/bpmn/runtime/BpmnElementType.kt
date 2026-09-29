@@ -1,7 +1,7 @@
 package io.miragon.bpmn.runtime
 
 /**
- * BPMN element type of a generated `Flow` node. For events, [Event.eventType] carries the event definition.
+ * BPMN element type of a generated `FlowNodes` node. For events, [Event.eventType] carries the event definition.
  */
 enum class BpmnElementType {
     SERVICE_TASK,

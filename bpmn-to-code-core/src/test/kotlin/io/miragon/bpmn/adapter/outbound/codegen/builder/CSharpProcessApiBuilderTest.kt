@@ -55,7 +55,7 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped Flow for merged model`() {
+    fun `buildApiFile generates variant-scoped FlowNodes for merged model`() {
         // given: a merged model with a single variant
         val retail = testCancelBikeOrderModel(variantName = "retail")
         val merged = ProcessModel(
@@ -148,7 +148,7 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
-    fun `flat Flow lists subprocess interior nodes as direct children with Start on the subprocess`() {
+    fun `flat FlowNodes lists subprocess interior nodes as direct children with Start on the subprocess`() {
         val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
         assertThat(result.content).contains("        public sealed class StartEventCustomerEligible : Runtime.IEvent")
@@ -175,7 +175,7 @@ class CSharpProcessApiBuilderTest {
         assertThat(result.content).contains("public Runtime.ProcessId CalledProcess { get; } = new(\"cancelBikeOrder\");")
         assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.MiraveloLeasingRequestReceived);")
         assertThat(result.content).contains(
-            "public Runtime.BpmnError Error { get; } = new(Errors.MiraveloApplicationInvalidApplicationInvalid.Reference, Errors.MiraveloApplicationInvalidApplicationInvalid.Code);",
+            "public Runtime.BpmnErrorDefinition Error { get; } = new(Errors.MiraveloApplicationInvalid.Reference, Errors.MiraveloApplicationInvalid.Code);",
         )
     }
 

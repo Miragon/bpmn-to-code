@@ -1,48 +1,48 @@
 package io.miragon.bpmn.runtime
 
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.BoundaryApplicationInvalid
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.BoundaryCompensateContract
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.BoundaryCompensateInsurance
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.BoundaryCompensateOrder
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.BoundaryContractNotSigned
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.BusinessRuleTaskCheckCreditRating
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.CallActivityCancelBikeOrder
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EndEventApplicationCancelled
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EndEventApplicationRejected
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EndEventContractConcluded
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EndEventContractNotSigned
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EndEventCustomerReminded
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EndEventDeliveryAddressUpdated
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EndEventLeasingActive
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EventContractSigned
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.EventReverseApplication
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.GatewayAwaitSignature
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.GatewayCollectRejections
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.GatewayFork
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.GatewayIsSolvent
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.GatewayJoin
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ReceiveTaskHandoverReported
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskCancelContract
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskCancelPolicy
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskIssueInsurancePolicy
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskOrderBike
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskSendCancellationConfirmation
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskSendContract
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskSendRejection
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskSendReminderMail
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.ServiceTaskValidateApplication
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.StartEventAddressChanged
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.StartEventApplicationWithdrawn
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.StartEventCustomerEligible
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.StartEventLeasingRequestReceived
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.SubProcessAddressChanged
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.SubProcessApplicationWithdrawn
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.SubProcessConcludeContract
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.TimerSignatureDeadline
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.TimerSignatureReminder
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.TimerWithdrawalPeriodElapsed
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.UserTaskUpdateDeliveryAddress
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EventContractSigned
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.EventReverseApplication
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.GatewayFork
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.GatewayJoin
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress
 import io.miragon.bpmn.runtime.path.example.Errors
 import io.miragon.bpmn.runtime.path.example.Escalations
 import io.miragon.bpmn.runtime.path.example.Messages
@@ -51,21 +51,21 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 /**
- * Enumerates the generated bike-leasing API from **Kotlin**: `Flow.entries`, the sealed `Flow.Node` and the
+ * Enumerates the generated bike-leasing API from **Kotlin**: `FlowNodes.entries`, the sealed `FlowNodes.Node` and the
  * shared definitions' `entries`. The `GeneratedApiEnumerationJavaTest` sibling covers the Java `all()` accessors.
  */
 class GeneratedApiEnumerationKotlinTest {
 
     @Test
     fun `flow entries list exactly the nodes of the process`() {
-        val everyNode = Flow.Node::class.sealedSubclasses.map { it.objectInstance }
+        val everyNode = FlowNodes.Node::class.sealedSubclasses.map { it.objectInstance }
 
-        assertThat(Flow.entries).hasSize(42).containsExactlyInAnyOrderElementsOf(everyNode)
+        assertThat(FlowNodes.entries).hasSize(42).containsExactlyInAnyOrderElementsOf(everyNode)
     }
 
     @Test
     fun `a when over the sealed node type is exhaustive without an else branch`() {
-        assertThat(Flow.entries).allSatisfy { node ->
+        assertThat(FlowNodes.entries).allSatisfy { node ->
             assertThat(kindOf(node)).describedAs(node.id.value).isEqualTo(kindOf(node.elementType))
         }
     }
@@ -90,11 +90,11 @@ class GeneratedApiEnumerationKotlinTest {
             Messages.MIRAVELO_HANDOVER_REPORTED,
             Messages.MIRAVELO_LEASING_REQUEST_RECEIVED,
         )
-        assertThat(Errors.entries).containsExactly(Errors.MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID)
-        assertThat(Escalations.entries).containsExactly(Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED)
+        assertThat(Errors.entries).containsExactly(Errors.MIRAVELO_APPLICATION_INVALID)
+        assertThat(Escalations.entries).containsExactly(Escalations.MIRAVELO_CONTRACT_NOT_SIGNED)
     }
 
-    private fun kindOf(node: Flow.Node): String = when (node) {
+    private fun kindOf(node: FlowNodes.Node): String = when (node) {
         BoundaryApplicationInvalid,
         BoundaryCompensateContract,
         BoundaryCompensateInsurance,

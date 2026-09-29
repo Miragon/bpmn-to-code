@@ -20,7 +20,7 @@ import javax.lang.model.element.Modifier.STATIC
 
 /**
  * Generates the type-safe API contract for a single BPMN process as a Java class file.
- * References shared BPMN types (BpmnTimer, BpmnError, etc.) from the `bpmn-to-code-runtime` artifact.
+ * References shared BPMN types (BpmnTimer, BpmnErrorDefinition, etc.) from the `bpmn-to-code-runtime` artifact.
  */
 internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
 
@@ -92,7 +92,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val model = modelApi.model
             val variantsBuilder = JavaConstantHolder("FlowVariants").builder(STATIC)
-                .addJavadoc("The {@code Flow} of each merged BPMN file, keyed by its {@code variantName}.\n")
+                .addJavadoc("The {@code FlowNodes} of each merged BPMN file, keyed by its {@code variantName}.\n")
             model.variants.forEach { variant ->
                 variantsBuilder.addType(buildFlowClass(variant.graph, model.definitions, variant.variantName.toCamelCase()))
             }
@@ -103,16 +103,16 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
     /**
      * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
      * `elementType` and display `name`, plus its reachable successors behind `getNext()`. Boundary events and
-     * subprocess continuations are plain successors; every node is a direct child of `Flow`, and a subprocess
+     * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
      * opens its interior via `getStartEvents()`.
      */
-    private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "Flow"): TypeSpec {
+    private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "FlowNodes"): TypeSpec {
         val flowBuilder = JavaConstantHolder(className).builder(STATIC)
             .addJavadoc(
                 "Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, " +
                     "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +
                     "{@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. " +
-                    "Every element is a direct child of {@code Flow}, whatever its subprocess depth; " +
+                    "Every element is a direct child of {@code FlowNodes}, whatever its subprocess depth; " +
                     "a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.\n",
             )
         JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))

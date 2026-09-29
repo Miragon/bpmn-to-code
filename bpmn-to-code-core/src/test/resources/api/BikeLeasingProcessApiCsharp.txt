@@ -11,11 +11,11 @@ public static class BikeLeasingProcessApi
     public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
     /// <summary>
-    /// The runtime types this API's Flow nodes are built from; inlined so the file needs no package.
+    /// The runtime types this API's flow nodes are built from; inlined so the file needs no package.
     /// </summary>
     public static class Runtime
     {
-        /// <summary>Common handle on any Flow node, for generic tooling.</summary>
+        /// <summary>Common handle on any flow node, for generic tooling.</summary>
         public interface IFlowNode
         {
             ElementId Id { get; }
@@ -44,7 +44,7 @@ public static class BikeLeasingProcessApi
             IFlowNode Target { get; }
         }
 
-        /// <summary>One outgoing sequence flow of a Flow node: its raw condition expression, default marker and typed target.</summary>
+        /// <summary>One outgoing sequence flow of a flow node: its raw condition expression, default marker and typed target.</summary>
         public sealed record SequenceFlow<TTarget>(ElementId Id, string? Name, string? ConditionExpression, bool IsDefault, TTarget Target) : ISequenceFlow
             where TTarget : IFlowNode
         {
@@ -83,7 +83,7 @@ public static class BikeLeasingProcessApi
             public sealed record InOut(string Value) : VariableName(Value);
         }
 
-        /// <summary>BPMN element type of a Flow node; an event's definition is its EventType.</summary>
+        /// <summary>BPMN element type of a flow node; an event's definition is its EventType.</summary>
         public enum BpmnElementType
         {
             ServiceTask,
@@ -145,9 +145,9 @@ public static class BikeLeasingProcessApi
 
         public sealed record BpmnTimer(TimerType Type, string TimerValue);
 
-        public sealed record BpmnError(string Name, string Code);
+        public sealed record BpmnErrorDefinition(string Name, string Code);
 
-        public sealed record BpmnEscalation(string Name, string Code);
+        public sealed record BpmnEscalationDefinition(string Name, string Code);
 
         /// <summary>A variable mapping into or out of a called process; Source and SourceExpression are mutually exclusive.</summary>
         public sealed record InputOutputMapping(string Target, string? Source = null, string? SourceExpression = null)
@@ -158,12 +158,12 @@ public static class BikeLeasingProcessApi
 
     /// <summary>
     /// <para>Typed navigation over the process flow.</para>
-    /// <para>Each element is a nested singleton class (reach it as Flow.Element.Instance) exposing its Id, ElementType and Name,</para>
+    /// <para>Each element is a nested singleton class (reach it as FlowNodes.Element.Instance) exposing its Id, ElementType and Name,</para>
     /// <para>the elements reachable from it behind Next and its outgoing sequence flows behind Flows - so a full path is</para>
-    /// <para>verified by the compiler and offered by IntelliSense. Every element is a direct child of Flow, whatever its</para>
+    /// <para>verified by the compiler and offered by IntelliSense. Every element is a direct child of FlowNodes, whatever its</para>
     /// <para>subprocess depth; a subprocess opens its interior via Start.</para>
     /// </summary>
-    public static class Flow
+    public static class FlowNodes
     {
         /// <summary>
         /// Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
@@ -224,7 +224,7 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
             public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Error;
             public string? Name => "Application invalid";
-            public Runtime.BpmnError Error { get; } = new(Errors.MiraveloApplicationInvalidApplicationInvalid.Reference, Errors.MiraveloApplicationInvalidApplicationInvalid.Code);
+            public Runtime.BpmnErrorDefinition Error { get; } = new(Errors.MiraveloApplicationInvalid.Reference, Errors.MiraveloApplicationInvalid.Code);
             public ServiceTaskValidateApplication AttachedTo => ServiceTaskValidateApplication.Instance;
             public bool IsInterrupting => true;
 
@@ -293,7 +293,7 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
             public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Escalation;
             public string? Name => "Contract not signed";
-            public Runtime.BpmnEscalation Escalation { get; } = new(Escalations.MiraveloContractNotSignedContractNotSigned.Reference, Escalations.MiraveloContractNotSignedContractNotSigned.Code);
+            public Runtime.BpmnEscalationDefinition Escalation { get; } = new(Escalations.MiraveloContractNotSigned.Reference, Escalations.MiraveloContractNotSigned.Code);
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => true;
 
@@ -418,7 +418,7 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
             public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Escalation;
             public string? Name => "Contract not signed";
-            public Runtime.BpmnEscalation Escalation { get; } = new(Escalations.MiraveloContractNotSignedContractNotSigned.Reference, Escalations.MiraveloContractNotSignedContractNotSigned.Code);
+            public Runtime.BpmnEscalationDefinition Escalation { get; } = new(Escalations.MiraveloContractNotSigned.Reference, Escalations.MiraveloContractNotSigned.Code);
         }
 
         public sealed class EndEventCustomerReminded : Runtime.IEvent

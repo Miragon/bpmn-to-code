@@ -66,7 +66,7 @@ fun <START, M : FlowNode> ProcessPath<out FlowScope<START>>.enter(pick: (START) 
 
 /**
  * Descend into an explicitly named subprocess — the re-anchor form of [enter], for entering a subprocess
- * from a position where it isn't the current node (e.g. `enter(Flow.SubProcess) { it.start }`).
+ * from a position where it isn't the current node (e.g. `enter(FlowNodes.SubProcess) { it.start }`).
  */
 fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (START) -> M): ProcessPath<M> {
     val node = pick(scope.startEvents)

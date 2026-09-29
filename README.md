@@ -148,7 +148,7 @@ dependencies {
 > [!WARNING]
 > **C# support is experimental.** It may change in any release and may be reworked or removed if it doesn't work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
 >
-> The C# output carries the same API as Kotlin and Java, including the typed `Flow` navigation; the runtime
+> The C# output carries the same API as Kotlin and Java, including the typed `FlowNodes` navigation; the runtime
 > types it needs are inlined into each generated `.cs` file, so it has no dependencies. The Web app is the
 > primary surface for it; the build plugins accept `CSHARP` too, which is useful in a polyglot monorepo but
 > not for a pure .NET project. See [Output Languages](https://miragon.github.io/bpmn-to-code/guide/configuration.html#output-languages).

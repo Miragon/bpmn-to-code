@@ -59,16 +59,16 @@ class RuntimeTypesTest {
     }
 
     @Test
-    fun `BpmnTimer, BpmnError, BpmnEscalation carry their pair of strings`() {
+    fun `BpmnTimer, BpmnErrorDefinition, BpmnEscalationDefinition carry their pair of strings`() {
         val timer = BpmnTimer(TimerType.DURATION, "PT5M")
         assertThat(timer.type).isEqualTo(TimerType.DURATION)
         assertThat(timer.timerValue).isEqualTo("PT5M")
 
-        val error = BpmnError("NotFound", "E_404")
+        val error = BpmnErrorDefinition("NotFound", "E_404")
         assertThat(error.name).isEqualTo("NotFound")
         assertThat(error.code).isEqualTo("E_404")
 
-        val escalation = BpmnEscalation("OutOfHours", "E_HRS")
+        val escalation = BpmnEscalationDefinition("OutOfHours", "E_HRS")
         assertThat(escalation.name).isEqualTo("OutOfHours")
         assertThat(escalation.code).isEqualTo("E_HRS")
     }

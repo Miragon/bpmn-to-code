@@ -31,7 +31,7 @@ Variables are extracted from `zeebe:ioMapping` with `zeebe:input` and `zeebe:out
 </bpmn:extensionElements>
 ```
 
-The `target` attribute of each mapping becomes a variable in the element's `Variables` holder on its `Flow` node.
+The `target` attribute of each mapping becomes a variable in the element's `Variables` holder on its `FlowNodes` node.
 
 ### Multi-Instance
 
@@ -65,4 +65,4 @@ Call activities use `zeebe:calledElement` (not the standard `calledElement` attr
 </bpmn:callActivity>
 ```
 
-The `processId` from the extension element becomes `CALLED_PROCESS` on the call activity's `Flow` node.
+The `processId` from the extension element becomes `CALLED_PROCESS` on the call activity's `FlowNodes` node.

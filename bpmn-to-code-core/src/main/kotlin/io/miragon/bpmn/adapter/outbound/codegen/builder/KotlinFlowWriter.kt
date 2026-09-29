@@ -16,12 +16,12 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 
 /**
- * Emits the typed navigation graph of a Kotlin process API `Flow` object: one nested node object per flow
+ * Emits the typed navigation graph of a Kotlin process API `FlowNodes` object: one nested node object per flow
  * node, carrying its metadata via `AbstractFlowNode`, its own facets (see [KotlinFacetWriter]), its reachable
  * successors behind `next` and its outgoing sequence flows behind `outgoingFlows`, named after the elements
- * they lead to. All nodes are direct children of `Flow`, whatever their subprocess depth; a subprocess node
+ * they lead to. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess node
  * additionally is a `FlowScope` whose `startEvents` yields the interior's start elements, and a boundary event is
- * a `BoundaryEvent` of its host. Every node implements the flow's sealed `Node` interface, and `Flow.entries` lists them all.
+ * a `BoundaryEvent` of its host. Every node implements the flow's sealed `Node` interface, and `FlowNodes.entries` lists them all.
  */
 internal class KotlinFlowWriter {
 

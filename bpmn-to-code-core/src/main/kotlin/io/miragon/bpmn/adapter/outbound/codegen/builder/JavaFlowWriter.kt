@@ -16,12 +16,12 @@ import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
 
 /**
- * Emits the typed navigation graph of a Java process API `Flow` class: one nested node class per flow node,
+ * Emits the typed navigation graph of a Java process API `FlowNodes` class: one nested node class per flow node,
  * carrying its metadata via `AbstractFlowNode`, its own facets (see [JavaFacetWriter]), its reachable
  * successors behind `getNext()` and its outgoing sequence flows behind `getOutgoingFlows()`, named after the
- * elements they lead to. All nodes are direct children of `Flow`, whatever their subprocess depth; a subprocess
+ * elements they lead to. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess
  * class additionally is a `FlowScope` whose `getStartEvents()` yields the interior's start elements, and a boundary event
- * is a `BoundaryEvent` of its host. Every node is a singleton (see [JavaFlowNodeType]), and `Flow` exposes a
+ * is a `BoundaryEvent` of its host. Every node is a singleton (see [JavaFlowNodeType]), and `FlowNodes` exposes a
  * static accessor method per node and `all()` listing every node.
  */
 internal class JavaFlowWriter {

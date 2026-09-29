@@ -2,7 +2,7 @@ package io.miragon.bpmn.runtime.path
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow as BikeLeasing
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes as BikeLeasing
 
 /**
  * Exercises the fluent [PathWalk] facade over the generated bike-leasing API from **Kotlin** (its

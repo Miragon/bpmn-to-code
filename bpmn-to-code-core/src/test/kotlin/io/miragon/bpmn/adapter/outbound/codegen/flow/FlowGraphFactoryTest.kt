@@ -163,7 +163,7 @@ class FlowGraphFactoryTest {
     @Test
     fun `job type points at its shared ServiceTasks constant`() {
         assertThat(cancellationGraph.node("endEventBikeOrderCancelled").facets.jobType)
-            .isEqualTo(SharedValue("miravelo.bikeOrderCancelled", SharedConstant(name = "MIRAVELO_BIKE_ORDER_CANCELLED", rawName = "miravelo.bikeOrderCancelled")))
+            .isEqualTo(SharedValue("miravelo.bikeOrderCancelled", SharedConstant(name = "MIRAVELO_BIKE_ORDER_CANCELLED")))
     }
 
     @Test
@@ -251,9 +251,9 @@ class FlowGraphFactoryTest {
     @Test
     fun `event references point at their shared constants`() {
         assertThat(leasingGraph.node("startEventLeasingRequestReceived").facets.message?.constant)
-            .isEqualTo(SharedConstant(name = "MIRAVELO_LEASING_REQUEST_RECEIVED", rawName = "miravelo.leasingRequestReceived"))
+            .isEqualTo(SharedConstant(name = "MIRAVELO_LEASING_REQUEST_RECEIVED"))
         assertThat(leasingGraph.node("boundaryApplicationInvalid").facets.error?.constant)
-            .isEqualTo(SharedConstant(name = "MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID", rawName = "miravelo.applicationInvalid_applicationInvalid"))
+            .isEqualTo(SharedConstant(name = "MIRAVELO_APPLICATION_INVALID"))
     }
 
     @Test
@@ -300,9 +300,9 @@ class FlowGraphFactoryTest {
 
         assertThat(graph.node("onMessage").facets.message?.value).isEqualTo("Message_Registered")
         assertThat(graph.node("onSignal").facets.signal)
-            .isEqualTo(SharedValue("Signal_Activated", SharedConstant(name = "SIGNAL_ACTIVATED", rawName = "Signal_Activated")))
+            .isEqualTo(SharedValue("Signal_Activated", SharedConstant(name = "ACTIVATED")))
         assertThat(graph.node("onEscalation").facets.escalation)
-            .isEqualTo(SharedValue(NamedCode("Escalation_Late", "42"), SharedConstant(name = "ESCALATION_LATE_42", rawName = "Escalation_Late_42")))
+            .isEqualTo(SharedValue(NamedCode("Escalation_Late", "42"), SharedConstant(name = "LATE")))
     }
 
     @Test

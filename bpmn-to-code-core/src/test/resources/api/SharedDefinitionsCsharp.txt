@@ -82,7 +82,7 @@ namespace de.emaarco.example;
 /// </summary>
 public static class Errors
 {
-    public static class MiraveloApplicationInvalidApplicationInvalid
+    public static class MiraveloApplicationInvalid
     {
         public const string Reference = "miravelo.applicationInvalid";
         public const string Code = "applicationInvalid";
@@ -90,7 +90,7 @@ public static class Errors
 
     public static System.Collections.Generic.IReadOnlyList<(string Reference, string Code)> All => new (string Reference, string Code)[]
     {
-        (MiraveloApplicationInvalidApplicationInvalid.Reference, MiraveloApplicationInvalidApplicationInvalid.Code),
+        (MiraveloApplicationInvalid.Reference, MiraveloApplicationInvalid.Code),
     };
 }
 
@@ -106,7 +106,7 @@ namespace de.emaarco.example;
 /// </summary>
 public static class Escalations
 {
-    public static class MiraveloContractNotSignedContractNotSigned
+    public static class MiraveloContractNotSigned
     {
         public const string Reference = "miravelo.contractNotSigned";
         public const string Code = "contractNotSigned";
@@ -114,6 +114,6 @@ public static class Escalations
 
     public static System.Collections.Generic.IReadOnlyList<(string Reference, string Code)> All => new (string Reference, string Code)[]
     {
-        (MiraveloContractNotSignedContractNotSigned.Reference, MiraveloContractNotSignedContractNotSigned.Code),
+        (MiraveloContractNotSigned.Reference, MiraveloContractNotSigned.Code),
     };
 }

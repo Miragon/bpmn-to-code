@@ -32,14 +32,14 @@ Operaton is an open-source fork of Camunda 7. It uses the same patterns for I/O 
 |----------|-------|-----------------|
 | Kotlin | `KOTLIN` | `object` with nested objects; depends on `bpmn-to-code-runtime` |
 | Java | `JAVA` | `class` with nested static classes; depends on `bpmn-to-code-runtime` |
-| C# | `CSHARP` | `static class` with the same registries and `Flow`; runtime types inlined, no dependency |
+| C# | `CSHARP` | `static class` with the same registries and `FlowNodes`; runtime types inlined, no dependency |
 
 ::: warning Experimental
 C# support is experimental. It may change in any release and may be reworked or removed if it doesn't work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
 :::
 
 ::: info C# has no package dependency
-The C# output carries the same API surface as Kotlin and Java, including the typed `Flow` / `FlowVariants`
+The C# output carries the same API surface as Kotlin and Java, including the typed `FlowNodes` / `FlowVariants`
 navigation. The runtime types its nodes need (`IFlowNode`, `SequenceFlow<T>`, `ElementId`, `VariableName`,
 …) are emitted into every generated file as a nested `Runtime` class, so a `.cs` file drops into any project
 and builds. See [C# specifics](/guide/generated-api#c-specifics).

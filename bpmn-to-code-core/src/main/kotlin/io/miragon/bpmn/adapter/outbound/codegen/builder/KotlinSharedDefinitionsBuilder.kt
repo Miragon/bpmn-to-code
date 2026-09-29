@@ -74,7 +74,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     }
 
     private fun errors(errors: List<RootElementDefinition.Error>): TypeSpec? = errors.ifNotEmpty {
-        val bpmnErrorClass = ClassName(RUNTIME_PACKAGE, "BpmnError")
+        val bpmnErrorClass = ClassName(RUNTIME_PACKAGE, "BpmnErrorDefinition")
         val errorsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.ERRORS.typeName)
             .addKdoc("BPMN error definitions with name and code, as thrown and caught by the processes.")
         errors.forEach { errorsBuilder.addProperty(createNameAndCodeAttribute(it, bpmnErrorClass)) }
@@ -83,7 +83,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     }
 
     private fun escalations(escalations: List<RootElementDefinition.Escalation>): TypeSpec? = escalations.ifNotEmpty {
-        val bpmnEscalationClass = ClassName(RUNTIME_PACKAGE, "BpmnEscalation")
+        val bpmnEscalationClass = ClassName(RUNTIME_PACKAGE, "BpmnEscalationDefinition")
         val escalationsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.ESCALATIONS.typeName)
             .addKdoc("BPMN escalation definitions with name and code, as thrown and caught by the processes.")
         escalations.forEach { escalationsBuilder.addProperty(createNameAndCodeAttribute(it, bpmnEscalationClass)) }

@@ -12,12 +12,12 @@ import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.st
 import io.miragon.bpmn.adapter.outbound.codegen.writer.staticListProperty
 
 /**
- * Emits the typed navigation graph of a C# process API `Flow` class: one nested sealed singleton class per flow
- * node, reached as `Flow.<Node>.Instance`. A node carries its metadata (`Id`, `ElementType`, `Name`), its own
+ * Emits the typed navigation graph of a C# process API `FlowNodes` class: one nested sealed singleton class per flow
+ * node, reached as `FlowNodes.<Node>.Instance`. A node carries its metadata (`Id`, `ElementType`, `Name`), its own
  * facets (see [CSharpFacetWriter]), its successors behind `Next`, its outgoing sequence flows behind
  * `OutgoingFlows` (named after the elements they lead to), and — for a subprocess — its interior's start elements
- * behind `Start`. All nodes are direct children of `Flow`, whatever their subprocess depth; a boundary event
- * additionally implements `IBoundaryEvent`. `Flow.All` lists every node.
+ * behind `Start`. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a boundary event
+ * additionally implements `IBoundaryEvent`. `FlowNodes.All` lists every node.
  *
  * Holder classes (`Successors`, `OutgoingSequenceFlows`, `Interior`) are named differently from the properties
  * that expose them (`Next`, `OutgoingFlows`, `Start`), since C# rejects a member sharing its enclosing type's

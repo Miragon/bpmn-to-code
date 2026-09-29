@@ -6,7 +6,7 @@ import io.miragon.bpmn.domain.BpmnModelApi
  * Decides which sections a generated Process API contains.
  *
  * Today the only question is whether a section would have anything to say about the model — a process
- * whose models are merged gets `FlowVariants` rather than `Flow`. That is a mapping from the
+ * whose models are merged gets `FlowVariants` rather than `FlowNodes`. That is a mapping from the
  * codegen vocabulary onto the domain, so it lives here, once, rather than in each language's builder or
  * on [ApiObjectType] itself.
  *

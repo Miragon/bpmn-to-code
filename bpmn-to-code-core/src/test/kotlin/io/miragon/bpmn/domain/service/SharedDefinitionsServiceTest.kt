@@ -46,7 +46,7 @@ class SharedDefinitionsServiceTest {
         val result = underTest.collect(listOf(model))
 
         // then: both errors are kept, sorted
-        assertThat(result.errors.map { it.getName() }).containsExactly("INVALID_MAIL_400", "INVALID_MAIL_500")
+        assertThat(result.errors.map { it.getValue() }).containsExactly("InvalidMail" to "400", "InvalidMail" to "500")
     }
 
     @Test

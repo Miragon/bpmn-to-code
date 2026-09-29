@@ -39,7 +39,7 @@ export const ideTabs: IdeTab[] = [
       `<span class="line">  <span class="tok-k">val</span> PROCESS_ID: <span class="tok-t">ProcessId</span> = <span class="tok-t">ProcessId</span>(<span class="tok-s">"subscription"</span>)</span>`,
       `<span class="line">  <span class="tok-k">val</span> PROCESS_ENGINE: <span class="tok-t">BpmnEngine</span> = <span class="tok-t">BpmnEngine</span>.ZEEBE</span>`,
       `<span class="line"> </span>`,
-      `<span class="line">  <span class="tok-k">object</span> <span class="tok-t">Flow</span> {</span>`,
+      `<span class="line">  <span class="tok-k">object</span> <span class="tok-t">FlowNodes</span> {</span>`,
       `<span class="line">    <span class="tok-k">object</span> <span class="tok-t">ActivitySendConfirmationMail</span> : <span class="tok-t">AbstractFlowNode</span>(<span class="tok-t">ElementId</span>(<span class="tok-s">"Activity_SendConfirmationMail"</span>), <span class="tok-s">"SERVICE_TASK"</span>) {</span>`,
       `<span class="line">      <span class="tok-k">const val</span> JOB_TYPE: <span class="tok-t">String</span> = <span class="tok-t">ServiceTasks</span>.NEWSLETTER_SEND_CONFIRMATION_MAIL</span>`,
       `<span class="line">      <span class="tok-k">object</span> <span class="tok-t">Variables</span> { <span class="tok-k">val</span> SUBSCRIPTION_ID = <span class="tok-t">VariableName</span>.<span class="tok-t">Input</span>(<span class="tok-s">"subscriptionId"</span>) }</span>`,

@@ -109,7 +109,7 @@ object BpmnRules {
     val COLLISION_DETECTION: SingleModelValidationRule = CollisionDetectionRule()
 
     /**
-     * Element ids that would be generated as a name the Process API reserves for itself (`Flow`, `Next`,
+     * Element ids that would be generated as a name the Process API reserves for itself (`FlowNodes`, `Next`,
      * `Instance`, the runtime types, …) would shadow that part of the API, so the generated code could not compile.
      */
     @JvmField

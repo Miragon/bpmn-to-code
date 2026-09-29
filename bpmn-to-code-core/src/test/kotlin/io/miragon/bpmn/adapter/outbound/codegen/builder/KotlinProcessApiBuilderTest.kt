@@ -50,7 +50,7 @@ class KotlinProcessApiBuilderTest {
         assertThat(result.content).isEqualTo(golden("/api/BikeLeasingProcessApiKotlin.txt", result.content))
         assertKotlinSyntaxValid(result.content)
 
-        // and: the Flow KDoc explains how to navigate it
+        // and: the FlowNodes KDoc explains how to navigate it
         assertThat(result.content).contains("Typed navigation over the process flow")
     }
 
@@ -93,7 +93,7 @@ class KotlinProcessApiBuilderTest {
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped Flow for merged model`() {
+    fun `buildApiFile generates variant-scoped FlowNodes for merged model`() {
         // given: a merged model with a single variant
         val retail = testCancelBikeOrderModel(variantName = "retail")
         val merged = ProcessModel(
@@ -109,7 +109,7 @@ class KotlinProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains FlowVariants section instead of a flat Flow
+        // then: output contains FlowVariants section instead of a flat FlowNodes
         assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiKotlin.txt", result.content))
         assertKotlinSyntaxValid(result.content)
     }

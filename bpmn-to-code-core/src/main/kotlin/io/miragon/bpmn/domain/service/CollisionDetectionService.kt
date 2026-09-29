@@ -16,7 +16,7 @@ import io.miragon.bpmn.domain.validation.model.CollisionDetail
  * If this is the case, it cannot be guaranteed that the Process API is complete,
  * because the two elements could differ and only the first would be emitted.
  *
- * Each check mirrors one scope of the generated API: flow nodes are named model-wide (the flat `Flow`),
+ * Each check mirrors one scope of the generated API: flow nodes are named model-wide (the flat `FlowNodes`),
  * variables and call-activity mappings per node, and the shared definitions across all
  * models of a run ([findSharedCollisions]).
  */
@@ -80,7 +80,7 @@ class CollisionDetectionService {
 
     /**
      * The same element id declared in two scopes (e.g. at the root and inside a subprocess) survives merging as
-     * two nodes, which the flat `Flow` object would emit twice under one name.
+     * two nodes, which the flat `FlowNodes` object would emit twice under one name.
      */
     private fun findRepeatedIds(processId: String, flowNodes: List<VariableMapping<*>>): List<CollisionDetail> = flowNodes
         .map { it.getRawName() }

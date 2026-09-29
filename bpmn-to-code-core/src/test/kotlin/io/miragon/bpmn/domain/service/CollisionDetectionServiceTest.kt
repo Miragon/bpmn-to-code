@@ -71,7 +71,7 @@ class CollisionDetectionServiceTest {
         // when: checking for collisions
         val collisions = underTest.findCollisions(model)
 
-        // then: the repeated id is reported as a FlowNode collision, since the flat Flow object can emit it only once
+        // then: the repeated id is reported as a FlowNode collision, since the flat FlowNodes object can emit it only once
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("FlowNode")
         assertThat(collisions[0].constantName).isEqualTo("ActivitySendMail")
@@ -123,7 +123,7 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions ignores ids that only share an UPPER_SNAKE form but keep distinct object names`() {
-        // given: fooBar and fooBAR would have collided as constants; as Flow objects they are FooBar and FooBAR
+        // given: fooBar and fooBAR would have collided as constants; as FlowNodes objects they are FooBar and FooBAR
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
@@ -132,7 +132,7 @@ class CollisionDetectionServiceTest {
             ),
         )
 
-        // when / then: no collision, the flat Flow can hold both
+        // when / then: no collision, the flat FlowNodes can hold both
         assertThat(underTest.findCollisions(model)).isEmpty()
     }
 
@@ -153,7 +153,7 @@ class CollisionDetectionServiceTest {
         // then: one Message collision is reported
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("Message")
-        assertThat(collisions[0].constantName).isEqualTo("MESSAGE_FORM_SUBMITTED")
+        assertThat(collisions[0].constantName).isEqualTo("FORM_SUBMITTED")
     }
 
     @Test
@@ -193,7 +193,7 @@ class CollisionDetectionServiceTest {
         // then: one Signal collision is reported
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("Signal")
-        assertThat(collisions[0].constantName).isEqualTo("SIGNAL_COMPLETE")
+        assertThat(collisions[0].constantName).isEqualTo("COMPLETE")
     }
 
     @Test
@@ -213,7 +213,27 @@ class CollisionDetectionServiceTest {
         // then: one Error collision is reported
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("Error")
-        assertThat(collisions[0].constantName).isEqualTo("ERROR_INVALID_MAIL_400")
+        assertThat(collisions[0].constantName).isEqualTo("INVALID_MAIL")
+    }
+
+    @Test
+    fun `findSharedCollisions detects errors with the same name and different codes`() {
+        // given: two errors sharing a name, each with its own code
+        val model = testProcessModel(
+            processId = "TestProcess",
+            errors = listOf(
+                RootElementDefinition.Error(id = "err1", name = "InvalidMail", code = "400"),
+                RootElementDefinition.Error(id = "err2", name = "InvalidMail", code = "500"),
+            ),
+        )
+
+        // when: checking for collisions
+        val collisions = underTest.findSharedCollisions(listOf(model))
+
+        // then: both would become the same constant, so one Error collision is reported
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].variableType).isEqualTo("Error")
+        assertThat(collisions[0].constantName).isEqualTo("INVALID_MAIL")
     }
 
     @Test
@@ -370,7 +390,7 @@ class CollisionDetectionServiceTest {
         // then: one Escalation collision is reported
         assertThat(collisions).hasSize(1)
         assertThat(collisions[0].variableType).isEqualTo("Escalation")
-        assertThat(collisions[0].constantName).isEqualTo("NOTIFY_SUPPORT_200")
+        assertThat(collisions[0].constantName).isEqualTo("NOTIFY_SUPPORT")
     }
 
     @Test

@@ -15,7 +15,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.st
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
 
 /**
- * Emits a C# `Flow` node's own data: `JobType` (a `const`, so it stays attribute-usable), value properties
+ * Emits a C# `FlowNodes` node's own data: `JobType` (a `const`, so it stays attribute-usable), value properties
  * (`CalledProcess`, `Timer`, `Message`, …), the `AttachedTo` link to a boundary event's host, and the nested
  * holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors and escalations refer to
  * their shared definition constant. Only `AttachedTo` crosses into another node, and it is expression-bodied
@@ -36,8 +36,8 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         facets.timer?.let { writer.readonlyProperty("Timer", runtime("BpmnTimer"), "new(${CSharpRuntimeTypes.enumMember("TimerType", it.type.name)}, ${stringLiteral(it.expression)})") }
         facets.message?.let { writer.readonlyProperty("Message", runtime("MessageName"), "new(${nameArgument(SharedDefinitionType.MESSAGES, it)})") }
         facets.signal?.let { writer.readonlyProperty("Signal", runtime("SignalName"), "new(${nameArgument(SharedDefinitionType.SIGNALS, it)})") }
-        facets.error?.let { writer.readonlyProperty("Error", runtime("BpmnError"), "new(${namedCodeArguments(SharedDefinitionType.ERRORS, it)})") }
-        facets.escalation?.let { writer.readonlyProperty("Escalation", runtime("BpmnEscalation"), "new(${namedCodeArguments(SharedDefinitionType.ESCALATIONS, it)})") }
+        facets.error?.let { writer.readonlyProperty("Error", runtime("BpmnErrorDefinition"), "new(${namedCodeArguments(SharedDefinitionType.ERRORS, it)})") }
+        facets.escalation?.let { writer.readonlyProperty("Escalation", runtime("BpmnEscalationDefinition"), "new(${namedCodeArguments(SharedDefinitionType.ESCALATIONS, it)})") }
         facets.attachedTo?.let { writer.expressionProperty("AttachedTo", it.objectName, "${it.objectName}.Instance") }
         facets.isInterrupting?.let { writer.expressionProperty("IsInterrupting", "bool", it.toString()) }
     }
@@ -91,7 +91,7 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         ?.let { "$it.Reference, $it.Code" }
         ?: "${stringLiteral(shared.value.name)}, ${stringLiteral(shared.value.code)}"
 
-    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): String = "${type.typeName}.${disambiguated(constant.rawName.toPascalCase(), type.typeName)}"
+    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): String = "${type.typeName}.${disambiguated(constant.name.toPascalCase(), type.typeName)}"
 
     private fun runtime(typeName: String): String = "${CSharpRuntimeTypes.CLASS_NAME}.$typeName"
 }
