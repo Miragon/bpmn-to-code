@@ -92,7 +92,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         return GeneratedApiFile(
             fileName = "$objectName.kt",
             packagePath = api.packagePath,
-            content = buildString { fileSpec.writeTo(this) }.replace("public ", ""),
+            content = buildString { fileSpec.writeTo(this) }.withoutPublicModifiers(),
             language = api.outputLanguage,
             processId = null,
         )

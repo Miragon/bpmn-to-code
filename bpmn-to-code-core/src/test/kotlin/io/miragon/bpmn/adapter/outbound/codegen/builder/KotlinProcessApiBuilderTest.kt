@@ -78,6 +78,21 @@ class KotlinProcessApiBuilderTest {
     }
 
     @Test
+    fun `strips the public modifier without touching string literals`() {
+        // given: an element whose display name contains the word "public"
+        val model = testProcessModel(
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "notifyChannel", displayName = "Notify public channel")),
+        )
+
+        // when
+        val result = underTest.buildApiFile(testProcessModelApi(model = model))
+
+        // then
+        assertThat(result.content).contains("name = \"Notify public channel\"")
+        assertThat(result.content).doesNotContainPattern("(?m)^\\s*public ")
+    }
+
+    @Test
     fun `buildApiFile generates variant-scoped Flow for merged model`() {
         // given: a merged model with a single variant
         val retail = testCancelBikeOrderModel(variantName = "retail")
