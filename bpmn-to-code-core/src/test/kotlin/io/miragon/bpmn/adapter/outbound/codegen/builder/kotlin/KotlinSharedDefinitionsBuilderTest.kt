@@ -1,8 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.asGoldenText
+import io.miragon.bpmn.adapter.outbound.codegen.builder.assertMatchesGoldenFiles
 import io.miragon.bpmn.adapter.outbound.codegen.builder.miraVeloSharedDefinitionsApi
-import io.miragon.bpmn.adapter.outbound.codegen.builder.readGolden
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -24,7 +23,7 @@ class KotlinSharedDefinitionsBuilderTest {
 
         // then: every file belongs to no process and matches the golden output
         assertThat(result).allMatch { it.processId == null && it.packagePath == "de.emaarco.example" }
-        assertThat(result.asGoldenText()).isEqualTo(readGolden("/api/SharedDefinitionsKotlin.txt", result.asGoldenText()))
+        assertMatchesGoldenFiles(result, "/api/shared-definitions/kotlin")
     }
 
     @Test

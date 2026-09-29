@@ -14,11 +14,11 @@ import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.service.ModelMergerService
-import io.miragon.bpmn.domain.service.SharedDefinitionsService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class GenerateProcessApiService(
@@ -30,7 +30,6 @@ class GenerateProcessApiService(
 
     private val logger = KotlinLogging.logger {}
     private val modelMergerService = ModelMergerService()
-    private val sharedDefinitionsService = SharedDefinitionsService()
 
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val validationService = BpmnValidationService(command.validationConfig)
@@ -76,7 +75,7 @@ class GenerateProcessApiService(
         models: List<ProcessModel>,
         command: GenerateProcessApiFromFilesystemUseCase.Command,
     ) = SharedDefinitionsApi(
-        definitions = sharedDefinitionsService.collect(models),
+        definitions = SharedDefinitions.from(models),
         outputLanguage = command.outputLanguage,
         packagePath = command.packagePath,
     )
