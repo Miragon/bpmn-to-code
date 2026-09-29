@@ -14,16 +14,17 @@ bpmn-to-code can validate your BPMN models against a set of built-in rules — i
 | `missing-message-name` | ERROR | Message event or receive task with no message name |
 | `missing-error-definition` | ERROR | Error boundary/end event with no error definition |
 | `missing-signal-name` | ERROR | Signal event with no signal name |
-| `unreferenced-root-element` | WARN | Message, signal, error or escalation declared but referenced by nothing |
 | `missing-timer-definition` | ERROR | Timer event with no timer type or value |
 | `missing-called-element` | ERROR | Call activity with no `calledElement` reference |
 | `missing-element-id` | ERROR | Flow node with no ID · **mandatory** |
 | `missing-process-id` | ERROR | Process with no `id` attribute · **mandatory** |
-| `empty-process` | ERROR | Process with no flow nodes |
+| `empty-process` | WARN | Process with no flow nodes |
 | `collision-detection` | ERROR | Two different element IDs, or variables, sequence flows or call-activity mappings of one element, that normalize to the same constant name (post-merge) · **mandatory** |
 | `reserved-element-name` | ERROR | Element ID that would be generated as a name the Process API reserves (`FlowNodes`, `Node`, `All`, `Next`, `Instance`, runtime types, shared definitions, …) (post-merge) · **mandatory** |
 | `shared-definition-collision` | ERROR | Two different job types, messages, signals, errors or escalations — in any of the processes — that normalize to the same shared constant name · **mandatory** |
 | `engine-mismatch` | ERROR / WARN | Model's target engine (from its XML namespace) differs from the selected one |
+
+The [Testing Module](/validate/testing) additionally reports a message, signal, error or escalation that nothing references (`unreferenced-root-element`); build-time validation doesn't run that rule.
 
 **Mandatory** rules are integrity-critical — they guarantee the generated code can emit a valid, unique constant name. Because they protect code generation, they stay active during both generation and build-time validation and **cannot be turned off** via `disabledRules`; listing one has no effect (a warning is logged). The [Testing Module](/validate/testing) generates no code, so it does not enforce this.
 

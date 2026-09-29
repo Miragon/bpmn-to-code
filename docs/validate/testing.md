@@ -56,7 +56,7 @@ fun `BPMN models should have no violations`() {
 
 ## Selecting Rules
 
-By default, `validate()` runs all 11 built-in rules. You can override the rule set:
+By default, `validate()` runs all 13 built-in rules. You can override the rule set:
 
 ```kotlin
 BpmnValidator
@@ -133,7 +133,7 @@ result.assertNoViolations("empty-process")  // custom: assert a specific rule pr
 | Call activity has no calledElement | `MISSING_CALLED_ELEMENT` | ERROR | Call activity without `calledElement` attribute |
 | Flow node has no ID | `MISSING_ELEMENT_ID` | ERROR | Any flow node missing an `id` attribute |
 | Process has no ID | `MISSING_PROCESS_ID` | ERROR | Process element missing the `id` attribute |
-| Process is empty | `EMPTY_PROCESS` | ERROR | Process with no flow nodes |
+| Process is empty | `EMPTY_PROCESS` | WARN | Process with no flow nodes |
 | Variable name collision | `COLLISION_DETECTION` | ERROR | Two different IDs normalize to the same constant name |
 | Reserved element name | `RESERVED_ELEMENT_NAME` | ERROR | Element ID that would be generated as a name the Process API reserves (`FlowNodes`, `Next`, `Instance`, …) |
 | Shared definition collision | `SHARED_DEFINITION_COLLISION` | ERROR | Two different job types, messages, signals, errors or escalations — across all loaded processes — normalize to the same constant name |
