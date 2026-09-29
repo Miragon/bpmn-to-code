@@ -3,6 +3,7 @@
 package de.emaarco.example;
 
 import java.lang.String;
+import java.util.List;
 
 /**
  * Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.
@@ -32,6 +33,22 @@ public final class ServiceTasks {
   public static final String MIRAVELO_SEND_CANCELLATION_CONFIRMATION = "miravelo.sendCancellationConfirmation";
 
   public static final String MIRAVELO_SEND_REJECTION = "miravelo.sendRejection";
+
+  public static List<String> all() {
+    return List.of(
+        BOOK_CANCELLATION_COSTS_DELEGATE,
+        CANCEL_CONTRACT_DELEGATE,
+        MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_,
+        SEND_CONTRACT_DELEGATE,
+        VALIDATE_APPLICATION_DELEGATE,
+        IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE,
+        MIRAVELO_BIKE_ORDER_CANCELLED,
+        MIRAVELO_CANCEL_POLICY,
+        MIRAVELO_ORDER_BIKE,
+        MIRAVELO_REQUEST_CANCELLATION,
+        MIRAVELO_SEND_CANCELLATION_CONFIRMATION,
+        MIRAVELO_SEND_REJECTION);
+  }
 }
 
 // ===== Messages.java
@@ -39,6 +56,7 @@ public final class ServiceTasks {
 package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.MessageName;
+import java.util.List;
 
 /**
  * BPMN message names used to correlate messages to running process instances.
@@ -55,6 +73,16 @@ public final class Messages {
   public static final MessageName MIRAVELO_HANDOVER_REPORTED = new MessageName("miravelo.handoverReported");
 
   public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
+
+  public static List<MessageName> all() {
+    return List.of(
+        MIRAVELO_ADDRESS_CHANGED,
+        MIRAVELO_APPLICATION_WITHDRAWN,
+        MIRAVELO_BIKE_ORDER_CANCELLED,
+        MIRAVELO_CONTRACT_SIGNED,
+        MIRAVELO_HANDOVER_REPORTED,
+        MIRAVELO_LEASING_REQUEST_RECEIVED);
+  }
 }
 
 // ===== Errors.java
@@ -62,12 +90,18 @@ public final class Messages {
 package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.BpmnError;
+import java.util.List;
 
 /**
  * BPMN error definitions with name and code, as thrown and caught by the processes.
  */
 public final class Errors {
   public static final BpmnError MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID = new BpmnError("miravelo.applicationInvalid", "applicationInvalid");
+
+  public static List<BpmnError> all() {
+    return List.of(
+        MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID);
+  }
 }
 
 // ===== Escalations.java
@@ -75,10 +109,16 @@ public final class Errors {
 package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.BpmnEscalation;
+import java.util.List;
 
 /**
  * BPMN escalation definitions with name and code, as thrown and caught by the processes.
  */
 public final class Escalations {
   public static final BpmnEscalation MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED = new BpmnEscalation("miravelo.contractNotSigned", "contractNotSigned");
+
+  public static List<BpmnEscalation> all() {
+    return List.of(
+        MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED);
+  }
 }

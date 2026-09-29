@@ -111,7 +111,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
                     "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +
                     "{@code then()} — so a full path is verified by the compiler and offered by autocomplete. " +
                     "Every element is a direct child of {@code Flow}, whatever its subprocess depth; " +
-                    "a subprocess opens its interior via {@code start()}.\n",
+                    "a subprocess opens its interior via {@code start()}, and {@code all()} lists every element.\n",
             )
         JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()

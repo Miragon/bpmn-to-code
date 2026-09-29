@@ -2,10 +2,16 @@
 package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.BpmnError;
+import java.util.List;
 
 /**
  * BPMN error definitions with name and code, as thrown and caught by the processes.
  */
 public final class Errors {
   public static final BpmnError MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID = new BpmnError("miravelo.applicationInvalid", "applicationInvalid");
+
+  public static List<BpmnError> all() {
+    return List.of(
+        MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID);
+  }
 }

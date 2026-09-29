@@ -104,6 +104,22 @@ public static class CancelBikeOrderProcessApi
         /// </summary>
         public static class Retail
         {
+            /// <summary>
+            /// Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+            /// </summary>
+            public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]
+            {
+                BoundaryCancellationFailed.Instance,
+                EndEventBikeOrderCancelled.Instance,
+                GatewayCancellationPossible.Instance,
+                GatewayCollectClarifications.Instance,
+                GatewayMergeReturn.Instance,
+                ServiceTaskBookCancellationCosts.Instance,
+                ServiceTaskRequestCancellation.Instance,
+                StartEventCancellationRequired.Instance,
+                UserTaskClarifyReturn.Instance,
+            };
+
             public sealed class BoundaryCancellationFailed : Runtime.IBoundaryEvent
             {
                 public static readonly BoundaryCancellationFailed Instance = new();

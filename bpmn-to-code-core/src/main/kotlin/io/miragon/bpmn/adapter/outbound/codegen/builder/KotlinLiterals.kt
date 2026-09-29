@@ -23,6 +23,15 @@ internal fun kotlinNullableStringLiteral(value: String?): CodeBlock = value?.let
 internal fun kotlinNamedCall(type: TypeName, vararg arguments: Pair<String, CodeBlock?>): CodeBlock = namedCall(type, arguments, continuationIndent = "")
 
 /**
+ * A `listOf` call with every element on its own line and a trailing comma.
+ */
+internal fun kotlinListOf(elements: List<CodeBlock>): CodeBlock = if (elements.isEmpty()) {
+    CodeBlock.of("emptyList()")
+} else {
+    CodeBlock.of("listOf(\n⇤⇤⇥%L,⇤\n)⇥⇥", elements.joinToCode(",\n"))
+}
+
+/**
  * A [kotlinNamedCall] used as a property initializer. KotlinPoet indents a statement two extra levels from its
  * first line break on; undoing that right after the break keeps the call aligned with the `val` it initialises.
  */

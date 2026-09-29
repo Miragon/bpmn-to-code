@@ -22,6 +22,22 @@ public static class ServiceTasks
     public const string MiraveloRequestCancellation = "miravelo.requestCancellation";
     public const string MiraveloSendCancellationConfirmation = "miravelo.sendCancellationConfirmation";
     public const string MiraveloSendRejection = "miravelo.sendRejection";
+
+    public static System.Collections.Generic.IReadOnlyList<string> All => new string[]
+    {
+        BookCancellationCostsDelegate,
+        CancelContractDelegate,
+        MailServiceSendReminderApplicationId,
+        SendContractDelegate,
+        ValidateApplicationDelegate,
+        IoMiraveloLeasingIssueInsurancePolicyDelegate,
+        MiraveloBikeOrderCancelled,
+        MiraveloCancelPolicy,
+        MiraveloOrderBike,
+        MiraveloRequestCancellation,
+        MiraveloSendCancellationConfirmation,
+        MiraveloSendRejection,
+    };
 }
 
 // ===== Messages.cs
@@ -42,6 +58,16 @@ public static class Messages
     public const string MiraveloContractSigned = "miravelo.contractSigned";
     public const string MiraveloHandoverReported = "miravelo.handoverReported";
     public const string MiraveloLeasingRequestReceived = "miravelo.leasingRequestReceived";
+
+    public static System.Collections.Generic.IReadOnlyList<string> All => new string[]
+    {
+        MiraveloAddressChanged,
+        MiraveloApplicationWithdrawn,
+        MiraveloBikeOrderCancelled,
+        MiraveloContractSigned,
+        MiraveloHandoverReported,
+        MiraveloLeasingRequestReceived,
+    };
 }
 
 // ===== Errors.cs
@@ -61,6 +87,11 @@ public static class Errors
         public const string Reference = "miravelo.applicationInvalid";
         public const string Code = "applicationInvalid";
     }
+
+    public static System.Collections.Generic.IReadOnlyList<(string Reference, string Code)> All => new (string Reference, string Code)[]
+    {
+        (MiraveloApplicationInvalidApplicationInvalid.Reference, MiraveloApplicationInvalidApplicationInvalid.Code),
+    };
 }
 
 // ===== Escalations.cs
@@ -80,4 +111,9 @@ public static class Escalations
         public const string Reference = "miravelo.contractNotSigned";
         public const string Code = "contractNotSigned";
     }
+
+    public static System.Collections.Generic.IReadOnlyList<(string Reference, string Code)> All => new (string Reference, string Code)[]
+    {
+        (MiraveloContractNotSignedContractNotSigned.Reference, MiraveloContractNotSignedContractNotSigned.Code),
+    };
 }

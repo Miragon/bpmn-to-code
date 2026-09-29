@@ -5,6 +5,7 @@ import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BoundaryEvent;
 import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.ElementId;
+import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.MessageName;
@@ -13,6 +14,7 @@ import io.miragon.bpmn.runtime.SequenceFlow;
 import io.miragon.bpmn.runtime.VariableName;
 import java.lang.Override;
 import java.lang.String;
+import java.util.List;
 
 public final class CancelBikeOrderProcessApi {
   public static final ProcessId PROCESS_ID = new ProcessId("cancelBikeOrder");
@@ -24,9 +26,25 @@ public final class CancelBikeOrderProcessApi {
    */
   public static final class FlowVariants {
     /**
-     * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}.
+     * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}, and {@code all()} lists every element.
      */
     public static final class Retail {
+      /**
+       * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
+       */
+      public static List<FlowNode> all() {
+        return List.of(
+            new BoundaryCancellationFailed(),
+            new EndEventBikeOrderCancelled(),
+            new GatewayCancellationPossible(),
+            new GatewayCollectClarifications(),
+            new GatewayMergeReturn(),
+            new ServiceTaskBookCancellationCosts(),
+            new ServiceTaskRequestCancellation(),
+            new StartEventCancellationRequired(),
+            new UserTaskClarifyReturn());
+      }
+
       public static BoundaryCancellationFailed boundaryCancellationFailed() {
         return new BoundaryCancellationFailed();
       }

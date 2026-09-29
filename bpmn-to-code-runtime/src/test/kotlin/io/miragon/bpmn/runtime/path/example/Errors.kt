@@ -5,6 +5,7 @@ package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.BpmnError
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * BPMN error definitions with name and code, as thrown and caught by the processes.
@@ -13,5 +14,9 @@ object Errors {
   val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError = BpmnError(
     name = "miravelo.applicationInvalid",
     code = "applicationInvalid",
+  )
+
+  val entries: List<BpmnError> = listOf(
+    MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID,
   )
 }

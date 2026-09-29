@@ -18,7 +18,7 @@ class ReservedElementNameRuleTest {
     private val underTest = ReservedElementNameRule()
 
     @ParameterizedTest
-    @ValueSource(strings = ["Flow", "next", "outgoing_flows", "boundary-event", "element-id", "Instance", "runtime", "Messages", "hash_code", "to-string", "wait"])
+    @ValueSource(strings = ["Flow", "next", "outgoing_flows", "boundary-event", "element-id", "Instance", "runtime", "Messages", "hash_code", "to-string", "wait", "node", "all"])
     fun `reports error for an element whose generated name is reserved`(elementId: String) {
         // given: an element folding to a holder, runtime type, registry or Object method name
         val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = elementId)))

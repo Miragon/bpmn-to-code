@@ -5,6 +5,7 @@ package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.BpmnEscalation
 import kotlin.Suppress
+import kotlin.collections.List
 
 /**
  * BPMN escalation definitions with name and code, as thrown and caught by the processes.
@@ -13,5 +14,9 @@ object Escalations {
   val MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED: BpmnEscalation = BpmnEscalation(
     name = "miravelo.contractNotSigned",
     code = "contractNotSigned",
+  )
+
+  val entries: List<BpmnEscalation> = listOf(
+    MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED,
   )
 }

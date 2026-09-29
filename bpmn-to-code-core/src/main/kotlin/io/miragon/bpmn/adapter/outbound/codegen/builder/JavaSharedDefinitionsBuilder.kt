@@ -1,8 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
 import com.palantir.javapoet.ClassName
+import com.palantir.javapoet.CodeBlock
 import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.JavaFile
+import com.palantir.javapoet.MethodSpec
+import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
@@ -42,6 +45,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
                     "Kept as {@code public static final String} because annotation arguments must be compile-time constants.\n",
             )
         serviceTasks.forEach { task -> tasksBuilder.addField(createConstant(task)) }
+        tasksBuilder.addMethod(all(serviceTasks, ClassName.get(String::class.java)))
         tasksBuilder.build()
     }
 
@@ -50,6 +54,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         val messagesBuilder = TypeSpec.classBuilder(SharedDefinitionType.MESSAGES.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN message names used to correlate messages to running process instances.\n")
         messages.forEach { message -> messagesBuilder.addField(createTypedAttribute(message, messageNameClass)) }
+        messagesBuilder.addMethod(all(messages, messageNameClass))
         messagesBuilder.build()
     }
 
@@ -58,6 +63,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         val signalsBuilder = TypeSpec.classBuilder(SharedDefinitionType.SIGNALS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN signal names broadcast and caught by signal events.\n")
         signals.forEach { signal -> signalsBuilder.addField(createTypedAttribute(signal, signalNameClass)) }
+        signalsBuilder.addMethod(all(signals, signalNameClass))
         signalsBuilder.build()
     }
 
@@ -66,6 +72,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         val errorsBuilder = TypeSpec.classBuilder(SharedDefinitionType.ERRORS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN error definitions with name and code, as thrown and caught by the processes.\n")
         errors.forEach { errorsBuilder.addField(createNameAndCodeAttribute(it, bpmnErrorClass)) }
+        errorsBuilder.addMethod(all(errors, bpmnErrorClass))
         errorsBuilder.build()
     }
 
@@ -74,6 +81,7 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         val escalationsBuilder = TypeSpec.classBuilder(SharedDefinitionType.ESCALATIONS.typeName).addModifiers(PUBLIC, FINAL)
             .addJavadoc("BPMN escalation definitions with name and code, as thrown and caught by the processes.\n")
         escalations.forEach { escalationsBuilder.addField(createNameAndCodeAttribute(it, bpmnEscalationClass)) }
+        escalationsBuilder.addMethod(all(escalations, bpmnEscalationClass))
         escalationsBuilder.build()
     }
 
@@ -103,6 +111,14 @@ internal class JavaSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractShar
         return FieldSpec.builder(wrapperClass, variable.getName())
             .addModifiers(PUBLIC, STATIC, FINAL)
             .initializer("new \$T(\$S, \$S)", wrapperClass, name, code)
+            .build()
+    }
+
+    private fun all(variables: List<VariableMapping<*>>, elementType: ClassName): MethodSpec {
+        val fields = variables.map { CodeBlock.of("\$N", it.getName()) }
+        return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), elementType))
+            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(fields, ",\n"))
             .build()
     }
 

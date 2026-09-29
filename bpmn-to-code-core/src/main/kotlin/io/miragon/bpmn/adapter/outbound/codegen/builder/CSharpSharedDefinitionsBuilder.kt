@@ -3,7 +3,9 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
+import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.disambiguated
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.writer.staticListProperty
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.VariableMapping
@@ -30,6 +32,8 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     private fun constants(api: SharedDefinitionsApi, className: String, doc: String, items: List<VariableMapping<String>>): GeneratedApiFile? = items.ifNotEmpty {
         toFile(api, className, doc) { writer ->
             items.forEach { writer.constant(it.getRawName().toPascalCase(), it.getValue()) }
+            writer.line()
+            writer.staticListProperty("All", "string", memberNames(items, className))
         }
     }
 
@@ -42,8 +46,13 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
                     writer.constant("Code", code)
                 }
             }
+            writer.line()
+            val nameAndCodes = memberNames(items, className).map { "($it.Reference, $it.Code)" }
+            writer.staticListProperty("All", "(string Reference, string Code)", nameAndCodes)
         }
     }
+
+    private fun memberNames(items: List<VariableMapping<*>>, className: String): List<String> = items.map { disambiguated(it.getRawName().toPascalCase(), className) }
 
     private fun toFile(api: SharedDefinitionsApi, className: String, doc: String, body: (CSharpWriter) -> Unit): GeneratedApiFile {
         val writer = CSharpWriter()

@@ -2,6 +2,7 @@
 package io.miragon.bpmn.runtime.example;
 
 import java.lang.String;
+import java.util.List;
 
 /**
  * Job worker task types used in {@code @JobWorker(type = ServiceTasks.X)} annotations.
@@ -25,4 +26,17 @@ public final class ServiceTasks {
   public static final String MIRAVELO_SEND_CANCELLATION_CONFIRMATION = "miravelo.sendCancellationConfirmation";
 
   public static final String MIRAVELO_SEND_REJECTION = "miravelo.sendRejection";
+
+  public static List<String> all() {
+    return List.of(
+        CANCEL_CONTRACT_DELEGATE,
+        MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_,
+        SEND_CONTRACT_DELEGATE,
+        VALIDATE_APPLICATION_DELEGATE,
+        IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE,
+        MIRAVELO_CANCEL_POLICY,
+        MIRAVELO_ORDER_BIKE,
+        MIRAVELO_SEND_CANCELLATION_CONFIRMATION,
+        MIRAVELO_SEND_REJECTION);
+  }
 }

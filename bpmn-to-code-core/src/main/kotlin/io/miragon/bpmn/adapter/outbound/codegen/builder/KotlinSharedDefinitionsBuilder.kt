@@ -2,10 +2,15 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder
 
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.LIST
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.asTypeName
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -46,6 +51,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
                     "Kept as `const val String` because annotation arguments must be compile-time constants.",
             )
         serviceTasks.forEach { task -> tasksBuilder.addProperty(createConstant(task)) }
+        tasksBuilder.addProperty(entries(serviceTasks, String::class.asTypeName()))
         tasksBuilder.build()
     }
 
@@ -54,6 +60,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         val messagesBuilder = TypeSpec.objectBuilder(SharedDefinitionType.MESSAGES.typeName)
             .addKdoc("BPMN message names used to correlate messages to running process instances.")
         messages.forEach { message -> messagesBuilder.addProperty(createTypedAttribute(message, messageNameClass)) }
+        messagesBuilder.addProperty(entries(messages, messageNameClass))
         messagesBuilder.build()
     }
 
@@ -62,6 +69,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         val signalsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.SIGNALS.typeName)
             .addKdoc("BPMN signal names broadcast and caught by signal events.")
         signals.forEach { signal -> signalsBuilder.addProperty(createTypedAttribute(signal, signalNameClass)) }
+        signalsBuilder.addProperty(entries(signals, signalNameClass))
         signalsBuilder.build()
     }
 
@@ -70,6 +78,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         val errorsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.ERRORS.typeName)
             .addKdoc("BPMN error definitions with name and code, as thrown and caught by the processes.")
         errors.forEach { errorsBuilder.addProperty(createNameAndCodeAttribute(it, bpmnErrorClass)) }
+        errorsBuilder.addProperty(entries(errors, bpmnErrorClass))
         errorsBuilder.build()
     }
 
@@ -78,6 +87,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         val escalationsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.ESCALATIONS.typeName)
             .addKdoc("BPMN escalation definitions with name and code, as thrown and caught by the processes.")
         escalations.forEach { escalationsBuilder.addProperty(createNameAndCodeAttribute(it, bpmnEscalationClass)) }
+        escalationsBuilder.addProperty(entries(escalations, bpmnEscalationClass))
         escalationsBuilder.build()
     }
 
@@ -113,6 +123,10 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
             .initializer(kotlinNamedInitializer(wrapperClass, "name" to kotlinStringLiteral(name), "code" to kotlinStringLiteral(code)))
             .build()
     }
+
+    private fun entries(variables: List<VariableMapping<*>>, elementType: TypeName): PropertySpec = PropertySpec.builder("entries", LIST.parameterizedBy(elementType))
+        .initializer(kotlinListOf(variables.map { CodeBlock.of("%N", it.getName()) }))
+        .build()
 
     private fun <T> List<T>.ifNotEmpty(build: () -> TypeSpec): TypeSpec? = if (isEmpty()) null else build()
 }
