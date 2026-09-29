@@ -8,6 +8,8 @@ import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaConstantHolder
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.shared.VariableMapping
 import javax.lang.model.element.Modifier.FINAL
@@ -32,12 +34,24 @@ internal abstract class JavaSharedDefinitionWriter<T : Any> {
     fun write(definitions: SharedDefinitions): TypeSpec {
         val ofKind = definitionsOf(definitions)
         return JavaConstantHolder(type.typeName).builder().addJavadoc(javadoc)
-            .addFields(ofKind.map { field(it) })
+            .addFields(ofKind.map { field(name = it.getName(), initializer = initializer(it.getValue())) })
             .addMethod(allAccessor(ofKind))
             .build()
     }
 
-    private fun field(definition: VariableMapping<T>): FieldSpec = FieldSpec.builder(elementType, definition.getName(), PUBLIC, STATIC, FINAL).initializer(initializer(definition.getValue())).build()
+    /**
+     * A node's field holding a value of this kind: its shared constant, or the value itself when no shared constant
+     * holds it.
+     */
+    fun nodeField(name: String, shared: SharedValue<T>): FieldSpec {
+        val constant = shared.constant
+        val initializer = if (constant != null) reference(constant) else initializer(shared.value)
+        return field(name = name, initializer = initializer)
+    }
+
+    private fun reference(constant: SharedConstant): CodeBlock = CodeBlock.of($$"$T.$N", ClassName.get("", type.typeName), constant.name)
+
+    private fun field(name: String, initializer: CodeBlock): FieldSpec = FieldSpec.builder(elementType, name, PUBLIC, STATIC, FINAL).initializer(initializer).build()
 
     private fun allAccessor(definitions: List<VariableMapping<T>>): MethodSpec {
         val fields = definitions.map { CodeBlock.of($$"$N", it.getName()) }

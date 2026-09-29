@@ -3,6 +3,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.Placement
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -41,6 +42,16 @@ class KotlinCodeFormatTest {
 
         // then: the arguments are indented one level and the closing parenthesis aligns with `val`
         assertThat(actual.toString()).isEqualTo("val x: io.example.Wrapper = io.example.Wrapper(\n  name = \"a\",\n)\n")
+    }
+
+    @Test
+    fun `namedArguments lays out a supertype's constructor arguments like namedCall`() {
+        // when: the arguments are handed to a supertype's constructor call
+        val arguments = KotlinCodeFormat.namedArguments("name" to CodeBlock.of("%S", "a"), "code" to null)
+        val actual = TypeSpec.objectBuilder("Node").superclass(wrapper).addSuperclassConstructorParameter(arguments).build()
+
+        // then: only the present argument is written, on its own line with a trailing comma
+        assertThat(actual.toString()).isEqualTo("public object Node : io.example.Wrapper(\n  name = \"a\",\n)\n")
     }
 
     @Test

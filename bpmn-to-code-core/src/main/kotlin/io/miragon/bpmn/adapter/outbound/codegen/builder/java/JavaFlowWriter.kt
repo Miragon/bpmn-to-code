@@ -10,6 +10,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
+import javax.lang.model.element.Modifier
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PRIVATE
 import javax.lang.model.element.Modifier.PUBLIC
@@ -30,7 +31,7 @@ internal class JavaFlowWriter {
 
     fun write(builder: TypeSpec.Builder, graph: FlowGraph) {
         builder.addMethod(allNodes(graph))
-        graph.nodes.forEach { node -> builder.addMethod(nodeAccessor(methodName = node.propertyName, returnObjectName = node.objectName, static = true)) }
+        graph.nodes.forEach { node -> builder.addMethod(nodeAccessor(node.propertyName, node.objectName, PUBLIC, STATIC)) }
         graph.nodes.forEach { node -> builder.addType(buildNode(node)) }
     }
 
@@ -78,6 +79,9 @@ internal class JavaFlowWriter {
 
             node.eventType != null -> classBuilder.addSuperinterface(JavaRuntimeTypes.EVENT)
         }
+        if (node.interiorStarts.isNotEmpty()) {
+            classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
+        }
         node.eventType?.let { eventType ->
             val eventTypeClass = JavaRuntimeTypes.BPMN_EVENT_TYPE
             classBuilder.addMethod(
@@ -114,14 +118,13 @@ internal class JavaFlowWriter {
     }
 
     private fun addInteriorStarts(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
         classBuilder.addMethod(accessorMethod("getStartEvents", START_HOLDER))
         classBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }
 
     private fun accessorHolder(holderName: String, accessors: List<Pair<String, String>>): TypeSpec {
         val holderBuilder = TypeSpec.classBuilder(holderName).addModifiers(PUBLIC, STATIC, FINAL)
-        accessors.forEach { (propertyName, objectName) -> holderBuilder.addMethod(nodeAccessor(methodName = propertyName, returnObjectName = objectName, static = false)) }
+        accessors.forEach { (propertyName, objectName) -> holderBuilder.addMethod(nodeAccessor(propertyName, objectName, PUBLIC)) }
         return holderBuilder.build()
     }
 
@@ -131,14 +134,10 @@ internal class JavaFlowWriter {
             .addStatement($$"return new $T()", holderClass).build()
     }
 
-    private fun nodeAccessor(methodName: String, returnObjectName: String, static: Boolean): MethodSpec {
+    private fun nodeAccessor(methodName: String, returnObjectName: String, vararg modifiers: Modifier): MethodSpec {
         val returnNode = JavaFlowNodeType(returnObjectName)
-        val methodBuilder = MethodSpec.methodBuilder(methodName).addModifiers(PUBLIC).returns(returnNode.className)
-            .addStatement($$"return $L", returnNode.instance())
-        if (static) {
-            methodBuilder.addModifiers(STATIC)
-        }
-        return methodBuilder.build()
+        return MethodSpec.methodBuilder(methodName).addModifiers(*modifiers).returns(returnNode.className)
+            .addStatement($$"return $L", returnNode.instance()).build()
     }
 
     /**

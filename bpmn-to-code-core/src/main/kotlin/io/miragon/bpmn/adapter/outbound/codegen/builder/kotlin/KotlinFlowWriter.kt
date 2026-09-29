@@ -71,19 +71,20 @@ internal class KotlinFlowWriter {
 
             node.eventType != null -> nodeBuilder.addSuperinterface(KotlinRuntimeTypes.EVENT)
         }
+        if (node.interiorStarts.isNotEmpty()) {
+            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
+        }
         node.eventType?.let { eventType ->
             val eventTypeClass = KotlinRuntimeTypes.BPMN_EVENT_TYPE
             nodeBuilder.addProperty(PropertySpec.builder("eventType", eventTypeClass, KModifier.OVERRIDE).initializer("%T.%L", eventTypeClass, eventType).build())
         }
     }
 
-    // One named argument per line, trailing comma included, as Kotlin style wants a multi-line call.
-    private fun superclassArguments(node: FlowGraphNode): CodeBlock {
-        val arguments = CodeBlock.builder()
-            .add("⇥\nid = %T(%N.%N),\nelementType = %T.%L,", KotlinRuntimeTypes.ELEMENT_ID, node.objectName, ELEMENT_ID, KotlinRuntimeTypes.BPMN_ELEMENT_TYPE, node.elementType)
-        node.name?.let { arguments.add("\nname = %S,", it) }
-        return arguments.add("⇤\n").build()
-    }
+    private fun superclassArguments(node: FlowGraphNode): CodeBlock = KotlinCodeFormat.namedArguments(
+        "id" to CodeBlock.of("%T(%N.%N)", KotlinRuntimeTypes.ELEMENT_ID, node.objectName, ELEMENT_ID),
+        "elementType" to CodeBlock.of("%T.%L", KotlinRuntimeTypes.BPMN_ELEMENT_TYPE, node.elementType),
+        "name" to node.name?.let { CodeBlock.of("%S", it) },
+    )
 
     // A bare `Next` in the supertype header would bind to an enclosing object's `Next`; qualify with the node.
     private fun ownHolderInterface(interfaceType: ClassName, node: FlowGraphNode, holderName: String): TypeName {
@@ -104,7 +105,6 @@ internal class KotlinFlowWriter {
     }
 
     private fun addInteriorStarts(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
         nodeBuilder.addProperty(accessorProperty("startEvents", START_HOLDER))
         nodeBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }

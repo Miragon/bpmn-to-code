@@ -38,12 +38,27 @@ internal object KotlinCodeFormat {
      */
     fun namedCall(type: TypeName, vararg arguments: Pair<String, CodeBlock?>, placement: Placement = Placement.EXPRESSION): CodeBlock {
         val restoredIndent = placement.continuationIndent.replace('⇤', '⇥')
-        val argumentLines = arguments.mapNotNull { (name, value) -> value?.let { CodeBlock.of("%N = %L,", name, it) } }
         return CodeBlock.builder()
             .add("%T(⇥\n${placement.continuationIndent}", type)
-            .add(argumentLines.joinToCode("\n"))
+            .add(argumentLines(arguments))
             .add("⇤\n)$restoredIndent")
             .build()
+    }
+
+    /**
+     * The named arguments of [namedCall] alone, for a call whose type and parentheses KotlinPoet writes itself, like a
+     * supertype's constructor call.
+     */
+    fun namedArguments(vararg arguments: Pair<String, CodeBlock?>): CodeBlock = CodeBlock.builder()
+        .add("⇥\n")
+        .add(argumentLines(arguments))
+        .add("⇤\n")
+        .build()
+
+    private fun argumentLines(arguments: Array<out Pair<String, CodeBlock?>>): CodeBlock {
+        val presentArguments = arguments.filter { (_, value) -> value != null }
+        val lines = presentArguments.map { (name, value) -> CodeBlock.of("%N = %L,", name, value) }
+        return lines.joinToCode("\n")
     }
 
     /**

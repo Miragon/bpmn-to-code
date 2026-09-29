@@ -1,7 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
@@ -61,7 +60,6 @@ class FlowGraphFactoryTest {
     fun `subprocess points at its interior start events while interior edges stay on the interior nodes`() {
         assertThat(leasingGraph.node("subProcessConcludeContract").interiorStarts.map { it.propertyName })
             .containsExactly("startEventCustomerEligible")
-        assertThat(leasingGraph.node("startEventCustomerEligible").isStart).isTrue()
         assertThat(leasingGraph.node("startEventCustomerEligible").successors.map { it.propertyName })
             .containsExactly("serviceTaskSendContract")
         assertThat(leasingGraph.node("gatewayAwaitSignature").successors.map { it.propertyName })
@@ -70,7 +68,6 @@ class FlowGraphFactoryTest {
 
     @Test
     fun `nodes outside a subprocess and the root start event have no interior starts`() {
-        assertThat(leasingGraph.node("startEventLeasingRequestReceived").isStart).isTrue()
         assertThat(leasingGraph.node("startEventLeasingRequestReceived").interiorStarts).isEmpty()
         assertThat(leasingGraph.node("callActivityCancelBikeOrder").interiorStarts).isEmpty()
     }
@@ -240,8 +237,8 @@ class FlowGraphFactoryTest {
     @Test
     fun `events carry their message, error and escalation references`() {
         assertThat(leasingGraph.node("startEventLeasingRequestReceived").facets.message?.value).isEqualTo("miravelo.leasingRequestReceived")
-        assertThat(leasingGraph.node("boundaryApplicationInvalid").facets.error?.value).isEqualTo(NamedCode("miravelo.applicationInvalid", "applicationInvalid"))
-        assertThat(leasingGraph.node("boundaryContractNotSigned").facets.escalation?.value).isEqualTo(NamedCode("miravelo.contractNotSigned", "contractNotSigned"))
+        assertThat(leasingGraph.node("boundaryApplicationInvalid").facets.error?.value).isEqualTo("miravelo.applicationInvalid" to "applicationInvalid")
+        assertThat(leasingGraph.node("boundaryContractNotSigned").facets.escalation?.value).isEqualTo("miravelo.contractNotSigned" to "contractNotSigned")
         assertThat(leasingGraph.node("boundaryCompensateContract").facets.message).isNull()
     }
 
@@ -270,7 +267,7 @@ class FlowGraphFactoryTest {
         val graph = FlowGraphFactory.build(model)
 
         // then: the shared Errors file will not contain it, so the node must not reference it
-        assertThat(graph.node("onError").facets.error).isEqualTo(SharedValue(NamedCode("Error_Inline", "7"), null))
+        assertThat(graph.node("onError").facets.error).isEqualTo(SharedValue("Error_Inline" to "7", null))
     }
 
     @Test
@@ -299,7 +296,7 @@ class FlowGraphFactoryTest {
         assertThat(graph.node("onSignal").facets.signal)
             .isEqualTo(SharedValue("Signal_Activated", SharedConstant(name = "ACTIVATED")))
         assertThat(graph.node("onEscalation").facets.escalation)
-            .isEqualTo(SharedValue(NamedCode("Escalation_Late", "42"), SharedConstant(name = "LATE")))
+            .isEqualTo(SharedValue("Escalation_Late" to "42", SharedConstant(name = "LATE")))
     }
 
     @Test

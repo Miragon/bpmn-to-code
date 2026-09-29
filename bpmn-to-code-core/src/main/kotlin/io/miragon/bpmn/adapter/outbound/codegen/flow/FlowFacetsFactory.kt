@@ -2,7 +2,6 @@ package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
@@ -29,7 +28,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
  * constant — the constant name depends on the value alone, whichever process declared it.
  */
 internal class FlowFacetsFactory(
-    private val names: Map<String, FlowNaming.Names>,
+    private val names: Map<String, FlowEdge>,
     private val definitions: RootElements,
 ) {
 
@@ -45,9 +44,9 @@ internal class FlowFacetsFactory(
             timer = event?.firstDefinition<EventDefinitionInstance.Timer>()?.toFacet(),
             message = node.messageReference()?.resolveName()?.sharedIn(definitions.messages),
             signal = event?.firstDefinition<EventDefinitionInstance.Signal>()?.resolveName()?.sharedIn(definitions.signals),
-            error = event?.firstDefinition<EventDefinitionInstance.Error>()?.resolve()?.let { it.sharedIn(definitions.errors, it.name to it.code) },
-            escalation = event?.firstDefinition<EventDefinitionInstance.Escalation>()?.resolve()?.let { it.sharedIn(definitions.escalations, it.name to it.code) },
-            attachedTo = event?.attachedToRef?.let { names[it] }?.let { FlowEdge(it.propertyName, it.objectName) },
+            error = event?.firstDefinition<EventDefinitionInstance.Error>()?.resolve()?.sharedIn(definitions.errors),
+            escalation = event?.firstDefinition<EventDefinitionInstance.Escalation>()?.resolve()?.sharedIn(definitions.escalations),
+            attachedTo = event?.attachedToRef?.let { names[it] },
             isInterrupting = event?.isInterrupting(),
         )
     }
@@ -87,20 +86,30 @@ internal class FlowFacetsFactory(
     private fun EventDefinitionInstance.Signal.resolveName(): String? = signalName?.ifBlank { null }
         ?: definitions.signals.firstOrNull { it.id == signalRef }?.getRawName()?.ifBlank { null }
 
-    private fun EventDefinitionInstance.Error.resolve(): NamedCode? = definitions.errors.firstOrNull { it.id == errorRef }?.getValue()?.toNamedCode()
-        ?: (errorName to errorCode.orEmpty()).toNamedCode()
+    private fun EventDefinitionInstance.Error.resolve(): Pair<String, String>? {
+        val fromRootElement = definitions.errors.firstOrNull { it.id == errorRef }?.getValue()?.takeIfNamed()
+        val declaredOnEvent = (errorName to errorCode.orEmpty()).takeIfNamed()
+        return fromRootElement ?: declaredOnEvent
+    }
 
-    private fun EventDefinitionInstance.Escalation.resolve(): NamedCode? = definitions.escalations.firstOrNull { it.id == escalationRef }?.getValue()?.toNamedCode()
-        ?: (escalationName to escalationCode.orEmpty()).toNamedCode()
+    private fun EventDefinitionInstance.Escalation.resolve(): Pair<String, String>? {
+        val fromRootElement = definitions.escalations.firstOrNull { it.id == escalationRef }?.getValue()?.takeIfNamed()
+        val declaredOnEvent = (escalationName to escalationCode.orEmpty()).takeIfNamed()
+        return fromRootElement ?: declaredOnEvent
+    }
 
-    private fun Pair<String?, String>.toNamedCode(): NamedCode? = first?.ifBlank { null }?.let { NamedCode(name = it, code = second) }
+    private fun Pair<String?, String>.takeIfNamed(): Pair<String, String>? {
+        val (name, code) = this
+        if (name.isNullOrBlank()) return null
+        return name to code
+    }
 
     /**
-     * The shared constant is the definition whose value equals [definitionValue] — the job type, the resolved
-     * name, or name and code.
+     * The shared constant is the definition whose value equals this one — the job type, the resolved name, or
+     * name and code.
      */
-    private fun <T> T.sharedIn(candidates: List<VariableMapping<*>>, definitionValue: Any? = this): SharedValue<T> {
-        val definition = candidates.firstOrNull { it.getValue() == definitionValue }
+    private fun <T> T.sharedIn(candidates: List<VariableMapping<*>>): SharedValue<T> {
+        val definition = candidates.firstOrNull { it.getValue() == this }
         return SharedValue(this, definition?.let { SharedConstant(name = it.getName()) })
     }
 
