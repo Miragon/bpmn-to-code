@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.json
 
+import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.testBikeLeasingModel
@@ -8,7 +9,6 @@ import kotlinx.serialization.json.Json
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class BpmnJsonGeneratorTest {
 
@@ -23,7 +23,7 @@ class BpmnJsonGeneratorTest {
         val result = underTest.generate(model)
 
         // then: expect the generated JSON to match the expected snapshot
-        assertThat(result).isEqualToIgnoringWhitespace(golden("/json/BikeLeasingProcess.json", result))
+        assertMatchesGolden(result, "/json/BikeLeasingProcess.json")
         assertJsonSyntaxValid(result)
     }
 
@@ -44,7 +44,7 @@ class BpmnJsonGeneratorTest {
         val result = underTest.generate(merged)
 
         // then: expect the generated JSON to match the expected snapshot
-        assertThat(result).isEqualToIgnoringWhitespace(golden("/json/MultiVariantCancelBikeOrderProcess.json", result))
+        assertMatchesGolden(result, "/json/MultiVariantCancelBikeOrderProcess.json")
         assertJsonSyntaxValid(result)
     }
 
@@ -86,14 +86,6 @@ class BpmnJsonGeneratorTest {
 
         // then: filename is processId.json
         assertThat(result.fileName).isEqualTo("bikeLeasing.json")
-    }
-
-    private fun golden(path: String, generated: String): String {
-        if (System.getProperty("golden.update") == "true") {
-            File("src/test/resources$path").writeText(generated)
-            return generated
-        }
-        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 
     private fun assertJsonSyntaxValid(source: String) {

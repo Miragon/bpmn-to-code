@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
 import io.miragon.bpmn.domain.BpmnModelApi
@@ -27,7 +28,6 @@ import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnEventType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.File
 import io.miragon.bpmn.runtime.TimerType as RuntimeTimerType
 
 class CSharpProcessApiBuilderTest {
@@ -51,7 +51,7 @@ class CSharpProcessApiBuilderTest {
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
         assertThat(result.language).isEqualTo(OutputLanguage.CSHARP)
 
-        assertThat(result.content).isEqualTo(golden("/api/BikeLeasingProcessApiCsharp.txt", result.content))
+        assertMatchesGolden(result.content, "/api/BikeLeasingProcessApiCsharp.txt")
     }
 
     @Test
@@ -77,7 +77,7 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.buildApiFile(modelApi)
 
         // then: the navigation sits under FlowVariants.Retail, with the gateway's conditional and default flows named after their targets
-        assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiCsharp.txt", result.content))
+        assertMatchesGolden(result.content, "/api/MultiVariantProcessApiCsharp.txt")
         assertThat(result.content).contains("public static class FlowVariants", "public static class Retail")
         assertThat(result.content).contains(
             $$"public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new(\"flow_cancellationNotPossibleToCollectClarifications\"), \"No\", \"${!cancellationPossible}\", false, GatewayCollectClarifications.Instance);",
@@ -269,12 +269,4 @@ class CSharpProcessApiBuilderTest {
         packagePath = "de.emaarco.example",
         language = OutputLanguage.CSHARP,
     )
-
-    private fun golden(path: String, generated: String): String {
-        if (System.getProperty("golden.update") == "true") {
-            File("src/test/resources$path").writeText(generated)
-            return generated
-        }
-        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
-    }
 }

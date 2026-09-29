@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.sun.source.util.JavacTask
+import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
@@ -18,7 +19,6 @@ import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.withId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.File
 import java.net.URI
 import javax.tools.Diagnostic
 import javax.tools.DiagnosticCollector
@@ -42,7 +42,7 @@ class JavaProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.java")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
-        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/BikeLeasingProcessApiJava.txt", result.content))
+        assertMatchesGolden(result.content, "/api/BikeLeasingProcessApiJava.txt")
         assertJavaSyntaxValid(result.fileName, result.content)
     }
 
@@ -138,16 +138,8 @@ class JavaProcessApiBuilderTest {
         val result = underTest.buildApiFile(modelApi)
 
         // then: output contains FlowVariants section instead of a flat FlowNodes
-        assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/MultiVariantProcessApiJava.txt", result.content))
+        assertMatchesGolden(result.content, "/api/MultiVariantProcessApiJava.txt")
         assertJavaSyntaxValid(result.fileName, result.content)
-    }
-
-    private fun golden(path: String, generated: String): String {
-        if (System.getProperty("golden.update") == "true") {
-            File("src/test/resources$path").writeText(generated)
-            return generated
-        }
-        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 
     private fun assertJavaSyntaxValid(fileName: String, source: String) {

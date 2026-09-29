@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
+import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
@@ -26,7 +27,6 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class KotlinProcessApiBuilderTest {
 
@@ -44,7 +44,7 @@ class KotlinProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.kt")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
-        assertThat(result.content).isEqualTo(golden("/api/BikeLeasingProcessApiKotlin.txt", result.content))
+        assertMatchesGolden(result.content, "/api/BikeLeasingProcessApiKotlin.txt")
         assertKotlinSyntaxValid(result.content)
 
         // and: the FlowNodes KDoc explains how to navigate it
@@ -122,16 +122,8 @@ class KotlinProcessApiBuilderTest {
         val result = underTest.buildApiFile(modelApi)
 
         // then: output contains FlowVariants section instead of a flat FlowNodes
-        assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiKotlin.txt", result.content))
+        assertMatchesGolden(result.content, "/api/MultiVariantProcessApiKotlin.txt")
         assertKotlinSyntaxValid(result.content)
-    }
-
-    private fun golden(path: String, generated: String): String {
-        if (System.getProperty("golden.update") == "true") {
-            File("src/test/resources$path").writeText(generated)
-            return generated
-        }
-        return File(requireNotNull(javaClass.getResource(path)).toURI()).readText()
     }
 
     companion object {
