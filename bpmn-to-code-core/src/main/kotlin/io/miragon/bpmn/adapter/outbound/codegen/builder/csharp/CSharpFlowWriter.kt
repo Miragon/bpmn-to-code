@@ -90,11 +90,13 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         }
     }
 
-    private fun sequenceFlowConstruction(flow: SequenceFlowEdge, targetObjectName: String): String = listOf(
-        "new(${stringLiteral(flow.id)})",
-        nullableStringLiteral(flow.name),
-        nullableStringLiteral(flow.conditionExpression),
-        flow.isDefault.toString(),
-        "$targetObjectName.Instance",
-    ).joinToString(", ", prefix = "new(", postfix = ")")
+    private fun sequenceFlowConstruction(flow: SequenceFlowEdge, targetObjectName: String): String {
+        val id = "new(${stringLiteral(flow.id)})"
+        val target = "$targetObjectName.Instance"
+        val arguments = when {
+            flow.hasOnlyDefaults() -> listOf(id, target)
+            else -> listOf(id, nullableStringLiteral(flow.name), nullableStringLiteral(flow.conditionExpression), flow.isDefault.toString(), target)
+        }
+        return arguments.joinToString(", ", prefix = "new(", postfix = ")")
+    }
 }

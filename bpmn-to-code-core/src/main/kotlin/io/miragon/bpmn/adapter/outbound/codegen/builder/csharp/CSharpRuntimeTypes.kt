@@ -67,6 +67,8 @@ internal object CSharpRuntimeTypes {
         public sealed record SequenceFlow<TTarget>(ElementId Id, string? Name, string? ConditionExpression, bool IsDefault, TTarget Target) : ISequenceFlow
             where TTarget : IFlowNode
         {
+            public SequenceFlow(ElementId Id, TTarget Target) : this(Id, null, null, false, Target) { }
+
             IFlowNode ISequenceFlow.Target => Target;
         }
 

@@ -48,6 +48,8 @@ public static class CancelBikeOrderProcessApi
         public sealed record SequenceFlow<TTarget>(ElementId Id, string? Name, string? ConditionExpression, bool IsDefault, TTarget Target) : ISequenceFlow
             where TTarget : IFlowNode
         {
+            public SequenceFlow(ElementId Id, TTarget Target) : this(Id, null, null, false, Target) { }
+
             IFlowNode ISequenceFlow.Target => Target;
         }
 
@@ -204,7 +206,7 @@ public static class CancelBikeOrderProcessApi
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new("flow_cancellationFailedToCollectClarifications"), null, null, false, GatewayCollectClarifications.Instance);
+                    public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new("flow_cancellationFailedToCollectClarifications"), GatewayCollectClarifications.Instance);
                 }
             }
 
@@ -266,7 +268,7 @@ public static class CancelBikeOrderProcessApi
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<UserTaskClarifyReturn> ToUserTaskClarifyReturn => new(new("flow_collectClarificationsToClarifyReturn"), null, null, false, UserTaskClarifyReturn.Instance);
+                    public Runtime.SequenceFlow<UserTaskClarifyReturn> ToUserTaskClarifyReturn => new(new("flow_collectClarificationsToClarifyReturn"), UserTaskClarifyReturn.Instance);
                 }
             }
 
@@ -289,7 +291,7 @@ public static class CancelBikeOrderProcessApi
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskBookCancellationCosts> ToServiceTaskBookCancellationCosts => new(new("flow_mergeReturnToBookCancellationCosts"), null, null, false, ServiceTaskBookCancellationCosts.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskBookCancellationCosts> ToServiceTaskBookCancellationCosts => new(new("flow_mergeReturnToBookCancellationCosts"), ServiceTaskBookCancellationCosts.Instance);
                 }
             }
 
@@ -323,7 +325,7 @@ public static class CancelBikeOrderProcessApi
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<EndEventBikeOrderCancelled> ToEndEventBikeOrderCancelled => new(new("flow_bookCancellationCostsToBikeOrderCancelled"), null, null, false, EndEventBikeOrderCancelled.Instance);
+                    public Runtime.SequenceFlow<EndEventBikeOrderCancelled> ToEndEventBikeOrderCancelled => new(new("flow_bookCancellationCostsToBikeOrderCancelled"), EndEventBikeOrderCancelled.Instance);
                 }
             }
 
@@ -358,7 +360,7 @@ public static class CancelBikeOrderProcessApi
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<GatewayCancellationPossible> ToGatewayCancellationPossible => new(new("flow_requestCancellationToCancellationPossible"), null, null, false, GatewayCancellationPossible.Instance);
+                    public Runtime.SequenceFlow<GatewayCancellationPossible> ToGatewayCancellationPossible => new(new("flow_requestCancellationToCancellationPossible"), GatewayCancellationPossible.Instance);
                 }
             }
 
@@ -392,7 +394,7 @@ public static class CancelBikeOrderProcessApi
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<ServiceTaskRequestCancellation> ToServiceTaskRequestCancellation => new(new("flow_cancellationRequiredToRequestCancellation"), null, null, false, ServiceTaskRequestCancellation.Instance);
+                    public Runtime.SequenceFlow<ServiceTaskRequestCancellation> ToServiceTaskRequestCancellation => new(new("flow_cancellationRequiredToRequestCancellation"), ServiceTaskRequestCancellation.Instance);
                 }
             }
 
@@ -415,7 +417,7 @@ public static class CancelBikeOrderProcessApi
                 public OutgoingSequenceFlows OutgoingFlows => new();
                 public sealed class OutgoingSequenceFlows
                 {
-                    public Runtime.SequenceFlow<GatewayMergeReturn> ToGatewayMergeReturn => new(new("flow_clarifyReturnToMergeReturn"), null, null, false, GatewayMergeReturn.Instance);
+                    public Runtime.SequenceFlow<GatewayMergeReturn> ToGatewayMergeReturn => new(new("flow_clarifyReturnToMergeReturn"), GatewayMergeReturn.Instance);
                 }
             }
         }

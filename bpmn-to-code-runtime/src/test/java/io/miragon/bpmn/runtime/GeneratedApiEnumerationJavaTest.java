@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Enumerates the generated Java bike-leasing API via its {@code all()} accessors. The
- * {@code GeneratedApiEnumerationKotlinTest} sibling covers Kotlin's {@code entries} and sealed {@code FlowNodes.Node}.
+ * {@code GeneratedApiEnumerationKotlinTest} sibling covers Kotlin's {@code entries}.
  */
 class GeneratedApiEnumerationJavaTest {
 

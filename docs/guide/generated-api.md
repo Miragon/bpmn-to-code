@@ -405,21 +405,11 @@ each variant under `FlowVariants`) lists its nodes: Kotlin `FlowNodes.entries`, 
 The test becomes a plain loop, with no reflection over nested classes that would also pick up holders like
 `Next` or `Variables`.
 
-In Kotlin, every node of a process also implements that flow's sealed **`FlowNodes.Node`**, so a `when` over it is
-exhaustive. When the model gains an element, every such `when` stops compiling until it handles the new
-element, instead of letting it slip into an `else`.
-
 ```kotlin
 @Test
 fun `every node of the model is deployed`() {
     val deployedIds = deployedModel.flowNodeIds()
     assertThat(FlowNodes.entries.map { it.id.value }).allMatch { it in deployedIds }
-}
-
-fun owner(node: FlowNodes.Node): String = when (node) {
-    FlowNodes.ServiceTaskOrderBike, FlowNodes.ServiceTaskCancelPolicy -> "fulfilment"
-    FlowNodes.UserTaskUpdateDeliveryAddress -> "support"
-    // … one branch per node, no `else` needed
 }
 ```
 

@@ -15,4 +15,6 @@ data class SequenceFlow<out TARGET : FlowNode>(
     val conditionExpression: String? = null,
     val isDefault: Boolean = false,
     val target: TARGET,
-)
+) {
+    constructor(id: ElementId, target: TARGET) : this(id, null, null, false, target)
+}
