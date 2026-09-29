@@ -23,11 +23,11 @@ bpmn-to-code reads your BPMN files and generates typed constants from them. Ever
 
 ```kotlin
 // Before
-@JobWorker(type = "newsletter.sendConfirmationMail")  // copied from modeler, no safety net
+@JobWorker(type = "miravelo.sendContract")  // copied from modeler, no safety net
 fun send() { ... }
 
 // After — generated from the BPMN model
-@JobWorker(type = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL)
+@JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
 fun send() { ... }
 ```
 
@@ -54,10 +54,10 @@ Generates a structured JSON alongside the API. Your process is readable by AI ag
   "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
   "formatVersion": "2.0",
   "process": {
-    "id": "newsletterSubscription",
+    "id": "bikeLeasing",
     "flowNodes": [
-      { "id": "StartEvent_SubmitRegistrationForm", "type": "startEvent", "name": "Submit newsletter form" },
-      { "id": "Activity_SendConfirmationMail", "type": "serviceTask", "name": "Send confirmation mail" }
+      { "id": "startEvent_leasingRequestReceived", "type": "startEvent", "name": "Leasing request received" },
+      { "id": "serviceTask_validateApplication", "type": "serviceTask", "name": "Validate application" }
     ]
   }
 }

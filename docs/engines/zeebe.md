@@ -41,26 +41,26 @@ Multi-instance variables come from `zeebe:loopCharacteristics`:
 <bpmn:multiInstanceLoopCharacteristics>
   <bpmn:extensionElements>
     <zeebe:loopCharacteristics
-      inputCollection="=subscribers"
-      inputElement="subscriber"
-      outputCollection="=results"
-      outputElement="result" />
+      inputCollection="=bikeIds"
+      inputElement="bikeId"
+      outputCollection="orderIds"
+      outputElement="=orderId" />
   </bpmn:extensionElements>
 </bpmn:multiInstanceLoopCharacteristics>
 ```
 
 All four attributes are extracted as variables. The `=` expression prefix is automatically stripped.
 
-**Extracted variables:** `subscribers`, `subscriber`, `results`, `result`
+**Extracted variables:** `bikeIds`, `bikeId`, `orderIds`, `orderId`
 
 ## Call Activities
 
 Call activities use `zeebe:calledElement` (not the standard `calledElement` attribute):
 
 ```xml
-<bpmn:callActivity id="CallActivity_Abort" name="Abort Registration">
+<bpmn:callActivity id="callActivity_cancelBikeOrder" name="Cancel bike order">
   <bpmn:extensionElements>
-    <zeebe:calledElement processId="abort-registration" />
+    <zeebe:calledElement processId="cancelBikeOrder" />
   </bpmn:extensionElements>
 </bpmn:callActivity>
 ```

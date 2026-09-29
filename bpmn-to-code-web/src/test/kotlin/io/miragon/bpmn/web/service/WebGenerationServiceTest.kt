@@ -17,8 +17,8 @@ class WebGenerationServiceTest {
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
-                    fileName = "c8-subscribe-newsletter.bpmn",
-                    content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
+                    fileName = "zeebe-bike-leasing.bpmn",
+                    content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
             ),
             config = GenerateRequest.GenerationConfig(
@@ -31,7 +31,7 @@ class WebGenerationServiceTest {
         val response = underTest.generate(request)
 
         // then: a Kotlin file is generated containing the process constant
-        assertThat(request.files.first().fileName).isEqualTo("c8-subscribe-newsletter.bpmn")
+        assertThat(request.files.first().fileName).isEqualTo("zeebe-bike-leasing.bpmn")
         assertThat(response.success).describedAs("Generation should succeed").isTrue()
         assertThat(response.files).describedAs("Should generate at least one file").isNotEmpty()
         assertThat(response.error).describedAs("Should not have errors").isNull()
@@ -39,13 +39,13 @@ class WebGenerationServiceTest {
         assertThat(generatedFile.fileName).describedAs("Should generate Kotlin file").endsWith(".kt")
         assertThat(generatedFile.content).describedAs("Should contain Kotlin object declaration").contains("object")
         assertThat(generatedFile.content).describedAs("Should carry the node-centric Flow").contains("object Flow").doesNotContain("object Elements")
-        assertThat(generatedFile.content).describedAs("Should contain process ID").contains("newsletterSubscription")
-        assertThat(generatedFile.processId).describedAs("Should carry the process id").isEqualTo("newsletterSubscription")
+        assertThat(generatedFile.content).describedAs("Should contain process ID").contains("bikeLeasing")
+        assertThat(generatedFile.processId).describedAs("Should carry the process id").isEqualTo("bikeLeasing")
 
         // and: the shared definitions are separate files that belong to no process
         val serviceTasksFile = response.files.single { it.fileName == "ServiceTasks.kt" }
         assertThat(serviceTasksFile.processId).isNull()
-        assertThat(serviceTasksFile.content).contains("newsletter.sendConfirmationMail")
+        assertThat(serviceTasksFile.content).contains("miravelo.sendContract")
 
         // and: the bundled runtime sources and dependency snippet ride along with the response
         assertThat(response.libraryFiles).describedAs("Should bundle runtime library sources").isNotEmpty()
@@ -58,8 +58,8 @@ class WebGenerationServiceTest {
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
-                    fileName = "c8-subscribe-newsletter.bpmn",
-                    content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
+                    fileName = "zeebe-bike-leasing.bpmn",
+                    content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
             ),
             config = GenerateRequest.GenerationConfig(
@@ -75,7 +75,7 @@ class WebGenerationServiceTest {
         assertThat(response.success).isTrue()
         val generatedFile = response.files.first()
         assertThat(generatedFile.fileName).describedAs("Should generate C# file").endsWith(".cs")
-        assertThat(generatedFile.content).contains("public static class", "newsletterSubscription")
+        assertThat(generatedFile.content).contains("public static class", "bikeLeasing")
         assertThat(generatedFile.content).describedAs("Should carry Flow with inlined runtime types").contains("public static class Flow", "public static class Runtime")
 
         // and: no JVM runtime is offered, because the generated C# inlines its own runtime types
@@ -89,8 +89,8 @@ class WebGenerationServiceTest {
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
-                    fileName = "c8-subscribe-newsletter.bpmn",
-                    content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
+                    fileName = "zeebe-bike-leasing.bpmn",
+                    content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
             ),
             config = GenerateRequest.GenerationConfig(
@@ -116,8 +116,8 @@ class WebGenerationServiceTest {
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
-                    fileName = "c8-subscribe-newsletter.bpmn",
-                    content = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn"),
+                    fileName = "zeebe-bike-leasing.bpmn",
+                    content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
             ),
             config = GenerateRequest.GenerationConfig(
@@ -142,8 +142,8 @@ class WebGenerationServiceTest {
         val request = GenerateRequest(
             files = listOf(
                 GenerateRequest.BpmnFileData(
-                    fileName = "c7-subscribe-newsletter.bpmn",
-                    content = loadBpmnBase64("bpmn/c7-subscribe-newsletter.bpmn"),
+                    fileName = "c7-bike-leasing.bpmn",
+                    content = loadBpmnBase64("bpmn/c7/bike-leasing.bpmn"),
                 ),
             ),
             config = GenerateRequest.GenerationConfig(
@@ -188,12 +188,12 @@ class WebGenerationServiceTest {
     @Test
     fun `should process up to 3 BPMN files successfully`() {
         // given: a request with 3 identical BPMN files
-        val c8Base64 = loadBpmnBase64("bpmn/c8-subscribe-newsletter.bpmn")
+        val c8Base64 = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(fileName = "c8-subscribe-newsletter.bpmn", content = c8Base64),
-                GenerateRequest.BpmnFileData(fileName = "c8-newsletter-copy1.bpmn", content = c8Base64),
-                GenerateRequest.BpmnFileData(fileName = "c8-newsletter-copy2.bpmn", content = c8Base64),
+                GenerateRequest.BpmnFileData(fileName = "zeebe-bike-leasing.bpmn", content = c8Base64),
+                GenerateRequest.BpmnFileData(fileName = "zeebe-bike-leasing-copy1.bpmn", content = c8Base64),
+                GenerateRequest.BpmnFileData(fileName = "zeebe-bike-leasing-copy2.bpmn", content = c8Base64),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,

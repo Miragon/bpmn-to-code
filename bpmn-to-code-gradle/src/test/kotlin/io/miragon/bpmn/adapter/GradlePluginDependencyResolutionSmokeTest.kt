@@ -25,8 +25,8 @@ class GradlePluginDependencyResolutionSmokeTest {
     fun `plugin resolves all dependencies from published artifact`(@TempDir projectDir: File) {
         // given: a minimal project configured to resolve the plugin from mavenLocal
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
-        val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/c8-subscribe-newsletter.bpmn"))
-        File(resourcesDir, "c8-subscribe-newsletter.bpmn").writeBytes(bpmnStream.readBytes())
+        val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn"))
+        File(resourcesDir, "bike-leasing.bpmn").writeBytes(bpmnStream.readBytes())
         File(projectDir, "settings.gradle").writeText(
             """
             pluginManagement {
@@ -114,8 +114,8 @@ class GradlePluginDependencyResolutionSmokeTest {
     fun `generateBpmnModelJson resolves kotlinx-serialization from published artifact`(@TempDir projectDir: File) {
         // given: a minimal project configured to resolve the plugin from mavenLocal
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
-        val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/c8-subscribe-newsletter.bpmn"))
-        File(resourcesDir, "c8-subscribe-newsletter.bpmn").writeBytes(bpmnStream.readBytes())
+        val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn"))
+        File(resourcesDir, "bike-leasing.bpmn").writeBytes(bpmnStream.readBytes())
         File(projectDir, "settings.gradle").writeText(
             """
             pluginManagement {

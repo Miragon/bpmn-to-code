@@ -60,11 +60,11 @@ Multi-instance variables come from attributes on the `multiInstanceLoopCharacter
 
 ```xml
 <bpmn:multiInstanceLoopCharacteristics
-    camunda:collection="${subscribers}"
-    camunda:elementVariable="subscriber" />
+    camunda:collection="${bikeIds}"
+    camunda:elementVariable="bikeId" />
 ```
 
-**Extracted variables:** `subscribers` → Input (from `collection` expression), `subscriber` → Output (from `elementVariable`)
+**Extracted variables:** `bikeIds` → Input (from `collection` expression), `bikeId` → Output (from `elementVariable`)
 
 ### Additional Input / Output Variables (Extension Properties)
 

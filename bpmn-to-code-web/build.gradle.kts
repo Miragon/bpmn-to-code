@@ -56,14 +56,13 @@ val copyLibrarySources by tasks.registering(Copy::class) {
     include("*.kt")
 }
 
-// Bundle one engine-specific newsletter example per engine for the demo
+// Bundle one engine-specific bike-leasing example per engine for the demo
 val copyExampleModels by tasks.registering(Copy::class) {
-    from(rootProject.layout.projectDirectory.dir("shared/bpmn")) {
-        include(
-            "c8-subscribe-newsletter.bpmn",
-            "c7-subscribe-newsletter.bpmn",
-            "operaton-subscribe-newsletter.bpmn",
-        )
+    listOf("zeebe", "c7", "operaton").forEach { engine ->
+        from(rootProject.layout.projectDirectory.dir("shared/bpmn/$engine")) {
+            include("bike-leasing.bpmn")
+            rename { "$engine-bike-leasing.bpmn" }
+        }
     }
     into(layout.buildDirectory.dir("generated/resources/examples/examples"))
 }

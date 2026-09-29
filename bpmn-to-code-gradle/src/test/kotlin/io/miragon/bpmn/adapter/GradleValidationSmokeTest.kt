@@ -12,9 +12,9 @@ class GradleValidationSmokeTest {
 
     @ParameterizedTest(name = "{0}")
     @CsvSource(
-        "ZEEBE, c8-subscribe-newsletter.bpmn",
-        "CAMUNDA_7, c7-subscribe-newsletter.bpmn",
-        "OPERATON, operaton-subscribe-newsletter.bpmn",
+        "ZEEBE, zeebe/bike-leasing.bpmn",
+        "CAMUNDA_7, c7/bike-leasing.bpmn",
+        "OPERATON, operaton/bike-leasing.bpmn",
     )
     fun `validateBpmnModels succeeds for valid BPMN files`(
         engine: String,
@@ -24,7 +24,7 @@ class GradleValidationSmokeTest {
         // given: a minimal project with a valid BPMN file for the given engine
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = javaClass.classLoader.getResourceAsStream("bpmn/$bpmnFile")!!
-        File(resourcesDir, bpmnFile).writeBytes(bpmnStream.readBytes())
+        File(resourcesDir, File(bpmnFile).name).writeBytes(bpmnStream.readBytes())
         File(projectDir, "settings.gradle").writeText("")
         File(projectDir, "build.gradle").writeText(
             """

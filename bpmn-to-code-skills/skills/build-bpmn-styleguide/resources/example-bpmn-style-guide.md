@@ -153,8 +153,8 @@ pattern: "^(startEvent|endEvent|event|serviceTask|userTask|receiveTask|sendTask|
 
 Process IDs are kebab-case, no `process_` prefix, no version suffix. The name has a domain meaning (the business capability), not a technical one.
 
-- good: `newsletter-subscription`, `order-fulfillment`, `invoice-processing`
-- bad: `process_NewsletterSubscription`, `newsletterSubscriptionV2`, `PROC_01`
+- good: `bike-leasing`, `order-fulfillment`, `invoice-processing`
+- bad: `process_BikeLeasing`, `bikeLeasingV2`, `PROC_01`
 
 <!-- rule:process-id-format -->
 ```yaml
@@ -169,8 +169,8 @@ pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
 
 Messages are identified service-wide by `<serviceName>.<myState>` in camelCase. The service name is the bounded context; the state is what's being communicated.
 
-- good: `order.orderCreated`, `newsletter.subscriptionConfirmed`
-- bad: `Message_ConfirmSubscription`, `newsletter_subscription_confirmed`
+- good: `order.orderCreated`, `miravelo.contractSigned`
+- bad: `Message_ContractSigned`, `miravelo_contract_signed`
 
 <!-- rule:message-id-schema -->
 ```yaml
@@ -186,8 +186,8 @@ pattern: "^[a-z][a-zA-Z0-9]*\\.[a-z][a-zA-Z0-9]*$"
 
 A Camunda 7 topic (or Zeebe job type) is the identifier the worker subscribes to. We use `<serviceName>.<elementIdWithoutPrefix>` in camelCase — same `<serviceName>` as the messages, so topics and messages line up.
 
-- good: `order.validateAddress`, `newsletter.sendConfirmationMail`
-- bad: `SendConfirmationMail`, `newsletter_send_confirmation_mail`
+- good: `order.validateAddress`, `miravelo.sendContract`
+- bad: `SendContract`, `miravelo_send_contract`
 
 <!-- rule:service-task-topic -->
 ```yaml

@@ -10,7 +10,7 @@ npm --prefix tools install
 
 This runs the full `bpmnlint:recommended` rule set from `.bpmnlintrc`,
 over the models we ship in production.
-Those are the models under `shared/bpmn` and the bundled samples of the web module.
+Those are the models under `shared/bpmn`, which the web module also bundles as its examples.
 
 ```bash
 npm --prefix tools run lint:bpmn

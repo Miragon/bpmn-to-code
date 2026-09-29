@@ -10,9 +10,9 @@ class MavenValidateMojoSmokeTest {
 
     @ParameterizedTest(name = "{0}")
     @CsvSource(
-        "ZEEBE, c8-subscribe-newsletter.bpmn",
-        "CAMUNDA_7, c7-subscribe-newsletter.bpmn",
-        "OPERATON, operaton-subscribe-newsletter.bpmn",
+        "ZEEBE, zeebe/bike-leasing.bpmn",
+        "CAMUNDA_7, c7/bike-leasing.bpmn",
+        "OPERATON, operaton/bike-leasing.bpmn",
     )
     fun `mojo validates BPMN files without errors`(
         engine: String,
@@ -22,7 +22,7 @@ class MavenValidateMojoSmokeTest {
         // given: a temp project directory with a valid BPMN resource and a configured mojo
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = javaClass.classLoader.getResourceAsStream("bpmn/$bpmnFile")!!
-        File(resourcesDir, bpmnFile).writeBytes(bpmnStream.readBytes())
+        File(resourcesDir, File(bpmnFile).name).writeBytes(bpmnStream.readBytes())
         val mojo = BpmnValidateMojo()
         setField(mojo, "baseDir", projectDir.absolutePath)
         setField(mojo, "filePattern", "src/main/resources/*.bpmn")
