@@ -2,13 +2,11 @@ package io.miragon.bpmn.web.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiInMemoryPlugin
-import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.web.model.BpmnFileData
 import io.miragon.bpmn.web.model.GenerateRequest
 import io.miragon.bpmn.web.model.GenerateResponse
-import java.util.Base64
 
 class WebGenerationService(private val librarySourceProvider: LibrarySourceProvider = LibrarySourceProvider()) {
 
@@ -19,7 +17,7 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
     fun generate(request: GenerateRequest): GenerateResponse {
         val config = request.config
         logger.info { "Generating API for ${request.files.size} file(s) [${config.outputLanguage}, ${config.processEngine}]" }
-        return try {
+        return GenerationGuard.run(files = request.files, failure = GenerateResponse::failure) {
             val bpmnInputs = request.files.map { this.buildCommand(it) }
             val generatedApiFiles = this.executePlugin(request.config, bpmnInputs)
             val generatedFiles = generatedApiFiles.map { mapToResponse(it) }
@@ -30,18 +28,6 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
                 libraryFiles = if (runsOnJvm) librarySourceProvider.libraryFiles() else emptyList(),
                 runtimeDependency = if (runsOnJvm) librarySourceProvider.runtimeDependency() else null,
             )
-        } catch (e: BpmnValidationException) {
-            logger.error(e) { "BPMN validation failed during generation" }
-            GenerateResponse.fromValidationException(e)
-        } catch (e: DuplicateProcessIdException) {
-            logger.warn { e.message }
-            GenerateResponse.fromDuplicateProcessIdException(e)
-        } catch (e: IllegalStateException) {
-            logger.error(e) { "Unexpected error during generation" }
-            GenerateResponse.unknownError()
-        } catch (e: IllegalArgumentException) {
-            logger.error(e) { "Unexpected error during generation" }
-            GenerateResponse.unknownError()
         }
     }
 
@@ -56,11 +42,7 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
         enableVariants = config.enableVariants,
     )
 
-    private fun buildCommand(file: GenerateRequest.BpmnFileData): CreateProcessApiInMemoryPlugin.BpmnInput {
-        val bpmnXml = String(Base64.getDecoder().decode(file.content))
-        val processName = file.fileName.removeSuffix(".bpmn")
-        return CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = bpmnXml, processName = processName)
-    }
+    private fun buildCommand(file: BpmnFileData) = CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())
 
     /**
      * `bpmn-to-code-runtime` is a JVM artifact, and the C# output inlines its own runtime types into each

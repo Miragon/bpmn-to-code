@@ -7,8 +7,5 @@ import kotlinx.serialization.Serializable
 data class GenerateJsonRequest(val files: List<BpmnFileData>, val config: JsonGenerationConfig) {
 
     @Serializable
-    data class BpmnFileData(val fileName: String, val content: String)
-
-    @Serializable
     data class JsonGenerationConfig(val processEngine: ProcessEngine, val enableVariants: Boolean = false)
 }

@@ -2,12 +2,10 @@ package io.miragon.bpmn.web.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonInMemoryPlugin
-import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedJsonFile
-import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.web.model.BpmnFileData
 import io.miragon.bpmn.web.model.GenerateJsonRequest
 import io.miragon.bpmn.web.model.GenerateJsonResponse
-import java.util.Base64
 
 class WebJsonGenerationService {
 
@@ -18,7 +16,7 @@ class WebJsonGenerationService {
     fun generate(request: GenerateJsonRequest): GenerateJsonResponse {
         val config = request.config
         logger.info { "Generating JSON for ${request.files.size} file(s) [${config.processEngine}]" }
-        return try {
+        return GenerationGuard.run(files = request.files, failure = GenerateJsonResponse::failure) {
             val bpmnInputs = request.files.map { buildInput(it) }
             val jsonFiles = plugin.execute(
                 bpmnContents = bpmnInputs,
@@ -27,26 +25,10 @@ class WebJsonGenerationService {
             )
             val responseFiles = jsonFiles.map { mapToResponse(it) }
             GenerateJsonResponse(success = true, files = responseFiles)
-        } catch (e: BpmnValidationException) {
-            logger.error(e) { "BPMN validation failed during JSON generation" }
-            GenerateJsonResponse.fromValidationException(e)
-        } catch (e: DuplicateProcessIdException) {
-            logger.warn { e.message }
-            GenerateJsonResponse.fromDuplicateProcessIdException(e)
-        } catch (e: IllegalStateException) {
-            logger.error(e) { "Unexpected error during JSON generation" }
-            GenerateJsonResponse.unknownError()
-        } catch (e: IllegalArgumentException) {
-            logger.error(e) { "Unexpected error during JSON generation" }
-            GenerateJsonResponse.unknownError()
         }
     }
 
-    private fun buildInput(file: GenerateJsonRequest.BpmnFileData): CreateProcessJsonInMemoryPlugin.BpmnInput {
-        val bpmnXml = String(Base64.getDecoder().decode(file.content))
-        val processName = file.fileName.removeSuffix(".bpmn")
-        return CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = bpmnXml, processName = processName)
-    }
+    private fun buildInput(file: BpmnFileData) = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())
 
     private fun mapToResponse(jsonFile: GeneratedJsonFile) = GenerateJsonResponse.GeneratedJsonFileResponse(
         fileName = jsonFile.fileName,

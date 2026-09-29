@@ -1,8 +1,6 @@
 package io.miragon.bpmn.web.model
 
 import io.ktor.http.*
-import io.miragon.bpmn.domain.DuplicateProcessIdException
-import io.miragon.bpmn.domain.validation.BpmnValidationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -18,33 +16,11 @@ data class GenerateJsonResponse(
     data class GeneratedJsonFileResponse(val fileName: String, val content: String, val processId: String)
 
     companion object {
-        fun noFilesProvided() = GenerateJsonResponse(success = false, files = emptyList(), error = "No files provided")
-
-        fun tooManyFiles() = GenerateJsonResponse(
+        fun failure(statusCode: HttpStatusCode, error: String?) = GenerateJsonResponse(
             success = false,
             files = emptyList(),
-            error = "Maximum 3 BPMN files allowed",
-        )
-
-        fun unknownError() = GenerateJsonResponse(
-            success = false,
-            files = emptyList(),
-            error = "Unknown error occurred",
-            statusCode = HttpStatusCode.InternalServerError,
-        )
-
-        fun fromValidationException(exception: BpmnValidationException) = GenerateJsonResponse(
-            success = false,
-            files = emptyList(),
-            error = exception.message,
-            statusCode = HttpStatusCode.BadRequest,
-        )
-
-        fun fromDuplicateProcessIdException(exception: DuplicateProcessIdException) = GenerateJsonResponse(
-            success = false,
-            files = emptyList(),
-            error = exception.message,
-            statusCode = HttpStatusCode.BadRequest,
+            error = error,
+            statusCode = statusCode,
         )
     }
 }

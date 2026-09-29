@@ -3,6 +3,7 @@ package io.miragon.bpmn.web.service
 import io.ktor.http.HttpStatusCode
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.web.model.BpmnFileData
 import io.miragon.bpmn.web.model.GenerateRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -17,7 +18,7 @@ class WebGenerationServiceTest {
         // given: a valid Zeebe BPMN file encoded as Base64
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(
+                BpmnFileData(
                     fileName = "zeebe-bike-leasing.bpmn",
                     content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
@@ -58,7 +59,7 @@ class WebGenerationServiceTest {
         // given: a valid Zeebe BPMN file with C# output language
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(
+                BpmnFileData(
                     fileName = "zeebe-bike-leasing.bpmn",
                     content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
@@ -89,7 +90,7 @@ class WebGenerationServiceTest {
         // given: a valid Zeebe BPMN file with Java output language
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(
+                BpmnFileData(
                     fileName = "zeebe-bike-leasing.bpmn",
                     content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
@@ -116,7 +117,7 @@ class WebGenerationServiceTest {
         // given: a Zeebe model but Camunda 7 selected (the demo's original failure mode)
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(
+                BpmnFileData(
                     fileName = "zeebe-bike-leasing.bpmn",
                     content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
                 ),
@@ -142,7 +143,7 @@ class WebGenerationServiceTest {
         // given: a Camunda 7 model but Operaton selected (the reported case)
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(
+                BpmnFileData(
                     fileName = "c7-bike-leasing.bpmn",
                     content = loadBpmnBase64("bpmn/c7/bike-leasing.bpmn"),
                 ),
@@ -165,7 +166,7 @@ class WebGenerationServiceTest {
     fun `should handle invalid Base64 content gracefully`() {
         // given: a request with invalid Base64 content
         val request = GenerateRequest(
-            files = listOf(GenerateRequest.BpmnFileData(fileName = "invalid.bpmn", content = "not-valid-base64!!!")),
+            files = listOf(BpmnFileData(fileName = "invalid.bpmn", content = "not-valid-base64!!!")),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
                 processEngine = ProcessEngine.ZEEBE,
@@ -186,9 +187,9 @@ class WebGenerationServiceTest {
         // given: a request with 3 different BPMN processes
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(fileName = "bike-leasing.bpmn", content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")),
-                GenerateRequest.BpmnFileData(fileName = "membership.bpmn", content = loadBpmnBase64("bpmn/zeebe/membership.bpmn")),
-                GenerateRequest.BpmnFileData(fileName = "welcome-package.bpmn", content = loadBpmnBase64("bpmn/zeebe/welcome-package.bpmn")),
+                BpmnFileData(fileName = "bike-leasing.bpmn", content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")),
+                BpmnFileData(fileName = "membership.bpmn", content = loadBpmnBase64("bpmn/zeebe/membership.bpmn")),
+                BpmnFileData(fileName = "welcome-package.bpmn", content = loadBpmnBase64("bpmn/zeebe/welcome-package.bpmn")),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
@@ -211,8 +212,8 @@ class WebGenerationServiceTest {
         val c8Base64 = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")
         val request = GenerateRequest(
             files = listOf(
-                GenerateRequest.BpmnFileData(fileName = "bike-leasing-a.bpmn", content = c8Base64),
-                GenerateRequest.BpmnFileData(fileName = "bike-leasing-b.bpmn", content = c8Base64),
+                BpmnFileData(fileName = "bike-leasing-a.bpmn", content = c8Base64),
+                BpmnFileData(fileName = "bike-leasing-b.bpmn", content = c8Base64),
             ),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
