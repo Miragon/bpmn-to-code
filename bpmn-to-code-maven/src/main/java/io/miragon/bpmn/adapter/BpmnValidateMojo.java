@@ -72,11 +72,8 @@ public class BpmnValidateMojo extends AbstractMojo {
 	@Override
 	public void execute() throws MojoFailureException {
 		getLog().warn("[EXPERIMENTAL] The 'validate-bpmn' goal is experimental and may change in future releases.");
-		if (processEngine == null || processEngine.isBlank()) {
-			throw new MojoFailureException("processEngine is required (valid values: CAMUNDA_7, ZEEBE, OPERATON)");
-		}
 		ValidateBpmnFilesystemPlugin plugin = new ValidateBpmnFilesystemPlugin();
-		ProcessEngine engine = ProcessEngine.valueOf(processEngine);
+		ProcessEngine engine = EnumParameter.parse("processEngine", processEngine, ProcessEngine.class);
 		ValidationConfig config = new ValidationConfig(failOnWarning, disabledRules);
 		ValidationResult result = plugin.execute(baseDir, filePattern, engine, config);
 

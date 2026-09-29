@@ -8,6 +8,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationConfig;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -82,10 +83,10 @@ public class BpmnModelMojo extends AbstractMojo {
 	 * Executes the BPMN API generation process
 	 */
 	@Override
-	public void execute() {
+	public void execute() throws MojoFailureException {
 		CreateProcessApiFilesystemPlugin plugin = new CreateProcessApiFilesystemPlugin();
-		OutputLanguage language = OutputLanguage.valueOf(outputLanguage);
-		ProcessEngine engine = ProcessEngine.valueOf(processEngine);
+		OutputLanguage language = EnumParameter.parse("outputLanguage", outputLanguage, OutputLanguage.class);
+		ProcessEngine engine = EnumParameter.parse("processEngine", processEngine, ProcessEngine.class);
 		List<BpmnFileResult> results = plugin.execute(baseDir, filePattern, outputFolderPath, packagePath, language, engine, new ValidationConfig(), enableVariants);
 		if (results.isEmpty()) {
 			getLog().info("No BPMN models found");
