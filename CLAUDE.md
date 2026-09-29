@@ -19,7 +19,7 @@ The core follows hexagonal architecture with clear separation of concerns:
 ### Domain Layer (`bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/`)
 - `BpmnModel.kt`, `BpmnFile.kt`, `BpmnModelApi.kt`: Core domain entities
 - `shared/`: Common types like `OutputLanguage`, `ProcessEngine`, `ServiceTaskDefinition`
-- `service/ModelMergerService.kt`: Business logic for merging BPMN models
+- `ProcessModel.mergeByProcessId(...)`: merges BPMN models sharing a process id into variants
 
 ### Application Layer (`bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/application/`)
 - `port/inbound/GenerateProcessApiUseCase.kt`: Main use case interface

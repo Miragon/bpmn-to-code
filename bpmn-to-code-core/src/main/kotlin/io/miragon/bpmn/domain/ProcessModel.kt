@@ -4,6 +4,7 @@ import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventDirection
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
+import io.miragon.bpmn.domain.shared.FlowScope
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.ProcessGraph
 import io.miragon.bpmn.domain.shared.RootElements
@@ -131,6 +132,37 @@ data class ProcessModel(
     }
 
     /**
+     * A single file still goes through the merge, so duplicate ids inside one model collapse the same way.
+     */
+    private fun deduplicated(): ProcessModel {
+        val merged = scope().merge(emptyList())
+        return copy(flowNodes = merged.flowNodes, sequenceFlows = merged.sequenceFlows, definitions = definitions.merge(emptyList()))
+    }
+
+    /**
+     * Sorts every scope and registry, so generated output is a function of the model rather than of the order
+     * the files happened to be read in.
+     */
+    private fun sorted(): ProcessModel {
+        val sorted = scope().sorted()
+        return copy(
+            flowNodes = sorted.flowNodes,
+            sequenceFlows = sorted.sequenceFlows,
+            definitions = definitions.sorted(),
+            variants = variants.map { variant ->
+                val sortedVariant = FlowScope(variant.flowNodes, variant.sequenceFlows).sorted()
+                variant.copy(flowNodes = sortedVariant.flowNodes, sequenceFlows = sortedVariant.sequenceFlows)
+            },
+        )
+    }
+
+    /**
+     * Merging and sorting treat a scope as one value, so it is read out here. The models themselves name
+     * their two halves rather than storing the pair.
+     */
+    private fun scope() = FlowScope(flowNodes, sequenceFlows)
+
+    /**
      * The service-task-like implementation of a node, if the engine dialect resolved one.
      */
     private fun FlowNodeDefinition.taskImplementation(): TaskImplementation? = when (this) {
@@ -148,5 +180,40 @@ data class ProcessModel(
         val sequenceFlows: List<SequenceFlowDefinition> = emptyList(),
     ) {
         val graph: ProcessGraph by lazy { ProcessGraph(flowNodes, sequenceFlows) }
+    }
+
+    companion object {
+
+        /**
+         * Merges process models by process id, each merged model sorted.
+         * A process backed by a single BPMN file keeps an empty [variants].
+         * A process backed by several files gains one [Variant] per file, with [flowNodes] holding their union.
+         */
+        fun mergeByProcessId(models: List<ProcessModel>): List<ProcessModel> = models.groupBy { it.processId }.entries
+            .sortedBy { it.key }.map { (processId, modelsOfProcess) -> merge(processId, modelsOfProcess).sorted() }
+
+        /**
+         * A merged node's base attributes come from the first model. The models are sorted by `variantName` first,
+         * so the result is a deterministic function of the inputs rather than of filesystem read order.
+         */
+        private fun merge(processId: String, models: List<ProcessModel>): ProcessModel {
+            if (models.size == 1) return models.first().deduplicated()
+            require(models.none { it.variantName.isNullOrBlank() }) {
+                "Multiple BPMN files share process ID '$processId' but not all define a variantName. " +
+                    "Add a variantName extension property to each process."
+            }
+            val sorted = models.sortedBy { requireNotNull(it.variantName) }
+            val merged = sorted.first().scope().merge(sorted.drop(1).map { it.scope() })
+            return ProcessModel(
+                processId = processId,
+                processName = sorted.firstNotNullOfOrNull { it.processName },
+                flowNodes = merged.flowNodes,
+                sequenceFlows = merged.sequenceFlows,
+                definitions = sorted.first().definitions.merge(sorted.drop(1).map { it.definitions }),
+                isExecutable = sorted.any { it.isExecutable },
+                detectedEngine = sorted.firstNotNullOfOrNull { it.detectedEngine },
+                variants = sorted.map { Variant(variantName = requireNotNull(it.variantName), flowNodes = it.flowNodes, sequenceFlows = it.sequenceFlows) },
+            )
+        }
     }
 }

@@ -18,7 +18,6 @@ import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
-import io.miragon.bpmn.domain.service.ModelMergerService
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class GenerateProcessApiService(
@@ -29,7 +28,6 @@ class GenerateProcessApiService(
 ) : GenerateProcessApiFromFilesystemUseCase {
 
     private val logger = KotlinLogging.logger {}
-    private val modelMergerService = ModelMergerService()
 
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val validationService = BpmnValidationService(command.validationConfig)
@@ -38,7 +36,8 @@ class GenerateProcessApiService(
         val executableModels = filterExecutableProcesses(extractedModels)
         val models = executableModels.map { (_, model) -> model }
         validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
-        val mergedModels = modelMergerService.mergeModels(toSourcedModels(executableModels), command.enableVariants)
+        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(toSourcedModels(executableModels))
+        val mergedModels = ProcessModel.mergeByProcessId(models)
         validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
         val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(mergedModels, command))

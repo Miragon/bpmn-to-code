@@ -1,8 +1,5 @@
-package io.miragon.bpmn.domain.service
+package io.miragon.bpmn.domain
 
-import io.miragon.bpmn.domain.DuplicateProcessIdException
-import io.miragon.bpmn.domain.SourcedProcessModel
-import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
@@ -11,14 +8,11 @@ import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
-import io.miragon.bpmn.domain.testProcessModel
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
-class ModelMergerServiceTest {
-
-    private val underTest = ModelMergerService()
+class ProcessModelMergeTest {
 
     @Test
     fun `merges processes with same id into ProcessModel`() {
@@ -55,7 +49,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging all models
-        val result = underTest.mergeModels(listOf(firstModel, secondModel, otherModel))
+        val result = ProcessModel.mergeByProcessId(listOf(firstModel, secondModel, otherModel))
 
         // then: multi-model group produces ProcessModel with deduplicated shared elements
         assertThat(result).hasSize(2)
@@ -99,7 +93,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging a single model
-        val result = underTest.mergeModels(listOf(model))
+        val result = ProcessModel.mergeByProcessId(listOf(model))
 
         // then: collections should be sorted independently by their own raw name
         val sortedModel = result.first()
@@ -143,7 +137,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging a single model
-        val result = underTest.mergeModels(listOf(model))
+        val result = ProcessModel.mergeByProcessId(listOf(model))
 
         // then: duplicates should be removed from all element types
         val merged = result.first()
@@ -201,7 +195,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging models
-        val result = underTest.mergeModels(listOf(firstModel, secondModel))
+        val result = ProcessModel.mergeByProcessId(listOf(firstModel, secondModel))
 
         // then: should produce ProcessModel with deduplicated shared elements
         assertThat(result).hasSize(1)
@@ -245,7 +239,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging models
-        val result = underTest.mergeModels(listOf(deModel, atModel))
+        val result = ProcessModel.mergeByProcessId(listOf(deModel, atModel))
 
         // then: result is a ProcessModel with per-variant data
         assertThat(result).hasSize(1)
@@ -303,7 +297,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging the two variants
-        val result = underTest.mergeModels(listOf(variantA, variantB))
+        val result = ProcessModel.mergeByProcessId(listOf(variantA, variantB))
 
         // then: the merged top-level flow node carries the union of all variants' variables, deduplicated
         val merged = result.first()
@@ -344,7 +338,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging
-        val result = underTest.mergeModels(listOf(variantA, variantB))
+        val result = ProcessModel.mergeByProcessId(listOf(variantA, variantB))
 
         // then: variant-only node and its variables surface in the merged top-level flow nodes
         val merged = result.first()
@@ -365,8 +359,8 @@ class ModelMergerServiceTest {
         val staging = variant("staging")
 
         // when: merging the same set in two different input orders
-        val forward = underTest.mergeModels(listOf(dev, prod, staging)).first()
-        val shuffled = underTest.mergeModels(listOf(staging, dev, prod)).first()
+        val forward = ProcessModel.mergeByProcessId(listOf(dev, prod, staging)).first()
+        val shuffled = ProcessModel.mergeByProcessId(listOf(staging, dev, prod)).first()
 
         // then: variants are emitted sorted by variantName, independent of input order
         assertThat(forward.variants.map { it.variantName }).containsExactly("dev", "prod", "staging")
@@ -388,7 +382,7 @@ class ModelMergerServiceTest {
         )
 
         // when: merging a single model
-        val result = underTest.mergeModels(listOf(model))
+        val result = ProcessModel.mergeByProcessId(listOf(model))
 
         // then: no variant wrapping happens for a single file
         assertThat(result).hasSize(1)
@@ -403,7 +397,7 @@ class ModelMergerServiceTest {
         val model2 = testProcessModel(processId = "order-process")
 
         // when / then
-        assertThatThrownBy { underTest.mergeModels(listOf(model1, model2)) }
+        assertThatThrownBy { ProcessModel.mergeByProcessId(listOf(model1, model2)) }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("order-process").hasMessageContaining("variantName")
     }
@@ -425,7 +419,7 @@ class ModelMergerServiceTest {
         )
 
         // when
-        val merged = underTest.mergeModels(listOf(model)).single()
+        val merged = ProcessModel.mergeByProcessId(listOf(model)).single()
 
         // then: both survive, so every messageRef emitted by the extractor still resolves in the registry
         assertThat(merged.definitions.messages.map { it.id }).containsExactlyInAnyOrder("Message_1", "Message_2")
@@ -439,7 +433,7 @@ class ModelMergerServiceTest {
         val second = testProcessModel(processId = "order-process", variantName = "en").copy(isExecutable = false)
 
         // when
-        val merged = underTest.mergeModels(listOf(first, second)).single()
+        val merged = ProcessModel.mergeByProcessId(listOf(first, second)).single()
 
         // then: the merged model must not claim to be executable — the JSON publishes this flag
         assertThat(merged.isExecutable).isFalse()
@@ -452,7 +446,7 @@ class ModelMergerServiceTest {
         val second = testProcessModel(processId = "order-process", variantName = "en")
 
         // when
-        val merged = underTest.mergeModels(listOf(first, second)).single()
+        val merged = ProcessModel.mergeByProcessId(listOf(first, second)).single()
 
         // then
         assertThat(merged.isExecutable).isTrue()
@@ -466,7 +460,7 @@ class ModelMergerServiceTest {
         val second = testProcessModel(processId = "order-process", variantName = "en", messages = listOf(shared))
 
         // when
-        val merged = underTest.mergeModels(listOf(first, second)).single()
+        val merged = ProcessModel.mergeByProcessId(listOf(first, second)).single()
 
         // then: the same id appears once, not once per variant
         assertThat(merged.definitions.messages.map { it.id }).containsExactly("Message_1")
@@ -479,38 +473,7 @@ class ModelMergerServiceTest {
         val model2 = testProcessModel(processId = "order-process")
 
         // when / then
-        assertThatThrownBy { underTest.mergeModels(listOf(model1, model2)) }
+        assertThatThrownBy { ProcessModel.mergeByProcessId(listOf(model1, model2)) }
             .isInstanceOf(IllegalArgumentException::class.java).hasMessageContaining("variantName")
-    }
-
-    @Test
-    fun `rejects a process id defined in several files unless variants are enabled`() {
-        // given: two variants of one process, each from its own file
-        val models = listOf(
-            SourcedProcessModel("bike-leasing-v2.bpmn", testProcessModel(processId = "bike-leasing", variantName = "v2")),
-            SourcedProcessModel("bike-leasing-v1.bpmn", testProcessModel(processId = "bike-leasing", variantName = "v1")),
-            SourcedProcessModel("bike-return.bpmn", testProcessModel(processId = "bike-return")),
-        )
-
-        // when / then: merging without variants fails naming both files
-        assertThatThrownBy { underTest.mergeModels(models, enableVariants = false) }
-            .isInstanceOf(DuplicateProcessIdException::class.java)
-            .hasMessageContaining("'bike-leasing'")
-            .hasMessageContaining("bike-leasing-v1.bpmn, bike-leasing-v2.bpmn").hasMessageContaining("enableVariants")
-    }
-
-    @Test
-    fun `merges process ids that are each defined in one file when variants are disabled`() {
-        // given: every process id comes from its own file
-        val models = listOf(
-            SourcedProcessModel("bike-leasing.bpmn", testProcessModel(processId = "bike-leasing")),
-            SourcedProcessModel("bike-return.bpmn", testProcessModel(processId = "bike-return")),
-        )
-
-        // when: merging without variants
-        val result = underTest.mergeModels(models, enableVariants = false)
-
-        // then: each process is kept on its own
-        assertThat(result.map { it.processId }).containsExactly("bike-leasing", "bike-return")
     }
 }
