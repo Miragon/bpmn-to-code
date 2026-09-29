@@ -3,7 +3,6 @@ package io.miragon.bpmn.adapter.outbound.engine
 import io.miragon.bpmn.adapter.outbound.engine.dialect.ZeebeDialect
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
-import io.miragon.bpmn.domain.shared.CompensationDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
@@ -111,38 +110,20 @@ class ZeebeExtractionTest {
             ),
         )
 
-        // derived compensation registry
-        assertThat(bpmnModel.compensations).containsExactlyInAnyOrder(
-            CompensationDefinition(
-                id = "boundary_compensateContract",
-                type = CompensationDefinition.Type.CATCHING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
-            CompensationDefinition(
-                id = "boundary_compensateOrder",
-                type = CompensationDefinition.Type.CATCHING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
-            CompensationDefinition(
-                id = "boundary_compensateInsurance",
-                type = CompensationDefinition.Type.CATCHING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
-            CompensationDefinition(
-                id = "event_reverseApplication",
-                type = CompensationDefinition.Type.THROWING,
-                activityRef = null,
-                waitForCompletion = false,
-            ),
+        // compensation event definitions, per node
+        val compensations = bpmnModel.allFlowNodes.filterIsInstance<FlowNodeDefinition.Event>()
+            .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Compensation>().map { node.id to it } }
+        assertThat(compensations).containsExactlyInAnyOrder(
+            "boundary_compensateContract" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
+            "boundary_compensateOrder" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
+            "boundary_compensateInsurance" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
+            "event_reverseApplication" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
         )
 
         // call activity target and mappings
         val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.hasCalledElement()).isTrue()
-        assertThat(callActivity.getValue()).isEqualTo("cancelBikeOrder")
+        assertThat(callActivity.calledElement).isEqualTo("cancelBikeOrder")
 
         // message registry — the correlation key is declared on the bpmn:Message, so it lives here and not
         // on each of the elements referencing it

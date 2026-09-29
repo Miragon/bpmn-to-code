@@ -1,5 +1,6 @@
 package io.miragon.bpmn.domain.validation.rules
 
+import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
@@ -19,8 +20,8 @@ class TimerCronSyntaxRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         return context.model.timers.mapNotNull { timer ->
-            val (type, value) = timer.getValue()
-            if (type != "Cycle") return@mapNotNull null
+            if (timer.type != TimerType.CYCLE) return@mapNotNull null
+            val value = timer.expression.orEmpty()
             if (value.isBlank() || TimerValueSyntax.isExpression(value)) return@mapNotNull null
             if (TimerValueSyntax.isValidCron(value)) return@mapNotNull null
             ValidationViolation(

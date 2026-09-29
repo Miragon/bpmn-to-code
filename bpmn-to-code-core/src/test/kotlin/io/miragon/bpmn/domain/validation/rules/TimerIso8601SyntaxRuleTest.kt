@@ -36,6 +36,7 @@ class TimerIso8601SyntaxRuleTest {
         assertThat(violations).hasSize(1)
         assertThat(violations.single().elementId).isEqualTo("Timer_Bad")
         assertThat(violations.single().severity).isEqualTo(Severity.ERROR)
+        assertThat(violations.single().message).isEqualTo("Timer Duration value '15 minutes' is not valid ISO-8601.")
     }
 
     @Test

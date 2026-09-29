@@ -197,6 +197,11 @@ name-normalisation logic in these types is unmeasured; and derived projections s
 `ProcessModel.serviceTasks` have to key on the node rather than on the generated name, because collapsing
 by name in the domain hides distinct elements from validation.
 
+> **Update (2026-09):** Only types that become a generated constant still implement `VariableMapping` —
+> service tasks, root elements and variables. Flow nodes, sequence flows, call activities and timers read
+> their fields directly, so `TimerType.label` only spells timer types in validation messages, and the unused
+> `ProcessModel.compensations` projection is gone. Relocating `VariableMapping` itself is still open.
+
 ## Known follow-up: root-element names are still copied onto the node tree
 
 Referencing a root element needs one field — the `…Ref`. The node also carries the name, and for errors and

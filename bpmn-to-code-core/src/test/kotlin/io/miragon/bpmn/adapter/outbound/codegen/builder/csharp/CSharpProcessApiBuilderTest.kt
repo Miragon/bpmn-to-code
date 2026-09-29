@@ -250,7 +250,7 @@ class CSharpProcessApiBuilderTest {
     fun `maps content of id to valid identifier format`() {
         // given: a model with flow nodes whose ids use dashes
         val defaultModel = testBikeLeasingModel()
-        val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.getName().replace("_", "-")) }
+        val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.id?.replace("_", "-")) }
         val modelApi = csharpApi(testBikeLeasingModel(flowNodes = modifiedNodes))
 
         // when: we build the process API file

@@ -23,7 +23,7 @@ data class CrossModelValidationContext(val models: List<ProcessModel>, val engin
      * or `null` if the call activity has no called element or it references an unknown process.
      */
     fun resolveCalledModel(callActivity: CallActivityDefinition): ProcessModel? {
-        val ref = callActivity.getValue()
-        return if (ref.isBlank()) null else findProcess(ref)
+        val ref = callActivity.calledElement
+        return if (ref.isNullOrBlank()) null else findProcess(ref)
     }
 }

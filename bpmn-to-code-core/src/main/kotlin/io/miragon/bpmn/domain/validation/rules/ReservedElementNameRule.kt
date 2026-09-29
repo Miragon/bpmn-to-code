@@ -33,13 +33,13 @@ class ReservedElementNameRule : SingleModelValidationRule {
     }
 
     private fun findReservedElements(model: ProcessModel): List<ValidationViolation> = model.allFlowNodes
-        .filter { it.id != null && it.getRawName().toCamelCase().isReserved() }.map { node ->
+        .filter { it.id?.toCamelCase()?.isReserved() == true }.map { node ->
             ValidationViolation(
                 ruleId = id,
                 severity = severity,
                 elementId = node.id,
                 processId = model.processId,
-                message = "Element id '${node.id}' would be generated as '${node.getRawName().toCamelCase()}', which is reserved by the Process API. Rename the element.",
+                message = "Element id '${node.id}' would be generated as '${node.id.orEmpty().toCamelCase()}', which is reserved by the Process API. Rename the element.",
             )
         }
 
@@ -56,7 +56,7 @@ class ReservedElementNameRule : SingleModelValidationRule {
         }
 
     private fun elementNamesOf(variant: ProcessModel.Variant): Set<String> = variant.graph.allFlowNodes
-        .map { it.getRawName().toCamelCase() }.toSet()
+        .map { it.id.orEmpty().toCamelCase() }.toSet()
 
     private fun String.isReserved(): Boolean = this in RESERVED_TYPE_NAMES || replaceFirstChar { it.lowercaseChar() } in RESERVED_ACCESSOR_NAMES
 

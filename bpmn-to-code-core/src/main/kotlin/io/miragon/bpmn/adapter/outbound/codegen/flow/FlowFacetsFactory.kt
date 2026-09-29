@@ -39,7 +39,7 @@ internal class FlowFacetsFactory(
         return NodeFacets(
             jobType = node.jobType(),
             variables = node.variables.toVariableFacets(),
-            calledProcessId = callActivity?.getValue()?.ifBlank { null },
+            calledProcessId = callActivity?.calledElement?.ifBlank { null },
             inputs = callActivity?.inputMappings.toMappingFacets(),
             outputs = callActivity?.outputMappings.toMappingFacets(),
             timer = event?.firstDefinition<EventDefinitionInstance.Timer>()?.toFacet(),

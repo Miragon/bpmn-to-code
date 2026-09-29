@@ -1,10 +1,8 @@
 package io.miragon.bpmn.domain
 
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
-import io.miragon.bpmn.domain.shared.CompensationDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventDirection
-import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.ProcessGraph
@@ -24,7 +22,7 @@ import io.miragon.bpmn.domain.shared.VariableDefinition
  * and flows (see [FlowNodeDefinition.Activity.SubProcess]). Consumers that need a flat view use [graph].
  *
  * [definitions] holds the `bpmn:Definitions` root-element registries that nodes reference. Everything
- * else — timers, compensations, service-task implementations, call activities and variables — is *derived*
+ * else — timers, service-task implementations, call activities and variables — is *derived*
  * from the node tree, so it can never drift from it.
  *
  * [variants] is empty for a single-file process and holds the per-variant node sets once several files
@@ -65,21 +63,14 @@ data class ProcessModel(
     val callActivities: List<CallActivityDefinition>
         get() = allFlowNodes
             .filterIsInstance<FlowNodeDefinition.Activity.CallActivity>()
-            .map { it.definition }.sortedBy { it.getRawName() }
+            .map { it.definition }.sortedBy { it.id.orEmpty() }
 
     val timers: List<TimerDefinition>
         get() = allFlowNodes
             .filterIsInstance<FlowNodeDefinition.Event>()
             .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Timer>().map { node to it } }
             .map { (node, timer) -> TimerDefinition(id = node.id, type = timer.timerType, expression = timer.expression) }
-            .sortedBy { it.getRawName() }
-
-    val compensations: List<CompensationDefinition>
-        get() = allFlowNodes
-            .filterIsInstance<FlowNodeDefinition.Event>()
-            .flatMap { node -> node.eventDefinitions.filterIsInstance<EventDefinitionInstance.Compensation>().map { node to it } }
-            .map { (node, compensation) -> compensation.toDefinition(node) }
-            .filter { it.getRawName().isNotEmpty() }.distinctBy { it.getRawName() }.sortedBy { it.getRawName() }
+            .sortedBy { it.id.orEmpty() }
 
     val variables: List<VariableDefinition>
         get() = allFlowNodes.flatMap { it.variables }.distinct().sortedBy { it.getRawName() }
@@ -146,18 +137,6 @@ data class ProcessModel(
         is FlowNodeDefinition.Activity.Task -> implementation
         is FlowNodeDefinition.Event -> implementation
         else -> null
-    }
-
-    private fun EventDefinitionInstance.Compensation.toDefinition(
-        node: FlowNodeDefinition.Event,
-    ): CompensationDefinition {
-        val type = if (node.shape == EventShape.BOUNDARY_EVENT) CompensationDefinition.Type.CATCHING else CompensationDefinition.Type.THROWING
-        return CompensationDefinition(
-            id = node.id,
-            type = type,
-            activityRef = activityRef,
-            waitForCompletion = waitForCompletion,
-        )
     }
 
     /**

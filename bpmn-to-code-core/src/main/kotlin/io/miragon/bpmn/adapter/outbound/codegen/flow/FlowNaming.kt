@@ -25,7 +25,7 @@ internal object FlowNaming {
      * Assigns [Names] to every node of the model, keyed by element id.
      */
     fun assign(nodes: List<FlowNodeWithId>): Map<String, Names> = nodes.associate { node ->
-        val objectName = node.definition.getRawName().toCamelCase()
+        val objectName = node.definition.id.orEmpty().toCamelCase()
         node.id to Names(objectName, decapitalize(objectName))
     }
 
