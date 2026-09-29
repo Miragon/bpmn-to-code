@@ -45,6 +45,36 @@ class PathWalkKotlinApiTest {
     }
 
     @Test
+    fun `via records the walked sequence flows including those of the subprocess interior`() {
+        val flowIds = PathWalk.from(Newsletter.StartEventSubmitRegistrationForm)
+            .via { it.outgoingFlows().toServiceTaskIncrementSubscriptionCounter }
+            .via { it.outgoingFlows().toSubProcessConfirmation }
+            .inside(Newsletter.SubProcessConfirmation) { s ->
+                PathWalk.from(s.startEventRequestReceived)
+                    .via { it.outgoingFlows().toServiceTaskSendConfirmationMail }
+                    .via { it.outgoingFlows().toReceiveTaskConfirmRegistration }
+                    .endVia { it.outgoingFlows().toEndEventSubscriptionConfirmed }
+            }
+            .via { it.outgoingFlows().toGatewaySplitNotifications }
+            .via { it.outgoingFlows().toServiceTaskSendWelcomeMail }
+            .via { it.outgoingFlows().toGatewayJoinNotifications }
+            .endVia { it.outgoingFlows().toEndEventRegistrationCompleted }
+            .flowIds
+
+        assertThat(flowIds).containsExactly(
+            "flow_submitToIncrementCounter",
+            "flow_incrementCounterToConfirmation",
+            "flow_requestToConfirmationMail",
+            "flow_confirmationMailToConfirm",
+            "flow_confirmToConfirmed",
+            "flow_confirmationToSplit",
+            "flow_splitToWelcomeMail",
+            "flow_welcomeMailToJoin",
+            "flow_joinToRegistrationCompleted",
+        )
+    }
+
+    @Test
     fun `interrupting timer boundary leaves the subprocess into the call activity and compensation end`() {
         val ids = PathWalk.from(Newsletter.StartEventSubmitRegistrationForm)
             .then { it.serviceTaskIncrementSubscriptionCounter }

@@ -119,6 +119,7 @@ class RuntimeTypesTest {
     fun `SequenceFlow implements value equality and copy`() {
         val flow = SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end"))
 
+        assertThat(flow.isDefault).isTrue()
         assertThat(flow).isEqualTo(SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end")))
         assertThat(flow).isNotEqualTo(flow.copy(isDefault = false))
         assertThat(flow.copy(name = "Yes").name).isEqualTo("Yes")
