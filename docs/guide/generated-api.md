@@ -65,14 +65,18 @@ package de.emaarco.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BoundaryEvent
+import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.BpmnEngine
+import io.miragon.bpmn.runtime.BpmnEventType
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.Event
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
+import io.miragon.bpmn.runtime.TimerType
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.VariableName
 
@@ -81,8 +85,9 @@ object BikeLeasingProcessApi {
   val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
 
   object Flow {
-    object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), "MESSAGE_START_EVENT", "Leasing request received"),
-        HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows> {
+    object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), BpmnElementType.START_EVENT, "Leasing request received"),
+        HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows>, Event {
+      override val eventType = BpmnEventType.MESSAGE
       val MESSAGE: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
       override val next: Next get() = Next
       override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
@@ -94,7 +99,7 @@ object BikeLeasingProcessApi {
       }
     }
 
-    object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), "SERVICE_TASK", "Send contract"),
+    object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract"),
         HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
       override val next: Next get() = Next
@@ -107,22 +112,23 @@ object BikeLeasingProcessApi {
       object OutgoingFlows { /* one SequenceFlow per element it leads to, named to<Element> */ }
     }
 
-    object TimerSignatureReminder : AbstractFlowNode(ElementId("timer_signatureReminder"), "TIMER_BOUNDARY_EVENT", "7 days passed"),
+    object TimerSignatureReminder : AbstractFlowNode(ElementId("timer_signatureReminder"), BpmnElementType.BOUNDARY_EVENT, "7 days passed"),
         HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract> {
-      val TIMER: BpmnTimer = BpmnTimer("Duration", "P7D")
+      override val eventType = BpmnEventType.TIMER
+      val TIMER: BpmnTimer = BpmnTimer(type = TimerType.DURATION, timerValue = "P7D")
       override val attachedTo: SubProcessConcludeContract get() = SubProcessConcludeContract
       override val isInterrupting: Boolean = false
       // …
     }
 
-    object SubProcessConcludeContract : AbstractFlowNode(ElementId("subProcess_concludeContract"), "SUB_PROCESS", "Conclude contract"),
+    object SubProcessConcludeContract : AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
         HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
       override val startEvents: Start get() = Start
       object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
       // …
     }
 
-    object EndEventLeasingActive : AbstractFlowNode(ElementId("endEvent_leasingActive"), "END_EVENT", "Leasing active")
+    object EndEventLeasingActive : AbstractFlowNode(ElementId("endEvent_leasingActive"), BpmnElementType.END_EVENT, "Leasing active")
     // … one nested object per element, including those inside subprocesses
   }
 }
@@ -176,7 +182,7 @@ public final class BikeLeasingProcessApi {
             public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_CONTRACT;
 
             public ServiceTaskSendContract() {
-                super(new ElementId("serviceTask_sendContract"), "SERVICE_TASK", "Send contract");
+                super(new ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract");
             }
 
             @Override public Next getNext() { return new Next(); }
@@ -217,9 +223,9 @@ namespace de.emaarco.example;
 public static class BikeLeasingProcessApi
 {
     public const string ProcessId = "bikeLeasing";
-    public const string ProcessEngine = "ZEEBE";
+    public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
-    public static class Runtime { /* IFlowNode, SequenceFlow<T>, ElementId, VariableName, BpmnTimer, … inlined */ }
+    public static class Runtime { /* IFlowNode, IEvent, SequenceFlow<T>, ElementId, VariableName, BpmnTimer, the enums, … inlined */ }
 
     public static class Flow
     {
@@ -230,7 +236,7 @@ public static class BikeLeasingProcessApi
             public const string JobType = ServiceTasks.MiraveloSendContract;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_sendContract");
-            public string ElementType => "SERVICE_TASK";
+            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send contract";
 
             public NodeVariables Variables { get; } = new();
@@ -279,11 +285,12 @@ Each node extends **`AbstractFlowNode`** and exposes:
 
 | Member | Present on | Type | Mirrors in JSON |
 |---|---|---|---|
-| `id`, `elementType`, `name` | every node | `ElementId`, `String`, `String?` | `id`, `type`, `name` |
+| `id`, `elementType`, `name` | every node | `ElementId`, `BpmnElementType`, `String?` | `id`, `type`, `name` |
+| `eventType`, marker `Event` | events | `BpmnEventType` (`NONE`, `TIMER`, …, `TERMINATE`, `MULTIPLE`) | `eventDefinitions[]` |
 | `JOB_TYPE` | tasks and events with an implementation | `const String`, referring to `ServiceTasks` | `implementation.jobType` |
 | `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut` | `variables[]` |
 | `CALLED_PROCESS`, `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
-| `TIMER` | timer events | `BpmnTimer` | `eventDefinitions[timer]` |
+| `TIMER` | timer events | `BpmnTimer` (`type`: `TimerType` — `DATE`, `DURATION`, `CYCLE`) | `eventDefinitions[timer]` |
 | `MESSAGE` / `SIGNAL` / `ERROR` / `ESCALATION` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnError` / `BpmnEscalation`, referring to the shared definition | `eventDefinitions[*]` |
 | `attachedTo`, `BoundaryEvent<Host>` | boundary events | the host node | `attachedToRef` |
 | `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
@@ -375,7 +382,7 @@ A subprocess additionally implements `FlowScope` and opens its interior via `sta
 
 ```kotlin
 object SubProcessConcludeContract :
-    AbstractFlowNode(ElementId("subProcess_concludeContract"), "SUB_PROCESS", "Conclude contract"),
+    AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
     HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
   override val next: Next get() = Next                          // what follows the subprocess (+ its boundary events)
   override val outgoingFlows: OutgoingFlows get() = OutgoingFlows  // its outgoing sequence flow(s)
@@ -386,7 +393,8 @@ object SubProcessConcludeContract :
 ```
 
 Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `name`), **`HasSuccessors<Next>`**,
-**`HasOutgoingFlows<OutgoingFlows>`**, **`FlowScope<Start>`** and **`BoundaryEvent<Host>`** (`attachedTo`, `isInterrupting`).
+**`HasOutgoingFlows<OutgoingFlows>`**, **`FlowScope<Start>`**, **`Event`** (`eventType`) and
+**`BoundaryEvent<Host>`** (an `Event` with `attachedTo`, `isInterrupting`).
 
 ### Enumerating elements
 

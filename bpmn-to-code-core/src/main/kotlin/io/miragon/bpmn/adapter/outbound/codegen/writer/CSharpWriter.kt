@@ -50,7 +50,7 @@ internal class CSharpWriter {
 
     fun constant(name: String, value: String) = constantExpression(name, stringLiteral(value))
 
-    fun constantExpression(name: String, expression: String) = line("public const string ${disambiguate(name)} = $expression;")
+    fun constantExpression(name: String, expression: String, type: String = "string") = line("public const $type ${disambiguate(name)} = $expression;")
 
     /**
      * The singleton of the enclosing node class: a private constructor plus a static `Instance` field. The

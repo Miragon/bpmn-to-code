@@ -8,7 +8,7 @@ public static class CancelBikeOrderProcessApi
 {
     public const string ProcessId = "cancelBikeOrder";
 
-    public const string ProcessEngine = "ZEEBE";
+    public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
     /// <summary>
     /// The runtime types this API's Flow nodes are built from; inlined so the file needs no package.
@@ -19,12 +19,18 @@ public static class CancelBikeOrderProcessApi
         public interface IFlowNode
         {
             ElementId Id { get; }
-            string ElementType { get; }
+            BpmnElementType ElementType { get; }
             string? Name { get; }
         }
 
+        /// <summary>Marks an event node and exposes its event definition kind.</summary>
+        public interface IEvent : IFlowNode
+        {
+            BpmnEventType EventType { get; }
+        }
+
         /// <summary>Marks a boundary event: one of its host's successors, reached without a sequence flow.</summary>
-        public interface IBoundaryEvent : IFlowNode
+        public interface IBoundaryEvent : IEvent
         {
         }
 
@@ -77,7 +83,67 @@ public static class CancelBikeOrderProcessApi
             public sealed record InOut(string Value) : VariableName(Value);
         }
 
-        public sealed record BpmnTimer(string Type, string TimerValue);
+        /// <summary>BPMN element type of a Flow node; an event's definition is its EventType.</summary>
+        public enum BpmnElementType
+        {
+            ServiceTask,
+            UserTask,
+            ReceiveTask,
+            SendTask,
+            ScriptTask,
+            ManualTask,
+            BusinessRuleTask,
+            Task,
+            ExclusiveGateway,
+            ParallelGateway,
+            InclusiveGateway,
+            EventBasedGateway,
+            ComplexGateway,
+            SubProcess,
+            EventSubProcess,
+            Transaction,
+            CallActivity,
+            StartEvent,
+            EndEvent,
+            IntermediateCatchEvent,
+            IntermediateThrowEvent,
+            BoundaryEvent,
+            Unknown,
+        }
+
+        /// <summary>Event definition of an event: None without one, Multiple with several.</summary>
+        public enum BpmnEventType
+        {
+            None,
+            Timer,
+            Message,
+            Error,
+            Signal,
+            Escalation,
+            Compensation,
+            Conditional,
+            Link,
+            Terminate,
+            Multiple,
+        }
+
+        /// <summary>BPMN timer definition type.</summary>
+        public enum TimerType
+        {
+            Date,
+            Duration,
+            Cycle,
+        }
+
+        /// <summary>Process engine dialect a generated Process API targets.</summary>
+        public enum BpmnEngine
+        {
+            Zeebe,
+            Camunda7,
+            Operaton,
+        }
+
+        public sealed record BpmnTimer(TimerType Type, string TimerValue);
 
         public sealed record BpmnError(string Name, string Code);
 
@@ -127,7 +193,8 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "boundary_cancellationFailed";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "ERROR_BOUNDARY_EVENT";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
+                public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Error;
                 public string? Name => "Cancellation failed";
                 public ServiceTaskRequestCancellation AttachedTo => ServiceTaskRequestCancellation.Instance;
                 public bool IsInterrupting => true;
@@ -145,7 +212,7 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class EndEventBikeOrderCancelled : Runtime.IFlowNode
+            public sealed class EndEventBikeOrderCancelled : Runtime.IEvent
             {
                 public static readonly EndEventBikeOrderCancelled Instance = new();
                 private EndEventBikeOrderCancelled() { }
@@ -153,7 +220,8 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "endEvent_bikeOrderCancelled";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "MESSAGE_END_EVENT";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
+                public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
                 public string? Name => "Bike order cancelled";
                 public Runtime.MessageName Message { get; } = new(Messages.MiraveloBikeOrderCancelled);
             }
@@ -165,7 +233,7 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "gateway_cancellationPossible";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "EXCLUSIVE_GATEWAY";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
                 public string? Name => "Cancellation possible?";
 
                 public Successors Next => new();
@@ -190,7 +258,7 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "gateway_collectClarifications";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "EXCLUSIVE_GATEWAY";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
                 public string? Name => null;
 
                 public Successors Next => new();
@@ -213,7 +281,7 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "gateway_mergeReturn";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "EXCLUSIVE_GATEWAY";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
                 public string? Name => null;
 
                 public Successors Next => new();
@@ -237,7 +305,7 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "serviceTask_bookCancellationCosts";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "SERVICE_TASK";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
                 public string? Name => "Book cancellation costs";
 
                 public NodeVariables Variables { get; } = new();
@@ -271,7 +339,7 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "serviceTask_requestCancellation";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "SERVICE_TASK";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
                 public string? Name => "Request cancellation";
 
                 public NodeVariables Variables { get; } = new();
@@ -298,14 +366,15 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class StartEventCancellationRequired : Runtime.IFlowNode
+            public sealed class StartEventCancellationRequired : Runtime.IEvent
             {
                 public static readonly StartEventCancellationRequired Instance = new();
                 private StartEventCancellationRequired() { }
 
                 public const string ElementId = "startEvent_cancellationRequired";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "START_EVENT";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
+                public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
                 public string? Name => "Cancellation required";
 
                 public NodeVariables Variables { get; } = new();
@@ -338,7 +407,7 @@ public static class CancelBikeOrderProcessApi
 
                 public const string ElementId = "userTask_clarifyReturn";
                 public Runtime.ElementId Id { get; } = new(ElementId);
-                public string ElementType => "USER_TASK";
+                public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.UserTask;
                 public string? Name => "Clarify return";
 
                 public Successors Next => new();

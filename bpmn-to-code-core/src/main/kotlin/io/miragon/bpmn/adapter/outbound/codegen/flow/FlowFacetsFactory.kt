@@ -74,7 +74,7 @@ internal class FlowFacetsFactory(
 
     private inline fun <reified T : EventDefinitionInstance> FlowNodeDefinition.Event.firstDefinition(): T? = eventDefinitions.filterIsInstance<T>().firstOrNull()
 
-    private fun EventDefinitionInstance.Timer.toFacet(): TimerFacet = TimerFacet(type = timerType?.label ?: "", expression = expression ?: "")
+    private fun EventDefinitionInstance.Timer.toFacet(): TimerFacet? = timerType?.let { TimerFacet(type = it, expression = expression ?: "") }
 
     private fun FlowNodeDefinition.messageReference(): MessageReference? = when (this) {
         is FlowNodeDefinition.Event -> firstDefinition<EventDefinitionInstance.Message>()?.reference

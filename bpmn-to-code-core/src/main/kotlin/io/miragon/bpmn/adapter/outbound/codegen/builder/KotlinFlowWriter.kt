@@ -74,15 +74,22 @@ internal class KotlinFlowWriter {
             nodeBuilder.addSuperinterface(ownHolderInterface("HasOutgoingFlows", node, OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
-        if (node.isBoundaryEvent && host != null) {
-            nodeBuilder.addSuperinterface(ClassName(RUNTIME_PACKAGE, "BoundaryEvent").parameterizedBy(ClassName("", host.objectName)))
+        when {
+            node.isBoundaryEvent && host != null ->
+                nodeBuilder.addSuperinterface(ClassName(RUNTIME_PACKAGE, "BoundaryEvent").parameterizedBy(ClassName("", host.objectName)))
+
+            node.eventType != null -> nodeBuilder.addSuperinterface(ClassName(RUNTIME_PACKAGE, "Event"))
+        }
+        node.eventType?.let { eventType ->
+            val eventTypeClass = ClassName(RUNTIME_PACKAGE, "BpmnEventType")
+            nodeBuilder.addProperty(PropertySpec.builder("eventType", eventTypeClass, KModifier.OVERRIDE).initializer("%T.%L", eventTypeClass, eventType).build())
         }
     }
 
     // One named argument per line, trailing comma included, as Kotlin style wants a multi-line call.
     private fun superclassArguments(node: FlowGraphNode): CodeBlock {
         val arguments = CodeBlock.builder()
-            .add("⇥\nid = %T(%S),\nelementType = %S,", ClassName(RUNTIME_PACKAGE, "ElementId"), node.id, node.elementType)
+            .add("⇥\nid = %T(%S),\nelementType = %T.%L,", ClassName(RUNTIME_PACKAGE, "ElementId"), node.id, ClassName(RUNTIME_PACKAGE, "BpmnElementType"), node.elementType)
         node.name?.let { arguments.add("\nname = %S,", it) }
         return arguments.add("⇤\n").build()
     }

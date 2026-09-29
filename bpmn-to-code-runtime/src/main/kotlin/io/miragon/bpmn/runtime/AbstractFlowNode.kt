@@ -12,7 +12,7 @@ package io.miragon.bpmn.runtime
  */
 abstract class AbstractFlowNode @JvmOverloads constructor(
     override val id: ElementId,
-    override val elementType: String,
+    override val elementType: BpmnElementType,
     override val name: String? = null,
 ) : FlowNode {
 

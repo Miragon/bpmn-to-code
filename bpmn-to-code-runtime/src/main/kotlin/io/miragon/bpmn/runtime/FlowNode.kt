@@ -9,6 +9,6 @@ package io.miragon.bpmn.runtime
  */
 interface FlowNode {
     val id: ElementId
-    val elementType: String
+    val elementType: BpmnElementType
     val name: String?
 }

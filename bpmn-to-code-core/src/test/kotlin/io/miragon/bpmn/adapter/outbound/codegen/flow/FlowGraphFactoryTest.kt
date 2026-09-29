@@ -118,6 +118,7 @@ class FlowGraphFactoryTest {
 
         assertThat(serviceTask.id).isEqualTo("serviceTask_validateApplication")
         assertThat(serviceTask.elementType).isEqualTo("SERVICE_TASK")
+        assertThat(serviceTask.eventType).isNull()
         assertThat(serviceTask.objectName).isEqualTo("ServiceTaskValidateApplication")
         assertThat(serviceTask.name).isEqualTo("Validate application")
 
@@ -177,11 +178,19 @@ class FlowGraphFactoryTest {
     }
 
     @Test
+    fun `event node carries its shape as element type and its definition as event type`() {
+        val reminder = leasingGraph.node("timerSignatureReminder")
+
+        assertThat(reminder.elementType).isEqualTo("BOUNDARY_EVENT")
+        assertThat(reminder.eventType).isEqualTo("TIMER")
+    }
+
+    @Test
     fun `boundary events carry their host and whether they interrupt, timers their definition`() {
         val reminder = leasingGraph.node("timerSignatureReminder").facets
         val applicationInvalid = leasingGraph.node("boundaryApplicationInvalid").facets
 
-        assertThat(reminder.timer).isEqualTo(TimerFacet("Duration", "P7D"))
+        assertThat(reminder.timer).isEqualTo(TimerFacet(TimerType.DURATION, "P7D"))
         assertThat(reminder.attachedTo?.objectName).isEqualTo("SubProcessConcludeContract")
         assertThat(reminder.isInterrupting).isFalse()
         assertThat(applicationInvalid.attachedTo?.objectName).isEqualTo("ServiceTaskValidateApplication")
@@ -192,7 +201,7 @@ class FlowGraphFactoryTest {
     fun `intermediate timer carries its expression but no host`() {
         val facets = leasingGraph.node("timerWithdrawalPeriodElapsed").facets
 
-        assertThat(facets.timer).isEqualTo(TimerFacet("Duration", "\${withdrawalPeriod}"))
+        assertThat(facets.timer).isEqualTo(TimerFacet(TimerType.DURATION, "\${withdrawalPeriod}"))
         assertThat(facets.attachedTo).isNull()
     }
 
@@ -226,7 +235,7 @@ class FlowGraphFactoryTest {
         )
         val facets = FlowGraphFactory.build(model).node("nightly").facets
 
-        assertThat(facets.timer).isEqualTo(TimerFacet("Cycle", "R/PT24H"))
+        assertThat(facets.timer).isEqualTo(TimerFacet(TimerType.CYCLE, "R/PT24H"))
         assertThat(facets.attachedTo).isNull()
         assertThat(facets.isInterrupting).isNull()
     }

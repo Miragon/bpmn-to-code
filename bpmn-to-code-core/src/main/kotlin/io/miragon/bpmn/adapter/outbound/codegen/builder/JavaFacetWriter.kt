@@ -12,6 +12,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
@@ -27,7 +28,7 @@ internal class JavaFacetWriter {
     fun fields(facets: NodeFacets): List<FieldSpec> = listOfNotNull(
         facets.jobType?.let { jobTypeField(it) },
         facets.calledProcessId?.let { wrappedField("CALLED_PROCESS", "ProcessId", it) },
-        facets.timer?.let { pairField("TIMER", "BpmnTimer", it.type, it.expression) },
+        facets.timer?.let { timerField(it) },
         facets.message?.let { sharedField("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
         facets.signal?.let { sharedField("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
         facets.error?.let { sharedField("ERROR", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
@@ -78,9 +79,12 @@ internal class JavaFacetWriter {
 
     private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = CodeBlock.of("new \$T(\$S, \$S)", wrapperClass, value.name, value.code)
 
-    private fun pairField(name: String, wrapper: String, first: String, second: String): FieldSpec {
-        val wrapperClass = ClassName.get(RUNTIME_PACKAGE, wrapper)
-        return FieldSpec.builder(wrapperClass, name, PUBLIC, STATIC, FINAL).initializer("new \$T(\$S, \$S)", wrapperClass, first, second).build()
+    private fun timerField(timer: TimerFacet): FieldSpec {
+        val timerClass = ClassName.get(RUNTIME_PACKAGE, "BpmnTimer")
+        val timerTypeClass = ClassName.get(RUNTIME_PACKAGE, "TimerType")
+        return FieldSpec.builder(timerClass, "TIMER", PUBLIC, STATIC, FINAL)
+            .initializer("new \$T(\$T.\$L, \$S)", timerClass, timerTypeClass, timer.type.name, timer.expression)
+            .build()
     }
 
     private fun getter(name: String, returnType: TypeName, returnValue: CodeBlock, overridesBoundaryEvent: Boolean): MethodSpec {

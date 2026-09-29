@@ -3,8 +3,11 @@ package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BoundaryEvent;
+import io.miragon.bpmn.runtime.BpmnElementType;
 import io.miragon.bpmn.runtime.BpmnEngine;
+import io.miragon.bpmn.runtime.BpmnEventType;
 import io.miragon.bpmn.runtime.ElementId;
+import io.miragon.bpmn.runtime.Event;
 import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
@@ -89,7 +92,12 @@ public final class CancelBikeOrderProcessApi {
         public static final String ELEMENT_ID = "boundary_cancellationFailed";
 
         public BoundaryCancellationFailed() {
-          super(new ElementId(ELEMENT_ID), "ERROR_BOUNDARY_EVENT", "Cancellation failed");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.BOUNDARY_EVENT, "Cancellation failed");
+        }
+
+        @Override
+        public BpmnEventType getEventType() {
+          return BpmnEventType.ERROR;
         }
 
         @Override
@@ -125,7 +133,7 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class EndEventBikeOrderCancelled extends AbstractFlowNode {
+      public static final class EndEventBikeOrderCancelled extends AbstractFlowNode implements Event {
         public static final String ELEMENT_ID = "endEvent_bikeOrderCancelled";
 
         public static final String JOB_TYPE = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED;
@@ -133,7 +141,12 @@ public final class CancelBikeOrderProcessApi {
         public static final MessageName MESSAGE = Messages.MIRAVELO_BIKE_ORDER_CANCELLED;
 
         public EndEventBikeOrderCancelled() {
-          super(new ElementId(ELEMENT_ID), "MESSAGE_END_EVENT", "Bike order cancelled");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.END_EVENT, "Bike order cancelled");
+        }
+
+        @Override
+        public BpmnEventType getEventType() {
+          return BpmnEventType.MESSAGE;
         }
       }
 
@@ -141,7 +154,7 @@ public final class CancelBikeOrderProcessApi {
         public static final String ELEMENT_ID = "gateway_cancellationPossible";
 
         public GatewayCancellationPossible() {
-          super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY", "Cancellation possible?");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.EXCLUSIVE_GATEWAY, "Cancellation possible?");
         }
 
         @Override
@@ -179,7 +192,7 @@ public final class CancelBikeOrderProcessApi {
         public static final String ELEMENT_ID = "gateway_collectClarifications";
 
         public GatewayCollectClarifications() {
-          super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.EXCLUSIVE_GATEWAY);
         }
 
         @Override
@@ -209,7 +222,7 @@ public final class CancelBikeOrderProcessApi {
         public static final String ELEMENT_ID = "gateway_mergeReturn";
 
         public GatewayMergeReturn() {
-          super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.EXCLUSIVE_GATEWAY);
         }
 
         @Override
@@ -242,7 +255,7 @@ public final class CancelBikeOrderProcessApi {
         public static final String JOB_TYPE = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE;
 
         public ServiceTaskBookCancellationCosts() {
-          super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Book cancellation costs");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Book cancellation costs");
         }
 
         @Override
@@ -282,7 +295,7 @@ public final class CancelBikeOrderProcessApi {
         public static final String JOB_TYPE = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION;
 
         public ServiceTaskRequestCancellation() {
-          super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Request cancellation");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Request cancellation");
         }
 
         @Override
@@ -320,11 +333,16 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class StartEventCancellationRequired extends AbstractFlowNode implements HasSuccessors<StartEventCancellationRequired.Next>, HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows> {
+      public static final class StartEventCancellationRequired extends AbstractFlowNode implements HasSuccessors<StartEventCancellationRequired.Next>, HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows>, Event {
         public static final String ELEMENT_ID = "startEvent_cancellationRequired";
 
         public StartEventCancellationRequired() {
-          super(new ElementId(ELEMENT_ID), "START_EVENT", "Cancellation required");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Cancellation required");
+        }
+
+        @Override
+        public BpmnEventType getEventType() {
+          return BpmnEventType.NONE;
         }
 
         @Override
@@ -362,7 +380,7 @@ public final class CancelBikeOrderProcessApi {
         public static final String ELEMENT_ID = "userTask_clarifyReturn";
 
         public UserTaskClarifyReturn() {
-          super(new ElementId(ELEMENT_ID), "USER_TASK", "Clarify return");
+          super(new ElementId(ELEMENT_ID), BpmnElementType.USER_TASK, "Clarify return");
         }
 
         @Override

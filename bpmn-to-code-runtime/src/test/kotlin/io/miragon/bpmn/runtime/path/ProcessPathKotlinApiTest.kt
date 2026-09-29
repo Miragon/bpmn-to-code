@@ -1,10 +1,13 @@
 package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.BoundaryEvent
+import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.BpmnError
+import io.miragon.bpmn.runtime.BpmnEventType
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
+import io.miragon.bpmn.runtime.TimerType
 import io.miragon.bpmn.runtime.VariableName
 import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi
 import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.SubProcessConcludeContract
@@ -188,10 +191,11 @@ class ProcessPathKotlinApiTest {
 
     @Test
     fun `nodes expose their id and flat elementType across element kinds`() {
-        assertThat(BikeLeasing.StartEventLeasingRequestReceived.elementType).isEqualTo("MESSAGE_START_EVENT")
-        assertThat(BikeLeasing.GatewayFork.elementType).isEqualTo("PARALLEL_GATEWAY")
-        assertThat(BikeLeasing.CallActivityCancelBikeOrder.elementType).isEqualTo("CALL_ACTIVITY")
-        assertThat(BikeLeasing.ServiceTaskSendContract.elementType).isEqualTo("SERVICE_TASK")
+        assertThat(BikeLeasing.StartEventLeasingRequestReceived.elementType).isEqualTo(BpmnElementType.START_EVENT)
+        assertThat(BikeLeasing.StartEventLeasingRequestReceived.eventType).isEqualTo(BpmnEventType.MESSAGE)
+        assertThat(BikeLeasing.GatewayFork.elementType).isEqualTo(BpmnElementType.PARALLEL_GATEWAY)
+        assertThat(BikeLeasing.CallActivityCancelBikeOrder.elementType).isEqualTo(BpmnElementType.CALL_ACTIVITY)
+        assertThat(BikeLeasing.ServiceTaskSendContract.elementType).isEqualTo(BpmnElementType.SERVICE_TASK)
         assertThat(BikeLeasing.GatewayFork.id.value).isEqualTo("gateway_fork")
     }
 
@@ -213,7 +217,7 @@ class ProcessPathKotlinApiTest {
         assertThat(BikeLeasing.StartEventLeasingRequestReceived.MESSAGE).isEqualTo(MessageName("miravelo.leasingRequestReceived"))
         assertThat(BikeLeasing.BoundaryApplicationInvalid.ERROR).isEqualTo(BpmnError("miravelo.applicationInvalid", "applicationInvalid"))
 
-        assertThat(BikeLeasing.TimerSignatureReminder.TIMER).isEqualTo(BpmnTimer("Duration", "P7D"))
+        assertThat(BikeLeasing.TimerSignatureReminder.TIMER).isEqualTo(BpmnTimer(TimerType.DURATION, "P7D"))
         assertThat(BikeLeasing.TimerSignatureReminder.attachedTo).isEqualTo(BikeLeasing.SubProcessConcludeContract)
         assertThat(BikeLeasing.TimerSignatureReminder.isInterrupting).isFalse()
         assertThat(BikeLeasing.TimerSignatureReminder).isInstanceOf(BoundaryEvent::class.java)
@@ -261,6 +265,6 @@ class ProcessPathKotlinApiTest {
         // no incoming edge in the graph — no then/onto/enter reaches them. They stay addressable by name.
         val handler = BikeLeasing.ServiceTaskCancelContract
         assertThat(handler.id.value).isEqualTo("serviceTask_cancelContract")
-        assertThat(handler.elementType).isEqualTo("SERVICE_TASK")
+        assertThat(handler.elementType).isEqualTo(BpmnElementType.SERVICE_TASK)
     }
 }

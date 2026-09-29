@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder
 
 import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpRuntimeTypes
+import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
@@ -21,9 +22,13 @@ import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.withId
+import io.miragon.bpmn.runtime.BpmnElementType
+import io.miragon.bpmn.runtime.BpmnEngine
+import io.miragon.bpmn.runtime.BpmnEventType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
+import io.miragon.bpmn.runtime.TimerType as RuntimeTimerType
 
 class CSharpProcessApiBuilderTest {
 
@@ -121,6 +126,15 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
+    fun `inlined runtime enums mirror the Kotlin and Java runtime enums in PascalCase`() {
+        val runtimeEnums = listOf(BpmnElementType.entries, BpmnEventType.entries, RuntimeTimerType.entries, BpmnEngine.entries)
+
+        runtimeEnums.flatten().forEach { constant ->
+            assertThat(CSharpRuntimeTypes.SOURCE).contains(" ${constant.name.toPascalCase()},")
+        }
+    }
+
+    @Test
     fun `variable name records keep the raw name as string representation in derived records`() {
         val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
@@ -137,7 +151,7 @@ class CSharpProcessApiBuilderTest {
     fun `flat Flow lists subprocess interior nodes as direct children with Start on the subprocess`() {
         val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
-        assertThat(result.content).contains("        public sealed class StartEventCustomerEligible : Runtime.IFlowNode")
+        assertThat(result.content).contains("        public sealed class StartEventCustomerEligible : Runtime.IEvent")
         assertThat(result.content).contains("public Interior Start => new();")
         assertThat(result.content).contains("public StartEventCustomerEligible StartEventCustomerEligible => StartEventCustomerEligible.Instance;")
     }
@@ -148,7 +162,7 @@ class CSharpProcessApiBuilderTest {
 
         assertThat(result.content).contains("public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;")
         assertThat(result.content).contains("public bool IsInterrupting => false;")
-        assertThat(result.content).contains("public Runtime.BpmnTimer Timer { get; } = new(\"Duration\", \"P7D\");")
+        assertThat(result.content).contains("public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, \"P7D\");")
     }
 
     @Test
@@ -212,7 +226,7 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.buildApiFile(csharpApi(model))
 
         // then: the property is renamed, because C# rejects a member named like its enclosing type (CS0542)
-        assertThat(result.content).contains("public Runtime.BpmnTimer Timer_ { get; } = new(\"Duration\", \"PT1M\");")
+        assertThat(result.content).contains("public Runtime.BpmnTimer Timer_ { get; } = new(Runtime.TimerType.Duration, \"PT1M\");")
     }
 
     @Test
