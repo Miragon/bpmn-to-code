@@ -1,7 +1,6 @@
 package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.domain.validation.ValidationResult
-import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.AbstractAssert
 
@@ -148,14 +147,6 @@ class BpmnValidationAssert(
         @JvmStatic
         fun assertThat(result: ValidationResult): BpmnValidationAssert = BpmnValidationAssert(result)
 
-        private fun formatViolations(violations: List<ValidationViolation>): String = violations.joinToString("\n") { violation ->
-            val severity = if (violation.severity == Severity.ERROR) "ERROR" else "WARN"
-            val location = if (violation.elementId != null) {
-                "${violation.processId}/${violation.elementId}"
-            } else {
-                violation.processId
-            }
-            "[$severity] $location: ${violation.message} (rule: ${violation.ruleId})"
-        }
+        private fun formatViolations(violations: List<ValidationViolation>): String = violations.joinToString("\n") { it.describe() }
     }
 }

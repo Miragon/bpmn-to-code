@@ -21,15 +21,6 @@ class SharedDefinitionCollisionRule(
 
     override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
         val collisions = collisionDetectionService.findSharedCollisions(context.models)
-        return collisions.map { detail ->
-            val conflicting = detail.conflictingIds.joinToString(", ")
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = null,
-                processId = detail.processId,
-                message = "[${detail.variableType}] '${detail.constantName}' has conflicting IDs: $conflicting",
-            )
-        }
+        return collisions.map { violation(processId = it.processId, message = it.describe()) }
     }
 }

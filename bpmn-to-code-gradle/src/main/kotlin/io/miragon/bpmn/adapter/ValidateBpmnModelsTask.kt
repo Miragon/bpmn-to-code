@@ -3,7 +3,6 @@ package io.miragon.bpmn.adapter
 import io.miragon.bpmn.adapter.inbound.ValidateBpmnFilesystemPlugin
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
-import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
@@ -45,17 +44,11 @@ abstract class ValidateBpmnModelsTask : DefaultTask() {
             validationConfig = config,
         )
 
-        result.warnings.forEach { v ->
-            logger.warn("[BPMN VALIDATION WARN] ${formatLocation(v)}: ${v.message} (rule: ${v.ruleId})")
-        }
-        result.errors.forEach { v ->
-            logger.error("[BPMN VALIDATION ERROR] ${formatLocation(v)}: ${v.message} (rule: ${v.ruleId})")
-        }
+        result.warnings.forEach { logger.warn(it.describe()) }
+        result.errors.forEach { logger.error(it.describe()) }
 
         if (result.hasFailures(failOnWarning)) {
-            throw GradleException(
-                "BPMN validation failed: ${result.errors.size} error(s), ${result.warnings.size} warning(s)",
-            )
+            throw GradleException(result.failureSummary)
         }
         logger.lifecycle("BPMN validation passed")
     }
@@ -65,6 +58,4 @@ abstract class ValidateBpmnModelsTask : DefaultTask() {
         check(this::filePattern.isInitialized) { "filePattern must be configured in bpmnToCode { ... }" }
         check(this::processEngine.isInitialized) { "processEngine must be configured in bpmnToCode { ... }" }
     }
-
-    private fun formatLocation(v: ValidationViolation): String = if (v.elementId != null) "${v.processId}/${v.elementId}" else v.processId
 }

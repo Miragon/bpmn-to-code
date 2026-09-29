@@ -19,13 +19,7 @@ class MissingMessageNameRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.allFlowNodes
         .filter { it.hasNamelessMessage() }.map { node ->
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = node.id,
-                processId = context.model.processId,
-                message = "Message element is missing a 'name' attribute.",
-            )
+            violation(processId = context.model.processId, elementId = node.id, message = "Message element is missing a 'name' attribute.")
         }
 
     private fun FlowNodeDefinition.hasNamelessMessage(): Boolean = when (this) {

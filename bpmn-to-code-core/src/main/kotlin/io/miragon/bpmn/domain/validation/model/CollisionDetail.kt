@@ -10,4 +10,7 @@ data class CollisionDetail(
     val constantName: String,
     val conflictingIds: List<String>,
     val processId: String,
-)
+) {
+
+    fun describe(): String = "[$variableType] '$constantName' has conflicting IDs: ${conflictingIds.joinToString(", ")}"
+}

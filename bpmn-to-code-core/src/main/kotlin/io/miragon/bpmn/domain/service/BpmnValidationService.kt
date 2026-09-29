@@ -4,8 +4,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
-import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
 import io.miragon.bpmn.domain.validation.model.ValidationPhase
@@ -53,28 +53,11 @@ class BpmnValidationService(private val config: ValidationConfig = ValidationCon
     }
 
     fun validate(models: List<ProcessModel>, engine: ProcessEngine, phase: ValidationPhase) {
-        val violations = collectViolations(models, engine, phase)
-        logViolations(violations)
-        throwIfNeeded(violations)
-    }
-
-    private fun logViolations(violations: List<ValidationViolation>) {
-        violations.filter { it.severity == Severity.WARN }.forEach { violation ->
-            val location = if (violation.elementId != null) {
-                "${violation.processId}/${violation.elementId}"
-            } else {
-                violation.processId
-            }
-            logger.warn { "[BPMN VALIDATION WARN] $location: ${violation.message} (rule: ${violation.ruleId})" }
-        }
-    }
-
-    private fun throwIfNeeded(violations: List<ValidationViolation>) {
-        val errors = violations.filter { it.severity == Severity.ERROR }
-        val warnings = violations.filter { it.severity == Severity.WARN }
-        val failingViolations = errors + if (config.failOnWarning) warnings else emptyList()
-        if (failingViolations.isNotEmpty()) {
-            throw BpmnValidationException(failingViolations)
+        val result = ValidationResult(collectViolations(models, engine, phase))
+        result.warnings.forEach { logger.warn { it.describe() } }
+        val failures = result.failures(config.failOnWarning)
+        if (failures.isNotEmpty()) {
+            throw BpmnValidationException(failures)
         }
     }
 

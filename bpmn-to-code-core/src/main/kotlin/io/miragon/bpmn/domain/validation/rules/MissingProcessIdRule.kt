@@ -16,15 +16,7 @@ class MissingProcessIdRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         if (context.model.processId.isBlank()) {
-            return listOf(
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = null,
-                    processId = "(unknown)",
-                    message = "BPMN model is missing a process ID.",
-                ),
-            )
+            return listOf(violation(processId = "(unknown)", message = "BPMN model is missing a process ID."))
         }
         return emptyList()
     }

@@ -56,6 +56,23 @@ class ValidationResultTest {
         assertThat(result.isValid).isFalse()
     }
 
+    @Test
+    fun `failures are the errors, plus the warnings when failOnWarning is set`() {
+        val error = violation(Severity.ERROR)
+        val warning = violation(Severity.WARN)
+        val result = ValidationResult(listOf(warning, error))
+
+        assertThat(result.failures(failOnWarning = false)).containsExactly(error)
+        assertThat(result.failures(failOnWarning = true)).containsExactly(error, warning)
+    }
+
+    @Test
+    fun `failure summary counts errors and warnings`() {
+        val result = ValidationResult(listOf(violation(Severity.ERROR), violation(Severity.WARN), violation(Severity.WARN)))
+
+        assertThat(result.failureSummary).isEqualTo("BPMN validation failed: 1 error(s), 2 warning(s)")
+    }
+
     private fun violation(severity: Severity) = ValidationViolation(
         ruleId = "test-rule",
         severity = severity,

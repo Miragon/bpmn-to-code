@@ -15,11 +15,9 @@ class MissingTimerDefinitionRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.timers
         .filter { !it.hasTimerType() }.map { timer ->
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = timer.id,
+            violation(
                 processId = context.model.processId,
+                elementId = timer.id,
                 message = "Timer event definition has no valid type (Date, Duration, or Cycle).",
             )
         }

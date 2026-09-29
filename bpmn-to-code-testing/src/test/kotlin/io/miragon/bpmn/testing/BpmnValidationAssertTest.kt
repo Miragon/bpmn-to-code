@@ -45,7 +45,7 @@ class BpmnValidationAssertTest {
                 BpmnValidationAssert.assertThat(result).assertNoViolations()
             }.isInstanceOf(AssertionError::class.java)
                 .hasMessageContaining("Expected no violations but found 1")
-                .hasMessageContaining("[ERROR] myProcess/Task_1: Something is wrong (rule: test-rule)")
+                .hasMessageContaining("[BPMN VALIDATION ERROR] myProcess/Task_1: Something is wrong (rule: test-rule)")
         }
     }
 
@@ -209,7 +209,7 @@ class BpmnValidationAssertTest {
             assertThatThrownBy {
                 BpmnValidationAssert.assertThat(result).assertNoViolations()
             }.isInstanceOf(AssertionError::class.java)
-                .hasMessageContaining("[WARN] myProcess: Something might be wrong (rule: warn-rule)")
+                .hasMessageContaining("[BPMN VALIDATION WARN] myProcess: Something might be wrong (rule: warn-rule)")
         }
     }
 }

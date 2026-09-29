@@ -15,11 +15,9 @@ class MissingCalledElementRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.callActivities
         .filter { !it.hasCalledElement() }.map { callActivity ->
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = callActivity.id,
+            violation(
                 processId = context.model.processId,
+                elementId = callActivity.id,
                 message = "Call activity is missing a 'calledElement' or 'processId' attribute.",
             )
         }

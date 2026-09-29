@@ -1,10 +1,8 @@
 package io.miragon.bpmn.domain.validation.rules
 
+import io.miragon.bpmn.domain.NamedEventUsage
+import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.EventDirection
-import io.miragon.bpmn.domain.validation.CrossModelValidationRule
-import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
-import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
  * Flags a signal that is thrown (signal end / intermediate throw event) but never caught anywhere in
@@ -15,26 +13,11 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
  * fileset is possible and the rule can only warn. Cross-model — only meaningful with the whole related
  * fileset loaded together, so it is opt-in (see BpmnRules).
  */
-class UncaughtSignalThrowRule : CrossModelValidationRule {
+class UncaughtSignalThrowRule : UnmatchedEventUsageRule(flagged = EventDirection.THROW) {
 
     override val id = "uncaught-signal-throw"
-    override val severity = Severity.WARN
 
-    override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
-        val caughtNames = context.models
-            .flatMap { it.signalUsages() }.filter { it.direction == EventDirection.CATCH }.map { it.name }.toSet()
+    override fun usagesOf(model: ProcessModel): List<NamedEventUsage> = model.signalUsages()
 
-        return context.models.flatMap { model ->
-            model.signalUsages()
-                .filter { it.direction == EventDirection.THROW && it.name !in caughtNames }.map { usage ->
-                    ValidationViolation(
-                        ruleId = id,
-                        severity = severity,
-                        elementId = usage.node.id,
-                        processId = model.processId,
-                        message = "Signal '${usage.name}' is thrown by '${usage.node.id}' but has no catching event in the loaded models.",
-                    )
-                }
-        }
-    }
+    override fun message(usage: NamedEventUsage): String = "Signal '${usage.name}' is thrown by '${usage.node.id}' but has no catching event in the loaded models."
 }
