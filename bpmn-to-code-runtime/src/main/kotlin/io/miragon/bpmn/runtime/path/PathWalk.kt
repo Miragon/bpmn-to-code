@@ -26,7 +26,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
      * Advances to a real successor and records it. `pick`'s input is the current node's `Next`, so only an
      * actual successor compiles.
      */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> then(pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.then { pick.apply(it) })
+    fun <M : HasSuccessors<MNEXT>, MNEXT> then(pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.advanceTo(pick.apply(path.current.next)))
 
     /**
      * Advances along an outgoing sequence flow of the current node and records its target and the flow (see
@@ -46,17 +46,17 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
      * Records the same successor [times] times in a row — for a sequential multi-instance activity or a
      * consecutive self-repeat.
      */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> thenMultipleTimes(times: Int, pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.thenMultipleTimes(repeatTimes = times) { pick.apply(it) })
+    fun <M : HasSuccessors<MNEXT>, MNEXT> thenMultipleTimes(times: Int, pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.advanceTo(pick.apply(path.current.next), times))
 
     /**
      * Advances onto a subprocess node **without** recording it — positions for [enter] / [inside].
      */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> onto(pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.onto { pick.apply(it) })
+    fun <M : HasSuccessors<MNEXT>, MNEXT> onto(pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.moveTo(pick.apply(path.current.next), emptyList()))
 
     /**
      * Terminal step: advances to a final successor (e.g. an end event) and stops, yielding a [Trail].
      */
-    fun <M : FlowNode> end(pick: Function<NEXT, M>): Trail = Trail(path.then { pick.apply(it) })
+    fun <M : FlowNode> end(pick: Function<NEXT, M>): Trail = Trail(path.advanceTo(pick.apply(path.current.next)))
 
     /**
      * Descends into the named subprocess [scope] and records the picked inner node — the re-anchor form of enter.
@@ -79,7 +79,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
     fun <C, M : HasSuccessors<MNEXT>, MNEXT> interruptedBy(
         carrier: HasSuccessors<C>,
         pick: Function<C, M>,
-    ): PathWalk<M, MNEXT> = PathWalk(path.interruptedBy(carrier = carrier) { pick.apply(it) })
+    ): PathWalk<M, MNEXT> = PathWalk(path.advanceTo(pick.apply(carrier.next)))
 
     /**
      * Unchecked re-anchor to an arbitrary node — does not record. The escape hatch; prefer the checked steps.

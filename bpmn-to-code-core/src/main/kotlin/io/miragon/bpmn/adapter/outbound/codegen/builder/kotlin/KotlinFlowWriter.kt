@@ -12,15 +12,16 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.joinToCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 
 /**
  * Emits the typed navigation graph of a Kotlin process API `FlowNodes` object: one nested node object per flow
- * node, carrying its metadata via `AbstractFlowNode`, its own facets (see [KotlinFacetWriter]), its reachable
- * successors behind `next` and its outgoing sequence flows behind `outgoingFlows`, named after the elements
- * they lead to. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess node
+ * node, carrying its metadata via `AbstractFlowNode`, its own facets (see [KotlinFacetWriter]) and its successors
+ * behind `next`, named after the elements they lead to: the `SequenceFlows` to an element, or an attached boundary
+ * event. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess node
  * additionally is a `FlowScope` whose `startEvents` yields the interior's start elements, and a boundary event is
  * a `BoundaryEvent` of its host. `FlowNodes.entries` lists every node.
  */
@@ -46,9 +47,6 @@ internal class KotlinFlowWriter {
         if (node.successors.isNotEmpty()) {
             addSuccessors(nodeBuilder, node)
         }
-        if (node.outgoingFlows.isNotEmpty()) {
-            addOutgoingFlows(nodeBuilder, node)
-        }
         if (node.interiorStarts.isNotEmpty()) {
             addInteriorStarts(nodeBuilder, node)
         }
@@ -60,9 +58,6 @@ internal class KotlinFlowWriter {
             .addSuperclassConstructorParameter(superclassArguments(node))
         if (node.successors.isNotEmpty()) {
             nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.HAS_SUCCESSORS, node = node, holderName = NEXT_HOLDER))
-        }
-        if (node.outgoingFlows.isNotEmpty()) {
-            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.HAS_OUTGOING_FLOWS, node = node, holderName = OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
         when {
@@ -94,14 +89,33 @@ internal class KotlinFlowWriter {
 
     private fun addSuccessors(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         nodeBuilder.addProperty(accessorProperty("next", NEXT_HOLDER))
-        nodeBuilder.addType(accessorHolder(NEXT_HOLDER, node.successors.map { it.propertyName to it.objectName }))
+        val holder = TypeSpec.objectBuilder(NEXT_HOLDER)
+        node.successors.forEach { successor -> holder.addProperty(successorProperty(successor, node.outgoingFlows.find { it.target.objectName == successor.objectName })) }
+        nodeBuilder.addType(holder.build())
     }
 
-    private fun addOutgoingFlows(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        nodeBuilder.addProperty(accessorProperty("outgoingFlows", OUTGOING_FLOWS_HOLDER))
-        val holder = TypeSpec.objectBuilder(OUTGOING_FLOWS_HOLDER)
-        node.outgoingFlows.forEach { holder.addProperty(outgoingFlowsProperty(it)) }
-        nodeBuilder.addType(holder.build())
+    /**
+     * A successor reached by sequence flows is the `SequenceFlows` carrying them; one reached without a flow is an
+     * `AttachedBoundaryEvent`. A single flow without name, condition or default marker uses the short `flowId` form.
+     */
+    private fun successorProperty(successor: FlowEdge, flowsToTarget: FlowsToTarget?): PropertySpec {
+        val target = ClassName("", successor.objectName)
+        val (successorType, value) = when (flowsToTarget) {
+            null -> KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of("%T(%N)", KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT, successor.objectName)
+            else -> KotlinRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsCall(flowsToTarget)
+        }
+        val getter = FunSpec.getterBuilder().addStatement("return %L", value).build()
+        return PropertySpec.builder(successor.propertyName, successorType.parameterizedBy(target)).getter(getter).build()
+    }
+
+    private fun sequenceFlowsCall(flowsToTarget: FlowsToTarget): CodeBlock {
+        val targetName = flowsToTarget.target.objectName
+        val plainFlow = flowsToTarget.flows.singleOrNull()?.takeIf { it.hasOnlyDefaults() }
+        if (plainFlow != null) {
+            return CodeBlock.of("%T(%N, flowId = %T(%S))", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, KotlinRuntimeTypes.ELEMENT_ID, plainFlow.id)
+        }
+        val flows = flowsToTarget.flows.map { sequenceFlowCall(it, targetName) }
+        return CodeBlock.of("%T(⇥\n%N,\n%L,⇤\n)", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, flows.joinToCode(",\n"))
     }
 
     private fun addInteriorStarts(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
@@ -122,21 +136,6 @@ internal class KotlinFlowWriter {
     private fun nodeAccessor(propertyName: String, objectName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", objectName))
         .getter(FunSpec.getterBuilder().addStatement("return %N", objectName).build()).build()
 
-    /**
-     * A single flow to the target is a `SequenceFlow<Target>`; several flows to the same target keep the name and
-     * become a `List<SequenceFlow<Target>>`, so no flow is lost and no sibling is renamed.
-     */
-    private fun outgoingFlowsProperty(flowsToTarget: FlowsToTarget): PropertySpec {
-        val sequenceFlowType = KotlinRuntimeTypes.SEQUENCE_FLOW.parameterizedBy(ClassName("", flowsToTarget.target.objectName))
-        val calls = flowsToTarget.flows.map { sequenceFlowCall(it, flowsToTarget.target.objectName) }
-        val (type, value) = when (calls.size) {
-            1 -> sequenceFlowType to calls.single()
-            else -> LIST.parameterizedBy(sequenceFlowType) to CodeBlock.of("listOf(⇥\n%L,⇤\n)", calls.joinToCode(",\n"))
-        }
-        val getter = FunSpec.getterBuilder().addStatement("return %L", value).build()
-        return PropertySpec.builder(flowsToTarget.propertyName, type).getter(getter).build()
-    }
-
     private fun sequenceFlowCall(flow: SequenceFlowEdge, targetObjectName: String): CodeBlock = KotlinCodeFormat.namedCall(
         KotlinRuntimeTypes.SEQUENCE_FLOW,
         "id" to CodeBlock.of("%T(%S)", KotlinRuntimeTypes.ELEMENT_ID, flow.id),
@@ -149,7 +148,6 @@ internal class KotlinFlowWriter {
     private companion object {
         private const val ELEMENT_ID = "ELEMENT_ID"
         private const val NEXT_HOLDER = "Next"
-        private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"
         private const val START_HOLDER = "Start"
     }
 }

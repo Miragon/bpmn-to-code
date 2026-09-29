@@ -4,6 +4,7 @@
 package de.emaarco.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.AttachedBoundaryEvent
 import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.BpmnEngine
@@ -11,11 +12,11 @@ import io.miragon.bpmn.runtime.BpmnEventType
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.Event
 import io.miragon.bpmn.runtime.FlowNode
-import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.SequenceFlow
+import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.VariableName
 import kotlin.Boolean
 import kotlin.String
@@ -59,7 +60,6 @@ object CancelBikeOrderProcessApi {
         elementType = BpmnElementType.BOUNDARY_EVENT,
         name = "Cancellation failed",
       ), HasSuccessors<BoundaryCancellationFailed.Next>,
-          HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>,
           BoundaryEvent<ServiceTaskRequestCancellation> {
         override val eventType: BpmnEventType = BpmnEventType.ERROR
 
@@ -73,20 +73,9 @@ object CancelBikeOrderProcessApi {
         override val next: Next
           get() = Next
 
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
-
         object Next {
-          val gatewayCollectClarifications: GatewayCollectClarifications
-            get() = GatewayCollectClarifications
-        }
-
-        object OutgoingFlows {
-          val toGatewayCollectClarifications: SequenceFlow<GatewayCollectClarifications>
-            get() = SequenceFlow(
-              id = ElementId("flow_cancellationFailedToCollectClarifications"),
-              target = GatewayCollectClarifications,
-            )
+          val gatewayCollectClarifications: SequenceFlows<GatewayCollectClarifications>
+            get() = SequenceFlows(GatewayCollectClarifications, flowId = ElementId("flow_cancellationFailedToCollectClarifications"))
         }
       }
 
@@ -108,39 +97,33 @@ object CancelBikeOrderProcessApi {
         id = ElementId(GatewayCancellationPossible.ELEMENT_ID),
         elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
         name = "Cancellation possible?",
-      ), HasSuccessors<GatewayCancellationPossible.Next>,
-          HasOutgoingFlows<GatewayCancellationPossible.OutgoingFlows> {
+      ), HasSuccessors<GatewayCancellationPossible.Next> {
         const val ELEMENT_ID: String = "gateway_cancellationPossible"
 
         override val next: Next
           get() = Next
 
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
-
         object Next {
-          val gatewayCollectClarifications: GatewayCollectClarifications
-            get() = GatewayCollectClarifications
-
-          val gatewayMergeReturn: GatewayMergeReturn
-            get() = GatewayMergeReturn
-        }
-
-        object OutgoingFlows {
-          val toGatewayCollectClarifications: SequenceFlow<GatewayCollectClarifications>
-            get() = SequenceFlow(
-              id = ElementId("flow_cancellationNotPossibleToCollectClarifications"),
-              name = "No",
-              conditionExpression = $$"""${!cancellationPossible}""",
-              target = GatewayCollectClarifications,
+          val gatewayCollectClarifications: SequenceFlows<GatewayCollectClarifications>
+            get() = SequenceFlows(
+              GatewayCollectClarifications,
+              SequenceFlow(
+                id = ElementId("flow_cancellationNotPossibleToCollectClarifications"),
+                name = "No",
+                conditionExpression = $$"""${!cancellationPossible}""",
+                target = GatewayCollectClarifications,
+              ),
             )
 
-          val toGatewayMergeReturn: SequenceFlow<GatewayMergeReturn>
-            get() = SequenceFlow(
-              id = ElementId("flow_cancellationPossibleToMergeReturn"),
-              name = "Yes",
-              isDefault = true,
-              target = GatewayMergeReturn,
+          val gatewayMergeReturn: SequenceFlows<GatewayMergeReturn>
+            get() = SequenceFlows(
+              GatewayMergeReturn,
+              SequenceFlow(
+                id = ElementId("flow_cancellationPossibleToMergeReturn"),
+                name = "Yes",
+                isDefault = true,
+                target = GatewayMergeReturn,
+              ),
             )
         }
       }
@@ -148,55 +131,31 @@ object CancelBikeOrderProcessApi {
       object GatewayCollectClarifications : AbstractFlowNode(
         id = ElementId(GatewayCollectClarifications.ELEMENT_ID),
         elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
-      ), HasSuccessors<GatewayCollectClarifications.Next>,
-          HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
+      ), HasSuccessors<GatewayCollectClarifications.Next> {
         const val ELEMENT_ID: String = "gateway_collectClarifications"
 
         override val next: Next
           get() = Next
 
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
-
         object Next {
-          val userTaskClarifyReturn: UserTaskClarifyReturn
-            get() = UserTaskClarifyReturn
-        }
-
-        object OutgoingFlows {
-          val toUserTaskClarifyReturn: SequenceFlow<UserTaskClarifyReturn>
-            get() = SequenceFlow(
-              id = ElementId("flow_collectClarificationsToClarifyReturn"),
-              target = UserTaskClarifyReturn,
-            )
+          val userTaskClarifyReturn: SequenceFlows<UserTaskClarifyReturn>
+            get() = SequenceFlows(UserTaskClarifyReturn, flowId = ElementId("flow_collectClarificationsToClarifyReturn"))
         }
       }
 
       object GatewayMergeReturn : AbstractFlowNode(
         id = ElementId(GatewayMergeReturn.ELEMENT_ID),
         elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
-      ), HasSuccessors<GatewayMergeReturn.Next>,
-          HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
+      ), HasSuccessors<GatewayMergeReturn.Next> {
         const val ELEMENT_ID: String = "gateway_mergeReturn"
 
         override val next: Next
           get() = Next
 
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
-
         object Next {
-          val serviceTaskBookCancellationCosts: ServiceTaskBookCancellationCosts
-            get() = ServiceTaskBookCancellationCosts
-        }
-
-        object OutgoingFlows {
-          val toServiceTaskBookCancellationCosts:
-              SequenceFlow<ServiceTaskBookCancellationCosts>
-            get() = SequenceFlow(
-              id = ElementId("flow_mergeReturnToBookCancellationCosts"),
-              target = ServiceTaskBookCancellationCosts,
-            )
+          val serviceTaskBookCancellationCosts:
+              SequenceFlows<ServiceTaskBookCancellationCosts>
+            get() = SequenceFlows(ServiceTaskBookCancellationCosts, flowId = ElementId("flow_mergeReturnToBookCancellationCosts"))
         }
       }
 
@@ -204,17 +163,13 @@ object CancelBikeOrderProcessApi {
         id = ElementId(ServiceTaskBookCancellationCosts.ELEMENT_ID),
         elementType = BpmnElementType.SERVICE_TASK,
         name = "Book cancellation costs",
-      ), HasSuccessors<ServiceTaskBookCancellationCosts.Next>,
-          HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
+      ), HasSuccessors<ServiceTaskBookCancellationCosts.Next> {
         const val ELEMENT_ID: String = "serviceTask_bookCancellationCosts"
 
         const val JOB_TYPE: String = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE
 
         override val next: Next
           get() = Next
-
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
 
         object Variables {
           val CANCELLATION_COSTS: VariableName.Output =
@@ -226,16 +181,8 @@ object CancelBikeOrderProcessApi {
         }
 
         object Next {
-          val endEventBikeOrderCancelled: EndEventBikeOrderCancelled
-            get() = EndEventBikeOrderCancelled
-        }
-
-        object OutgoingFlows {
-          val toEndEventBikeOrderCancelled: SequenceFlow<EndEventBikeOrderCancelled>
-            get() = SequenceFlow(
-              id = ElementId("flow_bookCancellationCostsToBikeOrderCancelled"),
-              target = EndEventBikeOrderCancelled,
-            )
+          val endEventBikeOrderCancelled: SequenceFlows<EndEventBikeOrderCancelled>
+            get() = SequenceFlows(EndEventBikeOrderCancelled, flowId = ElementId("flow_bookCancellationCostsToBikeOrderCancelled"))
         }
       }
 
@@ -243,17 +190,13 @@ object CancelBikeOrderProcessApi {
         id = ElementId(ServiceTaskRequestCancellation.ELEMENT_ID),
         elementType = BpmnElementType.SERVICE_TASK,
         name = "Request cancellation",
-      ), HasSuccessors<ServiceTaskRequestCancellation.Next>,
-          HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
+      ), HasSuccessors<ServiceTaskRequestCancellation.Next> {
         const val ELEMENT_ID: String = "serviceTask_requestCancellation"
 
         const val JOB_TYPE: String = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION
 
         override val next: Next
           get() = Next
-
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
 
         object Variables {
           val CANCELLATION_POSSIBLE: VariableName.Output =
@@ -265,19 +208,11 @@ object CancelBikeOrderProcessApi {
         }
 
         object Next {
-          val boundaryCancellationFailed: BoundaryCancellationFailed
-            get() = BoundaryCancellationFailed
+          val boundaryCancellationFailed: AttachedBoundaryEvent<BoundaryCancellationFailed>
+            get() = AttachedBoundaryEvent(BoundaryCancellationFailed)
 
-          val gatewayCancellationPossible: GatewayCancellationPossible
-            get() = GatewayCancellationPossible
-        }
-
-        object OutgoingFlows {
-          val toGatewayCancellationPossible: SequenceFlow<GatewayCancellationPossible>
-            get() = SequenceFlow(
-              id = ElementId("flow_requestCancellationToCancellationPossible"),
-              target = GatewayCancellationPossible,
-            )
+          val gatewayCancellationPossible: SequenceFlows<GatewayCancellationPossible>
+            get() = SequenceFlows(GatewayCancellationPossible, flowId = ElementId("flow_requestCancellationToCancellationPossible"))
         }
       }
 
@@ -285,17 +220,13 @@ object CancelBikeOrderProcessApi {
         id = ElementId(StartEventCancellationRequired.ELEMENT_ID),
         elementType = BpmnElementType.START_EVENT,
         name = "Cancellation required",
-      ), HasSuccessors<StartEventCancellationRequired.Next>,
-          HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows>, Event {
+      ), HasSuccessors<StartEventCancellationRequired.Next>, Event {
         override val eventType: BpmnEventType = BpmnEventType.NONE
 
         const val ELEMENT_ID: String = "startEvent_cancellationRequired"
 
         override val next: Next
           get() = Next
-
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
 
         object Variables {
           val ORDER_IDS: VariableName.Input = VariableName.Input(Names.ORDER_IDS)
@@ -306,16 +237,8 @@ object CancelBikeOrderProcessApi {
         }
 
         object Next {
-          val serviceTaskRequestCancellation: ServiceTaskRequestCancellation
-            get() = ServiceTaskRequestCancellation
-        }
-
-        object OutgoingFlows {
-          val toServiceTaskRequestCancellation: SequenceFlow<ServiceTaskRequestCancellation>
-            get() = SequenceFlow(
-              id = ElementId("flow_cancellationRequiredToRequestCancellation"),
-              target = ServiceTaskRequestCancellation,
-            )
+          val serviceTaskRequestCancellation: SequenceFlows<ServiceTaskRequestCancellation>
+            get() = SequenceFlows(ServiceTaskRequestCancellation, flowId = ElementId("flow_cancellationRequiredToRequestCancellation"))
         }
       }
 
@@ -323,27 +246,15 @@ object CancelBikeOrderProcessApi {
         id = ElementId(UserTaskClarifyReturn.ELEMENT_ID),
         elementType = BpmnElementType.USER_TASK,
         name = "Clarify return",
-      ), HasSuccessors<UserTaskClarifyReturn.Next>,
-          HasOutgoingFlows<UserTaskClarifyReturn.OutgoingFlows> {
+      ), HasSuccessors<UserTaskClarifyReturn.Next> {
         const val ELEMENT_ID: String = "userTask_clarifyReturn"
 
         override val next: Next
           get() = Next
 
-        override val outgoingFlows: OutgoingFlows
-          get() = OutgoingFlows
-
         object Next {
-          val gatewayMergeReturn: GatewayMergeReturn
-            get() = GatewayMergeReturn
-        }
-
-        object OutgoingFlows {
-          val toGatewayMergeReturn: SequenceFlow<GatewayMergeReturn>
-            get() = SequenceFlow(
-              id = ElementId("flow_clarifyReturnToMergeReturn"),
-              target = GatewayMergeReturn,
-            )
+          val gatewayMergeReturn: SequenceFlows<GatewayMergeReturn>
+            get() = SequenceFlows(GatewayMergeReturn, flowId = ElementId("flow_clarifyReturnToMergeReturn"))
         }
       }
     }

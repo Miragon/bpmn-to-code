@@ -10,6 +10,7 @@ internal object KotlinRuntimeTypes {
     private const val PACKAGE = "io.miragon.bpmn.runtime"
 
     val ABSTRACT_FLOW_NODE = ClassName(PACKAGE, "AbstractFlowNode")
+    val ATTACHED_BOUNDARY_EVENT = ClassName(PACKAGE, "AttachedBoundaryEvent")
     val BOUNDARY_EVENT = ClassName(PACKAGE, "BoundaryEvent")
     val BPMN_ELEMENT_TYPE = ClassName(PACKAGE, "BpmnElementType")
     val BPMN_ENGINE = ClassName(PACKAGE, "BpmnEngine")
@@ -21,7 +22,6 @@ internal object KotlinRuntimeTypes {
     val EVENT = ClassName(PACKAGE, "Event")
     val FLOW_NODE = ClassName(PACKAGE, "FlowNode")
     val FLOW_SCOPE = ClassName(PACKAGE, "FlowScope")
-    val HAS_OUTGOING_FLOWS = ClassName(PACKAGE, "HasOutgoingFlows")
     val HAS_SUCCESSORS = ClassName(PACKAGE, "HasSuccessors")
     val INPUT_OUTPUT_MAPPING = ClassName(PACKAGE, "InputOutputMapping")
     val MESSAGE_NAME = ClassName(PACKAGE, "MessageName")
@@ -29,5 +29,6 @@ internal object KotlinRuntimeTypes {
     val SEQUENCE_FLOW = ClassName(PACKAGE, "SequenceFlow")
     val SIGNAL_NAME = ClassName(PACKAGE, "SignalName")
     val TIMER_TYPE = ClassName(PACKAGE, "TimerType")
+    val SEQUENCE_FLOWS = ClassName(PACKAGE, "SequenceFlows")
     val VARIABLE_NAME = ClassName(PACKAGE, "VariableName")
 }

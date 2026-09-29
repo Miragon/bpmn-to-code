@@ -55,9 +55,10 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
     /**
      * The outgoing sequence flows of a node that lead to the same element.
      *
-     * @property propertyName `to` + the target's object name — the property emitted in the node's `OutgoingFlows`.
-     * @property flows usually exactly one; several when more than one sequence flow leads to [target], which the
-     *   generated property then exposes as a list under the same name.
+     * @property propertyName `to` + the target's object name — the property emitted in the node's `OutgoingFlows`
+     *   (Java, C#).
+     * @property flows usually exactly one; several when more than one sequence flow leads to [target], which Java and
+     *   C# expose as a list under the same name and Kotlin keeps in one `SequenceFlows`.
      */
     data class FlowsToTarget(val propertyName: String, val target: FlowEdge, val flows: List<SequenceFlowEdge>)
 
