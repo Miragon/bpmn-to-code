@@ -14,8 +14,7 @@ class MissingCalledElementRule : SingleModelValidationRule {
     override val severity = Severity.ERROR
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.callActivities
-        .filter { !it.hasCalledElement() }
-        .map { callActivity ->
+        .filter { !it.hasCalledElement() }.map { callActivity ->
             ValidationViolation(
                 ruleId = id,
                 severity = severity,

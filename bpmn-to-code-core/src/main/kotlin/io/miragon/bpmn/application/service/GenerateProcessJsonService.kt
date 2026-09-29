@@ -29,9 +29,9 @@ class GenerateProcessJsonService(
         val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val models = inputFiles.map { bpmnExtractor.extract(it, command.engine) }
-        validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
+        validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(inputFiles.zip(models, ::toSourcedModel), command.enableVariants)
-        validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
+        validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         val generatedFiles = mergedModels.map { jsonGenerator.generateJson(it) }
         fileSaver.writeFiles(generatedFiles, command.outputFolderPath)
     }

@@ -24,9 +24,7 @@ class ValidationPhaseTest {
             .fromClasspath("bpmn/c7/bike-leasing.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(AlwaysFailingPreMergeRule(), crossModelRule)
-            .validate()
-            .assertViolationCount(1)
-            .assertViolation(ruleId = "always-failing")
+            .validate().assertViolationCount(1).assertViolation(ruleId = "always-failing")
 
         // the cross-model phase never ran, so its rule was never invoked
         assertThat(crossModelRule.invoked).isFalse()

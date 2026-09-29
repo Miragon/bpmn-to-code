@@ -44,8 +44,7 @@ class ElementTypeNameTest {
             GatewayKind.COMPLEX to "COMPLEX_GATEWAY",
         )
         expected.forEach { (kind, expectedName) ->
-            assertThat(ElementTypeName.of(FlowNodeDefinition.Gateway(id = "gw", kind = kind)))
-                .isEqualTo(expectedName)
+            assertThat(ElementTypeName.of(FlowNodeDefinition.Gateway(id = "gw", kind = kind))).isEqualTo(expectedName)
         }
         assertThat(expected.keys).containsExactlyInAnyOrder(*GatewayKind.entries.toTypedArray())
     }

@@ -30,8 +30,7 @@ internal class ForeignXmlReader(
         return element.childElements()
             .filter { it.localNameOf() == EXTENSION_ELEMENTS && it.namespaceURI in BPMN_NAMESPACES }
             .flatMap { it.childElements() }
-            .filterNot { it.isFullyReadByTheDialect() }
-            .mapNotNull { it.toExtensionOrNull() }
+            .filterNot { it.isFullyReadByTheDialect() }.mapNotNull { it.toExtensionOrNull() }
     }
 
     /**
@@ -82,8 +81,7 @@ internal class ForeignXmlReader(
         val attributes = attributes ?: return emptyMap()
         return (0 until attributes.length)
             .map { attributes.item(it) }
-            .filter { it.namespaceURI !in IGNORED_NAMESPACES }
-            .associate { it.qualifiedName() to it.nodeValue }
+            .filter { it.namespaceURI !in IGNORED_NAMESPACES }.associate { it.qualifiedName() to it.nodeValue }
     }
 
     private fun indexById(root: Node): Map<String, Element> {
@@ -122,11 +120,7 @@ internal class ForeignXmlReader(
         const val NAME_ATTRIBUTE = "name"
         const val MODELER_PROPERTY_PREFIX = "camundaModeler:"
 
-        val MODELER_METADATA_ATTRIBUTES = setOf(
-            "modelerTemplate",
-            "modelerTemplateVersion",
-            "modelerTemplateIcon",
-        )
+        val MODELER_METADATA_ATTRIBUTES = setOf("modelerTemplate", "modelerTemplateVersion", "modelerTemplateIcon")
 
         val BPMN_NAMESPACES = setOf(
             "http://www.omg.org/spec/BPMN/20100524/MODEL",

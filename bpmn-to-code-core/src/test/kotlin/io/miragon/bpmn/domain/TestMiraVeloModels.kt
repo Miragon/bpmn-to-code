@@ -37,10 +37,18 @@ fun testBikeLeasingModel(
     ),
     signals: List<RootElementDefinition.Signal> = emptyList(),
     errors: List<RootElementDefinition.Error> = listOf(
-        RootElementDefinition.Error("error_applicationInvalid", "miravelo.applicationInvalid", "applicationInvalid"),
+        RootElementDefinition.Error(
+            id = "error_applicationInvalid",
+            name = "miravelo.applicationInvalid",
+            code = "applicationInvalid",
+        ),
     ),
     escalations: List<RootElementDefinition.Escalation> = listOf(
-        RootElementDefinition.Escalation("escalation_contractNotSigned", "miravelo.contractNotSigned", "contractNotSigned"),
+        RootElementDefinition.Escalation(
+            id = "escalation_contractNotSigned",
+            name = "miravelo.contractNotSigned",
+            code = "contractNotSigned",
+        ),
     ),
     detectedEngine: ProcessEngine? = null,
 ) = testProcessModel(
@@ -138,9 +146,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         id = "boundary_compensateContract",
         shape = EventShape.BOUNDARY_EVENT,
         displayName = "Contract to revoke",
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false)),
         attachedToRef = "subProcess_concludeContract",
         interrupting = true,
     ),
@@ -160,9 +166,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         shape = EventShape.BOUNDARY_EVENT,
         displayName = "7 days passed",
         outgoing = listOf("flow_signatureReminderToSendReminderMail"),
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Timer(TimerType.DURATION, "P7D"),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "P7D")),
         attachedToRef = "subProcess_concludeContract",
         interrupting = false,
     ),
@@ -217,9 +221,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         shape = EventShape.END_EVENT,
         displayName = "Application rejected",
         incoming = listOf("flow_sendRejectionToApplicationRejected"),
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Terminate,
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Terminate),
     ),
     FlowNodeDefinition.Gateway(
         id = "gateway_fork",
@@ -237,8 +239,8 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         multiInstance = MultiInstanceDefinition(sequential = false, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
         boundaryEventRefs = listOf("boundary_compensateOrder"),
         variables = listOf(
-            VariableDefinition("bikeIds", VariableDirection.INPUT, "\${bikeIds}"),
-            VariableDefinition("bikeId", VariableDirection.INPUT, "bikeId"),
+            VariableDefinition(name = "bikeIds", direction = VariableDirection.INPUT, valueExpression = "\${bikeIds}"),
+            VariableDefinition(name = "bikeId", direction = VariableDirection.INPUT, valueExpression = "bikeId"),
         ),
     ),
     FlowNodeDefinition.Activity.Task(
@@ -251,17 +253,15 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         multiInstance = MultiInstanceDefinition(sequential = true, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
         boundaryEventRefs = listOf("boundary_compensateInsurance"),
         variables = listOf(
-            VariableDefinition("bikeIds", VariableDirection.INPUT, "\${bikeIds}"),
-            VariableDefinition("bikeId", VariableDirection.INPUT, "bikeId"),
+            VariableDefinition(name = "bikeIds", direction = VariableDirection.INPUT, valueExpression = "\${bikeIds}"),
+            VariableDefinition(name = "bikeId", direction = VariableDirection.INPUT, valueExpression = "bikeId"),
         ),
     ),
     FlowNodeDefinition.Event(
         id = "boundary_compensateOrder",
         shape = EventShape.BOUNDARY_EVENT,
         displayName = "Order to cancel",
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false)),
         attachedToRef = "serviceTask_orderBike",
         interrupting = true,
     ),
@@ -269,9 +269,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         id = "boundary_compensateInsurance",
         shape = EventShape.BOUNDARY_EVENT,
         displayName = "Policy to cancel",
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false)),
         attachedToRef = "serviceTask_issueInsurancePolicy",
         interrupting = true,
     ),
@@ -289,9 +287,17 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         displayName = "Cancel bike order",
         isForCompensation = true,
         variables = listOf(
-            VariableDefinition("orderIds", VariableDirection.INPUT, "orderIds"),
-            VariableDefinition("applicationId", VariableDirection.INPUT, "\${applicationId}"),
-            VariableDefinition("cancellationCosts", VariableDirection.OUTPUT, "cancellationCosts"),
+            VariableDefinition(name = "orderIds", direction = VariableDirection.INPUT, valueExpression = "orderIds"),
+            VariableDefinition(
+                name = "applicationId",
+                direction = VariableDirection.INPUT,
+                valueExpression = "\${applicationId}",
+            ),
+            VariableDefinition(
+                name = "cancellationCosts",
+                direction = VariableDirection.OUTPUT,
+                valueExpression = "cancellationCosts",
+            ),
         ),
     ),
     FlowNodeDefinition.Activity.Task(
@@ -321,9 +327,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         displayName = "Withdrawal period elapsed",
         incoming = listOf("flow_handoverReportedToWithdrawalPeriodElapsed"),
         outgoing = listOf("flow_withdrawalPeriodElapsedToLeasingActive"),
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Timer(TimerType.DURATION, "\${withdrawalPeriod}"),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "\${withdrawalPeriod}")),
     ),
     FlowNodeDefinition.Event(
         id = "endEvent_leasingActive",
@@ -384,16 +388,20 @@ private fun concludeContractFlowNodes(): List<FlowNodeDefinition> = listOf(
         outgoing = listOf("flow_sendContractToAwaitSignature"),
         implementation = TaskImplementation.DelegateExpression("\${sendContractDelegate}"),
         ioMapping = IoMapping(
-            inputs = listOf(
-                IoMapping.Parameter(target = "applicationId", source = "\${applicationId}"),
-            ),
-            outputs = listOf(
-                IoMapping.Parameter(target = "contractId", source = "\${contractId}"),
-            ),
+            inputs = listOf(IoMapping.Parameter(target = "applicationId", source = "\${applicationId}")),
+            outputs = listOf(IoMapping.Parameter(target = "contractId", source = "\${contractId}")),
         ),
         variables = listOf(
-            VariableDefinition("applicationId", VariableDirection.INPUT, "\${applicationId}"),
-            VariableDefinition("contractId", VariableDirection.OUTPUT, "\${contractId}"),
+            VariableDefinition(
+                name = "applicationId",
+                direction = VariableDirection.INPUT,
+                valueExpression = "\${applicationId}",
+            ),
+            VariableDefinition(
+                name = "contractId",
+                direction = VariableDirection.OUTPUT,
+                valueExpression = "\${contractId}",
+            ),
         ),
     ),
     FlowNodeDefinition.Gateway(
@@ -425,9 +433,7 @@ private fun concludeContractFlowNodes(): List<FlowNodeDefinition> = listOf(
         displayName = "14 days passed",
         incoming = listOf("flow_awaitSignatureToSignatureDeadline"),
         outgoing = listOf("flow_signatureDeadlineToContractNotSigned"),
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Timer(TimerType.DURATION, "P14D"),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Timer(TimerType.DURATION, "P14D")),
     ),
     FlowNodeDefinition.Event(
         id = "endEvent_contractNotSigned",
@@ -466,9 +472,7 @@ private fun applicationWithdrawnFlowNodes(): List<FlowNodeDefinition> = listOf(
         displayName = "Application reversed",
         incoming = listOf("flow_applicationWithdrawnToReverseApplication"),
         outgoing = listOf("flow_reverseApplicationToSendCancellationConfirmation"),
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false)),
     ),
     FlowNodeDefinition.Activity.Task(
         id = "serviceTask_sendCancellationConfirmation",
@@ -514,16 +518,20 @@ private fun addressChangedFlowNodes(): List<FlowNodeDefinition> = listOf(
         incoming = listOf("flow_addressChangedToUpdateDeliveryAddress"),
         outgoing = listOf("flow_updateDeliveryAddressToDeliveryAddressUpdated"),
         ioMapping = IoMapping(
-            inputs = listOf(
-                IoMapping.Parameter(target = "deliveryAddress", source = "\${deliveryAddress}"),
-            ),
-            outputs = listOf(
-                IoMapping.Parameter(target = "deliveryAddress", source = "\${deliveryAddress}"),
-            ),
+            inputs = listOf(IoMapping.Parameter(target = "deliveryAddress", source = "\${deliveryAddress}")),
+            outputs = listOf(IoMapping.Parameter(target = "deliveryAddress", source = "\${deliveryAddress}")),
         ),
         variables = listOf(
-            VariableDefinition("deliveryAddress", VariableDirection.INPUT, "\${deliveryAddress}"),
-            VariableDefinition("deliveryAddress", VariableDirection.OUTPUT, "\${deliveryAddress}"),
+            VariableDefinition(
+                name = "deliveryAddress",
+                direction = VariableDirection.INPUT,
+                valueExpression = "\${deliveryAddress}",
+            ),
+            VariableDefinition(
+                name = "deliveryAddress",
+                direction = VariableDirection.OUTPUT,
+                valueExpression = "\${deliveryAddress}",
+            ),
         ),
     ),
     FlowNodeDefinition.Event(
@@ -545,9 +553,7 @@ fun cancelBikeOrderFlowNodes(): List<FlowNodeDefinition> = listOf(
         shape = EventShape.START_EVENT,
         displayName = "Cancellation required",
         outgoing = listOf("flow_cancellationRequiredToRequestCancellation"),
-        variables = listOf(
-            VariableDefinition("orderIds", VariableDirection.INPUT),
-        ),
+        variables = listOf(VariableDefinition("orderIds", VariableDirection.INPUT)),
     ),
     FlowNodeDefinition.Activity.Task(
         id = "serviceTask_requestCancellation",
@@ -557,13 +563,15 @@ fun cancelBikeOrderFlowNodes(): List<FlowNodeDefinition> = listOf(
         outgoing = listOf("flow_requestCancellationToCancellationPossible"),
         implementation = TaskImplementation.ExternalTask("miravelo.requestCancellation"),
         ioMapping = IoMapping(
-            outputs = listOf(
-                IoMapping.Parameter(target = "cancellationPossible", source = "\${cancellationPossible}"),
-            ),
+            outputs = listOf(IoMapping.Parameter(target = "cancellationPossible", source = "\${cancellationPossible}")),
         ),
         boundaryEventRefs = listOf("boundary_cancellationFailed"),
         variables = listOf(
-            VariableDefinition("cancellationPossible", VariableDirection.OUTPUT, "\${cancellationPossible}"),
+            VariableDefinition(
+                name = "cancellationPossible",
+                direction = VariableDirection.OUTPUT,
+                valueExpression = "\${cancellationPossible}",
+            ),
         ),
     ),
     FlowNodeDefinition.Gateway(
@@ -579,9 +587,7 @@ fun cancelBikeOrderFlowNodes(): List<FlowNodeDefinition> = listOf(
         shape = EventShape.BOUNDARY_EVENT,
         displayName = "Cancellation failed",
         outgoing = listOf("flow_cancellationFailedToCollectClarifications"),
-        eventDefinitions = listOf(
-            EventDefinitionInstance.Error(errorRef = null, errorName = null, errorCode = null),
-        ),
+        eventDefinitions = listOf(EventDefinitionInstance.Error(errorRef = null, errorName = null, errorCode = null)),
         attachedToRef = "serviceTask_requestCancellation",
         interrupting = true,
     ),
@@ -612,12 +618,14 @@ fun cancelBikeOrderFlowNodes(): List<FlowNodeDefinition> = listOf(
         outgoing = listOf("flow_bookCancellationCostsToBikeOrderCancelled"),
         implementation = TaskImplementation.DelegateExpression("\${bookCancellationCostsDelegate}"),
         ioMapping = IoMapping(
-            outputs = listOf(
-                IoMapping.Parameter(target = "cancellationCosts", source = "\${cancellationCosts}"),
-            ),
+            outputs = listOf(IoMapping.Parameter(target = "cancellationCosts", source = "\${cancellationCosts}")),
         ),
         variables = listOf(
-            VariableDefinition("cancellationCosts", VariableDirection.OUTPUT, "\${cancellationCosts}"),
+            VariableDefinition(
+                name = "cancellationCosts",
+                direction = VariableDirection.OUTPUT,
+                valueExpression = "\${cancellationCosts}",
+            ),
         ),
     ),
     FlowNodeDefinition.Event(

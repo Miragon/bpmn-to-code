@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
@@ -45,11 +45,10 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
      * require compile-time constants, which rules out `@JvmInline value class` instances.
      */
     private fun serviceTasks(serviceTasks: List<ServiceTaskDefinition>): TypeSpec? = serviceTasks.ifNotEmpty {
-        val tasksBuilder = TypeSpec.objectBuilder(SharedDefinitionType.SERVICE_TASKS.typeName)
-            .addKdoc(
-                "Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.\n" +
-                    "Kept as `const val String` because annotation arguments must be compile-time constants.",
-            )
+        val tasksBuilder = TypeSpec.objectBuilder(SharedDefinitionType.SERVICE_TASKS.typeName).addKdoc(
+            "Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.\n" +
+                "Kept as `const val String` because annotation arguments must be compile-time constants.",
+        )
         serviceTasks.forEach { task -> tasksBuilder.addProperty(createConstant(task)) }
         tasksBuilder.addProperty(entries(serviceTasks, String::class.asTypeName()))
         tasksBuilder.build()
@@ -95,10 +94,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         val objectName = requireNotNull(type.name)
         val unusedAnnotation = AnnotationSpec.builder(Suppress::class).addMember("%S", "unused").build()
         val fileSpec = FileSpec.builder(api.packagePath, objectName)
-            .addFileComment(autoGenComment)
-            .addType(type)
-            .addAnnotation(unusedAnnotation)
-            .build()
+            .addFileComment(autoGenComment).addType(type).addAnnotation(unusedAnnotation).build()
         return GeneratedApiFile(
             fileName = "$objectName.kt",
             packagePath = api.packagePath,
@@ -109,13 +105,10 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     }
 
     private fun createConstant(variable: VariableMapping<String>): PropertySpec = PropertySpec.builder(variable.getName(), String::class)
-        .addModifiers(KModifier.CONST)
-        .initializer("%L", kotlinStringLiteral(variable.getValue()))
-        .build()
+        .addModifiers(KModifier.CONST).initializer("%L", kotlinStringLiteral(variable.getValue())).build()
 
     private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): PropertySpec = PropertySpec.builder(variable.getName(), wrapperClass)
-        .initializer("%T(%L)", wrapperClass, kotlinStringLiteral(variable.getValue()))
-        .build()
+        .initializer("%T(%L)", wrapperClass, kotlinStringLiteral(variable.getValue())).build()
 
     private fun createNameAndCodeAttribute(variable: VariableMapping<Pair<String, String>>, wrapperClass: ClassName): PropertySpec {
         val (name, code) = variable.getValue()
@@ -125,8 +118,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     }
 
     private fun entries(variables: List<VariableMapping<*>>, elementType: TypeName): PropertySpec = PropertySpec.builder("entries", LIST.parameterizedBy(elementType))
-        .initializer(kotlinListOf(variables.map { CodeBlock.of("%N", it.getName()) }))
-        .build()
+        .initializer(kotlinListOf(variables.map { CodeBlock.of("%N", it.getName()) })).build()
 
     private fun <T> List<T>.ifNotEmpty(build: () -> TypeSpec): TypeSpec? = if (isEmpty()) null else build()
 }

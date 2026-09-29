@@ -172,10 +172,7 @@ class ModelMergerServiceTest {
                 RootElementDefinition.Message(id = "MSG_1", name = "MSG_1"),
                 RootElementDefinition.Message(id = "MSG_2", name = "MSG_2"),
             ),
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "node-1"),
-                FlowNodeDefinition.Unknown(id = "node-2"),
-            ),
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "node-1"), FlowNodeDefinition.Unknown(id = "node-2")),
             escalations = listOf(
                 RootElementDefinition.Escalation(id = "ESC_1", name = "ESC_1", code = "100"),
                 RootElementDefinition.Escalation(id = "ESC_2", name = "ESC_2", code = "200"),
@@ -196,10 +193,7 @@ class ModelMergerServiceTest {
                 RootElementDefinition.Message(id = "MSG_2", name = "MSG_2"),
                 RootElementDefinition.Message(id = "MSG_3", name = "MSG_3"),
             ),
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "node-2"),
-                FlowNodeDefinition.Unknown(id = "node-3"),
-            ),
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "node-2"), FlowNodeDefinition.Unknown(id = "node-3")),
             escalations = listOf(
                 RootElementDefinition.Escalation(id = "ESC_2", name = "ESC_2", code = "200"),
                 RootElementDefinition.Escalation(id = "ESC_3", name = "ESC_3", code = "300"),
@@ -225,8 +219,18 @@ class ModelMergerServiceTest {
     fun `preserves per-variant sequence flows and flow nodes`() {
         // given: two models with the same processId but different flows
         val sharedNode = FlowNodeDefinition.Unknown(id = "Gateway_Route")
-        val flowDeOnly = SequenceFlowDefinition("Flow_DE", "Gateway_Route", "Task_DE", conditionExpression = "country=DE")
-        val flowAtOnly = SequenceFlowDefinition("Flow_AT", "Gateway_Route", "Task_AT", conditionExpression = "country=AT")
+        val flowDeOnly = SequenceFlowDefinition(
+            id = "Flow_DE",
+            sourceRef = "Gateway_Route",
+            targetRef = "Task_DE",
+            conditionExpression = "country=DE",
+        )
+        val flowAtOnly = SequenceFlowDefinition(
+            id = "Flow_AT",
+            sourceRef = "Gateway_Route",
+            targetRef = "Task_AT",
+            conditionExpression = "country=AT",
+        )
         val deModel = testProcessModel(
             processId = "order-process",
             variantName = "prodDe",
@@ -376,7 +380,7 @@ class ModelMergerServiceTest {
     @Test
     fun `returns a single-file process without variants`() {
         // given: a single model
-        val flow = SequenceFlowDefinition("Flow_1", "Start", "End")
+        val flow = SequenceFlowDefinition(id = "Flow_1", sourceRef = "Start", targetRef = "End")
         val model = testProcessModel(
             processId = "simple-process",
             flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Start"), FlowNodeDefinition.Unknown(id = "End")),
@@ -401,8 +405,7 @@ class ModelMergerServiceTest {
         // when / then
         assertThatThrownBy { underTest.mergeModels(listOf(model1, model2)) }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("order-process")
-            .hasMessageContaining("variantName")
+            .hasMessageContaining("order-process").hasMessageContaining("variantName")
     }
 
     @Test
@@ -477,8 +480,7 @@ class ModelMergerServiceTest {
 
         // when / then
         assertThatThrownBy { underTest.mergeModels(listOf(model1, model2)) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("variantName")
+            .isInstanceOf(IllegalArgumentException::class.java).hasMessageContaining("variantName")
     }
 
     @Test
@@ -494,8 +496,7 @@ class ModelMergerServiceTest {
         assertThatThrownBy { underTest.mergeModels(models, enableVariants = false) }
             .isInstanceOf(DuplicateProcessIdException::class.java)
             .hasMessageContaining("'bike-leasing'")
-            .hasMessageContaining("bike-leasing-v1.bpmn, bike-leasing-v2.bpmn")
-            .hasMessageContaining("enableVariants")
+            .hasMessageContaining("bike-leasing-v1.bpmn, bike-leasing-v2.bpmn").hasMessageContaining("enableVariants")
     }
 
     @Test

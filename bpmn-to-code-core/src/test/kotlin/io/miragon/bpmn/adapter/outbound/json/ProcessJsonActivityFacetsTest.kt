@@ -97,12 +97,10 @@ class ProcessJsonActivityFacetsTest {
     }
 
     private fun JsonObject.flowNode(id: String): JsonObject = getValue("process").jsonObject
-        .flowNodesDeep()
-        .single { it.text("id") == id }
+        .flowNodesDeep().single { it.text("id") == id }
 
     private fun JsonObject.flowNodesDeep(): List<JsonObject> = this["flowNodes"]?.jsonArray.orEmpty()
-        .map { it.jsonObject }
-        .flatMap { listOf(it) + it.flowNodesDeep() }
+        .map { it.jsonObject }.flatMap { listOf(it) + it.flowNodesDeep() }
 
     private fun JsonObject.text(field: String): String? = this[field]?.jsonPrimitive?.content
 

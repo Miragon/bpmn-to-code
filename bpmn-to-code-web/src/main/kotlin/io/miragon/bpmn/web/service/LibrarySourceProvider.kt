@@ -40,11 +40,7 @@ class LibrarySourceProvider {
         val fileNames = manifest.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
         return fileNames.mapNotNull { name ->
             val content = readResource("library-sources/$name") ?: return@mapNotNull null
-            GenerateResponse.GeneratedFile(
-                fileName = name,
-                content = content,
-                processId = "bpmn-to-code-runtime",
-            )
+            GenerateResponse.GeneratedFile(fileName = name, content = content, processId = "bpmn-to-code-runtime")
         }
     }
 

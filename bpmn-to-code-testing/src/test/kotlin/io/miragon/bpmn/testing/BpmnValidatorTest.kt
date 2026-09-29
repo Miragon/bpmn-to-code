@@ -20,9 +20,7 @@ class BpmnValidatorTest {
         BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION)
-            .validate()
-            .assertNoErrors()
+            .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION).validate().assertNoErrors()
     }
 
     @Test
@@ -31,8 +29,7 @@ class BpmnValidatorTest {
             .fromClasspath("bpmn/invalid-process.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION, BpmnRules.MISSING_MESSAGE_NAME)
-            .validate()
-            .assertHasViolations()
+            .validate().assertHasViolations()
     }
 
     @Test
@@ -40,9 +37,7 @@ class BpmnValidatorTest {
         BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.EMPTY_PROCESS)
-            .validate()
-            .assertNoViolations("empty-process")
+            .withRules(BpmnRules.EMPTY_PROCESS).validate().assertNoViolations("empty-process")
     }
 
     @Test
@@ -52,8 +47,7 @@ class BpmnValidatorTest {
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION, BpmnRules.MISSING_MESSAGE_NAME)
             .disableRules("missing-service-task-implementation")
-            .validate()
-            .assertNoViolations("missing-service-task-implementation")
+            .validate().assertNoViolations("missing-service-task-implementation")
     }
 
     @Test
@@ -62,19 +56,14 @@ class BpmnValidatorTest {
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(AlwaysFailingMandatoryRule())
-            .disableRules("always-failing-mandatory")
-            .validate()
-            .assertNoViolations("always-failing-mandatory")
+            .disableRules("always-failing-mandatory").validate().assertNoViolations("always-failing-mandatory")
     }
 
     @Test
     fun `missing engine throws clear error`() {
         assertThatThrownBy {
-            BpmnValidator
-                .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
-                .validate()
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("Process engine must be set")
+            BpmnValidator.fromClasspath("bpmn/c7/cancel-bike-order.bpmn").validate()
+        }.isInstanceOf(IllegalArgumentException::class.java).hasMessageContaining("Process engine must be set")
     }
 
     @Test
@@ -87,18 +76,13 @@ class BpmnValidatorTest {
         BpmnValidator
             .fromDirectory(tempDir)
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION)
-            .validate()
-            .assertNoErrors()
+            .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION).validate().assertNoErrors()
     }
 
     @Test
     fun `defaults to all rules when withRules is not called`() {
         BpmnValidator
-            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .validate()
-            .assertNoErrors()
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn").engine(ProcessEngine.CAMUNDA_7).validate().assertNoErrors()
     }
 
     @Test
@@ -106,10 +90,7 @@ class BpmnValidatorTest {
         val result = BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(AlwaysViolatingRule("warn-rule", Severity.WARN))
-            .failOnWarning()
-            .validate()
-            .result()
+            .withRules(AlwaysViolatingRule("warn-rule", Severity.WARN)).failOnWarning().validate().result()
 
         assertThat(result.errors.map { it.ruleId }).contains("warn-rule")
         assertThat(result.warnings).isEmpty()
@@ -118,14 +99,10 @@ class BpmnValidatorTest {
     @Test
     fun `warnings in the pre-merge phase do not short-circuit post-merge rules`() {
         val result = BpmnValidator
-            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(
-                AlwaysViolatingRule("pre-warn", Severity.WARN, ValidationPhase.PRE_MERGE),
-                AlwaysViolatingRule("post-warn", Severity.WARN, ValidationPhase.POST_MERGE),
-            )
-            .validate()
-            .result()
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn").engine(ProcessEngine.CAMUNDA_7).withRules(
+                AlwaysViolatingRule(id = "pre-warn", severity = Severity.WARN, phase = ValidationPhase.PRE_MERGE),
+                AlwaysViolatingRule(id = "post-warn", severity = Severity.WARN, phase = ValidationPhase.POST_MERGE),
+            ).validate().result()
 
         assertThat(result.violations.map { it.ruleId }).contains("pre-warn", "post-warn")
     }
@@ -133,14 +110,10 @@ class BpmnValidatorTest {
     @Test
     fun `an error in the pre-merge phase short-circuits post-merge rules`() {
         val result = BpmnValidator
-            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(
-                AlwaysViolatingRule("pre-error", Severity.ERROR, ValidationPhase.PRE_MERGE),
-                AlwaysViolatingRule("post-warn", Severity.WARN, ValidationPhase.POST_MERGE),
-            )
-            .validate()
-            .result()
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn").engine(ProcessEngine.CAMUNDA_7).withRules(
+                AlwaysViolatingRule(id = "pre-error", severity = Severity.ERROR, phase = ValidationPhase.PRE_MERGE),
+                AlwaysViolatingRule(id = "post-warn", severity = Severity.WARN, phase = ValidationPhase.POST_MERGE),
+            ).validate().result()
 
         assertThat(result.violations.map { it.ruleId }).contains("pre-error")
         assertThat(result.violations.map { it.ruleId }).doesNotContain("post-warn")

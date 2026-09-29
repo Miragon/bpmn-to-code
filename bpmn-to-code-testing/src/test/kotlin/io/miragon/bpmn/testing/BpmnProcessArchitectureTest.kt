@@ -24,8 +24,7 @@ class BpmnProcessArchitectureTest {
         override val phase = ValidationPhase.PRE_MERGE
 
         override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.serviceTasks
-            .filterNot { task -> task.id.orEmpty().startsWith("serviceTask_") }
-            .map { task ->
+            .filterNot { task -> task.id.orEmpty().startsWith("serviceTask_") }.map { task ->
                 ValidationViolation(
                     ruleId = id,
                     severity = severity,
@@ -38,16 +37,12 @@ class BpmnProcessArchitectureTest {
 
     @Test
     fun `validate shared bpmn files with Camunda 7 using built-in and custom rules`() {
-        val assert = BpmnValidator
-            .fromClasspath("bpmn/c7/bike-leasing.bpmn")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(
-                BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION,
-                BpmnRules.MISSING_MESSAGE_NAME,
-                BpmnRules.MISSING_ELEMENT_ID,
-                ServiceTaskNamingRule(),
-            )
-            .validate()
+        val assert = BpmnValidator.fromClasspath("bpmn/c7/bike-leasing.bpmn").engine(ProcessEngine.CAMUNDA_7).withRules(
+            BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION,
+            BpmnRules.MISSING_MESSAGE_NAME,
+            BpmnRules.MISSING_ELEMENT_ID,
+            ServiceTaskNamingRule(),
+        ).validate()
 
         assert.assertNoErrors()
         assert.assertNoViolations("missing-service-task-implementation")
@@ -57,16 +52,11 @@ class BpmnProcessArchitectureTest {
 
     @Test
     fun `validate shared bpmn files with Zeebe`() {
-        BpmnValidator
-            .fromClasspath("bpmn/zeebe/bike-leasing.bpmn")
-            .engine(ProcessEngine.ZEEBE)
-            .withRules(
-                BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION,
-                BpmnRules.MISSING_MESSAGE_NAME,
-                BpmnRules.MISSING_ELEMENT_ID,
-            )
-            .validate()
-            .assertNoErrors()
+        BpmnValidator.fromClasspath("bpmn/zeebe/bike-leasing.bpmn").engine(ProcessEngine.ZEEBE).withRules(
+            BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION,
+            BpmnRules.MISSING_MESSAGE_NAME,
+            BpmnRules.MISSING_ELEMENT_ID,
+        ).validate().assertNoErrors()
     }
 
     @Test
@@ -76,8 +66,7 @@ class BpmnProcessArchitectureTest {
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION, BpmnRules.MISSING_MESSAGE_NAME)
             .disableRules("missing-service-task-implementation")
-            .validate()
-            .assertNoViolations("missing-service-task-implementation")
+            .validate().assertNoViolations("missing-service-task-implementation")
     }
 
     @Test
@@ -85,9 +74,7 @@ class BpmnProcessArchitectureTest {
         BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.all() + ServiceTaskNamingRule())
-            .validate()
-            .assertNoErrors()
+            .withRules(BpmnRules.all() + ServiceTaskNamingRule()).validate().assertNoErrors()
     }
 
     @Test
@@ -95,9 +82,7 @@ class BpmnProcessArchitectureTest {
         val result = BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION)
-            .validate()
-            .result()
+            .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION).validate().result()
 
         assertThat(result.isValid).isTrue()
     }

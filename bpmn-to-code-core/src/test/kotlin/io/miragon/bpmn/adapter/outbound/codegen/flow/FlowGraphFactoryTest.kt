@@ -134,10 +134,7 @@ class FlowGraphFactoryTest {
 
         assertThat(facets.jobType?.value).isEqualTo("\${sendContractDelegate}")
         assertThat(facets.variables.associate { it.rawName to it.subtype }).containsExactlyInAnyOrderEntriesOf(
-            mapOf(
-                "applicationId" to VariableNameSubtype.INPUT,
-                "contractId" to VariableNameSubtype.OUTPUT,
-            ),
+            mapOf("applicationId" to VariableNameSubtype.INPUT, "contractId" to VariableNameSubtype.OUTPUT),
         )
         assertThat(facets.calledProcessId).isNull()
         assertThat(facets.timer).isNull()
@@ -346,8 +343,18 @@ class FlowGraphFactoryTest {
                 FlowNodeDefinition.Unknown(id = "target", incoming = listOf("flow_a", "flow_b")),
             ),
             sequenceFlows = listOf(
-                SequenceFlowDefinition("flow_a", "split", "target", conditionExpression = "=a"),
-                SequenceFlowDefinition("flow_b", "split", "target", conditionExpression = "=b"),
+                SequenceFlowDefinition(
+                    id = "flow_a",
+                    sourceRef = "split",
+                    targetRef = "target",
+                    conditionExpression = "=a",
+                ),
+                SequenceFlowDefinition(
+                    id = "flow_b",
+                    sourceRef = "split",
+                    targetRef = "target",
+                    conditionExpression = "=b",
+                ),
             ),
         )
         val split = FlowGraphFactory.build(model).node("split")

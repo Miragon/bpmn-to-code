@@ -23,9 +23,9 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
     val extensions: List<EngineExtension>
     val engineAttributes: Map<String, Any?>
 
-    override fun getName(): String = id?.toUpperSnakeCase() ?: ""
-    override fun getValue(): String = id ?: ""
-    override fun getRawName(): String = id ?: ""
+    override fun getName(): String = id?.toUpperSnakeCase().orEmpty()
+    override fun getValue(): String = id.orEmpty()
+    override fun getRawName(): String = id.orEmpty()
 
     /**
      * Unions the additive list fields of [others] into this node, used when merging process variants that
@@ -183,10 +183,7 @@ sealed interface FlowNodeDefinition : VariableMapping<String> {
             others: List<FlowNodeDefinition>,
         ): List<VariableDefinition> = (node.variables + others.flatMap { it.variables }).distinct()
 
-        private fun mergeBoundaryEventRefs(
-            node: Activity,
-            others: List<FlowNodeDefinition>,
-        ): List<String> {
+        private fun mergeBoundaryEventRefs(node: Activity, others: List<FlowNodeDefinition>): List<String> {
             val fromOthers = others.filterIsInstance<Activity>().flatMap { it.boundaryEventRefs }
             return (node.boundaryEventRefs + fromOthers).distinct().sorted()
         }

@@ -15,18 +15,10 @@ data class GenerateJsonResponse(
 ) {
 
     @Serializable
-    data class GeneratedJsonFileResponse(
-        val fileName: String,
-        val content: String,
-        val processId: String,
-    )
+    data class GeneratedJsonFileResponse(val fileName: String, val content: String, val processId: String)
 
     companion object {
-        fun noFilesProvided() = GenerateJsonResponse(
-            success = false,
-            files = emptyList(),
-            error = "No files provided",
-        )
+        fun noFilesProvided() = GenerateJsonResponse(success = false, files = emptyList(), error = "No files provided")
 
         fun tooManyFiles() = GenerateJsonResponse(
             success = false,
@@ -41,18 +33,14 @@ data class GenerateJsonResponse(
             statusCode = HttpStatusCode.InternalServerError,
         )
 
-        fun fromValidationException(
-            exception: BpmnValidationException,
-        ) = GenerateJsonResponse(
+        fun fromValidationException(exception: BpmnValidationException) = GenerateJsonResponse(
             success = false,
             files = emptyList(),
             error = exception.message,
             statusCode = HttpStatusCode.BadRequest,
         )
 
-        fun fromDuplicateProcessIdException(
-            exception: DuplicateProcessIdException,
-        ) = GenerateJsonResponse(
+        fun fromDuplicateProcessIdException(exception: DuplicateProcessIdException) = GenerateJsonResponse(
             success = false,
             files = emptyList(),
             error = exception.message,

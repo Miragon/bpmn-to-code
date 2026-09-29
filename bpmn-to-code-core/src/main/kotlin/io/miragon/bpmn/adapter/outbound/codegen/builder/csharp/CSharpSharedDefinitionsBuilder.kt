@@ -1,11 +1,11 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.disambiguated
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
-import io.miragon.bpmn.adapter.outbound.codegen.writer.staticListProperty
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.disambiguated
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.toPascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.staticListProperty
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.VariableMapping
@@ -21,11 +21,11 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> {
         val definitions = api.definitions
         return listOfNotNull(
-            constants(api, SharedDefinitionType.SERVICE_TASKS.typeName, "Job worker task types — the task type a C# worker subscribes to.", definitions.serviceTasks),
-            constants(api, SharedDefinitionType.MESSAGES.typeName, "BPMN message names used to correlate messages to running process instances.", definitions.messages),
-            constants(api, SharedDefinitionType.SIGNALS.typeName, "BPMN signal names broadcast and caught by signal events.", definitions.signals),
-            nameAndCodes(api, SharedDefinitionType.ERRORS.typeName, "BPMN error definitions with name and code, as thrown and caught by the processes.", definitions.errors),
-            nameAndCodes(api, SharedDefinitionType.ESCALATIONS.typeName, "BPMN escalation definitions with name and code, as thrown and caught by the processes.", definitions.escalations),
+            constants(api = api, className = SharedDefinitionType.SERVICE_TASKS.typeName, doc = "Job worker task types — the task type a C# worker subscribes to.", items = definitions.serviceTasks),
+            constants(api = api, className = SharedDefinitionType.MESSAGES.typeName, doc = "BPMN message names used to correlate messages to running process instances.", items = definitions.messages),
+            constants(api = api, className = SharedDefinitionType.SIGNALS.typeName, doc = "BPMN signal names broadcast and caught by signal events.", items = definitions.signals),
+            nameAndCodes(api = api, className = SharedDefinitionType.ERRORS.typeName, doc = "BPMN error definitions with name and code, as thrown and caught by the processes.", items = definitions.errors),
+            nameAndCodes(api = api, className = SharedDefinitionType.ESCALATIONS.typeName, doc = "BPMN escalation definitions with name and code, as thrown and caught by the processes.", items = definitions.escalations),
         )
     }
 
@@ -33,7 +33,7 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         toFile(api, className, doc) { writer ->
             items.forEach { writer.constant(it.getName().toPascalCase(), it.getValue()) }
             writer.line()
-            writer.staticListProperty("All", "string", memberNames(items, className))
+            writer.staticListProperty(name = "All", elementType = "string", elements = memberNames(items, className))
         }
     }
 
@@ -48,7 +48,7 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
             }
             writer.line()
             val nameAndCodes = memberNames(items, className).map { "($it.Reference, $it.Code)" }
-            writer.staticListProperty("All", "(string Reference, string Code)", nameAndCodes)
+            writer.staticListProperty(name = "All", elementType = "(string Reference, string Code)", elements = nameAndCodes)
         }
     }
 

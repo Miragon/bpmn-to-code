@@ -23,15 +23,11 @@ class UnpublishedSignalCatchRule : CrossModelValidationRule {
 
     override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
         val thrownNames = context.models
-            .flatMap { it.signalUsages() }
-            .filter { it.direction == EventDirection.THROW }
-            .map { it.name }
-            .toSet()
+            .flatMap { it.signalUsages() }.filter { it.direction == EventDirection.THROW }.map { it.name }.toSet()
 
         return context.models.flatMap { model ->
             model.signalUsages()
-                .filter { it.direction == EventDirection.CATCH && it.name !in thrownNames }
-                .map { usage ->
+                .filter { it.direction == EventDirection.CATCH && it.name !in thrownNames }.map { usage ->
                     ValidationViolation(
                         ruleId = id,
                         severity = severity,

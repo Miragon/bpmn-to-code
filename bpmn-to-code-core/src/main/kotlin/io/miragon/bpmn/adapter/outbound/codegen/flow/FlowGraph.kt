@@ -10,9 +10,7 @@ import io.miragon.bpmn.domain.shared.TimerType
  * and a subprocess only points at its interior's start elements. Nodes reference each other by name
  * (not by object reference), which keeps the structure cycle-safe.
  */
-data class FlowGraph(
-    val nodes: List<FlowGraphNode>,
-) {
+data class FlowGraph(val nodes: List<FlowGraphNode>) {
 
     /**
      * A single element in the navigation graph.
@@ -54,10 +52,7 @@ data class FlowGraph(
      * @property propertyName the target's camelCase [FlowGraphNode.propertyName] — the property emitted on the source node.
      * @property objectName the target's PascalCase [FlowGraphNode.objectName] — what the getter returns.
      */
-    data class FlowEdge(
-        val propertyName: String,
-        val objectName: String,
-    )
+    data class FlowEdge(val propertyName: String, val objectName: String)
 
     /**
      * The outgoing sequence flows of a node that lead to the same element.
@@ -66,11 +61,7 @@ data class FlowGraph(
      * @property flows usually exactly one; several when more than one sequence flow leads to [target], which the
      *   generated property then exposes as a list under the same name.
      */
-    data class FlowsToTarget(
-        val propertyName: String,
-        val target: FlowEdge,
-        val flows: List<SequenceFlowEdge>,
-    )
+    data class FlowsToTarget(val propertyName: String, val target: FlowEdge, val flows: List<SequenceFlowEdge>)
 
     /**
      * One outgoing `bpmn:sequenceFlow`.
@@ -106,11 +97,7 @@ data class FlowGraph(
         val isInterrupting: Boolean? = null,
     )
 
-    data class VariableFacet(
-        val constantName: String,
-        val rawName: String,
-        val subtype: VariableNameSubtype,
-    )
+    data class VariableFacet(val constantName: String, val rawName: String, val subtype: VariableNameSubtype)
 
     data class MappingFacet(
         val constantName: String,
@@ -119,30 +106,19 @@ data class FlowGraph(
         val sourceExpression: String?,
     )
 
-    data class TimerFacet(
-        val type: TimerType,
-        val expression: String,
-    )
+    data class TimerFacet(val type: TimerType, val expression: String)
 
-    data class NamedCode(
-        val name: String,
-        val code: String,
-    )
+    data class NamedCode(val name: String, val code: String)
 
     /**
      * A node's job type, message, signal, error or escalation. [constant] names the shared definition holding
      * [value]; it is `null` when no root element of the model declares the value, as then no shared constant
      * exists and the node has to carry the value itself.
      */
-    data class SharedValue<T>(
-        val value: T,
-        val constant: SharedConstant?,
-    )
+    data class SharedValue<T>(val value: T, val constant: SharedConstant?)
 
     /**
      * A constant of the shared definition files, as Kotlin and Java declare it and the C# member name is derived from.
      */
-    data class SharedConstant(
-        val name: String,
-    )
+    data class SharedConstant(val name: String)
 }

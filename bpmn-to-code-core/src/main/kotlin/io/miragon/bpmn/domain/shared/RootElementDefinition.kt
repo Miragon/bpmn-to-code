@@ -27,8 +27,8 @@ sealed interface RootElementDefinition {
     ) : RootElementDefinition,
         VariableMapping<String> {
         override fun getName() = constantName(name, "MESSAGE")
-        override fun getValue() = name ?: ""
-        override fun getRawName() = name ?: ""
+        override fun getValue() = name.orEmpty()
+        override fun getRawName() = name.orEmpty()
     }
 
     /**
@@ -38,14 +38,12 @@ sealed interface RootElementDefinition {
      * [hasName] has no counterpart on [Message] on purpose: `MissingSignalNameRule` checks the registry,
      * while `MissingMessageNameRule` checks the reference on the node.
      */
-    data class Signal(
-        override val id: String?,
-        private val name: String?,
-    ) : RootElementDefinition,
+    data class Signal(override val id: String?, private val name: String?) :
+        RootElementDefinition,
         VariableMapping<String> {
         override fun getName() = constantName(name, "SIGNAL")
-        override fun getValue() = name ?: ""
-        override fun getRawName() = name ?: ""
+        override fun getValue() = name.orEmpty()
+        override fun getRawName() = name.orEmpty()
         fun hasName() = name != null
     }
 
@@ -59,7 +57,7 @@ sealed interface RootElementDefinition {
     ) : RootElementDefinition,
         VariableMapping<Pair<String, String>> {
         override fun getName() = constantName(name, "ERROR")
-        override fun getValue() = (name ?: "") to (code ?: "")
+        override fun getValue() = name.orEmpty() to code.orEmpty()
         override fun getRawName() = nameWithCode(name, code)
     }
 
@@ -73,13 +71,13 @@ sealed interface RootElementDefinition {
     ) : RootElementDefinition,
         VariableMapping<Pair<String, String>> {
         override fun getName() = constantName(name, "ESCALATION")
-        override fun getValue() = (name ?: "") to (code ?: "")
+        override fun getValue() = name.orEmpty() to code.orEmpty()
         override fun getRawName() = nameWithCode(name, code)
     }
 
     private companion object {
         fun constantName(name: String?, kind: String): String {
-            val fullName = name?.toUpperSnakeCase() ?: ""
+            val fullName = name?.toUpperSnakeCase().orEmpty()
             val withoutKind = fullName.removePrefix("${kind}_")
             return if (withoutKind.firstOrNull()?.isLetter() == true) withoutKind else fullName
         }

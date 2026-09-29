@@ -10,13 +10,13 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 data class CallActivityDefinition(
     val id: String?,
     private val calledElement: String?,
-    val mappings: List<CallActivityDefinition.Mapping> = emptyList(),
+    val mappings: List<Mapping> = emptyList(),
     val propagateAllInputVariables: Boolean? = null,
     val propagateAllOutputVariables: Boolean? = null,
 ) : VariableMapping<String> {
-    override fun getName() = id?.toUpperSnakeCase() ?: ""
-    override fun getValue() = calledElement ?: ""
-    override fun getRawName() = id ?: ""
+    override fun getName() = id?.toUpperSnakeCase().orEmpty()
+    override fun getValue() = calledElement.orEmpty()
+    override fun getRawName() = id.orEmpty()
     fun hasCalledElement() = calledElement != null
 
     val inputMappings get() = mappings.filter { it.direction == VariableDirection.INPUT }

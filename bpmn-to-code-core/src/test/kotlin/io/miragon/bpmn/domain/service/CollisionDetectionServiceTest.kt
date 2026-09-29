@@ -106,10 +106,7 @@ class CollisionDetectionServiceTest {
         // given: two flow nodes whose ids fold to the same PascalCase object name (Foo)
         val model = testProcessModel(
             processId = "TestProcess",
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "foo"),
-                FlowNodeDefinition.Unknown(id = "-foo"),
-            ),
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "foo"), FlowNodeDefinition.Unknown(id = "-foo")),
         )
 
         // when: checking for collisions
@@ -126,10 +123,7 @@ class CollisionDetectionServiceTest {
         // given: fooBar and fooBAR would have collided as constants; as FlowNodes objects they are FooBar and FooBAR
         val model = testProcessModel(
             processId = "TestProcess",
-            flowNodes = listOf(
-                FlowNodeDefinition.Unknown(id = "fooBar"),
-                FlowNodeDefinition.Unknown(id = "fooBAR"),
-            ),
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "fooBar"), FlowNodeDefinition.Unknown(id = "fooBAR")),
         )
 
         // when / then: no collision, the flat FlowNodes can hold both
@@ -277,9 +271,9 @@ class CollisionDetectionServiceTest {
                 FlowNodeDefinition.Unknown(id = "b"),
             ),
             sequenceFlows = listOf(
-                SequenceFlowDefinition("flow_yes", "split", "a"),
-                SequenceFlowDefinition("flow-yes", "split", "b"),
-                SequenceFlowDefinition("flow_no", "a", "b"),
+                SequenceFlowDefinition(id = "flow_yes", sourceRef = "split", targetRef = "a"),
+                SequenceFlowDefinition(id = "flow-yes", sourceRef = "split", targetRef = "b"),
+                SequenceFlowDefinition(id = "flow_no", sourceRef = "a", targetRef = "b"),
             ),
         )
 
@@ -302,9 +296,21 @@ class CollisionDetectionServiceTest {
                         id = "callChild",
                         calledElement = "child",
                         mappings = listOf(
-                            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "a", target = "childId"),
-                            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "b", target = "child_id"),
-                            CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "c", target = "child-id"),
+                            CallActivityDefinition.Mapping(
+                                direction = VariableDirection.INPUT,
+                                source = "a",
+                                target = "childId",
+                            ),
+                            CallActivityDefinition.Mapping(
+                                direction = VariableDirection.INPUT,
+                                source = "b",
+                                target = "child_id",
+                            ),
+                            CallActivityDefinition.Mapping(
+                                direction = VariableDirection.OUTPUT,
+                                source = "c",
+                                target = "child-id",
+                            ),
                         ),
                     ),
                 ),

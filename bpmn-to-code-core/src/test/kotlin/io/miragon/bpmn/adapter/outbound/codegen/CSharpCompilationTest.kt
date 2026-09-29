@@ -106,16 +106,12 @@ class CSharpCompilationTest {
 
     private fun assertCompiles(projectDir: File) {
         val result = runDotnetBuild(projectDir)
-        assertThat(result.exitCode)
-            .withFailMessage { "Generated C# did not compile:\n${result.output}" }
-            .isZero()
+        assertThat(result.exitCode).withFailMessage { "Generated C# did not compile:\n${result.output}" }.isZero()
     }
 
     private fun runDotnetBuild(projectDir: File): ProcessResult {
         val process = ProcessBuilder("dotnet", "build", "--nologo", "-v", "q")
-            .directory(projectDir)
-            .redirectErrorStream(true)
-            .start()
+            .directory(projectDir).redirectErrorStream(true).start()
         val output = process.inputStream.bufferedReader().readText()
         if (!process.waitFor(BUILD_TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
             process.destroyForcibly()
@@ -239,10 +235,7 @@ class CSharpCompilationTest {
         @JvmStatic
         fun dotnetAvailable(): Boolean = runCatching {
             ProcessBuilder("dotnet", "--version")
-                .redirectErrorStream(true)
-                .start()
-                .also { it.waitFor(1, TimeUnit.MINUTES) }
-                .exitValue() == 0
+                .redirectErrorStream(true).start().also { it.waitFor(1, TimeUnit.MINUTES) }.exitValue() == 0
         }.getOrDefault(false)
     }
 }

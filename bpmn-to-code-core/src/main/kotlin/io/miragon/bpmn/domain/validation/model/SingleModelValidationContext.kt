@@ -8,7 +8,4 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
  * process model under validation. For rules that reason across processes, see
  * [io.miragon.bpmn.domain.validation.model.CrossModelValidationContext].
  */
-data class SingleModelValidationContext(
-    val model: ProcessModel,
-    val engine: ProcessEngine,
-)
+data class SingleModelValidationContext(val model: ProcessModel, val engine: ProcessEngine)

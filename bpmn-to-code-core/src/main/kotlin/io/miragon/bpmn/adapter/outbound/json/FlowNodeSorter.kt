@@ -27,16 +27,13 @@ internal object FlowNodeSorter {
         val targetsByFlowId = sequenceFlows.mapNotNull { flow -> flow.id?.let { it to flow.targetRef } }.toMap()
         val boundaryByHost = flowNodes
             .filterIsInstance<FlowNodeDefinition.Event>()
-            .filter { it.attachedToRef != null }
-            .groupBy { it.attachedToRef }
+            .filter { it.attachedToRef != null }.groupBy { it.attachedToRef }
         val visited = mutableSetOf<String?>()
         val result = mutableListOf<FlowNodeDefinition>()
 
         fun successorsOf(node: FlowNodeDefinition): List<FlowNodeDefinition> = node.outgoing
             .mapNotNull { targetsByFlowId[it] }
-            .mapNotNull { nodeById[it] }
-            .filter { it.id !in visited }
-            .sortedBy { it.id ?: "" }
+            .mapNotNull { nodeById[it] }.filter { it.id !in visited }.sortedBy { it.id ?: "" }
 
         fun visit(node: FlowNodeDefinition) {
             if (node.id in visited) return
@@ -55,12 +52,8 @@ internal object FlowNodeSorter {
         }
 
         val standalone = flowNodes.filter { it.isNotBoundaryEvent() }
-        standalone.filter { it.isStartEvent() && it.incoming.isEmpty() }
-            .sortedBy { it.id ?: "" }
-            .forEach { visit(it) }
-        standalone.filter { it.id !in visited }
-            .sortedBy { it.id ?: "" }
-            .forEach { visit(it) }
+        standalone.filter { it.isStartEvent() && it.incoming.isEmpty() }.sortedBy { it.id ?: "" }.forEach { visit(it) }
+        standalone.filter { it.id !in visited }.sortedBy { it.id ?: "" }.forEach { visit(it) }
 
         return result
     }

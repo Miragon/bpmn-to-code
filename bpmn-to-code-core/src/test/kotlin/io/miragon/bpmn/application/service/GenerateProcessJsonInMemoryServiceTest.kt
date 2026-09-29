@@ -65,8 +65,7 @@ class GenerateProcessJsonInMemoryServiceTest {
 
         // when / then: it fails naming both files
         assertThatThrownBy { underTest.generateProcessJson(command) }
-            .isInstanceOf(DuplicateProcessIdException::class.java)
-            .hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(DuplicateProcessIdException::class.java).hasMessageContaining("v1.bpmn, v2.bpmn")
     }
 
     private val dummyModel = testProcessModel()

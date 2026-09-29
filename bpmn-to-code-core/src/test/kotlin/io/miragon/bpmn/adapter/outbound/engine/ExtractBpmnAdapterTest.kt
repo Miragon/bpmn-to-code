@@ -44,8 +44,7 @@ class ExtractBpmnAdapterTest {
 
         // when / then: the failure is wrapped and points at the file
         assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE) }
-            .isInstanceOf(IllegalStateException::class.java)
-            .hasMessageContaining("no-process.bpmn")
+            .isInstanceOf(IllegalStateException::class.java).hasMessageContaining("no-process.bpmn")
     }
 
     @Test
@@ -55,8 +54,7 @@ class ExtractBpmnAdapterTest {
 
         // when / then: the reader's parse failure reaches the caller with the file that caused it
         assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE) }
-            .isInstanceOf(IllegalStateException::class.java)
-            .hasMessageContaining("truncated.bpmn")
+            .isInstanceOf(IllegalStateException::class.java).hasMessageContaining("truncated.bpmn")
     }
 
     private fun classpathResource(fileName: String): BpmnResource {

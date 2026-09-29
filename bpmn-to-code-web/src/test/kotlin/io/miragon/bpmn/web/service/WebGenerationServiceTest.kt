@@ -165,12 +165,7 @@ class WebGenerationServiceTest {
     fun `should handle invalid Base64 content gracefully`() {
         // given: a request with invalid Base64 content
         val request = GenerateRequest(
-            files = listOf(
-                GenerateRequest.BpmnFileData(
-                    fileName = "invalid.bpmn",
-                    content = "not-valid-base64!!!",
-                ),
-            ),
+            files = listOf(GenerateRequest.BpmnFileData(fileName = "invalid.bpmn", content = "not-valid-base64!!!")),
             config = GenerateRequest.GenerationConfig(
                 outputLanguage = OutputLanguage.KOTLIN,
                 processEngine = ProcessEngine.ZEEBE,

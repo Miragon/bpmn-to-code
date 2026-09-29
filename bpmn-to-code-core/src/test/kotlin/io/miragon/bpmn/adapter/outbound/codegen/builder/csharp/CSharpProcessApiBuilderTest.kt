@@ -1,7 +1,7 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpRuntimeTypes
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.toPascalCase
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
@@ -62,9 +62,16 @@ class CSharpProcessApiBuilderTest {
             processId = retail.processId,
             flowNodes = retail.flowNodes,
             definitions = retail.definitions,
-            variants = listOf(Variant("retail", retail.flowNodes, retail.sequenceFlows)),
+            variants = listOf(
+                Variant(variantName = "retail", flowNodes = retail.flowNodes, sequenceFlows = retail.sequenceFlows),
+            ),
         )
-        val modelApi = BpmnModelApi(merged, OutputLanguage.CSHARP, "de.emaarco.example", ProcessEngine.ZEEBE)
+        val modelApi = BpmnModelApi(
+            model = merged,
+            outputLanguage = OutputLanguage.CSHARP,
+            packagePath = "de.emaarco.example",
+            targetEngine = ProcessEngine.ZEEBE,
+        )
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
@@ -89,8 +96,18 @@ class CSharpProcessApiBuilderTest {
                 FlowNodeDefinition.Unknown(id = "approve", incoming = listOf("flow_small", "flow_vip")),
             ),
             sequenceFlows = listOf(
-                SequenceFlowDefinition("flow_small", "split", "approve", conditionExpression = "=amount < 100"),
-                SequenceFlowDefinition("flow_vip", "split", "approve", conditionExpression = "=customer.isVip"),
+                SequenceFlowDefinition(
+                    id = "flow_small",
+                    sourceRef = "split",
+                    targetRef = "approve",
+                    conditionExpression = "=amount < 100",
+                ),
+                SequenceFlowDefinition(
+                    id = "flow_vip",
+                    sourceRef = "split",
+                    targetRef = "approve",
+                    conditionExpression = "=customer.isVip",
+                ),
             ),
         )
 

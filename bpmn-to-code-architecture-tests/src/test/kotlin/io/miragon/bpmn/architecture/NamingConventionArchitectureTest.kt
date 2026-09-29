@@ -52,9 +52,7 @@ class NamingConventionArchitectureTest {
         fun `application services are named with a Service suffix`() {
             checkNaming(
                 packagePattern = "$rootPackage.application.service..",
-                allowedSuffixes = listOf(
-                    AllowedSuffix("Service", "orchestrates a single use case"),
-                ),
+                allowedSuffixes = listOf(AllowedSuffix("Service", "orchestrates a single use case")),
             )
         }
     }
@@ -73,15 +71,11 @@ class NamingConventionArchitectureTest {
         }
     }
 
-    private fun checkNaming(
-        packagePattern: String,
-        allowedSuffixes: List<AllowedSuffix>,
-    ) {
+    private fun checkNaming(packagePattern: String, allowedSuffixes: List<AllowedSuffix>) {
         Konsist
             .scopeFromPackage(packagePattern)
             .classesAndInterfacesAndObjects(includeNested = false, includeLocal = false)
-            .filter { it.path.contains("/src/main/") }
-            .assertTrue { declaration ->
+            .filter { it.path.contains("/src/main/") }.assertTrue { declaration ->
                 allowedSuffixes.any { declaration.hasNameEndingWith(it.suffix) }
             }
     }
@@ -90,8 +84,5 @@ class NamingConventionArchitectureTest {
      * An allowed class-name suffix together with a short rationale. The [reason] documents *why* the
      * suffix is allowed and doubles as inline documentation; it is not part of Konsist's failure message.
      */
-    private data class AllowedSuffix(
-        val suffix: String,
-        val reason: String,
-    )
+    private data class AllowedSuffix(val suffix: String, val reason: String)
 }

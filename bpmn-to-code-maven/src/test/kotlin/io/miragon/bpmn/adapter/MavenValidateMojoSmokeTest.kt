@@ -14,20 +14,16 @@ class MavenValidateMojoSmokeTest {
         "CAMUNDA_7, c7/bike-leasing.bpmn",
         "OPERATON, operaton/bike-leasing.bpmn",
     )
-    fun `mojo validates BPMN files without errors`(
-        engine: String,
-        bpmnFile: String,
-        @TempDir projectDir: File,
-    ) {
+    fun `mojo validates BPMN files without errors`(engine: String, bpmnFile: String, @TempDir projectDir: File) {
         // given: a temp project directory with a valid BPMN resource and a configured mojo
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = javaClass.classLoader.getResourceAsStream("bpmn/$bpmnFile")!!
         File(resourcesDir, File(bpmnFile).name).writeBytes(bpmnStream.readBytes())
         val mojo = BpmnValidateMojo()
-        setField(mojo, "baseDir", projectDir.absolutePath)
-        setField(mojo, "filePattern", "src/main/resources/*.bpmn")
-        setField(mojo, "processEngine", engine)
-        setField(mojo, "failOnWarning", false)
+        setField(obj = mojo, name = "baseDir", value = projectDir.absolutePath)
+        setField(obj = mojo, name = "filePattern", value = "src/main/resources/*.bpmn")
+        setField(obj = mojo, name = "processEngine", value = engine)
+        setField(obj = mojo, name = "failOnWarning", value = false)
 
         // when / then: executing the mojo does not throw
         assertThatCode { mojo.execute() }.doesNotThrowAnyException()

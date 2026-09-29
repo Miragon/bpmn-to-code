@@ -29,8 +29,8 @@ class EngineMismatchRule : SingleModelValidationRule {
         val selected = context.engine
         val violation = when {
             detected == selected -> null
-            detected == null -> violation(context, Severity.WARN, undeterminedMessage(selected))
-            else -> violation(context, Severity.ERROR, mismatchMessage(detected, selected))
+            detected == null -> violation(context = context, severity = Severity.WARN, message = undeterminedMessage(selected))
+            else -> violation(context = context, severity = Severity.ERROR, message = mismatchMessage(detected, selected))
         }
         return listOfNotNull(violation)
     }

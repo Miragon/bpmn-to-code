@@ -28,9 +28,7 @@ import java.nio.file.Path
  *     .assertNoViolations()
  * ```
  */
-class BpmnValidator private constructor(
-    private val resourceLoader: () -> List<BpmnResource>,
-) {
+class BpmnValidator private constructor(private val resourceLoader: () -> List<BpmnResource>) {
 
     private var engine: ProcessEngine? = null
     private var rules: List<ValidationRule>? = null
@@ -89,7 +87,7 @@ class BpmnValidator private constructor(
 
         val models = ExtractProcessModelsPlugin().execute(resourceLoader(), selectedEngine)
         val activeRules = resolveRules()
-        val result = runValidation(models, selectedEngine, activeRules)
+        val result = runValidation(models = models, engine = selectedEngine, activeRules = activeRules)
         return BpmnValidationAssert.assertThat(result)
     }
 

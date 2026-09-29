@@ -61,8 +61,7 @@ internal class FlowFacetsFactory(
         ?.let { serviceTask -> serviceTask.getValue().sharedIn(listOf(serviceTask)) }
 
     private fun List<VariableDefinition>.toVariableFacets(): List<VariableFacet> = groupBy { it.getRawName() }
-        .toSortedMap()
-        .map { (rawName, group) ->
+        .toSortedMap().map { (rawName, group) ->
             val subtype = VariableNameSubtype.chooseFor(group.map { it.direction }.toSet())
             VariableFacet(constantName = group.first().getName(), rawName = rawName, subtype = subtype)
         }
@@ -74,7 +73,7 @@ internal class FlowFacetsFactory(
 
     private inline fun <reified T : EventDefinitionInstance> FlowNodeDefinition.Event.firstDefinition(): T? = eventDefinitions.filterIsInstance<T>().firstOrNull()
 
-    private fun EventDefinitionInstance.Timer.toFacet(): TimerFacet? = timerType?.let { TimerFacet(type = it, expression = expression ?: "") }
+    private fun EventDefinitionInstance.Timer.toFacet(): TimerFacet? = timerType?.let { TimerFacet(type = it, expression = expression.orEmpty()) }
 
     private fun FlowNodeDefinition.messageReference(): MessageReference? = when (this) {
         is FlowNodeDefinition.Event -> firstDefinition<EventDefinitionInstance.Message>()?.reference
@@ -89,10 +88,10 @@ internal class FlowFacetsFactory(
         ?: definitions.signals.firstOrNull { it.id == signalRef }?.getRawName()?.ifBlank { null }
 
     private fun EventDefinitionInstance.Error.resolve(): NamedCode? = definitions.errors.firstOrNull { it.id == errorRef }?.getValue()?.toNamedCode()
-        ?: (errorName to (errorCode ?: "")).toNamedCode()
+        ?: (errorName to errorCode.orEmpty()).toNamedCode()
 
     private fun EventDefinitionInstance.Escalation.resolve(): NamedCode? = definitions.escalations.firstOrNull { it.id == escalationRef }?.getValue()?.toNamedCode()
-        ?: (escalationName to (escalationCode ?: "")).toNamedCode()
+        ?: (escalationName to escalationCode.orEmpty()).toNamedCode()
 
     private fun Pair<String?, String>.toNamedCode(): NamedCode? = first?.ifBlank { null }?.let { NamedCode(name = it, code = second) }
 

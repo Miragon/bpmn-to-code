@@ -5,12 +5,7 @@ import java.util.Properties
 /**
  * Application configuration loaded from environment variables
  */
-data class AppConfig(
-    val legalLinks: LegalLinksConfig,
-    val cors: CorsConfig,
-    val port: Int,
-    val version: String,
-) {
+data class AppConfig(val legalLinks: LegalLinksConfig, val cors: CorsConfig, val port: Int, val version: String) {
 
     companion object {
         fun fromEnvironment() = AppConfig(

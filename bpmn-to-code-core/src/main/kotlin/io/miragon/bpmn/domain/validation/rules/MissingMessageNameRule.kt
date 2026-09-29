@@ -18,8 +18,7 @@ class MissingMessageNameRule : SingleModelValidationRule {
     override val severity = Severity.ERROR
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.allFlowNodes
-        .filter { it.hasNamelessMessage() }
-        .map { node ->
+        .filter { it.hasNamelessMessage() }.map { node ->
             ValidationViolation(
                 ruleId = id,
                 severity = severity,
@@ -41,9 +40,6 @@ class MissingMessageNameRule : SingleModelValidationRule {
     }
 
     private companion object {
-        val messageTaskKinds = setOf(
-            TaskKind.RECEIVE,
-            TaskKind.SEND,
-        )
+        val messageTaskKinds = setOf(TaskKind.RECEIVE, TaskKind.SEND)
     }
 }

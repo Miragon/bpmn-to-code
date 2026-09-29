@@ -36,7 +36,7 @@ class BpmnJsonGeneratorTest {
             flowNodes = retail.flowNodes,
             definitions = retail.definitions,
             variants = listOf(
-                Variant("retail", retail.flowNodes, retail.sequenceFlows),
+                Variant(variantName = "retail", flowNodes = retail.flowNodes, sequenceFlows = retail.sequenceFlows),
             ),
         )
 

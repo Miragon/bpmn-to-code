@@ -32,8 +32,7 @@ object FlowGraphFactory {
         val names = FlowNaming.assign(nodes)
         val facets = FlowFacetsFactory(names, definitions)
         val navNodes = nodes
-            .sortedBy { names.getValue(it.id).objectName }
-            .map { node -> buildNode(node, nodes, names, facets, graph) }
+            .sortedBy { names.getValue(it.id).objectName }.map { node -> buildNode(node = node, allNodes = nodes, names = names, facets = facets, graph = graph) }
         return FlowGraph(navNodes)
     }
 
@@ -55,8 +54,8 @@ object FlowGraphFactory {
             name = definition.displayName,
             isStart = definition.isStartEvent(),
             isBoundaryEvent = definition is FlowNodeDefinition.Event && definition.shape == EventShape.BOUNDARY_EVENT,
-            successors = buildSuccessors(definition, names, graph),
-            outgoingFlows = buildOutgoingFlows(definition, names, graph),
+            successors = buildSuccessors(node = definition, names = names, graph = graph),
+            outgoingFlows = buildOutgoingFlows(node = definition, names = names, graph = graph),
             interiorStarts = buildInteriorStarts(node, allNodes, names, graph),
             facets = facets.of(definition),
         )
@@ -74,8 +73,7 @@ object FlowGraphFactory {
         if (node.definition !is FlowNodeDefinition.Activity.SubProcess) return emptyList()
         return allNodes
             .filter { graph.parentIdOf(it.id) == node.id && it.definition.isStartEvent() }
-            .map { names.getValue(it.id).toEdge() }
-            .sortedBy { it.propertyName }
+            .map { names.getValue(it.id).toEdge() }.sortedBy { it.propertyName }
     }
 
     /**
@@ -88,9 +86,7 @@ object FlowGraphFactory {
     ): List<FlowEdge> = (graph.followingElementsOf(node) + graph.attachedElementsOf(node))
         .distinct()
         .mapNotNull { targetId -> names[targetId] }
-        .distinctBy { it.objectName }
-        .sortedBy { it.propertyName }
-        .map { it.toEdge() }
+        .distinctBy { it.objectName }.sortedBy { it.propertyName }.map { it.toEdge() }
 
     /**
      * The outgoing sequence flows whose target is a known node, grouped by that target; no flow is dropped.
@@ -102,7 +98,7 @@ object FlowGraphFactory {
     ): List<FlowsToTarget> = graph.outgoingFlowsOf(node)
         .mapNotNull { flow -> names[flow.targetRef]?.let { target -> target to flow.toEdge() } }
         .groupBy({ (target, _) -> target }, { (_, flow) -> flow })
-        .map { (target, flows) -> FlowsToTarget(FlowNaming.outgoingFlowsProperty(target), target.toEdge(), flows.sortedBy { it.id }) }
+        .map { (target, flows) -> FlowsToTarget(propertyName = FlowNaming.outgoingFlowsProperty(target), target = target.toEdge(), flows = flows.sortedBy { it.id }) }
         .sortedBy { it.propertyName }
 
     private fun SequenceFlowDefinition.toEdge(): SequenceFlowEdge = SequenceFlowEdge(

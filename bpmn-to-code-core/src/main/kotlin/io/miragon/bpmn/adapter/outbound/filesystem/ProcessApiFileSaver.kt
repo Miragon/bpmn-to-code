@@ -9,10 +9,7 @@ internal class ProcessApiFileSaver : SaveProcessApiPort {
 
     private val logger = KotlinLogging.logger {}
 
-    override fun writeFiles(
-        generatedFiles: List<GeneratedApiFile>,
-        outputFolderPath: String,
-    ) {
+    override fun writeFiles(generatedFiles: List<GeneratedApiFile>, outputFolderPath: String) {
         val outputFolder = File(outputFolderPath)
         if (!outputFolder.exists()) {
             logger.debug { "Creating output folder: $outputFolderPath" }

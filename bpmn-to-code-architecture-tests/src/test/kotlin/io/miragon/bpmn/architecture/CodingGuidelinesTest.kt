@@ -41,8 +41,5 @@ class CodingGuidelinesTest {
     /**
      * Project sources only — never the gitignored `bin/` output an IDE may leave behind.
      */
-    private fun productionFiles() = Konsist
-        .scopeFromProject()
-        .files
-        .filter { it.path.contains("/src/") }
+    private fun productionFiles() = Konsist.scopeFromProject().files.filter { it.path.contains("/src/") }
 }

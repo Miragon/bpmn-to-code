@@ -20,8 +20,7 @@ class CallActivityTargetExistsRule : CrossModelValidationRule {
 
     override fun validate(context: CrossModelValidationContext): List<ValidationViolation> = context.models.flatMap { model ->
         model.callActivities
-            .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }
-            .map { callActivity ->
+            .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }.map { callActivity ->
                 ValidationViolation(
                     ruleId = id,
                     severity = severity,

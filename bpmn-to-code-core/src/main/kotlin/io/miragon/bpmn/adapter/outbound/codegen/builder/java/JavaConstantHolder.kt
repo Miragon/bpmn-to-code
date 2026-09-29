@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.MethodSpec
 import com.palantir.javapoet.TypeSpec

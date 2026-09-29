@@ -14,8 +14,7 @@ class MissingSignalNameRule : SingleModelValidationRule {
     override val severity = Severity.ERROR
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.definitions.signals
-        .filter { !it.hasName() }
-        .map {
+        .filter { !it.hasName() }.map {
             ValidationViolation(
                 ruleId = id,
                 severity = severity,

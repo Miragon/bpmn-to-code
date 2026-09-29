@@ -24,15 +24,15 @@ class TimerIso8601SyntaxRuleTest {
 
     @Test
     fun `no violation for valid iso values per type`() {
-        assertThat(validate("Timer_Date", TimerType.DATE, "2026-01-01T00:00:00Z")).isEmpty()
-        assertThat(validate("Timer_Dur", TimerType.DURATION, "PT15M")).isEmpty()
-        assertThat(validate("Timer_Dur2", TimerType.DURATION, "P1Y2M")).isEmpty()
-        assertThat(validate("Timer_Cyc", TimerType.CYCLE, "R3/PT10M")).isEmpty()
+        assertThat(validate(id = "Timer_Date", type = TimerType.DATE, value = "2026-01-01T00:00:00Z")).isEmpty()
+        assertThat(validate(id = "Timer_Dur", type = TimerType.DURATION, value = "PT15M")).isEmpty()
+        assertThat(validate(id = "Timer_Dur2", type = TimerType.DURATION, value = "P1Y2M")).isEmpty()
+        assertThat(validate(id = "Timer_Cyc", type = TimerType.CYCLE, value = "R3/PT10M")).isEmpty()
     }
 
     @Test
     fun `reports an error for an invalid iso duration`() {
-        val violations = validate("Timer_Bad", TimerType.DURATION, "15 minutes")
+        val violations = validate(id = "Timer_Bad", type = TimerType.DURATION, value = "15 minutes")
         assertThat(violations).hasSize(1)
         assertThat(violations.single().elementId).isEqualTo("Timer_Bad")
         assertThat(violations.single().severity).isEqualTo(Severity.ERROR)
@@ -40,24 +40,24 @@ class TimerIso8601SyntaxRuleTest {
 
     @Test
     fun `reports an error for an invalid iso date`() {
-        assertThat(validate("Timer_Bad", TimerType.DATE, "01/01/2026")).hasSize(1)
+        assertThat(validate(id = "Timer_Bad", type = TimerType.DATE, value = "01/01/2026")).hasSize(1)
     }
 
     @Test
     fun `reports an error for a cron cycle under the iso rule`() {
-        assertThat(validate("Timer_Bad", TimerType.CYCLE, "0 0 9 * * ?")).hasSize(1)
+        assertThat(validate(id = "Timer_Bad", type = TimerType.CYCLE, value = "0 0 9 * * ?")).hasSize(1)
     }
 
     @Test
     fun `skips expression and blank values`() {
-        assertThat(validate("Timer_Feel", TimerType.DURATION, "=durationVar")).isEmpty()
-        assertThat(validate("Timer_El", TimerType.DURATION, "\${durationVar}")).isEmpty()
-        assertThat(validate("Timer_Blank", TimerType.DURATION, "")).isEmpty()
+        assertThat(validate(id = "Timer_Feel", type = TimerType.DURATION, value = "=durationVar")).isEmpty()
+        assertThat(validate(id = "Timer_El", type = TimerType.DURATION, value = "\${durationVar}")).isEmpty()
+        assertThat(validate(id = "Timer_Blank", type = TimerType.DURATION, value = "")).isEmpty()
     }
 
     @Test
     fun `ignores timers with an unknown type`() {
-        assertThat(validate("Timer_NoType", null, "whatever")).isEmpty()
+        assertThat(validate(id = "Timer_NoType", type = null, value = "whatever")).isEmpty()
     }
 
     private fun validate(id: String, type: TimerType?, value: String?): List<ValidationViolation> {

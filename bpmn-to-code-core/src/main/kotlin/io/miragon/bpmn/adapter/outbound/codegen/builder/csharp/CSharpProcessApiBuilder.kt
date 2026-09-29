@@ -1,12 +1,12 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.adapter.outbound.codegen.ObjectWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpRuntimeTypes
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
-import io.miragon.bpmn.adapter.outbound.codegen.writer.ObjectWriter
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.ProcessGraph
@@ -66,7 +66,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
             val engineType = "${CSharpRuntimeTypes.CLASS_NAME}.BpmnEngine"
-            builder.constantExpression("ProcessEngine", CSharpRuntimeTypes.enumMember("BpmnEngine", modelApi.targetEngine.name), engineType)
+            builder.constantExpression(name = "ProcessEngine", expression = CSharpRuntimeTypes.enumMember("BpmnEngine", modelApi.targetEngine.name), type = engineType)
         }
     }
 
@@ -83,7 +83,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private inner class FlowWriter : ObjectWriter<CSharpWriter> {
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            writeFlow(builder, modelApi.model.graph, modelApi.model.definitions)
+            writeFlow(builder = builder, graph = modelApi.model.graph, definitions = modelApi.model.definitions)
         }
     }
 
@@ -94,7 +94,7 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
             builder.docComment("The FlowNodes of each merged BPMN file, keyed by its variantName.")
             builder.staticClass("FlowVariants") {
                 builder.forEachSeparated(model.variants) { variant ->
-                    writeFlow(builder, variant.graph, model.definitions, variant.variantName.toCamelCase())
+                    writeFlow(builder = builder, graph = variant.graph, definitions = model.definitions, className = variant.variantName.toCamelCase())
                 }
             }
         }

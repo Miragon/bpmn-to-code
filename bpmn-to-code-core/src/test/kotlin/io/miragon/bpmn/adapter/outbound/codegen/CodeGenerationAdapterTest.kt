@@ -50,14 +50,17 @@ class CodeGenerationAdapterTest {
         val modelApi = testProcessModelApi(language = OutputLanguage.JAVA)
 
         // when / then: an exception is thrown
-        assertThatThrownBy { underTest.generateCode(modelApi) }
-            .isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { underTest.generateCode(modelApi) }.isInstanceOf(IllegalArgumentException::class.java)
     }
 
     @Test
     fun `generateSharedCode delegates to the shared definitions builder and returns its files`() {
         // given: shared definitions and a stubbed shared builder response
-        val api = SharedDefinitionsApi(SharedDefinitions(), OutputLanguage.KOTLIN, "packagePath")
+        val api = SharedDefinitionsApi(
+            definitions = SharedDefinitions(),
+            outputLanguage = OutputLanguage.KOTLIN,
+            packagePath = "packagePath",
+        )
         val sharedFile = GeneratedApiFile(
             fileName = "ServiceTasks.kt",
             packagePath = "packagePath",
@@ -77,10 +80,13 @@ class CodeGenerationAdapterTest {
     @Test
     fun `generateSharedCode throws when output language is not supported`() {
         // given: shared definitions with an unsupported language
-        val api = SharedDefinitionsApi(SharedDefinitions(), OutputLanguage.JAVA, "packagePath")
+        val api = SharedDefinitionsApi(
+            definitions = SharedDefinitions(),
+            outputLanguage = OutputLanguage.JAVA,
+            packagePath = "packagePath",
+        )
 
         // when / then: an exception is thrown
-        assertThatThrownBy { underTest.generateSharedCode(api) }
-            .isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { underTest.generateSharedCode(api) }.isInstanceOf(IllegalArgumentException::class.java)
     }
 }

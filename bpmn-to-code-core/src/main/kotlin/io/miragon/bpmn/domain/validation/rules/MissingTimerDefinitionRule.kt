@@ -14,8 +14,7 @@ class MissingTimerDefinitionRule : SingleModelValidationRule {
     override val severity = Severity.ERROR
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.timers
-        .filter { !it.hasTimerType() }
-        .map { timer ->
+        .filter { !it.hasTimerType() }.map { timer ->
             ValidationViolation(
                 ruleId = id,
                 severity = severity,

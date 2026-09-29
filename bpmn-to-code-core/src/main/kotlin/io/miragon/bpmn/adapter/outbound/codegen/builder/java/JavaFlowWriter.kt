@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.CodeBlock
@@ -30,7 +30,7 @@ internal class JavaFlowWriter {
 
     fun write(builder: TypeSpec.Builder, graph: FlowGraph) {
         builder.addMethod(allNodes(graph))
-        graph.nodes.forEach { node -> builder.addMethod(nodeAccessor(node.propertyName, node.objectName, static = true)) }
+        graph.nodes.forEach { node -> builder.addMethod(nodeAccessor(methodName = node.propertyName, returnObjectName = node.objectName, static = true)) }
         graph.nodes.forEach { node -> builder.addType(buildNode(node)) }
     }
 
@@ -39,8 +39,7 @@ internal class JavaFlowWriter {
         return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
             .addJavadoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.\n")
             .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), ClassName.get(RUNTIME_PACKAGE, "FlowNode")))
-            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(nodes, ",\n"))
-            .build()
+            .addStatement("return \$T.of(\n\$L)", List::class.java, CodeBlock.join(nodes, ",\n")).build()
     }
 
     private fun buildNode(node: FlowGraphNode): TypeSpec {
@@ -67,10 +66,10 @@ internal class JavaFlowWriter {
         classBuilder.addField(JavaFlowNodeType(node.objectName).instanceField())
         classBuilder.addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).addStatement(superCall(node)).build())
         if (node.successors.isNotEmpty()) {
-            classBuilder.addSuperinterface(ownHolderInterface("HasSuccessors", node, NEXT_HOLDER))
+            classBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasSuccessors", node = node, holderName = NEXT_HOLDER))
         }
         if (node.outgoingFlows.isNotEmpty()) {
-            classBuilder.addSuperinterface(ownHolderInterface("HasOutgoingFlows", node, OUTGOING_FLOWS_HOLDER))
+            classBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasOutgoingFlows", node = node, holderName = OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
         when {
@@ -83,8 +82,7 @@ internal class JavaFlowWriter {
             val eventTypeClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEventType")
             classBuilder.addMethod(
                 MethodSpec.methodBuilder("getEventType").addAnnotation(Override::class.java).addModifiers(PUBLIC).returns(eventTypeClass)
-                    .addStatement("return \$T.\$L", eventTypeClass, eventType)
-                    .build(),
+                    .addStatement("return \$T.\$L", eventTypeClass, eventType).build(),
             )
         }
     }
@@ -116,14 +114,14 @@ internal class JavaFlowWriter {
     }
 
     private fun addInteriorStarts(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.addSuperinterface(ownHolderInterface("FlowScope", node, START_HOLDER))
+        classBuilder.addSuperinterface(ownHolderInterface(interfaceName = "FlowScope", node = node, holderName = START_HOLDER))
         classBuilder.addMethod(accessorMethod("getStartEvents", START_HOLDER))
         classBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }
 
     private fun accessorHolder(holderName: String, accessors: List<Pair<String, String>>): TypeSpec {
         val holderBuilder = TypeSpec.classBuilder(holderName).addModifiers(PUBLIC, STATIC, FINAL)
-        accessors.forEach { (propertyName, objectName) -> holderBuilder.addMethod(nodeAccessor(propertyName, objectName, static = false)) }
+        accessors.forEach { (propertyName, objectName) -> holderBuilder.addMethod(nodeAccessor(methodName = propertyName, returnObjectName = objectName, static = false)) }
         return holderBuilder.build()
     }
 

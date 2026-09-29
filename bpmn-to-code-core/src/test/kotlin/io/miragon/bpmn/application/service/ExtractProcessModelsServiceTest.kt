@@ -34,8 +34,7 @@ class ExtractProcessModelsServiceTest {
 
         // then: extraction really ran — a job type only the Zeebe dialect produces is present
         val implementations = models.single().allFlowNodes
-            .filterIsInstance<FlowNodeDefinition.Activity.Task>()
-            .mapNotNull { it.implementation }
+            .filterIsInstance<FlowNodeDefinition.Activity.Task>().mapNotNull { it.implementation }
         assertThat(implementations).contains(TaskImplementation.JobWorker("miravelo.sendContract"))
     }
 
@@ -67,8 +66,7 @@ class ExtractProcessModelsServiceTest {
 
         // then: the failure names the offending file rather than the batch
         assertThatThrownBy { underTest.extractProcessModels(command(resources)) }
-            .isInstanceOf(IllegalStateException::class.java)
-            .hasMessageContaining("broken.bpmn")
+            .isInstanceOf(IllegalStateException::class.java).hasMessageContaining("broken.bpmn")
     }
 
     private fun command(resources: List<BpmnResource>) = ExtractProcessModelsUseCase.Command(

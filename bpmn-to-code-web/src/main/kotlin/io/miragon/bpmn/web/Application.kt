@@ -37,15 +37,11 @@ fun main() {
         port = appConfig.port,
         host = "0.0.0.0",
         module = { configureApp(appConfig) },
-    ).start(
-        wait = true,
-    )
+    ).start(wait = true)
 }
 
 @Suppress("LongMethod")
-fun Application.configureApp(
-    appConfig: AppConfig,
-) {
+fun Application.configureApp(appConfig: AppConfig) {
     // JSON serialization
     install(ContentNegotiation) {
         val jsonSettings = Json {
@@ -111,10 +107,7 @@ fun Application.configureApp(
         }
 
         get("/api/config") {
-            val response = ConfigResponse(
-                legalLinks = appConfig.legalLinks,
-                version = appConfig.version,
-            )
+            val response = ConfigResponse(legalLinks = appConfig.legalLinks, version = appConfig.version)
             call.respond(response)
         }.describe {
             summary = "Get configuration"

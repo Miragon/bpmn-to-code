@@ -51,11 +51,7 @@ class RuntimeTypesTest {
 
     @Test
     fun `BpmnEngine covers all supported dialects`() {
-        assertThat(BpmnEngine.entries).containsExactly(
-            BpmnEngine.ZEEBE,
-            BpmnEngine.CAMUNDA_7,
-            BpmnEngine.OPERATON,
-        )
+        assertThat(BpmnEngine.entries).containsExactly(BpmnEngine.ZEEBE, BpmnEngine.CAMUNDA_7, BpmnEngine.OPERATON)
     }
 
     @Test
@@ -111,7 +107,13 @@ class RuntimeTypesTest {
     @Test
     fun `SequenceFlow carries id, name, condition, default marker and its typed target`() {
         val target = flowNode("end")
-        val flow = SequenceFlow(ElementId("flow_1"), "No", "=stock > 0", false, target)
+        val flow = SequenceFlow(
+            id = ElementId("flow_1"),
+            name = "No",
+            conditionExpression = "=stock > 0",
+            isDefault = false,
+            target = target,
+        )
 
         assertThat(flow.id).isEqualTo(ElementId("flow_1"))
         assertThat(flow.name).isEqualTo("No")
@@ -122,20 +124,48 @@ class RuntimeTypesTest {
 
     @Test
     fun `SequenceFlow implements value equality and copy`() {
-        val flow = SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end"))
+        val flow = SequenceFlow(
+            id = ElementId("flow_1"),
+            name = null,
+            conditionExpression = null,
+            isDefault = true,
+            target = flowNode("end"),
+        )
 
         assertThat(flow.isDefault).isTrue()
-        assertThat(flow).isEqualTo(SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end")))
+        assertThat(flow).isEqualTo(
+            SequenceFlow(
+                id = ElementId("flow_1"),
+                name = null,
+                conditionExpression = null,
+                isDefault = true,
+                target = flowNode("end"),
+            ),
+        )
         assertThat(flow).isNotEqualTo(flow.copy(isDefault = false))
         assertThat(flow.copy(name = "Yes").name).isEqualTo("Yes")
-        assertThat(flow.hashCode()).isEqualTo(SequenceFlow(ElementId("flow_1"), null, null, true, flowNode("end")).hashCode())
+        assertThat(flow.hashCode()).isEqualTo(
+            SequenceFlow(
+                id = ElementId("flow_1"),
+                name = null,
+                conditionExpression = null,
+                isDefault = true,
+                target = flowNode("end"),
+            ).hashCode(),
+        )
     }
 
     @Test
     fun `HasOutgoingFlows exposes the node's outgoing sequence flows holder`() {
         val end = flowNode("end")
         val start = object : AbstractFlowNode(ElementId("start"), BpmnElementType.START_EVENT), HasOutgoingFlows<SequenceFlow<AbstractFlowNode>> {
-            override val outgoingFlows: SequenceFlow<AbstractFlowNode> = SequenceFlow(ElementId("flow_1"), null, "= ok", false, end)
+            override val outgoingFlows: SequenceFlow<AbstractFlowNode> = SequenceFlow(
+                id = ElementId("flow_1"),
+                name = null,
+                conditionExpression = "= ok",
+                isDefault = false,
+                target = end,
+            )
         }
 
         assertThat(start.outgoingFlows.target).isEqualTo(end)

@@ -1,11 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.codegen
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.CSharpProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.CSharpSharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.JavaProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.JavaSharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.KotlinProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.KotlinSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinSharedDefinitionsBuilder
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile

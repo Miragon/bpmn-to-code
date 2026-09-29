@@ -63,18 +63,14 @@ import org.camunda.bpm.model.xml.ModelInstance
  * flow knows the scope it belongs to. Everything engine-specific is delegated to [EngineDialect].
  */
 @Suppress("TooManyFunctions")
-internal class BpmnStructureReader(
-    private val model: ModelInstance,
-    private val dialect: EngineDialect,
-) {
+internal class BpmnStructureReader(private val model: ModelInstance, private val dialect: EngineDialect) {
 
-    private val extensionReader = ForeignXmlReader(model, dialect.namespace, dialect.fullyReadExtensions)
+    private val extensionReader = ForeignXmlReader(modelInstance = model, engineNamespace = dialect.namespace, fullyReadExtensions = dialect.fullyReadExtensions)
 
     private val boundaryEventsByHost: Map<String, List<String>> by lazy {
         model.getModelElementsByType(BoundaryEvent::class.java)
             .mapNotNull { event -> event.attachedTo?.id?.let { host -> host to event.id } }
-            .filter { (_, eventId) -> eventId != null }
-            .groupBy({ it.first }, { it.second })
+            .filter { (_, eventId) -> eventId != null }.groupBy({ it.first }, { it.second })
     }
 
     /**

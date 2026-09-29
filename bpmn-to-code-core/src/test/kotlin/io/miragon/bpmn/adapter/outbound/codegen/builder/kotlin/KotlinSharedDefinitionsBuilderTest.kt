@@ -1,5 +1,8 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
+import io.miragon.bpmn.adapter.outbound.codegen.builder.asGoldenText
+import io.miragon.bpmn.adapter.outbound.codegen.builder.miraVeloSharedDefinitionsApi
+import io.miragon.bpmn.adapter.outbound.codegen.builder.readGolden
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -28,7 +31,11 @@ class KotlinSharedDefinitionsBuilderTest {
     fun `strips the public modifier without touching string literals`() {
         // given: a message whose name contains the word "public"
         val definitions = SharedDefinitions(messages = listOf(RootElementDefinition.Message(id = "msg", name = "Message_public reply")))
-        val api = SharedDefinitionsApi(definitions, OutputLanguage.KOTLIN, "de.emaarco.example")
+        val api = SharedDefinitionsApi(
+            definitions = definitions,
+            outputLanguage = OutputLanguage.KOTLIN,
+            packagePath = "de.emaarco.example",
+        )
 
         // when
         val result = underTest.buildApiFiles(api).single()
@@ -41,7 +48,11 @@ class KotlinSharedDefinitionsBuilderTest {
     @Test
     fun `buildApiFiles skips kinds without definitions`() {
         // given: no shared definitions at all
-        val api = SharedDefinitionsApi(SharedDefinitions(), OutputLanguage.KOTLIN, "de.emaarco.example")
+        val api = SharedDefinitionsApi(
+            definitions = SharedDefinitions(),
+            outputLanguage = OutputLanguage.KOTLIN,
+            packagePath = "de.emaarco.example",
+        )
 
         // when / then: no file is generated
         assertThat(underTest.buildApiFiles(api)).isEmpty()

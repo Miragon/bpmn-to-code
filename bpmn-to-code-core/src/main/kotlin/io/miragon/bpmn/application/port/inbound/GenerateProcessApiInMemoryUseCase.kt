@@ -17,8 +17,5 @@ interface GenerateProcessApiInMemoryUseCase {
         val enableVariants: Boolean = false,
     )
 
-    data class BpmnInput(
-        val bpmnXml: String,
-        val processName: String,
-    )
+    data class BpmnInput(val bpmnXml: String, val processName: String)
 }

@@ -3,10 +3,7 @@ package io.miragon.bpmn.web.config
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LegalLinksConfig(
-    val imprintUrl: String?,
-    val privacyUrl: String?,
-) {
+data class LegalLinksConfig(val imprintUrl: String?, val privacyUrl: String?) {
     companion object {
         fun fromEnvironment(): LegalLinksConfig {
             val imprintUrl = System.getenv("IMPRINT_URL")?.takeIf { it.isNotBlank() }

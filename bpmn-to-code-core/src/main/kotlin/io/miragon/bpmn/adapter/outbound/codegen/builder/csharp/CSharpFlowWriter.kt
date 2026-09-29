@@ -1,15 +1,15 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.nullableStringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.staticListProperty
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpRuntimeTypes
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.nullableStringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.stringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.writer.staticListProperty
 
 /**
  * Emits the typed navigation graph of a C# process API `FlowNodes` class: one nested sealed singleton class per flow
@@ -29,7 +29,7 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
     private val facetWriter = CSharpFacetWriter(writer)
 
     fun write(graph: FlowGraph) {
-        writer.staticListProperty("All", runtime("IFlowNode"), graph.nodes.map { "${it.objectName}.Instance" }, "Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
+        writer.staticListProperty(name = "All", elementType = runtime("IFlowNode"), elements = graph.nodes.map { "${it.objectName}.Instance" }, doc = "Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
         writer.line()
         writer.forEachSeparated(graph.nodes) { node -> writeNode(node) }
     }
@@ -47,29 +47,29 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
             facetWriter.writeMembers(node.facets)
             writer.line()
             writer.constant("ElementId", node.id)
-            writer.readonlyProperty("Id", runtime("ElementId"), "new(ElementId)")
-            writer.expressionProperty("ElementType", runtime("BpmnElementType"), CSharpRuntimeTypes.enumMember("BpmnElementType", node.elementType))
-            node.eventType?.let { writer.expressionProperty("EventType", runtime("BpmnEventType"), CSharpRuntimeTypes.enumMember("BpmnEventType", it)) }
-            writer.expressionProperty("Name", "string?", nullableStringLiteral(node.name))
+            writer.readonlyProperty(name = "Id", type = runtime("ElementId"), initializer = "new(ElementId)")
+            writer.expressionProperty(name = "ElementType", type = runtime("BpmnElementType"), expression = CSharpRuntimeTypes.enumMember("BpmnElementType", node.elementType))
+            node.eventType?.let { writer.expressionProperty(name = "EventType", type = runtime("BpmnEventType"), expression = CSharpRuntimeTypes.enumMember("BpmnEventType", it)) }
+            writer.expressionProperty(name = "Name", type = "string?", expression = nullableStringLiteral(node.name))
             facetWriter.writeProperties(node.facets)
             facetWriter.writeHolders(node.facets)
             if (node.successors.isNotEmpty()) {
-                writeNodeHolder("Next", "Successors", node.successors)
+                writeNodeHolder(propertyName = "Next", holderName = "Successors", edges = node.successors)
             }
             if (node.outgoingFlows.isNotEmpty()) {
                 writeOutgoingFlows(node.outgoingFlows)
             }
             if (node.interiorStarts.isNotEmpty()) {
-                writeNodeHolder("Start", "Interior", node.interiorStarts)
+                writeNodeHolder(propertyName = "Start", holderName = "Interior", edges = node.interiorStarts)
             }
         }
     }
 
     private fun writeNodeHolder(propertyName: String, holderName: String, edges: List<FlowEdge>) {
         writer.line()
-        writer.expressionProperty(propertyName, holderName, "new()")
+        writer.expressionProperty(name = propertyName, type = holderName, expression = "new()")
         writer.sealedClass(holderName) {
-            edges.forEach { edge -> writer.expressionProperty(edge.objectName, edge.objectName, "${edge.objectName}.Instance") }
+            edges.forEach { edge -> writer.expressionProperty(name = edge.objectName, type = edge.objectName, expression = "${edge.objectName}.Instance") }
         }
     }
 
@@ -79,15 +79,15 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
      */
     private fun writeOutgoingFlows(outgoingFlows: List<FlowsToTarget>) {
         writer.line()
-        writer.expressionProperty("OutgoingFlows", "OutgoingSequenceFlows", "new()")
+        writer.expressionProperty(name = "OutgoingFlows", type = "OutgoingSequenceFlows", expression = "new()")
         writer.sealedClass("OutgoingSequenceFlows") {
             outgoingFlows.forEach { flowsToTarget ->
                 val flowType = "${runtime("SequenceFlow")}<${flowsToTarget.target.objectName}>"
                 val propertyName = flowsToTarget.propertyName.replaceFirstChar { it.uppercaseChar() }
                 val constructions = flowsToTarget.flows.map { sequenceFlowConstruction(it, flowsToTarget.target.objectName) }
                 when (constructions.size) {
-                    1 -> writer.expressionProperty(propertyName, flowType, constructions.single())
-                    else -> writer.expressionProperty(propertyName, "System.Collections.Generic.IReadOnlyList<$flowType>", "new $flowType[] { ${constructions.joinToString(", ")} }")
+                    1 -> writer.expressionProperty(name = propertyName, type = flowType, expression = constructions.single())
+                    else -> writer.expressionProperty(name = propertyName, type = "System.Collections.Generic.IReadOnlyList<$flowType>", expression = "new $flowType[] { ${constructions.joinToString(", ")} }")
                 }
             }
         }

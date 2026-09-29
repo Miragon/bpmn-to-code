@@ -6,9 +6,7 @@ import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 
-class ExtractProcessModelsPlugin(
-    private val useCase: ExtractProcessModelsUseCase = ExtractProcessModelsService(),
-) {
+class ExtractProcessModelsPlugin(private val useCase: ExtractProcessModelsUseCase = ExtractProcessModelsService()) {
 
     fun execute(resources: List<BpmnResource>, engine: ProcessEngine): List<ProcessModel> = useCase.extractProcessModels(
         ExtractProcessModelsUseCase.Command(resources = resources, engine = engine),

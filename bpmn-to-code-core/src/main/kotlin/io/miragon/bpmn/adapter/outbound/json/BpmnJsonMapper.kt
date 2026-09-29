@@ -71,7 +71,7 @@ internal class BpmnJsonMapper {
         val event = this as? FlowNodeDefinition.Event
         val subProcess = this as? FlowNodeDefinition.Activity.SubProcess
         return FlowNodeJson(
-            id = id ?: "",
+            id = id.orEmpty(),
             type = BpmnTypeName.of(this),
             name = displayName,
             incoming = incoming,
@@ -168,7 +168,7 @@ internal class BpmnJsonMapper {
     )
 
     private fun SequenceFlowDefinition.toJson(): SequenceFlowJson = SequenceFlowJson(
-        id = id ?: "",
+        id = id.orEmpty(),
         sourceRef = sourceRef,
         targetRef = targetRef,
         name = flowName,

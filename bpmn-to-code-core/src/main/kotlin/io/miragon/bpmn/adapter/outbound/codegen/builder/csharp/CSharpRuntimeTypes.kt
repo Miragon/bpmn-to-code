@@ -1,6 +1,6 @@
-package io.miragon.bpmn.adapter.outbound.codegen.writer
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.toPascalCase
 
 /**
  * The C# counterpart of `bpmn-to-code-runtime`, emitted verbatim into every generated file as a nested

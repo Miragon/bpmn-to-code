@@ -23,9 +23,7 @@ class SingleModelRuleTest {
             BpmnValidator
                 .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
-                .withRules(RequireCallActivityInputsRule(setOf("orderIds")))
-                .validate()
-                .assertNoViolations()
+                .withRules(RequireCallActivityInputsRule(setOf("orderIds"))).validate().assertNoViolations()
         }
 
         @Test
@@ -33,9 +31,7 @@ class SingleModelRuleTest {
             BpmnValidator
                 .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
-                .withRules(RequireCallActivityInputsRule(setOf("businessKey")))
-                .validate()
-                .assertViolation(
+                .withRules(RequireCallActivityInputsRule(setOf("businessKey"))).validate().assertViolation(
                     ruleId = "call-activity-required-inputs",
                     elementId = "callActivity_cancelBikeOrder",
                     messageContains = "businessKey",
@@ -47,9 +43,7 @@ class SingleModelRuleTest {
             BpmnValidator
                 .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
-                .withRules(RequireCallActivityOutputsRule(setOf("cancellationCosts")))
-                .validate()
-                .assertNoViolations()
+                .withRules(RequireCallActivityOutputsRule(setOf("cancellationCosts"))).validate().assertNoViolations()
         }
 
         @Test
@@ -57,9 +51,7 @@ class SingleModelRuleTest {
             BpmnValidator
                 .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
-                .withRules(RequireCallActivityOutputsRule(setOf("missingResult")))
-                .validate()
-                .assertViolation(
+                .withRules(RequireCallActivityOutputsRule(setOf("missingResult"))).validate().assertViolation(
                     ruleId = "call-activity-required-outputs",
                     elementId = "callActivity_cancelBikeOrder",
                     messageContains = "missingResult",
@@ -75,10 +67,7 @@ class SingleModelRuleTest {
             // only the disallowed expression is flagged - the allow-listed one passes
             BpmnValidator
                 .fromClasspath("bpmn/output-mapping-process.bpmn")
-                .engine(ProcessEngine.CAMUNDA_7)
-                .withRules(OutputExpressionAllowListRule())
-                .validate()
-                .assertViolation(
+                .engine(ProcessEngine.CAMUNDA_7).withRules(OutputExpressionAllowListRule()).validate().assertViolation(
                     ruleId = "output-expression-allow-list",
                     messageContains = "\${someBean.compute()}",
                 )
@@ -131,12 +120,10 @@ class SingleModelRuleTest {
 
         override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.flowNodes
             .flatMap { node -> node.variables.map { node to it } }
-            .filter { (_, variable) -> variable.direction == VariableDirection.OUTPUT }
-            .filter { (_, variable) ->
+            .filter { (_, variable) -> variable.direction == VariableDirection.OUTPUT }.filter { (_, variable) ->
                 val expression = variable.valueExpression
                 expression != null && !allowed.matches(expression)
-            }
-            .map { (node, variable) ->
+            }.map { (node, variable) ->
                 ValidationViolation(
                     ruleId = id,
                     severity = severity,

@@ -34,10 +34,7 @@ class GradlePluginSmokeTest {
 
         // when: running the compile task (which depends on generateBpmnModelApi)
         val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withPluginClasspath()
-            .withArguments(target.compileTask)
-            .build()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments(target.compileTask).build()
 
         // then: both generation and compilation succeed
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
@@ -50,15 +47,12 @@ class GradlePluginSmokeTest {
     fun `consumer code reads typed edges and node facets from the generated FlowNodes`(language: String, @TempDir projectDir: File) {
         // given: a project whose own source navigates the generated API and reads facets
         val target = Target.of(language)
-        writeProject(projectDir, "ZEEBE", target, "zeebe/bike-leasing.bpmn")
+        writeProject(projectDir = projectDir, engine = "ZEEBE", target = target, bpmnFile = "zeebe/bike-leasing.bpmn")
         File(projectDir, target.consumerPath).apply { parentFile.mkdirs() }.writeText(target.consumerSource)
 
         // when: compiling the consumer against the generated API and the runtime
         val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withPluginClasspath()
-            .withArguments(target.compileTask)
-            .build()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments(target.compileTask).build()
 
         // then: every referenced member resolves
         assertThat(result.task(":${target.compileTask}")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
@@ -67,14 +61,16 @@ class GradlePluginSmokeTest {
     @Test
     fun `generateBpmnModelApi writes a cs file with FlowNodes for CSHARP`(@TempDir projectDir: File) {
         // given: a JVM project (the plugin only wires itself when a JVM plugin is present) targeting C#
-        writeProject(projectDir, "ZEEBE", Target.CSHARP, "zeebe/bike-leasing.bpmn")
+        writeProject(
+            projectDir = projectDir,
+            engine = "ZEEBE",
+            target = Target.CSHARP,
+            bpmnFile = "zeebe/bike-leasing.bpmn",
+        )
 
         // when: running generation only — the C# compile gate lives in core's CSharpCompilationTest
         val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withPluginClasspath()
-            .withArguments("generateBpmnModelApi")
-            .build()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments("generateBpmnModelApi").build()
 
         // then: the Process API .cs file carries the navigation, next to the shared definition files
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)

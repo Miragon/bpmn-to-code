@@ -18,9 +18,7 @@ class CrossModelRuleTest {
         BpmnValidator
             .fromClasspath("bpmn/c7/bike-leasing.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
-            .validate()
-            .assertViolation(
+            .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS).validate().assertViolation(
                 ruleId = BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id,
                 elementId = "callActivity_cancelBikeOrder",
                 messageContains = "cancelBikeOrder",
@@ -32,19 +30,14 @@ class CrossModelRuleTest {
         BpmnValidator
             .fromClasspath("bpmn/c7/")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
-            .validate()
-            .assertNoViolations()
+            .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS).validate().assertNoViolations()
     }
 
     @Test
     fun `warns when a thrown message has no catcher among the loaded models`() {
         BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.UNCAUGHT_MESSAGE_THROW)
-            .validate()
-            .assertViolation(
+            .engine(ProcessEngine.CAMUNDA_7).withRules(BpmnRules.UNCAUGHT_MESSAGE_THROW).validate().assertViolation(
                 ruleId = BpmnRules.UNCAUGHT_MESSAGE_THROW.id,
                 elementId = "endEvent_bikeOrderCancelled",
                 messageContains = "miravelo.bikeOrderCancelled",
@@ -55,20 +48,14 @@ class CrossModelRuleTest {
     fun `passes when the thrown message is caught by another loaded model`() {
         BpmnValidator
             .fromClasspath("bpmn/message-flow/")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.UNCAUGHT_MESSAGE_THROW)
-            .validate()
-            .assertNoViolations()
+            .engine(ProcessEngine.CAMUNDA_7).withRules(BpmnRules.UNCAUGHT_MESSAGE_THROW).validate().assertNoViolations()
     }
 
     @Test
     fun `warns when a thrown signal has no subscriber among the loaded models`() {
         BpmnValidator
             .fromClasspath("bpmn/c7/membership.bpmn")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW)
-            .validate()
-            .assertViolation(
+            .engine(ProcessEngine.CAMUNDA_7).withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW).validate().assertViolation(
                 ruleId = BpmnRules.UNCAUGHT_SIGNAL_THROW.id,
                 elementId = "endEvent_membershipActivated",
                 messageContains = "miravelo.memberActivated",
@@ -79,20 +66,14 @@ class CrossModelRuleTest {
     fun `passes when the thrown signal is caught by another loaded model`() {
         BpmnValidator
             .fromClasspath("bpmn/c7/")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW)
-            .validate()
-            .assertNoViolations()
+            .engine(ProcessEngine.CAMUNDA_7).withRules(BpmnRules.UNCAUGHT_SIGNAL_THROW).validate().assertNoViolations()
     }
 
     @Test
     fun `warns when a caught signal is never thrown among the loaded models`() {
         BpmnValidator
             .fromClasspath("bpmn/c7/welcome-package.bpmn")
-            .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH)
-            .validate()
-            .assertViolation(
+            .engine(ProcessEngine.CAMUNDA_7).withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH).validate().assertViolation(
                 ruleId = BpmnRules.UNPUBLISHED_SIGNAL_CATCH.id,
                 elementId = "startEvent_memberActivated",
                 messageContains = "miravelo.memberActivated",
@@ -104,8 +85,6 @@ class CrossModelRuleTest {
         BpmnValidator
             .fromClasspath("bpmn/c7/")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH)
-            .validate()
-            .assertNoViolations()
+            .withRules(BpmnRules.UNPUBLISHED_SIGNAL_CATCH).validate().assertNoViolations()
     }
 }

@@ -8,13 +8,13 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
  */
 data class CompensationDefinition(
     val id: String?,
-    val type: CompensationDefinition.Type,
+    val type: Type,
     val activityRef: String? = null,
     val waitForCompletion: Boolean? = null,
 ) : VariableMapping<String> {
-    override fun getName() = id?.toUpperSnakeCase() ?: ""
-    override fun getValue() = id ?: ""
-    override fun getRawName() = id ?: ""
+    override fun getName() = id?.toUpperSnakeCase().orEmpty()
+    override fun getValue() = id.orEmpty()
+    override fun getRawName() = id.orEmpty()
 
     /**
      * Whether the event catches a compensation (boundary) or throws one (intermediate / end).

@@ -102,17 +102,41 @@ class ZeebeExtractionTest {
 
         // derived timer registry
         assertThat(bpmnModel.timers).containsExactlyInAnyOrder(
-            TimerDefinition("timer_signatureDeadline", TimerType.DURATION, "P14D"),
-            TimerDefinition("timer_signatureReminder", TimerType.DURATION, "P7D"),
-            TimerDefinition("timer_withdrawalPeriodElapsed", TimerType.DURATION, "=withdrawalPeriod"),
+            TimerDefinition(id = "timer_signatureDeadline", type = TimerType.DURATION, expression = "P14D"),
+            TimerDefinition(id = "timer_signatureReminder", type = TimerType.DURATION, expression = "P7D"),
+            TimerDefinition(
+                id = "timer_withdrawalPeriodElapsed",
+                type = TimerType.DURATION,
+                expression = "=withdrawalPeriod",
+            ),
         )
 
         // derived compensation registry
         assertThat(bpmnModel.compensations).containsExactlyInAnyOrder(
-            CompensationDefinition("boundary_compensateContract", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
-            CompensationDefinition("boundary_compensateOrder", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
-            CompensationDefinition("boundary_compensateInsurance", CompensationDefinition.Type.CATCHING, activityRef = null, waitForCompletion = false),
-            CompensationDefinition("event_reverseApplication", CompensationDefinition.Type.THROWING, activityRef = null, waitForCompletion = false),
+            CompensationDefinition(
+                id = "boundary_compensateContract",
+                type = CompensationDefinition.Type.CATCHING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
+            CompensationDefinition(
+                id = "boundary_compensateOrder",
+                type = CompensationDefinition.Type.CATCHING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
+            CompensationDefinition(
+                id = "boundary_compensateInsurance",
+                type = CompensationDefinition.Type.CATCHING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
+            CompensationDefinition(
+                id = "event_reverseApplication",
+                type = CompensationDefinition.Type.THROWING,
+                activityRef = null,
+                waitForCompletion = false,
+            ),
         )
 
         // call activity target and mappings
@@ -185,11 +209,23 @@ class ZeebeExtractionTest {
     fun `extract captures call-activity io-mapping targets and propagate-all flags`() {
         val callActivity = extract("zeebe/bike-leasing").callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.inputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "=orderIds", target = "orderIds"),
-            CallActivityDefinition.Mapping(VariableDirection.INPUT, source = "=applicationId", target = "applicationId"),
+            CallActivityDefinition.Mapping(
+                direction = VariableDirection.INPUT,
+                source = "=orderIds",
+                target = "orderIds",
+            ),
+            CallActivityDefinition.Mapping(
+                direction = VariableDirection.INPUT,
+                source = "=applicationId",
+                target = "applicationId",
+            ),
         )
         assertThat(callActivity.outputMappings).containsExactly(
-            CallActivityDefinition.Mapping(VariableDirection.OUTPUT, source = "=cancellationCosts", target = "cancellationCosts"),
+            CallActivityDefinition.Mapping(
+                direction = VariableDirection.OUTPUT,
+                source = "=cancellationCosts",
+                target = "cancellationCosts",
+            ),
         )
         assertThat(callActivity.propagateAllInputVariables).isFalse()
         assertThat(callActivity.propagateAllOutputVariables).isFalse()
@@ -199,15 +235,31 @@ class ZeebeExtractionTest {
     fun `extract returns multi-instance variables`() {
         val bpmnModel = extract("zeebe/bike-leasing")
         assertThat(bpmnModel.allFlowNodes.single { it.id == "serviceTask_orderBike" }.variables).containsExactlyInAnyOrder(
-            VariableDefinition("authentication.type", VariableDirection.INPUT, "noAuth"),
-            VariableDefinition("method", VariableDirection.INPUT, "POST"),
-            VariableDefinition("url", VariableDirection.INPUT, "https://supplier.miravelo.example/orders"),
-            VariableDefinition("body", VariableDirection.INPUT, "={bikeId: bikeId}"),
-            VariableDefinition("orderId", VariableDirection.OUTPUT, "=response.body.orderId"),
-            VariableDefinition("bikeId", VariableDirection.INPUT, "bikeId"),
-            VariableDefinition("bikeIds", VariableDirection.INPUT, "=bikeIds"),
-            VariableDefinition("orderId", VariableDirection.OUTPUT, "=orderId"),
-            VariableDefinition("orderIds", VariableDirection.OUTPUT, "orderIds"),
+            VariableDefinition(
+                name = "authentication.type",
+                direction = VariableDirection.INPUT,
+                valueExpression = "noAuth",
+            ),
+            VariableDefinition(name = "method", direction = VariableDirection.INPUT, valueExpression = "POST"),
+            VariableDefinition(
+                name = "url",
+                direction = VariableDirection.INPUT,
+                valueExpression = "https://supplier.miravelo.example/orders",
+            ),
+            VariableDefinition(
+                name = "body",
+                direction = VariableDirection.INPUT,
+                valueExpression = "={bikeId: bikeId}",
+            ),
+            VariableDefinition(
+                name = "orderId",
+                direction = VariableDirection.OUTPUT,
+                valueExpression = "=response.body.orderId",
+            ),
+            VariableDefinition(name = "bikeId", direction = VariableDirection.INPUT, valueExpression = "bikeId"),
+            VariableDefinition(name = "bikeIds", direction = VariableDirection.INPUT, valueExpression = "=bikeIds"),
+            VariableDefinition(name = "orderId", direction = VariableDirection.OUTPUT, valueExpression = "=orderId"),
+            VariableDefinition(name = "orderIds", direction = VariableDirection.OUTPUT, valueExpression = "orderIds"),
         )
     }
 
@@ -235,10 +287,22 @@ class ZeebeExtractionTest {
     fun `extract marks default sequence flow correctly`() {
         val flowsById = extract("zeebe/bike-leasing").sequenceFlows.associateBy { it.id }
         assertThat(flowsById["flow_isSolventToConcludeContract"]).isEqualTo(
-            SequenceFlowDefinition("flow_isSolventToConcludeContract", "gateway_isSolvent", "subProcess_concludeContract", flowName = "Yes", isDefault = true),
+            SequenceFlowDefinition(
+                id = "flow_isSolventToConcludeContract",
+                sourceRef = "gateway_isSolvent",
+                targetRef = "subProcess_concludeContract",
+                flowName = "Yes",
+                isDefault = true,
+            ),
         )
         assertThat(flowsById["flow_isSolventToCollectRejections"]).isEqualTo(
-            SequenceFlowDefinition("flow_isSolventToCollectRejections", "gateway_isSolvent", "gateway_collectRejections", flowName = "No", conditionExpression = "=not(solvent)"),
+            SequenceFlowDefinition(
+                id = "flow_isSolventToCollectRejections",
+                sourceRef = "gateway_isSolvent",
+                targetRef = "gateway_collectRejections",
+                flowName = "No",
+                conditionExpression = "=not(solvent)",
+            ),
         )
     }
 

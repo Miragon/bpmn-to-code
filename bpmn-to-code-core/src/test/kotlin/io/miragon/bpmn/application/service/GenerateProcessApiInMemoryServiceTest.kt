@@ -22,10 +22,7 @@ class GenerateProcessApiInMemoryServiceTest {
     private val codeGenerator = mockk<GenerateApiCodePort>(relaxed = true)
     private val bpmnService = mockk<ExtractBpmnPort>(relaxed = true)
 
-    private val underTest = GenerateProcessApiInMemoryService(
-        codeGenerator = codeGenerator,
-        bpmnService = bpmnService,
-    )
+    private val underTest = GenerateProcessApiInMemoryService(codeGenerator = codeGenerator, bpmnService = bpmnService)
 
     @Test
     fun `service generates API files from BPMN content`() {
@@ -87,8 +84,7 @@ class GenerateProcessApiInMemoryServiceTest {
         // when / then: it fails with a single engine-mismatch error and never generates code
         assertThatThrownBy { underTest.generateProcessApi(command) }
             .isInstanceOf(BpmnValidationException::class.java)
-            .extracting("violations")
-            .matches { (it as List<*>).size == 1 }
+            .extracting("violations").matches { (it as List<*>).size == 1 }
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
     }
 
@@ -108,8 +104,7 @@ class GenerateProcessApiInMemoryServiceTest {
 
         // when / then: it fails naming both files and never generates code
         assertThatThrownBy { underTest.generateProcessApi(command) }
-            .isInstanceOf(DuplicateProcessIdException::class.java)
-            .hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(DuplicateProcessIdException::class.java).hasMessageContaining("v1.bpmn, v2.bpmn")
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
     }
 
@@ -138,8 +133,5 @@ class GenerateProcessApiInMemoryServiceTest {
         }
     }
 
-    private val dummyModel = ProcessModel(
-        processId = "testProcess",
-        flowNodes = emptyList(),
-    )
+    private val dummyModel = ProcessModel(processId = "testProcess", flowNodes = emptyList())
 }

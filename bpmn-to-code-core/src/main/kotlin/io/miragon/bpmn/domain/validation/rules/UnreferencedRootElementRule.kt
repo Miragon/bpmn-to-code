@@ -26,10 +26,10 @@ class UnreferencedRootElementRule : SingleModelValidationRule {
         val model = context.model
         val referenced = model.referencedDefinitionIds()
         return model.definitions.run {
-            unreferenced(messages, referenced, "Message") +
-                unreferenced(signals, referenced, "Signal") +
-                unreferenced(errors, referenced, "Error") +
-                unreferenced(escalations, referenced, "Escalation")
+            unreferenced(elements = messages, referenced = referenced, kind = "Message") +
+                unreferenced(elements = signals, referenced = referenced, kind = "Signal") +
+                unreferenced(elements = errors, referenced = referenced, kind = "Error") +
+                unreferenced(elements = escalations, referenced = referenced, kind = "Escalation")
         }.map { (kind, element) -> violation(model, kind, element) }
     }
 

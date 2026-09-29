@@ -10,7 +10,4 @@ import io.miragon.bpmn.domain.shared.FlowNodeDefinition
  * graph is built that rule has passed, so every node has an id. This wrapper captures that invariant once, at
  * the graph boundary: the whole factory then works with a non-null [id] and no downstream step needs a `!!`.
  */
-internal data class FlowNodeWithId(
-    val id: String,
-    val definition: FlowNodeDefinition,
-)
+internal data class FlowNodeWithId(val id: String, val definition: FlowNodeDefinition)

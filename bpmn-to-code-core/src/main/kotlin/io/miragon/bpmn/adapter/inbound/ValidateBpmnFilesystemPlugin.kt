@@ -6,9 +6,7 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
 
-class ValidateBpmnFilesystemPlugin(
-    private val useCase: ValidateBpmnFromFilesystemUseCase = ValidateBpmnService(),
-) {
+class ValidateBpmnFilesystemPlugin(private val useCase: ValidateBpmnFromFilesystemUseCase = ValidateBpmnService()) {
 
     fun execute(
         baseDir: String,

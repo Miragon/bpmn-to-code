@@ -68,8 +68,10 @@ wired into `check`/`build` and gate CI + the pre-push hook.
 ```bash
 ./gradlew lintKotlin    # ktlint check
 ./gradlew formatKotlin  # ktlint auto-fix
-./gradlew detekt        # detekt
+./gradlew detektMain detektTest  # detekt (with type resolution)
 ```
+Lines target 120 chars: anything that fits on one line within that limit stays on one line (ktlint wraps
+longer lines but never joins shorter ones, so collapse them by hand).
 No baseline and no silent suppressions — fix findings or add a scoped exception in the relevant
 config. ktlint config lives in `.editorconfig`, detekt config in `config/detekt/detekt.yml`.
 

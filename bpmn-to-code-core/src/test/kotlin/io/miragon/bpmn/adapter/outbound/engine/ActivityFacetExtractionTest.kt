@@ -38,11 +38,7 @@ class ActivityFacetExtractionTest {
             ),
         )
         assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = true,
-                inputCollection = "=bikeIds",
-                inputElement = "bikeId",
-            ),
+            MultiInstanceDefinition(sequential = true, inputCollection = "=bikeIds", inputElement = "bikeId"),
         )
     }
 
@@ -78,18 +74,10 @@ class ActivityFacetExtractionTest {
 
         // then: camunda:collection and camunda:elementVariable normalise onto the same fields as Zeebe
         assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = false,
-                inputCollection = "\${bikeIds}",
-                inputElement = "bikeId",
-            ),
+            MultiInstanceDefinition(sequential = false, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
         )
         assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = true,
-                inputCollection = "\${bikeIds}",
-                inputElement = "bikeId",
-            ),
+            MultiInstanceDefinition(sequential = true, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
         )
     }
 
@@ -114,18 +102,10 @@ class ActivityFacetExtractionTest {
 
         // then: the operaton namespace carries the identical vocabulary (ADR 010)
         assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = false,
-                inputCollection = "\${bikeIds}",
-                inputElement = "bikeId",
-            ),
+            MultiInstanceDefinition(sequential = false, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
         )
         assertThat(model.multiInstanceOf("serviceTask_issueInsurancePolicy")).isEqualTo(
-            MultiInstanceDefinition(
-                sequential = true,
-                inputCollection = "\${bikeIds}",
-                inputElement = "bikeId",
-            ),
+            MultiInstanceDefinition(sequential = true, inputCollection = "\${bikeIds}", inputElement = "bikeId"),
         )
     }
 
@@ -161,12 +141,9 @@ class ActivityFacetExtractionTest {
         val models = bikeLeasingPerEngine()
 
         // then: everything but the engine's own expression syntax agrees
-        assertThat(models.map { it.multiInstanceOf("serviceTask_orderBike")?.sequential })
-            .containsOnly(false)
-        assertThat(models.map { it.multiInstanceOf("serviceTask_issueInsurancePolicy")?.sequential })
-            .containsOnly(true)
-        assertThat(models.map { it.multiInstanceOf("serviceTask_orderBike")?.inputElement })
-            .containsOnly("bikeId")
+        assertThat(models.map { it.multiInstanceOf("serviceTask_orderBike")?.sequential }).containsOnly(false)
+        assertThat(models.map { it.multiInstanceOf("serviceTask_issueInsurancePolicy")?.sequential }).containsOnly(true)
+        assertThat(models.map { it.multiInstanceOf("serviceTask_orderBike")?.inputElement }).containsOnly("bikeId")
         assertThat(models.map { it.ioMappingOf("serviceTask_sendContract")?.outputs?.map { output -> output.target } })
             .containsOnly(listOf("contractId"))
     }

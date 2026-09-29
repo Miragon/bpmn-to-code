@@ -10,9 +10,7 @@ import io.miragon.bpmn.web.model.GenerateRequest
 import io.miragon.bpmn.web.model.GenerateResponse
 import java.util.Base64
 
-class WebGenerationService(
-    private val librarySourceProvider: LibrarySourceProvider = LibrarySourceProvider(),
-) {
+class WebGenerationService(private val librarySourceProvider: LibrarySourceProvider = LibrarySourceProvider()) {
 
     private val logger = KotlinLogging.logger {}
 
@@ -61,10 +59,7 @@ class WebGenerationService(
     private fun buildCommand(file: GenerateRequest.BpmnFileData): CreateProcessApiInMemoryPlugin.BpmnInput {
         val bpmnXml = String(Base64.getDecoder().decode(file.content))
         val processName = file.fileName.removeSuffix(".bpmn")
-        return CreateProcessApiInMemoryPlugin.BpmnInput(
-            bpmnXml = bpmnXml,
-            processName = processName,
-        )
+        return CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = bpmnXml, processName = processName)
     }
 
     /**
@@ -73,9 +68,7 @@ class WebGenerationService(
      */
     private fun OutputLanguage.runsOnJvm() = this != OutputLanguage.CSHARP
 
-    private fun mapToResponse(
-        apiFile: GeneratedApiFile,
-    ) = GenerateResponse.GeneratedFile(
+    private fun mapToResponse(apiFile: GeneratedApiFile) = GenerateResponse.GeneratedFile(
         fileName = apiFile.fileName,
         content = apiFile.content,
         processId = apiFile.processId,

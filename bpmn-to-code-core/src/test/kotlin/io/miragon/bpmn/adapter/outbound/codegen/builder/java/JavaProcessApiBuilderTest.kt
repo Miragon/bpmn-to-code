@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.sun.source.util.JavacTask
 import io.miragon.bpmn.domain.BpmnModelApi
@@ -33,10 +33,7 @@ class JavaProcessApiBuilderTest {
     @Test
     fun `buildApiFile generates correct process API file`() {
         // given: the bike-leasing model, which covers every implementation kind of Camunda 7
-        val modelApi = testProcessModelApi(
-            packagePath = "de.emaarco.example",
-            model = testBikeLeasingModel(),
-        )
+        val modelApi = testProcessModelApi(packagePath = "de.emaarco.example", model = testBikeLeasingModel())
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
@@ -95,8 +92,18 @@ class JavaProcessApiBuilderTest {
                 FlowNodeDefinition.Unknown(id = "approve", incoming = listOf("flow_small", "flow_vip")),
             ),
             sequenceFlows = listOf(
-                SequenceFlowDefinition("flow_small", "split", "approve", conditionExpression = "=amount < 100"),
-                SequenceFlowDefinition("flow_vip", "split", "approve", conditionExpression = "=customer.isVip"),
+                SequenceFlowDefinition(
+                    id = "flow_small",
+                    sourceRef = "split",
+                    targetRef = "approve",
+                    conditionExpression = "=amount < 100",
+                ),
+                SequenceFlowDefinition(
+                    id = "flow_vip",
+                    sourceRef = "split",
+                    targetRef = "approve",
+                    conditionExpression = "=customer.isVip",
+                ),
             ),
         )
 
@@ -117,10 +124,15 @@ class JavaProcessApiBuilderTest {
             flowNodes = retail.flowNodes,
             definitions = retail.definitions,
             variants = listOf(
-                Variant("retail", retail.flowNodes, retail.sequenceFlows),
+                Variant(variantName = "retail", flowNodes = retail.flowNodes, sequenceFlows = retail.sequenceFlows),
             ),
         )
-        val modelApi = BpmnModelApi(merged, OutputLanguage.JAVA, "de.emaarco.example", ProcessEngine.ZEEBE)
+        val modelApi = BpmnModelApi(
+            model = merged,
+            outputLanguage = OutputLanguage.JAVA,
+            packagePath = "de.emaarco.example",
+            targetEngine = ProcessEngine.ZEEBE,
+        )
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)

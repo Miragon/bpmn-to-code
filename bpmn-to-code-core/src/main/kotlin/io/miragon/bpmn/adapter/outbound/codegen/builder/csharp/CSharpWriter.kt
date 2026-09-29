@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.writer
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
@@ -32,12 +32,12 @@ internal class CSharpWriter {
         line("}")
     }
 
-    fun staticClass(name: String, body: () -> Unit) = typeBlock("public static class", disambiguate(name), body)
+    fun staticClass(name: String, body: () -> Unit) = typeBlock(keyword = "public static class", header = disambiguate(name), body = body)
 
     fun sealedClass(name: String, implements: String? = null, body: () -> Unit) {
         val typeName = disambiguate(name)
         val header = implements?.let { "$typeName : $it" } ?: typeName
-        typeBlock("public sealed class", header, body, typeName)
+        typeBlock(keyword = "public sealed class", header = header, body = body, typeName = typeName)
     }
 
     private fun typeBlock(keyword: String, header: String, body: () -> Unit, typeName: String = header) {

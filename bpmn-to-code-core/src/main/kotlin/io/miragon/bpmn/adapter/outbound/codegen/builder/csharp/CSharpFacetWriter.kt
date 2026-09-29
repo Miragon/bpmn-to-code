@@ -1,18 +1,18 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.disambiguated
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.nullableStringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.toPascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpRuntimeTypes
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.disambiguated
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.nullableStringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.stringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.writer.CSharpWriter.Companion.toPascalCase
 
 /**
  * Emits a C# `FlowNodes` node's own data: `JobType` (a `const`, so it stays attribute-usable), value properties
@@ -32,14 +32,14 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
     }
 
     fun writeProperties(facets: NodeFacets) {
-        facets.calledProcessId?.let { writer.readonlyProperty("CalledProcess", runtime("ProcessId"), "new(${stringLiteral(it)})") }
-        facets.timer?.let { writer.readonlyProperty("Timer", runtime("BpmnTimer"), "new(${CSharpRuntimeTypes.enumMember("TimerType", it.type.name)}, ${stringLiteral(it.expression)})") }
-        facets.message?.let { writer.readonlyProperty("Message", runtime("MessageName"), "new(${nameArgument(SharedDefinitionType.MESSAGES, it)})") }
-        facets.signal?.let { writer.readonlyProperty("Signal", runtime("SignalName"), "new(${nameArgument(SharedDefinitionType.SIGNALS, it)})") }
-        facets.error?.let { writer.readonlyProperty("Error", runtime("BpmnErrorDefinition"), "new(${namedCodeArguments(SharedDefinitionType.ERRORS, it)})") }
-        facets.escalation?.let { writer.readonlyProperty("Escalation", runtime("BpmnEscalationDefinition"), "new(${namedCodeArguments(SharedDefinitionType.ESCALATIONS, it)})") }
-        facets.attachedTo?.let { writer.expressionProperty("AttachedTo", it.objectName, "${it.objectName}.Instance") }
-        facets.isInterrupting?.let { writer.expressionProperty("IsInterrupting", "bool", it.toString()) }
+        facets.calledProcessId?.let { writer.readonlyProperty(name = "CalledProcess", type = runtime("ProcessId"), initializer = "new(${stringLiteral(it)})") }
+        facets.timer?.let { writer.readonlyProperty(name = "Timer", type = runtime("BpmnTimer"), initializer = "new(${CSharpRuntimeTypes.enumMember("TimerType", it.type.name)}, ${stringLiteral(it.expression)})") }
+        facets.message?.let { writer.readonlyProperty(name = "Message", type = runtime("MessageName"), initializer = "new(${nameArgument(SharedDefinitionType.MESSAGES, it)})") }
+        facets.signal?.let { writer.readonlyProperty(name = "Signal", type = runtime("SignalName"), initializer = "new(${nameArgument(SharedDefinitionType.SIGNALS, it)})") }
+        facets.error?.let { writer.readonlyProperty(name = "Error", type = runtime("BpmnErrorDefinition"), initializer = "new(${namedCodeArguments(SharedDefinitionType.ERRORS, it)})") }
+        facets.escalation?.let { writer.readonlyProperty(name = "Escalation", type = runtime("BpmnEscalationDefinition"), initializer = "new(${namedCodeArguments(SharedDefinitionType.ESCALATIONS, it)})") }
+        facets.attachedTo?.let { writer.expressionProperty(name = "AttachedTo", type = it.objectName, expression = "${it.objectName}.Instance") }
+        facets.isInterrupting?.let { writer.expressionProperty(name = "IsInterrupting", type = "bool", expression = it.toString()) }
     }
 
     fun writeHolders(facets: NodeFacets) {
@@ -47,20 +47,20 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
             writeVariables(facets.variables)
         }
         if (facets.inputs.isNotEmpty()) {
-            writeMappings("Inputs", "InputMappings", facets.inputs)
+            writeMappings(propertyName = "Inputs", holderName = "InputMappings", mappings = facets.inputs)
         }
         if (facets.outputs.isNotEmpty()) {
-            writeMappings("Outputs", "OutputMappings", facets.outputs)
+            writeMappings(propertyName = "Outputs", holderName = "OutputMappings", mappings = facets.outputs)
         }
     }
 
     private fun writeVariables(variables: List<VariableFacet>) {
         writer.line()
-        writer.readonlyProperty("Variables", "NodeVariables", "new()")
+        writer.readonlyProperty(name = "Variables", type = "NodeVariables", initializer = "new()")
         writer.sealedClass("NodeVariables") {
             variables.forEach { variable ->
                 val subtype = runtime("VariableName.${variable.subtype.simpleName}")
-                writer.readonlyProperty(variable.rawName.toPascalCase(), subtype, "new(Names.${variable.rawName.toPascalCase()})")
+                writer.readonlyProperty(name = variable.rawName.toPascalCase(), type = subtype, initializer = "new(Names.${variable.rawName.toPascalCase()})")
             }
             writer.staticClass("Names") {
                 variables.forEach { variable -> writer.constant(variable.rawName.toPascalCase(), variable.rawName) }
@@ -70,10 +70,10 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
 
     private fun writeMappings(propertyName: String, holderName: String, mappings: List<MappingFacet>) {
         writer.line()
-        writer.readonlyProperty(propertyName, holderName, "new()")
+        writer.readonlyProperty(name = propertyName, type = holderName, initializer = "new()")
         writer.sealedClass(holderName) {
             mappings.forEach { mapping ->
-                writer.readonlyProperty(mapping.target.toPascalCase(), runtime("InputOutputMapping"), mappingInitializer(mapping))
+                writer.readonlyProperty(name = mapping.target.toPascalCase(), type = runtime("InputOutputMapping"), initializer = mappingInitializer(mapping))
             }
         }
     }
@@ -87,8 +87,7 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
     private fun nameArgument(type: SharedDefinitionType, shared: SharedValue<String>): String = shared.constant?.let { sharedReference(type, it) } ?: stringLiteral(shared.value)
 
     private fun namedCodeArguments(type: SharedDefinitionType, shared: SharedValue<NamedCode>): String = shared.constant
-        ?.let { sharedReference(type, it) }
-        ?.let { "$it.Reference, $it.Code" }
+        ?.let { sharedReference(type, it) }?.let { "$it.Reference, $it.Code" }
         ?: "${stringLiteral(shared.value.name)}, ${stringLiteral(shared.value.code)}"
 
     private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): String = "${type.typeName}.${disambiguated(constant.name.toPascalCase(), type.typeName)}"

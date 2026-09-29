@@ -23,8 +23,7 @@ class BpmnResourceLoaderTest {
     @Test
     fun `fromClasspath throws on missing classpath path`() {
         assertThatThrownBy { BpmnResourceLoader.fromClasspath("nonexistent/path") }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("No classpath resources found")
+            .isInstanceOf(IllegalArgumentException::class.java).hasMessageContaining("No classpath resources found")
     }
 
     @Test
@@ -55,8 +54,7 @@ class BpmnResourceLoaderTest {
 
         // when / then: an exception is thrown
         assertThatThrownBy { BpmnResourceLoader.fromDirectory(file) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("Path is not a directory")
+            .isInstanceOf(IllegalArgumentException::class.java).hasMessageContaining("Path is not a directory")
     }
 
     @Test
@@ -79,10 +77,7 @@ class BpmnResourceLoaderTest {
         }
 
         // given: a class loader that sees the JAR on the classpath
-        val classLoader = URLClassLoader(
-            arrayOf(jarPath.toUri().toURL()),
-            Thread.currentThread().contextClassLoader,
-        )
+        val classLoader = URLClassLoader(arrayOf(jarPath.toUri().toURL()), Thread.currentThread().contextClassLoader)
 
         // when: loading from the JAR-backed classpath path
         val previous = Thread.currentThread().contextClassLoader

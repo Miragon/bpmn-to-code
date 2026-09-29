@@ -12,26 +12,18 @@ package io.miragon.bpmn.domain.shared
  */
 sealed interface EventDefinitionInstance {
 
-    val type: EventDefinitionInstance.Type
+    val type: Type
 
-    data class Timer(
-        val timerType: TimerType? = null,
-        val expression: String? = null,
-    ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.TIMER
+    data class Timer(val timerType: TimerType? = null, val expression: String? = null) : EventDefinitionInstance {
+        override val type = Type.TIMER
     }
 
-    data class Message(
-        val reference: MessageReference,
-    ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.MESSAGE
+    data class Message(val reference: MessageReference) : EventDefinitionInstance {
+        override val type = Type.MESSAGE
     }
 
-    data class Signal(
-        val signalRef: String? = null,
-        val signalName: String? = null,
-    ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.SIGNAL
+    data class Signal(val signalRef: String? = null, val signalName: String? = null) : EventDefinitionInstance {
+        override val type = Type.SIGNAL
     }
 
     data class Error(
@@ -39,7 +31,7 @@ sealed interface EventDefinitionInstance {
         val errorName: String? = null,
         val errorCode: String? = null,
     ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.ERROR
+        override val type = Type.ERROR
     }
 
     data class Escalation(
@@ -47,30 +39,26 @@ sealed interface EventDefinitionInstance {
         val escalationName: String? = null,
         val escalationCode: String? = null,
     ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.ESCALATION
+        override val type = Type.ESCALATION
     }
 
     data class Compensation(
         val activityRef: String? = null,
         val waitForCompletion: Boolean? = null,
     ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.COMPENSATION
+        override val type = Type.COMPENSATION
     }
 
-    data class Conditional(
-        val expression: String? = null,
-    ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.CONDITIONAL
+    data class Conditional(val expression: String? = null) : EventDefinitionInstance {
+        override val type = Type.CONDITIONAL
     }
 
-    data class Link(
-        val linkName: String? = null,
-    ) : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.LINK
+    data class Link(val linkName: String? = null) : EventDefinitionInstance {
+        override val type = Type.LINK
     }
 
     data object Terminate : EventDefinitionInstance {
-        override val type = EventDefinitionInstance.Type.TERMINATE
+        override val type = Type.TERMINATE
     }
 
     /**
