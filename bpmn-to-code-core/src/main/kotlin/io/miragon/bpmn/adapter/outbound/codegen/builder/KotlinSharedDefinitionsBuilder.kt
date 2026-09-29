@@ -110,7 +110,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
     private fun createNameAndCodeAttribute(variable: VariableMapping<Pair<String, String>>, wrapperClass: ClassName): PropertySpec {
         val (name, code) = variable.getValue()
         return PropertySpec.builder(variable.getName(), wrapperClass)
-            .initializer("%T(%S, %S)", wrapperClass, name, code)
+            .initializer(kotlinNamedInitializer(wrapperClass, "name" to kotlinStringLiteral(name), "code" to kotlinStringLiteral(code)))
             .build()
     }
 

@@ -10,6 +10,8 @@ import kotlin.Suppress
  * BPMN escalation definitions with name and code, as thrown and caught by the processes.
  */
 object Escalations {
-  val MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED: BpmnEscalation =
-      BpmnEscalation("miravelo.contractNotSigned", "contractNotSigned")
+  val MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED: BpmnEscalation = BpmnEscalation(
+    name = "miravelo.contractNotSigned",
+    code = "contractNotSigned",
+  )
 }

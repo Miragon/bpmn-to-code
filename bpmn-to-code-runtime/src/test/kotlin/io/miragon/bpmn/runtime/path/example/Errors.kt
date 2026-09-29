@@ -10,6 +10,8 @@ import kotlin.Suppress
  * BPMN error definitions with name and code, as thrown and caught by the processes.
  */
 object Errors {
-  val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError =
-      BpmnError("miravelo.applicationInvalid", "applicationInvalid")
+  val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError = BpmnError(
+    name = "miravelo.applicationInvalid",
+    code = "applicationInvalid",
+  )
 }

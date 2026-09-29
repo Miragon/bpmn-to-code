@@ -75,11 +75,11 @@ internal class KotlinFacetWriter {
 
     private fun pairProperty(name: String, wrapper: String, first: Pair<String, String>, second: Pair<String, String>): PropertySpec {
         val wrapperClass = ClassName(RUNTIME_PACKAGE, wrapper)
-        val call = kotlinNamedCall(wrapperClass, first.first to kotlinStringLiteral(first.second), second.first to kotlinStringLiteral(second.second))
-        return PropertySpec.builder(name, wrapperClass).initializer(kotlinInitializer(call)).build()
+        val initializer = kotlinNamedInitializer(wrapperClass, first.first to kotlinStringLiteral(first.second), second.first to kotlinStringLiteral(second.second))
+        return PropertySpec.builder(name, wrapperClass).initializer(initializer).build()
     }
 
-    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = kotlinInitializer(kotlinNamedCall(wrapperClass, "name" to kotlinStringLiteral(value.name), "code" to kotlinStringLiteral(value.code)))
+    private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = kotlinNamedInitializer(wrapperClass, "name" to kotlinStringLiteral(value.name), "code" to kotlinStringLiteral(value.code))
 
     private fun attachedToProperty(hostObjectName: String): PropertySpec = PropertySpec.builder("attachedTo", ClassName("", hostObjectName))
         .getter(FunSpec.getterBuilder().addStatement("return %N", hostObjectName).build())
@@ -102,12 +102,12 @@ internal class KotlinFacetWriter {
         val mappingClass = ClassName(RUNTIME_PACKAGE, "InputOutputMapping")
         val holder = TypeSpec.objectBuilder(holderName)
         mappings.forEach { mapping ->
-            holder.addProperty(PropertySpec.builder(mapping.constantName, mappingClass).initializer(kotlinInitializer(mappingCall(mappingClass, mapping))).build())
+            holder.addProperty(PropertySpec.builder(mapping.constantName, mappingClass).initializer(mappingInitializer(mappingClass, mapping)).build())
         }
         return holder.build()
     }
 
-    private fun mappingCall(mappingClass: ClassName, mapping: MappingFacet): CodeBlock = kotlinNamedCall(
+    private fun mappingInitializer(mappingClass: ClassName, mapping: MappingFacet): CodeBlock = kotlinNamedInitializer(
         mappingClass,
         "target" to kotlinStringLiteral(mapping.target),
         "source" to mapping.source?.let { kotlinStringLiteral(it) },
