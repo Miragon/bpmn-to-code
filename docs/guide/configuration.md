@@ -10,7 +10,7 @@ All plugin parameters, available for both the Gradle and Maven plugins.
 | `filePattern` | `String` | yes | — | Glob pattern to locate BPMN files (e.g. `src/main/resources/**/*.bpmn`) |
 | `outputFolderPath` | `String` | yes | — | Directory where generated code is written |
 | `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`). Use one package per generation run — the [shared definition files](/guide/generated-api#shared-definitions) of two runs in the same package overwrite each other |
-| `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (beta) |
+| `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (experimental) |
 | `processEngine` | `ProcessEngine` | yes | — | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
 | `enableVariants` | `Boolean` | no | `false` | Merge BPMN files sharing a `processId` into one API with `FlowVariants` (see [Model Merging](/guide/generated-api#model-merging)). When `false`, a `processId` defined in several files fails generation |
 
@@ -33,6 +33,10 @@ Operaton is an open-source fork of Camunda 7. It uses the same patterns for I/O 
 | Kotlin | `KOTLIN` | `object` with nested objects; depends on `bpmn-to-code-runtime` |
 | Java | `JAVA` | `class` with nested static classes; depends on `bpmn-to-code-runtime` |
 | C# | `CSHARP` | `static class` with the same registries and `Flow`; runtime types inlined, no dependency |
+
+::: warning Experimental
+C# support is experimental. It may change in any release and may be reworked or removed if it doesn't work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
+:::
 
 ::: info C# has no package dependency
 The C# output carries the same API surface as Kotlin and Java, including the typed `Flow` / `FlowVariants`
