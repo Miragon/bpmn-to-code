@@ -550,6 +550,10 @@ The "pass all variables" mode (`variables="all"` / `propagateAll{Parent,Child}Va
 
 ## C# specifics
 
+::: warning Experimental
+C# support is experimental. It may change in any release and may be reworked or removed if it doesn't work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
+:::
+
 C# generates the same shape without a package dependency: the handful of runtime types the nodes need
 (`IFlowNode`, `SequenceFlow<T>`, `ElementId`, `VariableName`, `BpmnTimer`, …) is inlined into every
 generated file as a nested `Runtime` class. Two generated files in one assembly therefore never clash, and
