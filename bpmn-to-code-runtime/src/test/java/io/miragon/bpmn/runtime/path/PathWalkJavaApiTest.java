@@ -32,6 +32,35 @@ class PathWalkJavaApiTest {
     }
 
     @Test
+    void viaRecordsTheWalkedSequenceFlowsIncludingThoseOfTheSubprocessInterior() {
+        var flowIds = PathWalk.from(Flow.startEventSubmitRegistrationForm())
+            .via(n -> n.outgoingFlows().toServiceTaskIncrementSubscriptionCounter())
+            .via(n -> n.outgoingFlows().toSubProcessConfirmation())
+            .inside(Flow.subProcessConfirmation(), s ->
+                PathWalk.from(s.startEventRequestReceived())
+                    .via(n -> n.outgoingFlows().toServiceTaskSendConfirmationMail())
+                    .via(n -> n.outgoingFlows().toReceiveTaskConfirmRegistration())
+                    .endVia(n -> n.outgoingFlows().toEndEventSubscriptionConfirmed()))
+            .via(n -> n.outgoingFlows().toGatewaySplitNotifications())
+            .via(n -> n.outgoingFlows().toServiceTaskSendWelcomeMail())
+            .via(n -> n.outgoingFlows().toGatewayJoinNotifications())
+            .endVia(n -> n.outgoingFlows().toEndEventRegistrationCompleted())
+            .getFlowIds();
+
+        assertThat(flowIds).containsExactly(
+            "flow_submitToIncrementCounter",
+            "flow_incrementCounterToConfirmation",
+            "flow_requestToConfirmationMail",
+            "flow_confirmationMailToConfirm",
+            "flow_confirmToConfirmed",
+            "flow_confirmationToSplit",
+            "flow_splitToWelcomeMail",
+            "flow_welcomeMailToJoin",
+            "flow_joinToRegistrationCompleted"
+        );
+    }
+
+    @Test
     void happyPathWalksTheSubprocessInteriorViaInside() {
         var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
             .then(n -> n.serviceTaskIncrementSubscriptionCounter())
