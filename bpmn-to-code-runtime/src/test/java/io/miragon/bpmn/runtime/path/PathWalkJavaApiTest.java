@@ -20,8 +20,8 @@ class PathWalkJavaApiTest {
     @Test
     void viaWalksChosenSequenceFlowsAndRecordsThemNextToTheElements() {
         var walk = PathWalk.from(Flow.businessRuleTaskCheckCreditRating())
-            .via(n -> n.outgoingFlows().toGatewayIsSolvent())
-            .via(n -> n.outgoingFlows().toSubProcessConcludeContract());
+            .via(n -> n.getOutgoingFlows().toGatewayIsSolvent())
+            .via(n -> n.getOutgoingFlows().toSubProcessConcludeContract());
 
         assertThat(walk.getIds()).containsExactly(
             "businessRuleTask_checkCreditRating",
@@ -34,22 +34,22 @@ class PathWalkJavaApiTest {
     @Test
     void viaRecordsTheWalkedSequenceFlowsIncludingThoseOfTheSubprocessInterior() {
         var flowIds = PathWalk.from(Flow.startEventLeasingRequestReceived())
-            .via(n -> n.outgoingFlows().toServiceTaskValidateApplication())
-            .via(n -> n.outgoingFlows().toBusinessRuleTaskCheckCreditRating())
-            .via(n -> n.outgoingFlows().toGatewayIsSolvent())
-            .via(n -> n.outgoingFlows().toSubProcessConcludeContract())
+            .via(n -> n.getOutgoingFlows().toServiceTaskValidateApplication())
+            .via(n -> n.getOutgoingFlows().toBusinessRuleTaskCheckCreditRating())
+            .via(n -> n.getOutgoingFlows().toGatewayIsSolvent())
+            .via(n -> n.getOutgoingFlows().toSubProcessConcludeContract())
             .inside(Flow.subProcessConcludeContract(), s ->
                 PathWalk.from(s.startEventCustomerEligible())
-                    .via(n -> n.outgoingFlows().toServiceTaskSendContract())
-                    .via(n -> n.outgoingFlows().toGatewayAwaitSignature())
-                    .via(n -> n.outgoingFlows().toEventContractSigned())
-                    .endVia(n -> n.outgoingFlows().toEndEventContractConcluded()))
-            .via(n -> n.outgoingFlows().toGatewayFork())
-            .via(n -> n.outgoingFlows().toServiceTaskOrderBike())
-            .via(n -> n.outgoingFlows().toGatewayJoin())
-            .via(n -> n.outgoingFlows().toReceiveTaskHandoverReported())
-            .via(n -> n.outgoingFlows().toTimerWithdrawalPeriodElapsed())
-            .endVia(n -> n.outgoingFlows().toEndEventLeasingActive())
+                    .via(n -> n.getOutgoingFlows().toServiceTaskSendContract())
+                    .via(n -> n.getOutgoingFlows().toGatewayAwaitSignature())
+                    .via(n -> n.getOutgoingFlows().toEventContractSigned())
+                    .endVia(n -> n.getOutgoingFlows().toEndEventContractConcluded()))
+            .via(n -> n.getOutgoingFlows().toGatewayFork())
+            .via(n -> n.getOutgoingFlows().toServiceTaskOrderBike())
+            .via(n -> n.getOutgoingFlows().toGatewayJoin())
+            .via(n -> n.getOutgoingFlows().toReceiveTaskHandoverReported())
+            .via(n -> n.getOutgoingFlows().toTimerWithdrawalPeriodElapsed())
+            .endVia(n -> n.getOutgoingFlows().toEndEventLeasingActive())
             .getFlowIds();
 
         assertThat(flowIds).containsExactly(

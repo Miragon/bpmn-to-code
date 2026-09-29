@@ -6,6 +6,7 @@ import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.VariableName
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi
 import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.SubProcessConcludeContract
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -23,6 +24,8 @@ import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow as BikeLe
  * unit test covers each operator's mechanics in isolation over a hand-built stub graph.
  */
 class ProcessPathKotlinApiTest {
+
+    private annotation class VariableAnnotation(val name: String)
 
     // --- Sequential flow through a subprocess -------------------------------------------------------------
 
@@ -197,28 +200,44 @@ class ProcessPathKotlinApiTest {
         assertThat(BikeLeasing.ReceiveTaskHandoverReported.name).isEqualTo("Await bike handover")
         assertThat(BikeLeasing.GatewayFork.name).isNull()
 
-        val flow = BikeLeasing.StartEventLeasingRequestReceived.outgoingFlows().toServiceTaskValidateApplication
+        val flow = BikeLeasing.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication
         assertThat(flow.id.value).isEqualTo("flow_leasingRequestReceivedToValidateApplication")
         assertThat(flow.target).isEqualTo(BikeLeasing.ServiceTaskValidateApplication)
         assertThat(flow.conditionExpression).isNull()
         assertThat(flow.isDefault).isFalse()
-        assertThat(flow).isEqualTo(BikeLeasing.StartEventLeasingRequestReceived.outgoingFlows().toServiceTaskValidateApplication)
+        assertThat(flow).isEqualTo(BikeLeasing.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication)
 
         val input: VariableName.Input = BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID
         assertThat(input.value).isEqualTo("applicationId")
         assertThat(BikeLeasing.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo("\${validateApplicationDelegate}")
-        assertThat(BikeLeasing.StartEventLeasingRequestReceived.message).isEqualTo(MessageName("miravelo.leasingRequestReceived"))
-        assertThat(BikeLeasing.BoundaryApplicationInvalid.error).isEqualTo(BpmnError("miravelo.applicationInvalid", "applicationInvalid"))
+        assertThat(BikeLeasing.StartEventLeasingRequestReceived.MESSAGE).isEqualTo(MessageName("miravelo.leasingRequestReceived"))
+        assertThat(BikeLeasing.BoundaryApplicationInvalid.ERROR).isEqualTo(BpmnError("miravelo.applicationInvalid", "applicationInvalid"))
 
-        assertThat(BikeLeasing.TimerSignatureReminder.timer).isEqualTo(BpmnTimer("Duration", "P7D"))
+        assertThat(BikeLeasing.TimerSignatureReminder.TIMER).isEqualTo(BpmnTimer("Duration", "P7D"))
         assertThat(BikeLeasing.TimerSignatureReminder.attachedTo).isEqualTo(BikeLeasing.SubProcessConcludeContract)
         assertThat(BikeLeasing.TimerSignatureReminder.isInterrupting).isFalse()
         assertThat(BikeLeasing.TimerSignatureReminder).isInstanceOf(BoundaryEvent::class.java)
         assertThat(BikeLeasing.ReceiveTaskHandoverReported).isNotInstanceOf(BoundaryEvent::class.java)
 
-        assertThat(BikeLeasing.CallActivityCancelBikeOrder.calledProcess).isEqualTo(ProcessId("cancelBikeOrder"))
+        assertThat(BikeLeasing.CallActivityCancelBikeOrder.CALLED_PROCESS).isEqualTo(ProcessId("cancelBikeOrder"))
         assertThat(BikeLeasing.CallActivityCancelBikeOrder.Inputs.ORDER_IDS.target).isEqualTo("orderIds")
         assertThat(BikeLeasing.CallActivityCancelBikeOrder.Outputs.CANCELLATION_COSTS.source).isEqualTo("cancellationCosts")
+    }
+
+    @Test
+    fun `raw names are compile-time constants usable in annotations and when branches`() {
+        @VariableAnnotation(name = BikeLeasing.ServiceTaskSendContract.Variables.Names.APPLICATION_ID)
+        fun describe(elementId: String): String = when (elementId) {
+            BikeLeasing.ServiceTaskSendContract.ELEMENT_ID -> "send contract"
+            BikeLeasingProcessApi.Names.PROCESS_ID -> "process"
+            else -> "other"
+        }
+
+        assertThat(describe("serviceTask_sendContract")).isEqualTo("send contract")
+        assertThat(describe("bikeLeasing")).isEqualTo("process")
+        assertThat(BikeLeasing.ServiceTaskSendContract.id.value).isEqualTo(BikeLeasing.ServiceTaskSendContract.ELEMENT_ID)
+        assertThat(BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID.value)
+            .isEqualTo(BikeLeasing.ServiceTaskSendContract.Variables.Names.APPLICATION_ID)
     }
 
     @Test
@@ -233,7 +252,7 @@ class ProcessPathKotlinApiTest {
             "subProcess_concludeContract",
         )
         assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "flow_isSolventToConcludeContract")
-        assertThat(BikeLeasing.GatewayIsSolvent.outgoingFlows().toSubProcessConcludeContract.isDefault).isTrue()
+        assertThat(BikeLeasing.GatewayIsSolvent.outgoingFlows.toSubProcessConcludeContract.isDefault).isTrue()
     }
 
     @Test

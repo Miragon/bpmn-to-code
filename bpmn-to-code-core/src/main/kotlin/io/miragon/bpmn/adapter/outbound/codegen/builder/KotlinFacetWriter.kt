@@ -15,23 +15,23 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
- * Emits a Kotlin `Flow` node's own data: plain properties (`JOB_TYPE`, `calledProcess`, `timer`, `message`, …)
+ * Emits a Kotlin `Flow` node's own data: constants (`JOB_TYPE`, `CALLED_PROCESS`, `TIMER`, `MESSAGE`, …)
  * and the nested holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors and
- * escalations refer to their shared definition constant. Cross-node references (`attachedTo`) are getters so
- * object initialisation never touches another node.
+ * escalations refer to their shared definition constant. A boundary event's `attachedTo` and `isInterrupting`
+ * implement `BoundaryEvent`; `attachedTo` is a getter so object initialisation never touches another node.
  */
 internal class KotlinFacetWriter {
 
     fun properties(facets: NodeFacets): List<PropertySpec> = listOfNotNull(
         facets.jobType?.let { jobTypeProperty(it) },
-        facets.calledProcessId?.let { wrappedProperty("calledProcess", "ProcessId", it) },
-        facets.timer?.let { pairProperty("timer", "BpmnTimer", "type" to it.type, "timerValue" to it.expression) },
-        facets.message?.let { sharedProperty("message", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
-        facets.signal?.let { sharedProperty("signal", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
-        facets.error?.let { sharedProperty("error", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
-        facets.escalation?.let { sharedProperty("escalation", "BpmnEscalation", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
+        facets.calledProcessId?.let { wrappedProperty("CALLED_PROCESS", "ProcessId", it) },
+        facets.timer?.let { pairProperty("TIMER", "BpmnTimer", "type" to it.type, "timerValue" to it.expression) },
+        facets.message?.let { sharedProperty("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
+        facets.signal?.let { sharedProperty("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
+        facets.error?.let { sharedProperty("ERROR", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
+        facets.escalation?.let { sharedProperty("ESCALATION", "BpmnEscalation", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
         facets.attachedTo?.let { attachedToProperty(it.objectName) },
-        facets.isInterrupting?.let { PropertySpec.builder("isInterrupting", Boolean::class).initializer("%L", it).build() },
+        facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
     )
 
     fun holders(facets: NodeFacets): List<TypeSpec> = listOfNotNull(
@@ -82,8 +82,15 @@ internal class KotlinFacetWriter {
     private fun namedCodeInitializer(wrapperClass: ClassName, value: NamedCode): CodeBlock = kotlinNamedInitializer(wrapperClass, "name" to kotlinStringLiteral(value.name), "code" to kotlinStringLiteral(value.code))
 
     private fun attachedToProperty(hostObjectName: String): PropertySpec = PropertySpec.builder("attachedTo", ClassName("", hostObjectName))
+        .addModifiers(KModifier.OVERRIDE)
         .getter(FunSpec.getterBuilder().addStatement("return %N", hostObjectName).build())
         .build()
+
+    private fun isInterruptingProperty(isInterrupting: Boolean, overridesBoundaryEvent: Boolean): PropertySpec {
+        val property = PropertySpec.builder("isInterrupting", Boolean::class).initializer("%L", isInterrupting)
+        if (overridesBoundaryEvent) property.addModifiers(KModifier.OVERRIDE)
+        return property.build()
+    }
 
     private fun variablesHolder(variables: List<VariableFacet>): TypeSpec {
         val holder = TypeSpec.objectBuilder("Variables")
@@ -91,11 +98,11 @@ internal class KotlinFacetWriter {
             val subtypeClass = ClassName(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addProperty(
                 PropertySpec.builder(variable.constantName, subtypeClass)
-                    .initializer("%T(%L)", subtypeClass, kotlinStringLiteral(variable.rawName))
+                    .initializer("%T(%N.%N)", subtypeClass, KOTLIN_NAMES_HOLDER, variable.constantName)
                     .build(),
             )
         }
-        return holder.build()
+        return holder.addType(kotlinNamesHolder(variables.map { it.constantName to it.rawName })).build()
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {

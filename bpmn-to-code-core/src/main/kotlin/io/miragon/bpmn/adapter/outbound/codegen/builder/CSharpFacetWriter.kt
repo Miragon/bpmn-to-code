@@ -60,7 +60,10 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         writer.sealedClass("NodeVariables") {
             variables.forEach { variable ->
                 val subtype = runtime("VariableName.${variable.subtype.simpleName}")
-                writer.readonlyProperty(variable.rawName.toPascalCase(), subtype, "new(${stringLiteral(variable.rawName)})")
+                writer.readonlyProperty(variable.rawName.toPascalCase(), subtype, "new(Names.${variable.rawName.toPascalCase()})")
+            }
+            writer.staticClass("Names") {
+                variables.forEach { variable -> writer.constant(variable.rawName.toPascalCase(), variable.rawName) }
             }
         }
     }

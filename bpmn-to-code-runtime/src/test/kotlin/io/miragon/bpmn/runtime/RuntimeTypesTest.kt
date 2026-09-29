@@ -130,19 +130,25 @@ class RuntimeTypesTest {
     fun `HasOutgoingFlows exposes the node's outgoing sequence flows holder`() {
         val end = flowNode("end")
         val start = object : AbstractFlowNode(ElementId("start"), "START_EVENT"), HasOutgoingFlows<SequenceFlow<AbstractFlowNode>> {
-            override fun outgoingFlows(): SequenceFlow<AbstractFlowNode> = SequenceFlow(ElementId("flow_1"), null, "= ok", false, end)
+            override val outgoingFlows: SequenceFlow<AbstractFlowNode> = SequenceFlow(ElementId("flow_1"), null, "= ok", false, end)
         }
 
-        assertThat(start.outgoingFlows().target).isEqualTo(end)
-        assertThat(start.outgoingFlows().conditionExpression).isEqualTo("= ok")
+        assertThat(start.outgoingFlows.target).isEqualTo(end)
+        assertThat(start.outgoingFlows.conditionExpression).isEqualTo("= ok")
     }
 
     @Test
-    fun `BoundaryEvent marks attached events among a node's successors`() {
-        val boundary = object : AbstractFlowNode(ElementId("timer"), "TIMER_BOUNDARY_EVENT"), BoundaryEvent {}
+    fun `BoundaryEvent marks attached events among a node's successors and knows its host`() {
+        val host = flowNode("task")
+        val boundary = object : AbstractFlowNode(ElementId("timer"), "TIMER_BOUNDARY_EVENT"), BoundaryEvent<AbstractFlowNode> {
+            override val attachedTo = host
+            override val isInterrupting = false
+        }
         val successors = listOf(flowNode("next"), boundary)
 
-        assertThat(successors.filterIsInstance<BoundaryEvent>()).containsExactly(boundary)
+        assertThat(successors.filterIsInstance<BoundaryEvent<*>>()).containsExactly(boundary)
+        assertThat(boundary.attachedTo).isEqualTo(host)
+        assertThat(boundary.isInterrupting).isFalse()
     }
 
     @Test

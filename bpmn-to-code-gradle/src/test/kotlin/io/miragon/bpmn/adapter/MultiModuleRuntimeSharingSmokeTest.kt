@@ -119,7 +119,7 @@ class MultiModuleRuntimeSharingSmokeTest {
 
             object $callerName {
                 fun run(gateway: EngineGateway): String {
-                    val edge = BikeLeasingProcessApi.Flow.StartEventLeasingRequestReceived.outgoingFlows().toServiceTaskValidateApplication
+                    val edge = BikeLeasingProcessApi.Flow.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication
                     return gateway.start(BikeLeasingProcessApi.PROCESS_ID) + gateway.follow(edge)
                 }
             }

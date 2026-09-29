@@ -156,7 +156,8 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
         assertThat(result.content).contains("public const string JobType = ServiceTasks.MiraveloOrderBike;")
-        assertThat(result.content).contains("public Runtime.VariableName.Input ApplicationId { get; } = new(\"applicationId\");")
+        assertThat(result.content).contains("public Runtime.VariableName.Input ApplicationId { get; } = new(Names.ApplicationId);")
+        assertThat(result.content).contains("public const string ApplicationId = \"applicationId\";")
         assertThat(result.content).contains("public Runtime.ProcessId CalledProcess { get; } = new(\"cancelBikeOrder\");")
         assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.MiraveloLeasingRequestReceived);")
         assertThat(result.content).contains(

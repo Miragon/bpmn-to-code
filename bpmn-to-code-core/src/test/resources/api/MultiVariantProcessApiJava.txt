@@ -17,16 +17,20 @@ import java.lang.String;
 import java.util.List;
 
 public final class CancelBikeOrderProcessApi {
-  public static final ProcessId PROCESS_ID = new ProcessId("cancelBikeOrder");
+  public static final ProcessId PROCESS_ID = new ProcessId(Names.PROCESS_ID);
 
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
+
+  public static final class Names {
+    public static final String PROCESS_ID = "cancelBikeOrder";
+  }
 
   /**
    * The {@code Flow} of each merged BPMN file, keyed by its {@code variantName}.
    */
   public static final class FlowVariants {
     /**
-     * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}, and {@code all()} lists every element.
+     * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
      */
     public static final class Retail {
       /**
@@ -81,24 +85,30 @@ public final class CancelBikeOrderProcessApi {
         return new UserTaskClarifyReturn();
       }
 
-      public static final class BoundaryCancellationFailed extends AbstractFlowNode implements HasSuccessors<BoundaryCancellationFailed.Next>, HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>, BoundaryEvent {
-        public final boolean isInterrupting = true;
+      public static final class BoundaryCancellationFailed extends AbstractFlowNode implements HasSuccessors<BoundaryCancellationFailed.Next>, HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>, BoundaryEvent<ServiceTaskRequestCancellation> {
+        public static final String ELEMENT_ID = "boundary_cancellationFailed";
 
         public BoundaryCancellationFailed() {
-          super(new ElementId("boundary_cancellationFailed"), "ERROR_BOUNDARY_EVENT", "Cancellation failed");
+          super(new ElementId(ELEMENT_ID), "ERROR_BOUNDARY_EVENT", "Cancellation failed");
         }
 
-        public ServiceTaskRequestCancellation attachedTo() {
+        @Override
+        public ServiceTaskRequestCancellation getAttachedTo() {
           return new ServiceTaskRequestCancellation();
         }
 
         @Override
-        public Next then() {
+        public boolean isInterrupting() {
+          return true;
+        }
+
+        @Override
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 
@@ -116,27 +126,31 @@ public final class CancelBikeOrderProcessApi {
       }
 
       public static final class EndEventBikeOrderCancelled extends AbstractFlowNode {
+        public static final String ELEMENT_ID = "endEvent_bikeOrderCancelled";
+
         public static final String JOB_TYPE = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED;
 
-        public final MessageName message = Messages.MIRAVELO_BIKE_ORDER_CANCELLED;
+        public static final MessageName MESSAGE = Messages.MIRAVELO_BIKE_ORDER_CANCELLED;
 
         public EndEventBikeOrderCancelled() {
-          super(new ElementId("endEvent_bikeOrderCancelled"), "MESSAGE_END_EVENT", "Bike order cancelled");
+          super(new ElementId(ELEMENT_ID), "MESSAGE_END_EVENT", "Bike order cancelled");
         }
       }
 
       public static final class GatewayCancellationPossible extends AbstractFlowNode implements HasSuccessors<GatewayCancellationPossible.Next>, HasOutgoingFlows<GatewayCancellationPossible.OutgoingFlows> {
+        public static final String ELEMENT_ID = "gateway_cancellationPossible";
+
         public GatewayCancellationPossible() {
-          super(new ElementId("gateway_cancellationPossible"), "EXCLUSIVE_GATEWAY", "Cancellation possible?");
+          super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY", "Cancellation possible?");
         }
 
         @Override
-        public Next then() {
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 
@@ -162,17 +176,19 @@ public final class CancelBikeOrderProcessApi {
       }
 
       public static final class GatewayCollectClarifications extends AbstractFlowNode implements HasSuccessors<GatewayCollectClarifications.Next>, HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
+        public static final String ELEMENT_ID = "gateway_collectClarifications";
+
         public GatewayCollectClarifications() {
-          super(new ElementId("gateway_collectClarifications"), "EXCLUSIVE_GATEWAY");
+          super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY");
         }
 
         @Override
-        public Next then() {
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 
@@ -190,17 +206,19 @@ public final class CancelBikeOrderProcessApi {
       }
 
       public static final class GatewayMergeReturn extends AbstractFlowNode implements HasSuccessors<GatewayMergeReturn.Next>, HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
+        public static final String ELEMENT_ID = "gateway_mergeReturn";
+
         public GatewayMergeReturn() {
-          super(new ElementId("gateway_mergeReturn"), "EXCLUSIVE_GATEWAY");
+          super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY");
         }
 
         @Override
-        public Next then() {
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 
@@ -219,24 +237,30 @@ public final class CancelBikeOrderProcessApi {
       }
 
       public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
+        public static final String ELEMENT_ID = "serviceTask_bookCancellationCosts";
+
         public static final String JOB_TYPE = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE;
 
         public ServiceTaskBookCancellationCosts() {
-          super(new ElementId("serviceTask_bookCancellationCosts"), "SERVICE_TASK", "Book cancellation costs");
+          super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Book cancellation costs");
         }
 
         @Override
-        public Next then() {
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 
         public static final class Variables {
-          public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output("cancellationCosts");
+          public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(Names.CANCELLATION_COSTS);
+
+          public static final class Names {
+            public static final String CANCELLATION_COSTS = "cancellationCosts";
+          }
         }
 
         public static final class Next {
@@ -253,24 +277,30 @@ public final class CancelBikeOrderProcessApi {
       }
 
       public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasSuccessors<ServiceTaskRequestCancellation.Next>, HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
+        public static final String ELEMENT_ID = "serviceTask_requestCancellation";
+
         public static final String JOB_TYPE = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION;
 
         public ServiceTaskRequestCancellation() {
-          super(new ElementId("serviceTask_requestCancellation"), "SERVICE_TASK", "Request cancellation");
+          super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Request cancellation");
         }
 
         @Override
-        public Next then() {
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 
         public static final class Variables {
-          public static final VariableName.Output CANCELLATION_POSSIBLE = new VariableName.Output("cancellationPossible");
+          public static final VariableName.Output CANCELLATION_POSSIBLE = new VariableName.Output(Names.CANCELLATION_POSSIBLE);
+
+          public static final class Names {
+            public static final String CANCELLATION_POSSIBLE = "cancellationPossible";
+          }
         }
 
         public static final class Next {
@@ -291,22 +321,28 @@ public final class CancelBikeOrderProcessApi {
       }
 
       public static final class StartEventCancellationRequired extends AbstractFlowNode implements HasSuccessors<StartEventCancellationRequired.Next>, HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows> {
+        public static final String ELEMENT_ID = "startEvent_cancellationRequired";
+
         public StartEventCancellationRequired() {
-          super(new ElementId("startEvent_cancellationRequired"), "START_EVENT", "Cancellation required");
+          super(new ElementId(ELEMENT_ID), "START_EVENT", "Cancellation required");
         }
 
         @Override
-        public Next then() {
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 
         public static final class Variables {
-          public static final VariableName.Input ORDER_IDS = new VariableName.Input("orderIds");
+          public static final VariableName.Input ORDER_IDS = new VariableName.Input(Names.ORDER_IDS);
+
+          public static final class Names {
+            public static final String ORDER_IDS = "orderIds";
+          }
         }
 
         public static final class Next {
@@ -323,17 +359,19 @@ public final class CancelBikeOrderProcessApi {
       }
 
       public static final class UserTaskClarifyReturn extends AbstractFlowNode implements HasSuccessors<UserTaskClarifyReturn.Next>, HasOutgoingFlows<UserTaskClarifyReturn.OutgoingFlows> {
+        public static final String ELEMENT_ID = "userTask_clarifyReturn";
+
         public UserTaskClarifyReturn() {
-          super(new ElementId("userTask_clarifyReturn"), "USER_TASK", "Clarify return");
+          super(new ElementId(ELEMENT_ID), "USER_TASK", "Clarify return");
         }
 
         @Override
-        public Next then() {
+        public Next getNext() {
           return new Next();
         }
 
         @Override
-        public OutgoingFlows outgoingFlows() {
+        public OutgoingFlows getOutgoingFlows() {
           return new OutgoingFlows();
         }
 

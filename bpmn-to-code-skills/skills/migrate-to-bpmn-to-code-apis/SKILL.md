@@ -33,9 +33,9 @@ Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references 
 | element id | `Api.Flow.Node.id` (`ElementId`) | `Api.Flow.node().getId()` | `Api.Flow.Node.Instance.Id` |
 | job type of one element | `Api.Flow.Node.JOB_TYPE` (`const String`) | `Api.Flow.Node.JOB_TYPE` | `Api.Flow.Node.JobType` (`const string`) |
 | variable | `Api.Flow.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.Flow.Node.Instance.Variables.V` |
-| call activity | `Api.Flow.Node.calledProcess` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.Flow.node().calledProcess`, `Api.Flow.Node.Inputs.M` | `Api.Flow.Node.Instance.CalledProcess`, `.Inputs.M` |
-| timer | `Api.Flow.Node.timer` (`BpmnTimer`) | `Api.Flow.node().timer` | `Api.Flow.Node.Instance.Timer` |
-| sequence flow | `Api.Flow.Node.outgoingFlows().to<Target>` (`SequenceFlow<Target>`) | `Api.Flow.node().outgoingFlows().to<Target>()` | `Api.Flow.Node.Instance.OutgoingFlows.To<Target>` |
+| call activity | `Api.Flow.Node.CALLED_PROCESS` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.Flow.Node.CALLED_PROCESS`, `Api.Flow.Node.Inputs.M` | `Api.Flow.Node.Instance.CalledProcess`, `.Inputs.M` |
+| timer | `Api.Flow.Node.TIMER` (`BpmnTimer`) | `Api.Flow.Node.TIMER` | `Api.Flow.Node.Instance.Timer` |
+| sequence flow | `Api.Flow.Node.outgoingFlows.to<Target>` (`SequenceFlow<Target>`) | `Api.Flow.node().getOutgoingFlows().to<Target>()` | `Api.Flow.Node.Instance.OutgoingFlows.To<Target>` |
 
 Only `ServiceTasks.X` and `Flow.Node.JOB_TYPE` / `JobType` (which refers to `ServiceTasks.X`) are plain string constants; every other member is a
 typed wrapper. A wrapper is not a drop-in for a `String` parameter — reach the raw string with `.value`
@@ -148,9 +148,9 @@ Locate the generated API files as in Mode A Step 1 and parse the **current** (6.
 | `Elements.X` | `Flow.X.id` | `Flow.x().getId()` | `Flow.X.Instance.Id` |
 | `Elements.X.value` | `Flow.X.id.value` | `Flow.x().getId().getValue()` | `Flow.X.Instance.Id.Value` |
 | `Variables.Node.V` | `Flow.Node.Variables.V` | `Flow.Node.Variables.V` | `Flow.Node.Instance.Variables.V` |
-| `CallActivities.Node.PROCESS_ID` | `Flow.Node.calledProcess` | `Flow.node().calledProcess` | `Flow.Node.Instance.CalledProcess` |
+| `CallActivities.Node.PROCESS_ID` | `Flow.Node.CALLED_PROCESS` | `Flow.Node.CALLED_PROCESS` | `Flow.Node.Instance.CalledProcess` |
 | `CallActivities.Node.Inputs.M` / `.Outputs.M` | `Flow.Node.Inputs.M` / `.Outputs.M` | same | `Flow.Node.Instance.Inputs.M` |
-| `Timers.T` | `Flow.T.timer` | `Flow.t().timer` | `Flow.T.Instance.Timer` |
+| `Timers.T` | `Flow.T.TIMER` | `Flow.T.TIMER` | `Flow.T.Instance.Timer` |
 | `Flow.Sub.Inner` / `Flow.sub().inner()` | `Flow.Inner` | `Flow.inner()` | `Flow.Inner` |
 | `Flow.Sub.Inner.Next::x` (method refs) | `Flow.Inner.Next::x` | same | — |
 

@@ -59,7 +59,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         val messageNameClass = ClassName(RUNTIME_PACKAGE, "MessageName")
         val messagesBuilder = TypeSpec.objectBuilder(SharedDefinitionType.MESSAGES.typeName)
             .addKdoc("BPMN message names used to correlate messages to running process instances.")
-        messages.forEach { message -> messagesBuilder.addProperty(createTypedAttribute(message, messageNameClass)) }
+        addTypedAttributesWithNames(messagesBuilder, messages, messageNameClass)
         messagesBuilder.addProperty(entries(messages, messageNameClass))
         messagesBuilder.build()
     }
@@ -68,7 +68,7 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         val signalNameClass = ClassName(RUNTIME_PACKAGE, "SignalName")
         val signalsBuilder = TypeSpec.objectBuilder(SharedDefinitionType.SIGNALS.typeName)
             .addKdoc("BPMN signal names broadcast and caught by signal events.")
-        signals.forEach { signal -> signalsBuilder.addProperty(createTypedAttribute(signal, signalNameClass)) }
+        addTypedAttributesWithNames(signalsBuilder, signals, signalNameClass)
         signalsBuilder.addProperty(entries(signals, signalNameClass))
         signalsBuilder.build()
     }
@@ -113,9 +113,16 @@ internal class KotlinSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         .initializer("%L", kotlinStringLiteral(variable.getValue()))
         .build()
 
-    private fun createTypedAttribute(variable: VariableMapping<String>, wrapperClass: ClassName): PropertySpec = PropertySpec.builder(variable.getName(), wrapperClass)
-        .initializer("%T(%L)", wrapperClass, kotlinStringLiteral(variable.getValue()))
-        .build()
+    private fun addTypedAttributesWithNames(builder: TypeSpec.Builder, definitions: List<VariableMapping<String>>, wrapperClass: ClassName) {
+        definitions.forEach { definition ->
+            builder.addProperty(
+                PropertySpec.builder(definition.getName(), wrapperClass)
+                    .initializer("%T(%N.%N)", wrapperClass, KOTLIN_NAMES_HOLDER, definition.getName())
+                    .build(),
+            )
+        }
+        builder.addType(kotlinNamesHolder(definitions.map { it.getName() to it.getValue() }))
+    }
 
     private fun createNameAndCodeAttribute(variable: VariableMapping<Pair<String, String>>, wrapperClass: ClassName): PropertySpec {
         val (name, code) = variable.getValue()

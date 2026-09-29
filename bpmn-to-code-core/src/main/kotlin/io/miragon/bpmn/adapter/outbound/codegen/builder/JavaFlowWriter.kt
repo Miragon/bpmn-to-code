@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder
 
 import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.CodeBlock
+import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.MethodSpec
 import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
@@ -16,10 +17,10 @@ import javax.lang.model.element.Modifier.STATIC
 /**
  * Emits the typed navigation graph of a Java process API `Flow` class: one nested node class per flow node,
  * carrying its metadata via `AbstractFlowNode`, its own facets (see [JavaFacetWriter]), its reachable
- * successors behind `then()` and its outgoing sequence flows behind `outgoingFlows()`, named after the
+ * successors behind `getNext()` and its outgoing sequence flows behind `getOutgoingFlows()`, named after the
  * elements they lead to. All nodes are direct children of `Flow`, whatever their subprocess depth; a subprocess
- * class additionally is a `FlowScope` whose `start()` yields the interior's start elements, and a boundary event
- * is marked `BoundaryEvent`. `Flow` also exposes a static accessor
+ * class additionally is a `FlowScope` whose `getStartEvents()` yields the interior's start elements, and a boundary event
+ * is a `BoundaryEvent` of its host. `Flow` also exposes a static accessor
  * method per node, since a Java nested class has to be instantiated to be used as a value, and `all()` listing
  * every node.
  */
@@ -62,6 +63,7 @@ internal class JavaFlowWriter {
 
     private fun extendFlowNode(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         classBuilder.superclass(ClassName.get(RUNTIME_PACKAGE, "AbstractFlowNode"))
+        classBuilder.addField(FieldSpec.builder(String::class.java, ELEMENT_ID, PUBLIC, STATIC, FINAL).initializer("\$S", node.id).build())
         classBuilder.addMethod(MethodSpec.constructorBuilder().addModifiers(PUBLIC).addStatement(superCall(node)).build())
         if (node.successors.isNotEmpty()) {
             classBuilder.addSuperinterface(ownHolderInterface("HasSuccessors", node, NEXT_HOLDER))
@@ -69,14 +71,15 @@ internal class JavaFlowWriter {
         if (node.outgoingFlows.isNotEmpty()) {
             classBuilder.addSuperinterface(ownHolderInterface("HasOutgoingFlows", node, OUTGOING_FLOWS_HOLDER))
         }
-        if (node.isBoundaryEvent) {
-            classBuilder.addSuperinterface(ClassName.get(RUNTIME_PACKAGE, "BoundaryEvent"))
+        val host = node.facets.attachedTo
+        if (node.isBoundaryEvent && host != null) {
+            classBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "BoundaryEvent"), ClassName.get("", host.objectName)))
         }
     }
 
     private fun superCall(node: FlowGraphNode): CodeBlock {
         val elementIdClass = ClassName.get(RUNTIME_PACKAGE, "ElementId")
-        val superCall = CodeBlock.builder().add("super(new \$T(\$S), \$S", elementIdClass, node.id, node.elementType)
+        val superCall = CodeBlock.builder().add("super(new \$T(\$N), \$S", elementIdClass, ELEMENT_ID, node.elementType)
         node.name?.let { superCall.add(", \$S", it) }
         return superCall.add(")").build()
     }
@@ -88,12 +91,12 @@ internal class JavaFlowWriter {
     }
 
     private fun addSuccessors(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.addMethod(accessorMethod("then", NEXT_HOLDER))
+        classBuilder.addMethod(accessorMethod("getNext", NEXT_HOLDER))
         classBuilder.addType(accessorHolder(NEXT_HOLDER, node.successors.map { it.propertyName to it.objectName }))
     }
 
     private fun addOutgoingFlows(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.addMethod(accessorMethod("outgoingFlows", OUTGOING_FLOWS_HOLDER))
+        classBuilder.addMethod(accessorMethod("getOutgoingFlows", OUTGOING_FLOWS_HOLDER))
         val holder = TypeSpec.classBuilder(OUTGOING_FLOWS_HOLDER).addModifiers(PUBLIC, STATIC, FINAL)
         node.outgoingFlows.forEach { holder.addMethod(outgoingFlowsMethod(it)) }
         classBuilder.addType(holder.build())
@@ -101,7 +104,7 @@ internal class JavaFlowWriter {
 
     private fun addInteriorStarts(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         classBuilder.addSuperinterface(ownHolderInterface("FlowScope", node, START_HOLDER))
-        classBuilder.addMethod(accessorMethod("start", START_HOLDER))
+        classBuilder.addMethod(accessorMethod("getStartEvents", START_HOLDER))
         classBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }
 
@@ -157,6 +160,7 @@ internal class JavaFlowWriter {
 
     private companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
+        private const val ELEMENT_ID = "ELEMENT_ID"
         private const val NEXT_HOLDER = "Next"
         private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"
         private const val START_HOLDER = "Start"

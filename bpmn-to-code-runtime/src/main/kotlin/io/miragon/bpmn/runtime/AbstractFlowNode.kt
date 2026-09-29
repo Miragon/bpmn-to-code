@@ -3,7 +3,7 @@ package io.miragon.bpmn.runtime
 /**
  * Base class for generated navigation nodes: it carries the element [id], [elementType] and display [name] so
  * each generated node doesn't repeat the [FlowNode] accessors. Nodes with successors additionally implement
- * [HasSuccessors] (their per-node `then()`, whose `Next` type differs per node, stays on the node itself).
+ * [HasSuccessors] (their per-node `next`, whose `Next` type differs per node, stays on the node itself).
  *
  * Identity is the element [id]: two nodes for the same element are equal, whatever their [name]. Kotlin's
  * generated nodes are `object` singletons (already reference-equal), but Java's generated nodes are fresh

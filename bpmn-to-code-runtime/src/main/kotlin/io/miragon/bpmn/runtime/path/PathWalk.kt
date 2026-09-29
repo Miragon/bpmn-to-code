@@ -32,7 +32,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(
 
     /**
      * Advances along an outgoing sequence flow of the current node and records its target and the flow (see
-     * [flowIds]). `pick`'s input is the current node itself, so `n -> n.outgoingFlows().toX()` offers exactly its
+     * [flowIds]). `pick`'s input is the current node itself, so `n -> n.outgoingFlows.toX()` offers exactly its
      * own outgoing flows — Java cannot name the node's `OutgoingFlows` holder type here the way Kotlin's
      * [ProcessPath] `via` does.
      */
@@ -71,7 +71,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(
      * walked nodes are recorded; the current node afterwards is unchanged.
      */
     fun <S> inside(scope: FlowScope<S>, block: Function<S, Trail>): PathWalk<N, NEXT> {
-        val interior = block.apply(scope.start())
+        val interior = block.apply(scope.startEvents)
         return PathWalk(path.moveTo(path.current, interior.nodes, interior.flows))
     }
 

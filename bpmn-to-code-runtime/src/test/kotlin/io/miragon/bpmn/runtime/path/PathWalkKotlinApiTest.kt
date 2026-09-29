@@ -57,23 +57,23 @@ class PathWalkKotlinApiTest {
     @Test
     fun `via records the walked sequence flows including those of the subprocess interior`() {
         val flowIds = PathWalk.from(BikeLeasing.StartEventLeasingRequestReceived)
-            .via { it.outgoingFlows().toServiceTaskValidateApplication }
-            .via { it.outgoingFlows().toBusinessRuleTaskCheckCreditRating }
-            .via { it.outgoingFlows().toGatewayIsSolvent }
-            .via { it.outgoingFlows().toSubProcessConcludeContract }
+            .via { it.outgoingFlows.toServiceTaskValidateApplication }
+            .via { it.outgoingFlows.toBusinessRuleTaskCheckCreditRating }
+            .via { it.outgoingFlows.toGatewayIsSolvent }
+            .via { it.outgoingFlows.toSubProcessConcludeContract }
             .inside(BikeLeasing.SubProcessConcludeContract) { s ->
                 PathWalk.from(s.startEventCustomerEligible)
-                    .via { it.outgoingFlows().toServiceTaskSendContract }
-                    .via { it.outgoingFlows().toGatewayAwaitSignature }
-                    .via { it.outgoingFlows().toEventContractSigned }
-                    .endVia { it.outgoingFlows().toEndEventContractConcluded }
+                    .via { it.outgoingFlows.toServiceTaskSendContract }
+                    .via { it.outgoingFlows.toGatewayAwaitSignature }
+                    .via { it.outgoingFlows.toEventContractSigned }
+                    .endVia { it.outgoingFlows.toEndEventContractConcluded }
             }
-            .via { it.outgoingFlows().toGatewayFork }
-            .via { it.outgoingFlows().toServiceTaskOrderBike }
-            .via { it.outgoingFlows().toGatewayJoin }
-            .via { it.outgoingFlows().toReceiveTaskHandoverReported }
-            .via { it.outgoingFlows().toTimerWithdrawalPeriodElapsed }
-            .endVia { it.outgoingFlows().toEndEventLeasingActive }
+            .via { it.outgoingFlows.toGatewayFork }
+            .via { it.outgoingFlows.toServiceTaskOrderBike }
+            .via { it.outgoingFlows.toGatewayJoin }
+            .via { it.outgoingFlows.toReceiveTaskHandoverReported }
+            .via { it.outgoingFlows.toTimerWithdrawalPeriodElapsed }
+            .endVia { it.outgoingFlows.toEndEventLeasingActive }
             .flowIds
 
         assertThat(flowIds).containsExactly(

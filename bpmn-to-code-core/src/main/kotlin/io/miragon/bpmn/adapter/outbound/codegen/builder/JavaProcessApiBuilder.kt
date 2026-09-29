@@ -26,6 +26,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
 
     companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
+        private const val PROCESS_ID = "PROCESS_ID"
     }
 
     private val objectWriters: Map<ApiObjectType, ObjectWriter<TypeSpec.Builder>> = mapOf(
@@ -61,8 +62,9 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
-            val fieldBuilder = FieldSpec.builder(processIdClass, "PROCESS_ID").addModifiers(PUBLIC, FINAL, STATIC)
-            builder.addField(fieldBuilder.initializer("new \$T(\$S)", processIdClass, modelApi.model.processId).build())
+            val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
+            builder.addField(fieldBuilder.initializer("new \$T(\$N.\$N)", processIdClass, JAVA_NAMES_HOLDER, PROCESS_ID).build())
+            builder.addType(javaNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)))
         }
     }
 
@@ -100,18 +102,18 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
 
     /**
      * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
-     * `elementType` and display `name`, plus its reachable successors behind `then()`. Boundary events and
+     * `elementType` and display `name`, plus its reachable successors behind `getNext()`. Boundary events and
      * subprocess continuations are plain successors; every node is a direct child of `Flow`, and a subprocess
-     * opens its interior via `start()`.
+     * opens its interior via `getStartEvents()`.
      */
     private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "Flow"): TypeSpec {
         val flowBuilder = TypeSpec.classBuilder(className).addModifiers(PUBLIC, STATIC, FINAL)
             .addJavadoc(
                 "Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, " +
                     "{@code elementType} and display {@code name}, plus the elements reachable from it behind " +
-                    "{@code then()} — so a full path is verified by the compiler and offered by autocomplete. " +
+                    "{@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. " +
                     "Every element is a direct child of {@code Flow}, whatever its subprocess depth; " +
-                    "a subprocess opens its interior via {@code start()}, and {@code all()} lists every element.\n",
+                    "a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.\n",
             )
         JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()

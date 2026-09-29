@@ -46,7 +46,7 @@ export const ideTabs: IdeTab[] = [
       `<span class="line">      <span class="tok-k">object</span> <span class="tok-t">Next</span> { <span class="tok-k">val</span> timerEveryDay <span class="tok-k">get</span>() = <span class="tok-t">TimerEveryDay</span> }</span>`,
       `<span class="line">    }</span>`,
       `<span class="line">    <span class="tok-k">object</span> <span class="tok-t">TimerEveryDay</span> : <span class="tok-t">AbstractFlowNode</span>(<span class="tok-t">ElementId</span>(<span class="tok-s">"Timer_EveryDay"</span>), <span class="tok-s">"TIMER_BOUNDARY_EVENT"</span>) {</span>`,
-      `<span class="line">      <span class="tok-k">val</span> timer: <span class="tok-t">BpmnTimer</span> = <span class="tok-t">BpmnTimer</span>(<span class="tok-s">"Duration"</span>, <span class="tok-s">"PT1M"</span>)</span>`,
+      `<span class="line">      <span class="tok-k">val</span> TIMER: <span class="tok-t">BpmnTimer</span> = <span class="tok-t">BpmnTimer</span>(<span class="tok-s">"Duration"</span>, <span class="tok-s">"PT1M"</span>)</span>`,
       `<span class="line">    }</span>`,
       `<span class="line">  }</span>`,
       `<span class="line">}</span>`,

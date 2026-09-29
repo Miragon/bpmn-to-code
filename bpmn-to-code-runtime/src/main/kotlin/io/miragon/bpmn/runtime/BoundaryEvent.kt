@@ -1,7 +1,10 @@
 package io.miragon.bpmn.runtime
 
 /**
- * Marks a boundary event. It shows up among its host's successors (`Next`), but no sequence flow leads to it —
- * this marker tells the two apart.
+ * A boundary event attached to [attachedTo]. It shows up among its host's successors (`next`), but no sequence
+ * flow leads to it — this type tells the two apart.
  */
-interface BoundaryEvent : FlowNode
+interface BoundaryEvent<out HOST : FlowNode> : FlowNode {
+    val attachedTo: HOST
+    val isInterrupting: Boolean
+}

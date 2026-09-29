@@ -125,7 +125,8 @@ public static class CancelBikeOrderProcessApi
                 public static readonly BoundaryCancellationFailed Instance = new();
                 private BoundaryCancellationFailed() { }
 
-                public Runtime.ElementId Id { get; } = new("boundary_cancellationFailed");
+                public const string ElementId = "boundary_cancellationFailed";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "ERROR_BOUNDARY_EVENT";
                 public string? Name => "Cancellation failed";
                 public ServiceTaskRequestCancellation AttachedTo => ServiceTaskRequestCancellation.Instance;
@@ -150,7 +151,8 @@ public static class CancelBikeOrderProcessApi
                 private EndEventBikeOrderCancelled() { }
                 public const string JobType = ServiceTasks.MiraveloBikeOrderCancelled;
 
-                public Runtime.ElementId Id { get; } = new("endEvent_bikeOrderCancelled");
+                public const string ElementId = "endEvent_bikeOrderCancelled";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "MESSAGE_END_EVENT";
                 public string? Name => "Bike order cancelled";
                 public Runtime.MessageName Message { get; } = new(Messages.MiraveloBikeOrderCancelled);
@@ -161,7 +163,8 @@ public static class CancelBikeOrderProcessApi
                 public static readonly GatewayCancellationPossible Instance = new();
                 private GatewayCancellationPossible() { }
 
-                public Runtime.ElementId Id { get; } = new("gateway_cancellationPossible");
+                public const string ElementId = "gateway_cancellationPossible";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "EXCLUSIVE_GATEWAY";
                 public string? Name => "Cancellation possible?";
 
@@ -185,7 +188,8 @@ public static class CancelBikeOrderProcessApi
                 public static readonly GatewayCollectClarifications Instance = new();
                 private GatewayCollectClarifications() { }
 
-                public Runtime.ElementId Id { get; } = new("gateway_collectClarifications");
+                public const string ElementId = "gateway_collectClarifications";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "EXCLUSIVE_GATEWAY";
                 public string? Name => null;
 
@@ -207,7 +211,8 @@ public static class CancelBikeOrderProcessApi
                 public static readonly GatewayMergeReturn Instance = new();
                 private GatewayMergeReturn() { }
 
-                public Runtime.ElementId Id { get; } = new("gateway_mergeReturn");
+                public const string ElementId = "gateway_mergeReturn";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "EXCLUSIVE_GATEWAY";
                 public string? Name => null;
 
@@ -230,14 +235,19 @@ public static class CancelBikeOrderProcessApi
                 private ServiceTaskBookCancellationCosts() { }
                 public const string JobType = ServiceTasks.BookCancellationCostsDelegate;
 
-                public Runtime.ElementId Id { get; } = new("serviceTask_bookCancellationCosts");
+                public const string ElementId = "serviceTask_bookCancellationCosts";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "SERVICE_TASK";
                 public string? Name => "Book cancellation costs";
 
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
                 {
-                    public Runtime.VariableName.Output CancellationCosts { get; } = new("cancellationCosts");
+                    public Runtime.VariableName.Output CancellationCosts { get; } = new(Names.CancellationCosts);
+                    public static class Names
+                    {
+                        public const string CancellationCosts = "cancellationCosts";
+                    }
                 }
 
                 public Successors Next => new();
@@ -259,14 +269,19 @@ public static class CancelBikeOrderProcessApi
                 private ServiceTaskRequestCancellation() { }
                 public const string JobType = ServiceTasks.MiraveloRequestCancellation;
 
-                public Runtime.ElementId Id { get; } = new("serviceTask_requestCancellation");
+                public const string ElementId = "serviceTask_requestCancellation";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "SERVICE_TASK";
                 public string? Name => "Request cancellation";
 
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
                 {
-                    public Runtime.VariableName.Output CancellationPossible { get; } = new("cancellationPossible");
+                    public Runtime.VariableName.Output CancellationPossible { get; } = new(Names.CancellationPossible);
+                    public static class Names
+                    {
+                        public const string CancellationPossible = "cancellationPossible";
+                    }
                 }
 
                 public Successors Next => new();
@@ -288,14 +303,19 @@ public static class CancelBikeOrderProcessApi
                 public static readonly StartEventCancellationRequired Instance = new();
                 private StartEventCancellationRequired() { }
 
-                public Runtime.ElementId Id { get; } = new("startEvent_cancellationRequired");
+                public const string ElementId = "startEvent_cancellationRequired";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "START_EVENT";
                 public string? Name => "Cancellation required";
 
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
                 {
-                    public Runtime.VariableName.Input OrderIds { get; } = new("orderIds");
+                    public Runtime.VariableName.Input OrderIds { get; } = new(Names.OrderIds);
+                    public static class Names
+                    {
+                        public const string OrderIds = "orderIds";
+                    }
                 }
 
                 public Successors Next => new();
@@ -316,7 +336,8 @@ public static class CancelBikeOrderProcessApi
                 public static readonly UserTaskClarifyReturn Instance = new();
                 private UserTaskClarifyReturn() { }
 
-                public Runtime.ElementId Id { get; } = new("userTask_clarifyReturn");
+                public const string ElementId = "userTask_clarifyReturn";
+                public Runtime.ElementId Id { get; } = new(ElementId);
                 public string ElementType => "USER_TASK";
                 public string? Name => "Clarify return";
 
