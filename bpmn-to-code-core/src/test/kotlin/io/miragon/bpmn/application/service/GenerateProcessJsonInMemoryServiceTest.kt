@@ -3,6 +3,7 @@ package io.miragon.bpmn.application.service
 import io.miragon.bpmn.application.port.inbound.GenerateProcessJsonInMemoryUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -28,15 +29,12 @@ class GenerateProcessJsonInMemoryServiceTest {
     @Test
     fun `generateProcessJson generates JSON files from BPMN content`() {
         // given: BPMN content and a mock extractor
-        val bpmnInput = GenerateProcessJsonInMemoryUseCase.BpmnInput(
-            bpmnXml = "<bpmn>test</bpmn>",
-            processName = "test.bpmn",
-        )
+        val bpmnInput = BpmnResource(fileName = "test.bpmn", content = "<bpmn>test</bpmn>".encodeToByteArray())
         val expectedJsonFile = GeneratedJsonFile(fileName = "order.json", content = "{}")
         every { bpmnExtractor.extract(any(), any()) } returns dummyModel
         every { jsonGenerator.generateJson(any()) } returns expectedJsonFile
         val command = GenerateProcessJsonInMemoryUseCase.Command(
-            bpmnContents = listOf(bpmnInput),
+            resources = listOf(bpmnInput),
             engine = ProcessEngine.ZEEBE,
         )
 
@@ -56,9 +54,9 @@ class GenerateProcessJsonInMemoryServiceTest {
         // given: two files defining the same process id
         every { bpmnExtractor.extract(any(), any()) } returns dummyModel
         val command = GenerateProcessJsonInMemoryUseCase.Command(
-            bpmnContents = listOf(
-                GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v1</bpmn>", processName = "v1.bpmn"),
-                GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>v2</bpmn>", processName = "v2.bpmn"),
+            resources = listOf(
+                BpmnResource(fileName = "v1.bpmn", content = "<bpmn>v1</bpmn>".encodeToByteArray()),
+                BpmnResource(fileName = "v2.bpmn", content = "<bpmn>v2</bpmn>".encodeToByteArray()),
             ),
             engine = ProcessEngine.ZEEBE,
         )

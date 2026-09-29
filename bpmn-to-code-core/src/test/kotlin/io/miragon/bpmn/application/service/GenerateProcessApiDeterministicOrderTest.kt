@@ -2,7 +2,6 @@ package io.miragon.bpmn.application.service
 
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
-import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase.BpmnInput
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -70,7 +69,7 @@ class GenerateProcessApiDeterministicOrderTest {
             every { bpmnService.extract(match<BpmnResource> { it.fileName == name }, any()) } returns modelsByName.getValue(name)
         }
         val command = GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = order.map { BpmnInput(bpmnXml = "<bpmn>$it</bpmn>", processName = it) },
+            resources = order.map { BpmnResource(fileName = it, content = "<bpmn>$it</bpmn>".encodeToByteArray()) },
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
             engine = ProcessEngine.ZEEBE,

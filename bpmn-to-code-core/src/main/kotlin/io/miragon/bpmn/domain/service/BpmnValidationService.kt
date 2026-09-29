@@ -2,6 +2,7 @@ package io.miragon.bpmn.domain.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
@@ -65,6 +66,21 @@ class BpmnValidationService(
         if (failures.isNotEmpty()) {
             throw BpmnValidationException(failures)
         }
+    }
+
+    /**
+     * The checks every generation runs around merging: each file is validated on its own, a process id declared in
+     * several files is rejected unless [enableVariants] is set, and the merged models are validated again.
+     */
+    fun validateAndMerge(sources: List<SourcedProcessModel>, engine: ProcessEngine, enableVariants: Boolean): List<ProcessModel> {
+        val models = sources.map { it.model }
+        validate(models = models, engine = engine, phase = ValidationPhase.PRE_MERGE)
+        if (!enableVariants) {
+            SourcedProcessModel.requireUniqueProcessIds(sources)
+        }
+        val mergedModels = ProcessModel.mergeByProcessId(models)
+        validate(models = mergedModels, engine = engine, phase = ValidationPhase.POST_MERGE)
+        return mergedModels
     }
 
     /**

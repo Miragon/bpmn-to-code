@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.application.port.inbound.GenerateProcessApiInMemoryUseCase
 import io.miragon.bpmn.application.service.GenerateProcessApiInMemoryService
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -88,8 +89,8 @@ class CSharpCompilationTest {
 
     private fun generateFromXml(bpmnXmls: List<String>, engine: ProcessEngine) = service.generateProcessApi(
         GenerateProcessApiInMemoryUseCase.Command(
-            bpmnContents = bpmnXmls.mapIndexed { index, bpmnXml ->
-                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = bpmnXml, processName = "process-$index.bpmn")
+            resources = bpmnXmls.mapIndexed { index, bpmnXml ->
+                BpmnResource(fileName = "process-$index.bpmn", content = bpmnXml.encodeToByteArray())
             },
             packagePath = "De.Gen",
             outputLanguage = OutputLanguage.CSHARP,

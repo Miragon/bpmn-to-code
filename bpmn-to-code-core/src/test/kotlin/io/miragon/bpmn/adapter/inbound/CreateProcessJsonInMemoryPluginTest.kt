@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.inbound
 
 import io.miragon.bpmn.application.port.inbound.GenerateProcessJsonInMemoryUseCase
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.mockk.confirmVerified
@@ -34,9 +35,9 @@ class CreateProcessJsonInMemoryPluginTest {
             useCase.generateProcessJson(
                 GenerateProcessJsonInMemoryUseCase.Command(
                     engine = ProcessEngine.ZEEBE,
-                    bpmnContents = listOf(
-                        GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>first</bpmn>", processName = "first.bpmn"),
-                        GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>second</bpmn>", processName = "second.bpmn"),
+                    resources = listOf(
+                        BpmnResource(fileName = "first.bpmn", content = "<bpmn>first</bpmn>".encodeToByteArray()),
+                        BpmnResource(fileName = "second.bpmn", content = "<bpmn>second</bpmn>".encodeToByteArray()),
                     ),
                 ),
             )

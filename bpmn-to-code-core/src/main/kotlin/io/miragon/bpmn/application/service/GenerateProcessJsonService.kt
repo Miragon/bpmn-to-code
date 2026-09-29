@@ -9,11 +9,8 @@ import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.application.port.outbound.SaveProcessJsonPort
-import io.miragon.bpmn.domain.BpmnResource
-import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class GenerateProcessJsonService(
     private val jsonGenerator: GenerateJsonPort = BpmnJsonGenerationAdapter(),
@@ -23,16 +20,14 @@ class GenerateProcessJsonService(
 ) : GenerateProcessJsonFromFilesystemUseCase {
 
     override fun generateProcessJson(command: GenerateProcessJsonFromFilesystemUseCase.Command) {
-        val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
-        val models = inputFiles.map { bpmnExtractor.extract(it, command.engine) }
-        validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
-        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(inputFiles.zip(models, ::toSourcedModel))
-        val mergedModels = ProcessModel.mergeByProcessId(models)
-        validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
+        val sources = inputFiles.map { SourcedProcessModel(it.fileName, bpmnExtractor.extract(it, command.engine)) }
+        val mergedModels = BpmnValidationService(command.validationConfig).validateAndMerge(
+            sources = sources,
+            engine = command.engine,
+            enableVariants = command.enableVariants,
+        )
         val generatedFiles = mergedModels.map { jsonGenerator.generateJson(it) }
         fileSaver.writeFiles(generatedFiles, command.outputFolderPath)
     }
-
-    private fun toSourcedModel(file: BpmnResource, model: ProcessModel) = SourcedProcessModel(file.fileName, model)
 }

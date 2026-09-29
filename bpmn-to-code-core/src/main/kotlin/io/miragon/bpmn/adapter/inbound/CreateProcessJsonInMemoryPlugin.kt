@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.inbound
 
 import io.miragon.bpmn.application.port.inbound.GenerateProcessJsonInMemoryUseCase
 import io.miragon.bpmn.application.service.GenerateProcessJsonInMemoryService
+import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
@@ -20,9 +21,7 @@ class CreateProcessJsonInMemoryPlugin(
             engine = engine,
             validationConfig = validationConfig,
             enableVariants = enableVariants,
-            bpmnContents = bpmnContents.map {
-                GenerateProcessJsonInMemoryUseCase.BpmnInput(bpmnXml = it.bpmnXml, processName = it.processName)
-            },
+            resources = bpmnContents.map { BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray()) },
         ),
     )
 
