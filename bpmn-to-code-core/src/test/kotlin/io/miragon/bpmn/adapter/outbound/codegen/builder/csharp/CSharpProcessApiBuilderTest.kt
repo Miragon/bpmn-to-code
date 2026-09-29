@@ -1,7 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.toPascalCase
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
@@ -147,7 +147,7 @@ class CSharpProcessApiBuilderTest {
         val runtimeEnums = listOf(BpmnElementType.entries, BpmnEventType.entries, RuntimeTimerType.entries, BpmnEngine.entries)
 
         runtimeEnums.flatten().forEach { constant ->
-            assertThat(CSharpRuntimeTypes.SOURCE).contains(" ${constant.name.toPascalCase()},")
+            assertThat(CSharpRuntimeTypes.SOURCE).contains(" ${pascalCase(constant.name)},")
         }
     }
 

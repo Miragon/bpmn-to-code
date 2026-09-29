@@ -37,7 +37,7 @@ internal class KotlinFlowWriter {
     private fun addEnumeration(builder: TypeSpec.Builder, graph: FlowGraph) {
         val nodeInterface = TypeSpec.interfaceBuilder(NODE_INTERFACE)
             .addModifiers(KModifier.SEALED)
-            .addSuperinterface(ClassName(RUNTIME_PACKAGE, "FlowNode"))
+            .addSuperinterface(KotlinRuntimeTypes.FLOW_NODE)
             .addKdoc("Common supertype of this flow's nodes, so a `when` over them can be exhaustive.").build()
         val entries = PropertySpec.builder("entries", LIST.parameterizedBy(ClassName("", NODE_INTERFACE)))
             .addKdoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
@@ -64,24 +64,24 @@ internal class KotlinFlowWriter {
     }
 
     private fun extendFlowNode(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        nodeBuilder.superclass(ClassName(RUNTIME_PACKAGE, "AbstractFlowNode"))
+        nodeBuilder.superclass(KotlinRuntimeTypes.ABSTRACT_FLOW_NODE)
             .addSuperclassConstructorParameter(superclassArguments(node))
             .addSuperinterface(ClassName("", NODE_INTERFACE))
         if (node.successors.isNotEmpty()) {
-            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasSuccessors", node = node, holderName = NEXT_HOLDER))
+            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.HAS_SUCCESSORS, node = node, holderName = NEXT_HOLDER))
         }
         if (node.outgoingFlows.isNotEmpty()) {
-            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasOutgoingFlows", node = node, holderName = OUTGOING_FLOWS_HOLDER))
+            nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.HAS_OUTGOING_FLOWS, node = node, holderName = OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
         when {
             node.isBoundaryEvent && host != null ->
-                nodeBuilder.addSuperinterface(ClassName(RUNTIME_PACKAGE, "BoundaryEvent").parameterizedBy(ClassName("", host.objectName)))
+                nodeBuilder.addSuperinterface(KotlinRuntimeTypes.BOUNDARY_EVENT.parameterizedBy(ClassName("", host.objectName)))
 
-            node.eventType != null -> nodeBuilder.addSuperinterface(ClassName(RUNTIME_PACKAGE, "Event"))
+            node.eventType != null -> nodeBuilder.addSuperinterface(KotlinRuntimeTypes.EVENT)
         }
         node.eventType?.let { eventType ->
-            val eventTypeClass = ClassName(RUNTIME_PACKAGE, "BpmnEventType")
+            val eventTypeClass = KotlinRuntimeTypes.BPMN_EVENT_TYPE
             nodeBuilder.addProperty(PropertySpec.builder("eventType", eventTypeClass, KModifier.OVERRIDE).initializer("%T.%L", eventTypeClass, eventType).build())
         }
     }
@@ -89,15 +89,15 @@ internal class KotlinFlowWriter {
     // One named argument per line, trailing comma included, as Kotlin style wants a multi-line call.
     private fun superclassArguments(node: FlowGraphNode): CodeBlock {
         val arguments = CodeBlock.builder()
-            .add("⇥\nid = %T(%S),\nelementType = %T.%L,", ClassName(RUNTIME_PACKAGE, "ElementId"), node.id, ClassName(RUNTIME_PACKAGE, "BpmnElementType"), node.elementType)
+            .add("⇥\nid = %T(%S),\nelementType = %T.%L,", KotlinRuntimeTypes.ELEMENT_ID, node.id, KotlinRuntimeTypes.BPMN_ELEMENT_TYPE, node.elementType)
         node.name?.let { arguments.add("\nname = %S,", it) }
         return arguments.add("⇤\n").build()
     }
 
     // A bare `Next` in the supertype header would bind to an enclosing object's `Next`; qualify with the node.
-    private fun ownHolderInterface(interfaceName: String, node: FlowGraphNode, holderName: String): TypeName {
+    private fun ownHolderInterface(interfaceType: ClassName, node: FlowGraphNode, holderName: String): TypeName {
         val ownHolder = ClassName("", node.objectName, holderName)
-        return ClassName(RUNTIME_PACKAGE, interfaceName).parameterizedBy(ownHolder)
+        return interfaceType.parameterizedBy(ownHolder)
     }
 
     private fun addSuccessors(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
@@ -113,7 +113,7 @@ internal class KotlinFlowWriter {
     }
 
     private fun addInteriorStarts(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        nodeBuilder.addSuperinterface(ownHolderInterface(interfaceName = "FlowScope", node = node, holderName = START_HOLDER))
+        nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
         nodeBuilder.addProperty(accessorProperty("startEvents", START_HOLDER))
         nodeBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }
@@ -136,7 +136,7 @@ internal class KotlinFlowWriter {
      * become a `List<SequenceFlow<Target>>`, so no flow is lost and no sibling is renamed.
      */
     private fun outgoingFlowsProperty(flowsToTarget: FlowsToTarget): PropertySpec {
-        val sequenceFlowType = ClassName(RUNTIME_PACKAGE, "SequenceFlow").parameterizedBy(ClassName("", flowsToTarget.target.objectName))
+        val sequenceFlowType = KotlinRuntimeTypes.SEQUENCE_FLOW.parameterizedBy(ClassName("", flowsToTarget.target.objectName))
         val calls = flowsToTarget.flows.map { sequenceFlowCall(it, flowsToTarget.target.objectName) }
         val (type, value) = when (calls.size) {
             1 -> sequenceFlowType to calls.single()
@@ -147,8 +147,8 @@ internal class KotlinFlowWriter {
     }
 
     private fun sequenceFlowCall(flow: SequenceFlowEdge, targetObjectName: String): CodeBlock = KotlinCodeFormat.namedCall(
-        ClassName(RUNTIME_PACKAGE, "SequenceFlow"),
-        "id" to CodeBlock.of("%T(%S)", ClassName(RUNTIME_PACKAGE, "ElementId"), flow.id),
+        KotlinRuntimeTypes.SEQUENCE_FLOW,
+        "id" to CodeBlock.of("%T(%S)", KotlinRuntimeTypes.ELEMENT_ID, flow.id),
         "name" to nullableStringLiteral(flow.name),
         "conditionExpression" to nullableStringLiteral(flow.conditionExpression),
         "isDefault" to CodeBlock.of("%L", flow.isDefault),
@@ -156,7 +156,6 @@ internal class KotlinFlowWriter {
     )
 
     private companion object {
-        private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
         private const val ELEMENT_ID = "ELEMENT_ID"
         private const val NEXT_HOLDER = "Next"
         private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"

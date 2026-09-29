@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.disambiguated
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.stringLiteral
 
 /**
  * Accumulates C# source text with block-aware indentation.
@@ -23,15 +24,6 @@ internal class CSharpWriter {
         }
     }
 
-    private fun block(header: String, body: () -> Unit) {
-        line(header)
-        line("{")
-        indentLevel++
-        body()
-        indentLevel--
-        line("}")
-    }
-
     fun staticClass(name: String, body: () -> Unit) = typeBlock(keyword = "public static class", header = disambiguate(name), body = body)
 
     fun sealedClass(name: String, implements: String? = null, body: () -> Unit) {
@@ -41,11 +33,14 @@ internal class CSharpWriter {
     }
 
     private fun typeBlock(keyword: String, header: String, body: () -> Unit, typeName: String = header) {
-        block("$keyword $header") {
-            enclosingTypes.addLast(typeName)
-            body()
-            enclosingTypes.removeLast()
-        }
+        line("$keyword $header")
+        line("{")
+        indentLevel++
+        enclosingTypes.addLast(typeName)
+        body()
+        enclosingTypes.removeLast()
+        indentLevel--
+        line("}")
     }
 
     fun constant(name: String, value: String) = constantExpression(name, stringLiteral(value))
@@ -66,6 +61,18 @@ internal class CSharpWriter {
     fun readonlyProperty(name: String, type: String, initializer: String) = line("public $type ${disambiguate(name)} { get; } = $initializer;")
 
     fun expressionProperty(name: String, type: String, expression: String) = line("public $type ${disambiguate(name)} => $expression;")
+
+    /**
+     * A static read-only list with one element per line. Expression-bodied, so it never takes part in static
+     * initialisation.
+     */
+    fun staticListProperty(name: String, elementType: String, elements: List<String>, doc: String? = null) {
+        doc?.let { docComment(it) }
+        line("public static System.Collections.Generic.IReadOnlyList<$elementType> $name => new $elementType[]")
+        line("{")
+        elements.forEach { line("    $it,") }
+        line("};")
+    }
 
     /**
      * C# rejects a member that shares its name with the type enclosing it (CS0542), which a BPMN element
@@ -94,50 +101,9 @@ internal class CSharpWriter {
 
     fun render(): String = content.toString()
 
-    companion object {
+    private companion object {
 
         private const val INDENT = "    "
-
-        /**
-         * C# only interpolates in `$"..."`, so BPMN expression values such as `${reasonCode}` need no
-         * special treatment — unlike Kotlin, where the builder falls back to a raw string.
-         */
-        fun stringLiteral(value: String): String = buildString {
-            append('"')
-            value.forEach { character ->
-                when (character) {
-                    '\\' -> append("\\\\")
-                    '"' -> append("\\\"")
-                    '\n' -> append("\\n")
-                    '\r' -> append("\\r")
-                    '\t' -> append("\\t")
-                    else -> append(character)
-                }
-            }
-            append('"')
-        }
-
-        fun nullableStringLiteral(value: String?): String = value?.let { stringLiteral(it) } ?: "null"
-
-        /**
-         * The name a member declared as [name] ends up with inside [enclosingType] — for code outside that type
-         * that has to reference the member.
-         */
-        fun disambiguated(name: String, enclosingType: String?): String = if (name == enclosingType) name + "_" else name
-
-        /**
-         * PascalCase identifier for a BPMN name, derived from the UPPER_SNAKE_CASE form so that the
-         * sanitising already done there — stripping expression syntax, collapsing `.`/`-`/`:`, guarding a
-         * leading digit — applies to C# identifiers too.
-         *
-         * Because the result always starts with a letter or `_`, it can never collide with a C# keyword
-         * (those are all lowercase), so no `@` escaping is needed.
-         */
-        fun String.toPascalCase(): String = toUpperSnakeCase()
-            .split("_")
-            .filter { it.isNotEmpty() }
-            .joinToString("") { segment -> segment.lowercase().replaceFirstChar { it.uppercaseChar() } }
-            .let { if (it.firstOrNull()?.isDigit() != false) "_$it" else it }
 
         private fun String.escapeXml(): String = replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     }

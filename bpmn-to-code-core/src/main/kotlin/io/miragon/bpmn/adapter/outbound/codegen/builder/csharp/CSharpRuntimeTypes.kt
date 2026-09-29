@@ -1,6 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.toPascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
 
 /**
  * The C# counterpart of `bpmn-to-code-runtime`, emitted verbatim into every generated file as a nested
@@ -13,7 +13,25 @@ internal object CSharpRuntimeTypes {
 
     const val CLASS_NAME = "Runtime"
 
-    fun enumMember(enumName: String, constantName: String): String = "$CLASS_NAME.$enumName.${constantName.toPascalCase()}"
+    const val BOUNDARY_EVENT = "$CLASS_NAME.IBoundaryEvent"
+    const val BPMN_ELEMENT_TYPE = "$CLASS_NAME.BpmnElementType"
+    const val BPMN_ENGINE = "$CLASS_NAME.BpmnEngine"
+    const val BPMN_ERROR_DEFINITION = "$CLASS_NAME.BpmnErrorDefinition"
+    const val BPMN_ESCALATION_DEFINITION = "$CLASS_NAME.BpmnEscalationDefinition"
+    const val BPMN_EVENT_TYPE = "$CLASS_NAME.BpmnEventType"
+    const val BPMN_TIMER = "$CLASS_NAME.BpmnTimer"
+    const val ELEMENT_ID = "$CLASS_NAME.ElementId"
+    const val EVENT = "$CLASS_NAME.IEvent"
+    const val FLOW_NODE = "$CLASS_NAME.IFlowNode"
+    const val INPUT_OUTPUT_MAPPING = "$CLASS_NAME.InputOutputMapping"
+    const val MESSAGE_NAME = "$CLASS_NAME.MessageName"
+    const val PROCESS_ID = "$CLASS_NAME.ProcessId"
+    const val SEQUENCE_FLOW = "$CLASS_NAME.SequenceFlow"
+    const val SIGNAL_NAME = "$CLASS_NAME.SignalName"
+    const val TIMER_TYPE = "$CLASS_NAME.TimerType"
+    const val VARIABLE_NAME = "$CLASS_NAME.VariableName"
+
+    fun enumMember(enumType: String, constantName: String): String = "$enumType.${pascalCase(constantName)}"
 
     val SOURCE: String = """
         /// <summary>Common handle on any flow node, for generic tooling.</summary>

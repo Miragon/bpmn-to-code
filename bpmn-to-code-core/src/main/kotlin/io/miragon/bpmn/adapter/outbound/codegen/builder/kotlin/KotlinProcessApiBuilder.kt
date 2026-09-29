@@ -1,7 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import com.squareup.kotlinpoet.AnnotationSpec
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
@@ -23,7 +22,6 @@ import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
 
     companion object {
-        private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
         private const val PROCESS_ID = "PROCESS_ID"
     }
 
@@ -61,7 +59,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private inner class ProcessIdWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val processIdClass = ClassName(RUNTIME_PACKAGE, "ProcessId")
+            val processIdClass = KotlinRuntimeTypes.PROCESS_ID
             val idProperty = PropertySpec.builder(PROCESS_ID, processIdClass)
                 .initializer("%T(%N.%N)", processIdClass, KotlinNamesHolder.NAME, PROCESS_ID).build()
             builder.addProperty(idProperty)
@@ -72,7 +70,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private class ProcessEngineWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnEngineClass = ClassName(RUNTIME_PACKAGE, "BpmnEngine")
+            val bpmnEngineClass = KotlinRuntimeTypes.BPMN_ENGINE
             val engineProperty = PropertySpec.builder("PROCESS_ENGINE", bpmnEngineClass)
                 .initializer("%T.%L", bpmnEngineClass, modelApi.targetEngine.name).build()
             builder.addProperty(engineProperty)

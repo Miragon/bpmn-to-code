@@ -19,10 +19,6 @@ import javax.lang.model.element.Modifier.STATIC
  */
 internal abstract class JavaSharedDefinitionWriter<T : Any> {
 
-    companion object {
-        const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
-    }
-
     protected abstract val type: SharedDefinitionType
     protected abstract val javadoc: String
     protected abstract val elementType: ClassName
