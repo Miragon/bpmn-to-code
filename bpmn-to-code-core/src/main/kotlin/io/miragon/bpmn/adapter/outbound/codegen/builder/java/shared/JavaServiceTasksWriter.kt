@@ -15,5 +15,5 @@ internal object JavaServiceTasksWriter : JavaSharedDefinitionWriter<String>() {
 
     override fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<String>> = definitions.serviceTasks
 
-    override fun initializer(value: String): CodeBlock = CodeBlock.of($$"$S", value)
+    override fun initializer(definition: VariableMapping<String>): CodeBlock = CodeBlock.of($$"$S", definition.getValue())
 }

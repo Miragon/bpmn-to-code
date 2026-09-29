@@ -36,9 +36,13 @@ kind in its own file next to the Process APIs:
 | `Escalations` | Escalation definitions with name and code (`BpmnEscalationDefinition`) |
 
 Each value appears once, no matter how many processes use it, and a file is only generated when at least
-one process contains a matching element. Errors and escalations are named `NAME_CODE`
-(`MIRAVELO_APPLICATION_INVALID`) because the engine matches them by code — the same name with another code is a
-different error. Without a code the constant is named after the name alone.
+one process contains a matching element. Errors and escalations are named after their name
+(`MIRAVELO_APPLICATION_INVALID`). The engine matches them by code, so two with the same name but different codes
+fail `shared-definition-collision` — give them distinct names.
+
+Messages, signals, errors and escalations are typed (`MessageName`, `BpmnErrorDefinition`, …); their raw
+strings sit next to them in a nested `Names` holder (`Messages.Names.X`, `Errors.Names.X_NAME` / `X_CODE`) for
+the few places that demand a compile-time constant — see [Raw names](#raw-names-for-annotations-and-java-switch).
 
 Every file also lists its values: Kotlin `ServiceTasks.entries`, Java `ServiceTasks.all()`, C#
 `ServiceTasks.All`. That turns "every job type has a registered worker" or "every message is correlated
@@ -142,23 +146,33 @@ object ServiceTasks {
 
 // Messages.kt
 object Messages {
-  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName = MessageName("miravelo.leasingRequestReceived")
+  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName = MessageName(Names.MIRAVELO_LEASING_REQUEST_RECEIVED)
+
+  object Names {
+    const val MIRAVELO_LEASING_REQUEST_RECEIVED: String = "miravelo.leasingRequestReceived"
+  }
 }
 
 // Errors.kt
 object Errors {
   val MIRAVELO_APPLICATION_INVALID: BpmnErrorDefinition = BpmnErrorDefinition(
-    name = "miravelo.applicationInvalid",
-    code = "applicationInvalid",
+    name = Names.MIRAVELO_APPLICATION_INVALID_NAME,
+    code = Names.MIRAVELO_APPLICATION_INVALID_CODE,
   )
+
+  object Names {
+    const val MIRAVELO_APPLICATION_INVALID_NAME: String = "miravelo.applicationInvalid"
+    const val MIRAVELO_APPLICATION_INVALID_CODE: String = "applicationInvalid"
+  }
 }
 
 // Escalations.kt
 object Escalations {
   val MIRAVELO_CONTRACT_NOT_SIGNED: BpmnEscalationDefinition = BpmnEscalationDefinition(
-    name = "miravelo.contractNotSigned",
-    code = "contractNotSigned",
+    name = Names.MIRAVELO_CONTRACT_NOT_SIGNED_NAME,
+    code = Names.MIRAVELO_CONTRACT_NOT_SIGNED_CODE,
   )
+  // object Names { … _NAME / _CODE … }
 }
 ```
 
@@ -208,7 +222,11 @@ public final class BikeLeasingProcessApi {
 
 // Messages.java — shared by all processes of the run
 public final class Messages {
-    public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
+    public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName(Names.MIRAVELO_LEASING_REQUEST_RECEIVED);
+
+    public static final class Names {
+        public static final String MIRAVELO_LEASING_REQUEST_RECEIVED = "miravelo.leasingRequestReceived";
+    }
 }
 
 // ... same structure for ServiceTasks, Signals, Errors, Escalations
@@ -314,10 +332,10 @@ interfaces — is camelCase (`next`, `outgoingFlows`, `startEvents`, `attachedTo
 exposes per-node values as `static final` constants and instance data only through the getters of the
 runtime interfaces.
 
-#### Raw names for annotations and `when` / `switch`
+#### Raw names for annotations and Java `switch`
 
-The typed wrappers for variables, the process id and element ids are no compile-time constants, so each
-comes with its raw `String` next to it — `const val` in Kotlin, `static final String` in Java, `const string`
+The typed wrappers for variables, the process id, element ids and the shared definitions are no compile-time
+constants, so each comes with its raw `String` next to it — `const val` in Kotlin, `static final String` in Java, `const string`
 in C#:
 
 | Typed wrapper | Raw constant (Kotlin / Java) | C# |
@@ -325,10 +343,27 @@ in C#:
 | `FlowNodes.X.Variables.APPLICATION_ID` | `FlowNodes.X.Variables.Names.APPLICATION_ID` | `FlowNodes.X.NodeVariables.Names.ApplicationId` |
 | `PROCESS_ID` | `Names.PROCESS_ID` | `ProcessId` (already `const`) |
 | `FlowNodes.X.id` | `FlowNodes.X.ELEMENT_ID` | `FlowNodes.X.ElementId` |
+| `Messages.X` / `Signals.X` | `Messages.Names.X` / `Signals.Names.X` | `Messages.X` / `Signals.X` (already `const`) |
+| `Errors.X` / `Escalations.X` | `Errors.Names.X_NAME` and `Errors.Names.X_CODE` (same for `Escalations`) | `Errors.X.Reference` / `Errors.X.Code` (already `const`) |
+
+Prefer the typed wrapper wherever a value is accepted: it keeps a message from being passed as a signal and
+an error's name and code together. Engine clients that take a `String` get it via `Messages.X.value`
+(Java: `getValue()`). Reach for `Names` only where the compiler demands a constant — annotation arguments and
+Java `switch` labels. Kotlin's `when` accepts any expression, so `Messages.X.value ->` works without `Names`.
+
+`Names` values are inlined into the calling code at compile time. If the generated API is shipped as a separate
+artifact, rebuild its consumers when the BPMN changes.
 
 ```kotlin
 @JobWorker(type = FlowNodes.ServiceTaskSendContract.JOB_TYPE)
 fun sendContract(@Variable(name = FlowNodes.ServiceTaskSendContract.Variables.Names.APPLICATION_ID) applicationId: String) { … }
+```
+
+```java
+switch (incomingMessageName) {
+    case Messages.Names.MIRAVELO_CONTRACT_SIGNED -> …
+    case Messages.Names.MIRAVELO_ADDRESS_CHANGED -> …
+}
 ```
 
 ::: tip `ServiceTasks.X` or `FlowNodes.X.JOB_TYPE`?

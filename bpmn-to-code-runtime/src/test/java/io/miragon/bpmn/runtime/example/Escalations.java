@@ -8,10 +8,16 @@ import java.util.List;
  * BPMN escalation definitions with name and code, as thrown and caught by the processes.
  */
 public final class Escalations {
-  public static final BpmnEscalationDefinition MIRAVELO_CONTRACT_NOT_SIGNED = new BpmnEscalationDefinition("miravelo.contractNotSigned", "contractNotSigned");
+  public static final BpmnEscalationDefinition MIRAVELO_CONTRACT_NOT_SIGNED = new BpmnEscalationDefinition(Names.MIRAVELO_CONTRACT_NOT_SIGNED_NAME, Names.MIRAVELO_CONTRACT_NOT_SIGNED_CODE);
 
   public static List<BpmnEscalationDefinition> all() {
     return List.of(
         MIRAVELO_CONTRACT_NOT_SIGNED);
+  }
+
+  public static final class Names {
+    public static final String MIRAVELO_CONTRACT_NOT_SIGNED_NAME = "miravelo.contractNotSigned";
+
+    public static final String MIRAVELO_CONTRACT_NOT_SIGNED_CODE = "contractNotSigned";
   }
 }

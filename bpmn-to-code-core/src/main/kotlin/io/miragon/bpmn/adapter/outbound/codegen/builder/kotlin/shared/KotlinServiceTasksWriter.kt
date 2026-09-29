@@ -20,5 +20,5 @@ internal object KotlinServiceTasksWriter : KotlinSharedDefinitionWriter<String>(
 
     override fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<String>> = definitions.serviceTasks
 
-    override fun initializer(value: String): CodeBlock = stringLiteral(value)
+    override fun initializer(definition: VariableMapping<String>): CodeBlock = stringLiteral(definition.getValue())
 }

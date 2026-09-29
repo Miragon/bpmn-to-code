@@ -9,6 +9,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinNamesHolder
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.shared.VariableMapping
 
@@ -28,20 +29,24 @@ internal abstract class KotlinSharedDefinitionWriter<T : Any> {
 
     protected abstract fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<T>>
 
-    protected abstract fun initializer(value: T): CodeBlock
+    protected abstract fun initializer(definition: VariableMapping<T>): CodeBlock
+
+    protected open fun rawNames(definition: VariableMapping<T>): List<Pair<String, String>> = emptyList()
 
     fun shouldWrite(definitions: SharedDefinitions): Boolean = definitionsOf(definitions).isNotEmpty()
 
     fun write(definitions: SharedDefinitions): TypeSpec {
         val ofKind = definitionsOf(definitions)
-        return TypeSpec.objectBuilder(type.typeName).addKdoc(kdoc)
+        val holder = TypeSpec.objectBuilder(type.typeName).addKdoc(kdoc)
             .addProperties(ofKind.map { property(it) })
             .addProperty(entries(ofKind))
-            .build()
+        val rawNames = ofKind.flatMap { rawNames(it) }
+        if (rawNames.isNotEmpty()) holder.addType(KotlinNamesHolder(rawNames).build())
+        return holder.build()
     }
 
     private fun property(definition: VariableMapping<T>): PropertySpec = PropertySpec.builder(definition.getName(), elementType)
-        .addModifiers(modifiers).initializer(initializer(definition.getValue())).build()
+        .addModifiers(modifiers).initializer(initializer(definition)).build()
 
     private fun entries(definitions: List<VariableMapping<T>>): PropertySpec = PropertySpec.builder("entries", LIST.parameterizedBy(elementType))
         .initializer(KotlinCodeFormat.listOfNames(definitions.map { it.getName() })).build()

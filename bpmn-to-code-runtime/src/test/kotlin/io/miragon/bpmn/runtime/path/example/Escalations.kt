@@ -4,6 +4,7 @@
 package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.BpmnEscalationDefinition
+import kotlin.String
 import kotlin.Suppress
 import kotlin.collections.List
 
@@ -12,11 +13,17 @@ import kotlin.collections.List
  */
 object Escalations {
   val MIRAVELO_CONTRACT_NOT_SIGNED: BpmnEscalationDefinition = BpmnEscalationDefinition(
-    name = "miravelo.contractNotSigned",
-    code = "contractNotSigned",
+    name = Names.MIRAVELO_CONTRACT_NOT_SIGNED_NAME,
+    code = Names.MIRAVELO_CONTRACT_NOT_SIGNED_CODE,
   )
 
   val entries: List<BpmnEscalationDefinition> = listOf(
     MIRAVELO_CONTRACT_NOT_SIGNED,
   )
+
+  object Names {
+    const val MIRAVELO_CONTRACT_NOT_SIGNED_NAME: String = "miravelo.contractNotSigned"
+
+    const val MIRAVELO_CONTRACT_NOT_SIGNED_CODE: String = "contractNotSigned"
+  }
 }

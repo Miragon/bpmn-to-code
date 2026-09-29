@@ -8,7 +8,7 @@ import java.util.List;
  * BPMN error definitions with name and code, as thrown and caught by the processes.
  */
 public final class Errors {
-  public static final BpmnErrorDefinition MIRAVELO_APPLICATION_INVALID = new BpmnErrorDefinition("miravelo.applicationInvalid", "applicationInvalid");
+  public static final BpmnErrorDefinition MIRAVELO_APPLICATION_INVALID = new BpmnErrorDefinition(Names.MIRAVELO_APPLICATION_INVALID_NAME, Names.MIRAVELO_APPLICATION_INVALID_CODE);
 
   private Errors() {
   }
@@ -16,5 +16,11 @@ public final class Errors {
   public static List<BpmnErrorDefinition> all() {
     return List.of(
         MIRAVELO_APPLICATION_INVALID);
+  }
+
+  public static final class Names {
+    public static final String MIRAVELO_APPLICATION_INVALID_NAME = "miravelo.applicationInvalid";
+
+    public static final String MIRAVELO_APPLICATION_INVALID_CODE = "applicationInvalid";
   }
 }

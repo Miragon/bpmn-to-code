@@ -7,7 +7,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.
 
 /**
  * The raw names behind a holder's typed wrappers as `const val String`s, so they fit where Kotlin demands
- * compile-time constants — annotation arguments and `when` branches.
+ * compile-time constants — annotation arguments.
  */
 internal class KotlinNamesHolder(private val constants: List<Pair<String, String>>) {
 

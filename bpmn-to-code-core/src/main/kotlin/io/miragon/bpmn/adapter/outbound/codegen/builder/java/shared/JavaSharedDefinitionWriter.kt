@@ -8,6 +8,7 @@ import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaConstantHolder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaNamesHolder
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.shared.VariableMapping
 import javax.lang.model.element.Modifier.FINAL
@@ -29,19 +30,23 @@ internal abstract class JavaSharedDefinitionWriter<T : Any> {
 
     protected abstract fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<T>>
 
-    protected abstract fun initializer(value: T): CodeBlock
+    protected abstract fun initializer(definition: VariableMapping<T>): CodeBlock
+
+    protected open fun rawNames(definition: VariableMapping<T>): List<Pair<String, String>> = emptyList()
 
     fun shouldWrite(definitions: SharedDefinitions): Boolean = definitionsOf(definitions).isNotEmpty()
 
     fun write(definitions: SharedDefinitions): TypeSpec {
         val ofKind = definitionsOf(definitions)
-        return JavaConstantHolder(type.typeName).builder().addJavadoc(javadoc)
+        val holder = JavaConstantHolder(type.typeName).builder().addJavadoc(javadoc)
             .addFields(ofKind.map { field(it) })
             .addMethod(allAccessor(ofKind))
-            .build()
+        val rawNames = ofKind.flatMap { rawNames(it) }
+        if (rawNames.isNotEmpty()) holder.addType(JavaNamesHolder(rawNames).build())
+        return holder.build()
     }
 
-    private fun field(definition: VariableMapping<T>): FieldSpec = FieldSpec.builder(elementType, definition.getName(), PUBLIC, STATIC, FINAL).initializer(initializer(definition.getValue())).build()
+    private fun field(definition: VariableMapping<T>): FieldSpec = FieldSpec.builder(elementType, definition.getName(), PUBLIC, STATIC, FINAL).initializer(initializer(definition)).build()
 
     private fun allAccessor(definitions: List<VariableMapping<T>>): MethodSpec {
         val fields = definitions.map { CodeBlock.of($$"$N", it.getName()) }

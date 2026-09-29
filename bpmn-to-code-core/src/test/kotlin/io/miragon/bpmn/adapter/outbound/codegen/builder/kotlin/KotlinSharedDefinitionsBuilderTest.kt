@@ -40,8 +40,26 @@ class KotlinSharedDefinitionsBuilderTest {
         val result = underTest.buildApiFiles(api).single()
 
         // then
-        assertThat(result.content).contains("MessageName(\"Message_public reply\")")
+        assertThat(result.content).contains("const val PUBLIC_REPLY: String = \"Message_public reply\"")
         assertThat(result.content).doesNotContainPattern("(?m)^\\s*public ")
+    }
+
+    @Test
+    fun `signals are built from their raw names`() {
+        // given: a single signal
+        val definitions = SharedDefinitions(signals = listOf(RootElementDefinition.Signal(id = "sig", name = "miravelo.recallAnnounced")))
+        val api = SharedDefinitionsApi(
+            definitions = definitions,
+            outputLanguage = OutputLanguage.KOTLIN,
+            packagePath = "de.emaarco.example",
+        )
+
+        // when
+        val result = underTest.buildApiFiles(api).single()
+
+        // then: the typed wrapper refers to its compile-time constant
+        assertThat(result.content).contains("val MIRAVELO_RECALL_ANNOUNCED: SignalName = SignalName(Names.MIRAVELO_RECALL_ANNOUNCED)")
+        assertThat(result.content).contains("const val MIRAVELO_RECALL_ANNOUNCED: String = \"miravelo.recallAnnounced\"")
     }
 
     @Test

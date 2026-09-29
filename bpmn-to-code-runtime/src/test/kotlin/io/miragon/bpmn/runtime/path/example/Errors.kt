@@ -4,6 +4,7 @@
 package io.miragon.bpmn.runtime.path.example
 
 import io.miragon.bpmn.runtime.BpmnErrorDefinition
+import kotlin.String
 import kotlin.Suppress
 import kotlin.collections.List
 
@@ -12,11 +13,17 @@ import kotlin.collections.List
  */
 object Errors {
   val MIRAVELO_APPLICATION_INVALID: BpmnErrorDefinition = BpmnErrorDefinition(
-    name = "miravelo.applicationInvalid",
-    code = "applicationInvalid",
+    name = Names.MIRAVELO_APPLICATION_INVALID_NAME,
+    code = Names.MIRAVELO_APPLICATION_INVALID_CODE,
   )
 
   val entries: List<BpmnErrorDefinition> = listOf(
     MIRAVELO_APPLICATION_INVALID,
   )
+
+  object Names {
+    const val MIRAVELO_APPLICATION_INVALID_NAME: String = "miravelo.applicationInvalid"
+
+    const val MIRAVELO_APPLICATION_INVALID_CODE: String = "applicationInvalid"
+  }
 }

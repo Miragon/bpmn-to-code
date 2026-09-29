@@ -26,8 +26,18 @@ constant and one of them was silently lost.
   value.
 - **The Process API keeps what is process-bound**: `PROCESS_ID`, `PROCESS_ENGINE`, `Elements`,
   `CallActivities`, `Timers`, `Variables`, `Flow` / `Variants`.
-- **Errors and escalations are named `NAME_CODE`** (`ERROR_INVALID_MAIL_500`); without a code, the name
-  alone.
+- **Errors and escalations are named after their name** (`ERROR_INVALID_MAIL` → `INVALID_MAIL`). Originally
+  `NAME_CODE`; since #132 two with the same name but different codes fail `shared-definition-collision`
+  instead.
+- **Raw values sit in a nested `Names` holder** (Kotlin / Java): `Messages.Names.X`, `Signals.Names.X`,
+  `Errors.Names.X_NAME` / `X_CODE`, `Escalations.Names.X_NAME` / `X_CODE`. The typed wrappers are built
+  from them and stay the primary API; the raw values exist for annotation arguments and `switch` labels.
+  C# emits raw constants already.
+- **`ServiceTasks` has no typed wrapper.** A wrapper pays off where a value is passed around as a value.
+  Job types almost only end up in annotations (`@JobWorker(type = …)`, `@ExternalTaskSubscription`), and
+  every programmatic API takes a `String` (`newWorker().jobType(…)`, `subscribe(…)`), so a `JobType` would be
+  unwrapped immediately. For Camunda 7 the value may also be a delegate expression, not a job type. The
+  raw constant is therefore the primary API here.
 - **Collisions are checked across all processes.** Two different values that normalize to the same
   constant name — in one process or in two — fail generation. `SharedDefinitionCollisionRule` is a
   mandatory cross-model rule; `CollisionDetectionRule` keeps checking the process-local sections.
@@ -43,5 +53,4 @@ constant and one of them was silently lost.
 - Generated files are not deleted by the generator. A shared file that is no longer produced — e.g. after
   removing the last signal — stays in the output folder until it is cleaned, as a renamed process's API
   already did before.
-- `NAME_CODE` is redundant for textual codes that repeat the name (`INVALID_MAIL` / `INVALID_MAIL`).
 - Breaking for every 5.x user of the nested registries.
