@@ -102,7 +102,7 @@ internal class FlowFacetsFactory(
      */
     private fun <T> T.sharedIn(candidates: List<VariableMapping<*>>, definitionValue: Any? = this): SharedValue<T> {
         val definition = candidates.firstOrNull { it.getValue() == definitionValue }
-        return SharedValue(this, definition?.let { SharedConstant(name = it.getName(), rawName = it.getRawName()) })
+        return SharedValue(this, definition?.let { SharedConstant(name = it.getName()) })
     }
 
     private fun FlowNodeDefinition.Event.isInterrupting(): Boolean? = when (shape) {

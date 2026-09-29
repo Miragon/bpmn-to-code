@@ -19,7 +19,7 @@ import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
 
 /**
- * Emits a Java `Flow` node's own data: static constants (`JOB_TYPE`, `CALLED_PROCESS`, `TIMER`, `MESSAGE`, …), the
+ * Emits a Java `FlowNodes` node's own data: static constants (`JOB_TYPE`, `CALLED_PROCESS`, `TIMER`, `MESSAGE`, …), the
  * `getAttachedTo()`/`isInterrupting()` getters of a boundary event, and the nested holders (`Variables`, `Inputs`, `Outputs`).
  * Job types, messages, signals, errors and escalations refer to their shared definition constant.
  */
@@ -31,8 +31,8 @@ internal class JavaFacetWriter {
         facets.timer?.let { timerField(it) },
         facets.message?.let { sharedField("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
         facets.signal?.let { sharedField("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
-        facets.error?.let { sharedField("ERROR", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
-        facets.escalation?.let { sharedField("ESCALATION", "BpmnEscalation", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
+        facets.error?.let { sharedField("ERROR", "BpmnErrorDefinition", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
+        facets.escalation?.let { sharedField("ESCALATION", "BpmnEscalationDefinition", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
     )
 
     fun methods(facets: NodeFacets): List<MethodSpec> = listOfNotNull(

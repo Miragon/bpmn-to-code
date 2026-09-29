@@ -31,7 +31,7 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
 
     private fun constants(api: SharedDefinitionsApi, className: String, doc: String, items: List<VariableMapping<String>>): GeneratedApiFile? = items.ifNotEmpty {
         toFile(api, className, doc) { writer ->
-            items.forEach { writer.constant(it.getRawName().toPascalCase(), it.getValue()) }
+            items.forEach { writer.constant(it.getName().toPascalCase(), it.getValue()) }
             writer.line()
             writer.staticListProperty("All", "string", memberNames(items, className))
         }
@@ -41,7 +41,7 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         toFile(api, className, doc) { writer ->
             writer.forEachSeparated(items) { item ->
                 val (name, code) = item.getValue()
-                writer.staticClass(item.getRawName().toPascalCase()) {
+                writer.staticClass(item.getName().toPascalCase()) {
                     writer.constant("Reference", name)
                     writer.constant("Code", code)
                 }
@@ -52,7 +52,7 @@ internal class CSharpSharedDefinitionsBuilder : CodeGenerationAdapter.AbstractSh
         }
     }
 
-    private fun memberNames(items: List<VariableMapping<*>>, className: String): List<String> = items.map { disambiguated(it.getRawName().toPascalCase(), className) }
+    private fun memberNames(items: List<VariableMapping<*>>, className: String): List<String> = items.map { disambiguated(it.getName().toPascalCase(), className) }
 
     private fun toFile(api: SharedDefinitionsApi, className: String, doc: String, body: (CSharpWriter) -> Unit): GeneratedApiFile {
         val writer = CSharpWriter()

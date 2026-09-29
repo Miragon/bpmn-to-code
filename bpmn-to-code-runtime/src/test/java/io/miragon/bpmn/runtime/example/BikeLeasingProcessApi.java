@@ -5,8 +5,8 @@ import io.miragon.bpmn.runtime.AbstractFlowNode;
 import io.miragon.bpmn.runtime.BoundaryEvent;
 import io.miragon.bpmn.runtime.BpmnElementType;
 import io.miragon.bpmn.runtime.BpmnEngine;
-import io.miragon.bpmn.runtime.BpmnError;
-import io.miragon.bpmn.runtime.BpmnEscalation;
+import io.miragon.bpmn.runtime.BpmnErrorDefinition;
+import io.miragon.bpmn.runtime.BpmnEscalationDefinition;
 import io.miragon.bpmn.runtime.BpmnEventType;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
@@ -36,10 +36,10 @@ public final class BikeLeasingProcessApi {
   }
 
   /**
-   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
+   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code FlowNodes}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
    */
-  public static final class Flow {
-    private Flow() {
+  public static final class FlowNodes {
+    private FlowNodes() {
     }
 
     /**
@@ -265,7 +265,7 @@ public final class BikeLeasingProcessApi {
 
       public static final BoundaryApplicationInvalid INSTANCE = new BoundaryApplicationInvalid();
 
-      public static final BpmnError ERROR = Errors.MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID;
+      public static final BpmnErrorDefinition ERROR = Errors.MIRAVELO_APPLICATION_INVALID;
 
       private BoundaryApplicationInvalid() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.BOUNDARY_EVENT, "Application invalid");
@@ -389,7 +389,7 @@ public final class BikeLeasingProcessApi {
 
       public static final BoundaryContractNotSigned INSTANCE = new BoundaryContractNotSigned();
 
-      public static final BpmnEscalation ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED;
+      public static final BpmnEscalationDefinition ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED;
 
       private BoundaryContractNotSigned() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.BOUNDARY_EVENT, "Contract not signed");
@@ -562,7 +562,7 @@ public final class BikeLeasingProcessApi {
 
       public static final EndEventContractNotSigned INSTANCE = new EndEventContractNotSigned();
 
-      public static final BpmnEscalation ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED;
+      public static final BpmnEscalationDefinition ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED;
 
       private EndEventContractNotSigned() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.END_EVENT, "Contract not signed");

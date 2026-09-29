@@ -2,7 +2,7 @@ package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnElementType
-import io.miragon.bpmn.runtime.BpmnError
+import io.miragon.bpmn.runtime.BpmnErrorDefinition
 import io.miragon.bpmn.runtime.BpmnEventType
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.MessageName
@@ -10,10 +10,10 @@ import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.TimerType
 import io.miragon.bpmn.runtime.VariableName
 import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow.SubProcessConcludeContract
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.Flow as BikeLeasing
+import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes as BikeLeasing
 
 /**
  * Exercises [ProcessPath] over the *actually generated* Kotlin bike-leasing API — which doubles as the compile
@@ -215,7 +215,7 @@ class ProcessPathKotlinApiTest {
         assertThat(input.value).isEqualTo("applicationId")
         assertThat(BikeLeasing.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo("\${validateApplicationDelegate}")
         assertThat(BikeLeasing.StartEventLeasingRequestReceived.MESSAGE).isEqualTo(MessageName("miravelo.leasingRequestReceived"))
-        assertThat(BikeLeasing.BoundaryApplicationInvalid.ERROR).isEqualTo(BpmnError("miravelo.applicationInvalid", "applicationInvalid"))
+        assertThat(BikeLeasing.BoundaryApplicationInvalid.ERROR).isEqualTo(BpmnErrorDefinition("miravelo.applicationInvalid", "applicationInvalid"))
 
         assertThat(BikeLeasing.TimerSignatureReminder.TIMER).isEqualTo(BpmnTimer(TimerType.DURATION, "P7D"))
         assertThat(BikeLeasing.TimerSignatureReminder.attachedTo).isEqualTo(BikeLeasing.SubProcessConcludeContract)

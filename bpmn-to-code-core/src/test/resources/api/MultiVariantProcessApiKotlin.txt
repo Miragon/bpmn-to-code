@@ -32,12 +32,12 @@ object CancelBikeOrderProcessApi {
   }
 
   /**
-   * The `Flow` of each merged BPMN file, keyed by its `variantName`.
+   * The `FlowNodes` of each merged BPMN file, keyed by its `variantName`.
    */
   object FlowVariants {
     /**
      * Typed navigation over the process flow.
-     * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `next` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
+     * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `next` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
      * Intended for tooling, tests, and reasoning about the process shape.
      */
     object Retail {

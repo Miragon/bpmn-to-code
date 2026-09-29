@@ -1,7 +1,7 @@
 package io.miragon.bpmn.runtime
 
 /**
- * Common supertype of every node in a generated `Flow` navigation graph.
+ * Common supertype of every node in a generated `FlowNodes` navigation graph.
  *
  * Gives generic tooling (path builders, drift contracts, assertions) a shared handle on a flow element —
  * its [id], flat [elementType] and display [name] — without knowing the concrete generated node type.

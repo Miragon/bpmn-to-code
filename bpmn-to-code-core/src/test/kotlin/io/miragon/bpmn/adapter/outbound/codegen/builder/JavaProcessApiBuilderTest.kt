@@ -109,7 +109,7 @@ class JavaProcessApiBuilderTest {
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped Flow for merged model`() {
+    fun `buildApiFile generates variant-scoped FlowNodes for merged model`() {
         // given: a merged model with a single variant
         val retail = testCancelBikeOrderModel(variantName = "retail")
         val merged = ProcessModel(
@@ -125,7 +125,7 @@ class JavaProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains FlowVariants section instead of a flat Flow
+        // then: output contains FlowVariants section instead of a flat FlowNodes
         assertThat(result.content).isEqualToIgnoringWhitespace(golden("/api/MultiVariantProcessApiJava.txt", result.content))
         assertJavaSyntaxValid(result.fileName, result.content)
     }

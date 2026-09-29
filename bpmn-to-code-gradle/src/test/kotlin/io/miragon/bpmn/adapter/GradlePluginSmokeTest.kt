@@ -47,7 +47,7 @@ class GradlePluginSmokeTest {
 
     @ParameterizedTest(name = "{0}")
     @CsvSource("KOTLIN", "JAVA")
-    fun `consumer code reads typed edges and node facets from the generated Flow`(language: String, @TempDir projectDir: File) {
+    fun `consumer code reads typed edges and node facets from the generated FlowNodes`(language: String, @TempDir projectDir: File) {
         // given: a project whose own source navigates the generated API and reads facets
         val target = Target.of(language)
         writeProject(projectDir, "ZEEBE", target, "zeebe/bike-leasing.bpmn")
@@ -65,7 +65,7 @@ class GradlePluginSmokeTest {
     }
 
     @Test
-    fun `generateBpmnModelApi writes a cs file with Flow for CSHARP`(@TempDir projectDir: File) {
+    fun `generateBpmnModelApi writes a cs file with FlowNodes for CSHARP`(@TempDir projectDir: File) {
         // given: a JVM project (the plugin only wires itself when a JVM plugin is present) targeting C#
         writeProject(projectDir, "ZEEBE", Target.CSHARP, "zeebe/bike-leasing.bpmn")
 
@@ -80,7 +80,7 @@ class GradlePluginSmokeTest {
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
         val generated = assertGeneratedFiles(projectDir, ".cs")
         val processApi = generated.single { it.name == "BikeLeasingProcessApi.cs" }
-        assertThat(processApi.readText()).contains("public static class Flow", "public static class Runtime")
+        assertThat(processApi.readText()).contains("public static class FlowNodes", "public static class Runtime")
         assertThat(generated.map { it.name }).contains("ServiceTasks.cs", "Messages.cs")
     }
 
@@ -141,18 +141,18 @@ class GradlePluginSmokeTest {
             consumerSource = """
                 package io.miragon.smoketest
 
-                import io.miragon.smoketest.BikeLeasingProcessApi.Flow
+                import io.miragon.smoketest.BikeLeasingProcessApi.FlowNodes
 
                 object UsesApi {
                     fun describe(): String {
-                        val edge = Flow.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication
+                        val edge = FlowNodes.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication
                         val condition: String? = edge.conditionExpression
-                        val input = Flow.CallActivityCancelBikeOrder.Variables.ORDER_IDS
-                        val mapping = Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS
-                        val timer = Flow.TimerSignatureReminder.TIMER
-                        val host = Flow.TimerSignatureReminder.attachedTo
-                        val called = Flow.CallActivityCancelBikeOrder.CALLED_PROCESS
-                        val jobType = Flow.ServiceTaskSendContract.JOB_TYPE
+                        val input = FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS
+                        val mapping = FlowNodes.CallActivityCancelBikeOrder.Inputs.ORDER_IDS
+                        val timer = FlowNodes.TimerSignatureReminder.TIMER
+                        val host = FlowNodes.TimerSignatureReminder.attachedTo
+                        val called = FlowNodes.CallActivityCancelBikeOrder.CALLED_PROCESS
+                        val jobType = FlowNodes.ServiceTaskSendContract.JOB_TYPE
                         return listOf(condition, edge.isDefault, edge.target.id, input, mapping, timer.timerValue, host.name, called, jobType).joinToString()
                     }
                 }
@@ -165,18 +165,18 @@ class GradlePluginSmokeTest {
             consumerSource = """
                 package io.miragon.smoketest;
 
-                import io.miragon.smoketest.BikeLeasingProcessApi.Flow;
+                import io.miragon.smoketest.BikeLeasingProcessApi.FlowNodes;
 
                 public final class UsesApi {
                     public static String describe() {
-                        var edge = Flow.startEventLeasingRequestReceived().getOutgoingFlows().toServiceTaskValidateApplication();
+                        var edge = FlowNodes.startEventLeasingRequestReceived().getOutgoingFlows().toServiceTaskValidateApplication();
                         String condition = edge.getConditionExpression();
-                        var input = Flow.CallActivityCancelBikeOrder.Variables.ORDER_IDS;
-                        var mapping = Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS;
-                        var timer = Flow.TimerSignatureReminder.TIMER;
-                        var host = Flow.timerSignatureReminder().getAttachedTo();
-                        var called = Flow.CallActivityCancelBikeOrder.CALLED_PROCESS;
-                        String jobType = Flow.ServiceTaskSendContract.JOB_TYPE;
+                        var input = FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS;
+                        var mapping = FlowNodes.CallActivityCancelBikeOrder.Inputs.ORDER_IDS;
+                        var timer = FlowNodes.TimerSignatureReminder.TIMER;
+                        var host = FlowNodes.timerSignatureReminder().getAttachedTo();
+                        var called = FlowNodes.CallActivityCancelBikeOrder.CALLED_PROCESS;
+                        String jobType = FlowNodes.ServiceTaskSendContract.JOB_TYPE;
                         return condition + edge.isDefault() + edge.getTarget().getId() + input + mapping + timer.getTimerValue() + host.getName() + called + jobType;
                     }
                 }

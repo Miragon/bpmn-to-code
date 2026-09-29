@@ -4,9 +4,9 @@ import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.SequenceFlow
 
 /**
- * A compile-checked walk over a generated `Flow` navigation graph, accumulating the nodes it passes.
+ * A compile-checked walk over a generated `FlowNodes` navigation graph, accumulating the nodes it passes.
  *
- * Start with [from] at a named node (e.g. `ProcessPath.from(Flow.StartEventSubmitRegistrationForm)`),
+ * Start with [from] at a named node (e.g. `ProcessPath.from(FlowNodes.StartEventSubmitRegistrationForm)`),
  * chain steps, then feed [ids] to your engine's existing string-based flow assertion — e.g.
  * `assertThat(instance).hasPassedInOrder(*path.ids.toTypedArray())`. The **edge steps** ([then] / [onto] / [via]) and
  * the **subprocess steps** ([enter] / [inside]) are checked against the model at compile time, so a model

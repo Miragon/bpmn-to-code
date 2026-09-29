@@ -7,8 +7,8 @@ import io.miragon.bpmn.runtime.AbstractFlowNode
 import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.BpmnEngine
-import io.miragon.bpmn.runtime.BpmnError
-import io.miragon.bpmn.runtime.BpmnEscalation
+import io.miragon.bpmn.runtime.BpmnErrorDefinition
+import io.miragon.bpmn.runtime.BpmnEscalationDefinition
 import io.miragon.bpmn.runtime.BpmnEventType
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
@@ -39,10 +39,10 @@ object BikeLeasingProcessApi {
 
   /**
    * Typed navigation over the process flow.
-   * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `next` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
+   * Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the elements reachable from it behind `next` — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of them implement the sealed `Node`, so a `when` over them can be exhaustive.
    * Intended for tooling, tests, and reasoning about the process shape.
    */
-  object Flow {
+  object FlowNodes {
     /**
      * Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.
      */
@@ -107,7 +107,7 @@ object BikeLeasingProcessApi {
 
       const val ELEMENT_ID: String = "boundary_applicationInvalid"
 
-      val ERROR: BpmnError = Errors.MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID
+      val ERROR: BpmnErrorDefinition = Errors.MIRAVELO_APPLICATION_INVALID
 
       override val attachedTo: ServiceTaskValidateApplication
         get() = ServiceTaskValidateApplication
@@ -193,8 +193,7 @@ object BikeLeasingProcessApi {
 
       const val ELEMENT_ID: String = "boundary_contractNotSigned"
 
-      val ESCALATION: BpmnEscalation =
-          Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED
+      val ESCALATION: BpmnEscalationDefinition = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED
 
       override val attachedTo: SubProcessConcludeContract
         get() = SubProcessConcludeContract
@@ -340,8 +339,7 @@ object BikeLeasingProcessApi {
 
       const val ELEMENT_ID: String = "endEvent_contractNotSigned"
 
-      val ESCALATION: BpmnEscalation =
-          Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED
+      val ESCALATION: BpmnEscalationDefinition = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED
     }
 
     object EndEventCustomerReminded : AbstractFlowNode(

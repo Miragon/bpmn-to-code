@@ -26,7 +26,7 @@ sealed interface RootElementDefinition {
         val correlationKey: String? = null,
     ) : RootElementDefinition,
         VariableMapping<String> {
-        override fun getName() = name?.toUpperSnakeCase() ?: ""
+        override fun getName() = constantName(name, "MESSAGE")
         override fun getValue() = name ?: ""
         override fun getRawName() = name ?: ""
     }
@@ -43,7 +43,7 @@ sealed interface RootElementDefinition {
         private val name: String?,
     ) : RootElementDefinition,
         VariableMapping<String> {
-        override fun getName() = name?.toUpperSnakeCase() ?: ""
+        override fun getName() = constantName(name, "SIGNAL")
         override fun getValue() = name ?: ""
         override fun getRawName() = name ?: ""
         fun hasName() = name != null
@@ -58,7 +58,7 @@ sealed interface RootElementDefinition {
         private val code: String?,
     ) : RootElementDefinition,
         VariableMapping<Pair<String, String>> {
-        override fun getName() = getRawName().toUpperSnakeCase()
+        override fun getName() = constantName(name, "ERROR")
         override fun getValue() = (name ?: "") to (code ?: "")
         override fun getRawName() = nameWithCode(name, code)
     }
@@ -72,12 +72,18 @@ sealed interface RootElementDefinition {
         private val code: String?,
     ) : RootElementDefinition,
         VariableMapping<Pair<String, String>> {
-        override fun getName() = getRawName().toUpperSnakeCase()
+        override fun getName() = constantName(name, "ESCALATION")
         override fun getValue() = (name ?: "") to (code ?: "")
         override fun getRawName() = nameWithCode(name, code)
     }
 
     private companion object {
+        fun constantName(name: String?, kind: String): String {
+            val fullName = name?.toUpperSnakeCase() ?: ""
+            val withoutKind = fullName.removePrefix("${kind}_")
+            return if (withoutKind.firstOrNull()?.isLetter() == true) withoutKind else fullName
+        }
+
         fun nameWithCode(name: String?, code: String?): String = when {
             name.isNullOrEmpty() -> ""
             code.isNullOrEmpty() -> name

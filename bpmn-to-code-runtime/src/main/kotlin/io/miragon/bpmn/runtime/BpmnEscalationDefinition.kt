@@ -6,7 +6,7 @@ package io.miragon.bpmn.runtime
  * @param name The escalation name as declared in the BPMN model.
  * @param code The escalation code used to match catch events at runtime.
  */
-data class BpmnEscalation(
+data class BpmnEscalationDefinition(
     val name: String,
     val code: String,
 )

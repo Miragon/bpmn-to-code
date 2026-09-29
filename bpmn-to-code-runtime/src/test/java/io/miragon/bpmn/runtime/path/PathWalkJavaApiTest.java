@@ -1,7 +1,7 @@
 package io.miragon.bpmn.runtime.path;
 
 import io.miragon.bpmn.runtime.FlowNode;
-import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi.Flow;
+import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi.FlowNodes;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -19,7 +19,7 @@ class PathWalkJavaApiTest {
 
     @Test
     void viaWalksChosenSequenceFlowsAndRecordsThemNextToTheElements() {
-        var walk = PathWalk.from(Flow.businessRuleTaskCheckCreditRating())
+        var walk = PathWalk.from(FlowNodes.businessRuleTaskCheckCreditRating())
             .via(n -> n.getOutgoingFlows().toGatewayIsSolvent())
             .via(n -> n.getOutgoingFlows().toSubProcessConcludeContract());
 
@@ -33,12 +33,12 @@ class PathWalkJavaApiTest {
 
     @Test
     void viaRecordsTheWalkedSequenceFlowsIncludingThoseOfTheSubprocessInterior() {
-        var flowIds = PathWalk.from(Flow.startEventLeasingRequestReceived())
+        var flowIds = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
             .via(n -> n.getOutgoingFlows().toServiceTaskValidateApplication())
             .via(n -> n.getOutgoingFlows().toBusinessRuleTaskCheckCreditRating())
             .via(n -> n.getOutgoingFlows().toGatewayIsSolvent())
             .via(n -> n.getOutgoingFlows().toSubProcessConcludeContract())
-            .inside(Flow.subProcessConcludeContract(), s ->
+            .inside(FlowNodes.subProcessConcludeContract(), s ->
                 PathWalk.from(s.startEventCustomerEligible())
                     .via(n -> n.getOutgoingFlows().toServiceTaskSendContract())
                     .via(n -> n.getOutgoingFlows().toGatewayAwaitSignature())
@@ -72,12 +72,12 @@ class PathWalkJavaApiTest {
 
     @Test
     void happyPathWalksTheSubprocessInteriorViaInside() {
-        var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
+        var ids = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
             .then(n -> n.serviceTaskValidateApplication())
             .then(n -> n.businessRuleTaskCheckCreditRating())
             .then(n -> n.gatewayIsSolvent())
             .onto(n -> n.subProcessConcludeContract())
-            .inside(Flow.subProcessConcludeContract(), s ->
+            .inside(FlowNodes.subProcessConcludeContract(), s ->
                 PathWalk.from(s.startEventCustomerEligible())
                     .then(n -> n.serviceTaskSendContract())
                     .then(n -> n.gatewayAwaitSignature())
@@ -112,14 +112,14 @@ class PathWalkJavaApiTest {
 
     @Test
     void escalationBoundaryLeavesTheSubprocessIntoTheTerminateEnd() {
-        var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
+        var ids = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
             .then(n -> n.serviceTaskValidateApplication())
             .then(n -> n.businessRuleTaskCheckCreditRating())
-            .enter(Flow.subProcessConcludeContract(), s -> s.startEventCustomerEligible())
+            .enter(FlowNodes.subProcessConcludeContract(), s -> s.startEventCustomerEligible())
             .then(n -> n.serviceTaskSendContract())
             .then(n -> n.gatewayAwaitSignature())
             .then(n -> n.timerSignatureDeadline())
-            .interruptedBy(Flow.subProcessConcludeContract(), n -> n.boundaryContractNotSigned())
+            .interruptedBy(FlowNodes.subProcessConcludeContract(), n -> n.boundaryContractNotSigned())
             .then(n -> n.gatewayCollectRejections())
             .then(n -> n.serviceTaskSendRejection())
             .end(n -> n.endEventApplicationRejected())
@@ -142,7 +142,7 @@ class PathWalkJavaApiTest {
 
     @Test
     void errorBoundaryOnATaskIsASuccessorOfTheTask() {
-        var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
+        var ids = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
             .then(n -> n.serviceTaskValidateApplication())
             .then(n -> n.boundaryApplicationInvalid())
             .then(n -> n.gatewayCollectRejections())
@@ -162,12 +162,12 @@ class PathWalkJavaApiTest {
 
     @Test
     void parallelBranchesUnionIntoADeduplicatedSetViaNodesOf() {
-        List<FlowNode> orderBranch = PathWalk.from(Flow.gatewayFork())
+        List<FlowNode> orderBranch = PathWalk.from(FlowNodes.gatewayFork())
             .then(n -> n.serviceTaskOrderBike())
             .then(n -> n.gatewayJoin())
             .then(n -> n.receiveTaskHandoverReported())
             .getNodes();
-        List<FlowNode> insuranceBranch = PathWalk.from(Flow.gatewayFork())
+        List<FlowNode> insuranceBranch = PathWalk.from(FlowNodes.gatewayFork())
             .then(n -> n.serviceTaskIssueInsurancePolicy())
             .then(n -> n.gatewayJoin())
             .then(n -> n.receiveTaskHandoverReported())
@@ -185,9 +185,9 @@ class PathWalkJavaApiTest {
     @Test
     void jumpToReAnchorsToTheForkToWalkTheSecondParallelBranch() {
         // RiskyNavigation is not enforced for Java callers (no @OptIn equivalent) — the intent is documented.
-        var ids = PathWalk.from(Flow.gatewayFork())
+        var ids = PathWalk.from(FlowNodes.gatewayFork())
             .then(n -> n.serviceTaskOrderBike())
-            .jumpTo(Flow.gatewayFork())
+            .jumpTo(FlowNodes.gatewayFork())
             .then(n -> n.serviceTaskIssueInsurancePolicy())
             .then(n -> n.gatewayJoin())
             .then(n -> n.receiveTaskHandoverReported())
@@ -206,7 +206,7 @@ class PathWalkJavaApiTest {
     void thenMultipleTimesRecordsTheSameNodeRepeatedly() {
         // Bike leasing has no consecutively-repeating node, so this is an isolated mechanic check that also
         // exercises the instance-level nodes / ids / distinctIds accessors (mid-walk, before any end).
-        var walk = PathWalk.from(Flow.gatewayFork())
+        var walk = PathWalk.from(FlowNodes.gatewayFork())
             .thenMultipleTimes(2, n -> n.serviceTaskOrderBike());
 
         assertThat(walk.getIds())

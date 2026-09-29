@@ -18,7 +18,7 @@ import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 
 /**
  * Generates the type-safe API contract for a single BPMN process as a Kotlin object file.
- * References shared BPMN types (BpmnTimer, BpmnError, etc.) from the `bpmn-to-code-runtime` artifact.
+ * References shared BPMN types (BpmnTimer, BpmnErrorDefinition, etc.) from the `bpmn-to-code-runtime` artifact.
  */
 internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
 
@@ -94,7 +94,7 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val model = modelApi.model
             val variantsBuilder = TypeSpec.objectBuilder("FlowVariants")
-                .addKdoc("The `Flow` of each merged BPMN file, keyed by its `variantName`.")
+                .addKdoc("The `FlowNodes` of each merged BPMN file, keyed by its `variantName`.")
             model.variants.forEach { variant ->
                 variantsBuilder.addType(buildFlowObject(variant.graph, model.definitions, variant.variantName.toCamelCase()))
             }
@@ -105,16 +105,16 @@ internal class KotlinProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     /**
      * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
      * `elementType` and display `name`, plus its reachable successors behind `next`. Boundary events and
-     * subprocess continuations are plain successors; every node is a direct child of `Flow`, and a subprocess
+     * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
      * opens its interior via `startEvents`.
      */
-    private fun buildFlowObject(graph: ProcessGraph, definitions: RootElements, objectName: String = "Flow"): TypeSpec {
+    private fun buildFlowObject(graph: ProcessGraph, definitions: RootElements, objectName: String = "FlowNodes"): TypeSpec {
         val flowBuilder = TypeSpec.objectBuilder(objectName)
             .addKdoc(
                 "Typed navigation over the process flow.\n" +
                     "Each element is a nested object exposing its `id`, `elementType` and display `name`, plus the " +
                     "elements reachable from it behind `next` — so a full path is verified by the compiler and " +
-                    "offered by autocomplete. Every element is a direct child of `Flow`, whatever its subprocess " +
+                    "offered by autocomplete. Every element is a direct child of `FlowNodes`, whatever its subprocess " +
                     "depth; a subprocess opens its interior via `startEvents`. `entries` lists every element, and all of " +
                     "them implement the sealed `Node`, so a `when` over them can be exhaustive.\n" +
                     "Intended for tooling, tests, and reasoning about the process shape.",

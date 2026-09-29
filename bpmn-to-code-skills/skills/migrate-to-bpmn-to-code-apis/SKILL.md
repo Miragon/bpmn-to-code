@@ -10,7 +10,7 @@ allowed-tools: Read, Glob, Grep, Edit
 Two modes over the generated Process API:
 
 - **Mode A — strings to references**: replace hardcoded BPMN string literals in user code with references to the generated Process API.
-- **Mode B — 5.x to 6.0**: rewrite references to sections that 6.0 removed (`Elements`, `Variables`, `CallActivities`, `Timers`) and to nested subprocess interiors so they point at the node-centric `Flow`.
+- **Mode B — 5.x to 6.0**: rewrite references to sections that 6.0 removed (`Elements`, `Variables`, `CallActivities`, `Timers`) and to nested subprocess interiors so they point at the node-centric `FlowNodes`.
 
 Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references to a removed section; otherwise run Mode A.
 
@@ -29,15 +29,15 @@ Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references 
 | Section | Kotlin | Java | C# |
 |---|---|---|---|
 | process id | `Api.PROCESS_ID` (`ProcessId`) | same | `Api.ProcessId` (`const string`) |
-| shared definitions | `Messages.X` (`MessageName`), `Signals.X` (`SignalName`), `Errors.X` (`BpmnError`), `Escalations.X`, `ServiceTasks.X` (`const String`) | same | `Messages.X` (`const string`), `Errors.X.Reference` / `.Code`, `ServiceTasks.X` |
-| element id | `Api.Flow.Node.id` (`ElementId`) | `Api.Flow.node().getId()` | `Api.Flow.Node.Instance.Id` |
-| job type of one element | `Api.Flow.Node.JOB_TYPE` (`const String`) | `Api.Flow.Node.JOB_TYPE` | `Api.Flow.Node.JobType` (`const string`) |
-| variable | `Api.Flow.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.Flow.Node.Instance.Variables.V` |
-| call activity | `Api.Flow.Node.CALLED_PROCESS` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.Flow.Node.CALLED_PROCESS`, `Api.Flow.Node.Inputs.M` | `Api.Flow.Node.Instance.CalledProcess`, `.Inputs.M` |
-| timer | `Api.Flow.Node.TIMER` (`BpmnTimer`) | `Api.Flow.Node.TIMER` | `Api.Flow.Node.Instance.Timer` |
-| sequence flow | `Api.Flow.Node.outgoingFlows.to<Target>` (`SequenceFlow<Target>`) | `Api.Flow.node().getOutgoingFlows().to<Target>()` | `Api.Flow.Node.Instance.OutgoingFlows.To<Target>` |
+| shared definitions | `Messages.X` (`MessageName`), `Signals.X` (`SignalName`), `Errors.X` (`BpmnErrorDefinition`), `Escalations.X`, `ServiceTasks.X` (`const String`) | same | `Messages.X` (`const string`), `Errors.X.Reference` / `.Code`, `ServiceTasks.X` |
+| element id | `Api.FlowNodes.Node.id` (`ElementId`) | `Api.FlowNodes.node().getId()` | `Api.FlowNodes.Node.Instance.Id` |
+| job type of one element | `Api.FlowNodes.Node.JOB_TYPE` (`const String`) | `Api.FlowNodes.Node.JOB_TYPE` | `Api.FlowNodes.Node.JobType` (`const string`) |
+| variable | `Api.FlowNodes.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.FlowNodes.Node.Instance.Variables.V` |
+| call activity | `Api.FlowNodes.Node.CALLED_PROCESS` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.FlowNodes.Node.CALLED_PROCESS`, `Api.FlowNodes.Node.Inputs.M` | `Api.FlowNodes.Node.Instance.CalledProcess`, `.Inputs.M` |
+| timer | `Api.FlowNodes.Node.TIMER` (`BpmnTimer`) | `Api.FlowNodes.Node.TIMER` | `Api.FlowNodes.Node.Instance.Timer` |
+| sequence flow | `Api.FlowNodes.Node.outgoingFlows.to<Target>` (`SequenceFlow<Target>`) | `Api.FlowNodes.node().getOutgoingFlows().to<Target>()` | `Api.FlowNodes.Node.Instance.OutgoingFlows.To<Target>` |
 
-Only `ServiceTasks.X` and `Flow.Node.JOB_TYPE` / `JobType` (which refers to `ServiceTasks.X`) are plain string constants; every other member is a
+Only `ServiceTasks.X` and `FlowNodes.Node.JOB_TYPE` / `JobType` (which refers to `ServiceTasks.X`) are plain string constants; every other member is a
 typed wrapper. A wrapper is not a drop-in for a `String` parameter — reach the raw string with `.value`
 (Kotlin), `.getValue()` (Java) or `.Value` (C#).
 
@@ -54,14 +54,14 @@ typed wrapper. A wrapper is not a drop-in for a `String` parameter — reach the
 
 For each generated API file, extract a lookup table of string values mapped to their fully qualified API references, recording for each entry its **nesting path** and its **value type**:
 
-- **Kotlin `object`**: `const val NAME: String = "value"` (plain string), `val NAME: ElementId = ElementId("value")`, `MessageName("value")`, `SignalName("value")`, `ProcessId("value")`, `VariableName.Input("value")` / `.Output` / `.InOut`, `InputOutputMapping(target = "value", …)`. Nodes are the nested objects directly inside `Flow` (or inside `FlowVariants.<Name>`); their `Variables`, `Inputs`, `Outputs` objects hang on the node.
-- **Java `final class`**: `public static final String NAME = "value";` (plain string), `public static final ElementId NAME = new ElementId("value");` and the same wrappers; node ids sit in the constructor `super(new ElementId("value"), …)` of each `Flow` node class.
+- **Kotlin `object`**: `const val NAME: String = "value"` (plain string), `val NAME: ElementId = ElementId("value")`, `MessageName("value")`, `SignalName("value")`, `ProcessId("value")`, `VariableName.Input("value")` / `.Output` / `.InOut`, `InputOutputMapping(target = "value", …)`. Nodes are the nested objects directly inside `FlowNodes` (or inside `FlowVariants.<Name>`); their `Variables`, `Inputs`, `Outputs` objects hang on the node.
+- **Java `final class`**: `public static final String NAME = "value";` (plain string), `public static final ElementId NAME = new ElementId("value");` and the same wrappers; node ids sit in the constructor `super(new ElementId("value"), …)` of each `FlowNodes` node class.
 - **C# `static class`**: `public const string Name = "value";` (plain string); `Runtime.ElementId Id { get; } = new("value")` on each node class; `Runtime.VariableName.Input Name { get; } = new("value")` inside `NodeVariables`; `Runtime.InputOutputMapping Name { get; } = new("value", …)` inside `InputMappings` / `OutputMappings`.
 - The shared definition files hold one top-level type each (`ServiceTasks`, `Messages`, `Signals`, `Errors`, `Escalations`), with the same constant shapes.
-- Record the fully qualified reference path, for example `BikeLeasingProcessApi.Flow.ServiceTaskSendContract.Variables.APPLICATION_ID` or `ServiceTasks.MIRAVELO_SEND_CONTRACT`.
+- Record the fully qualified reference path, for example `BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Variables.APPLICATION_ID` or `ServiceTasks.MIRAVELO_SEND_CONTRACT`.
 - Also record the package / namespace of each API file for import management.
 
-**Skip composite values** (`BpmnTimer`, `BpmnError`, `BpmnEscalation`, `SequenceFlow`) — they carry more than one string and are not direct replacements.
+**Skip composite values** (`BpmnTimer`, `BpmnErrorDefinition`, `BpmnEscalationDefinition`, `SequenceFlow`) — they carry more than one string and are not direct replacements.
 
 ### Step 3 – Determine scan scope
 
@@ -91,7 +91,7 @@ Group the proposed replacements by file and present a summary table:
 | Line | Current | Replacement |
 |------|---------|-------------|
 | 24   | "bikeLeasing" | BikeLeasingProcessApi.PROCESS_ID |
-| 31   | "applicationId" | BikeLeasingProcessApi.Flow.ServiceTaskSendContract.Variables.APPLICATION_ID.value |
+| 31   | "applicationId" | BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Variables.APPLICATION_ID.value |
 
 ### src/main/kotlin/com/example/AnotherService.kt
 | Line | Current | Replacement |
@@ -131,35 +131,36 @@ For each file in the approved plan:
 
 ## Mode B — 5.x references to 6.0
 
-6.0 removed the `Elements`, `Variables`, `CallActivities` and `Timers` sections and flattened `Flow`; their content lives on the `Flow` nodes. Consumer code that referenced them no longer compiles.
+6.0 removed the `Elements`, `Variables`, `CallActivities` and `Timers` sections, flattened `Flow` and renamed it to `FlowNodes`; their content lives on the `FlowNodes` nodes. Consumer code that referenced them no longer compiles.
 
 ### Step 1 – Find the affected references
 
-Locate the generated API files as in Mode A Step 1 and parse the **current** (6.0) node names from `Flow`. Then Grep the scan scope — **including `src/test/`**, since process tests are the main consumer of element ids — for:
+Locate the generated API files as in Mode A Step 1 and parse the **current** (6.0) node names from `FlowNodes`. Then Grep the scan scope — **including `src/test/`**, since process tests are the main consumer of element ids — for:
 
 - `\b\w*ProcessApi\w*\.(Elements|Variables|CallActivities|Timers)\.`
 - star imports of those sections (`import …ProcessApi.Elements.*` and friends)
-- nested interior references `Flow\.(\w+)\.(\w+)\.` where the inner name is a node that is now a direct child of `Flow`
+- nested interior references `Flow\.(\w+)\.(\w+)\.` where the inner name is a node that is now a direct child of `FlowNodes`
 
 ### Step 2 – Rewrite per the migration table
 
 | 5.x | Kotlin | Java | C# |
 |---|---|---|---|
-| `Elements.X` | `Flow.X.id` | `Flow.x().getId()` | `Flow.X.Instance.Id` |
-| `Elements.X.value` | `Flow.X.id.value` | `Flow.x().getId().getValue()` | `Flow.X.Instance.Id.Value` |
-| `Variables.Node.V` | `Flow.Node.Variables.V` | `Flow.Node.Variables.V` | `Flow.Node.Instance.Variables.V` |
-| `CallActivities.Node.PROCESS_ID` | `Flow.Node.CALLED_PROCESS` | `Flow.Node.CALLED_PROCESS` | `Flow.Node.Instance.CalledProcess` |
-| `CallActivities.Node.Inputs.M` / `.Outputs.M` | `Flow.Node.Inputs.M` / `.Outputs.M` | same | `Flow.Node.Instance.Inputs.M` |
-| `Timers.T` | `Flow.T.TIMER` | `Flow.T.TIMER` | `Flow.T.Instance.Timer` |
-| `Flow.Sub.Inner` / `Flow.sub().inner()` | `Flow.Inner` | `Flow.inner()` | `Flow.Inner` |
-| `Flow.Sub.Inner.Next::x` (method refs) | `Flow.Inner.Next::x` | same | — |
+| `Elements.X` | `FlowNodes.X.id` | `FlowNodes.x().getId()` | `FlowNodes.X.Instance.Id` |
+| `Elements.X.value` | `FlowNodes.X.id.value` | `FlowNodes.x().getId().getValue()` | `FlowNodes.X.Instance.Id.Value` |
+| `Variables.Node.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Instance.Variables.V` |
+| `CallActivities.Node.PROCESS_ID` | `FlowNodes.Node.CALLED_PROCESS` | `FlowNodes.Node.CALLED_PROCESS` | `FlowNodes.Node.Instance.CalledProcess` |
+| `CallActivities.Node.Inputs.M` / `.Outputs.M` | `FlowNodes.Node.Inputs.M` / `.Outputs.M` | same | `FlowNodes.Node.Instance.Inputs.M` |
+| `Timers.T` | `FlowNodes.T.TIMER` | `FlowNodes.T.TIMER` | `FlowNodes.T.Instance.Timer` |
+| `Flow.Sub.Inner` / `Flow.sub().inner()` | `FlowNodes.Inner` | `FlowNodes.inner()` | `FlowNodes.Inner` |
+| `Flow.Sub.Inner.Next::x` (method refs) | `FlowNodes.Inner.Next::x` | same | — |
+| `Flow.X` (any other reference) | `FlowNodes.X` | `FlowNodes.x()` | `FlowNodes.X` |
 
 `Elements.X` was named after the element id in UPPER_SNAKE (`SERVICE_TASK_SEND_MAIL`); the node is the same id in PascalCase (`ServiceTaskSendMail`). Match the two through the string value in the 5.x file if it is still available, otherwise fold the constant name (`SERVICE_TASK_SEND_MAIL` → `ServiceTaskSendMail`).
 
 Flag, do not auto-rewrite:
 
-- **C# `const` usages**: `Elements.X` in a `switch` label or attribute has no 6.0 equivalent, because `Flow.X.Instance.Id` is an instance property. Propose `ServiceTasks.X` / `Flow.X.JobType` where the code actually meant a job type, otherwise ask.
-- **Element ids that 6.0 rejects**: an element named `Flow`, `Next`, `Start`, `OutgoingFlows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
+- **C# `const` usages**: `Elements.X` in a `switch` label or attribute has no 6.0 equivalent, because `FlowNodes.X.Instance.Id` is an instance property. Propose `ServiceTasks.X` / `FlowNodes.X.JobType` where the code actually meant a job type, otherwise ask.
+- **Element ids that 6.0 rejects**: an element named `FlowNodes`, `Next`, `Start`, `OutgoingFlows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
 
 ### Step 3 – Present, confirm, apply, verify
 

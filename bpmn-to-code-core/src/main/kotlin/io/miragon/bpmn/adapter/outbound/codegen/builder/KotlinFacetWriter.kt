@@ -16,7 +16,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
- * Emits a Kotlin `Flow` node's own data: constants (`JOB_TYPE`, `CALLED_PROCESS`, `TIMER`, `MESSAGE`, …)
+ * Emits a Kotlin `FlowNodes` node's own data: constants (`JOB_TYPE`, `CALLED_PROCESS`, `TIMER`, `MESSAGE`, …)
  * and the nested holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors and
  * escalations refer to their shared definition constant. A boundary event's `attachedTo` and `isInterrupting`
  * implement `BoundaryEvent`; `attachedTo` is a getter so object initialisation never touches another node.
@@ -29,8 +29,8 @@ internal class KotlinFacetWriter {
         facets.timer?.let { timerProperty(it) },
         facets.message?.let { sharedProperty("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
         facets.signal?.let { sharedProperty("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
-        facets.error?.let { sharedProperty("ERROR", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
-        facets.escalation?.let { sharedProperty("ESCALATION", "BpmnEscalation", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
+        facets.error?.let { sharedProperty("ERROR", "BpmnErrorDefinition", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
+        facets.escalation?.let { sharedProperty("ESCALATION", "BpmnEscalationDefinition", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
         facets.attachedTo?.let { attachedToProperty(it.objectName) },
         facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
     )

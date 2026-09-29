@@ -62,7 +62,7 @@ bpmn-to-code only extracts variables from **explicit variable definitions** in t
 
 Some elements don't support I/O mappings — for example, **message start events** in Camunda 7 and Operaton. Variables arriving with the triggering message won't be captured by `camunda:inputOutput` / `operaton:inputOutput`, so they would be missing from the generated API.
 
-The workaround is to declare them explicitly using two directional extension properties — `additionalInputVariables` and `additionalOutputVariables`. Values become `VariableName.Input` / `VariableName.Output` entries in the element's `Variables` holder on its `Flow` node:
+The workaround is to declare them explicitly using two directional extension properties — `additionalInputVariables` and `additionalOutputVariables`. Values become `VariableName.Input` / `VariableName.Output` entries in the element's `Variables` holder on its `FlowNodes` node:
 
 ::: code-group
 

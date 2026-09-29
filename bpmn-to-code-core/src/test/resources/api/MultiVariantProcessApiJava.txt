@@ -30,14 +30,14 @@ public final class CancelBikeOrderProcessApi {
   }
 
   /**
-   * The {@code Flow} of each merged BPMN file, keyed by its {@code variantName}.
+   * The {@code FlowNodes} of each merged BPMN file, keyed by its {@code variantName}.
    */
   public static final class FlowVariants {
     private FlowVariants() {
     }
 
     /**
-     * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
+     * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code FlowNodes}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
      */
     public static final class Retail {
       private Retail() {

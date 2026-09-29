@@ -177,7 +177,7 @@ class CSharpCompilationTest {
 
         /**
          * What a consumer writes against the generated API: attribute arguments and switch labels from the
-         * constants, navigation over `Flow`, and edge / facet reads — all of which must resolve and compile.
+         * constants, navigation over `FlowNodes`, and edge / facet reads — all of which must resolve and compile.
          */
         val CONSUMER = """
             using System;
@@ -196,7 +196,7 @@ class CSharpCompilationTest {
             public static class Consumer
             {
                 [JobType(ServiceTasks.MiraveloSendContract)]
-                [JobType(Api.Flow.ServiceTaskSendContract.JobType)]
+                [JobType(Api.FlowNodes.ServiceTaskSendContract.JobType)]
                 public static string Describe(string jobType)
                 {
                     switch (jobType)
@@ -210,27 +210,27 @@ class CSharpCompilationTest {
 
                 public static void Navigate()
                 {
-                    var start = Api.Flow.StartEventLeasingRequestReceived.Instance;
+                    var start = Api.FlowNodes.StartEventLeasingRequestReceived.Instance;
                     var edge = start.OutgoingFlows.ToServiceTaskValidateApplication;
                     string? condition = edge.ConditionExpression;
                     bool isDefault = edge.IsDefault;
-                    Api.Flow.ServiceTaskValidateApplication target = edge.Target;
+                    Api.FlowNodes.ServiceTaskValidateApplication target = edge.Target;
                     Api.Runtime.ISequenceFlow generic = edge;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
                     if (!edge.Equals(start.OutgoingFlows.ToServiceTaskValidateApplication)) throw new InvalidOperationException();
-                    Api.Runtime.IBoundaryEvent boundary = Api.Flow.TimerSignatureReminder.Instance;
+                    Api.Runtime.IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder.Instance;
 
                     var creditRating = start.Next.ServiceTaskValidateApplication.Next.BusinessRuleTaskCheckCreditRating;
                     var subProcess = creditRating.Next.GatewayIsSolvent.Next.SubProcessConcludeContract;
                     var innerStart = subProcess.Start.StartEventCustomerEligible;
                     string? innerName = innerStart.Name;
-                    string hostId = Api.Flow.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
-                    bool interrupts = Api.Flow.TimerSignatureReminder.Instance.IsInterrupting;
-                    Api.Runtime.VariableName.Input input = Api.Flow.ServiceTaskSendContract.Instance.Variables.ApplicationId;
-                    Api.Runtime.ProcessId called = Api.Flow.CallActivityCancelBikeOrder.Instance.CalledProcess;
-                    Api.Runtime.InputOutputMapping mapping = Api.Flow.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
+                    string hostId = Api.FlowNodes.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
+                    bool interrupts = Api.FlowNodes.TimerSignatureReminder.Instance.IsInterrupting;
+                    Api.Runtime.VariableName.Input input = Api.FlowNodes.ServiceTaskSendContract.Instance.Variables.ApplicationId;
+                    Api.Runtime.ProcessId called = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.CalledProcess;
+                    Api.Runtime.InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
 
-                    NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.Flow.StartEventRoot.Instance.Id;
+                    NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Instance.Id;
                     Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id}");
                 }
             }

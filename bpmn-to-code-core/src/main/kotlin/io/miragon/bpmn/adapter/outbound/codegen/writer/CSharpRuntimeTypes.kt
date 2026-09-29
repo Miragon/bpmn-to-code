@@ -16,7 +16,7 @@ internal object CSharpRuntimeTypes {
     fun enumMember(enumName: String, constantName: String): String = "$CLASS_NAME.$enumName.${constantName.toPascalCase()}"
 
     val SOURCE: String = """
-        /// <summary>Common handle on any Flow node, for generic tooling.</summary>
+        /// <summary>Common handle on any flow node, for generic tooling.</summary>
         public interface IFlowNode
         {
             ElementId Id { get; }
@@ -45,7 +45,7 @@ internal object CSharpRuntimeTypes {
             IFlowNode Target { get; }
         }
 
-        /// <summary>One outgoing sequence flow of a Flow node: its raw condition expression, default marker and typed target.</summary>
+        /// <summary>One outgoing sequence flow of a flow node: its raw condition expression, default marker and typed target.</summary>
         public sealed record SequenceFlow<TTarget>(ElementId Id, string? Name, string? ConditionExpression, bool IsDefault, TTarget Target) : ISequenceFlow
             where TTarget : IFlowNode
         {
@@ -84,7 +84,7 @@ internal object CSharpRuntimeTypes {
             public sealed record InOut(string Value) : VariableName(Value);
         }
 
-        /// <summary>BPMN element type of a Flow node; an event's definition is its EventType.</summary>
+        /// <summary>BPMN element type of a flow node; an event's definition is its EventType.</summary>
         public enum BpmnElementType
         {
             ServiceTask,
@@ -146,9 +146,9 @@ internal object CSharpRuntimeTypes {
 
         public sealed record BpmnTimer(TimerType Type, string TimerValue);
 
-        public sealed record BpmnError(string Name, string Code);
+        public sealed record BpmnErrorDefinition(string Name, string Code);
 
-        public sealed record BpmnEscalation(string Name, string Code);
+        public sealed record BpmnEscalationDefinition(string Name, string Code);
 
         /// <summary>A variable mapping into or out of a called process; Source and SourceExpression are mutually exclusive.</summary>
         public sealed record InputOutputMapping(string Target, string? Source = null, string? SourceExpression = null)
