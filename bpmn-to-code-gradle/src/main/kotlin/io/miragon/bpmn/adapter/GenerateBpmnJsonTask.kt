@@ -1,8 +1,6 @@
 package io.miragon.bpmn.adapter
 
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonFilesystemPlugin
-import io.miragon.bpmn.domain.shared.ProcessEngine
-import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
@@ -10,26 +8,16 @@ import org.gradle.work.DisableCachingByDefault
 @DisableCachingByDefault(
     because = "Task produces output based on files that can change at any time without the plugin knowing about it",
 )
-abstract class GenerateBpmnJsonTask : DefaultTask() {
-
-    @Input
-    lateinit var baseDir: String
-
-    @Input
-    lateinit var filePattern: String
+abstract class GenerateBpmnJsonTask : AbstractBpmnTask() {
 
     @Input
     lateinit var outputFolderPath: String
-
-    @Input
-    lateinit var processEngine: ProcessEngine
 
     @Input
     var enableVariants: Boolean = false
 
     @TaskAction
     fun execute() {
-        validate()
         val plugin = CreateProcessJsonFilesystemPlugin()
         plugin.execute(
             baseDir = baseDir,
@@ -39,12 +27,5 @@ abstract class GenerateBpmnJsonTask : DefaultTask() {
             enableVariants = enableVariants,
         )
         logger.lifecycle("BPMN JSON files generated successfully")
-    }
-
-    private fun validate() {
-        check(this::baseDir.isInitialized) { "baseDir must be configured in bpmnToCode { ... }" }
-        check(this::filePattern.isInitialized) { "filePattern must be configured in bpmnToCode { ... }" }
-        check(this::outputFolderPath.isInitialized) { "outputFolderPath must be configured in bpmnToCode { ... }" }
-        check(this::processEngine.isInitialized) { "processEngine must be configured in bpmnToCode { ... }" }
     }
 }
