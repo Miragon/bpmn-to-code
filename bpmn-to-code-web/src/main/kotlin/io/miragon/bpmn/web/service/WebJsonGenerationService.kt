@@ -2,6 +2,7 @@ package io.miragon.bpmn.web.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonInMemoryPlugin
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.web.model.GenerateJsonRequest
@@ -17,23 +18,27 @@ class WebJsonGenerationService {
     fun generate(request: GenerateJsonRequest): GenerateJsonResponse {
         val config = request.config
         logger.info { "Generating JSON for ${request.files.size} file(s) [${config.processEngine}]" }
-        try {
+        return try {
             val bpmnInputs = request.files.map { buildInput(it) }
             val jsonFiles = plugin.execute(
                 bpmnContents = bpmnInputs,
                 engine = config.processEngine,
+                enableVariants = config.enableVariants,
             )
             val responseFiles = jsonFiles.map { mapToResponse(it) }
-            return GenerateJsonResponse(success = true, files = responseFiles)
+            GenerateJsonResponse(success = true, files = responseFiles)
         } catch (e: BpmnValidationException) {
             logger.error(e) { "BPMN validation failed during JSON generation" }
-            return GenerateJsonResponse.fromValidationException(e)
+            GenerateJsonResponse.fromValidationException(e)
+        } catch (e: DuplicateProcessIdException) {
+            logger.warn { e.message }
+            GenerateJsonResponse.fromDuplicateProcessIdException(e)
         } catch (e: IllegalStateException) {
             logger.error(e) { "Unexpected error during JSON generation" }
-            return GenerateJsonResponse.unknownError()
+            GenerateJsonResponse.unknownError()
         } catch (e: IllegalArgumentException) {
             logger.error(e) { "Unexpected error during JSON generation" }
-            return GenerateJsonResponse.unknownError()
+            GenerateJsonResponse.unknownError()
         }
     }
 

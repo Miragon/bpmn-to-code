@@ -26,6 +26,9 @@ class GenerateProcessJsonInMemoryService(
             BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray())
         }
         val models = bpmnResources.map { bpmnExtractor.extract(it, command.engine) }
+        if (!command.enableVariants) {
+            modelMergerService.requireUniqueProcessIds(bpmnResources.map { it.fileName }.zip(models))
+        }
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(models)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)

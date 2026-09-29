@@ -36,6 +36,9 @@ class GenerateProcessApiService(
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val extractedModels = inputFiles.map { it to bpmnService.extract(it, command.engine) }
         val executableModels = filterExecutableProcesses(extractedModels)
+        if (!command.enableVariants) {
+            modelMergerService.requireUniqueProcessIds(executableModels.map { (file, model) -> file.fileName to model })
+        }
         val models = executableModels.map { (_, model) -> model }
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(models)

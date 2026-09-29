@@ -12,6 +12,7 @@ All plugin parameters, available for both the Gradle and Maven plugins.
 | `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`). Use one package per generation run — the [shared definition files](/guide/generated-api#shared-definitions) of two runs in the same package overwrite each other |
 | `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (beta) |
 | `processEngine` | `ProcessEngine` | yes | — | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
+| `enableVariants` | `Boolean` | no | `false` | Merge BPMN files sharing a `processId` into one API with `FlowVariants` (see [Model Merging](/guide/generated-api#model-merging)). When `false`, a `processId` defined in several files fails generation |
 
 ## Process Engines
 

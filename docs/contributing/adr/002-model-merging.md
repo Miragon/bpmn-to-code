@@ -33,6 +33,10 @@ All elements from variants are combined using `distinctBy { it.getName() }` to c
 > base attributes come from the variant whose `variantName` sorts first (still ambiguous by design,
 > but no longer dependent on filesystem read order).
 
+> **Update (2026-09):** Merging is opt-in via `enableVariants` (default `false`). Without it, a
+> `processId` defined in several files fails generation with an error naming the files, so variants are
+> never created by accident.
+
 ## Future Improvements
 - Detect and warn about element conflicts across variants
 - Add variant metadata to generated API documentation

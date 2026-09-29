@@ -31,6 +31,9 @@ abstract class GenerateBpmnModelsTask : DefaultTask() {
     @Input
     lateinit var processEngine: ProcessEngine
 
+    @Input
+    var enableVariants: Boolean = false
+
     @TaskAction
     fun execute() {
         validate()
@@ -42,6 +45,7 @@ abstract class GenerateBpmnModelsTask : DefaultTask() {
             packagePath = packagePath,
             outputLanguage = outputLanguage,
             engine = processEngine,
+            enableVariants = enableVariants,
         )
         if (results.isEmpty()) {
             logger.lifecycle("No BPMN models found")

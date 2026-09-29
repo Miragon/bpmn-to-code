@@ -578,7 +578,8 @@ bpmn-to-code **only extracts variables from explicit BPMN definitions**. Variabl
 
 ## Model Merging
 
-When multiple BPMN files share the same `processId`, bpmn-to-code **merges them into a single API**. The
+When multiple BPMN files share the same `processId` and `enableVariants` is set, bpmn-to-code **merges
+them into a single API**. Without `enableVariants`, generation fails and names the conflicting files. The
 registries at the root hold the superset across all files; the navigation is emitted **per variant** under
 `FlowVariants.<VariantName>`, which takes the place of `Flow` — so each file's nodes, facets and sequence
 flows stay exactly as that file declares them (`FlowVariants.Augsburg.ServiceTaskX.Variables.ORDER_ID`).

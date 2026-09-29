@@ -1,6 +1,7 @@
 package io.miragon.bpmn.web.model
 
 import io.ktor.http.*
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -53,6 +54,15 @@ data class GenerateResponse(
 
         fun fromValidationException(
             exception: BpmnValidationException,
+        ) = GenerateResponse(
+            success = false,
+            files = emptyList(),
+            error = exception.message,
+            statusCode = HttpStatusCode.BadRequest,
+        )
+
+        fun fromDuplicateProcessIdException(
+            exception: DuplicateProcessIdException,
         ) = GenerateResponse(
             success = false,
             files = emptyList(),

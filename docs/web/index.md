@@ -58,7 +58,8 @@ BPMN file content must be Base64-encoded. Up to 3 files per request.
   ],
   "config": {
     "outputLanguage": "KOTLIN",
-    "processEngine": "ZEEBE"
+    "processEngine": "ZEEBE",
+    "enableVariants": false
   }
 }
 ```

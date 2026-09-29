@@ -1,5 +1,6 @@
 package io.miragon.bpmn.domain.service
 
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
@@ -477,5 +478,34 @@ class ModelMergerServiceTest {
         assertThatThrownBy { underTest.mergeModels(listOf(model1, model2)) }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("variantName")
+    }
+
+    @Test
+    fun `rejects a process id defined in several files and names the files`() {
+        // given: two files defining the same process id
+        val sources = listOf(
+            "bike-leasing-v1.bpmn" to testProcessModel(processId = "bike-leasing"),
+            "bike-leasing-v2.bpmn" to testProcessModel(processId = "bike-leasing"),
+            "bike-return.bpmn" to testProcessModel(processId = "bike-return"),
+        )
+
+        // when / then
+        assertThatThrownBy { underTest.requireUniqueProcessIds(sources) }
+            .isInstanceOf(DuplicateProcessIdException::class.java)
+            .hasMessageContaining("'bike-leasing'")
+            .hasMessageContaining("bike-leasing-v1.bpmn, bike-leasing-v2.bpmn")
+            .hasMessageContaining("enableVariants")
+    }
+
+    @Test
+    fun `accepts process ids that are each defined in one file`() {
+        // given: every process id comes from its own file
+        val sources = listOf(
+            "bike-leasing.bpmn" to testProcessModel(processId = "bike-leasing"),
+            "bike-return.bpmn" to testProcessModel(processId = "bike-return"),
+        )
+
+        // when / then
+        underTest.requireUniqueProcessIds(sources)
     }
 }

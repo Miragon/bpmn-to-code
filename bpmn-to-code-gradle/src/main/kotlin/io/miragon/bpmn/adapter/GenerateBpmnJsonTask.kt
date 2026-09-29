@@ -24,6 +24,9 @@ abstract class GenerateBpmnJsonTask : DefaultTask() {
     @Input
     lateinit var processEngine: ProcessEngine
 
+    @Input
+    var enableVariants: Boolean = false
+
     @TaskAction
     fun execute() {
         validate()
@@ -33,6 +36,7 @@ abstract class GenerateBpmnJsonTask : DefaultTask() {
             filePattern = filePattern,
             outputFolderPath = outputFolderPath,
             engine = processEngine,
+            enableVariants = enableVariants,
         )
         logger.lifecycle("BPMN JSON files generated successfully")
     }

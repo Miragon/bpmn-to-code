@@ -27,5 +27,6 @@ data class GenerateRequest(
     data class GenerationConfig(
         val outputLanguage: OutputLanguage,
         val processEngine: ProcessEngine,
+        val enableVariants: Boolean = false,
     )
 }

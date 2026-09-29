@@ -1,5 +1,6 @@
 package io.miragon.bpmn.domain.service
 
+import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
@@ -16,6 +17,12 @@ class ModelMergerService {
     fun mergeModels(models: List<ProcessModel>): List<ProcessModel> {
         val groupedModels = models.groupBy { it.processId }.entries.sortedBy { it.key }
         return groupedModels.map { (processId, modelsOfProcess) -> merge(processId, modelsOfProcess).sortContent() }
+    }
+
+    fun requireUniqueProcessIds(modelsByFileName: List<Pair<String, ProcessModel>>) {
+        val fileNamesByProcessId = modelsByFileName.groupBy({ (_, model) -> model.processId }, { (fileName, _) -> fileName })
+        val duplicate = fileNamesByProcessId.entries.firstOrNull { it.value.size > 1 } ?: return
+        throw DuplicateProcessIdException(duplicate.key, duplicate.value)
     }
 
     private fun merge(processId: String, models: List<ProcessModel>): ProcessModel {

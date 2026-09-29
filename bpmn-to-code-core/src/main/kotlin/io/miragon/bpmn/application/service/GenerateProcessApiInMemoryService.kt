@@ -29,6 +29,9 @@ class GenerateProcessApiInMemoryService(
         val validationService = BpmnValidationService(command.validationConfig)
         val modelsAsFiles = toBpmnFiles(command)
         val models = modelsAsFiles.map { bpmnService.extract(it, command.engine) }
+        if (!command.enableVariants) {
+            modelMergerService.requireUniqueProcessIds(modelsAsFiles.map { it.fileName }.zip(models))
+        }
         validationService.validate(models, command.engine, ValidationPhase.PRE_MERGE)
         val mergedModels = modelMergerService.mergeModels(models)
         validationService.validate(mergedModels, command.engine, ValidationPhase.POST_MERGE)
