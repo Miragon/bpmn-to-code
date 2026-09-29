@@ -121,6 +121,19 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
+    fun `variable name records keep the raw name as string representation in derived records`() {
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
+
+        assertThat(result.content).contains(
+            """
+            |        public abstract record VariableName(string Value)
+            |        {
+            |            public sealed override string ToString() => Value;
+            """.trimMargin(),
+        )
+    }
+
+    @Test
     fun `flat Flow lists subprocess interior nodes as direct children with Start on the subprocess`() {
         val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 

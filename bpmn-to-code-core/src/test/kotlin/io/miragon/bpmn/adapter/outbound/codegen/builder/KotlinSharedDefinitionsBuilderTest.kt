@@ -3,6 +3,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
+import io.miragon.bpmn.domain.shared.RootElementDefinition
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -21,6 +22,20 @@ class KotlinSharedDefinitionsBuilderTest {
         // then: every file belongs to no process and matches the golden output
         assertThat(result).allMatch { it.processId == null && it.packagePath == "de.emaarco.example" }
         assertThat(result.asGoldenText()).isEqualTo(readGolden("/api/SharedDefinitionsKotlin.txt", result.asGoldenText()))
+    }
+
+    @Test
+    fun `strips the public modifier without touching string literals`() {
+        // given: a message whose name contains the word "public"
+        val definitions = SharedDefinitions(messages = listOf(RootElementDefinition.Message(id = "msg", name = "Message_public reply")))
+        val api = SharedDefinitionsApi(definitions, OutputLanguage.KOTLIN, "de.emaarco.example")
+
+        // when
+        val result = underTest.buildApiFiles(api).single()
+
+        // then
+        assertThat(result.content).contains("MessageName(\"Message_public reply\")")
+        assertThat(result.content).doesNotContainPattern("(?m)^\\s*public ")
     }
 
     @Test

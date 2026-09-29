@@ -65,7 +65,7 @@ internal object CSharpRuntimeTypes {
         /// <summary>A process variable name whose subtype encodes the direction the declaring element uses it in.</summary>
         public abstract record VariableName(string Value)
         {
-            public override string ToString() => Value;
+            public sealed override string ToString() => Value;
 
             public sealed record Input(string Value) : VariableName(Value);
 

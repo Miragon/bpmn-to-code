@@ -30,3 +30,11 @@ internal fun kotlinNamedCall(type: TypeName, vararg arguments: Pair<String, Code
  * multi-line [kotlinNamedCall] aligned with the `val` it initialises, as it is inside a function body.
  */
 internal fun kotlinInitializer(call: CodeBlock): CodeBlock = CodeBlock.of("⇤⇤%L⇥⇥", call)
+
+private val publicModifier = Regex("""(?m)^(\s*)public """)
+
+/**
+ * KotlinPoet writes `public` on every declaration; Kotlin's default visibility makes it noise. Only line-leading
+ * modifiers are removed so string literals containing "public " stay intact.
+ */
+internal fun String.withoutPublicModifiers(): String = replace(publicModifier, "$1")
