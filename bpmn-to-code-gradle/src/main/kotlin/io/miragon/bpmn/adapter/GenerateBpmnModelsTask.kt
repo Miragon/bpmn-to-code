@@ -2,8 +2,6 @@ package io.miragon.bpmn.adapter
 
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiFilesystemPlugin
 import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.shared.ProcessEngine
-import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
@@ -11,13 +9,7 @@ import org.gradle.work.DisableCachingByDefault
 @DisableCachingByDefault(
     because = "Task produces output based on files that can change at any time without the plugin knowing about it",
 )
-abstract class GenerateBpmnModelsTask : DefaultTask() {
-
-    @Input
-    lateinit var baseDir: String
-
-    @Input
-    lateinit var filePattern: String
+abstract class GenerateBpmnModelsTask : AbstractBpmnTask() {
 
     @Input
     lateinit var outputFolderPath: String
@@ -29,14 +21,10 @@ abstract class GenerateBpmnModelsTask : DefaultTask() {
     lateinit var outputLanguage: OutputLanguage
 
     @Input
-    lateinit var processEngine: ProcessEngine
-
-    @Input
     var enableVariants: Boolean = false
 
     @TaskAction
     fun execute() {
-        validate()
         val service = CreateProcessApiFilesystemPlugin()
         val results = service.execute(
             baseDir = baseDir,
@@ -56,14 +44,5 @@ abstract class GenerateBpmnModelsTask : DefaultTask() {
             logger.lifecycle("  Generated: ${result.processId} (from $files)")
         }
         logger.lifecycle("BPMN models generated successfully (${results.size} models)")
-    }
-
-    private fun validate() {
-        check(this::baseDir.isInitialized) { "baseDir must be configured in bpmnToCode { ... }" }
-        check(this::filePattern.isInitialized) { "filePattern must be configured in bpmnToCode { ... }" }
-        check(this::outputFolderPath.isInitialized) { "outputFolderPath must be configured in bpmnToCode { ... }" }
-        check(this::packagePath.isInitialized) { "packagePath must be configured in bpmnToCode { ... }" }
-        check(this::outputLanguage.isInitialized) { "outputLanguage must be configured in bpmnToCode { ... }" }
-        check(this::processEngine.isInitialized) { "processEngine must be configured in bpmnToCode { ... }" }
     }
 }
