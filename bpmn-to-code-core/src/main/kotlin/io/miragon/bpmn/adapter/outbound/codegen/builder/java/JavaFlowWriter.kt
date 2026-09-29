@@ -158,16 +158,20 @@ internal class JavaFlowWriter {
         }.build()
     }
 
-    private fun sequenceFlowConstruction(flow: SequenceFlowEdge, target: JavaFlowNodeType): CodeBlock = CodeBlock.of(
-        $$"new $T<>(new $T($S), $S, $S, $L, $L)",
-        JavaRuntimeTypes.SEQUENCE_FLOW,
-        JavaRuntimeTypes.ELEMENT_ID,
-        flow.id,
-        flow.name,
-        flow.conditionExpression,
-        flow.isDefault,
-        target.instance(),
-    )
+    private fun sequenceFlowConstruction(flow: SequenceFlowEdge, target: JavaFlowNodeType): CodeBlock = when {
+        flow.hasOnlyDefaults() -> CodeBlock.of($$"new $T<>(new $T($S), $L)", JavaRuntimeTypes.SEQUENCE_FLOW, JavaRuntimeTypes.ELEMENT_ID, flow.id, target.instance())
+
+        else -> CodeBlock.of(
+            $$"new $T<>(new $T($S), $S, $S, $L, $L)",
+            JavaRuntimeTypes.SEQUENCE_FLOW,
+            JavaRuntimeTypes.ELEMENT_ID,
+            flow.id,
+            flow.name,
+            flow.conditionExpression,
+            flow.isDefault,
+            target.instance(),
+        )
+    }
 
     private companion object {
         private const val ELEMENT_ID = "ELEMENT_ID"

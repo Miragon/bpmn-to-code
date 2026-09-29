@@ -304,7 +304,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<GatewayCollectRejections> toGatewayCollectRejections() {
-          return new SequenceFlow<>(new ElementId("flow_applicationInvalidToCollectRejections"), null, null, false, GatewayCollectRejections.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_applicationInvalidToCollectRejections"), GatewayCollectRejections.INSTANCE);
         }
       }
     }
@@ -428,7 +428,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<GatewayCollectRejections> toGatewayCollectRejections() {
-          return new SequenceFlow<>(new ElementId("flow_contractNotSignedToCollectRejections"), null, null, false, GatewayCollectRejections.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_contractNotSignedToCollectRejections"), GatewayCollectRejections.INSTANCE);
         }
       }
     }
@@ -460,7 +460,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<GatewayIsSolvent> toGatewayIsSolvent() {
-          return new SequenceFlow<>(new ElementId("flow_checkCreditRatingToIsSolvent"), null, null, false, GatewayIsSolvent.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_checkCreditRatingToIsSolvent"), GatewayIsSolvent.INSTANCE);
         }
       }
     }
@@ -653,7 +653,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EndEventContractConcluded> toEndEventContractConcluded() {
-          return new SequenceFlow<>(new ElementId("flow_contractSignedToContractConcluded"), null, null, false, EndEventContractConcluded.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_contractSignedToContractConcluded"), EndEventContractConcluded.INSTANCE);
         }
       }
     }
@@ -691,7 +691,7 @@ public final class BikeLeasingProcessApi {
       public static final class OutgoingFlows {
         public SequenceFlow<ServiceTaskSendCancellationConfirmation> toServiceTaskSendCancellationConfirmation(
             ) {
-          return new SequenceFlow<>(new ElementId("flow_reverseApplicationToSendCancellationConfirmation"), null, null, false, ServiceTaskSendCancellationConfirmation.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_reverseApplicationToSendCancellationConfirmation"), ServiceTaskSendCancellationConfirmation.INSTANCE);
         }
       }
     }
@@ -727,11 +727,11 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EventContractSigned> toEventContractSigned() {
-          return new SequenceFlow<>(new ElementId("flow_awaitSignatureToContractSigned"), null, null, false, EventContractSigned.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_awaitSignatureToContractSigned"), EventContractSigned.INSTANCE);
         }
 
         public SequenceFlow<TimerSignatureDeadline> toTimerSignatureDeadline() {
-          return new SequenceFlow<>(new ElementId("flow_awaitSignatureToSignatureDeadline"), null, null, false, TimerSignatureDeadline.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_awaitSignatureToSignatureDeadline"), TimerSignatureDeadline.INSTANCE);
         }
       }
     }
@@ -763,7 +763,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<ServiceTaskSendRejection> toServiceTaskSendRejection() {
-          return new SequenceFlow<>(new ElementId("flow_collectRejectionsToSendRejection"), null, null, false, ServiceTaskSendRejection.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_collectRejectionsToSendRejection"), ServiceTaskSendRejection.INSTANCE);
         }
       }
     }
@@ -799,11 +799,11 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<ServiceTaskIssueInsurancePolicy> toServiceTaskIssueInsurancePolicy() {
-          return new SequenceFlow<>(new ElementId("flow_forkToIssueInsurancePolicy"), null, null, false, ServiceTaskIssueInsurancePolicy.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_forkToIssueInsurancePolicy"), ServiceTaskIssueInsurancePolicy.INSTANCE);
         }
 
         public SequenceFlow<ServiceTaskOrderBike> toServiceTaskOrderBike() {
-          return new SequenceFlow<>(new ElementId("flow_forkToOrderBike"), null, null, false, ServiceTaskOrderBike.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_forkToOrderBike"), ServiceTaskOrderBike.INSTANCE);
         }
       }
     }
@@ -875,7 +875,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<ReceiveTaskHandoverReported> toReceiveTaskHandoverReported() {
-          return new SequenceFlow<>(new ElementId("flow_joinToHandoverReported"), null, null, false, ReceiveTaskHandoverReported.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_joinToHandoverReported"), ReceiveTaskHandoverReported.INSTANCE);
         }
       }
     }
@@ -909,7 +909,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<TimerWithdrawalPeriodElapsed> toTimerWithdrawalPeriodElapsed() {
-          return new SequenceFlow<>(new ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"), null, null, false, TimerWithdrawalPeriodElapsed.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"), TimerWithdrawalPeriodElapsed.INSTANCE);
         }
       }
     }
@@ -986,7 +986,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<GatewayJoin> toGatewayJoin() {
-          return new SequenceFlow<>(new ElementId("flow_issueInsurancePolicyToJoin"), null, null, false, GatewayJoin.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_issueInsurancePolicyToJoin"), GatewayJoin.INSTANCE);
         }
       }
     }
@@ -1039,7 +1039,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<GatewayJoin> toGatewayJoin() {
-          return new SequenceFlow<>(new ElementId("flow_orderBikeToJoin"), null, null, false, GatewayJoin.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_orderBikeToJoin"), GatewayJoin.INSTANCE);
         }
       }
     }
@@ -1073,7 +1073,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EndEventApplicationCancelled> toEndEventApplicationCancelled() {
-          return new SequenceFlow<>(new ElementId("flow_sendCancellationConfirmationToApplicationCancelled"), null, null, false, EndEventApplicationCancelled.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_sendCancellationConfirmationToApplicationCancelled"), EndEventApplicationCancelled.INSTANCE);
         }
       }
     }
@@ -1122,7 +1122,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<GatewayAwaitSignature> toGatewayAwaitSignature() {
-          return new SequenceFlow<>(new ElementId("flow_sendContractToAwaitSignature"), null, null, false, GatewayAwaitSignature.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.INSTANCE);
         }
       }
     }
@@ -1156,7 +1156,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EndEventApplicationRejected> toEndEventApplicationRejected() {
-          return new SequenceFlow<>(new ElementId("flow_sendRejectionToApplicationRejected"), null, null, false, EndEventApplicationRejected.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_sendRejectionToApplicationRejected"), EndEventApplicationRejected.INSTANCE);
         }
       }
     }
@@ -1190,7 +1190,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EndEventCustomerReminded> toEndEventCustomerReminded() {
-          return new SequenceFlow<>(new ElementId("flow_sendReminderMailToCustomerReminded"), null, null, false, EndEventCustomerReminded.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_sendReminderMailToCustomerReminded"), EndEventCustomerReminded.INSTANCE);
         }
       }
     }
@@ -1229,7 +1229,7 @@ public final class BikeLeasingProcessApi {
       public static final class OutgoingFlows {
         public SequenceFlow<BusinessRuleTaskCheckCreditRating> toBusinessRuleTaskCheckCreditRating(
             ) {
-          return new SequenceFlow<>(new ElementId("flow_validateApplicationToCheckCreditRating"), null, null, false, BusinessRuleTaskCheckCreditRating.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_validateApplicationToCheckCreditRating"), BusinessRuleTaskCheckCreditRating.INSTANCE);
         }
       }
     }
@@ -1287,7 +1287,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<UserTaskUpdateDeliveryAddress> toUserTaskUpdateDeliveryAddress() {
-          return new SequenceFlow<>(new ElementId("flow_addressChangedToUpdateDeliveryAddress"), null, null, false, UserTaskUpdateDeliveryAddress.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_addressChangedToUpdateDeliveryAddress"), UserTaskUpdateDeliveryAddress.INSTANCE);
         }
       }
     }
@@ -1330,7 +1330,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EventReverseApplication> toEventReverseApplication() {
-          return new SequenceFlow<>(new ElementId("flow_applicationWithdrawnToReverseApplication"), null, null, false, EventReverseApplication.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_applicationWithdrawnToReverseApplication"), EventReverseApplication.INSTANCE);
         }
       }
     }
@@ -1367,7 +1367,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<ServiceTaskSendContract> toServiceTaskSendContract() {
-          return new SequenceFlow<>(new ElementId("flow_customerEligibleToSendContract"), null, null, false, ServiceTaskSendContract.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_customerEligibleToSendContract"), ServiceTaskSendContract.INSTANCE);
         }
       }
     }
@@ -1429,7 +1429,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<ServiceTaskValidateApplication> toServiceTaskValidateApplication() {
-          return new SequenceFlow<>(new ElementId("flow_leasingRequestReceivedToValidateApplication"), null, null, false, ServiceTaskValidateApplication.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_leasingRequestReceivedToValidateApplication"), ServiceTaskValidateApplication.INSTANCE);
         }
       }
     }
@@ -1520,7 +1520,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<GatewayFork> toGatewayFork() {
-          return new SequenceFlow<>(new ElementId("flow_concludeContractToFork"), null, null, false, GatewayFork.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_concludeContractToFork"), GatewayFork.INSTANCE);
         }
       }
 
@@ -1565,7 +1565,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EndEventContractNotSigned> toEndEventContractNotSigned() {
-          return new SequenceFlow<>(new ElementId("flow_signatureDeadlineToContractNotSigned"), null, null, false, EndEventContractNotSigned.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_signatureDeadlineToContractNotSigned"), EndEventContractNotSigned.INSTANCE);
         }
       }
     }
@@ -1614,7 +1614,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<ServiceTaskSendReminderMail> toServiceTaskSendReminderMail() {
-          return new SequenceFlow<>(new ElementId("flow_signatureReminderToSendReminderMail"), null, null, false, ServiceTaskSendReminderMail.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_signatureReminderToSendReminderMail"), ServiceTaskSendReminderMail.INSTANCE);
         }
       }
     }
@@ -1653,7 +1653,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EndEventLeasingActive> toEndEventLeasingActive() {
-          return new SequenceFlow<>(new ElementId("flow_withdrawalPeriodElapsedToLeasingActive"), null, null, false, EndEventLeasingActive.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_withdrawalPeriodElapsedToLeasingActive"), EndEventLeasingActive.INSTANCE);
         }
       }
     }
@@ -1696,7 +1696,7 @@ public final class BikeLeasingProcessApi {
 
       public static final class OutgoingFlows {
         public SequenceFlow<EndEventDeliveryAddressUpdated> toEndEventDeliveryAddressUpdated() {
-          return new SequenceFlow<>(new ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"), null, null, false, EndEventDeliveryAddressUpdated.INSTANCE);
+          return new SequenceFlow<>(new ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"), EndEventDeliveryAddressUpdated.INSTANCE);
         }
       }
     }

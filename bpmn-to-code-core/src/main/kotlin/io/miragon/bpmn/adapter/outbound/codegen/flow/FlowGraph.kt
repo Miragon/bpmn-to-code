@@ -73,7 +73,9 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val name: String?,
         val conditionExpression: String?,
         val isDefault: Boolean,
-    )
+    ) {
+        fun hasOnlyDefaults(): Boolean = name == null && conditionExpression == null && !isDefault
+    }
 
     /**
      * The element's own data, each entry present only when the BPMN subtype carries it.

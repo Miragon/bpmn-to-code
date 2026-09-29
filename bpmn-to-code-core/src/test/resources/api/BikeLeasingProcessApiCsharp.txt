@@ -48,6 +48,8 @@ public static class BikeLeasingProcessApi
         public sealed record SequenceFlow<TTarget>(ElementId Id, string? Name, string? ConditionExpression, bool IsDefault, TTarget Target) : ISequenceFlow
             where TTarget : IFlowNode
         {
+            public SequenceFlow(ElementId Id, TTarget Target) : this(Id, null, null, false, Target) { }
+
             IFlowNode ISequenceFlow.Target => Target;
         }
 
@@ -233,7 +235,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayCollectRejections> ToGatewayCollectRejections => new(new("flow_applicationInvalidToCollectRejections"), null, null, false, GatewayCollectRejections.Instance);
+                public Runtime.SequenceFlow<GatewayCollectRejections> ToGatewayCollectRejections => new(new("flow_applicationInvalidToCollectRejections"), GatewayCollectRejections.Instance);
             }
         }
 
@@ -302,7 +304,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayCollectRejections> ToGatewayCollectRejections => new(new("flow_contractNotSignedToCollectRejections"), null, null, false, GatewayCollectRejections.Instance);
+                public Runtime.SequenceFlow<GatewayCollectRejections> ToGatewayCollectRejections => new(new("flow_contractNotSignedToCollectRejections"), GatewayCollectRejections.Instance);
             }
         }
 
@@ -325,7 +327,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayIsSolvent> ToGatewayIsSolvent => new(new("flow_checkCreditRatingToIsSolvent"), null, null, false, GatewayIsSolvent.Instance);
+                public Runtime.SequenceFlow<GatewayIsSolvent> ToGatewayIsSolvent => new(new("flow_checkCreditRatingToIsSolvent"), GatewayIsSolvent.Instance);
             }
         }
 
@@ -474,7 +476,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventContractConcluded> ToEndEventContractConcluded => new(new("flow_contractSignedToContractConcluded"), null, null, false, EndEventContractConcluded.Instance);
+                public Runtime.SequenceFlow<EndEventContractConcluded> ToEndEventContractConcluded => new(new("flow_contractSignedToContractConcluded"), EndEventContractConcluded.Instance);
             }
         }
 
@@ -498,7 +500,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskSendCancellationConfirmation> ToServiceTaskSendCancellationConfirmation => new(new("flow_reverseApplicationToSendCancellationConfirmation"), null, null, false, ServiceTaskSendCancellationConfirmation.Instance);
+                public Runtime.SequenceFlow<ServiceTaskSendCancellationConfirmation> ToServiceTaskSendCancellationConfirmation => new(new("flow_reverseApplicationToSendCancellationConfirmation"), ServiceTaskSendCancellationConfirmation.Instance);
             }
         }
 
@@ -522,8 +524,8 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EventContractSigned> ToEventContractSigned => new(new("flow_awaitSignatureToContractSigned"), null, null, false, EventContractSigned.Instance);
-                public Runtime.SequenceFlow<TimerSignatureDeadline> ToTimerSignatureDeadline => new(new("flow_awaitSignatureToSignatureDeadline"), null, null, false, TimerSignatureDeadline.Instance);
+                public Runtime.SequenceFlow<EventContractSigned> ToEventContractSigned => new(new("flow_awaitSignatureToContractSigned"), EventContractSigned.Instance);
+                public Runtime.SequenceFlow<TimerSignatureDeadline> ToTimerSignatureDeadline => new(new("flow_awaitSignatureToSignatureDeadline"), TimerSignatureDeadline.Instance);
             }
         }
 
@@ -546,7 +548,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskSendRejection> ToServiceTaskSendRejection => new(new("flow_collectRejectionsToSendRejection"), null, null, false, ServiceTaskSendRejection.Instance);
+                public Runtime.SequenceFlow<ServiceTaskSendRejection> ToServiceTaskSendRejection => new(new("flow_collectRejectionsToSendRejection"), ServiceTaskSendRejection.Instance);
             }
         }
 
@@ -570,8 +572,8 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskIssueInsurancePolicy> ToServiceTaskIssueInsurancePolicy => new(new("flow_forkToIssueInsurancePolicy"), null, null, false, ServiceTaskIssueInsurancePolicy.Instance);
-                public Runtime.SequenceFlow<ServiceTaskOrderBike> ToServiceTaskOrderBike => new(new("flow_forkToOrderBike"), null, null, false, ServiceTaskOrderBike.Instance);
+                public Runtime.SequenceFlow<ServiceTaskIssueInsurancePolicy> ToServiceTaskIssueInsurancePolicy => new(new("flow_forkToIssueInsurancePolicy"), ServiceTaskIssueInsurancePolicy.Instance);
+                public Runtime.SequenceFlow<ServiceTaskOrderBike> ToServiceTaskOrderBike => new(new("flow_forkToOrderBike"), ServiceTaskOrderBike.Instance);
             }
         }
 
@@ -619,7 +621,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ReceiveTaskHandoverReported> ToReceiveTaskHandoverReported => new(new("flow_joinToHandoverReported"), null, null, false, ReceiveTaskHandoverReported.Instance);
+                public Runtime.SequenceFlow<ReceiveTaskHandoverReported> ToReceiveTaskHandoverReported => new(new("flow_joinToHandoverReported"), ReceiveTaskHandoverReported.Instance);
             }
         }
 
@@ -643,7 +645,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<TimerWithdrawalPeriodElapsed> ToTimerWithdrawalPeriodElapsed => new(new("flow_handoverReportedToWithdrawalPeriodElapsed"), null, null, false, TimerWithdrawalPeriodElapsed.Instance);
+                public Runtime.SequenceFlow<TimerWithdrawalPeriodElapsed> ToTimerWithdrawalPeriodElapsed => new(new("flow_handoverReportedToWithdrawalPeriodElapsed"), TimerWithdrawalPeriodElapsed.Instance);
             }
         }
 
@@ -704,7 +706,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayJoin> ToGatewayJoin => new(new("flow_issueInsurancePolicyToJoin"), null, null, false, GatewayJoin.Instance);
+                public Runtime.SequenceFlow<GatewayJoin> ToGatewayJoin => new(new("flow_issueInsurancePolicyToJoin"), GatewayJoin.Instance);
             }
         }
 
@@ -741,7 +743,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayJoin> ToGatewayJoin => new(new("flow_orderBikeToJoin"), null, null, false, GatewayJoin.Instance);
+                public Runtime.SequenceFlow<GatewayJoin> ToGatewayJoin => new(new("flow_orderBikeToJoin"), GatewayJoin.Instance);
             }
         }
 
@@ -765,7 +767,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventApplicationCancelled> ToEndEventApplicationCancelled => new(new("flow_sendCancellationConfirmationToApplicationCancelled"), null, null, false, EndEventApplicationCancelled.Instance);
+                public Runtime.SequenceFlow<EndEventApplicationCancelled> ToEndEventApplicationCancelled => new(new("flow_sendCancellationConfirmationToApplicationCancelled"), EndEventApplicationCancelled.Instance);
             }
         }
 
@@ -801,7 +803,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayAwaitSignature> ToGatewayAwaitSignature => new(new("flow_sendContractToAwaitSignature"), null, null, false, GatewayAwaitSignature.Instance);
+                public Runtime.SequenceFlow<GatewayAwaitSignature> ToGatewayAwaitSignature => new(new("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.Instance);
             }
         }
 
@@ -825,7 +827,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventApplicationRejected> ToEndEventApplicationRejected => new(new("flow_sendRejectionToApplicationRejected"), null, null, false, EndEventApplicationRejected.Instance);
+                public Runtime.SequenceFlow<EndEventApplicationRejected> ToEndEventApplicationRejected => new(new("flow_sendRejectionToApplicationRejected"), EndEventApplicationRejected.Instance);
             }
         }
 
@@ -849,7 +851,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventCustomerReminded> ToEndEventCustomerReminded => new(new("flow_sendReminderMailToCustomerReminded"), null, null, false, EndEventCustomerReminded.Instance);
+                public Runtime.SequenceFlow<EndEventCustomerReminded> ToEndEventCustomerReminded => new(new("flow_sendReminderMailToCustomerReminded"), EndEventCustomerReminded.Instance);
             }
         }
 
@@ -874,7 +876,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<BusinessRuleTaskCheckCreditRating> ToBusinessRuleTaskCheckCreditRating => new(new("flow_validateApplicationToCheckCreditRating"), null, null, false, BusinessRuleTaskCheckCreditRating.Instance);
+                public Runtime.SequenceFlow<BusinessRuleTaskCheckCreditRating> ToBusinessRuleTaskCheckCreditRating => new(new("flow_validateApplicationToCheckCreditRating"), BusinessRuleTaskCheckCreditRating.Instance);
             }
         }
 
@@ -912,7 +914,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<UserTaskUpdateDeliveryAddress> ToUserTaskUpdateDeliveryAddress => new(new("flow_addressChangedToUpdateDeliveryAddress"), null, null, false, UserTaskUpdateDeliveryAddress.Instance);
+                public Runtime.SequenceFlow<UserTaskUpdateDeliveryAddress> ToUserTaskUpdateDeliveryAddress => new(new("flow_addressChangedToUpdateDeliveryAddress"), UserTaskUpdateDeliveryAddress.Instance);
             }
         }
 
@@ -938,7 +940,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EventReverseApplication> ToEventReverseApplication => new(new("flow_applicationWithdrawnToReverseApplication"), null, null, false, EventReverseApplication.Instance);
+                public Runtime.SequenceFlow<EventReverseApplication> ToEventReverseApplication => new(new("flow_applicationWithdrawnToReverseApplication"), EventReverseApplication.Instance);
             }
         }
 
@@ -962,7 +964,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskSendContract> ToServiceTaskSendContract => new(new("flow_customerEligibleToSendContract"), null, null, false, ServiceTaskSendContract.Instance);
+                public Runtime.SequenceFlow<ServiceTaskSendContract> ToServiceTaskSendContract => new(new("flow_customerEligibleToSendContract"), ServiceTaskSendContract.Instance);
             }
         }
 
@@ -1003,7 +1005,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskValidateApplication> ToServiceTaskValidateApplication => new(new("flow_leasingRequestReceivedToValidateApplication"), null, null, false, ServiceTaskValidateApplication.Instance);
+                public Runtime.SequenceFlow<ServiceTaskValidateApplication> ToServiceTaskValidateApplication => new(new("flow_leasingRequestReceivedToValidateApplication"), ServiceTaskValidateApplication.Instance);
             }
         }
 
@@ -1063,7 +1065,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<GatewayFork> ToGatewayFork => new(new("flow_concludeContractToFork"), null, null, false, GatewayFork.Instance);
+                public Runtime.SequenceFlow<GatewayFork> ToGatewayFork => new(new("flow_concludeContractToFork"), GatewayFork.Instance);
             }
 
             public Interior Start => new();
@@ -1094,7 +1096,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventContractNotSigned> ToEndEventContractNotSigned => new(new("flow_signatureDeadlineToContractNotSigned"), null, null, false, EndEventContractNotSigned.Instance);
+                public Runtime.SequenceFlow<EndEventContractNotSigned> ToEndEventContractNotSigned => new(new("flow_signatureDeadlineToContractNotSigned"), EndEventContractNotSigned.Instance);
             }
         }
 
@@ -1121,7 +1123,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ServiceTaskSendReminderMail> ToServiceTaskSendReminderMail => new(new("flow_signatureReminderToSendReminderMail"), null, null, false, ServiceTaskSendReminderMail.Instance);
+                public Runtime.SequenceFlow<ServiceTaskSendReminderMail> ToServiceTaskSendReminderMail => new(new("flow_signatureReminderToSendReminderMail"), ServiceTaskSendReminderMail.Instance);
             }
         }
 
@@ -1146,7 +1148,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventLeasingActive> ToEndEventLeasingActive => new(new("flow_withdrawalPeriodElapsedToLeasingActive"), null, null, false, EndEventLeasingActive.Instance);
+                public Runtime.SequenceFlow<EndEventLeasingActive> ToEndEventLeasingActive => new(new("flow_withdrawalPeriodElapsedToLeasingActive"), EndEventLeasingActive.Instance);
             }
         }
 
@@ -1179,7 +1181,7 @@ public static class BikeLeasingProcessApi
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<EndEventDeliveryAddressUpdated> ToEndEventDeliveryAddressUpdated => new(new("flow_updateDeliveryAddressToDeliveryAddressUpdated"), null, null, false, EndEventDeliveryAddressUpdated.Instance);
+                public Runtime.SequenceFlow<EndEventDeliveryAddressUpdated> ToEndEventDeliveryAddressUpdated => new(new("flow_updateDeliveryAddressToDeliveryAddressUpdated"), EndEventDeliveryAddressUpdated.Instance);
             }
         }
     }

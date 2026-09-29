@@ -137,7 +137,7 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class OutgoingFlows {
           public SequenceFlow<GatewayCollectClarifications> toGatewayCollectClarifications() {
-            return new SequenceFlow<>(new ElementId("flow_cancellationFailedToCollectClarifications"), null, null, false, GatewayCollectClarifications.INSTANCE);
+            return new SequenceFlow<>(new ElementId("flow_cancellationFailedToCollectClarifications"), GatewayCollectClarifications.INSTANCE);
           }
         }
       }
@@ -228,7 +228,7 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class OutgoingFlows {
           public SequenceFlow<UserTaskClarifyReturn> toUserTaskClarifyReturn() {
-            return new SequenceFlow<>(new ElementId("flow_collectClarificationsToClarifyReturn"), null, null, false, UserTaskClarifyReturn.INSTANCE);
+            return new SequenceFlow<>(new ElementId("flow_collectClarificationsToClarifyReturn"), UserTaskClarifyReturn.INSTANCE);
           }
         }
       }
@@ -261,7 +261,7 @@ public final class CancelBikeOrderProcessApi {
         public static final class OutgoingFlows {
           public SequenceFlow<ServiceTaskBookCancellationCosts> toServiceTaskBookCancellationCosts(
               ) {
-            return new SequenceFlow<>(new ElementId("flow_mergeReturnToBookCancellationCosts"), null, null, false, ServiceTaskBookCancellationCosts.INSTANCE);
+            return new SequenceFlow<>(new ElementId("flow_mergeReturnToBookCancellationCosts"), ServiceTaskBookCancellationCosts.INSTANCE);
           }
         }
       }
@@ -306,7 +306,7 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class OutgoingFlows {
           public SequenceFlow<EndEventBikeOrderCancelled> toEndEventBikeOrderCancelled() {
-            return new SequenceFlow<>(new ElementId("flow_bookCancellationCostsToBikeOrderCancelled"), null, null, false, EndEventBikeOrderCancelled.INSTANCE);
+            return new SequenceFlow<>(new ElementId("flow_bookCancellationCostsToBikeOrderCancelled"), EndEventBikeOrderCancelled.INSTANCE);
           }
         }
       }
@@ -355,7 +355,7 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class OutgoingFlows {
           public SequenceFlow<GatewayCancellationPossible> toGatewayCancellationPossible() {
-            return new SequenceFlow<>(new ElementId("flow_requestCancellationToCancellationPossible"), null, null, false, GatewayCancellationPossible.INSTANCE);
+            return new SequenceFlow<>(new ElementId("flow_requestCancellationToCancellationPossible"), GatewayCancellationPossible.INSTANCE);
           }
         }
       }
@@ -403,7 +403,7 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class OutgoingFlows {
           public SequenceFlow<ServiceTaskRequestCancellation> toServiceTaskRequestCancellation() {
-            return new SequenceFlow<>(new ElementId("flow_cancellationRequiredToRequestCancellation"), null, null, false, ServiceTaskRequestCancellation.INSTANCE);
+            return new SequenceFlow<>(new ElementId("flow_cancellationRequiredToRequestCancellation"), ServiceTaskRequestCancellation.INSTANCE);
           }
         }
       }
@@ -435,7 +435,7 @@ public final class CancelBikeOrderProcessApi {
 
         public static final class OutgoingFlows {
           public SequenceFlow<GatewayMergeReturn> toGatewayMergeReturn() {
-            return new SequenceFlow<>(new ElementId("flow_clarifyReturnToMergeReturn"), null, null, false, GatewayMergeReturn.INSTANCE);
+            return new SequenceFlow<>(new ElementId("flow_clarifyReturnToMergeReturn"), GatewayMergeReturn.INSTANCE);
           }
         }
       }

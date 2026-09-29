@@ -22,27 +22,20 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
  * successors behind `next` and its outgoing sequence flows behind `outgoingFlows`, named after the elements
  * they lead to. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess node
  * additionally is a `FlowScope` whose `startEvents` yields the interior's start elements, and a boundary event is
- * a `BoundaryEvent` of its host. Every node implements the flow's sealed `Node` interface, and `FlowNodes.entries` lists them all.
+ * a `BoundaryEvent` of its host. `FlowNodes.entries` lists every node.
  */
 internal class KotlinFlowWriter {
 
     private val facetWriter = KotlinFacetWriter()
 
     fun write(builder: TypeSpec.Builder, graph: FlowGraph) {
-        addEnumeration(builder, graph)
+        builder.addProperty(entries(graph))
         graph.nodes.forEach { node -> builder.addType(buildNode(node)) }
     }
 
-    private fun addEnumeration(builder: TypeSpec.Builder, graph: FlowGraph) {
-        val nodeInterface = TypeSpec.interfaceBuilder(NODE_INTERFACE)
-            .addModifiers(KModifier.SEALED)
-            .addSuperinterface(KotlinRuntimeTypes.FLOW_NODE)
-            .addKdoc("Common supertype of this flow's nodes.").build()
-        val entries = PropertySpec.builder("entries", LIST.parameterizedBy(ClassName("", NODE_INTERFACE)))
-            .addKdoc("Every node of this flow.")
-            .initializer(KotlinCodeFormat.listOfNames(graph.nodes.map { it.objectName })).build()
-        builder.addType(nodeInterface).addProperty(entries)
-    }
+    private fun entries(graph: FlowGraph): PropertySpec = PropertySpec.builder("entries", LIST.parameterizedBy(KotlinRuntimeTypes.FLOW_NODE))
+        .addKdoc("Every node of this flow.")
+        .initializer(KotlinCodeFormat.listOfNames(graph.nodes.map { it.objectName })).build()
 
     private fun buildNode(node: FlowGraphNode): TypeSpec {
         val nodeBuilder = TypeSpec.objectBuilder(node.objectName)
@@ -65,7 +58,6 @@ internal class KotlinFlowWriter {
     private fun extendFlowNode(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         nodeBuilder.superclass(KotlinRuntimeTypes.ABSTRACT_FLOW_NODE)
             .addSuperclassConstructorParameter(superclassArguments(node))
-            .addSuperinterface(ClassName("", NODE_INTERFACE))
         if (node.successors.isNotEmpty()) {
             nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.HAS_SUCCESSORS, node = node, holderName = NEXT_HOLDER))
         }
@@ -159,6 +151,5 @@ internal class KotlinFlowWriter {
         private const val NEXT_HOLDER = "Next"
         private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"
         private const val START_HOLDER = "Start"
-        private const val NODE_INTERFACE = "Node"
     }
 }
