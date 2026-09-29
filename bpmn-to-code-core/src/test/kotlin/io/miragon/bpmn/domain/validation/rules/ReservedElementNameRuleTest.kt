@@ -31,6 +31,19 @@ class ReservedElementNameRuleTest {
         assertThat(violations[0].message).contains("reserved")
     }
 
+    @ParameterizedTest
+    @ValueSource(
+        strings = ["id", "name", "element_type", "event-type", "attached_to", "is_interrupting", "job_type", "called_process", "message", "signal", "timer", "error", "escalation"],
+    )
+    fun `reports error for an element named like a member of a generated C# node`(elementId: String) {
+        // given: an element folding to a member that shadows it inside the C# nodes referring to it
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = elementId)))
+
+        // when / then: an ERROR violation naming the element
+        val violations = underTest.validate(SingleModelValidationContext(model = model, engine = ProcessEngine.ZEEBE))
+        assertThat(violations).extracting("elementId").containsExactly(elementId)
+    }
+
     @Test
     fun `also checks elements inside subprocesses, since FlowNodes is flat`() {
         val model = testProcessModel(
