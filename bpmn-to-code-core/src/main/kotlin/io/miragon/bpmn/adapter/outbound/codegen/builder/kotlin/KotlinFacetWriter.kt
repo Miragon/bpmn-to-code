@@ -26,12 +26,12 @@ internal class KotlinFacetWriter {
 
     fun properties(facets: NodeFacets): List<PropertySpec> = listOfNotNull(
         facets.jobType?.let { jobTypeProperty(it) },
-        facets.calledProcessId?.let { wrappedProperty(name = "CALLED_PROCESS", wrapper = "ProcessId", value = it) },
+        facets.calledProcessId?.let { wrappedProperty(name = "CALLED_PROCESS", wrapper = KotlinRuntimeTypes.PROCESS_ID, value = it) },
         facets.timer?.let { timerProperty(it) },
-        facets.message?.let { sharedProperty(name = "MESSAGE", wrapper = "MessageName", type = SharedDefinitionType.MESSAGES, shared = it, literal = ::wrappedInitializer) },
-        facets.signal?.let { sharedProperty(name = "SIGNAL", wrapper = "SignalName", type = SharedDefinitionType.SIGNALS, shared = it, literal = ::wrappedInitializer) },
-        facets.error?.let { sharedProperty(name = "ERROR", wrapper = "BpmnErrorDefinition", type = SharedDefinitionType.ERRORS, shared = it, literal = ::namedCodeInitializer) },
-        facets.escalation?.let { sharedProperty(name = "ESCALATION", wrapper = "BpmnEscalationDefinition", type = SharedDefinitionType.ESCALATIONS, shared = it, literal = ::namedCodeInitializer) },
+        facets.message?.let { sharedProperty(name = "MESSAGE", wrapper = KotlinRuntimeTypes.MESSAGE_NAME, type = SharedDefinitionType.MESSAGES, shared = it, literal = ::wrappedInitializer) },
+        facets.signal?.let { sharedProperty(name = "SIGNAL", wrapper = KotlinRuntimeTypes.SIGNAL_NAME, type = SharedDefinitionType.SIGNALS, shared = it, literal = ::wrappedInitializer) },
+        facets.error?.let { sharedProperty(name = "ERROR", wrapper = KotlinRuntimeTypes.BPMN_ERROR_DEFINITION, type = SharedDefinitionType.ERRORS, shared = it, literal = ::namedCodeInitializer) },
+        facets.escalation?.let { sharedProperty(name = "ESCALATION", wrapper = KotlinRuntimeTypes.BPMN_ESCALATION_DEFINITION, type = SharedDefinitionType.ESCALATIONS, shared = it, literal = ::namedCodeInitializer) },
         facets.attachedTo?.let { attachedToProperty(it.objectName) },
         facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
     )
@@ -53,14 +53,13 @@ internal class KotlinFacetWriter {
      */
     private fun <T> sharedProperty(
         name: String,
-        wrapper: String,
+        wrapper: ClassName,
         type: SharedDefinitionType,
         shared: SharedValue<T>,
         literal: (ClassName, T) -> CodeBlock,
     ): PropertySpec {
-        val wrapperClass = ClassName(RUNTIME_PACKAGE, wrapper)
-        val initializer = shared.constant?.let { sharedReference(type, it) } ?: literal(wrapperClass, shared.value)
-        return PropertySpec.builder(name, wrapperClass).initializer(initializer).build()
+        val initializer = shared.constant?.let { sharedReference(type, it) } ?: literal(wrapper, shared.value)
+        return PropertySpec.builder(name, wrapper).initializer(initializer).build()
     }
 
     /**
@@ -68,16 +67,13 @@ internal class KotlinFacetWriter {
      */
     private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): CodeBlock = CodeBlock.of("%L.%N", type.typeName, constant.name)
 
-    private fun wrappedProperty(name: String, wrapper: String, value: String): PropertySpec {
-        val wrapperClass = ClassName(RUNTIME_PACKAGE, wrapper)
-        return PropertySpec.builder(name, wrapperClass).initializer(wrappedInitializer(wrapperClass, value)).build()
-    }
+    private fun wrappedProperty(name: String, wrapper: ClassName, value: String): PropertySpec = PropertySpec.builder(name, wrapper).initializer(wrappedInitializer(wrapper, value)).build()
 
     private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of("%T(%L)", wrapperClass, stringLiteral(value))
 
     private fun timerProperty(timer: TimerFacet): PropertySpec {
-        val timerClass = ClassName(RUNTIME_PACKAGE, "BpmnTimer")
-        val type = CodeBlock.of("%T.%L", ClassName(RUNTIME_PACKAGE, "TimerType"), timer.type.name)
+        val timerClass = KotlinRuntimeTypes.BPMN_TIMER
+        val type = CodeBlock.of("%T.%L", KotlinRuntimeTypes.TIMER_TYPE, timer.type.name)
         val initializer = KotlinCodeFormat.namedCall(timerClass, "type" to type, "timerValue" to stringLiteral(timer.expression), placement = KotlinCodeFormat.Placement.INITIALIZER)
         return PropertySpec.builder("TIMER", timerClass).initializer(initializer).build()
     }
@@ -97,7 +93,7 @@ internal class KotlinFacetWriter {
     private fun variablesHolder(variables: List<VariableFacet>): TypeSpec {
         val holder = TypeSpec.objectBuilder("Variables")
         variables.forEach { variable ->
-            val subtypeClass = ClassName(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
+            val subtypeClass = KotlinRuntimeTypes.VARIABLE_NAME.nestedClass(variable.subtype.simpleName)
             holder.addProperty(
                 PropertySpec.builder(variable.constantName, subtypeClass)
                     .initializer("%T(%N.%N)", subtypeClass, KotlinNamesHolder.NAME, variable.constantName).build(),
@@ -107,7 +103,7 @@ internal class KotlinFacetWriter {
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {
-        val mappingClass = ClassName(RUNTIME_PACKAGE, "InputOutputMapping")
+        val mappingClass = KotlinRuntimeTypes.INPUT_OUTPUT_MAPPING
         val holder = TypeSpec.objectBuilder(holderName)
         mappings.forEach { mapping ->
             holder.addProperty(PropertySpec.builder(mapping.constantName, mappingClass).initializer(mappingInitializer(mappingClass, mapping)).build())
@@ -122,8 +118,4 @@ internal class KotlinFacetWriter {
         "sourceExpression" to mapping.sourceExpression?.let { stringLiteral(it) },
         placement = KotlinCodeFormat.Placement.INITIALIZER,
     )
-
-    private companion object {
-        private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
-    }
 }

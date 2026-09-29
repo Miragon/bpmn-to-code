@@ -17,10 +17,6 @@ import io.miragon.bpmn.domain.shared.VariableMapping
  */
 internal abstract class KotlinSharedDefinitionWriter<T : Any> {
 
-    companion object {
-        const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
-    }
-
     protected abstract val type: SharedDefinitionType
     protected abstract val kdoc: String
     protected abstract val elementType: TypeName

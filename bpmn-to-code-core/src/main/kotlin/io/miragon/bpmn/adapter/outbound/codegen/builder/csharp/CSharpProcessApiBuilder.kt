@@ -65,8 +65,8 @@ internal class CSharpProcessApiBuilder : CodeGenerationAdapter.AbstractProcessAp
     private class ProcessEngineWriter : ObjectWriter<CSharpWriter> {
 
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            val engineType = "${CSharpRuntimeTypes.CLASS_NAME}.BpmnEngine"
-            builder.constantExpression(name = "ProcessEngine", expression = CSharpRuntimeTypes.enumMember("BpmnEngine", modelApi.targetEngine.name), type = engineType)
+            val engineType = CSharpRuntimeTypes.BPMN_ENGINE
+            builder.constantExpression(name = "ProcessEngine", expression = CSharpRuntimeTypes.enumMember(engineType, modelApi.targetEngine.name), type = engineType)
         }
     }
 

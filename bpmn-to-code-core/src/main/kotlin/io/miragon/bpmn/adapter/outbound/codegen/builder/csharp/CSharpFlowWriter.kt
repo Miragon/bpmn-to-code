@@ -1,10 +1,9 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.nullableStringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.nullableStringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.stringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.staticListProperty
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
@@ -29,27 +28,25 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
     private val facetWriter = CSharpFacetWriter(writer)
 
     fun write(graph: FlowGraph) {
-        writer.staticListProperty(name = "All", elementType = runtime("IFlowNode"), elements = graph.nodes.map { "${it.objectName}.Instance" }, doc = "Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
+        writer.staticListProperty(name = "All", elementType = CSharpRuntimeTypes.FLOW_NODE, elements = graph.nodes.map { "${it.objectName}.Instance" }, doc = "Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.")
         writer.line()
         writer.forEachSeparated(graph.nodes) { node -> writeNode(node) }
     }
 
     private fun writeNode(node: FlowGraphNode) {
-        val nodeInterface = runtime(
-            when {
-                node.isBoundaryEvent -> "IBoundaryEvent"
-                node.eventType != null -> "IEvent"
-                else -> "IFlowNode"
-            },
-        )
+        val nodeInterface = when {
+            node.isBoundaryEvent -> CSharpRuntimeTypes.BOUNDARY_EVENT
+            node.eventType != null -> CSharpRuntimeTypes.EVENT
+            else -> CSharpRuntimeTypes.FLOW_NODE
+        }
         writer.sealedClass(node.objectName, implements = nodeInterface) {
             writer.singleton()
             facetWriter.writeMembers(node.facets)
             writer.line()
             writer.constant("ElementId", node.id)
-            writer.readonlyProperty(name = "Id", type = runtime("ElementId"), initializer = "new(ElementId)")
-            writer.expressionProperty(name = "ElementType", type = runtime("BpmnElementType"), expression = CSharpRuntimeTypes.enumMember("BpmnElementType", node.elementType))
-            node.eventType?.let { writer.expressionProperty(name = "EventType", type = runtime("BpmnEventType"), expression = CSharpRuntimeTypes.enumMember("BpmnEventType", it)) }
+            writer.readonlyProperty(name = "Id", type = CSharpRuntimeTypes.ELEMENT_ID, initializer = "new(ElementId)")
+            writer.expressionProperty(name = "ElementType", type = CSharpRuntimeTypes.BPMN_ELEMENT_TYPE, expression = CSharpRuntimeTypes.enumMember(CSharpRuntimeTypes.BPMN_ELEMENT_TYPE, node.elementType))
+            node.eventType?.let { writer.expressionProperty(name = "EventType", type = CSharpRuntimeTypes.BPMN_EVENT_TYPE, expression = CSharpRuntimeTypes.enumMember(CSharpRuntimeTypes.BPMN_EVENT_TYPE, it)) }
             writer.expressionProperty(name = "Name", type = "string?", expression = nullableStringLiteral(node.name))
             facetWriter.writeProperties(node.facets)
             facetWriter.writeHolders(node.facets)
@@ -82,7 +79,7 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         writer.expressionProperty(name = "OutgoingFlows", type = "OutgoingSequenceFlows", expression = "new()")
         writer.sealedClass("OutgoingSequenceFlows") {
             outgoingFlows.forEach { flowsToTarget ->
-                val flowType = "${runtime("SequenceFlow")}<${flowsToTarget.target.objectName}>"
+                val flowType = "${CSharpRuntimeTypes.SEQUENCE_FLOW}<${flowsToTarget.target.objectName}>"
                 val propertyName = flowsToTarget.propertyName.replaceFirstChar { it.uppercaseChar() }
                 val constructions = flowsToTarget.flows.map { sequenceFlowConstruction(it, flowsToTarget.target.objectName) }
                 when (constructions.size) {
@@ -100,6 +97,4 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         flow.isDefault.toString(),
         "$targetObjectName.Instance",
     ).joinToString(", ", prefix = "new(", postfix = ")")
-
-    private fun runtime(typeName: String): String = "${CSharpRuntimeTypes.CLASS_NAME}.$typeName"
 }

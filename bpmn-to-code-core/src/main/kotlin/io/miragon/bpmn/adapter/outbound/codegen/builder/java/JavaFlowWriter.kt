@@ -38,7 +38,7 @@ internal class JavaFlowWriter {
         val nodes = graph.nodes.map { JavaFlowNodeType(it.objectName).instance() }
         return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
             .addJavadoc("Every node of this flow, so tests can check all elements (job workers, deployed ids, …) without reflection.\n")
-            .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), ClassName.get(RUNTIME_PACKAGE, "FlowNode")))
+            .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), JavaRuntimeTypes.FLOW_NODE))
             .addStatement($$"return $T.of(\n$L)", List::class.java, CodeBlock.join(nodes, ",\n")).build()
     }
 
@@ -61,25 +61,25 @@ internal class JavaFlowWriter {
     }
 
     private fun extendFlowNode(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.superclass(ClassName.get(RUNTIME_PACKAGE, "AbstractFlowNode"))
+        classBuilder.superclass(JavaRuntimeTypes.ABSTRACT_FLOW_NODE)
         classBuilder.addField(FieldSpec.builder(String::class.java, ELEMENT_ID, PUBLIC, STATIC, FINAL).initializer($$"$S", node.id).build())
         classBuilder.addField(JavaFlowNodeType(node.objectName).instanceField())
         classBuilder.addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).addStatement(superCall(node)).build())
         if (node.successors.isNotEmpty()) {
-            classBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasSuccessors", node = node, holderName = NEXT_HOLDER))
+            classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.HAS_SUCCESSORS, node = node, holderName = NEXT_HOLDER))
         }
         if (node.outgoingFlows.isNotEmpty()) {
-            classBuilder.addSuperinterface(ownHolderInterface(interfaceName = "HasOutgoingFlows", node = node, holderName = OUTGOING_FLOWS_HOLDER))
+            classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.HAS_OUTGOING_FLOWS, node = node, holderName = OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
         when {
             node.isBoundaryEvent && host != null ->
-                classBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "BoundaryEvent"), ClassName.get("", host.objectName)))
+                classBuilder.addSuperinterface(ParameterizedTypeName.get(JavaRuntimeTypes.BOUNDARY_EVENT, ClassName.get("", host.objectName)))
 
-            node.eventType != null -> classBuilder.addSuperinterface(ClassName.get(RUNTIME_PACKAGE, "Event"))
+            node.eventType != null -> classBuilder.addSuperinterface(JavaRuntimeTypes.EVENT)
         }
         node.eventType?.let { eventType ->
-            val eventTypeClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEventType")
+            val eventTypeClass = JavaRuntimeTypes.BPMN_EVENT_TYPE
             classBuilder.addMethod(
                 MethodSpec.methodBuilder("getEventType").addAnnotation(Override::class.java).addModifiers(PUBLIC).returns(eventTypeClass)
                     .addStatement($$"return $T.$L", eventTypeClass, eventType).build(),
@@ -88,17 +88,17 @@ internal class JavaFlowWriter {
     }
 
     private fun superCall(node: FlowGraphNode): CodeBlock {
-        val elementIdClass = ClassName.get(RUNTIME_PACKAGE, "ElementId")
-        val elementTypeClass = ClassName.get(RUNTIME_PACKAGE, "BpmnElementType")
+        val elementIdClass = JavaRuntimeTypes.ELEMENT_ID
+        val elementTypeClass = JavaRuntimeTypes.BPMN_ELEMENT_TYPE
         val superCall = CodeBlock.builder().add($$"super(new $T($N), $T.$L", elementIdClass, ELEMENT_ID, elementTypeClass, node.elementType)
         node.name?.let { superCall.add($$", $S", it) }
         return superCall.add(")").build()
     }
 
     // A bare `Next` in the implements clause would bind to an enclosing class's `Next`; qualify with the node.
-    private fun ownHolderInterface(interfaceName: String, node: FlowGraphNode, holderName: String): ParameterizedTypeName {
+    private fun ownHolderInterface(interfaceType: ClassName, node: FlowGraphNode, holderName: String): ParameterizedTypeName {
         val ownHolder = ClassName.get("", node.objectName, holderName)
-        return ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, interfaceName), ownHolder)
+        return ParameterizedTypeName.get(interfaceType, ownHolder)
     }
 
     private fun addSuccessors(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
@@ -114,7 +114,7 @@ internal class JavaFlowWriter {
     }
 
     private fun addInteriorStarts(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.addSuperinterface(ownHolderInterface(interfaceName = "FlowScope", node = node, holderName = START_HOLDER))
+        classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
         classBuilder.addMethod(accessorMethod("getStartEvents", START_HOLDER))
         classBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }
@@ -147,7 +147,7 @@ internal class JavaFlowWriter {
      */
     private fun outgoingFlowsMethod(flowsToTarget: FlowsToTarget): MethodSpec {
         val target = JavaFlowNodeType(flowsToTarget.target.objectName)
-        val sequenceFlowType = ParameterizedTypeName.get(ClassName.get(RUNTIME_PACKAGE, "SequenceFlow"), target.className)
+        val sequenceFlowType = ParameterizedTypeName.get(JavaRuntimeTypes.SEQUENCE_FLOW, target.className)
         val constructions = flowsToTarget.flows.map { sequenceFlowConstruction(it, target) }
         val method = MethodSpec.methodBuilder(flowsToTarget.propertyName).addModifiers(PUBLIC)
         return when (constructions.size) {
@@ -160,8 +160,8 @@ internal class JavaFlowWriter {
 
     private fun sequenceFlowConstruction(flow: SequenceFlowEdge, target: JavaFlowNodeType): CodeBlock = CodeBlock.of(
         $$"new $T<>(new $T($S), $S, $S, $L, $L)",
-        ClassName.get(RUNTIME_PACKAGE, "SequenceFlow"),
-        ClassName.get(RUNTIME_PACKAGE, "ElementId"),
+        JavaRuntimeTypes.SEQUENCE_FLOW,
+        JavaRuntimeTypes.ELEMENT_ID,
         flow.id,
         flow.name,
         flow.conditionExpression,
@@ -170,7 +170,6 @@ internal class JavaFlowWriter {
     )
 
     private companion object {
-        private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
         private const val ELEMENT_ID = "ELEMENT_ID"
         private const val NEXT_HOLDER = "Next"
         private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"

@@ -1,6 +1,5 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
-import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
@@ -25,7 +24,6 @@ import javax.lang.model.element.Modifier.STATIC
 internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiBuilder<TypeSpec.Builder>() {
 
     companion object {
-        private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
         private const val PROCESS_ID = "PROCESS_ID"
     }
 
@@ -61,7 +59,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
     private class ProcessIdWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val processIdClass = ClassName.get(RUNTIME_PACKAGE, "ProcessId")
+            val processIdClass = JavaRuntimeTypes.PROCESS_ID
             val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
             builder.addField(fieldBuilder.initializer($$"new $T($N.$N)", processIdClass, JavaNamesHolder.NAME, PROCESS_ID).build())
             builder.addType(JavaNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)).build())
@@ -71,7 +69,7 @@ internal class JavaProcessApiBuilder : CodeGenerationAdapter.AbstractProcessApiB
     private class ProcessEngineWriter : ObjectWriter<TypeSpec.Builder> {
 
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnEngineClass = ClassName.get(RUNTIME_PACKAGE, "BpmnEngine")
+            val bpmnEngineClass = JavaRuntimeTypes.BPMN_ENGINE
             val fieldBuilder = FieldSpec.builder(bpmnEngineClass, "PROCESS_ENGINE")
                 .addModifiers(PUBLIC, FINAL, STATIC).initializer($$"$T.$L", bpmnEngineClass, modelApi.targetEngine.name)
             builder.addField(fieldBuilder.build())

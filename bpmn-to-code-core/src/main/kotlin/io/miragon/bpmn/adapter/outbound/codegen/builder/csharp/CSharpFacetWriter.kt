@@ -1,12 +1,12 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.disambiguated
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.nullableStringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.disambiguated
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.nullableStringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.stringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter.Companion.toPascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
@@ -32,12 +32,12 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
     }
 
     fun writeProperties(facets: NodeFacets) {
-        facets.calledProcessId?.let { writer.readonlyProperty(name = "CalledProcess", type = runtime("ProcessId"), initializer = "new(${stringLiteral(it)})") }
-        facets.timer?.let { writer.readonlyProperty(name = "Timer", type = runtime("BpmnTimer"), initializer = "new(${CSharpRuntimeTypes.enumMember("TimerType", it.type.name)}, ${stringLiteral(it.expression)})") }
-        facets.message?.let { writer.readonlyProperty(name = "Message", type = runtime("MessageName"), initializer = "new(${nameArgument(SharedDefinitionType.MESSAGES, it)})") }
-        facets.signal?.let { writer.readonlyProperty(name = "Signal", type = runtime("SignalName"), initializer = "new(${nameArgument(SharedDefinitionType.SIGNALS, it)})") }
-        facets.error?.let { writer.readonlyProperty(name = "Error", type = runtime("BpmnErrorDefinition"), initializer = "new(${namedCodeArguments(SharedDefinitionType.ERRORS, it)})") }
-        facets.escalation?.let { writer.readonlyProperty(name = "Escalation", type = runtime("BpmnEscalationDefinition"), initializer = "new(${namedCodeArguments(SharedDefinitionType.ESCALATIONS, it)})") }
+        facets.calledProcessId?.let { writer.readonlyProperty(name = "CalledProcess", type = CSharpRuntimeTypes.PROCESS_ID, initializer = "new(${stringLiteral(it)})") }
+        facets.timer?.let { writer.readonlyProperty(name = "Timer", type = CSharpRuntimeTypes.BPMN_TIMER, initializer = "new(${CSharpRuntimeTypes.enumMember(CSharpRuntimeTypes.TIMER_TYPE, it.type.name)}, ${stringLiteral(it.expression)})") }
+        facets.message?.let { writer.readonlyProperty(name = "Message", type = CSharpRuntimeTypes.MESSAGE_NAME, initializer = "new(${nameArgument(SharedDefinitionType.MESSAGES, it)})") }
+        facets.signal?.let { writer.readonlyProperty(name = "Signal", type = CSharpRuntimeTypes.SIGNAL_NAME, initializer = "new(${nameArgument(SharedDefinitionType.SIGNALS, it)})") }
+        facets.error?.let { writer.readonlyProperty(name = "Error", type = CSharpRuntimeTypes.BPMN_ERROR_DEFINITION, initializer = "new(${namedCodeArguments(SharedDefinitionType.ERRORS, it)})") }
+        facets.escalation?.let { writer.readonlyProperty(name = "Escalation", type = CSharpRuntimeTypes.BPMN_ESCALATION_DEFINITION, initializer = "new(${namedCodeArguments(SharedDefinitionType.ESCALATIONS, it)})") }
         facets.attachedTo?.let { writer.expressionProperty(name = "AttachedTo", type = it.objectName, expression = "${it.objectName}.Instance") }
         facets.isInterrupting?.let { writer.expressionProperty(name = "IsInterrupting", type = "bool", expression = it.toString()) }
     }
@@ -59,11 +59,11 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         writer.readonlyProperty(name = "Variables", type = "NodeVariables", initializer = "new()")
         writer.sealedClass("NodeVariables") {
             variables.forEach { variable ->
-                val subtype = runtime("VariableName.${variable.subtype.simpleName}")
-                writer.readonlyProperty(name = variable.rawName.toPascalCase(), type = subtype, initializer = "new(Names.${variable.rawName.toPascalCase()})")
+                val subtype = "${CSharpRuntimeTypes.VARIABLE_NAME}.${variable.subtype.simpleName}"
+                writer.readonlyProperty(name = pascalCase(variable.rawName), type = subtype, initializer = "new(Names.${pascalCase(variable.rawName)})")
             }
             writer.staticClass("Names") {
-                variables.forEach { variable -> writer.constant(variable.rawName.toPascalCase(), variable.rawName) }
+                variables.forEach { variable -> writer.constant(pascalCase(variable.rawName), variable.rawName) }
             }
         }
     }
@@ -73,7 +73,7 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         writer.readonlyProperty(name = propertyName, type = holderName, initializer = "new()")
         writer.sealedClass(holderName) {
             mappings.forEach { mapping ->
-                writer.readonlyProperty(name = mapping.target.toPascalCase(), type = runtime("InputOutputMapping"), initializer = mappingInitializer(mapping))
+                writer.readonlyProperty(name = pascalCase(mapping.target), type = CSharpRuntimeTypes.INPUT_OUTPUT_MAPPING, initializer = mappingInitializer(mapping))
             }
         }
     }
@@ -90,7 +90,5 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         ?.let { sharedReference(type, it) }?.let { "$it.Reference, $it.Code" }
         ?: "${stringLiteral(shared.value.name)}, ${stringLiteral(shared.value.code)}"
 
-    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): String = "${type.typeName}.${disambiguated(constant.name.toPascalCase(), type.typeName)}"
-
-    private fun runtime(typeName: String): String = "${CSharpRuntimeTypes.CLASS_NAME}.$typeName"
+    private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): String = "${type.typeName}.${disambiguated(pascalCase(constant.name), type.typeName)}"
 }
