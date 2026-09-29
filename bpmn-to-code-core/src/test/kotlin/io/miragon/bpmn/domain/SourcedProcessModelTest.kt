@@ -1,5 +1,6 @@
 package io.miragon.bpmn.domain
 
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -28,5 +29,13 @@ class SourcedProcessModelTest {
         )
 
         assertThatCode { SourcedProcessModel.requireUniqueProcessIds(sources) }.doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `keeps only the processes marked executable`() {
+        val executable = SourcedProcessModel("bike-leasing.bpmn", testProcessModel(processId = "bike-leasing"))
+        val draft = SourcedProcessModel("draft.bpmn", testProcessModel(processId = "draft").copy(isExecutable = false))
+
+        assertThat(SourcedProcessModel.executableOnly(listOf(executable, draft))).containsExactly(executable)
     }
 }

@@ -22,10 +22,11 @@ class GenerateProcessApiInMemoryService(
 
     override fun generateProcessApi(command: GenerateProcessApiInMemoryUseCase.Command): List<GeneratedApiFile> {
         val validationService = BpmnValidationService(command.validationConfig)
-        val modelsAsFiles = toBpmnFiles(command)
-        val models = modelsAsFiles.map { bpmnService.extract(it, command.engine) }
+        val extractedModels = toBpmnFiles(command).map { SourcedProcessModel(it.fileName, bpmnService.extract(it, command.engine)) }
+        val sources = SourcedProcessModel.executableOnly(extractedModels)
+        val models = sources.map { it.model }
         validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
-        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(modelsAsFiles.zip(models, ::toSourcedModel))
+        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(sources)
         val mergedModels = ProcessModel.mergeByProcessId(models)
         validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toModelApi(command, it)) }
@@ -52,6 +53,4 @@ class GenerateProcessApiInMemoryService(
     private fun toBpmnFiles(command: GenerateProcessApiInMemoryUseCase.Command) = command.bpmnContents.map {
         BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray())
     }
-
-    private fun toSourcedModel(file: BpmnResource, model: ProcessModel) = SourcedProcessModel(file.fileName, model)
 }

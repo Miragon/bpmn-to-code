@@ -1,6 +1,5 @@
 package io.miragon.bpmn.application.service
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.engine.ExtractBpmnAdapter
 import io.miragon.bpmn.adapter.outbound.filesystem.BpmnFileLoader
@@ -12,7 +11,6 @@ import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.application.port.outbound.SaveProcessApiPort
 import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnModelApi
-import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
@@ -27,37 +25,24 @@ class GenerateProcessApiService(
     private val fileSystemOutput: SaveProcessApiPort = ProcessApiFileSaver(),
 ) : GenerateProcessApiFromFilesystemUseCase {
 
-    private val logger = KotlinLogging.logger {}
-
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
-        val extractedModels = inputFiles.map { it to bpmnService.extract(it, command.engine) }
-        val executableModels = filterExecutableProcesses(extractedModels)
-        val models = executableModels.map { (_, model) -> model }
+        val extractedModels = inputFiles.map { SourcedProcessModel(it.fileName, bpmnService.extract(it, command.engine)) }
+        val sources = SourcedProcessModel.executableOnly(extractedModels)
+        val models = sources.map { it.model }
         validationService.validate(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
-        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(toSourcedModels(executableModels))
+        if (!command.enableVariants) SourcedProcessModel.requireUniqueProcessIds(sources)
         val mergedModels = ProcessModel.mergeByProcessId(models)
         validationService.validate(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
         val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
         val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(mergedModels, command))
         val generatedFiles = (processFiles + sharedFiles).distinctBy { it.packagePath to it.fileName }
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
-        val filesByProcessId = executableModels
-            .groupBy({ (_, model) -> model.processId }, { (file, _) -> file.fileName })
+        val filesByProcessId = sources.groupBy({ it.model.processId }, { it.fileName })
         return mergedModels.map { model ->
             BpmnFileResult(processId = model.processId, sourceFiles = filesByProcessId[model.processId] ?: emptyList())
         }
-    }
-
-    private fun toSourcedModels(models: List<Pair<BpmnResource, ProcessModel>>) = models.map { (file, model) -> SourcedProcessModel(file.fileName, model) }
-
-    private fun filterExecutableProcesses(
-        extractedModels: List<Pair<BpmnResource, ProcessModel>>,
-    ): List<Pair<BpmnResource, ProcessModel>> = extractedModels.filter { (file, model) ->
-        val keep = model.isExecutable
-        if (!keep) logger.info { "Skipping '${model.processId}' (${file.fileName}): process is marked non-executable" }
-        keep
     }
 
     private fun toBpmnModelApi(
