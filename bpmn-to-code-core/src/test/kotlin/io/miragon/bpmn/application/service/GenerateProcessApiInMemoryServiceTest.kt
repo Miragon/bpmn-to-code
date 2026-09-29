@@ -133,5 +133,28 @@ class GenerateProcessApiInMemoryServiceTest {
         }
     }
 
+    @Test
+    fun `service generates only the executable process when mixed`() {
+        // given: one executable and one non-executable model
+        every { bpmnService.extract(match { it.fileName == "keep.bpmn" }, any()) } returns dummyModel
+        every { bpmnService.extract(match { it.fileName == "draft.bpmn" }, any()) } returns dummyModel.copy(processId = "draftProcess", isExecutable = false)
+        val command = GenerateProcessApiInMemoryUseCase.Command(
+            bpmnContents = listOf(
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>keep</bpmn>", processName = "keep.bpmn"),
+                GenerateProcessApiInMemoryUseCase.BpmnInput(bpmnXml = "<bpmn>draft</bpmn>", processName = "draft.bpmn"),
+            ),
+            packagePath = "com.example",
+            outputLanguage = OutputLanguage.KOTLIN,
+            engine = ProcessEngine.ZEEBE,
+        )
+
+        // when: generateProcessApi is called
+        underTest.generateProcessApi(command)
+
+        // then: only the executable process is generated, like on the filesystem path
+        verify(exactly = 1) { codeGenerator.generateCode(any()) }
+        verify { codeGenerator.generateCode(match { it.model.processId == "testProcess" }) }
+    }
+
     private val dummyModel = ProcessModel(processId = "testProcess", flowNodes = emptyList())
 }
