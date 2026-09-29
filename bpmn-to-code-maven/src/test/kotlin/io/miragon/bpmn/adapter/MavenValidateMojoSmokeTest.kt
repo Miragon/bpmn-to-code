@@ -28,10 +28,4 @@ class MavenValidateMojoSmokeTest {
         // when / then: executing the mojo does not throw
         assertThatCode { mojo.execute() }.doesNotThrowAnyException()
     }
-
-    private fun setField(obj: Any, name: String, value: Any) {
-        val field = obj.javaClass.getDeclaredField(name)
-        field.isAccessible = true
-        field.set(obj, value)
-    }
 }

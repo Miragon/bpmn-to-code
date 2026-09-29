@@ -48,11 +48,5 @@ class MavenMojoParameterTest {
             named("generate-bpmn-json", BpmnJsonMojo()),
             named("validate-bpmn", BpmnValidateMojo()),
         )
-
-        private fun setField(obj: Any, name: String, value: Any) {
-            val field = obj.javaClass.getDeclaredField(name)
-            field.isAccessible = true
-            field.set(obj, value)
-        }
     }
 }
