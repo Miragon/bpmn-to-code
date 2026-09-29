@@ -14,8 +14,7 @@ import org.junit.jupiter.api.Test
  * Guards that the activity facets of [#73](https://github.com/Miragon/bpmn-to-code/issues/73) and
  * [#74](https://github.com/Miragon/bpmn-to-code/issues/74) survive all the way into the published JSON.
  *
- * The golden fixtures use the subscription process, which has neither facet, so the mapper path for both is
- * only covered here. The parity assertion is the point of the redesign: the normalised layer stays the same
+ * The end-to-end goldens compare text only, so the mapper path for both facets is asserted structurally here. The parity assertion is the point of the redesign: the normalised layer stays the same
  * across engines, and only the expressions differ.
  */
 class ProcessJsonActivityFacetsTest {
@@ -25,19 +24,19 @@ class ProcessJsonActivityFacetsTest {
     @Test
     fun `multi-instance loop characteristics reach the json for every engine`() {
         // when
-        val documents = sendNewsletterPerEngine()
+        val documents = bikeLeasingPerEngine()
 
         // then: sequential and the element binding are engine-independent
         documents.forEach { (engine, document) ->
-            val loop = document.flowNode("serviceTask_sendToSubscriber")["multiInstance"]?.jsonObject
+            val loop = document.flowNode("serviceTask_issueInsurancePolicy")["multiInstance"]?.jsonObject
             assertThat(loop).describedAs("$engine multiInstance").isNotNull
             assertThat(loop?.text("sequential")).describedAs("$engine sequential").isEqualTo("true")
-            assertThat(loop?.text("inputElement")).describedAs("$engine inputElement").isEqualTo("subscriber")
+            assertThat(loop?.text("inputElement")).describedAs("$engine inputElement").isEqualTo("bikeId")
         }
 
         // and: a non-sequential loop is reported as such rather than omitted
         documents.forEach { (engine, document) ->
-            val loop = document.flowNode("serviceTask_notifyAuthor")["multiInstance"]?.jsonObject
+            val loop = document.flowNode("serviceTask_orderBike")["multiInstance"]?.jsonObject
             assertThat(loop?.text("sequential")).describedAs("$engine sequential").isEqualTo("false")
         }
     }
@@ -45,47 +44,47 @@ class ProcessJsonActivityFacetsTest {
     @Test
     fun `io mappings reach the json for every engine`() {
         // when
-        val documents = sendNewsletterPerEngine()
+        val documents = bikeLeasingPerEngine()
 
         // then: the parameter targets are normalised, the sources stay in the engine's own syntax
         documents.forEach { (engine, document) ->
-            val ioMapping = document.flowNode("serviceTask_loadSubscribers")["ioMapping"]?.jsonObject
+            val ioMapping = document.flowNode("serviceTask_sendContract")["ioMapping"]?.jsonObject
             assertThat(ioMapping).describedAs("$engine ioMapping").isNotNull
             val targets = ioMapping?.get("outputs")?.jsonArray?.map { it.jsonObject.text("target") }
-            assertThat(targets).describedAs("$engine output targets").containsExactly("subscribers", "author")
+            assertThat(targets).describedAs("$engine output targets").containsExactly("contractId")
         }
     }
 
     @Test
     fun `the zeebe output collection binding is preserved verbatim`() {
         // given: only Zeebe models an output collection, so it is asserted on its own
-        val document = sendNewsletterPerEngine().getValue(ProcessEngine.ZEEBE)
+        val document = bikeLeasingPerEngine().getValue(ProcessEngine.ZEEBE)
 
         // then
-        val loop = document.flowNode("serviceTask_notifyAuthor").getValue("multiInstance").jsonObject
-        assertThat(loop.text("inputCollection")).isEqualTo("=authors")
-        assertThat(loop.text("outputCollection")).isEqualTo("results")
-        assertThat(loop.text("outputElement")).isEqualTo("=result")
+        val loop = document.flowNode("serviceTask_orderBike").getValue("multiInstance").jsonObject
+        assertThat(loop.text("inputCollection")).isEqualTo("=bikeIds")
+        assertThat(loop.text("outputCollection")).isEqualTo("orderIds")
+        assertThat(loop.text("outputElement")).isEqualTo("=orderId")
     }
 
     @Test
     fun `activities without either facet omit both fields`() {
         // when
-        val document = sendNewsletterPerEngine().getValue(ProcessEngine.ZEEBE)
+        val document = bikeLeasingPerEngine().getValue(ProcessEngine.ZEEBE)
 
         // then: absent facets are omitted rather than serialised as null or as an empty object
-        val node = document.flowNode("serviceTask_sendToSubscriber")
+        val node = document.flowNode("serviceTask_issueInsurancePolicy")
         assertThat(node).doesNotContainKey("ioMapping")
-        assertThat(document.flowNode("serviceTask_loadSubscribers")).doesNotContainKey("multiInstance")
+        assertThat(document.flowNode("serviceTask_sendContract")).doesNotContainKey("multiInstance")
     }
 
     /**
-     * The send-newsletter fixture — the only one carrying both facets — generated for every engine.
+     * The bike-leasing fixture — the one carrying both facets — generated for every engine.
      */
-    private fun sendNewsletterPerEngine(): Map<ProcessEngine, JsonObject> = mapOf(
-        ProcessEngine.ZEEBE to generate(ProcessEngine.ZEEBE, "c8-send-newsletter"),
-        ProcessEngine.CAMUNDA_7 to generate(ProcessEngine.CAMUNDA_7, "c7-send-newsletter"),
-        ProcessEngine.OPERATON to generate(ProcessEngine.OPERATON, "operaton-send-newsletter"),
+    private fun bikeLeasingPerEngine(): Map<ProcessEngine, JsonObject> = mapOf(
+        ProcessEngine.ZEEBE to generate(ProcessEngine.ZEEBE, "zeebe/bike-leasing"),
+        ProcessEngine.CAMUNDA_7 to generate(ProcessEngine.CAMUNDA_7, "c7/bike-leasing"),
+        ProcessEngine.OPERATON to generate(ProcessEngine.OPERATON, "operaton/bike-leasing"),
     )
 
     private fun generate(engine: ProcessEngine, fixture: String): JsonObject {
@@ -98,9 +97,12 @@ class ProcessJsonActivityFacetsTest {
     }
 
     private fun JsonObject.flowNode(id: String): JsonObject = getValue("process").jsonObject
-        .getValue("flowNodes").jsonArray
-        .map { it.jsonObject }
+        .flowNodesDeep()
         .single { it.text("id") == id }
+
+    private fun JsonObject.flowNodesDeep(): List<JsonObject> = this["flowNodes"]?.jsonArray.orEmpty()
+        .map { it.jsonObject }
+        .flatMap { listOf(it) + it.flowNodesDeep() }
 
     private fun JsonObject.text(field: String): String? = this[field]?.jsonPrimitive?.content
 

@@ -21,9 +21,9 @@ class SingleModelRuleTest {
         @Test
         fun `passes when the call activity declares the required input targets`() {
             BpmnValidator
-                .fromClasspath("bpmn/c7-subscribe-newsletter.bpmn")
+                .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
-                .withRules(RequireCallActivityInputsRule(setOf("childSubscriptionId", "childReasonCode")))
+                .withRules(RequireCallActivityInputsRule(setOf("orderIds")))
                 .validate()
                 .assertNoViolations()
         }
@@ -31,13 +31,13 @@ class SingleModelRuleTest {
         @Test
         fun `flags a call activity missing a required input target`() {
             BpmnValidator
-                .fromClasspath("bpmn/c7-subscribe-newsletter.bpmn")
+                .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
                 .withRules(RequireCallActivityInputsRule(setOf("businessKey")))
                 .validate()
                 .assertViolation(
                     ruleId = "call-activity-required-inputs",
-                    elementId = "callActivity_abortRegistration",
+                    elementId = "callActivity_cancelBikeOrder",
                     messageContains = "businessKey",
                 )
         }
@@ -45,9 +45,9 @@ class SingleModelRuleTest {
         @Test
         fun `passes when the call activity declares the required output target`() {
             BpmnValidator
-                .fromClasspath("bpmn/c7-subscribe-newsletter.bpmn")
+                .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
-                .withRules(RequireCallActivityOutputsRule(setOf("abortResult")))
+                .withRules(RequireCallActivityOutputsRule(setOf("cancellationCosts")))
                 .validate()
                 .assertNoViolations()
         }
@@ -55,13 +55,13 @@ class SingleModelRuleTest {
         @Test
         fun `flags a call activity missing a required output target`() {
             BpmnValidator
-                .fromClasspath("bpmn/c7-subscribe-newsletter.bpmn")
+                .fromClasspath("bpmn/c7/bike-leasing.bpmn")
                 .engine(ProcessEngine.CAMUNDA_7)
                 .withRules(RequireCallActivityOutputsRule(setOf("missingResult")))
                 .validate()
                 .assertViolation(
                     ruleId = "call-activity-required-outputs",
-                    elementId = "callActivity_abortRegistration",
+                    elementId = "callActivity_cancelBikeOrder",
                     messageContains = "missingResult",
                 )
         }

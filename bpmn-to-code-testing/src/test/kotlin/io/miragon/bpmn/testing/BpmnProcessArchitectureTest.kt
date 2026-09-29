@@ -24,17 +24,14 @@ class BpmnProcessArchitectureTest {
         override val phase = ValidationPhase.PRE_MERGE
 
         override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.serviceTasks
-            .filter { task ->
-                val name = task.id ?: ""
-                !name.startsWith("Activity_") && !name.startsWith("Task_")
-            }
+            .filterNot { task -> task.id.orEmpty().startsWith("serviceTask_") }
             .map { task ->
                 ValidationViolation(
                     ruleId = id,
                     severity = severity,
                     elementId = task.id,
                     processId = context.model.processId,
-                    message = "Service task '${task.id}' should start with 'Activity_' or 'Task_'",
+                    message = "Service task '${task.id}' should start with 'serviceTask_'",
                 )
             }
     }
@@ -42,7 +39,7 @@ class BpmnProcessArchitectureTest {
     @Test
     fun `validate shared bpmn files with Camunda 7 using built-in and custom rules`() {
         val assert = BpmnValidator
-            .fromClasspath("bpmn/c7-subscribe-newsletter.bpmn")
+            .fromClasspath("bpmn/c7/bike-leasing.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(
                 BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION,
@@ -61,7 +58,7 @@ class BpmnProcessArchitectureTest {
     @Test
     fun `validate shared bpmn files with Zeebe`() {
         BpmnValidator
-            .fromClasspath("bpmn/c8-subscribe-newsletter.bpmn")
+            .fromClasspath("bpmn/zeebe/bike-leasing.bpmn")
             .engine(ProcessEngine.ZEEBE)
             .withRules(
                 BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION,
@@ -86,7 +83,7 @@ class BpmnProcessArchitectureTest {
     @Test
     fun `compose built-in and custom rules in single validation`() {
         BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.all() + ServiceTaskNamingRule())
             .validate()
@@ -96,7 +93,7 @@ class BpmnProcessArchitectureTest {
     @Test
     fun `result escape hatch provides raw ValidationResult`() {
         val result = BpmnValidator
-            .fromClasspath("bpmn/valid-process.bpmn")
+            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(BpmnRules.MISSING_SERVICE_TASK_IMPLEMENTATION)
             .validate()

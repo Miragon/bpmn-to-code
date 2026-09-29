@@ -10,5 +10,15 @@ import kotlin.Suppress
  * BPMN message names used to correlate messages to running process instances.
  */
 object Messages {
-  val MESSAGE_FORM_SUBMITTED: MessageName = MessageName("Message_FormSubmitted")
+  val MIRAVELO_ADDRESS_CHANGED: MessageName = MessageName("miravelo.addressChanged")
+
+  val MIRAVELO_APPLICATION_WITHDRAWN: MessageName =
+      MessageName("miravelo.applicationWithdrawn")
+
+  val MIRAVELO_CONTRACT_SIGNED: MessageName = MessageName("miravelo.contractSigned")
+
+  val MIRAVELO_HANDOVER_REPORTED: MessageName = MessageName("miravelo.handoverReported")
+
+  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName =
+      MessageName("miravelo.leasingRequestReceived")
 }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_operaton_nonexec"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="nonExecutableProcess" isExecutable="false">
+    <bpmn:startEvent id="startEvent_started" name="Start">
+      <bpmn:outgoing>flow_startedToEnded</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="flow_startedToEnded" sourceRef="startEvent_started" targetRef="endEvent_ended" />
+    <bpmn:endEvent id="endEvent_ended" name="End">
+      <bpmn:incoming>flow_startedToEnded</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="nonExecutableProcess">
+      <bpmndi:BPMNShape id="startEvent_started_di" bpmnElement="startEvent_started">
+        <dc:Bounds x="172" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_ended_di" bpmnElement="endEvent_ended">
+        <dc:Bounds x="272" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_startedToEnded_di" bpmnElement="flow_startedToEnded">
+        <di:waypoint x="208" y="118" />
+        <di:waypoint x="272" y="118" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

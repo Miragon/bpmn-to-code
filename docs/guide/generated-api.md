@@ -37,7 +37,7 @@ kind in its own file next to the Process APIs:
 
 Each value appears once, no matter how many processes use it, and a file is only generated when at least
 one process contains a matching element. Errors and escalations are named `NAME_CODE`
-(`ERROR_INVALID_MAIL_500`) because the engine matches them by code — the same name with another code is a
+(`MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID`) because the engine matches them by code — the same name with another code is a
 different error. Without a code the constant is named after the name alone.
 
 ::: warning One `packagePath` per generation run
@@ -48,7 +48,7 @@ give each run its own `packagePath`, or generate all related BPMN files in one r
 
 ## Full Example
 
-Given a newsletter subscription BPMN process, bpmn-to-code generates (abridged):
+Given the MiraVelo bike-leasing process ([`shared/bpmn/zeebe/bike-leasing.bpmn`](https://github.com/Miragon/bpmn-to-code/blob/main/shared/bpmn/zeebe/bike-leasing.bpmn)), bpmn-to-code generates (abridged):
 
 ::: code-group
 
@@ -71,74 +71,77 @@ import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.VariableName
 
-object NewsletterSubscriptionProcessApi {
-  val PROCESS_ID: ProcessId = ProcessId("newsletterSubscription")
+object BikeLeasingProcessApi {
+  val PROCESS_ID: ProcessId = ProcessId("bikeLeasing")
   val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
 
   object Flow {
-    object StartEventSubmitRegistrationForm : AbstractFlowNode(ElementId("startEvent_submitRegistrationForm"), "MESSAGE_START_EVENT", "Submit newsletter form"),
-        HasSuccessors<StartEventSubmitRegistrationForm.Next>, HasOutgoingFlows<StartEventSubmitRegistrationForm.OutgoingFlows> {
-      val message: MessageName = Messages.MESSAGE_FORM_SUBMITTED
+    object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), "MESSAGE_START_EVENT", "Leasing request received"),
+        HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows> {
+      val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
       override fun then(): Next = Next
       override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
-      object Variables { val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId") }
-      object Next { val serviceTaskIncrementSubscriptionCounter get() = ServiceTaskIncrementSubscriptionCounter }
+      object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output("applicationId") }
+      object Next { val serviceTaskValidateApplication get() = ServiceTaskValidateApplication }
       object OutgoingFlows {
-        val toServiceTaskIncrementSubscriptionCounter: SequenceFlow<ServiceTaskIncrementSubscriptionCounter>
-          get() = SequenceFlow(id = ElementId("flow_submitToIncrementCounter"), name = null, conditionExpression = null, isDefault = false, target = ServiceTaskIncrementSubscriptionCounter)
+        val toServiceTaskValidateApplication: SequenceFlow<ServiceTaskValidateApplication>
+          get() = SequenceFlow(id = ElementId("flow_leasingRequestReceivedToValidateApplication"), name = null, conditionExpression = null, isDefault = false, target = ServiceTaskValidateApplication)
       }
     }
 
-    object ServiceTaskSendConfirmationMail : AbstractFlowNode(ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK", "Send confirmation mail"),
-        HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasOutgoingFlows<ServiceTaskSendConfirmationMail.OutgoingFlows> {
-      const val JOB_TYPE: String = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL
+    object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), "SERVICE_TASK", "Send contract"),
+        HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
+      const val JOB_TYPE: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
       override fun then(): Next = Next
       override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
-      object Variables { val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId") }
-      object Next { val receiveTaskConfirmRegistration get() = ReceiveTaskConfirmRegistration }
+      object Variables {
+        val APPLICATION_ID: VariableName.Input = VariableName.Input("applicationId")
+        val CONTRACT_ID: VariableName.Output = VariableName.Output("contractId")
+      }
+      object Next { val gatewayAwaitSignature get() = GatewayAwaitSignature }
       object OutgoingFlows { /* one SequenceFlow per element it leads to, named to<Element> */ }
     }
 
-    object TimerEveryDay : AbstractFlowNode(ElementId("timer_everyDay"), "TIMER_BOUNDARY_EVENT", "Every day"),
-        HasSuccessors<TimerEveryDay.Next>, HasOutgoingFlows<TimerEveryDay.OutgoingFlows>, BoundaryEvent {
-      val timer: BpmnTimer = BpmnTimer("Duration", "PT1M")
-      val attachedTo: ReceiveTaskConfirmRegistration get() = ReceiveTaskConfirmRegistration
+    object TimerSignatureReminder : AbstractFlowNode(ElementId("timer_signatureReminder"), "TIMER_BOUNDARY_EVENT", "7 days passed"),
+        HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent {
+      val timer: BpmnTimer = BpmnTimer("Duration", "P7D")
+      val attachedTo: SubProcessConcludeContract get() = SubProcessConcludeContract
       val isInterrupting: Boolean = false
       // …
     }
 
-    object SubProcessConfirmation : AbstractFlowNode(ElementId("subProcess_confirmation"), "SUB_PROCESS", "Subscription Confirmation"),
-        HasSuccessors<SubProcessConfirmation.Next>, HasOutgoingFlows<SubProcessConfirmation.OutgoingFlows>, FlowScope<SubProcessConfirmation.Start> {
+    object SubProcessConcludeContract : AbstractFlowNode(ElementId("subProcess_concludeContract"), "SUB_PROCESS", "Conclude contract"),
+        HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
       override fun start(): Start = Start
-      object Start { val startEventRequestReceived get() = StartEventRequestReceived }
+      object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
       // …
     }
 
-    object EndEventRegistrationCompleted : AbstractFlowNode(ElementId("endEvent_registrationCompleted"), "END_EVENT", "Registration completed")
+    object EndEventLeasingActive : AbstractFlowNode(ElementId("endEvent_leasingActive"), "END_EVENT", "Leasing active")
     // … one nested object per element, including those inside subprocesses
   }
 }
 
 // ServiceTasks.kt — shared by all processes of the run
 object ServiceTasks {
-  const val NEWSLETTER_SEND_CONFIRMATION_MAIL: String = "#{newsletterSendConfirmationMail}"
-  const val NEWSLETTER_SEND_WELCOME_MAIL: String = "\${newsletterSendWelcomeMail}"
-  const val NEWSLETTER_REGISTRATION_COMPLETED: String = "newsletter.registrationCompleted"
+  const val MIRAVELO_SEND_CONTRACT: String = "miravelo.sendContract"
+  const val MIRAVELO_VALIDATE_APPLICATION: String = "miravelo.validateApplication"
+  // …
 }
 
 // Messages.kt
 object Messages {
-  val MESSAGE_FORM_SUBMITTED: MessageName = MessageName("Message_FormSubmitted")
+  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName = MessageName("miravelo.leasingRequestReceived")
 }
 
 // Errors.kt
 object Errors {
-  val ERROR_INVALID_MAIL_500: BpmnError = BpmnError("Error_InvalidMail", "500")
+  val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError = BpmnError("miravelo.applicationInvalid", "applicationInvalid")
 }
 
-// Signals.kt
-object Signals {
-  val SIGNAL_REGISTRATION_NOT_POSSIBLE: SignalName = SignalName("Signal_RegistrationNotPossible")
+// Escalations.kt
+object Escalations {
+  val MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED: BpmnEscalation = BpmnEscalation("miravelo.contractNotSigned", "contractNotSigned")
 }
 ```
 
@@ -148,35 +151,36 @@ package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.*;
 
-public final class NewsletterSubscriptionProcessApi {
-    public static final ProcessId PROCESS_ID = new ProcessId("newsletterSubscription");
+public final class BikeLeasingProcessApi {
+    public static final ProcessId PROCESS_ID = new ProcessId("bikeLeasing");
     public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
     public static final class Flow {
-        public static StartEventSubmitRegistrationForm startEventSubmitRegistrationForm() { return new StartEventSubmitRegistrationForm(); }
-        public static ServiceTaskSendConfirmationMail serviceTaskSendConfirmationMail() { return new ServiceTaskSendConfirmationMail(); }
+        public static StartEventLeasingRequestReceived startEventLeasingRequestReceived() { return new StartEventLeasingRequestReceived(); }
+        public static ServiceTaskSendContract serviceTaskSendContract() { return new ServiceTaskSendContract(); }
         // … one static accessor per element
 
-        public static final class ServiceTaskSendConfirmationMail extends AbstractFlowNode
-                implements HasSuccessors<ServiceTaskSendConfirmationMail.Next>, HasOutgoingFlows<ServiceTaskSendConfirmationMail.OutgoingFlows> {
-            public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_CONFIRMATION_MAIL;
+        public static final class ServiceTaskSendContract extends AbstractFlowNode
+                implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
+            public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_CONTRACT;
 
-            public ServiceTaskSendConfirmationMail() {
-                super(new ElementId("serviceTask_sendConfirmationMail"), "SERVICE_TASK", "Send confirmation mail");
+            public ServiceTaskSendContract() {
+                super(new ElementId("serviceTask_sendContract"), "SERVICE_TASK", "Send contract");
             }
 
             @Override public Next then() { return new Next(); }
             @Override public OutgoingFlows outgoingFlows() { return new OutgoingFlows(); }
 
             public static final class Variables {
-                public static final VariableName.Input SUBSCRIPTION_ID = new VariableName.Input("subscriptionId");
+                public static final VariableName.Input APPLICATION_ID = new VariableName.Input("applicationId");
+                public static final VariableName.Output CONTRACT_ID = new VariableName.Output("contractId");
             }
             public static final class Next {
-                public ReceiveTaskConfirmRegistration receiveTaskConfirmRegistration() { return new ReceiveTaskConfirmRegistration(); }
+                public GatewayAwaitSignature gatewayAwaitSignature() { return new GatewayAwaitSignature(); }
             }
             public static final class OutgoingFlows {
-                public SequenceFlow<ReceiveTaskConfirmRegistration> toReceiveTaskConfirmRegistration() {
-                    return new SequenceFlow<>(new ElementId("flow_confirmationMailToConfirm"), null, null, false, new ReceiveTaskConfirmRegistration());
+                public SequenceFlow<GatewayAwaitSignature> toGatewayAwaitSignature() {
+                    return new SequenceFlow<>(new ElementId("flow_sendContractToAwaitSignature"), null, null, false, new GatewayAwaitSignature());
                 }
             }
         }
@@ -186,7 +190,7 @@ public final class NewsletterSubscriptionProcessApi {
 
 // Messages.java — shared by all processes of the run
 public final class Messages {
-    public static final MessageName MESSAGE_FORM_SUBMITTED = new MessageName("Message_FormSubmitted");
+    public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
 }
 
 // ... same structure for ServiceTasks, Signals, Errors, Escalations
@@ -199,41 +203,42 @@ public final class Messages {
 #pragma warning disable CS1591
 namespace de.emaarco.example;
 
-public static class NewsletterSubscriptionProcessApi
+public static class BikeLeasingProcessApi
 {
-    public const string ProcessId = "newsletterSubscription";
+    public const string ProcessId = "bikeLeasing";
     public const string ProcessEngine = "ZEEBE";
 
     public static class Runtime { /* IFlowNode, SequenceFlow<T>, ElementId, VariableName, BpmnTimer, … inlined */ }
 
     public static class Flow
     {
-        public sealed class ServiceTaskSendConfirmationMail : Runtime.IFlowNode
+        public sealed class ServiceTaskSendContract : Runtime.IFlowNode
         {
-            public static readonly ServiceTaskSendConfirmationMail Instance = new();
-            private ServiceTaskSendConfirmationMail() { }
-            public const string JobType = ServiceTasks.NewsletterSendConfirmationMail;
+            public static readonly ServiceTaskSendContract Instance = new();
+            private ServiceTaskSendContract() { }
+            public const string JobType = ServiceTasks.MiraveloSendContract;
 
-            public Runtime.ElementId Id { get; } = new("serviceTask_sendConfirmationMail");
+            public Runtime.ElementId Id { get; } = new("serviceTask_sendContract");
             public string ElementType => "SERVICE_TASK";
-            public string? Name => "Send confirmation mail";
+            public string? Name => "Send contract";
 
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input SubscriptionId { get; } = new("subscriptionId");
+                public Runtime.VariableName.Input ApplicationId { get; } = new("applicationId");
+                public Runtime.VariableName.Output ContractId { get; } = new("contractId");
             }
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public ReceiveTaskConfirmRegistration ReceiveTaskConfirmRegistration => ReceiveTaskConfirmRegistration.Instance;
+                public GatewayAwaitSignature GatewayAwaitSignature => GatewayAwaitSignature.Instance;
             }
 
             public OutgoingSequenceFlows OutgoingFlows => new();
             public sealed class OutgoingSequenceFlows
             {
-                public Runtime.SequenceFlow<ReceiveTaskConfirmRegistration> ToReceiveTaskConfirmRegistration => new(new("flow_confirmationMailToConfirm"), null, null, false, ReceiveTaskConfirmRegistration.Instance);
+                public Runtime.SequenceFlow<GatewayAwaitSignature> ToGatewayAwaitSignature => new(new("flow_sendContractToAwaitSignature"), null, null, false, GatewayAwaitSignature.Instance);
             }
         }
         // …
@@ -243,10 +248,10 @@ public static class NewsletterSubscriptionProcessApi
 // ServiceTasks.cs — shared by all processes of the run
 public static class ServiceTasks
 {
-    public const string NewsletterSendConfirmationMail = "newsletter.sendConfirmationMail";
+    public const string MiraveloSendContract = "miravelo.sendContract";
 }
 
-// ... same structure for Messages, Signals, Errors (ErrorInvalidMail500.Reference / .Code), Escalations
+// ... same structure for Messages, Signals, Errors (MiraveloApplicationInvalidApplicationInvalid.Reference / .Code), Escalations
 ```
 
 :::
@@ -254,8 +259,8 @@ public static class ServiceTasks
 ## Flow — the process as typed nodes
 
 `Flow` holds **one node per element**, and every node is a direct child of `Flow` whatever its subprocess
-depth — so `Flow.StartEventRequestReceived` is addressed by its own name even though it sits inside
-`SubProcess_Confirmation`. Element names are derived from ids (`serviceTask_sendMail` → `ServiceTaskSendMail`),
+depth — so `Flow.StartEventCustomerEligible` is addressed by its own name even though it sits inside
+`subProcess_concludeContract`. Element names are derived from ids (`serviceTask_sendContract` → `ServiceTaskSendContract`),
 and the mandatory `collision-detection` and `reserved-element-name` rules guarantee they are unique and do
 not shadow the API itself.
 
@@ -275,9 +280,9 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | `outgoingFlows()` → `OutgoingFlows` | nodes with outgoing sequence flows | one `to<Element>` per element the flows lead to: a `SequenceFlow<Target>`, or a `List` when several flows lead there | `sequenceFlows[]` |
 | `start()` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
 
-Java mirrors the shape with methods: `Flow.serviceTaskSendConfirmationMail().then()`, facets as public
+Java mirrors the shape with methods: `Flow.serviceTaskSendContract().then()`, facets as public
 final fields (`.timer`, `.calledProcess`), `attachedTo()` as a method, and `JOB_TYPE` as a
-`public static final String`. C# reaches a node through its singleton, `Flow.ServiceTaskSendConfirmationMail.Instance`,
+`public static final String`. C# reaches a node through its singleton, `Flow.ServiceTaskSendContract.Instance`,
 and keeps `JobType` a `const` on the class.
 
 ::: tip `ServiceTasks.X` or `Flow.X.JOB_TYPE`?
@@ -298,17 +303,17 @@ as `Flow_1csfyyz`. Each entry is a `SequenceFlow<Target>` carrying the flow's `i
 `target`.
 
 ```kotlin
-val flows = Flow.GatewayHasSubscribers.outgoingFlows()
+val flows = Flow.GatewayIsSolvent.outgoingFlows()
 
-assertThat(flows.toEndEventNoSubscribers.conditionExpression).isEqualTo("=subscribers.size() > 0")
-assertThat(flows.toEndEventNoSubscribers.target).isEqualTo(Flow.EndEventNoSubscribers)
-assertThat(flows.toServiceTaskSendToSubscriber.isDefault).isTrue()
+assertThat(flows.toGatewayCollectRejections.conditionExpression).isEqualTo("=not(solvent)")
+assertThat(flows.toGatewayCollectRejections.target).isEqualTo(Flow.GatewayCollectRejections)
+assertThat(flows.toSubProcessConcludeContract.isDefault).isTrue()
 ```
 
 ```java
-var flows = Flow.gatewayHasSubscribers().outgoingFlows();
-assertThat(flows.toEndEventNoSubscribers().getConditionExpression()).isEqualTo("=subscribers.size() > 0");
-assertThat(flows.toServiceTaskSendToSubscriber().isDefault()).isTrue();
+var flows = Flow.gatewayIsSolvent().outgoingFlows();
+assertThat(flows.toGatewayCollectRejections().getConditionExpression()).isEqualTo("=not(solvent)");
+assertThat(flows.toSubProcessConcludeContract().isDefault()).isTrue();
 ```
 
 When **several sequence flows lead to the same element**, the entry keeps its name and becomes a list —
@@ -331,14 +336,14 @@ doesn't compile**: regenerate after a model change and the affected step breaks 
 A subprocess additionally implements `FlowScope` and opens its interior via `start()`.
 
 ```kotlin
-object SubProcessConfirmation :
-    AbstractFlowNode(ElementId("subProcess_confirmation"), "SUB_PROCESS", "Subscription Confirmation"),
-    HasSuccessors<SubProcessConfirmation.Next>, HasOutgoingFlows<SubProcessConfirmation.OutgoingFlows>, FlowScope<SubProcessConfirmation.Start> {
+object SubProcessConcludeContract :
+    AbstractFlowNode(ElementId("subProcess_concludeContract"), "SUB_PROCESS", "Conclude contract"),
+    HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
   override fun then(): Next = Next                          // what follows the subprocess (+ its boundary events)
   override fun outgoingFlows(): OutgoingFlows = OutgoingFlows  // its outgoing sequence flow(s)
   override fun start(): Start = Start     // the interior's start event(s)
-  object Next { val gatewaySplitNotifications get() = GatewaySplitNotifications; val timerAfter3Days get() = TimerAfter3Days }
-  object Start { val startEventRequestReceived get() = StartEventRequestReceived }
+  object Next { val gatewayFork get() = GatewayFork; val timerSignatureReminder get() = TimerSignatureReminder /* … */ }
+  object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
 }
 ```
 
@@ -363,21 +368,26 @@ import io.miragon.bpmn.runtime.path.then
 import io.miragon.bpmn.runtime.path.onto
 import io.miragon.bpmn.runtime.path.enter
 import io.miragon.bpmn.runtime.path.inside
-import de.myapp.NewsletterSubscriptionProcessApi.Flow
+import de.myapp.BikeLeasingProcessApi.Flow
 
-val path = ProcessPath.from(Flow.StartEventSubmitRegistrationForm)
-    .then { it.serviceTaskIncrementSubscriptionCounter }
-    .onto { it.subProcessConfirmation }                     // step onto the subprocess (checked, not recorded)
+val path = ProcessPath.from(Flow.StartEventLeasingRequestReceived)
+    .then { it.serviceTaskValidateApplication }
+    .then { it.businessRuleTaskCheckCreditRating }
+    .then { it.gatewayIsSolvent }
+    .onto { it.subProcessConcludeContract }                 // step onto the subprocess (checked, not recorded)
     .inside {                                               // walk its interior, resume on the subprocess node
-        enter { it.startEventRequestReceived }
-            .then { it.serviceTaskSendConfirmationMail }
-            .then { it.receiveTaskConfirmRegistration }
-            .then { it.endEventSubscriptionConfirmed }
+        enter { it.startEventCustomerEligible }
+            .then { it.serviceTaskSendContract }
+            .then { it.gatewayAwaitSignature }
+            .then { it.eventContractSigned }
+            .then { it.endEventContractConcluded }
     }
-    .then { it.gatewaySplitNotifications }                  // checked — continues after the subprocess
-    .then { it.serviceTaskSendWelcomeMail }
-    .then { it.gatewayJoinNotifications }
-    .then { it.endEventRegistrationCompleted }
+    .then { it.gatewayFork }                                // checked — continues after the subprocess
+    .then { it.serviceTaskOrderBike }
+    .then { it.gatewayJoin }
+    .then { it.receiveTaskHandoverReported }
+    .then { it.timerWithdrawalPeriodElapsed }
+    .then { it.endEventLeasingActive }
 
 assertThat(instance).isEnded.hasPassedInOrder(*path.ids.toTypedArray())
 ```
@@ -396,8 +406,8 @@ needed to get hold of the start event.
 - **Leave a subprocess** — a **normal** full walk uses `inside { enter { it.start } … }`: it walks the interior
   and resumes on the subprocess node, so the following `then { it.continuation }` is checked and needs no
   subprocess name (it nests — each inner subprocess is its own `onto { … }.inside { … }`). A **boundary**
-  interruption uses `interruptedBy(Flow.SubProcess) { it.timerAfter3Days }` — the token leaves the interior
-  *early* via the boundary (interrupting timers, error boundaries), which is why it's a re-anchor and can't be
+  interruption uses `interruptedBy(Flow.SubProcessConcludeContract) { it.boundaryContractNotSigned }` — the token leaves the interior
+  *early* via the boundary (interrupting timers, error and escalation boundaries), which is why it's a re-anchor and can't be
   expressed with `inside`.
 - **Escape hatch** — `jumpTo(node)` re-anchors to any node without checking adjacency and without recording it
   (e.g. stepping back to a parallel fork). It is gated behind `@RiskyNavigation` (`@OptIn` required), so it
@@ -407,17 +417,15 @@ needed to get hold of the start event.
   `hasPassed`:
 
 ```kotlin
-val welcomeBranch = ProcessPath.from(Flow.GatewaySplitNotifications)
-    .then { it.serviceTaskSendWelcomeMail }
-    .then { it.gatewayJoinNotifications }
-    .then { it.endEventRegistrationCompleted }
+val orderBranch = ProcessPath.from(Flow.GatewayFork)
+    .then { it.serviceTaskOrderBike }
+    .then { it.gatewayJoin }
     .nodes
-val notifyBranch = ProcessPath.from(Flow.GatewaySplitNotifications)
-    .then { it.serviceTaskNotifyCommunity }
-    .then { it.gatewayJoinNotifications }
-    .then { it.endEventRegistrationCompleted }
+val insuranceBranch = ProcessPath.from(Flow.GatewayFork)
+    .then { it.serviceTaskIssueInsurancePolicy }
+    .then { it.gatewayJoin }
     .nodes
-assertThat(pi).hasPassed(*nodesOf(welcomeBranch, notifyBranch).map { it.id.value }.toTypedArray())
+assertThat(pi).hasPassed(*nodesOf(orderBranch, insuranceBranch).map { it.id.value }.toTypedArray())
 ```
 
 > The guarantee is **structural single-step adjacency**, not token-accurate reachability (a valid path is one
@@ -430,12 +438,12 @@ element — walk it with `via`. The lambda's `it` is the node's `OutgoingFlows`;
 as usual and the flow itself in `flowIds`, ready to compare against the engine's taken sequence flows:
 
 ```kotlin
-val path = ProcessPath.from(Flow.StartEvent)
-    .then { it.gatewayHasSubscribers }
-    .via { it.toEndEventNoSubscribers }
+val path = ProcessPath.from(Flow.BusinessRuleTaskCheckCreditRating)
+    .then { it.gatewayIsSolvent }
+    .via { it.toGatewayCollectRejections }
 
-assertThat(path.ids).containsExactly("startEvent", "gateway_hasSubscribers", "endEvent_noSubscribers")
-assertThat(path.flowIds).containsExactly("flow_noSubscribers")
+assertThat(path.ids).containsExactly("businessRuleTask_checkCreditRating", "gateway_isSolvent", "gateway_collectRejections")
+assertThat(path.flowIds).containsExactly("flow_isSolventToCollectRejections")
 
 // several flows to the same element: pick one
 .via { it.toTaskApprove.first { flow -> flow.conditionExpression == "=customer.isVip" } }
@@ -449,19 +457,22 @@ Java's entry point is **`PathWalk`** — a fluent, chained, compile-checked faca
 step's `n` is the current node's `Next`, so only a real successor compiles):
 
 ```java
-var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
-    .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-    .end(n -> n.endEventRegistrationCompleted())
+var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
+    .then(n -> n.serviceTaskValidateApplication())
+    .then(n -> n.boundaryApplicationInvalid())
+    .then(n -> n.gatewayCollectRejections())
+    .then(n -> n.serviceTaskSendRejection())
+    .end(n -> n.endEventApplicationRejected())
     .getIds();
 ```
 
 `via` / `endVia` walk a sequence flow; Java cannot name the node's `OutgoingFlows` type in the step, so the
-lambda receives the current node: `.via(n -> n.outgoingFlows().toSubProcessConfirmation())`, and `getFlowIds()`
+lambda receives the current node: `.via(n -> n.outgoingFlows().toSubProcessConcludeContract())`, and `getFlowIds()`
 returns the flows walked this way.
 
 Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end` (an end event can't continue
-a chain) and subprocess descent names the subprocess explicitly (`enter(Flow.subProcessConfirmation(), …)` /
-`inside(Flow.subProcessConfirmation(), …)`). The raw extension steps are also reachable from Java as static calls
+a chain) and subprocess descent names the subprocess explicitly (`enter(Flow.subProcessConcludeContract(), …)` /
+`inside(Flow.subProcessConcludeContract(), …)`). The raw extension steps are also reachable from Java as static calls
 (`ProcessPathStepsKt.then(path, n -> n.x())`) — checked but not fluent; prefer `PathWalk`.
 
 ## Variables with Direction
@@ -473,15 +484,16 @@ compile-time direction enforcement.
 
 ```kotlin
 object Flow {
-  object ServiceTaskSendConfirmationMail : /* … */ {
+  object ServiceTaskSendContract : /* … */ {
     object Variables {
-      val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId")
+      val APPLICATION_ID: VariableName.Input = VariableName.Input("applicationId")
+      val CONTRACT_ID: VariableName.Output = VariableName.Output("contractId")
     }
   }
 
-  object StartEventSubmitRegistrationForm : /* … */ {
+  object StartEventLeasingRequestReceived : /* … */ {
     object Variables {
-      val SUBSCRIPTION_ID: VariableName.Output = VariableName.Output("subscriptionId")
+      val APPLICATION_ID: VariableName.Output = VariableName.Output("applicationId")
     }
   }
 }
@@ -499,20 +511,21 @@ scope) together with its `source` / `sourceExpression` (the origin). Constant na
 
 ```kotlin
 object Flow {
-  object CallActivityAbortRegistration : /* … */ {
-    val calledProcess: ProcessId = ProcessId("abort-registration")
+  object CallActivityCancelBikeOrder : /* … */ {
+    val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
 
     object Variables {
-      val SUBSCRIPTION_ID: VariableName.Input = VariableName.Input("subscriptionId")   // the parent-scope view
+      val ORDER_IDS: VariableName.Input = VariableName.Input("orderIds")   // the parent-scope view
+      // …
     }
 
     object Inputs {
-      val CHILD_SUBSCRIPTION_ID: InputOutputMapping = InputOutputMapping(target = "childSubscriptionId", source = "subscriptionId")
-      val CHILD_REASON_CODE: InputOutputMapping = InputOutputMapping(target = "childReasonCode", sourceExpression = "\${reasonCode}")
+      val ORDER_IDS: InputOutputMapping = InputOutputMapping(target = "orderIds", source = "orderIds")
+      val APPLICATION_ID: InputOutputMapping = InputOutputMapping(target = "applicationId", sourceExpression = "\${applicationId}")
     }
 
     object Outputs {
-      val ABORT_RESULT: InputOutputMapping = InputOutputMapping(target = "abortResult", source = "childAbortResult")
+      val CANCELLATION_COSTS: InputOutputMapping = InputOutputMapping(target = "cancellationCosts", source = "cancellationCosts")
     }
   }
 }

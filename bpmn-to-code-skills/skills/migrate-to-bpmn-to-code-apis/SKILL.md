@@ -58,7 +58,7 @@ For each generated API file, extract a lookup table of string values mapped to t
 - **Java `final class`**: `public static final String NAME = "value";` (plain string), `public static final ElementId NAME = new ElementId("value");` and the same wrappers; node ids sit in the constructor `super(new ElementId("value"), …)` of each `Flow` node class.
 - **C# `static class`**: `public const string Name = "value";` (plain string); `Runtime.ElementId Id { get; } = new("value")` on each node class; `Runtime.VariableName.Input Name { get; } = new("value")` inside `NodeVariables`; `Runtime.InputOutputMapping Name { get; } = new("value", …)` inside `InputMappings` / `OutputMappings`.
 - The shared definition files hold one top-level type each (`ServiceTasks`, `Messages`, `Signals`, `Errors`, `Escalations`), with the same constant shapes.
-- Record the fully qualified reference path, for example `NewsletterSubscriptionProcessApi.Flow.ServiceTaskSendMail.Variables.SUBSCRIPTION_ID` or `ServiceTasks.NEWSLETTER_SEND_MAIL`.
+- Record the fully qualified reference path, for example `BikeLeasingProcessApi.Flow.ServiceTaskSendContract.Variables.APPLICATION_ID` or `ServiceTasks.MIRAVELO_SEND_CONTRACT`.
 - Also record the package / namespace of each API file for import management.
 
 **Skip composite values** (`BpmnTimer`, `BpmnError`, `BpmnEscalation`, `SequenceFlow`) — they carry more than one string and are not direct replacements.
@@ -90,16 +90,16 @@ Group the proposed replacements by file and present a summary table:
 ### src/main/kotlin/com/example/MyService.kt
 | Line | Current | Replacement |
 |------|---------|-------------|
-| 24   | "newsletterSubscription" | NewsletterSubscriptionProcessApi.PROCESS_ID |
-| 31   | "subscriptionId" | NewsletterSubscriptionProcessApi.Flow.ServiceTaskSendMail.Variables.SUBSCRIPTION_ID.value |
+| 24   | "bikeLeasing" | BikeLeasingProcessApi.PROCESS_ID |
+| 31   | "applicationId" | BikeLeasingProcessApi.Flow.ServiceTaskSendContract.Variables.APPLICATION_ID.value |
 
 ### src/main/kotlin/com/example/AnotherService.kt
 | Line | Current | Replacement |
 |------|---------|-------------|
-| 12   | "Message_FormSubmitted" | Messages.MESSAGE_FORM_SUBMITTED |
+| 12   | "miravelo.contractSigned" | Messages.MIRAVELO_CONTRACT_SIGNED |
 
 **Imports to add:**
-- `MyService.kt` → `import com.example.api.NewsletterSubscriptionProcessApi`
+- `MyService.kt` → `import com.example.api.BikeLeasingProcessApi`
 - `AnotherService.kt` → `import com.example.api.Messages`
 
 **Total: 3 replacements across 2 files**

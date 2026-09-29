@@ -50,11 +50,11 @@ class ProcessJsonSchemaTest {
     fun `golden json fixtures conform to the published schema`() {
         // given: the committed fixtures, which also cover the merged multi-variant shape
         val goldenFiles = listOf(
-            "/json/NewsletterSubscriptionProcess.json",
-            "/json/MultiVariantNewsletterProcess.json",
-            "/json/e2e/c8-subscribe-newsletter.json",
-            "/json/e2e/c7-subscribe-newsletter.json",
-            "/json/e2e/operaton-subscribe-newsletter.json",
+            "/json/BikeLeasingProcess.json",
+            "/json/MultiVariantCancelBikeOrderProcess.json",
+            "/json/e2e/zeebe/bike-leasing.json",
+            "/json/e2e/c7/bike-leasing.json",
+            "/json/e2e/operaton/bike-leasing.json",
         )
 
         // then
@@ -92,15 +92,15 @@ class ProcessJsonSchemaTest {
     fun `a message correlation key is declared once, on the message it belongs to`() {
         // given: a Zeebe process whose zeebe:subscription sits on the bpmn:Message root element
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
-            bpmnXml = readResource("/bpmn/c8-subscribe-newsletter.bpmn"),
-            processName = "c8-subscribe-newsletter",
+            bpmnXml = readResource("/bpmn/zeebe/bike-leasing.bpmn"),
+            processName = "bike-leasing",
         )
         val generated = underTest.execute(listOf(input), ProcessEngine.ZEEBE).single()
 
         // then: it is a property of the entity, not repeated on every referencing event
         val document = mapper.readTree(generated.content)
-        val message = document.at("/definitions/messages").single { it["name"].asText() == "Message_SubscriptionConfirmed" }
-        assertThat(message["correlationKey"].asText()).isEqualTo("=subscriptionId")
+        val message = document.at("/definitions/messages").single { it["name"].asText() == "miravelo.contractSigned" }
+        assertThat(message["correlationKey"].asText()).isEqualTo("=applicationId")
         assertThat(generated.content).doesNotContain("\"subscription\"")
     }
 
@@ -160,24 +160,16 @@ class ProcessJsonSchemaTest {
         "escalationRef",
     )
 
-    private val zeebeFixtures = listOf(
-        "c8-subscribe-newsletter",
-        "c8-send-newsletter",
-        "c8-non-executable",
+    private val miraVeloModels = listOf(
+        "bike-leasing",
+        "cancel-bike-order",
+        "membership",
+        "welcome-package",
     )
 
-    private val camunda7Fixtures = listOf(
-        "c7-subscribe-newsletter",
-        "c7-send-newsletter",
-        "c7-additional-variables",
-        "c7-non-executable",
-        "c7-no-executable-attr",
-    )
+    private val zeebeFixtures = (miraVeloModels + "non-executable").map { "zeebe/$it" }
 
-    private val operatonFixtures = listOf(
-        "operaton-subscribe-newsletter",
-        "operaton-send-newsletter",
-        "operaton-additional-variables",
-        "operaton-non-executable",
-    )
+    private val camunda7Fixtures = (miraVeloModels + "non-executable" + "no-executable-attr").map { "c7/$it" }
+
+    private val operatonFixtures = (miraVeloModels + "non-executable").map { "operaton/$it" }
 }

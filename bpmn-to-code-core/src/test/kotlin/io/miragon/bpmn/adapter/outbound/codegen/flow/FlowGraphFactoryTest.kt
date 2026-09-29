@@ -1,6 +1,5 @@
 package io.miragon.bpmn.adapter.outbound.codegen.flow
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.buildSubscribeNewsletterFlowNodes
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NamedCode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
@@ -19,66 +18,61 @@ import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
+import io.miragon.bpmn.domain.testBikeLeasingModel
+import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessModel
-import io.miragon.bpmn.domain.testSendNewsletterModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterModel
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class FlowGraphFactoryTest {
 
-    private val subscribeModel = testSubscribeNewsletterModel(
-        flowNodes = buildSubscribeNewsletterFlowNodes(
-            confirmationMailImpl = "#{sendConfirmation}",
-            welcomeMailImpl = "#{sendWelcome}",
-            registrationCompletedImpl = "newsletter.completed",
-            notifyCommunityImpl = "newsletter.notifyCommunity",
-        ),
-    )
+    private val leasingModel = testBikeLeasingModel()
 
-    private val subscribeGraph = FlowGraphFactory.build(subscribeModel)
+    private val leasingGraph = FlowGraphFactory.build(leasingModel)
+
+    private val cancellationGraph = FlowGraphFactory.build(testCancelBikeOrderModel())
 
     @Test
     fun `every node of every scope is a direct entry, sorted by object name`() {
-        // given: five nodes live inside subProcess_confirmation -> they are still flat siblings of the root nodes
-        assertThat(subscribeGraph.nodes.map { it.propertyName })
-            .contains("subProcessConfirmation", "startEventSubmitRegistrationForm", "serviceTaskIncrementSubscriptionCounter")
-            .contains("receiveTaskConfirmRegistration", "startEventRequestReceived", "timerEveryDay")
-        assertThat(subscribeGraph.nodes.map { it.objectName }).isSorted()
-        assertThat(subscribeGraph.nodes).hasSize(subscribeModel.allFlowNodes.size)
+        // given: seven nodes live inside subProcess_concludeContract -> they are still flat siblings of the root nodes
+        assertThat(leasingGraph.nodes.map { it.propertyName })
+            .contains("subProcessConcludeContract", "startEventLeasingRequestReceived", "serviceTaskValidateApplication")
+            .contains("startEventCustomerEligible", "serviceTaskSendContract", "timerSignatureDeadline")
+        assertThat(leasingGraph.nodes.map { it.objectName }).isSorted()
+        assertThat(leasingGraph.nodes).hasSize(leasingModel.allFlowNodes.size)
     }
 
     @Test
     fun `sequence-flow and boundary edges are unified as target-named successors`() {
-        // given: subProcess_confirmation follows into the notification split gateway and has two boundary events attached
-        assertThat(subscribeGraph.node("subProcessConfirmation").successors.map { it.propertyName })
-            .containsExactly("errorEventInvalidMail", "gatewaySplitNotifications", "timerAfter3Days")
+        // given: subProcess_concludeContract follows into the fork gateway and has three boundary events attached
+        assertThat(leasingGraph.node("subProcessConcludeContract").successors.map { it.propertyName })
+            .containsExactly("boundaryCompensateContract", "boundaryContractNotSigned", "gatewayFork", "timerSignatureReminder")
 
-        // and: the service task follows into the subprocess and carries a compensation boundary
-        assertThat(subscribeGraph.node("serviceTaskIncrementSubscriptionCounter").successors.map { it.propertyName })
-            .containsExactly("compensationEventOnSubscriptionCounter", "subProcessConfirmation")
+        // and: the service task follows into the credit rating and carries an error boundary
+        assertThat(leasingGraph.node("serviceTaskValidateApplication").successors.map { it.propertyName })
+            .containsExactly("boundaryApplicationInvalid", "businessRuleTaskCheckCreditRating")
 
         // boundary event is itself a node whose successor is the escape target
-        assertThat(subscribeGraph.node("errorEventInvalidMail").successors.map { it.propertyName })
-            .containsExactly("endEventRegistrationNotPossible")
+        assertThat(leasingGraph.node("boundaryApplicationInvalid").successors.map { it.propertyName })
+            .containsExactly("gatewayCollectRejections")
     }
 
     @Test
     fun `subprocess points at its interior start events while interior edges stay on the interior nodes`() {
-        assertThat(subscribeGraph.node("subProcessConfirmation").interiorStarts.map { it.propertyName })
-            .containsExactly("startEventRequestReceived")
-        assertThat(subscribeGraph.node("startEventRequestReceived").isStart).isTrue()
-        assertThat(subscribeGraph.node("startEventRequestReceived").successors.map { it.propertyName })
-            .containsExactly("serviceTaskSendConfirmationMail")
-        assertThat(subscribeGraph.node("receiveTaskConfirmRegistration").successors.map { it.propertyName })
-            .containsExactly("endEventSubscriptionConfirmed", "timerEveryDay")
+        assertThat(leasingGraph.node("subProcessConcludeContract").interiorStarts.map { it.propertyName })
+            .containsExactly("startEventCustomerEligible")
+        assertThat(leasingGraph.node("startEventCustomerEligible").isStart).isTrue()
+        assertThat(leasingGraph.node("startEventCustomerEligible").successors.map { it.propertyName })
+            .containsExactly("serviceTaskSendContract")
+        assertThat(leasingGraph.node("gatewayAwaitSignature").successors.map { it.propertyName })
+            .containsExactly("eventContractSigned", "timerSignatureDeadline")
     }
 
     @Test
     fun `nodes outside a subprocess and the root start event have no interior starts`() {
-        assertThat(subscribeGraph.node("startEventSubmitRegistrationForm").isStart).isTrue()
-        assertThat(subscribeGraph.node("startEventSubmitRegistrationForm").interiorStarts).isEmpty()
-        assertThat(subscribeGraph.node("callActivityAbortRegistration").interiorStarts).isEmpty()
+        assertThat(leasingGraph.node("startEventLeasingRequestReceived").isStart).isTrue()
+        assertThat(leasingGraph.node("startEventLeasingRequestReceived").interiorStarts).isEmpty()
+        assertThat(leasingGraph.node("callActivityCancelBikeOrder").interiorStarts).isEmpty()
     }
 
     @Test
@@ -120,67 +114,86 @@ class FlowGraphFactoryTest {
 
     @Test
     fun `node exposes id, flat element type and optional display name`() {
-        val serviceTask = subscribeGraph.node("serviceTaskIncrementSubscriptionCounter")
+        val serviceTask = leasingGraph.node("serviceTaskValidateApplication")
 
-        assertThat(serviceTask.id).isEqualTo("serviceTask_incrementSubscriptionCounter")
+        assertThat(serviceTask.id).isEqualTo("serviceTask_validateApplication")
         assertThat(serviceTask.elementType).isEqualTo("SERVICE_TASK")
-        assertThat(serviceTask.objectName).isEqualTo("ServiceTaskIncrementSubscriptionCounter")
-        assertThat(serviceTask.name).isNull() // no displayName in the model
+        assertThat(serviceTask.objectName).isEqualTo("ServiceTaskValidateApplication")
+        assertThat(serviceTask.name).isEqualTo("Validate application")
 
-        // receiveTaskConfirmRegistration declares displayName "Confirm registration"
-        assertThat(subscribeGraph.node("receiveTaskConfirmRegistration").name).isEqualTo("Confirm registration")
+        // the fork gateway carries no name in the model
+        assertThat(leasingGraph.node("gatewayFork").name).isNull()
     }
 
     // --- Facets ---------------------------------------------------------------------------------------------
 
     @Test
     fun `service task carries its job type and directional variables`() {
-        val facets = subscribeGraph.node("serviceTaskSendWelcomeMail").facets
+        val facets = leasingGraph.node("serviceTaskSendContract").facets
 
-        assertThat(facets.jobType?.value).isEqualTo("#{sendWelcome}")
-        assertThat(facets.variables).singleElement().satisfies({
-            assertThat(it.constantName).isEqualTo("SUBSCRIPTION_ID")
-            assertThat(it.rawName).isEqualTo("subscriptionId")
-            assertThat(it.subtype).isEqualTo(VariableNameSubtype.IN_OUT)
-        })
+        assertThat(facets.jobType?.value).isEqualTo("\${sendContractDelegate}")
+        assertThat(facets.variables.associate { it.rawName to it.subtype }).containsExactlyInAnyOrderEntriesOf(
+            mapOf(
+                "applicationId" to VariableNameSubtype.INPUT,
+                "contractId" to VariableNameSubtype.OUTPUT,
+            ),
+        )
         assertThat(facets.calledProcessId).isNull()
         assertThat(facets.timer).isNull()
     }
 
     @Test
-    fun `end event with a job worker implementation carries the job type too`() {
-        assertThat(subscribeGraph.node("endEventRegistrationCompleted").facets.jobType?.value).isEqualTo("newsletter.completed")
-        assertThat(subscribeGraph.node("serviceTaskDecrementSubscriptionCounter").facets.jobType?.value).isEqualTo("counterClass")
+    fun `a variable read and written by the same node is an in-out variable`() {
+        val facets = leasingGraph.node("userTaskUpdateDeliveryAddress").facets
+
+        assertThat(facets.variables).singleElement().satisfies({
+            assertThat(it.constantName).isEqualTo("DELIVERY_ADDRESS")
+            assertThat(it.rawName).isEqualTo("deliveryAddress")
+            assertThat(it.subtype).isEqualTo(VariableNameSubtype.IN_OUT)
+        })
+    }
+
+    @Test
+    fun `end event with a message implementation carries the job type too`() {
+        assertThat(cancellationGraph.node("endEventBikeOrderCancelled").facets.jobType?.value).isEqualTo("miravelo.bikeOrderCancelled")
+        assertThat(leasingGraph.node("serviceTaskCancelContract").facets.jobType?.value).isEqualTo("\${cancelContractDelegate}")
     }
 
     @Test
     fun `job type points at its shared ServiceTasks constant`() {
-        assertThat(subscribeGraph.node("endEventRegistrationCompleted").facets.jobType)
-            .isEqualTo(SharedValue("newsletter.completed", SharedConstant(name = "NEWSLETTER_COMPLETED", rawName = "newsletter.completed")))
+        assertThat(cancellationGraph.node("endEventBikeOrderCancelled").facets.jobType)
+            .isEqualTo(SharedValue("miravelo.bikeOrderCancelled", SharedConstant(name = "MIRAVELO_BIKE_ORDER_CANCELLED", rawName = "miravelo.bikeOrderCancelled")))
     }
 
     @Test
     fun `call activity carries the called process and its sorted input and output mappings`() {
-        val facets = subscribeGraph.node("callActivityAbortRegistration").facets
+        val facets = leasingGraph.node("callActivityCancelBikeOrder").facets
 
-        assertThat(facets.calledProcessId).isEqualTo("abort-registration")
-        assertThat(facets.inputs.map { it.constantName }).containsExactly("CHILD_REASON_CODE", "CHILD_SUBSCRIPTION_ID")
-        assertThat(facets.inputs.first().sourceExpression).isEqualTo("\${reasonCode}")
-        assertThat(facets.inputs.last().source).isEqualTo("subscriptionId")
-        assertThat(facets.outputs.map { it.target }).containsExactly("abortResult")
-        assertThat(facets.variables.map { it.subtype }).containsExactly(VariableNameSubtype.INPUT)
+        assertThat(facets.calledProcessId).isEqualTo("cancelBikeOrder")
+        assertThat(facets.inputs.map { it.constantName }).containsExactly("APPLICATION_ID", "ORDER_IDS")
+        assertThat(facets.inputs.first().sourceExpression).isEqualTo("\${applicationId}")
+        assertThat(facets.inputs.last().source).isEqualTo("orderIds")
+        assertThat(facets.outputs.map { it.target }).containsExactly("cancellationCosts")
     }
 
     @Test
-    fun `boundary timer carries timer, host and whether it interrupts`() {
-        val after3Days = subscribeGraph.node("timerAfter3Days").facets
-        val everyDay = subscribeGraph.node("timerEveryDay").facets
+    fun `boundary events carry their host and whether they interrupt, timers their definition`() {
+        val reminder = leasingGraph.node("timerSignatureReminder").facets
+        val applicationInvalid = leasingGraph.node("boundaryApplicationInvalid").facets
 
-        assertThat(after3Days.timer).isEqualTo(TimerFacet("Duration", "\${testVariable}"))
-        assertThat(after3Days.attachedTo?.objectName).isEqualTo("SubProcessConfirmation")
-        assertThat(after3Days.isInterrupting).isTrue()
-        assertThat(everyDay.attachedTo?.objectName).isEqualTo("ReceiveTaskConfirmRegistration")
-        assertThat(everyDay.isInterrupting).isFalse()
+        assertThat(reminder.timer).isEqualTo(TimerFacet("Duration", "P7D"))
+        assertThat(reminder.attachedTo?.objectName).isEqualTo("SubProcessConcludeContract")
+        assertThat(reminder.isInterrupting).isFalse()
+        assertThat(applicationInvalid.attachedTo?.objectName).isEqualTo("ServiceTaskValidateApplication")
+        assertThat(applicationInvalid.isInterrupting).isTrue()
+    }
+
+    @Test
+    fun `intermediate timer carries its expression but no host`() {
+        val facets = leasingGraph.node("timerWithdrawalPeriodElapsed").facets
+
+        assertThat(facets.timer).isEqualTo(TimerFacet("Duration", "\${withdrawalPeriod}"))
+        assertThat(facets.attachedTo).isNull()
     }
 
     @Test
@@ -219,21 +232,19 @@ class FlowGraphFactoryTest {
     }
 
     @Test
-    fun `events carry their message, signal and error references`() {
-        assertThat(subscribeGraph.node("startEventSubmitRegistrationForm").facets.message?.value).isEqualTo("Message_FormSubmitted")
-        assertThat(subscribeGraph.node("endEventRegistrationNotPossible").facets.signal?.value).isEqualTo("Signal_RegistrationNotPossible")
-        assertThat(subscribeGraph.node("errorEventInvalidMail").facets.error?.value).isEqualTo(NamedCode("Error_InvalidMail", "500"))
-        assertThat(subscribeGraph.node("compensationEventOnSubscriptionCounter").facets.message).isNull()
+    fun `events carry their message, error and escalation references`() {
+        assertThat(leasingGraph.node("startEventLeasingRequestReceived").facets.message?.value).isEqualTo("miravelo.leasingRequestReceived")
+        assertThat(leasingGraph.node("boundaryApplicationInvalid").facets.error?.value).isEqualTo(NamedCode("miravelo.applicationInvalid", "applicationInvalid"))
+        assertThat(leasingGraph.node("boundaryContractNotSigned").facets.escalation?.value).isEqualTo(NamedCode("miravelo.contractNotSigned", "contractNotSigned"))
+        assertThat(leasingGraph.node("boundaryCompensateContract").facets.message).isNull()
     }
 
     @Test
     fun `event references point at their shared constants`() {
-        assertThat(subscribeGraph.node("startEventSubmitRegistrationForm").facets.message?.constant)
-            .isEqualTo(SharedConstant(name = "MESSAGE_FORM_SUBMITTED", rawName = "Message_FormSubmitted"))
-        assertThat(subscribeGraph.node("endEventRegistrationNotPossible").facets.signal?.constant)
-            .isEqualTo(SharedConstant(name = "SIGNAL_REGISTRATION_NOT_POSSIBLE", rawName = "Signal_RegistrationNotPossible"))
-        assertThat(subscribeGraph.node("errorEventInvalidMail").facets.error?.constant)
-            .isEqualTo(SharedConstant(name = "ERROR_INVALID_MAIL_500", rawName = "Error_InvalidMail_500"))
+        assertThat(leasingGraph.node("startEventLeasingRequestReceived").facets.message?.constant)
+            .isEqualTo(SharedConstant(name = "MIRAVELO_LEASING_REQUEST_RECEIVED", rawName = "miravelo.leasingRequestReceived"))
+        assertThat(leasingGraph.node("boundaryApplicationInvalid").facets.error?.constant)
+            .isEqualTo(SharedConstant(name = "MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID", rawName = "miravelo.applicationInvalid_applicationInvalid"))
     }
 
     @Test
@@ -266,13 +277,21 @@ class FlowGraphFactoryTest {
                     shape = EventShape.END_EVENT,
                     eventDefinitions = listOf(EventDefinitionInstance.Escalation(escalationRef = "esc_1")),
                 ),
+                FlowNodeDefinition.Event(
+                    id = "onSignal",
+                    shape = EventShape.END_EVENT,
+                    eventDefinitions = listOf(EventDefinitionInstance.Signal(signalRef = "sig_1")),
+                ),
             ),
             messages = listOf(RootElementDefinition.Message(id = "msg_1", name = "Message_Registered")),
+            signals = listOf(RootElementDefinition.Signal(id = "sig_1", name = "Signal_Activated")),
             escalations = listOf(RootElementDefinition.Escalation(id = "esc_1", name = "Escalation_Late", code = "42")),
         )
         val graph = FlowGraphFactory.build(model)
 
         assertThat(graph.node("onMessage").facets.message?.value).isEqualTo("Message_Registered")
+        assertThat(graph.node("onSignal").facets.signal)
+            .isEqualTo(SharedValue("Signal_Activated", SharedConstant(name = "SIGNAL_ACTIVATED", rawName = "Signal_Activated")))
         assertThat(graph.node("onEscalation").facets.escalation)
             .isEqualTo(SharedValue(NamedCode("Escalation_Late", "42"), SharedConstant(name = "ESCALATION_LATE_42", rawName = "Escalation_Late_42")))
     }
@@ -294,20 +313,20 @@ class FlowGraphFactoryTest {
 
     @Test
     fun `exclusive gateway names its outgoing flows after the elements they lead to, with label, condition and default marker`() {
-        val gateway = FlowGraphFactory.build(testSendNewsletterModel()).node("gatewayHasSubscribers")
+        val gateway = cancellationGraph.node("gatewayCancellationPossible")
 
-        val toSubscriber = gateway.outgoingFlows.single { it.target.objectName == "ServiceTaskSendToSubscriber" }
-        assertThat(toSubscriber.propertyName).isEqualTo("toServiceTaskSendToSubscriber")
-        val hasSubscribers = toSubscriber.flows.single()
-        assertThat(hasSubscribers.id).isEqualTo("flow_hasSubscribers")
-        assertThat(hasSubscribers.isDefault).isTrue()
-        assertThat(hasSubscribers.conditionExpression).isNull()
+        val toMerge = gateway.outgoingFlows.single { it.target.objectName == "GatewayMergeReturn" }
+        assertThat(toMerge.propertyName).isEqualTo("toGatewayMergeReturn")
+        val possible = toMerge.flows.single()
+        assertThat(possible.id).isEqualTo("flow_cancellationPossibleToMergeReturn")
+        assertThat(possible.isDefault).isTrue()
+        assertThat(possible.conditionExpression).isNull()
 
-        val noSubscribers = gateway.outgoingFlows.single { it.target.objectName != "ServiceTaskSendToSubscriber" }.flows.single()
-        assertThat(noSubscribers.id).isEqualTo("flow_noSubscribers")
-        assertThat(noSubscribers.isDefault).isFalse()
-        assertThat(noSubscribers.conditionExpression).isEqualTo("\${subscribers.size() > 0}")
-        assertThat(noSubscribers.name).isEqualTo("No")
+        val notPossible = gateway.outgoingFlows.single { it.target.objectName != "GatewayMergeReturn" }.flows.single()
+        assertThat(notPossible.id).isEqualTo("flow_cancellationNotPossibleToCollectClarifications")
+        assertThat(notPossible.isDefault).isFalse()
+        assertThat(notPossible.conditionExpression).isEqualTo("\${!cancellationPossible}")
+        assertThat(notPossible.name).isEqualTo("No")
     }
 
     @Test
@@ -332,11 +351,11 @@ class FlowGraphFactoryTest {
 
     @Test
     fun `boundary attachments are successors, marked as boundary events and never outgoing flows`() {
-        val subProcess = subscribeGraph.node("subProcessConfirmation")
+        val subProcess = leasingGraph.node("subProcessConcludeContract")
 
-        assertThat(subProcess.successors.map { it.propertyName }).contains("timerAfter3Days")
-        assertThat(subProcess.outgoingFlows.map { it.target.propertyName }).containsExactly("gatewaySplitNotifications")
-        assertThat(subscribeGraph.node("timerAfter3Days").isBoundaryEvent).isTrue()
+        assertThat(subProcess.successors.map { it.propertyName }).contains("timerSignatureReminder")
+        assertThat(subProcess.outgoingFlows.map { it.target.propertyName }).containsExactly("gatewayFork")
+        assertThat(leasingGraph.node("timerSignatureReminder").isBoundaryEvent).isTrue()
         assertThat(subProcess.isBoundaryEvent).isFalse()
     }
 

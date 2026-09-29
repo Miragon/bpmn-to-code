@@ -14,23 +14,23 @@ class ExtractBpmnAdapterTest {
 
     @Test
     fun `extract reads the model with the dialect registered for the engine`() {
-        // given: the Camunda 8 newsletter model
-        val bpmnResource = classpathResource("c8-subscribe-newsletter.bpmn")
+        // given: the Camunda 8 bike-leasing model
+        val bpmnResource = classpathResource("zeebe/bike-leasing.bpmn")
 
         // when: extracting for Zeebe
         val result = underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE)
 
         // then: the model carries the job-worker implementations only the Zeebe dialect produces
-        assertThat(result.processId).isEqualTo("newsletterSubscription")
+        assertThat(result.processId).isEqualTo("bikeLeasing")
         assertThat(result.serviceTasks.map { it.implementation })
-            .contains(TaskImplementation.JobWorker("newsletter.sendWelcomeMail"))
+            .contains(TaskImplementation.JobWorker("miravelo.validateApplication"))
     }
 
     @Test
     fun `extract throws when no dialect is registered for the engine`() {
         // given: an adapter that only knows Zeebe
         val zeebeOnly = ExtractBpmnAdapter(dialects = ExtractBpmnAdapter.dialects.filterKeys { it == ProcessEngine.ZEEBE })
-        val bpmnResource = classpathResource("c7-subscribe-newsletter.bpmn")
+        val bpmnResource = classpathResource("c7/bike-leasing.bpmn")
 
         // when / then: an exception is thrown
         assertThatThrownBy { zeebeOnly.extract(bpmnFile = bpmnResource, engine = ProcessEngine.CAMUNDA_7) }

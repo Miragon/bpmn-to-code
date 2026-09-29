@@ -54,8 +54,8 @@ The task is registered automatically by the plugin. It runs independently of `ge
 ```
 > Task :validateBpmnModels
 [EXPERIMENTAL] The 'validateBpmnModels' task is experimental and may change in future releases.
-[BPMN VALIDATION WARN]  newsletterSubscription/Activity_SendWelcomeMail: Service task has no implementation. Add a zeebe:taskDefinition with a type attribute. (rule: missing-service-task-implementation)
-[BPMN VALIDATION ERROR] newsletterSubscription/Timer_EveryDay: Timer event has no timer definition. (rule: missing-timer-definition)
+[BPMN VALIDATION WARN]  bikeLeasing/serviceTask_sendContract: Service task has no implementation. Add a zeebe:taskDefinition with a type attribute. (rule: missing-service-task-implementation)
+[BPMN VALIDATION ERROR] bikeLeasing/timer_signatureReminder: Timer event has no timer definition. (rule: missing-timer-definition)
 
 > Task :validateBpmnModels FAILED
 BPMN validation failed: 1 error(s), 1 warning(s)

@@ -2,11 +2,9 @@
 package de.emaarco.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
+import io.miragon.bpmn.runtime.BoundaryEvent;
 import io.miragon.bpmn.runtime.BpmnEngine;
-import io.miragon.bpmn.runtime.BpmnEscalation;
-import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.ElementId;
-import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.MessageName;
@@ -16,8 +14,8 @@ import io.miragon.bpmn.runtime.VariableName;
 import java.lang.Override;
 import java.lang.String;
 
-public final class SendNewsletterProcessApi {
-  public static final ProcessId PROCESS_ID = new ProcessId("sendNewsletter");
+public final class CancelBikeOrderProcessApi {
+  public static final ProcessId PROCESS_ID = new ProcessId("cancelBikeOrder");
 
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
@@ -28,155 +26,52 @@ public final class SendNewsletterProcessApi {
     /**
      * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}.
      */
-    public static final class Send {
-      public static EndEventEditionSent endEventEditionSent() {
-        return new EndEventEditionSent();
+    public static final class Retail {
+      public static BoundaryCancellationFailed boundaryCancellationFailed() {
+        return new BoundaryCancellationFailed();
       }
 
-      public static EndEventIssueResolved endEventIssueResolved() {
-        return new EndEventIssueResolved();
+      public static EndEventBikeOrderCancelled endEventBikeOrderCancelled() {
+        return new EndEventBikeOrderCancelled();
       }
 
-      public static EndEventNoSubscribers endEventNoSubscribers() {
-        return new EndEventNoSubscribers();
+      public static GatewayCancellationPossible gatewayCancellationPossible() {
+        return new GatewayCancellationPossible();
       }
 
-      public static EscalationEndEventNofitySupport escalationEndEventNofitySupport() {
-        return new EscalationEndEventNofitySupport();
+      public static GatewayCollectClarifications gatewayCollectClarifications() {
+        return new GatewayCollectClarifications();
       }
 
-      public static EscalationEndEventNofitySupportAfterRepeatedError escalationEndEventNofitySupportAfterRepeatedError(
-          ) {
-        return new EscalationEndEventNofitySupportAfterRepeatedError();
+      public static GatewayMergeReturn gatewayMergeReturn() {
+        return new GatewayMergeReturn();
       }
 
-      public static EventGatewayAfterSendingAgain eventGatewayAfterSendingAgain() {
-        return new EventGatewayAfterSendingAgain();
+      public static ServiceTaskBookCancellationCosts serviceTaskBookCancellationCosts() {
+        return new ServiceTaskBookCancellationCosts();
       }
 
-      public static EventMailRejected eventMailRejected() {
-        return new EventMailRejected();
+      public static ServiceTaskRequestCancellation serviceTaskRequestCancellation() {
+        return new ServiceTaskRequestCancellation();
       }
 
-      public static EventMailRejectedAgain eventMailRejectedAgain() {
-        return new EventMailRejectedAgain();
+      public static StartEventCancellationRequired startEventCancellationRequired() {
+        return new StartEventCancellationRequired();
       }
 
-      public static EventSubProcessErrorHandling eventSubProcessErrorHandling() {
-        return new EventSubProcessErrorHandling();
+      public static UserTaskClarifyReturn userTaskClarifyReturn() {
+        return new UserTaskClarifyReturn();
       }
 
-      public static GatewayCanSendAgain gatewayCanSendAgain() {
-        return new GatewayCanSendAgain();
-      }
-
-      public static GatewayHasSubscribers gatewayHasSubscribers() {
-        return new GatewayHasSubscribers();
-      }
-
-      public static ServiceTaskAnalyzeError serviceTaskAnalyzeError() {
-        return new ServiceTaskAnalyzeError();
-      }
-
-      public static ServiceTaskLoadSubscribers serviceTaskLoadSubscribers() {
-        return new ServiceTaskLoadSubscribers();
-      }
-
-      public static ServiceTaskNotifyAuthor serviceTaskNotifyAuthor() {
-        return new ServiceTaskNotifyAuthor();
-      }
-
-      public static ServiceTaskSendMailAgain serviceTaskSendMailAgain() {
-        return new ServiceTaskSendMailAgain();
-      }
-
-      public static ServiceTaskSendToSubscriber serviceTaskSendToSubscriber() {
-        return new ServiceTaskSendToSubscriber();
-      }
-
-      public static StartEventEditionCreated startEventEditionCreated() {
-        return new StartEventEditionCreated();
-      }
-
-      public static TimerNoRejectionForOneDay timerNoRejectionForOneDay() {
-        return new TimerNoRejectionForOneDay();
-      }
-
-      public static final class EndEventEditionSent extends AbstractFlowNode {
-        public EndEventEditionSent() {
-          super(new ElementId("endEvent_editionSent"), "END_EVENT");
-        }
-      }
-
-      public static final class EndEventIssueResolved extends AbstractFlowNode {
-        public EndEventIssueResolved() {
-          super(new ElementId("endEvent_issueResolved"), "END_EVENT");
-        }
-      }
-
-      public static final class EndEventNoSubscribers extends AbstractFlowNode {
-        public EndEventNoSubscribers() {
-          super(new ElementId("endEvent_noSubscribers"), "END_EVENT");
-        }
-      }
-
-      public static final class EscalationEndEventNofitySupport extends AbstractFlowNode {
-        public final BpmnEscalation escalation = Escalations.ESCALATION_NOTIFY_SUPPORT_200;
-
-        public EscalationEndEventNofitySupport() {
-          super(new ElementId("escalationEndEvent_nofitySupport"), "ESCALATION_END_EVENT");
-        }
-      }
-
-      public static final class EscalationEndEventNofitySupportAfterRepeatedError extends AbstractFlowNode {
-        public EscalationEndEventNofitySupportAfterRepeatedError() {
-          super(new ElementId("escalationEndEvent_nofitySupportAfterRepeatedError"), "END_EVENT");
-        }
-      }
-
-      public static final class EventGatewayAfterSendingAgain extends AbstractFlowNode implements HasSuccessors<EventGatewayAfterSendingAgain.Next>, HasOutgoingFlows<EventGatewayAfterSendingAgain.OutgoingFlows> {
-        public EventGatewayAfterSendingAgain() {
-          super(new ElementId("eventGateway_afterSendingAgain"), "EVENT_BASED_GATEWAY");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public EventMailRejectedAgain eventMailRejectedAgain() {
-            return new EventMailRejectedAgain();
-          }
-
-          public TimerNoRejectionForOneDay timerNoRejectionForOneDay() {
-            return new TimerNoRejectionForOneDay();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<EventMailRejectedAgain> toEventMailRejectedAgain() {
-            return new SequenceFlow<>(new ElementId("flow_eventGatewayToMailRejectedAgain"), null, null, false, new EventMailRejectedAgain());
-          }
-
-          public SequenceFlow<TimerNoRejectionForOneDay> toTimerNoRejectionForOneDay() {
-            return new SequenceFlow<>(new ElementId("flow_eventGatewayToTimer"), null, null, false, new TimerNoRejectionForOneDay());
-          }
-        }
-      }
-
-      public static final class EventMailRejected extends AbstractFlowNode implements HasSuccessors<EventMailRejected.Next>, HasOutgoingFlows<EventMailRejected.OutgoingFlows> {
-        public final MessageName message = Messages.MESSAGE_MAIL_REJECTED;
-
+      public static final class BoundaryCancellationFailed extends AbstractFlowNode implements HasSuccessors<BoundaryCancellationFailed.Next>, HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>, BoundaryEvent {
         public final boolean isInterrupting = true;
 
-        public EventMailRejected() {
-          super(new ElementId("event_mailRejected"), "MESSAGE_START_EVENT");
+        public BoundaryCancellationFailed() {
+          super(new ElementId("boundary_cancellationFailed"), "ERROR_BOUNDARY_EVENT", "Cancellation failed");
+        }
+
+        public ServiceTaskRequestCancellation attachedTo() {
+          return new ServiceTaskRequestCancellation();
         }
 
         @Override
@@ -190,23 +85,31 @@ public final class SendNewsletterProcessApi {
         }
 
         public static final class Next {
-          public ServiceTaskAnalyzeError serviceTaskAnalyzeError() {
-            return new ServiceTaskAnalyzeError();
+          public GatewayCollectClarifications gatewayCollectClarifications() {
+            return new GatewayCollectClarifications();
           }
         }
 
         public static final class OutgoingFlows {
-          public SequenceFlow<ServiceTaskAnalyzeError> toServiceTaskAnalyzeError() {
-            return new SequenceFlow<>(new ElementId("flow_mailRejectedToAnalyze"), null, null, false, new ServiceTaskAnalyzeError());
+          public SequenceFlow<GatewayCollectClarifications> toGatewayCollectClarifications() {
+            return new SequenceFlow<>(new ElementId("flow_cancellationFailedToCollectClarifications"), null, null, false, new GatewayCollectClarifications());
           }
         }
       }
 
-      public static final class EventMailRejectedAgain extends AbstractFlowNode implements HasSuccessors<EventMailRejectedAgain.Next>, HasOutgoingFlows<EventMailRejectedAgain.OutgoingFlows> {
-        public final MessageName message = Messages.MESSAGE_MAIL_REJECTED_AGAIN;
+      public static final class EndEventBikeOrderCancelled extends AbstractFlowNode {
+        public static final String JOB_TYPE = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED;
 
-        public EventMailRejectedAgain() {
-          super(new ElementId("event_mailRejectedAgain"), "MESSAGE_INTERMEDIATE_CATCH_EVENT");
+        public final MessageName message = Messages.MIRAVELO_BIKE_ORDER_CANCELLED;
+
+        public EndEventBikeOrderCancelled() {
+          super(new ElementId("endEvent_bikeOrderCancelled"), "MESSAGE_END_EVENT", "Bike order cancelled");
+        }
+      }
+
+      public static final class GatewayCancellationPossible extends AbstractFlowNode implements HasSuccessors<GatewayCancellationPossible.Next>, HasOutgoingFlows<GatewayCancellationPossible.OutgoingFlows> {
+        public GatewayCancellationPossible() {
+          super(new ElementId("gateway_cancellationPossible"), "EXCLUSIVE_GATEWAY", "Cancellation possible?");
         }
 
         @Override
@@ -220,144 +123,88 @@ public final class SendNewsletterProcessApi {
         }
 
         public static final class Next {
-          public EscalationEndEventNofitySupportAfterRepeatedError escalationEndEventNofitySupportAfterRepeatedError(
+          public GatewayCollectClarifications gatewayCollectClarifications() {
+            return new GatewayCollectClarifications();
+          }
+
+          public GatewayMergeReturn gatewayMergeReturn() {
+            return new GatewayMergeReturn();
+          }
+        }
+
+        public static final class OutgoingFlows {
+          public SequenceFlow<GatewayCollectClarifications> toGatewayCollectClarifications() {
+            return new SequenceFlow<>(new ElementId("flow_cancellationNotPossibleToCollectClarifications"), "No", "${!cancellationPossible}", false, new GatewayCollectClarifications());
+          }
+
+          public SequenceFlow<GatewayMergeReturn> toGatewayMergeReturn() {
+            return new SequenceFlow<>(new ElementId("flow_cancellationPossibleToMergeReturn"), "Yes", null, true, new GatewayMergeReturn());
+          }
+        }
+      }
+
+      public static final class GatewayCollectClarifications extends AbstractFlowNode implements HasSuccessors<GatewayCollectClarifications.Next>, HasOutgoingFlows<GatewayCollectClarifications.OutgoingFlows> {
+        public GatewayCollectClarifications() {
+          super(new ElementId("gateway_collectClarifications"), "EXCLUSIVE_GATEWAY");
+        }
+
+        @Override
+        public Next then() {
+          return new Next();
+        }
+
+        @Override
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
+        }
+
+        public static final class Next {
+          public UserTaskClarifyReturn userTaskClarifyReturn() {
+            return new UserTaskClarifyReturn();
+          }
+        }
+
+        public static final class OutgoingFlows {
+          public SequenceFlow<UserTaskClarifyReturn> toUserTaskClarifyReturn() {
+            return new SequenceFlow<>(new ElementId("flow_collectClarificationsToClarifyReturn"), null, null, false, new UserTaskClarifyReturn());
+          }
+        }
+      }
+
+      public static final class GatewayMergeReturn extends AbstractFlowNode implements HasSuccessors<GatewayMergeReturn.Next>, HasOutgoingFlows<GatewayMergeReturn.OutgoingFlows> {
+        public GatewayMergeReturn() {
+          super(new ElementId("gateway_mergeReturn"), "EXCLUSIVE_GATEWAY");
+        }
+
+        @Override
+        public Next then() {
+          return new Next();
+        }
+
+        @Override
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
+        }
+
+        public static final class Next {
+          public ServiceTaskBookCancellationCosts serviceTaskBookCancellationCosts() {
+            return new ServiceTaskBookCancellationCosts();
+          }
+        }
+
+        public static final class OutgoingFlows {
+          public SequenceFlow<ServiceTaskBookCancellationCosts> toServiceTaskBookCancellationCosts(
               ) {
-            return new EscalationEndEventNofitySupportAfterRepeatedError();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<EscalationEndEventNofitySupportAfterRepeatedError> toEscalationEndEventNofitySupportAfterRepeatedError(
-              ) {
-            return new SequenceFlow<>(new ElementId("flow_mailRejectedAgainToEscalation"), null, null, false, new EscalationEndEventNofitySupportAfterRepeatedError());
+            return new SequenceFlow<>(new ElementId("flow_mergeReturnToBookCancellationCosts"), null, null, false, new ServiceTaskBookCancellationCosts());
           }
         }
       }
 
-      public static final class EventSubProcessErrorHandling extends AbstractFlowNode implements FlowScope<EventSubProcessErrorHandling.Start> {
-        public EventSubProcessErrorHandling() {
-          super(new ElementId("eventSubProcess_errorHandling"), "EVENT_SUB_PROCESS");
-        }
+      public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
+        public static final String JOB_TYPE = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE;
 
-        @Override
-        public Start start() {
-          return new Start();
-        }
-
-        public static final class Start {
-          public EventMailRejected eventMailRejected() {
-            return new EventMailRejected();
-          }
-        }
-      }
-
-      public static final class GatewayCanSendAgain extends AbstractFlowNode implements HasSuccessors<GatewayCanSendAgain.Next>, HasOutgoingFlows<GatewayCanSendAgain.OutgoingFlows> {
-        public GatewayCanSendAgain() {
-          super(new ElementId("gateway_canSendAgain"), "EXCLUSIVE_GATEWAY");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public EscalationEndEventNofitySupport escalationEndEventNofitySupport() {
-            return new EscalationEndEventNofitySupport();
-          }
-
-          public ServiceTaskSendMailAgain serviceTaskSendMailAgain() {
-            return new ServiceTaskSendMailAgain();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<EscalationEndEventNofitySupport> toEscalationEndEventNofitySupport() {
-            return new SequenceFlow<>(new ElementId("flow_cannotSendAgain"), "No", "${rejection.reason == \"PERMANENT\"}", false, new EscalationEndEventNofitySupport());
-          }
-
-          public SequenceFlow<ServiceTaskSendMailAgain> toServiceTaskSendMailAgain() {
-            return new SequenceFlow<>(new ElementId("flow_canSendAgain"), "Yes", null, true, new ServiceTaskSendMailAgain());
-          }
-        }
-      }
-
-      public static final class GatewayHasSubscribers extends AbstractFlowNode implements HasSuccessors<GatewayHasSubscribers.Next>, HasOutgoingFlows<GatewayHasSubscribers.OutgoingFlows> {
-        public GatewayHasSubscribers() {
-          super(new ElementId("gateway_hasSubscribers"), "EXCLUSIVE_GATEWAY");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public EndEventNoSubscribers endEventNoSubscribers() {
-            return new EndEventNoSubscribers();
-          }
-
-          public ServiceTaskSendToSubscriber serviceTaskSendToSubscriber() {
-            return new ServiceTaskSendToSubscriber();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<EndEventNoSubscribers> toEndEventNoSubscribers() {
-            return new SequenceFlow<>(new ElementId("flow_noSubscribers"), "No", "${subscribers.size() > 0}", false, new EndEventNoSubscribers());
-          }
-
-          public SequenceFlow<ServiceTaskSendToSubscriber> toServiceTaskSendToSubscriber() {
-            return new SequenceFlow<>(new ElementId("flow_hasSubscribers"), "Yes", null, true, new ServiceTaskSendToSubscriber());
-          }
-        }
-      }
-
-      public static final class ServiceTaskAnalyzeError extends AbstractFlowNode implements HasSuccessors<ServiceTaskAnalyzeError.Next>, HasOutgoingFlows<ServiceTaskAnalyzeError.OutgoingFlows> {
-        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_ANALYZE_SEND_ERROR;
-
-        public ServiceTaskAnalyzeError() {
-          super(new ElementId("serviceTask_analyzeError"), "SERVICE_TASK");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public GatewayCanSendAgain gatewayCanSendAgain() {
-            return new GatewayCanSendAgain();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<GatewayCanSendAgain> toGatewayCanSendAgain() {
-            return new SequenceFlow<>(new ElementId("flow_analyzeToCanSendAgain"), null, null, false, new GatewayCanSendAgain());
-          }
-        }
-      }
-
-      public static final class ServiceTaskLoadSubscribers extends AbstractFlowNode implements HasSuccessors<ServiceTaskLoadSubscribers.Next>, HasOutgoingFlows<ServiceTaskLoadSubscribers.OutgoingFlows> {
-        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_LOAD_SUBSCRIBERS;
-
-        public ServiceTaskLoadSubscribers() {
-          super(new ElementId("serviceTask_loadSubscribers"), "SERVICE_TASK");
+        public ServiceTaskBookCancellationCosts() {
+          super(new ElementId("serviceTask_bookCancellationCosts"), "SERVICE_TASK", "Book cancellation costs");
         }
 
         @Override
@@ -371,29 +218,95 @@ public final class SendNewsletterProcessApi {
         }
 
         public static final class Variables {
-          public static final VariableName.Output AUTHOR = new VariableName.Output("author");
-
-          public static final VariableName.Output SUBSCRIBERS = new VariableName.Output("subscribers");
+          public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output("cancellationCosts");
         }
 
         public static final class Next {
-          public GatewayHasSubscribers gatewayHasSubscribers() {
-            return new GatewayHasSubscribers();
+          public EndEventBikeOrderCancelled endEventBikeOrderCancelled() {
+            return new EndEventBikeOrderCancelled();
           }
         }
 
         public static final class OutgoingFlows {
-          public SequenceFlow<GatewayHasSubscribers> toGatewayHasSubscribers() {
-            return new SequenceFlow<>(new ElementId("flow_loadSubscribersToGateway"), null, null, false, new GatewayHasSubscribers());
+          public SequenceFlow<EndEventBikeOrderCancelled> toEndEventBikeOrderCancelled() {
+            return new SequenceFlow<>(new ElementId("flow_bookCancellationCostsToBikeOrderCancelled"), null, null, false, new EndEventBikeOrderCancelled());
           }
         }
       }
 
-      public static final class ServiceTaskNotifyAuthor extends AbstractFlowNode implements HasSuccessors<ServiceTaskNotifyAuthor.Next>, HasOutgoingFlows<ServiceTaskNotifyAuthor.OutgoingFlows> {
-        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_NOTIFY_AUTHOR;
+      public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasSuccessors<ServiceTaskRequestCancellation.Next>, HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
+        public static final String JOB_TYPE = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION;
 
-        public ServiceTaskNotifyAuthor() {
-          super(new ElementId("serviceTask_notifyAuthor"), "SERVICE_TASK");
+        public ServiceTaskRequestCancellation() {
+          super(new ElementId("serviceTask_requestCancellation"), "SERVICE_TASK", "Request cancellation");
+        }
+
+        @Override
+        public Next then() {
+          return new Next();
+        }
+
+        @Override
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
+        }
+
+        public static final class Variables {
+          public static final VariableName.Output CANCELLATION_POSSIBLE = new VariableName.Output("cancellationPossible");
+        }
+
+        public static final class Next {
+          public BoundaryCancellationFailed boundaryCancellationFailed() {
+            return new BoundaryCancellationFailed();
+          }
+
+          public GatewayCancellationPossible gatewayCancellationPossible() {
+            return new GatewayCancellationPossible();
+          }
+        }
+
+        public static final class OutgoingFlows {
+          public SequenceFlow<GatewayCancellationPossible> toGatewayCancellationPossible() {
+            return new SequenceFlow<>(new ElementId("flow_requestCancellationToCancellationPossible"), null, null, false, new GatewayCancellationPossible());
+          }
+        }
+      }
+
+      public static final class StartEventCancellationRequired extends AbstractFlowNode implements HasSuccessors<StartEventCancellationRequired.Next>, HasOutgoingFlows<StartEventCancellationRequired.OutgoingFlows> {
+        public StartEventCancellationRequired() {
+          super(new ElementId("startEvent_cancellationRequired"), "START_EVENT", "Cancellation required");
+        }
+
+        @Override
+        public Next then() {
+          return new Next();
+        }
+
+        @Override
+        public OutgoingFlows outgoingFlows() {
+          return new OutgoingFlows();
+        }
+
+        public static final class Variables {
+          public static final VariableName.Input ORDER_IDS = new VariableName.Input("orderIds");
+        }
+
+        public static final class Next {
+          public ServiceTaskRequestCancellation serviceTaskRequestCancellation() {
+            return new ServiceTaskRequestCancellation();
+          }
+        }
+
+        public static final class OutgoingFlows {
+          public SequenceFlow<ServiceTaskRequestCancellation> toServiceTaskRequestCancellation() {
+            return new SequenceFlow<>(new ElementId("flow_cancellationRequiredToRequestCancellation"), null, null, false, new ServiceTaskRequestCancellation());
+          }
+        }
+      }
+
+      public static final class UserTaskClarifyReturn extends AbstractFlowNode implements HasSuccessors<UserTaskClarifyReturn.Next>, HasOutgoingFlows<UserTaskClarifyReturn.OutgoingFlows> {
+        public UserTaskClarifyReturn() {
+          super(new ElementId("userTask_clarifyReturn"), "USER_TASK", "Clarify return");
         }
 
         @Override
@@ -407,132 +320,14 @@ public final class SendNewsletterProcessApi {
         }
 
         public static final class Next {
-          public EndEventEditionSent endEventEditionSent() {
-            return new EndEventEditionSent();
+          public GatewayMergeReturn gatewayMergeReturn() {
+            return new GatewayMergeReturn();
           }
         }
 
         public static final class OutgoingFlows {
-          public SequenceFlow<EndEventEditionSent> toEndEventEditionSent() {
-            return new SequenceFlow<>(new ElementId("flow_notifyAuthorToEditionSent"), null, null, false, new EndEventEditionSent());
-          }
-        }
-      }
-
-      public static final class ServiceTaskSendMailAgain extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendMailAgain.Next>, HasOutgoingFlows<ServiceTaskSendMailAgain.OutgoingFlows> {
-        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER;
-
-        public ServiceTaskSendMailAgain() {
-          super(new ElementId("serviceTask_sendMailAgain"), "SERVICE_TASK");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public EventGatewayAfterSendingAgain eventGatewayAfterSendingAgain() {
-            return new EventGatewayAfterSendingAgain();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<EventGatewayAfterSendingAgain> toEventGatewayAfterSendingAgain() {
-            return new SequenceFlow<>(new ElementId("flow_sendAgainToEventGateway"), null, null, false, new EventGatewayAfterSendingAgain());
-          }
-        }
-      }
-
-      public static final class ServiceTaskSendToSubscriber extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendToSubscriber.Next>, HasOutgoingFlows<ServiceTaskSendToSubscriber.OutgoingFlows> {
-        public static final String JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_MAIL_TO_SUBSCRIBER;
-
-        public ServiceTaskSendToSubscriber() {
-          super(new ElementId("serviceTask_sendToSubscriber"), "SERVICE_TASK");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public ServiceTaskNotifyAuthor serviceTaskNotifyAuthor() {
-            return new ServiceTaskNotifyAuthor();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<ServiceTaskNotifyAuthor> toServiceTaskNotifyAuthor() {
-            return new SequenceFlow<>(new ElementId("flow_sendToNotifyAuthor"), null, null, false, new ServiceTaskNotifyAuthor());
-          }
-        }
-      }
-
-      public static final class StartEventEditionCreated extends AbstractFlowNode implements HasSuccessors<StartEventEditionCreated.Next>, HasOutgoingFlows<StartEventEditionCreated.OutgoingFlows> {
-        public StartEventEditionCreated() {
-          super(new ElementId("startEvent_editionCreated"), "START_EVENT");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public ServiceTaskLoadSubscribers serviceTaskLoadSubscribers() {
-            return new ServiceTaskLoadSubscribers();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<ServiceTaskLoadSubscribers> toServiceTaskLoadSubscribers() {
-            return new SequenceFlow<>(new ElementId("flow_editionToLoadSubscribers"), null, null, false, new ServiceTaskLoadSubscribers());
-          }
-        }
-      }
-
-      public static final class TimerNoRejectionForOneDay extends AbstractFlowNode implements HasSuccessors<TimerNoRejectionForOneDay.Next>, HasOutgoingFlows<TimerNoRejectionForOneDay.OutgoingFlows> {
-        public final BpmnTimer timer = new BpmnTimer("Duration", "PT1D");
-
-        public TimerNoRejectionForOneDay() {
-          super(new ElementId("timer_noRejectionForOneDay"), "TIMER_INTERMEDIATE_CATCH_EVENT");
-        }
-
-        @Override
-        public Next then() {
-          return new Next();
-        }
-
-        @Override
-        public OutgoingFlows outgoingFlows() {
-          return new OutgoingFlows();
-        }
-
-        public static final class Next {
-          public EndEventIssueResolved endEventIssueResolved() {
-            return new EndEventIssueResolved();
-          }
-        }
-
-        public static final class OutgoingFlows {
-          public SequenceFlow<EndEventIssueResolved> toEndEventIssueResolved() {
-            return new SequenceFlow<>(new ElementId("flow_timerToIssueResolved"), null, null, false, new EndEventIssueResolved());
+          public SequenceFlow<GatewayMergeReturn> toGatewayMergeReturn() {
+            return new SequenceFlow<>(new ElementId("flow_clarifyReturnToMergeReturn"), null, null, false, new GatewayMergeReturn());
           }
         }
       }

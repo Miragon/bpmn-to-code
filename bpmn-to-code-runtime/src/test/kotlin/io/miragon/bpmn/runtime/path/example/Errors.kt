@@ -6,6 +6,10 @@ package io.miragon.bpmn.runtime.path.example
 import io.miragon.bpmn.runtime.BpmnError
 import kotlin.Suppress
 
+/**
+ * BPMN error definitions with name and code, as thrown and caught by the processes.
+ */
 object Errors {
-  val ERROR_INVALID_MAIL_500: BpmnError = BpmnError("Error_InvalidMail", "500")
+  val MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID: BpmnError =
+      BpmnError("miravelo.applicationInvalid", "applicationInvalid")
 }

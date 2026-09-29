@@ -29,86 +29,85 @@ variants          per-variant node sets, only for merged multi-variant models
 
 ## Example
 
-For the newsletter subscription process:
+For the MiraVelo bike-leasing process (abridged):
 
 ```json
 {
     "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
     "formatVersion": "2.0",
     "process": {
-        "id": "newsletterSubscription",
-        "isExecutable": true,
+        "id": "bikeLeasing",
+        "name": "MiraVelo Bike Leasing",
         "engine": "ZEEBE",
         "flowNodes": [
             {
-                "id": "StartEvent_SubmitRegistrationForm",
+                "id": "startEvent_leasingRequestReceived",
                 "type": "startEvent",
-                "name": "Submit newsletter form",
-                "outgoing": ["Flow_1csfyyz"],
+                "name": "Leasing request received",
+                "outgoing": ["flow_leasingRequestReceivedToValidateApplication"],
                 "eventDefinitions": [
-                    { "type": "message", "messageRef": "Message_FormSubmitted" }
+                    { "type": "message", "messageRef": "message_leasingRequestReceived" }
                 ]
             },
             {
-                "id": "serviceTask_incrementSubscriptionCounter",
+                "id": "serviceTask_validateApplication",
                 "type": "serviceTask",
-                "name": "Increment subscription counter",
-                "incoming": ["Flow_1csfyyz"],
-                "outgoing": ["Flow_0zdmt0t"],
-                "boundaryEventRefs": ["CompensationEvent_OnSubscriptionCounter"],
+                "name": "Validate application",
+                "incoming": ["flow_leasingRequestReceivedToValidateApplication"],
+                "outgoing": ["flow_validateApplicationToCheckCreditRating"],
+                "boundaryEventRefs": ["boundary_applicationInvalid"],
                 "implementation": {
                     "type": "jobWorker",
-                    "jobType": "newsletter.incrementCounter"
+                    "jobType": "miravelo.validateApplication"
                 }
             },
             {
-                "id": "SubProcess_Confirmation",
+                "id": "subProcess_concludeContract",
                 "type": "subProcess",
-                "name": "Subscription Confirmation",
-                "incoming": ["Flow_0zdmt0t"],
-                "outgoing": ["Flow_09cuvzp"],
-                "boundaryEventRefs": ["ErrorEvent_InvalidMail", "Timer_After3Days"],
+                "name": "Conclude contract",
+                "incoming": ["flow_isSolventToConcludeContract"],
+                "outgoing": ["flow_concludeContractToFork"],
+                "boundaryEventRefs": ["boundary_compensateContract", "boundary_contractNotSigned", "timer_signatureReminder"],
                 "flowNodes": [
                     {
-                        "id": "Activity_SendConfirmationMail",
+                        "id": "serviceTask_sendContract",
                         "type": "serviceTask",
-                        "name": "Send confirmation mail",
-                        "incoming": ["Flow_05i3x1y"],
-                        "outgoing": ["Flow_1bckm43"],
+                        "name": "Send contract",
+                        "incoming": ["flow_customerEligibleToSendContract"],
+                        "outgoing": ["flow_sendContractToAwaitSignature"],
                         "implementation": {
                             "type": "jobWorker",
-                            "jobType": "newsletter.sendConfirmationMail"
+                            "jobType": "miravelo.sendContract"
                         }
                     }
                 ],
                 "sequenceFlows": [
                     {
-                        "id": "Flow_05i3x1y",
-                        "sourceRef": "StartEvent_RequestReceived",
-                        "targetRef": "Activity_SendConfirmationMail"
+                        "id": "flow_customerEligibleToSendContract",
+                        "sourceRef": "startEvent_customerEligible",
+                        "targetRef": "serviceTask_sendContract"
                     }
                 ]
             }
         ],
         "sequenceFlows": [
             {
-                "id": "Flow_09cuvzp",
-                "sourceRef": "SubProcess_Confirmation",
-                "targetRef": "Gateway_SplitNotifications"
+                "id": "flow_concludeContractToFork",
+                "sourceRef": "subProcess_concludeContract",
+                "targetRef": "gateway_fork"
             }
         ]
     },
     "definitions": {
         "messages": [
-            { "id": "Message_FormSubmitted", "name": "Message_FormSubmitted" }
-        ],
-        "signals": [
-            { "id": "Signal_RegistrationNotPossible", "name": "Signal_RegistrationNotPossible" }
+            { "id": "message_leasingRequestReceived", "name": "miravelo.leasingRequestReceived" }
         ],
         "errors": [
-            { "id": "Error_InvalidMail", "name": "Error_InvalidMail", "errorCode": "500" }
+            { "id": "error_applicationInvalid", "name": "miravelo.applicationInvalid", "errorCode": "applicationInvalid" }
         ],
-        "escalations": []
+        "escalations": [
+            { "id": "escalation_contractNotSigned", "name": "miravelo.contractNotSigned", "escalationCode": "contractNotSigned" }
+        ]
     }
 }
 ```
@@ -174,8 +173,8 @@ An event carries a **list** of `eventDefinitions`, discriminated by `type`, beca
 
 ```json
 "eventDefinitions": [
-    { "type": "timer", "timerType": "DURATION", "expression": "PT1M" },
-    { "type": "message", "messageRef": "Message_FormSubmitted" }
+    { "type": "timer", "timerType": "DURATION", "expression": "P7D" },
+    { "type": "message", "messageRef": "message_contractSigned" }
 ]
 ```
 
@@ -196,7 +195,7 @@ The `…Ref` fields resolve into `definitions`, where the name and code live. A 
 ```json
 "definitions": {
     "messages": [
-        { "id": "Message_FormSubmitted", "name": "Message_FormSubmitted", "correlationKey": "=subscriptionId" }
+        { "id": "message_contractSigned", "name": "miravelo.contractSigned", "correlationKey": "=applicationId" }
     ]
 }
 ```
@@ -208,7 +207,7 @@ The `…Ref` fields resolve into `definitions`, where the name and code live. A 
 `implementation` says how the engine executes a node, normalised across engines and discriminated by `type`:
 
 ```json
-"implementation": { "type": "jobWorker", "jobType": "newsletter.sendWelcomeMail" }
+"implementation": { "type": "jobWorker", "jobType": "miravelo.sendContract" }
 ```
 
 | `type` | Engine | Payload |
@@ -228,24 +227,25 @@ Both are activity facets, present only where BPMN allows them.
 
 ```json
 {
-    "id": "serviceTask_sendToSubscriber",
+    "id": "serviceTask_issueInsurancePolicy",
     "type": "serviceTask",
     "multiInstance": {
         "sequential": true,
-        "inputCollection": "=subscribers",
-        "inputElement": "subscriber"
+        "inputCollection": "=bikeIds",
+        "inputElement": "bikeId"
     }
 }
 ```
 
-`zeebe:loopCharacteristics` and `camunda:collection` / `camunda:elementVariable` both map onto these fields, so the same logical loop reads identically for every engine. The expressions themselves are preserved verbatim — FEEL `=subscribers` for Zeebe, JUEL `${subscribers}` for Camunda 7 — because rewriting them would lose information.
+`zeebe:loopCharacteristics` and `camunda:collection` / `camunda:elementVariable` both map onto these fields, so the same logical loop reads identically for every engine. The expressions themselves are preserved verbatim — FEEL `=bikeIds` for Zeebe, JUEL `${bikeIds}` for Camunda 7 — because rewriting them would lose information.
 
 ```json
 "ioMapping": {
-    "inputs": [],
+    "inputs": [
+        { "target": "applicationId", "source": "=applicationId" }
+    ],
     "outputs": [
-        { "target": "subscribers", "source": "=subscribers" },
-        { "target": "author", "source": "=author" }
+        { "target": "contractId", "source": "=contractId" }
     ]
 }
 ```
@@ -344,7 +344,7 @@ Run:
 The JSON is designed for use with AI coding assistants. Paste it into your assistant's context and ask questions about your process:
 
 - "Which service tasks in this process run multi-instance?"
-- "What inputs does the `Activity_SendConfirmationMail` task receive, from its `ioMapping`?"
+- "What inputs does the `serviceTask_sendContract` task receive, from its `ioMapping`?"
 - "List all boundary events and what they are attached to."
 
 Because the JSON is produced by deterministic rules — not generated by an LLM — the assistant gets reliable process context with no hallucinated element IDs. Aligning the vocabulary with the BPMN standard helps here too: a model that knows BPMN already knows what `boundaryEvent` and `cancelActivity` mean.

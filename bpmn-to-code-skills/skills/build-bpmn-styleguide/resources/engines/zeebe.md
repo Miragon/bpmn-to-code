@@ -38,14 +38,14 @@ Zeebe has exactly one implementation kind:
 
 | Kind | Extension element | Value shape |
 |---|---|---|
-| `JOB_WORKER` | `<zeebe:taskDefinition type="..." />` | Dot-separated job type, e.g. `newsletter.sendConfirmationMail` |
+| `JOB_WORKER` | `<zeebe:taskDefinition type="..." />` | Dot-separated job type, e.g. `miravelo.sendConfirmationMail` |
 
 Example:
 
 ```xml
 <bpmn:serviceTask id="serviceTask_SendEmail" name="Send email">
   <bpmn:extensionElements>
-    <zeebe:taskDefinition type="newsletter.sendEmail" retries="3" />
+    <zeebe:taskDefinition type="miravelo.sendEmail" retries="3" />
   </bpmn:extensionElements>
 </bpmn:serviceTask>
 ```
@@ -93,7 +93,7 @@ Error definitions use `name` + `errorCode`, like C7. Thrown via end events or by
 
 ## Escalations
 
-Supported from Zeebe 8.2+. Fewer event-type combinations than C7. Check `shared/bpmn/c8-send-newsletter.bpmn` for a working example.
+Supported from Zeebe 8.2+. Fewer event-type combinations than C7. Check `shared/bpmn/zeebe/bike-leasing.bpmn` for a working example.
 
 ## Timers
 
@@ -122,7 +122,7 @@ Uses a Zeebe extension, not the BPMN `calledElement` attribute:
 ```xml
 <bpmn:serviceTask id="serviceTask_SendEmail" name="Send email">
   <bpmn:extensionElements>
-    <zeebe:taskDefinition type="newsletter.sendEmail" />
+    <zeebe:taskDefinition type="miravelo.sendEmail" />
     <zeebe:ioMapping>
       <zeebe:input source="=recipient" target="to" />
     </zeebe:ioMapping>

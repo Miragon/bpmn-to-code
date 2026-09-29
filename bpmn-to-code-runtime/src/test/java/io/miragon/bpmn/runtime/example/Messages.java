@@ -7,5 +7,13 @@ import io.miragon.bpmn.runtime.MessageName;
  * BPMN message names used to correlate messages to running process instances.
  */
 public final class Messages {
-  public static final MessageName MESSAGE_FORM_SUBMITTED = new MessageName("Message_FormSubmitted");
+  public static final MessageName MIRAVELO_ADDRESS_CHANGED = new MessageName("miravelo.addressChanged");
+
+  public static final MessageName MIRAVELO_APPLICATION_WITHDRAWN = new MessageName("miravelo.applicationWithdrawn");
+
+  public static final MessageName MIRAVELO_CONTRACT_SIGNED = new MessageName("miravelo.contractSigned");
+
+  public static final MessageName MIRAVELO_HANDOVER_REPORTED = new MessageName("miravelo.handoverReported");
+
+  public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
 }

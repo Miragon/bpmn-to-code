@@ -4,12 +4,12 @@ import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.service.SharedDefinitionsService
 import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.testSendNewsletterModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterModel
+import io.miragon.bpmn.domain.testBikeLeasingModel
+import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import java.io.File
 
-internal fun newsletterSharedDefinitionsApi(language: OutputLanguage) = SharedDefinitionsApi(
-    definitions = SharedDefinitionsService().collect(listOf(testSubscribeNewsletterModel(), testSendNewsletterModel())),
+internal fun miraVeloSharedDefinitionsApi(language: OutputLanguage) = SharedDefinitionsApi(
+    definitions = SharedDefinitionsService().collect(listOf(testBikeLeasingModel(), testCancelBikeOrderModel())),
     outputLanguage = language,
     packagePath = "de.emaarco.example",
 )

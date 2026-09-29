@@ -66,11 +66,11 @@ Multi-instance variables come from attributes on the `multiInstanceLoopCharacter
 
 ```xml
 <bpmn:multiInstanceLoopCharacteristics
-    operaton:collection="${subscribers}"
-    operaton:elementVariable="subscriber" />
+    operaton:collection="${bikeIds}"
+    operaton:elementVariable="bikeId" />
 ```
 
-**Extracted variables:** `subscribers` → Input (from `collection` expression), `subscriber` → Output (from `elementVariable`)
+**Extracted variables:** `bikeIds` → Input (from `collection` expression), `bikeId` → Output (from `elementVariable`)
 
 ### Additional Input / Output Variables (Extension Properties)
 

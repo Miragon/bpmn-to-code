@@ -17,10 +17,10 @@ class GradlePluginSmokeTest {
 
     @ParameterizedTest(name = "{0} / {1}")
     @CsvSource(
-        "ZEEBE, KOTLIN, c8-subscribe-newsletter.bpmn",
-        "CAMUNDA_7, KOTLIN, c7-subscribe-newsletter.bpmn",
-        "OPERATON, KOTLIN, operaton-subscribe-newsletter.bpmn",
-        "ZEEBE, JAVA, c8-subscribe-newsletter.bpmn",
+        "ZEEBE, KOTLIN, zeebe/bike-leasing.bpmn",
+        "CAMUNDA_7, KOTLIN, c7/bike-leasing.bpmn",
+        "OPERATON, KOTLIN, operaton/bike-leasing.bpmn",
+        "ZEEBE, JAVA, zeebe/bike-leasing.bpmn",
     )
     fun `generateBpmnModelApi produces output files that compile`(
         engine: String,
@@ -50,7 +50,7 @@ class GradlePluginSmokeTest {
     fun `consumer code reads typed edges and node facets from the generated Flow`(language: String, @TempDir projectDir: File) {
         // given: a project whose own source navigates the generated API and reads facets
         val target = Target.of(language)
-        writeProject(projectDir, "ZEEBE", target, "c8-subscribe-newsletter.bpmn")
+        writeProject(projectDir, "ZEEBE", target, "zeebe/bike-leasing.bpmn")
         File(projectDir, target.consumerPath).apply { parentFile.mkdirs() }.writeText(target.consumerSource)
 
         // when: compiling the consumer against the generated API and the runtime
@@ -67,7 +67,7 @@ class GradlePluginSmokeTest {
     @Test
     fun `generateBpmnModelApi writes a cs file with Flow for CSHARP`(@TempDir projectDir: File) {
         // given: a JVM project (the plugin only wires itself when a JVM plugin is present) targeting C#
-        writeProject(projectDir, "ZEEBE", Target.CSHARP, "c8-subscribe-newsletter.bpmn")
+        writeProject(projectDir, "ZEEBE", Target.CSHARP, "zeebe/bike-leasing.bpmn")
 
         // when: running generation only — the C# compile gate lives in core's CSharpCompilationTest
         val result = GradleRunner.create()
@@ -79,7 +79,7 @@ class GradlePluginSmokeTest {
         // then: the Process API .cs file carries the navigation, next to the shared definition files
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
         val generated = assertGeneratedFiles(projectDir, ".cs")
-        val processApi = generated.single { it.name == "NewsletterSubscriptionProcessApi.cs" }
+        val processApi = generated.single { it.name == "BikeLeasingProcessApi.cs" }
         assertThat(processApi.readText()).contains("public static class Flow", "public static class Runtime")
         assertThat(generated.map { it.name }).contains("ServiceTasks.cs", "Messages.cs")
     }
@@ -87,7 +87,7 @@ class GradlePluginSmokeTest {
     private fun writeProject(projectDir: File, engine: String, target: Target, bpmnFile: String) {
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/$bpmnFile"))
-        File(resourcesDir, bpmnFile).writeBytes(bpmnStream.readBytes())
+        File(resourcesDir, File(bpmnFile).name).writeBytes(bpmnStream.readBytes())
         File(projectDir, "settings.gradle").writeText("")
 
         val languagePlugin = if (target == Target.KOTLIN) "id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'" else "id 'java'"
@@ -141,18 +141,18 @@ class GradlePluginSmokeTest {
             consumerSource = """
                 package io.miragon.smoketest
 
-                import io.miragon.smoketest.NewsletterSubscriptionProcessApi.Flow
+                import io.miragon.smoketest.BikeLeasingProcessApi.Flow
 
                 object UsesApi {
                     fun describe(): String {
-                        val edge = Flow.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter
+                        val edge = Flow.StartEventLeasingRequestReceived.outgoingFlows().toServiceTaskValidateApplication
                         val condition: String? = edge.conditionExpression
-                        val input = Flow.CallActivityAbortRegistration.Variables.SUBSCRIPTION_ID
-                        val mapping = Flow.CallActivityAbortRegistration.Inputs.SUBSCRIPTION_ID
-                        val timer = Flow.TimerEveryDay.timer
-                        val host = Flow.TimerEveryDay.attachedTo
-                        val called = Flow.CallActivityAbortRegistration.calledProcess
-                        val jobType = Flow.ServiceTaskSendConfirmationMail.JOB_TYPE
+                        val input = Flow.CallActivityCancelBikeOrder.Variables.ORDER_IDS
+                        val mapping = Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS
+                        val timer = Flow.TimerSignatureReminder.timer
+                        val host = Flow.TimerSignatureReminder.attachedTo
+                        val called = Flow.CallActivityCancelBikeOrder.calledProcess
+                        val jobType = Flow.ServiceTaskSendContract.JOB_TYPE
                         return listOf(condition, edge.isDefault, edge.target.id, input, mapping, timer.timerValue, host.name, called, jobType).joinToString()
                     }
                 }
@@ -165,18 +165,18 @@ class GradlePluginSmokeTest {
             consumerSource = """
                 package io.miragon.smoketest;
 
-                import io.miragon.smoketest.NewsletterSubscriptionProcessApi.Flow;
+                import io.miragon.smoketest.BikeLeasingProcessApi.Flow;
 
                 public final class UsesApi {
                     public static String describe() {
-                        var edge = Flow.startEventSubmitRegistrationForm().outgoingFlows().toServiceTaskIncrementSubscriptionCounter();
+                        var edge = Flow.startEventLeasingRequestReceived().outgoingFlows().toServiceTaskValidateApplication();
                         String condition = edge.getConditionExpression();
-                        var input = Flow.CallActivityAbortRegistration.Variables.SUBSCRIPTION_ID;
-                        var mapping = Flow.CallActivityAbortRegistration.Inputs.SUBSCRIPTION_ID;
-                        var timer = Flow.timerEveryDay().timer;
-                        var host = Flow.timerEveryDay().attachedTo();
-                        var called = Flow.callActivityAbortRegistration().calledProcess;
-                        String jobType = Flow.ServiceTaskSendConfirmationMail.JOB_TYPE;
+                        var input = Flow.CallActivityCancelBikeOrder.Variables.ORDER_IDS;
+                        var mapping = Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS;
+                        var timer = Flow.timerSignatureReminder().timer;
+                        var host = Flow.timerSignatureReminder().attachedTo();
+                        var called = Flow.callActivityCancelBikeOrder().calledProcess;
+                        String jobType = Flow.ServiceTaskSendContract.JOB_TYPE;
                         return condition + edge.isDefault() + edge.getTarget().getId() + input + mapping + timer.getTimerValue() + host.getName() + called + jobType;
                     }
                 }

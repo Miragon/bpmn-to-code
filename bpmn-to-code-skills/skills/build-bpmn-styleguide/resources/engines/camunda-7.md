@@ -38,7 +38,7 @@ Exactly one of the following attributes is set on `<bpmn:serviceTask>`. The `imp
 
 | Kind | Attribute | Typical value shape |
 |---|---|---|
-| `EXTERNAL_TASK` | `camunda:type="external" camunda:topic="..."` | dot.separated.topic, e.g. `newsletter.sendConfirmationMail` |
+| `EXTERNAL_TASK` | `camunda:type="external" camunda:topic="..."` | dot.separated.topic, e.g. `miravelo.sendConfirmationMail` |
 | `JAVA_DELEGATE` | `camunda:class="..."` | Fully qualified class name |
 | `DELEGATE_EXPRESSION` | `camunda:delegateExpression="${bean}"` | EL expression (usually a Spring bean name) |
 | `EXPRESSION` | `camunda:expression="${...}"` | EL expression |
@@ -120,7 +120,7 @@ Expressions may be used (`${expr}`), resolved at runtime.
 <bpmn:serviceTask id="serviceTask_SendEmail"
                   name="Send email"
                   camunda:type="external"
-                  camunda:topic="newsletter.sendEmail"
+                  camunda:topic="miravelo.sendEmail"
                   camunda:asyncBefore="true">
   <bpmn:extensionElements>
     <camunda:inputOutput>

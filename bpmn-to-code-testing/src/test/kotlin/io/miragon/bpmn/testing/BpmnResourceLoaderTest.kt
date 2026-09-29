@@ -61,9 +61,9 @@ class BpmnResourceLoaderTest {
 
     @Test
     fun `fromClasspath loads single bpmn file by direct classpath path`() {
-        val resources = BpmnResourceLoader.fromClasspath("bpmn/valid-process.bpmn")
+        val resources = BpmnResourceLoader.fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
         assertThat(resources).hasSize(1)
-        assertThat(resources.first().fileName).isEqualTo("valid-process.bpmn")
+        assertThat(resources.first().fileName).isEqualTo("cancel-bike-order.bpmn")
     }
 
     @Test

@@ -23,8 +23,8 @@ class MultiModuleRuntimeSharingSmokeTest {
         val serviceADir = File(projectDir, "service-a").also { it.mkdirs() }
         val serviceBDir = File(projectDir, "service-b").also { it.mkdirs() }
 
-        copyBpmnResource("c8-subscribe-newsletter.bpmn", File(serviceADir, "src/main/resources/a.bpmn"))
-        copyBpmnResource("c8-subscribe-newsletter.bpmn", File(serviceBDir, "src/main/resources/b.bpmn"))
+        copyBpmnResource("zeebe/bike-leasing.bpmn", File(serviceADir, "src/main/resources/a.bpmn"))
+        copyBpmnResource("zeebe/bike-leasing.bpmn", File(serviceBDir, "src/main/resources/b.bpmn"))
 
         File(projectDir, "settings.gradle.kts").writeText(
             """
@@ -115,12 +115,12 @@ class MultiModuleRuntimeSharingSmokeTest {
             package com.acme
 
             import com.acme.common.EngineGateway
-            import $packagePath.NewsletterSubscriptionProcessApi
+            import $packagePath.BikeLeasingProcessApi
 
             object $callerName {
                 fun run(gateway: EngineGateway): String {
-                    val edge = NewsletterSubscriptionProcessApi.Flow.StartEventSubmitRegistrationForm.outgoingFlows().toServiceTaskIncrementSubscriptionCounter
-                    return gateway.start(NewsletterSubscriptionProcessApi.PROCESS_ID) + gateway.follow(edge)
+                    val edge = BikeLeasingProcessApi.Flow.StartEventLeasingRequestReceived.outgoingFlows().toServiceTaskValidateApplication
+                    return gateway.start(BikeLeasingProcessApi.PROCESS_ID) + gateway.follow(edge)
                 }
             }
             """.trimIndent(),

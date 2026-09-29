@@ -12,8 +12,8 @@ class KotlinSharedDefinitionsBuilderTest {
 
     @Test
     fun `buildApiFiles generates one file per kind of shared definition`() {
-        // given: the shared definitions of the newsletter processes
-        val api = newsletterSharedDefinitionsApi(OutputLanguage.KOTLIN)
+        // given: the shared definitions of the bike-leasing and cancel-bike-order processes
+        val api = miraVeloSharedDefinitionsApi(OutputLanguage.KOTLIN)
 
         // when: we build the shared definition files
         val result = underTest.buildApiFiles(api)

@@ -24,15 +24,15 @@ class ProcessJsonEndToEndTest {
 
     @ParameterizedTest
     @CsvSource(
-        "ZEEBE, c8-subscribe-newsletter",
-        "CAMUNDA_7, c7-subscribe-newsletter",
-        "OPERATON, operaton-subscribe-newsletter",
+        "ZEEBE, zeebe/bike-leasing",
+        "CAMUNDA_7, c7/bike-leasing",
+        "OPERATON, operaton/bike-leasing",
     )
     fun `real bpmn produces the committed json`(engine: ProcessEngine, fixture: String) {
         // given: the shared fixture for this engine
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
             bpmnXml = readResource("/bpmn/$fixture.bpmn"),
-            processName = fixture,
+            processName = fixture.substringAfter("/"),
         )
 
         // when: running the real extraction and JSON generation

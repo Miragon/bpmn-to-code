@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="definitions_bikeLeasing" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0">
+  <bpmn:message id="message_leasingRequestReceived" name="miravelo.leasingRequestReceived" />
+  <bpmn:message id="message_contractSigned" name="miravelo.contractSigned" />
+  <bpmn:message id="message_handoverReported" name="miravelo.handoverReported" />
+  <bpmn:message id="message_applicationWithdrawn" name="miravelo.applicationWithdrawn" />
+  <bpmn:message id="message_addressChanged" name="miravelo.addressChanged" />
+  <bpmn:error id="error_applicationInvalid" name="miravelo.applicationInvalid" errorCode="applicationInvalid" />
+  <bpmn:escalation id="escalation_contractNotSigned" name="miravelo.contractNotSigned" escalationCode="contractNotSigned" />
+  <bpmn:process id="bikeLeasing" name="MiraVelo Bike Leasing" isExecutable="true" operaton:historyTimeToLive="180">
+    <bpmn:extensionElements>
+      <operaton:properties>
+        <operaton:property name="variantName" value="corporate" />
+      </operaton:properties>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="startEvent_leasingRequestReceived" name="Leasing request received" operaton:asyncAfter="true">
+      <bpmn:extensionElements>
+        <operaton:properties>
+          <operaton:property name="additionalInputVariables" value="applicationId, bikeIds, monthlyNetIncome, age" />
+        </operaton:properties>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>flow_leasingRequestReceivedToValidateApplication</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="messageEventDefinition_leasingRequestReceived" messageRef="message_leasingRequestReceived" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="serviceTask_validateApplication" name="Validate application" operaton:delegateExpression="${validateApplicationDelegate}">
+      <bpmn:incoming>flow_leasingRequestReceivedToValidateApplication</bpmn:incoming>
+      <bpmn:outgoing>flow_validateApplicationToCheckCreditRating</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:businessRuleTask id="businessRuleTask_checkCreditRating" name="Check credit rating" operaton:decisionRef="checkCreditRating" operaton:resultVariable="solvent" operaton:mapDecisionResult="singleEntry">
+      <bpmn:incoming>flow_validateApplicationToCheckCreditRating</bpmn:incoming>
+      <bpmn:outgoing>flow_checkCreditRatingToIsSolvent</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="gateway_isSolvent" name="Solvent?" default="flow_isSolventToConcludeContract">
+      <bpmn:incoming>flow_checkCreditRatingToIsSolvent</bpmn:incoming>
+      <bpmn:outgoing>flow_isSolventToConcludeContract</bpmn:outgoing>
+      <bpmn:outgoing>flow_isSolventToCollectRejections</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:subProcess id="subProcess_concludeContract" name="Conclude contract">
+      <bpmn:incoming>flow_isSolventToConcludeContract</bpmn:incoming>
+      <bpmn:outgoing>flow_concludeContractToFork</bpmn:outgoing>
+      <bpmn:startEvent id="startEvent_customerEligible" name="Customer eligible">
+        <bpmn:outgoing>flow_customerEligibleToSendContract</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:serviceTask id="serviceTask_sendContract" name="Send contract" operaton:delegateExpression="${sendContractDelegate}">
+        <bpmn:extensionElements>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="applicationId">${applicationId}</operaton:inputParameter>
+            <operaton:outputParameter name="contractId">${contractId}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>flow_customerEligibleToSendContract</bpmn:incoming>
+        <bpmn:outgoing>flow_sendContractToAwaitSignature</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:eventBasedGateway id="gateway_awaitSignature" name="Await signature">
+        <bpmn:incoming>flow_sendContractToAwaitSignature</bpmn:incoming>
+        <bpmn:outgoing>flow_awaitSignatureToContractSigned</bpmn:outgoing>
+        <bpmn:outgoing>flow_awaitSignatureToSignatureDeadline</bpmn:outgoing>
+      </bpmn:eventBasedGateway>
+      <bpmn:intermediateCatchEvent id="event_contractSigned" name="Contract signed" operaton:asyncAfter="true">
+        <bpmn:incoming>flow_awaitSignatureToContractSigned</bpmn:incoming>
+        <bpmn:outgoing>flow_contractSignedToContractConcluded</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="messageEventDefinition_contractSigned" messageRef="message_contractSigned" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:endEvent id="endEvent_contractConcluded" name="Contract concluded">
+        <bpmn:incoming>flow_contractSignedToContractConcluded</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:intermediateCatchEvent id="timer_signatureDeadline" name="14 days passed" operaton:asyncAfter="true">
+        <bpmn:incoming>flow_awaitSignatureToSignatureDeadline</bpmn:incoming>
+        <bpmn:outgoing>flow_signatureDeadlineToContractNotSigned</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="timerEventDefinition_signatureDeadline">
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P14D</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:endEvent id="endEvent_contractNotSigned" name="Contract not signed">
+        <bpmn:incoming>flow_signatureDeadlineToContractNotSigned</bpmn:incoming>
+        <bpmn:escalationEventDefinition id="escalationEventDefinition_contractNotSigned" escalationRef="escalation_contractNotSigned" />
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="flow_customerEligibleToSendContract" sourceRef="startEvent_customerEligible" targetRef="serviceTask_sendContract" />
+      <bpmn:sequenceFlow id="flow_sendContractToAwaitSignature" sourceRef="serviceTask_sendContract" targetRef="gateway_awaitSignature" />
+      <bpmn:sequenceFlow id="flow_awaitSignatureToContractSigned" sourceRef="gateway_awaitSignature" targetRef="event_contractSigned" />
+      <bpmn:sequenceFlow id="flow_contractSignedToContractConcluded" sourceRef="event_contractSigned" targetRef="endEvent_contractConcluded" />
+      <bpmn:sequenceFlow id="flow_awaitSignatureToSignatureDeadline" sourceRef="gateway_awaitSignature" targetRef="timer_signatureDeadline" />
+      <bpmn:sequenceFlow id="flow_signatureDeadlineToContractNotSigned" sourceRef="timer_signatureDeadline" targetRef="endEvent_contractNotSigned" />
+    </bpmn:subProcess>
+    <bpmn:boundaryEvent id="boundary_compensateContract" name="Contract to revoke" attachedToRef="subProcess_concludeContract">
+      <bpmn:compensateEventDefinition id="compensateEventDefinition_compensateContract" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="boundary_contractNotSigned" name="Contract not signed" attachedToRef="subProcess_concludeContract" operaton:asyncAfter="true">
+      <bpmn:outgoing>flow_contractNotSignedToCollectRejections</bpmn:outgoing>
+      <bpmn:escalationEventDefinition id="escalationEventDefinition_catchContractNotSigned" escalationRef="escalation_contractNotSigned" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="timer_signatureReminder" name="7 days passed" cancelActivity="false" attachedToRef="subProcess_concludeContract" operaton:asyncAfter="true">
+      <bpmn:outgoing>flow_signatureReminderToSendReminderMail</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="timerEventDefinition_signatureReminder">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P7D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="serviceTask_sendReminderMail" name="Send reminder mail" operaton:expression="${mailService.sendReminder(applicationId)}">
+      <bpmn:incoming>flow_signatureReminderToSendReminderMail</bpmn:incoming>
+      <bpmn:outgoing>flow_sendReminderMailToCustomerReminded</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="endEvent_customerReminded" name="Customer reminded">
+      <bpmn:incoming>flow_sendReminderMailToCustomerReminded</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="serviceTask_cancelContract" name="Cancel contract" isForCompensation="true" operaton:delegateExpression="${cancelContractDelegate}" />
+    <bpmn:boundaryEvent id="boundary_applicationInvalid" name="Application invalid" attachedToRef="serviceTask_validateApplication" operaton:asyncAfter="true">
+      <bpmn:outgoing>flow_applicationInvalidToCollectRejections</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="errorEventDefinition_applicationInvalid" errorRef="error_applicationInvalid" />
+    </bpmn:boundaryEvent>
+    <bpmn:exclusiveGateway id="gateway_collectRejections">
+      <bpmn:incoming>flow_isSolventToCollectRejections</bpmn:incoming>
+      <bpmn:incoming>flow_applicationInvalidToCollectRejections</bpmn:incoming>
+      <bpmn:incoming>flow_contractNotSignedToCollectRejections</bpmn:incoming>
+      <bpmn:outgoing>flow_collectRejectionsToSendRejection</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="serviceTask_sendRejection" name="Send rejection" operaton:type="external" operaton:topic="miravelo.sendRejection">
+      <bpmn:incoming>flow_collectRejectionsToSendRejection</bpmn:incoming>
+      <bpmn:outgoing>flow_sendRejectionToApplicationRejected</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="endEvent_applicationRejected" name="Application rejected">
+      <bpmn:incoming>flow_sendRejectionToApplicationRejected</bpmn:incoming>
+      <bpmn:terminateEventDefinition id="terminateEventDefinition_applicationRejected" />
+    </bpmn:endEvent>
+    <bpmn:parallelGateway id="gateway_fork">
+      <bpmn:incoming>flow_concludeContractToFork</bpmn:incoming>
+      <bpmn:outgoing>flow_forkToOrderBike</bpmn:outgoing>
+      <bpmn:outgoing>flow_forkToIssueInsurancePolicy</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="serviceTask_orderBike" name="Order bike" operaton:type="external" operaton:topic="miravelo.orderBike">
+      <bpmn:incoming>flow_forkToOrderBike</bpmn:incoming>
+      <bpmn:outgoing>flow_orderBikeToJoin</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics operaton:collection="${bikeIds}" operaton:elementVariable="bikeId" />
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="serviceTask_issueInsurancePolicy" name="Issue insurance policy" operaton:asyncBefore="true" operaton:exclusive="false" operaton:class="io.miravelo.leasing.IssueInsurancePolicyDelegate">
+      <bpmn:incoming>flow_forkToIssueInsurancePolicy</bpmn:incoming>
+      <bpmn:outgoing>flow_issueInsurancePolicyToJoin</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics isSequential="true" operaton:collection="${bikeIds}" operaton:elementVariable="bikeId" />
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="boundary_compensateOrder" name="Order to cancel" attachedToRef="serviceTask_orderBike">
+      <bpmn:compensateEventDefinition id="compensateEventDefinition_compensateOrder" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="boundary_compensateInsurance" name="Policy to cancel" attachedToRef="serviceTask_issueInsurancePolicy">
+      <bpmn:compensateEventDefinition id="compensateEventDefinition_compensateInsurance" />
+    </bpmn:boundaryEvent>
+    <bpmn:callActivity id="callActivity_cancelBikeOrder" name="Cancel bike order" isForCompensation="true" calledElement="cancelBikeOrder">
+      <bpmn:extensionElements>
+        <operaton:in businessKey="#{execution.processBusinessKey}" />
+        <operaton:in source="orderIds" target="orderIds" />
+        <operaton:in sourceExpression="${applicationId}" target="applicationId" />
+        <operaton:out source="cancellationCosts" target="cancellationCosts" />
+      </bpmn:extensionElements>
+    </bpmn:callActivity>
+    <bpmn:serviceTask id="serviceTask_cancelPolicy" name="Cancel policy" isForCompensation="true" operaton:type="external" operaton:topic="miravelo.cancelPolicy" />
+    <bpmn:parallelGateway id="gateway_join">
+      <bpmn:incoming>flow_orderBikeToJoin</bpmn:incoming>
+      <bpmn:incoming>flow_issueInsurancePolicyToJoin</bpmn:incoming>
+      <bpmn:outgoing>flow_joinToHandoverReported</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:receiveTask id="receiveTask_handoverReported" name="Await bike handover" messageRef="message_handoverReported" operaton:asyncAfter="true">
+      <bpmn:incoming>flow_joinToHandoverReported</bpmn:incoming>
+      <bpmn:outgoing>flow_handoverReportedToWithdrawalPeriodElapsed</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:intermediateCatchEvent id="timer_withdrawalPeriodElapsed" name="Withdrawal period elapsed" operaton:asyncAfter="true">
+      <bpmn:incoming>flow_handoverReportedToWithdrawalPeriodElapsed</bpmn:incoming>
+      <bpmn:outgoing>flow_withdrawalPeriodElapsedToLeasingActive</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="timerEventDefinition_withdrawalPeriodElapsed">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${withdrawalPeriod}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="endEvent_leasingActive" name="Leasing active">
+      <bpmn:incoming>flow_withdrawalPeriodElapsedToLeasingActive</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:subProcess id="subProcess_applicationWithdrawn" name="Application withdrawn" triggeredByEvent="true">
+      <bpmn:startEvent id="startEvent_applicationWithdrawn" name="Application withdrawn">
+        <bpmn:outgoing>flow_applicationWithdrawnToReverseApplication</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="messageEventDefinition_applicationWithdrawn" messageRef="message_applicationWithdrawn" />
+      </bpmn:startEvent>
+      <bpmn:intermediateThrowEvent id="event_reverseApplication" name="Application reversed">
+        <bpmn:incoming>flow_applicationWithdrawnToReverseApplication</bpmn:incoming>
+        <bpmn:outgoing>flow_reverseApplicationToSendCancellationConfirmation</bpmn:outgoing>
+        <bpmn:compensateEventDefinition id="compensateEventDefinition_reverseApplication" />
+      </bpmn:intermediateThrowEvent>
+      <bpmn:serviceTask id="serviceTask_sendCancellationConfirmation" name="Send cancellation confirmation" operaton:type="external" operaton:topic="miravelo.sendCancellationConfirmation">
+        <bpmn:incoming>flow_reverseApplicationToSendCancellationConfirmation</bpmn:incoming>
+        <bpmn:outgoing>flow_sendCancellationConfirmationToApplicationCancelled</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="endEvent_applicationCancelled" name="Application cancelled">
+        <bpmn:incoming>flow_sendCancellationConfirmationToApplicationCancelled</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="flow_applicationWithdrawnToReverseApplication" sourceRef="startEvent_applicationWithdrawn" targetRef="event_reverseApplication" />
+      <bpmn:sequenceFlow id="flow_reverseApplicationToSendCancellationConfirmation" sourceRef="event_reverseApplication" targetRef="serviceTask_sendCancellationConfirmation" />
+      <bpmn:sequenceFlow id="flow_sendCancellationConfirmationToApplicationCancelled" sourceRef="serviceTask_sendCancellationConfirmation" targetRef="endEvent_applicationCancelled" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="subProcess_addressChanged" name="Delivery address changed" triggeredByEvent="true">
+      <bpmn:startEvent id="startEvent_addressChanged" name="Address changed" isInterrupting="false">
+        <bpmn:extensionElements>
+          <operaton:properties>
+            <operaton:property name="additionalInputVariables" value="street, city" />
+          </operaton:properties>
+        </bpmn:extensionElements>
+        <bpmn:outgoing>flow_addressChangedToUpdateDeliveryAddress</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="messageEventDefinition_addressChanged" messageRef="message_addressChanged" />
+      </bpmn:startEvent>
+      <bpmn:userTask id="userTask_updateDeliveryAddress" name="Update delivery address" operaton:asyncAfter="true">
+        <bpmn:extensionElements>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="deliveryAddress">${deliveryAddress}</operaton:inputParameter>
+            <operaton:outputParameter name="deliveryAddress">${deliveryAddress}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>flow_addressChangedToUpdateDeliveryAddress</bpmn:incoming>
+        <bpmn:outgoing>flow_updateDeliveryAddressToDeliveryAddressUpdated</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:endEvent id="endEvent_deliveryAddressUpdated" name="Delivery address updated">
+        <bpmn:incoming>flow_updateDeliveryAddressToDeliveryAddressUpdated</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="flow_addressChangedToUpdateDeliveryAddress" sourceRef="startEvent_addressChanged" targetRef="userTask_updateDeliveryAddress" />
+      <bpmn:sequenceFlow id="flow_updateDeliveryAddressToDeliveryAddressUpdated" sourceRef="userTask_updateDeliveryAddress" targetRef="endEvent_deliveryAddressUpdated" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="flow_leasingRequestReceivedToValidateApplication" sourceRef="startEvent_leasingRequestReceived" targetRef="serviceTask_validateApplication" />
+    <bpmn:sequenceFlow id="flow_validateApplicationToCheckCreditRating" sourceRef="serviceTask_validateApplication" targetRef="businessRuleTask_checkCreditRating" />
+    <bpmn:sequenceFlow id="flow_checkCreditRatingToIsSolvent" sourceRef="businessRuleTask_checkCreditRating" targetRef="gateway_isSolvent" />
+    <bpmn:sequenceFlow id="flow_isSolventToConcludeContract" name="Yes" sourceRef="gateway_isSolvent" targetRef="subProcess_concludeContract" />
+    <bpmn:sequenceFlow id="flow_isSolventToCollectRejections" name="No" sourceRef="gateway_isSolvent" targetRef="gateway_collectRejections">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!solvent}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_applicationInvalidToCollectRejections" sourceRef="boundary_applicationInvalid" targetRef="gateway_collectRejections" />
+    <bpmn:sequenceFlow id="flow_contractNotSignedToCollectRejections" sourceRef="boundary_contractNotSigned" targetRef="gateway_collectRejections" />
+    <bpmn:sequenceFlow id="flow_collectRejectionsToSendRejection" sourceRef="gateway_collectRejections" targetRef="serviceTask_sendRejection" />
+    <bpmn:sequenceFlow id="flow_sendRejectionToApplicationRejected" sourceRef="serviceTask_sendRejection" targetRef="endEvent_applicationRejected" />
+    <bpmn:sequenceFlow id="flow_signatureReminderToSendReminderMail" sourceRef="timer_signatureReminder" targetRef="serviceTask_sendReminderMail" />
+    <bpmn:sequenceFlow id="flow_sendReminderMailToCustomerReminded" sourceRef="serviceTask_sendReminderMail" targetRef="endEvent_customerReminded" />
+    <bpmn:sequenceFlow id="flow_concludeContractToFork" sourceRef="subProcess_concludeContract" targetRef="gateway_fork" />
+    <bpmn:sequenceFlow id="flow_forkToOrderBike" sourceRef="gateway_fork" targetRef="serviceTask_orderBike" />
+    <bpmn:sequenceFlow id="flow_forkToIssueInsurancePolicy" sourceRef="gateway_fork" targetRef="serviceTask_issueInsurancePolicy" />
+    <bpmn:sequenceFlow id="flow_orderBikeToJoin" sourceRef="serviceTask_orderBike" targetRef="gateway_join" />
+    <bpmn:sequenceFlow id="flow_issueInsurancePolicyToJoin" sourceRef="serviceTask_issueInsurancePolicy" targetRef="gateway_join" />
+    <bpmn:sequenceFlow id="flow_joinToHandoverReported" sourceRef="gateway_join" targetRef="receiveTask_handoverReported" />
+    <bpmn:sequenceFlow id="flow_handoverReportedToWithdrawalPeriodElapsed" sourceRef="receiveTask_handoverReported" targetRef="timer_withdrawalPeriodElapsed" />
+    <bpmn:sequenceFlow id="flow_withdrawalPeriodElapsedToLeasingActive" sourceRef="timer_withdrawalPeriodElapsed" targetRef="endEvent_leasingActive" />
+    <bpmn:association id="association_compensateContract" associationDirection="One" sourceRef="boundary_compensateContract" targetRef="serviceTask_cancelContract" />
+    <bpmn:association id="association_compensateOrder" associationDirection="One" sourceRef="boundary_compensateOrder" targetRef="callActivity_cancelBikeOrder" />
+    <bpmn:association id="association_compensateInsurance" associationDirection="One" sourceRef="boundary_compensateInsurance" targetRef="serviceTask_cancelPolicy" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="diagram_bikeLeasing">
+    <bpmndi:BPMNPlane id="plane_bikeLeasing" bpmnElement="bikeLeasing">
+      <bpmndi:BPMNShape id="subProcess_concludeContract_di" bpmnElement="subProcess_concludeContract" isExpanded="true">
+        <dc:Bounds x="670" y="130" width="520" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="subProcess_applicationWithdrawn_di" bpmnElement="subProcess_applicationWithdrawn" isExpanded="true">
+        <dc:Bounds x="240" y="660" width="520" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="subProcess_addressChanged_di" bpmnElement="subProcess_addressChanged" isExpanded="true">
+        <dc:Bounds x="820" y="660" width="440" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="startEvent_leasingRequestReceived_di" bpmnElement="startEvent_leasingRequestReceived">
+        <dc:Bounds x="152" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="120" y="275" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_validateApplication_di" bpmnElement="serviceTask_validateApplication">
+        <dc:Bounds x="250" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="businessRuleTask_checkCreditRating_di" bpmnElement="businessRuleTask_checkCreditRating">
+        <dc:Bounds x="400" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_isSolvent_di" bpmnElement="gateway_isSolvent">
+        <dc:Bounds x="555" y="225" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="530" y="193" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="startEvent_customerEligible_di" bpmnElement="startEvent_customerEligible">
+        <dc:Bounds x="702" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="670" y="275" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_sendContract_di" bpmnElement="serviceTask_sendContract">
+        <dc:Bounds x="780" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_awaitSignature_di" bpmnElement="gateway_awaitSignature">
+        <dc:Bounds x="935" y="225" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="910" y="193" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="event_contractSigned_di" bpmnElement="event_contractSigned">
+        <dc:Bounds x="1032" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1000" y="200" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_contractConcluded_di" bpmnElement="endEvent_contractConcluded">
+        <dc:Bounds x="1122" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1090" y="200" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="timer_signatureDeadline_di" bpmnElement="timer_signatureDeadline">
+        <dc:Bounds x="1032" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1000" y="355" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_contractNotSigned_di" bpmnElement="endEvent_contractNotSigned">
+        <dc:Bounds x="1122" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1090" y="355" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_sendReminderMail_di" bpmnElement="serviceTask_sendReminderMail">
+        <dc:Bounds x="1030" y="450" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_customerReminded_di" bpmnElement="endEvent_customerReminded">
+        <dc:Bounds x="1192" y="472" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1160" y="515" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_cancelContract_di" bpmnElement="serviceTask_cancelContract">
+        <dc:Bounds x="710" y="0" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_collectRejections_di" bpmnElement="gateway_collectRejections">
+        <dc:Bounds x="555" y="495" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_sendRejection_di" bpmnElement="serviceTask_sendRejection">
+        <dc:Bounds x="660" y="480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_applicationRejected_di" bpmnElement="endEvent_applicationRejected">
+        <dc:Bounds x="822" y="502" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="790" y="545" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_fork_di" bpmnElement="gateway_fork">
+        <dc:Bounds x="1235" y="225" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_orderBike_di" bpmnElement="serviceTask_orderBike">
+        <dc:Bounds x="1320" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_issueInsurancePolicy_di" bpmnElement="serviceTask_issueInsurancePolicy">
+        <dc:Bounds x="1320" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="callActivity_cancelBikeOrder_di" bpmnElement="callActivity_cancelBikeOrder">
+        <dc:Bounds x="1320" y="0" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_cancelPolicy_di" bpmnElement="serviceTask_cancelPolicy">
+        <dc:Bounds x="1320" y="440" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_join_di" bpmnElement="gateway_join">
+        <dc:Bounds x="1455" y="225" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="receiveTask_handoverReported_di" bpmnElement="receiveTask_handoverReported">
+        <dc:Bounds x="1540" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="timer_withdrawalPeriodElapsed_di" bpmnElement="timer_withdrawalPeriodElapsed">
+        <dc:Bounds x="1692" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1660" y="275" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_leasingActive_di" bpmnElement="endEvent_leasingActive">
+        <dc:Bounds x="1782" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1750" y="275" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="startEvent_applicationWithdrawn_di" bpmnElement="startEvent_applicationWithdrawn">
+        <dc:Bounds x="272" y="722" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="240" y="765" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="event_reverseApplication_di" bpmnElement="event_reverseApplication">
+        <dc:Bounds x="382" y="722" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="350" y="765" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_sendCancellationConfirmation_di" bpmnElement="serviceTask_sendCancellationConfirmation">
+        <dc:Bounds x="480" y="700" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_applicationCancelled_di" bpmnElement="endEvent_applicationCancelled">
+        <dc:Bounds x="662" y="722" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="630" y="765" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="startEvent_addressChanged_di" bpmnElement="startEvent_addressChanged">
+        <dc:Bounds x="852" y="722" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="820" y="765" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="userTask_updateDeliveryAddress_di" bpmnElement="userTask_updateDeliveryAddress">
+        <dc:Bounds x="950" y="700" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_deliveryAddressUpdated_di" bpmnElement="endEvent_deliveryAddressUpdated">
+        <dc:Bounds x="1132" y="722" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1100" y="765" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_compensateContract_di" bpmnElement="boundary_compensateContract">
+        <dc:Bounds x="742" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="780" y="148" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_contractNotSigned_di" bpmnElement="boundary_contractNotSigned">
+        <dc:Bounds x="882" y="372" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="920" y="408" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="timer_signatureReminder_di" bpmnElement="timer_signatureReminder">
+        <dc:Bounds x="1062" y="372" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1100" y="408" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_applicationInvalid_di" bpmnElement="boundary_applicationInvalid">
+        <dc:Bounds x="282" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="320" y="308" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_compensateOrder_di" bpmnElement="boundary_compensateOrder">
+        <dc:Bounds x="1352" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1390" y="85" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_compensateInsurance_di" bpmnElement="boundary_compensateInsurance">
+        <dc:Bounds x="1352" y="352" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1390" y="388" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_leasingRequestReceivedToValidateApplication_di" bpmnElement="flow_leasingRequestReceivedToValidateApplication">
+        <di:waypoint x="188" y="250" />
+        <di:waypoint x="250" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_validateApplicationToCheckCreditRating_di" bpmnElement="flow_validateApplicationToCheckCreditRating">
+        <di:waypoint x="350" y="250" />
+        <di:waypoint x="400" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_checkCreditRatingToIsSolvent_di" bpmnElement="flow_checkCreditRatingToIsSolvent">
+        <di:waypoint x="500" y="250" />
+        <di:waypoint x="555" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_isSolventToConcludeContract_di" bpmnElement="flow_isSolventToConcludeContract">
+        <di:waypoint x="605" y="250" />
+        <di:waypoint x="670" y="250" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="625" y="232" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_isSolventToCollectRejections_di" bpmnElement="flow_isSolventToCollectRejections">
+        <di:waypoint x="580" y="275" />
+        <di:waypoint x="580" y="495" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="588" y="380" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_applicationInvalidToCollectRejections_di" bpmnElement="flow_applicationInvalidToCollectRejections">
+        <di:waypoint x="300" y="308" />
+        <di:waypoint x="300" y="520" />
+        <di:waypoint x="555" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_contractNotSignedToCollectRejections_di" bpmnElement="flow_contractNotSignedToCollectRejections">
+        <di:waypoint x="900" y="408" />
+        <di:waypoint x="900" y="600" />
+        <di:waypoint x="580" y="600" />
+        <di:waypoint x="580" y="545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_collectRejectionsToSendRejection_di" bpmnElement="flow_collectRejectionsToSendRejection">
+        <di:waypoint x="605" y="520" />
+        <di:waypoint x="660" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_sendRejectionToApplicationRejected_di" bpmnElement="flow_sendRejectionToApplicationRejected">
+        <di:waypoint x="760" y="520" />
+        <di:waypoint x="822" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_customerEligibleToSendContract_di" bpmnElement="flow_customerEligibleToSendContract">
+        <di:waypoint x="738" y="250" />
+        <di:waypoint x="780" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_sendContractToAwaitSignature_di" bpmnElement="flow_sendContractToAwaitSignature">
+        <di:waypoint x="880" y="250" />
+        <di:waypoint x="935" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_awaitSignatureToContractSigned_di" bpmnElement="flow_awaitSignatureToContractSigned">
+        <di:waypoint x="985" y="250" />
+        <di:waypoint x="1032" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_contractSignedToContractConcluded_di" bpmnElement="flow_contractSignedToContractConcluded">
+        <di:waypoint x="1068" y="250" />
+        <di:waypoint x="1122" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_awaitSignatureToSignatureDeadline_di" bpmnElement="flow_awaitSignatureToSignatureDeadline">
+        <di:waypoint x="960" y="275" />
+        <di:waypoint x="960" y="330" />
+        <di:waypoint x="1032" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_signatureDeadlineToContractNotSigned_di" bpmnElement="flow_signatureDeadlineToContractNotSigned">
+        <di:waypoint x="1068" y="330" />
+        <di:waypoint x="1122" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_signatureReminderToSendReminderMail_di" bpmnElement="flow_signatureReminderToSendReminderMail">
+        <di:waypoint x="1080" y="408" />
+        <di:waypoint x="1080" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_sendReminderMailToCustomerReminded_di" bpmnElement="flow_sendReminderMailToCustomerReminded">
+        <di:waypoint x="1130" y="490" />
+        <di:waypoint x="1192" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_concludeContractToFork_di" bpmnElement="flow_concludeContractToFork">
+        <di:waypoint x="1190" y="250" />
+        <di:waypoint x="1235" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_forkToOrderBike_di" bpmnElement="flow_forkToOrderBike">
+        <di:waypoint x="1260" y="225" />
+        <di:waypoint x="1260" y="170" />
+        <di:waypoint x="1320" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_forkToIssueInsurancePolicy_di" bpmnElement="flow_forkToIssueInsurancePolicy">
+        <di:waypoint x="1260" y="275" />
+        <di:waypoint x="1260" y="330" />
+        <di:waypoint x="1320" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_orderBikeToJoin_di" bpmnElement="flow_orderBikeToJoin">
+        <di:waypoint x="1420" y="170" />
+        <di:waypoint x="1480" y="170" />
+        <di:waypoint x="1480" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_issueInsurancePolicyToJoin_di" bpmnElement="flow_issueInsurancePolicyToJoin">
+        <di:waypoint x="1420" y="330" />
+        <di:waypoint x="1480" y="330" />
+        <di:waypoint x="1480" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_joinToHandoverReported_di" bpmnElement="flow_joinToHandoverReported">
+        <di:waypoint x="1505" y="250" />
+        <di:waypoint x="1540" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_handoverReportedToWithdrawalPeriodElapsed_di" bpmnElement="flow_handoverReportedToWithdrawalPeriodElapsed">
+        <di:waypoint x="1640" y="250" />
+        <di:waypoint x="1692" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_withdrawalPeriodElapsedToLeasingActive_di" bpmnElement="flow_withdrawalPeriodElapsedToLeasingActive">
+        <di:waypoint x="1728" y="250" />
+        <di:waypoint x="1782" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_applicationWithdrawnToReverseApplication_di" bpmnElement="flow_applicationWithdrawnToReverseApplication">
+        <di:waypoint x="308" y="740" />
+        <di:waypoint x="382" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_reverseApplicationToSendCancellationConfirmation_di" bpmnElement="flow_reverseApplicationToSendCancellationConfirmation">
+        <di:waypoint x="418" y="740" />
+        <di:waypoint x="480" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_sendCancellationConfirmationToApplicationCancelled_di" bpmnElement="flow_sendCancellationConfirmationToApplicationCancelled">
+        <di:waypoint x="580" y="740" />
+        <di:waypoint x="662" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_addressChangedToUpdateDeliveryAddress_di" bpmnElement="flow_addressChangedToUpdateDeliveryAddress">
+        <di:waypoint x="888" y="740" />
+        <di:waypoint x="950" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_updateDeliveryAddressToDeliveryAddressUpdated_di" bpmnElement="flow_updateDeliveryAddressToDeliveryAddressUpdated">
+        <di:waypoint x="1050" y="740" />
+        <di:waypoint x="1132" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="association_compensateContract_di" bpmnElement="association_compensateContract">
+        <di:waypoint x="760" y="112" />
+        <di:waypoint x="760" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="association_compensateOrder_di" bpmnElement="association_compensateOrder">
+        <di:waypoint x="1370" y="112" />
+        <di:waypoint x="1370" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="association_compensateInsurance_di" bpmnElement="association_compensateInsurance">
+        <di:waypoint x="1370" y="388" />
+        <di:waypoint x="1370" y="440" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

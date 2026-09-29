@@ -19,51 +19,12 @@ class NormalisedExtensionTest {
     private companion object {
         const val CAMUNDA_7_NAMESPACE = "http://camunda.org/schema/1.0/bpmn"
 
-        val TASK_HEADERS_BPMN = """
-            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                              xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_1"
-                              targetNamespace="http://bpmn.io/schema/bpmn">
-              <bpmn:process id="headerProcess" isExecutable="true">
-                <bpmn:serviceTask id="Task_1">
-                  <bpmn:extensionElements>
-                    <zeebe:taskDefinition type="worker" />
-                    <zeebe:taskHeaders>
-                      <zeebe:header key="resultVariable" value="order" />
-                    </zeebe:taskHeaders>
-                  </bpmn:extensionElements>
-                </bpmn:serviceTask>
-              </bpmn:process>
-            </bpmn:definitions>
-        """.trimIndent()
-
         val TWO_IMPLEMENTATIONS_BPMN = """
             <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                               xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_2"
                               targetNamespace="http://bpmn.io/schema/bpmn">
               <bpmn:process id="raceProcess" isExecutable="true">
                 <bpmn:serviceTask id="Task_1" camunda:topic="some-topic" camunda:class="com.example.Handler" />
-              </bpmn:process>
-            </bpmn:definitions>
-        """.trimIndent()
-
-        val MODELER_METADATA_BPMN = """
-            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                              xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_3"
-                              targetNamespace="http://bpmn.io/schema/bpmn">
-              <bpmn:process id="modelerProcess" isExecutable="true">
-                <bpmn:serviceTask id="Task_1" zeebe:modelerTemplate="io.camunda.connectors.HttpJson"
-                                  zeebe:modelerTemplateVersion="4"
-                                  zeebe:modelerTemplateIcon="data:image/svg+xml;base64,AAAA">
-                  <bpmn:extensionElements>
-                    <zeebe:taskDefinition type="io.camunda:http-json:1" />
-                    <zeebe:properties>
-                      <zeebe:property name="camundaModeler:exampleOutputJson" value="{ &quot;a&quot;: 1 }" />
-                    </zeebe:properties>
-                    <zeebe:taskHeaders>
-                      <zeebe:header key="retryBackoff" value="PT5M" />
-                    </zeebe:taskHeaders>
-                  </bpmn:extensionElements>
-                </bpmn:serviceTask>
               </bpmn:process>
             </bpmn:definitions>
         """.trimIndent()
@@ -90,7 +51,7 @@ class NormalisedExtensionTest {
     @Test
     fun `zeebe extensions leave out the elements the dialect reads in full`() {
         // given: the Camunda 8 model, whose nodes carry ioMapping, taskDefinition and calledElement
-        val model = extract(ZeebeDialect(), "c8-subscribe-newsletter")
+        val model = extract(ZeebeDialect(), "zeebe/bike-leasing")
 
         // when: looking at every extension the nodes kept
         val types = model.allFlowNodes.flatMap { node -> node.extensions.map { it.type } }
@@ -102,38 +63,38 @@ class NormalisedExtensionTest {
     @Test
     fun `the normalised fields still carry that information`() {
         // given: the same model
-        val model = extract(ZeebeDialect(), "c8-subscribe-newsletter")
+        val model = extract(ZeebeDialect(), "zeebe/bike-leasing")
 
         // then: what was left out of extensions is present in typed form, so nothing was lost
-        val task = model.allFlowNodes.single { it.id == "serviceTask_sendConfirmationMail" }
+        val task = model.allFlowNodes.single { it.id == "serviceTask_sendContract" }
             as FlowNodeDefinition.Activity.Task
-        assertThat(task.implementation?.reference).isEqualTo("newsletter.sendConfirmationMail")
-        assertThat(task.ioMapping?.inputs?.map { it.target }).contains("subscriptionId")
+        assertThat(task.implementation?.reference).isEqualTo("miravelo.sendContract")
+        assertThat(task.ioMapping?.inputs?.map { it.target }).contains("applicationId")
 
-        val callActivity = model.allFlowNodes.single { it.id == "callActivity_abortRegistration" }
+        val callActivity = model.allFlowNodes.single { it.id == "callActivity_cancelBikeOrder" }
             as FlowNodeDefinition.Activity.CallActivity
-        assertThat(callActivity.definition.getValue()).isEqualTo("abort-registration")
+        assertThat(callActivity.definition.getValue()).isEqualTo("cancelBikeOrder")
     }
 
     @Test
     fun `zeebe extensions keep an element the dialect does not read`() {
-        // given: a task carrying zeebe:taskHeaders, which has no normalised counterpart
-        val model = ProcessModelReader(ZeebeDialect()).read(TASK_HEADERS_BPMN.toByteArray())
+        // given: the connector task carrying zeebe:taskHeaders, which has no normalised counterpart
+        val model = extract(ZeebeDialect(), "zeebe/bike-leasing")
 
         // when: reading the task's extensions
-        val extensions = model.allFlowNodes.single { it.id == "Task_1" }.extensions
+        val extensions = model.allFlowNodes.single { it.id == "serviceTask_orderBike" }.extensions
 
         // then: the escape hatch still works — the raw element survives with its children
         val headers = extensions.single { it.type == "zeebe:taskHeaders" }
         assertThat(headers.children.single().attributes)
-            .containsEntry("key", "resultVariable")
-            .containsEntry("value", "order")
+            .containsEntry("key", "retryBackoff")
+            .containsEntry("value", "PT30S")
     }
 
     @Test
     fun `camunda extensions keep inputOutput because the dialect only reads part of it`() {
         // given: the Camunda 7 model
-        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
+        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7/bike-leasing")
 
         // when: looking at the extensions
         val types = model.allFlowNodes.flatMap { node -> node.extensions.map { it.type } }
@@ -146,21 +107,21 @@ class NormalisedExtensionTest {
     @Test
     fun `engine attributes leave out the one the dialect read`() {
         // given: the Camunda 7 model, whose compensation handler carries camunda:delegateExpression
-        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
+        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7/bike-leasing")
 
         // when: looking at the node that has it
-        val handler = model.allFlowNodes.single { it.id == "serviceTask_decrementSubscriptionCounter" }
+        val handler = model.allFlowNodes.single { it.id == "serviceTask_cancelContract" }
             as FlowNodeDefinition.Activity.Task
 
         // then: the attribute is reported once, as a typed implementation
-        assertThat(handler.implementation).isEqualTo(TaskImplementation.DelegateExpression("counterClass"))
+        assertThat(handler.implementation).isEqualTo(TaskImplementation.DelegateExpression("\${cancelContractDelegate}"))
         assertThat(handler.engineAttributes).doesNotContainKey("camunda:delegateExpression")
     }
 
     @Test
     fun `engine attributes keep the ones the dialect does not read`() {
         // given: the Camunda 7 model
-        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7-subscribe-newsletter")
+        val model = extract(CamundaDialect(CAMUNDA_7_NAMESPACE), "c7/bike-leasing")
 
         // when: looking at a node with execution attributes beyond the implementation
         val keys = model.allFlowNodes.flatMap { it.engineAttributes.keys }
@@ -183,9 +144,9 @@ class NormalisedExtensionTest {
 
     @Test
     fun `modeler authoring metadata is dropped from engine attributes and extensions`() {
-        // given: a connector task carrying modeler-template attributes and a camundaModeler example blob
-        val model = ProcessModelReader(ZeebeDialect()).read(MODELER_METADATA_BPMN.toByteArray())
-        val task = model.allFlowNodes.single { it.id == "Task_1" }
+        // given: the connector task carrying modeler-template attributes and a camundaModeler example blob
+        val model = extract(ZeebeDialect(), "zeebe/bike-leasing")
+        val task = model.allFlowNodes.single { it.id == "serviceTask_orderBike" }
 
         // then: the base64 icon and template markers never reach engineAttributes
         assertThat(task.engineAttributes.keys)

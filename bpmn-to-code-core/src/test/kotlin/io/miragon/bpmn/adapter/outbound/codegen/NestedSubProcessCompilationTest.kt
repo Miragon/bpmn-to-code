@@ -32,8 +32,8 @@ class NestedSubProcessCompilationTest {
 
     @Test
     fun `generated java of two processes sharing job types and messages compiles`() {
-        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/c8-subscribe-newsletter.bpmn")).readText()
-        val copy = bpmnXml.replace("id=\"newsletterSubscription\"", "id=\"newsletterSubscriptionCopy\"")
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn")).readText()
+        val copy = bpmnXml.replace("id=\"bikeLeasing\"", "id=\"bikeLeasingCopy\"")
         val generated = generate(listOf(bpmnXml, copy))
         assertThat(generated.map { it.fileName }).contains("ServiceTasks.java", "Messages.java")
         assertThat(generated.filter { it.fileName == "ServiceTasks.java" }).hasSize(1)

@@ -1,7 +1,7 @@
 package io.miragon.bpmn.runtime.path;
 
 import io.miragon.bpmn.runtime.FlowNode;
-import io.miragon.bpmn.runtime.example.NewsletterSubscriptionProcessApi.Flow;
+import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi.Flow;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Exercises the fluent {@link PathWalk} facade over the generated Java Newsletter API from <em>Java</em> — the
+ * Exercises the fluent {@link PathWalk} facade over the generated Java bike-leasing API from <em>Java</em> — the
  * recommended fluent form for Java consumers. Runs the <em>identical</em> cases and paths as
  * {@code PathWalkKotlinApiTest}. The API-agnostic node-metadata / compensation checks live once in the
  * extension-DSL tests ({@code ProcessPathKotlinApiTest} / {@code ProcessPathJavaApiTest}) and are not
@@ -19,209 +19,201 @@ class PathWalkJavaApiTest {
 
     @Test
     void viaWalksChosenSequenceFlowsAndRecordsThemNextToTheElements() {
-        var walk = PathWalk.from(Flow.startEventSubmitRegistrationForm())
-            .via(n -> n.outgoingFlows().toServiceTaskIncrementSubscriptionCounter())
-            .via(n -> n.outgoingFlows().toSubProcessConfirmation());
+        var walk = PathWalk.from(Flow.businessRuleTaskCheckCreditRating())
+            .via(n -> n.outgoingFlows().toGatewayIsSolvent())
+            .via(n -> n.outgoingFlows().toSubProcessConcludeContract());
 
         assertThat(walk.getIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "subProcess_confirmation"
+            "businessRuleTask_checkCreditRating",
+            "gateway_isSolvent",
+            "subProcess_concludeContract"
         );
-        assertThat(walk.getFlowIds()).containsExactly("flow_submitToIncrementCounter", "flow_incrementCounterToConfirmation");
+        assertThat(walk.getFlowIds()).containsExactly("flow_checkCreditRatingToIsSolvent", "flow_isSolventToConcludeContract");
     }
 
     @Test
     void viaRecordsTheWalkedSequenceFlowsIncludingThoseOfTheSubprocessInterior() {
-        var flowIds = PathWalk.from(Flow.startEventSubmitRegistrationForm())
-            .via(n -> n.outgoingFlows().toServiceTaskIncrementSubscriptionCounter())
-            .via(n -> n.outgoingFlows().toSubProcessConfirmation())
-            .inside(Flow.subProcessConfirmation(), s ->
-                PathWalk.from(s.startEventRequestReceived())
-                    .via(n -> n.outgoingFlows().toServiceTaskSendConfirmationMail())
-                    .via(n -> n.outgoingFlows().toReceiveTaskConfirmRegistration())
-                    .endVia(n -> n.outgoingFlows().toEndEventSubscriptionConfirmed()))
-            .via(n -> n.outgoingFlows().toGatewaySplitNotifications())
-            .via(n -> n.outgoingFlows().toServiceTaskSendWelcomeMail())
-            .via(n -> n.outgoingFlows().toGatewayJoinNotifications())
-            .endVia(n -> n.outgoingFlows().toEndEventRegistrationCompleted())
+        var flowIds = PathWalk.from(Flow.startEventLeasingRequestReceived())
+            .via(n -> n.outgoingFlows().toServiceTaskValidateApplication())
+            .via(n -> n.outgoingFlows().toBusinessRuleTaskCheckCreditRating())
+            .via(n -> n.outgoingFlows().toGatewayIsSolvent())
+            .via(n -> n.outgoingFlows().toSubProcessConcludeContract())
+            .inside(Flow.subProcessConcludeContract(), s ->
+                PathWalk.from(s.startEventCustomerEligible())
+                    .via(n -> n.outgoingFlows().toServiceTaskSendContract())
+                    .via(n -> n.outgoingFlows().toGatewayAwaitSignature())
+                    .via(n -> n.outgoingFlows().toEventContractSigned())
+                    .endVia(n -> n.outgoingFlows().toEndEventContractConcluded()))
+            .via(n -> n.outgoingFlows().toGatewayFork())
+            .via(n -> n.outgoingFlows().toServiceTaskOrderBike())
+            .via(n -> n.outgoingFlows().toGatewayJoin())
+            .via(n -> n.outgoingFlows().toReceiveTaskHandoverReported())
+            .via(n -> n.outgoingFlows().toTimerWithdrawalPeriodElapsed())
+            .endVia(n -> n.outgoingFlows().toEndEventLeasingActive())
             .getFlowIds();
 
         assertThat(flowIds).containsExactly(
-            "flow_submitToIncrementCounter",
-            "flow_incrementCounterToConfirmation",
-            "flow_requestToConfirmationMail",
-            "flow_confirmationMailToConfirm",
-            "flow_confirmToConfirmed",
-            "flow_confirmationToSplit",
-            "flow_splitToWelcomeMail",
-            "flow_welcomeMailToJoin",
-            "flow_joinToRegistrationCompleted"
+            "flow_leasingRequestReceivedToValidateApplication",
+            "flow_validateApplicationToCheckCreditRating",
+            "flow_checkCreditRatingToIsSolvent",
+            "flow_isSolventToConcludeContract",
+            "flow_customerEligibleToSendContract",
+            "flow_sendContractToAwaitSignature",
+            "flow_awaitSignatureToContractSigned",
+            "flow_contractSignedToContractConcluded",
+            "flow_concludeContractToFork",
+            "flow_forkToOrderBike",
+            "flow_orderBikeToJoin",
+            "flow_joinToHandoverReported",
+            "flow_handoverReportedToWithdrawalPeriodElapsed",
+            "flow_withdrawalPeriodElapsedToLeasingActive"
         );
     }
 
     @Test
     void happyPathWalksTheSubprocessInteriorViaInside() {
-        var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
-            .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-            .onto(n -> n.subProcessConfirmation())
-            .inside(Flow.subProcessConfirmation(), s ->
-                PathWalk.from(s.startEventRequestReceived())
-                    .then(n -> n.serviceTaskSendConfirmationMail())
-                    .then(n -> n.receiveTaskConfirmRegistration())
-                    .end(n -> n.endEventSubscriptionConfirmed()))
-            .then(n -> n.gatewaySplitNotifications())
-            .then(n -> n.serviceTaskSendWelcomeMail())
-            .then(n -> n.gatewayJoinNotifications())
-            .end(n -> n.endEventRegistrationCompleted())
+        var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
+            .then(n -> n.serviceTaskValidateApplication())
+            .then(n -> n.businessRuleTaskCheckCreditRating())
+            .then(n -> n.gatewayIsSolvent())
+            .onto(n -> n.subProcessConcludeContract())
+            .inside(Flow.subProcessConcludeContract(), s ->
+                PathWalk.from(s.startEventCustomerEligible())
+                    .then(n -> n.serviceTaskSendContract())
+                    .then(n -> n.gatewayAwaitSignature())
+                    .then(n -> n.eventContractSigned())
+                    .end(n -> n.endEventContractConcluded()))
+            .then(n -> n.gatewayFork())
+            .then(n -> n.serviceTaskOrderBike())
+            .then(n -> n.gatewayJoin())
+            .then(n -> n.receiveTaskHandoverReported())
+            .then(n -> n.timerWithdrawalPeriodElapsed())
+            .end(n -> n.endEventLeasingActive())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "endEvent_subscriptionConfirmed",
-            "gateway_splitNotifications",
-            "serviceTask_sendWelcomeMail",
-            "gateway_joinNotifications",
-            "endEvent_registrationCompleted"
+            "startEvent_leasingRequestReceived",
+            "serviceTask_validateApplication",
+            "businessRuleTask_checkCreditRating",
+            "gateway_isSolvent",
+            "startEvent_customerEligible",
+            "serviceTask_sendContract",
+            "gateway_awaitSignature",
+            "event_contractSigned",
+            "endEvent_contractConcluded",
+            "gateway_fork",
+            "serviceTask_orderBike",
+            "gateway_join",
+            "receiveTask_handoverReported",
+            "timer_withdrawalPeriodElapsed",
+            "endEvent_leasingActive"
         );
     }
 
     @Test
-    void interruptingTimerBoundaryLeavesTheSubprocessIntoTheCallActivityAndCompensationEnd() {
-        var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
-            .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-            .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
-            .then(n -> n.serviceTaskSendConfirmationMail())
-            .then(n -> n.receiveTaskConfirmRegistration())
-            .interruptedBy(Flow.subProcessConfirmation(), n -> n.timerAfter3Days())
-            .then(n -> n.callActivityAbortRegistration())
-            .end(n -> n.compensationEndEventRegistrationAborted())
+    void escalationBoundaryLeavesTheSubprocessIntoTheTerminateEnd() {
+        var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
+            .then(n -> n.serviceTaskValidateApplication())
+            .then(n -> n.businessRuleTaskCheckCreditRating())
+            .enter(Flow.subProcessConcludeContract(), s -> s.startEventCustomerEligible())
+            .then(n -> n.serviceTaskSendContract())
+            .then(n -> n.gatewayAwaitSignature())
+            .then(n -> n.timerSignatureDeadline())
+            .interruptedBy(Flow.subProcessConcludeContract(), n -> n.boundaryContractNotSigned())
+            .then(n -> n.gatewayCollectRejections())
+            .then(n -> n.serviceTaskSendRejection())
+            .end(n -> n.endEventApplicationRejected())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "timer_after3Days",
-            "callActivity_abortRegistration",
-            "compensationEndEvent_registrationAborted"
+            "startEvent_leasingRequestReceived",
+            "serviceTask_validateApplication",
+            "businessRuleTask_checkCreditRating",
+            "startEvent_customerEligible",
+            "serviceTask_sendContract",
+            "gateway_awaitSignature",
+            "timer_signatureDeadline",
+            "boundary_contractNotSigned",
+            "gateway_collectRejections",
+            "serviceTask_sendRejection",
+            "endEvent_applicationRejected"
         );
     }
 
     @Test
-    void errorBoundaryLeavesTheSubprocessIntoTheSignalEndEvent() {
-        var ids = PathWalk.from(Flow.startEventSubmitRegistrationForm())
-            .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-            .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
-            .then(n -> n.serviceTaskSendConfirmationMail())
-            .interruptedBy(Flow.subProcessConfirmation(), n -> n.errorEventInvalidMail())
-            .end(n -> n.endEventRegistrationNotPossible())
+    void errorBoundaryOnATaskIsASuccessorOfTheTask() {
+        var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
+            .then(n -> n.serviceTaskValidateApplication())
+            .then(n -> n.boundaryApplicationInvalid())
+            .then(n -> n.gatewayCollectRejections())
+            .then(n -> n.serviceTaskSendRejection())
+            .end(n -> n.endEventApplicationRejected())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "errorEvent_invalidMail",
-            "endEvent_registrationNotPossible"
-        );
-    }
-
-    @Test
-    void nonInterruptingTimerLoopRecordsRepeatsInIdsAndDedupsThemInDistinctIds() {
-        var trail = PathWalk.from(Flow.startEventSubmitRegistrationForm())
-            .then(n -> n.serviceTaskIncrementSubscriptionCounter())
-            .enter(Flow.subProcessConfirmation(), s -> s.startEventRequestReceived())
-            .then(n -> n.serviceTaskSendConfirmationMail())
-            .then(n -> n.receiveTaskConfirmRegistration())
-            .then(n -> n.timerEveryDay())
-            .then(n -> n.serviceTaskSendConfirmationMail())
-            .then(n -> n.receiveTaskConfirmRegistration())
-            .end(n -> n.endEventSubscriptionConfirmed());
-
-        assertThat(trail.getIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "timer_everyDay",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "endEvent_subscriptionConfirmed"
-        );
-        assertThat(trail.getDistinctIds()).containsExactly(
-            "startEvent_submitRegistrationForm",
-            "serviceTask_incrementSubscriptionCounter",
-            "startEvent_requestReceived",
-            "serviceTask_sendConfirmationMail",
-            "receiveTask_confirmRegistration",
-            "timer_everyDay",
-            "endEvent_subscriptionConfirmed"
+            "startEvent_leasingRequestReceived",
+            "serviceTask_validateApplication",
+            "boundary_applicationInvalid",
+            "gateway_collectRejections",
+            "serviceTask_sendRejection",
+            "endEvent_applicationRejected"
         );
     }
 
     @Test
     void parallelBranchesUnionIntoADeduplicatedSetViaNodesOf() {
-        List<FlowNode> welcomeBranch = PathWalk.from(Flow.gatewaySplitNotifications())
-            .then(n -> n.serviceTaskSendWelcomeMail())
-            .then(n -> n.gatewayJoinNotifications())
-            .end(n -> n.endEventRegistrationCompleted())
+        List<FlowNode> orderBranch = PathWalk.from(Flow.gatewayFork())
+            .then(n -> n.serviceTaskOrderBike())
+            .then(n -> n.gatewayJoin())
+            .then(n -> n.receiveTaskHandoverReported())
             .getNodes();
-        List<FlowNode> notifyBranch = PathWalk.from(Flow.gatewaySplitNotifications())
-            .then(n -> n.serviceTaskNotifyCommunity())
-            .then(n -> n.gatewayJoinNotifications())
-            .end(n -> n.endEventRegistrationCompleted())
+        List<FlowNode> insuranceBranch = PathWalk.from(Flow.gatewayFork())
+            .then(n -> n.serviceTaskIssueInsurancePolicy())
+            .then(n -> n.gatewayJoin())
+            .then(n -> n.receiveTaskHandoverReported())
             .getNodes();
 
-        var ids = PathWalk.nodesOf(welcomeBranch, notifyBranch).stream()
+        var ids = PathWalk.nodesOf(orderBranch, insuranceBranch).stream()
             .map(n -> n.getId().getValue())
             .toList();
 
         assertThat(ids)
-            .contains("serviceTask_sendWelcomeMail", "serviceTask_notifyCommunity", "gateway_joinNotifications")
+            .contains("serviceTask_orderBike", "serviceTask_issueInsurancePolicy", "gateway_join")
             .doesNotHaveDuplicates();
     }
 
     @Test
     void jumpToReAnchorsToTheForkToWalkTheSecondParallelBranch() {
         // RiskyNavigation is not enforced for Java callers (no @OptIn equivalent) — the intent is documented.
-        var ids = PathWalk.from(Flow.gatewaySplitNotifications())
-            .then(n -> n.serviceTaskSendWelcomeMail())
-            .jumpTo(Flow.gatewaySplitNotifications())
-            .then(n -> n.serviceTaskNotifyCommunity())
-            .then(n -> n.gatewayJoinNotifications())
-            .end(n -> n.endEventRegistrationCompleted())
+        var ids = PathWalk.from(Flow.gatewayFork())
+            .then(n -> n.serviceTaskOrderBike())
+            .jumpTo(Flow.gatewayFork())
+            .then(n -> n.serviceTaskIssueInsurancePolicy())
+            .then(n -> n.gatewayJoin())
+            .then(n -> n.receiveTaskHandoverReported())
             .getIds();
 
         assertThat(ids).containsExactly(
-            "gateway_splitNotifications",
-            "serviceTask_sendWelcomeMail",
-            "serviceTask_notifyCommunity",
-            "gateway_joinNotifications",
-            "endEvent_registrationCompleted"
+            "gateway_fork",
+            "serviceTask_orderBike",
+            "serviceTask_issueInsurancePolicy",
+            "gateway_join",
+            "receiveTask_handoverReported"
         );
     }
 
     @Test
     void thenMultipleTimesRecordsTheSameNodeRepeatedly() {
-        // Newsletter has no consecutively-repeating node, so this is an isolated mechanic check that also
+        // Bike leasing has no consecutively-repeating node, so this is an isolated mechanic check that also
         // exercises the instance-level nodes / ids / distinctIds accessors (mid-walk, before any end).
-        var walk = PathWalk.from(Flow.gatewaySplitNotifications())
-            .thenMultipleTimes(2, n -> n.serviceTaskSendWelcomeMail());
+        var walk = PathWalk.from(Flow.gatewayFork())
+            .thenMultipleTimes(2, n -> n.serviceTaskOrderBike());
 
         assertThat(walk.getIds())
-            .containsExactly("gateway_splitNotifications", "serviceTask_sendWelcomeMail", "serviceTask_sendWelcomeMail");
+            .containsExactly("gateway_fork", "serviceTask_orderBike", "serviceTask_orderBike");
         assertThat(walk.getDistinctIds())
-            .containsExactly("gateway_splitNotifications", "serviceTask_sendWelcomeMail");
+            .containsExactly("gateway_fork", "serviceTask_orderBike");
         assertThat(walk.getNodes().stream().map(n -> n.getId().getValue()).toList())
-            .containsExactly("gateway_splitNotifications", "serviceTask_sendWelcomeMail", "serviceTask_sendWelcomeMail");
+            .containsExactly("gateway_fork", "serviceTask_orderBike", "serviceTask_orderBike");
     }
 }

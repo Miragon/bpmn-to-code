@@ -46,8 +46,8 @@ tasks.named<Test>("test") {
     systemProperty("golden.update", System.getProperty("golden.update") ?: "false")
     systemProperty("runtime.test.sources", runtimeTestSources.absolutePath)
     inputs.files(
-        runtimeTestSources.resolve("kotlin/io/miragon/bpmn/runtime/path/example/NewsletterSubscriptionProcessApi.kt"),
-        runtimeTestSources.resolve("java/io/miragon/bpmn/runtime/example/NewsletterSubscriptionProcessApi.java"),
+        runtimeTestSources.resolve("kotlin/io/miragon/bpmn/runtime/path/example/BikeLeasingProcessApi.kt"),
+        runtimeTestSources.resolve("java/io/miragon/bpmn/runtime/example/BikeLeasingProcessApi.java"),
     )
 }
 

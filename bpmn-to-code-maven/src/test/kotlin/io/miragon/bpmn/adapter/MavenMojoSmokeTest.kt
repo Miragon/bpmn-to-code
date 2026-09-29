@@ -10,11 +10,11 @@ class MavenMojoSmokeTest {
 
     @ParameterizedTest(name = "{0} / {1}")
     @CsvSource(
-        "ZEEBE, KOTLIN, c8-subscribe-newsletter.bpmn",
-        "CAMUNDA_7, KOTLIN, c7-subscribe-newsletter.bpmn",
-        "OPERATON, KOTLIN, operaton-subscribe-newsletter.bpmn",
-        "ZEEBE, JAVA, c8-subscribe-newsletter.bpmn",
-        "ZEEBE, CSHARP, c8-subscribe-newsletter.bpmn",
+        "ZEEBE, KOTLIN, zeebe/bike-leasing.bpmn",
+        "CAMUNDA_7, KOTLIN, c7/bike-leasing.bpmn",
+        "OPERATON, KOTLIN, operaton/bike-leasing.bpmn",
+        "ZEEBE, JAVA, zeebe/bike-leasing.bpmn",
+        "ZEEBE, CSHARP, zeebe/bike-leasing.bpmn",
     )
     fun `mojo generates output files`(
         engine: String,
@@ -25,7 +25,7 @@ class MavenMojoSmokeTest {
         // given: a temp project directory with a BPMN resource and a configured mojo
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/$bpmnFile"))
-        File(resourcesDir, bpmnFile).writeBytes(bpmnStream.readBytes())
+        File(resourcesDir, File(bpmnFile).name).writeBytes(bpmnStream.readBytes())
         val outputDir = File(projectDir, "build/generated")
         val mojo = BpmnModelMojo()
         setField(mojo, "baseDir", projectDir.absolutePath)

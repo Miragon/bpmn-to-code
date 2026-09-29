@@ -16,10 +16,10 @@ import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
+import io.miragon.bpmn.domain.testBikeLeasingModel
+import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
-import io.miragon.bpmn.domain.testSendNewsletterModel
-import io.miragon.bpmn.domain.testSubscribeNewsletterModel
 import io.miragon.bpmn.domain.withId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -31,19 +31,11 @@ class CSharpProcessApiBuilderTest {
 
     @Test
     fun `buildApiFile generates correct process API file`() {
-        // given: a BPMN model with custom service task implementations
+        // given: the bike-leasing model, which covers every implementation kind of Camunda 7
         val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
             language = OutputLanguage.CSHARP,
-            model = testSubscribeNewsletterModel(
-                flowNodes = buildSubscribeNewsletterFlowNodes(
-                    confirmationMailImpl = "#{newsletterSendConfirmationMail}",
-                    welcomeMailImpl = "\${newsletterSendWelcomeMail}",
-                    registrationCompletedImpl = "newsletter.registrationCompleted",
-                    notifyCommunityImpl = "newsletter.notifyCommunity",
-                    extraVariables = listOf(VariableDefinition("testVariable", VariableDirection.INPUT)),
-                ),
-            ),
+            model = testBikeLeasingModel(),
         )
 
         // when: we build the process API file
@@ -54,32 +46,32 @@ class CSharpProcessApiBuilderTest {
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
         assertThat(result.language).isEqualTo(OutputLanguage.CSHARP)
 
-        assertThat(result.content).isEqualTo(golden("/api/NewsletterSubscriptionProcessApiCsharp.txt", result.content))
+        assertThat(result.content).isEqualTo(golden("/api/BikeLeasingProcessApiCsharp.txt", result.content))
     }
 
     @Test
     fun `buildApiFile generates variant-scoped Flow for merged model`() {
         // given: a merged model with a single variant
-        val send = testSendNewsletterModel(variantName = "send")
+        val retail = testCancelBikeOrderModel(variantName = "retail")
         val merged = ProcessModel(
-            processId = send.processId,
-            flowNodes = send.flowNodes,
-            definitions = send.definitions,
-            variants = listOf(Variant("send", send.flowNodes, send.sequenceFlows)),
+            processId = retail.processId,
+            flowNodes = retail.flowNodes,
+            definitions = retail.definitions,
+            variants = listOf(Variant("retail", retail.flowNodes, retail.sequenceFlows)),
         )
         val modelApi = BpmnModelApi(merged, OutputLanguage.CSHARP, "de.emaarco.example", ProcessEngine.ZEEBE)
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: the navigation sits under FlowVariants.Send, with the gateway's conditional and default flows named after their targets
+        // then: the navigation sits under FlowVariants.Retail, with the gateway's conditional and default flows named after their targets
         assertThat(result.content).isEqualTo(golden("/api/MultiVariantProcessApiCsharp.txt", result.content))
-        assertThat(result.content).contains("public static class FlowVariants", "public static class Send")
+        assertThat(result.content).contains("public static class FlowVariants", "public static class Retail")
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<EndEventNoSubscribers> ToEndEventNoSubscribers => new(new(\"flow_noSubscribers\"), \"No\", \"\${subscribers.size() > 0}\", false, EndEventNoSubscribers.Instance);",
+            "public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new(\"flow_cancellationNotPossibleToCollectClarifications\"), \"No\", \"\${!cancellationPossible}\", false, GatewayCollectClarifications.Instance);",
         )
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<ServiceTaskSendToSubscriber> ToServiceTaskSendToSubscriber => new(new(\"flow_hasSubscribers\"), \"Yes\", null, true, ServiceTaskSendToSubscriber.Instance);",
+            "public Runtime.SequenceFlow<GatewayMergeReturn> ToGatewayMergeReturn => new(new(\"flow_cancellationPossibleToMergeReturn\"), \"Yes\", null, true, GatewayMergeReturn.Instance);",
         )
     }
 
@@ -108,7 +100,7 @@ class CSharpProcessApiBuilderTest {
 
     @Test
     fun `file header marks the file as generated and enables nullable annotations`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
         assertThat(result.content.lines().take(4)).containsExactly(
             "// <auto-generated/>",
@@ -120,7 +112,7 @@ class CSharpProcessApiBuilderTest {
 
     @Test
     fun `runtime types are inlined exactly once as a nested Runtime class`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
         assertThat(result.content.split("public static class Runtime")).hasSize(2)
         CSharpRuntimeTypes.SOURCE.lines().filter { it.isNotBlank() }.forEach { line ->
@@ -130,31 +122,33 @@ class CSharpProcessApiBuilderTest {
 
     @Test
     fun `flat Flow lists subprocess interior nodes as direct children with Start on the subprocess`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
-        assertThat(result.content).contains("        public sealed class StartEventRequestReceived : Runtime.IFlowNode")
+        assertThat(result.content).contains("        public sealed class StartEventCustomerEligible : Runtime.IFlowNode")
         assertThat(result.content).contains("public Interior Start => new();")
-        assertThat(result.content).contains("public StartEventRequestReceived StartEventRequestReceived => StartEventRequestReceived.Instance;")
+        assertThat(result.content).contains("public StartEventCustomerEligible StartEventCustomerEligible => StartEventCustomerEligible.Instance;")
     }
 
     @Test
     fun `boundary event exposes its host and whether it interrupts`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
-        assertThat(result.content).contains("public UserTaskConfirmRegistration AttachedTo => UserTaskConfirmRegistration.Instance;")
+        assertThat(result.content).contains("public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;")
         assertThat(result.content).contains("public bool IsInterrupting => false;")
-        assertThat(result.content).contains("public Runtime.BpmnTimer Timer { get; } = new(\"Duration\", \"PT1M\");")
+        assertThat(result.content).contains("public Runtime.BpmnTimer Timer { get; } = new(\"Duration\", \"P7D\");")
     }
 
     @Test
     fun `node carries job type, variables and call-activity mappings`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
-        assertThat(result.content).contains("public const string JobType = ServiceTasks.NewsletterSendWelcomeMail;")
-        assertThat(result.content).contains("public Runtime.VariableName.Input SubscriptionId { get; } = new(\"subscriptionId\");")
-        assertThat(result.content).contains("public Runtime.ProcessId CalledProcess { get; } = new(\"abort-registration\");")
-        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.MessageFormSubmitted);")
-        assertThat(result.content).contains("public Runtime.BpmnError Error { get; } = new(Errors.ErrorInvalidMail500.Reference, Errors.ErrorInvalidMail500.Code);")
+        assertThat(result.content).contains("public const string JobType = ServiceTasks.MiraveloOrderBike;")
+        assertThat(result.content).contains("public Runtime.VariableName.Input ApplicationId { get; } = new(\"applicationId\");")
+        assertThat(result.content).contains("public Runtime.ProcessId CalledProcess { get; } = new(\"cancelBikeOrder\");")
+        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.MiraveloLeasingRequestReceived);")
+        assertThat(result.content).contains(
+            "public Runtime.BpmnError Error { get; } = new(Errors.MiraveloApplicationInvalidApplicationInvalid.Reference, Errors.MiraveloApplicationInvalidApplicationInvalid.Code);",
+        )
     }
 
     @Test
@@ -180,7 +174,7 @@ class CSharpProcessApiBuilderTest {
 
     @Test
     fun `eager initializers never reference another node, so static initialisation cannot cycle`() {
-        val result = underTest.buildApiFile(csharpApi(testSubscribeNewsletterModel()))
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
 
         val eagerInitializers = result.content.lines().filter { it.contains("{ get; } = ") }
         assertThat(eagerInitializers).isNotEmpty()
@@ -210,9 +204,9 @@ class CSharpProcessApiBuilderTest {
     @Test
     fun `maps content of id to valid identifier format`() {
         // given: a model with flow nodes whose ids use dashes
-        val defaultModel = testSubscribeNewsletterModel()
+        val defaultModel = testBikeLeasingModel()
         val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.getName().replace("_", "-")) }
-        val modelApi = csharpApi(testSubscribeNewsletterModel(flowNodes = modifiedNodes))
+        val modelApi = csharpApi(testBikeLeasingModel(flowNodes = modifiedNodes))
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)

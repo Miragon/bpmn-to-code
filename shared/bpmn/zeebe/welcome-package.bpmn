@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="definitions_welcomePackage" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:signal id="signal_memberActivated" name="miravelo.memberActivated" />
+  <bpmn:process id="welcomePackage" name="MiraVelo Welcome Package" isExecutable="true">
+    <bpmn:startEvent id="startEvent_memberActivated" name="Member activated">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=membershipId" target="membershipId" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>flow_memberActivatedToShipWelcomePackage</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="signalEventDefinition_memberActivated" signalRef="signal_memberActivated" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="serviceTask_shipWelcomePackage" name="Ship welcome package">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="miravelo.shipWelcomePackage" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>flow_memberActivatedToShipWelcomePackage</bpmn:incoming>
+      <bpmn:outgoing>flow_shipWelcomePackageToWelcomePackageShipped</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="endEvent_welcomePackageShipped" name="Welcome package shipped">
+      <bpmn:incoming>flow_shipWelcomePackageToWelcomePackageShipped</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_memberActivatedToShipWelcomePackage" sourceRef="startEvent_memberActivated" targetRef="serviceTask_shipWelcomePackage" />
+    <bpmn:sequenceFlow id="flow_shipWelcomePackageToWelcomePackageShipped" sourceRef="serviceTask_shipWelcomePackage" targetRef="endEvent_welcomePackageShipped" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="diagram_welcomePackage">
+    <bpmndi:BPMNPlane id="plane_welcomePackage" bpmnElement="welcomePackage">
+      <bpmndi:BPMNShape id="startEvent_memberActivated_di" bpmnElement="startEvent_memberActivated">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="120" y="145" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_shipWelcomePackage_di" bpmnElement="serviceTask_shipWelcomePackage">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_welcomePackageShipped_di" bpmnElement="endEvent_welcomePackageShipped">
+        <dc:Bounds x="402" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="370" y="145" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_memberActivatedToShipWelcomePackage_di" bpmnElement="flow_memberActivatedToShipWelcomePackage">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_shipWelcomePackageToWelcomePackageShipped_di" bpmnElement="flow_shipWelcomePackageToWelcomePackageShipped">
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="402" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

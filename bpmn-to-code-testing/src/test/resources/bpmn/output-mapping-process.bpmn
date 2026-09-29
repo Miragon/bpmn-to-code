@@ -4,44 +4,44 @@
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  id="Definitions_1"
+                  id="definitions_checkCreditRating"
                   targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="outputMappingProcess" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1" name="Start">
-      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+  <bpmn:process id="checkCreditRating" isExecutable="true">
+    <bpmn:startEvent id="startEvent_creditCheckRequested" name="Credit check requested">
+      <bpmn:outgoing>flow_creditCheckRequestedToCheckCreditRating</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="Task_DoWork" name="Do work" camunda:delegateExpression="${doWork}">
+    <bpmn:serviceTask id="serviceTask_checkCreditRating" name="Check credit rating" camunda:delegateExpression="${checkCreditRatingDelegate}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
-          <camunda:outputParameter name="allowedResult">${execution.getVariable('result')}</camunda:outputParameter>
-          <camunda:outputParameter name="forbiddenResult">${someBean.compute()}</camunda:outputParameter>
+          <camunda:outputParameter name="creditRating">${execution.getVariable('rating')}</camunda:outputParameter>
+          <camunda:outputParameter name="isSolvent">${someBean.compute()}</camunda:outputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:incoming>flow_creditCheckRequestedToCheckCreditRating</bpmn:incoming>
+      <bpmn:outgoing>flow_checkCreditRatingToCreditRatingChecked</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:endEvent id="EndEvent_1" name="End">
-      <bpmn:incoming>Flow_2</bpmn:incoming>
+    <bpmn:endEvent id="endEvent_creditRatingChecked" name="Credit rating checked">
+      <bpmn:incoming>flow_checkCreditRatingToCreditRatingChecked</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_DoWork" />
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_DoWork" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="flow_creditCheckRequestedToCheckCreditRating" sourceRef="startEvent_creditCheckRequested" targetRef="serviceTask_checkCreditRating" />
+    <bpmn:sequenceFlow id="flow_checkCreditRatingToCreditRatingChecked" sourceRef="serviceTask_checkCreditRating" targetRef="endEvent_creditRatingChecked" />
   </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="outputMappingProcess">
-      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+  <bpmndi:BPMNDiagram id="diagram_checkCreditRating">
+    <bpmndi:BPMNPlane id="plane_checkCreditRating" bpmnElement="checkCreditRating">
+      <bpmndi:BPMNShape id="startEvent_creditCheckRequested_di" bpmnElement="startEvent_creditCheckRequested">
         <dc:Bounds x="152" y="82" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_DoWork_di" bpmnElement="Task_DoWork">
+      <bpmndi:BPMNShape id="serviceTask_checkCreditRating_di" bpmnElement="serviceTask_checkCreditRating">
         <dc:Bounds x="240" y="60" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+      <bpmndi:BPMNShape id="endEvent_creditRatingChecked_di" bpmnElement="endEvent_creditRatingChecked">
         <dc:Bounds x="392" y="82" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+      <bpmndi:BPMNEdge id="flow_creditCheckRequestedToCheckCreditRating_di" bpmnElement="flow_creditCheckRequestedToCheckCreditRating">
         <di:waypoint x="188" y="100" />
         <di:waypoint x="240" y="100" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+      <bpmndi:BPMNEdge id="flow_checkCreditRatingToCreditRatingChecked_di" bpmnElement="flow_checkCreditRatingToCreditRatingChecked">
         <di:waypoint x="340" y="100" />
         <di:waypoint x="392" y="100" />
       </bpmndi:BPMNEdge>

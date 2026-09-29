@@ -11,13 +11,24 @@ import kotlin.Suppress
  * Kept as `const val String` because annotation arguments must be compile-time constants.
  */
 object ServiceTasks {
-  const val NEWSLETTER_SEND_CONFIRMATION_MAIL: String = "#{newsletterSendConfirmationMail}"
+  const val CANCEL_CONTRACT_DELEGATE: String = $$"""${cancelContractDelegate}"""
 
-  const val NEWSLETTER_SEND_WELCOME_MAIL: String = $$"""${newsletterSendWelcomeMail}"""
+  const val MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_: String =
+      $$"""${mailService.sendReminder(applicationId)}"""
 
-  const val COUNTER_CLASS: String = "counterClass"
+  const val SEND_CONTRACT_DELEGATE: String = $$"""${sendContractDelegate}"""
 
-  const val NEWSLETTER_NOTIFY_COMMUNITY: String = "newsletter.notifyCommunity"
+  const val VALIDATE_APPLICATION_DELEGATE: String = $$"""${validateApplicationDelegate}"""
 
-  const val NEWSLETTER_REGISTRATION_COMPLETED: String = "newsletter.registrationCompleted"
+  const val IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE: String =
+      "io.miravelo.leasing.IssueInsurancePolicyDelegate"
+
+  const val MIRAVELO_CANCEL_POLICY: String = "miravelo.cancelPolicy"
+
+  const val MIRAVELO_ORDER_BIKE: String = "miravelo.orderBike"
+
+  const val MIRAVELO_SEND_CANCELLATION_CONFIRMATION: String =
+      "miravelo.sendCancellationConfirmation"
+
+  const val MIRAVELO_SEND_REJECTION: String = "miravelo.sendRejection"
 }

@@ -25,7 +25,7 @@ Source: `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/outbound/engi
 <bpmn:serviceTask id="serviceTask_SendEmail"
                   name="Send email"
                   operaton:type="external"
-                  operaton:topic="newsletter.sendEmail"
+                  operaton:topic="miravelo.sendEmail"
                   operaton:asyncBefore="true" />
 ```
 

@@ -44,8 +44,8 @@ jobs:
         working-directory: tools
         run: |
           echo "BPMN models under test:"
-          find ../shared/bpmn ../bpmn-to-code-web/src/main/resources/samples -name '*.bpmn'
-          echo "Total: $(find ../shared/bpmn ../bpmn-to-code-web/src/main/resources/samples -name '*.bpmn' | wc -l | tr -d ' ') model(s)"
+          find ../shared/bpmn -name '*.bpmn'
+          echo "Total: $(find ../shared/bpmn -name '*.bpmn' | wc -l | tr -d ' ') model(s)"
           npm run lint:bpmn
 
       # Step 6: Lint testing-module fixtures with DI-only rules 
