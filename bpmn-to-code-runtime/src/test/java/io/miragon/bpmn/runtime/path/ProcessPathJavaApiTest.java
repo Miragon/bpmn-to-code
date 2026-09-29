@@ -6,9 +6,12 @@ import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.VariableName;
+import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi;
 import io.miragon.bpmn.runtime.example.BikeLeasingProcessApi.Flow;
 import org.junit.jupiter.api.Test;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 import static io.miragon.bpmn.runtime.path.ProcessPathStepsKt.enter;
@@ -206,25 +209,48 @@ class ProcessPathJavaApiTest {
         assertThat(Flow.receiveTaskHandoverReported().getName()).isEqualTo("Await bike handover");
         assertThat(Flow.gatewayFork().getName()).isNull();
 
-        var flow = Flow.startEventLeasingRequestReceived().outgoingFlows().toServiceTaskValidateApplication();
+        var flow = Flow.startEventLeasingRequestReceived().getOutgoingFlows().toServiceTaskValidateApplication();
         assertThat(flow.getId().getValue()).isEqualTo("flow_leasingRequestReceivedToValidateApplication");
         assertThat(flow.getTarget()).isEqualTo(Flow.serviceTaskValidateApplication());
         assertThat(flow.getConditionExpression()).isNull();
         assertThat(flow.isDefault()).isFalse();
-        assertThat(flow).isEqualTo(Flow.startEventLeasingRequestReceived().outgoingFlows().toServiceTaskValidateApplication());
+        assertThat(flow).isEqualTo(Flow.startEventLeasingRequestReceived().getOutgoingFlows().toServiceTaskValidateApplication());
         assertThat(Flow.timerSignatureReminder()).isInstanceOf(BoundaryEvent.class);
 
         VariableName.Input input = Flow.ServiceTaskSendContract.Variables.APPLICATION_ID;
         assertThat(input.getValue()).isEqualTo("applicationId");
         assertThat(Flow.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo("${validateApplicationDelegate}");
-        assertThat(Flow.startEventLeasingRequestReceived().message).isEqualTo(new MessageName("miravelo.leasingRequestReceived"));
+        assertThat(Flow.StartEventLeasingRequestReceived.MESSAGE).isEqualTo(new MessageName("miravelo.leasingRequestReceived"));
 
-        assertThat(Flow.timerSignatureReminder().timer).isEqualTo(new BpmnTimer("Duration", "P7D"));
-        assertThat(Flow.timerSignatureReminder().attachedTo()).isEqualTo(Flow.subProcessConcludeContract());
-        assertThat(Flow.timerSignatureReminder().isInterrupting).isFalse();
+        assertThat(Flow.TimerSignatureReminder.TIMER).isEqualTo(new BpmnTimer("Duration", "P7D"));
+        assertThat(Flow.timerSignatureReminder().getAttachedTo()).isEqualTo(Flow.subProcessConcludeContract());
+        assertThat(Flow.timerSignatureReminder().isInterrupting()).isFalse();
 
-        assertThat(Flow.callActivityCancelBikeOrder().calledProcess).isEqualTo(new ProcessId("cancelBikeOrder"));
+        assertThat(Flow.CallActivityCancelBikeOrder.CALLED_PROCESS).isEqualTo(new ProcessId("cancelBikeOrder"));
         assertThat(Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS.getTarget()).isEqualTo("orderIds");
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface VariableAnnotation {
+        String name();
+    }
+
+    @Test
+    @VariableAnnotation(name = Flow.ServiceTaskSendContract.Variables.Names.APPLICATION_ID)
+    void rawNamesAreCompileTimeConstantsUsableInAnnotationsAndSwitchLabels() {
+        assertThat(describe("serviceTask_sendContract")).isEqualTo("send contract");
+        assertThat(describe("bikeLeasing")).isEqualTo("process");
+        assertThat(Flow.serviceTaskSendContract().getId().getValue()).isEqualTo(Flow.ServiceTaskSendContract.ELEMENT_ID);
+        assertThat(Flow.ServiceTaskSendContract.Variables.APPLICATION_ID.getValue())
+            .isEqualTo(Flow.ServiceTaskSendContract.Variables.Names.APPLICATION_ID);
+    }
+
+    private static String describe(String elementId) {
+        return switch (elementId) {
+            case Flow.ServiceTaskSendContract.ELEMENT_ID -> "send contract";
+            case BikeLeasingProcessApi.Names.PROCESS_ID -> "process";
+            default -> "other";
+        };
     }
 
     @Test

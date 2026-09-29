@@ -145,13 +145,13 @@ class GradlePluginSmokeTest {
 
                 object UsesApi {
                     fun describe(): String {
-                        val edge = Flow.StartEventLeasingRequestReceived.outgoingFlows().toServiceTaskValidateApplication
+                        val edge = Flow.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication
                         val condition: String? = edge.conditionExpression
                         val input = Flow.CallActivityCancelBikeOrder.Variables.ORDER_IDS
                         val mapping = Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS
-                        val timer = Flow.TimerSignatureReminder.timer
+                        val timer = Flow.TimerSignatureReminder.TIMER
                         val host = Flow.TimerSignatureReminder.attachedTo
-                        val called = Flow.CallActivityCancelBikeOrder.calledProcess
+                        val called = Flow.CallActivityCancelBikeOrder.CALLED_PROCESS
                         val jobType = Flow.ServiceTaskSendContract.JOB_TYPE
                         return listOf(condition, edge.isDefault, edge.target.id, input, mapping, timer.timerValue, host.name, called, jobType).joinToString()
                     }
@@ -169,13 +169,13 @@ class GradlePluginSmokeTest {
 
                 public final class UsesApi {
                     public static String describe() {
-                        var edge = Flow.startEventLeasingRequestReceived().outgoingFlows().toServiceTaskValidateApplication();
+                        var edge = Flow.startEventLeasingRequestReceived().getOutgoingFlows().toServiceTaskValidateApplication();
                         String condition = edge.getConditionExpression();
                         var input = Flow.CallActivityCancelBikeOrder.Variables.ORDER_IDS;
                         var mapping = Flow.CallActivityCancelBikeOrder.Inputs.ORDER_IDS;
-                        var timer = Flow.timerSignatureReminder().timer;
-                        var host = Flow.timerSignatureReminder().attachedTo();
-                        var called = Flow.callActivityCancelBikeOrder().calledProcess;
+                        var timer = Flow.TimerSignatureReminder.TIMER;
+                        var host = Flow.timerSignatureReminder().getAttachedTo();
+                        var called = Flow.CallActivityCancelBikeOrder.CALLED_PROCESS;
                         String jobType = Flow.ServiceTaskSendContract.JOB_TYPE;
                         return condition + edge.isDefault() + edge.getTarget().getId() + input + mapping + timer.getTimerValue() + host.getName() + called + jobType;
                     }

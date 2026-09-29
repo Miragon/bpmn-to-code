@@ -14,7 +14,7 @@ sections. It is the code-side twin of the [JSON export](/surface/json): everythi
 |---------|----------|
 | `PROCESS_ID` | The process identifier from the BPMN model (`ProcessId`) |
 | `PROCESS_ENGINE` | The engine the API was generated for, as a typed `BpmnEngine` enum (`ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
-| `Flow` | One node per element, flat, carrying the element's own data (job type, variables, timer, …), its successors behind `then()` and its outgoing sequence flows behind `outgoingFlows()`, named after the elements they lead to |
+| `Flow` | One node per element, flat, carrying the element's own data (job type, variables, timer, …), its successors behind `next` and its outgoing sequence flows behind `outgoingFlows`, named after the elements they lead to |
 | `FlowVariants` | For merged models only: one `Flow` per BPMN file, named after its `variantName` (`FlowVariants.<Variant>.<Node>`) |
 
 Element ids, variables, timers and call-activity mappings have no section of their own: they live on
@@ -83,9 +83,9 @@ object BikeLeasingProcessApi {
   object Flow {
     object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), "MESSAGE_START_EVENT", "Leasing request received"),
         HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows> {
-      val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
-      override fun then(): Next = Next
-      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
+      val MESSAGE: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
+      override val next: Next get() = Next
+      override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
       object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output("applicationId") }
       object Next { val serviceTaskValidateApplication get() = ServiceTaskValidateApplication }
       object OutgoingFlows {
@@ -97,8 +97,8 @@ object BikeLeasingProcessApi {
     object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), "SERVICE_TASK", "Send contract"),
         HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
       const val JOB_TYPE: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
-      override fun then(): Next = Next
-      override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
+      override val next: Next get() = Next
+      override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
       object Variables {
         val APPLICATION_ID: VariableName.Input = VariableName.Input("applicationId")
         val CONTRACT_ID: VariableName.Output = VariableName.Output("contractId")
@@ -108,16 +108,16 @@ object BikeLeasingProcessApi {
     }
 
     object TimerSignatureReminder : AbstractFlowNode(ElementId("timer_signatureReminder"), "TIMER_BOUNDARY_EVENT", "7 days passed"),
-        HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent {
-      val timer: BpmnTimer = BpmnTimer("Duration", "P7D")
-      val attachedTo: SubProcessConcludeContract get() = SubProcessConcludeContract
-      val isInterrupting: Boolean = false
+        HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract> {
+      val TIMER: BpmnTimer = BpmnTimer("Duration", "P7D")
+      override val attachedTo: SubProcessConcludeContract get() = SubProcessConcludeContract
+      override val isInterrupting: Boolean = false
       // …
     }
 
     object SubProcessConcludeContract : AbstractFlowNode(ElementId("subProcess_concludeContract"), "SUB_PROCESS", "Conclude contract"),
         HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
-      override fun start(): Start = Start
+      override val startEvents: Start get() = Start
       object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
       // …
     }
@@ -179,8 +179,8 @@ public final class BikeLeasingProcessApi {
                 super(new ElementId("serviceTask_sendContract"), "SERVICE_TASK", "Send contract");
             }
 
-            @Override public Next then() { return new Next(); }
-            @Override public OutgoingFlows outgoingFlows() { return new OutgoingFlows(); }
+            @Override public Next getNext() { return new Next(); }
+            @Override public OutgoingFlows getOutgoingFlows() { return new OutgoingFlows(); }
 
             public static final class Variables {
                 public static final VariableName.Input APPLICATION_ID = new VariableName.Input("applicationId");
@@ -282,26 +282,53 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | `id`, `elementType`, `name` | every node | `ElementId`, `String`, `String?` | `id`, `type`, `name` |
 | `JOB_TYPE` | tasks and events with an implementation | `const String`, referring to `ServiceTasks` | `implementation.jobType` |
 | `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut` | `variables[]` |
-| `calledProcess`, `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
-| `timer` | timer events | `BpmnTimer` | `eventDefinitions[timer]` |
-| `message` / `signal` / `error` / `escalation` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnError` / `BpmnEscalation`, referring to the shared definition | `eventDefinitions[*]` |
-| `attachedTo`, marker `BoundaryEvent` | boundary events | the host node | `attachedToRef` |
+| `CALLED_PROCESS`, `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
+| `TIMER` | timer events | `BpmnTimer` | `eventDefinitions[timer]` |
+| `MESSAGE` / `SIGNAL` / `ERROR` / `ESCALATION` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnError` / `BpmnEscalation`, referring to the shared definition | `eventDefinitions[*]` |
+| `attachedTo`, `BoundaryEvent<Host>` | boundary events | the host node | `attachedToRef` |
 | `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
-| `then()` → `Next` | nodes with successors | the reachable nodes, boundary events included | `outgoing` |
-| `outgoingFlows()` → `OutgoingFlows` | nodes with outgoing sequence flows | one `to<Element>` per element the flows lead to: a `SequenceFlow<Target>`, or a `List` when several flows lead there | `sequenceFlows[]` |
-| `start()` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
+| `next` → `Next` | nodes with successors | the reachable nodes, boundary events included | `outgoing` |
+| `outgoingFlows` → `OutgoingFlows` | nodes with outgoing sequence flows | one `to<Element>` per element the flows lead to: a `SequenceFlow<Target>`, or a `List` when several flows lead there | `sequenceFlows[]` |
+| `startEvents` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
 
-Java mirrors the shape with methods: `Flow.serviceTaskSendContract().then()`, facets as public
-final fields (`.timer`, `.calledProcess`), `attachedTo()` as a method, and `JOB_TYPE` as a
-`public static final String`. C# reaches a node through its singleton, `Flow.ServiceTaskSendContract.Instance`,
+Java mirrors the shape with getters: `Flow.serviceTaskSendContract().getNext()`, `getOutgoingFlows()`,
+`getStartEvents()`, `getAttachedTo()` and `isInterrupting()`; facets are `public static final` constants
+read via the class (`Flow.TimerSignatureReminder.TIMER`, `Flow.CallActivityCancelBikeOrder.CALLED_PROCESS`),
+like `JOB_TYPE`. C# reaches a node through its singleton, `Flow.ServiceTaskSendContract.Instance`,
 and keeps `JobType` a `const` on the class.
+
+#### Naming rule
+
+Kotlin follows the [Kotlin coding conventions](https://kotlinlang.org/docs/coding-conventions.html#property-names):
+fixed values — `const val`s and object `val`s holding immutable data without a custom getter — are
+UPPER_SNAKE (`JOB_TYPE`, `TIMER`, `CALLED_PROCESS`); navigation — custom getters and members of the runtime
+interfaces — is camelCase (`next`, `outgoingFlows`, `startEvents`, `attachedTo`, `isInterrupting`). Java
+exposes per-node values as `static final` constants and instance data only through the getters of the
+runtime interfaces.
+
+#### Raw names for annotations and `when` / `switch`
+
+The typed wrappers for variables, the process id and element ids are no compile-time constants, so each
+comes with its raw `String` next to it — `const val` in Kotlin, `static final String` in Java, `const string`
+in C#:
+
+| Typed wrapper | Raw constant (Kotlin / Java) | C# |
+|---|---|---|
+| `Flow.X.Variables.APPLICATION_ID` | `Flow.X.Variables.Names.APPLICATION_ID` | `Flow.X.NodeVariables.Names.ApplicationId` |
+| `PROCESS_ID` | `Names.PROCESS_ID` | `ProcessId` (already `const`) |
+| `Flow.X.id` | `Flow.X.ELEMENT_ID` | `Flow.X.ElementId` |
+
+```kotlin
+@JobWorker(type = Flow.ServiceTaskSendContract.JOB_TYPE)
+fun sendContract(@Variable(name = Flow.ServiceTaskSendContract.Variables.Names.APPLICATION_ID) applicationId: String) { … }
+```
 
 ::: tip `ServiceTasks.X` or `Flow.X.JOB_TYPE`?
 Both are the same constant: `Flow.<Task>.JOB_TYPE` **is** `ServiceTasks.X`. `ServiceTasks` has **one
 constant per distinct job type** across all processes of the run and is the canonical argument for
 `@JobWorker(type = …)`; `Flow.<Task>.JOB_TYPE` tells you which of them **this element** uses — handy in
 tests that go from an element to its worker. Messages, signals, errors and escalations work the same way:
-`Flow.X.message` is the `Messages` constant. Only a value that no root element of the model declares is
+`Flow.X.MESSAGE` is the `Messages` constant. Only a value that no root element of the model declares is
 written on the node itself.
 :::
 
@@ -314,7 +341,7 @@ as `Flow_1csfyyz`. Each entry is a `SequenceFlow<Target>` carrying the flow's `i
 `target`.
 
 ```kotlin
-val flows = Flow.GatewayIsSolvent.outgoingFlows()
+val flows = Flow.GatewayIsSolvent.outgoingFlows
 
 assertThat(flows.toGatewayCollectRejections.conditionExpression).isEqualTo("=not(solvent)")
 assertThat(flows.toGatewayCollectRejections.target).isEqualTo(Flow.GatewayCollectRejections)
@@ -322,7 +349,7 @@ assertThat(flows.toSubProcessConcludeContract.isDefault).isTrue()
 ```
 
 ```java
-var flows = Flow.gatewayIsSolvent().outgoingFlows();
+var flows = Flow.gatewayIsSolvent().getOutgoingFlows();
 assertThat(flows.toGatewayCollectRejections().getConditionExpression()).isEqualTo("=not(solvent)");
 assertThat(flows.toSubProcessConcludeContract().isDefault()).isTrue();
 ```
@@ -331,35 +358,35 @@ When **several sequence flows lead to the same element**, the entry keeps its na
 no flow is lost and no other entry is renamed:
 
 ```kotlin
-val toApprove: List<SequenceFlow<TaskApprove>> = Flow.GatewayAmount.outgoingFlows().toTaskApprove
+val toApprove: List<SequenceFlow<TaskApprove>> = Flow.GatewayAmount.outgoingFlows.toTaskApprove
 assertThat(toApprove.map { it.conditionExpression }).containsExactly("=amount < 100", "=customer.isVip")
 ```
 
 Boundary events are **not** sequence flows: they appear in the host's `Next` (so a walk can leave through
-them), point back at their host via `attachedTo` and implement the marker interface `BoundaryEvent`
+them), point back at their host via `attachedTo` and implement `BoundaryEvent<Host>`
 (C#: `Runtime.IBoundaryEvent`), but never appear in `OutgoingFlows`.
 
 ### Navigation
 
-`then()` returns the node's `Next`, whose properties are the reachable elements — continuations and boundary
+`next` returns the node's `Next`, whose properties are the reachable elements — continuations and boundary
 events alike. The return type of every step is the next node, so **a path that doesn't exist in the model
 doesn't compile**: regenerate after a model change and the affected step breaks the build at that exact edge.
-A subprocess additionally implements `FlowScope` and opens its interior via `start()`.
+A subprocess additionally implements `FlowScope` and opens its interior via `startEvents`.
 
 ```kotlin
 object SubProcessConcludeContract :
     AbstractFlowNode(ElementId("subProcess_concludeContract"), "SUB_PROCESS", "Conclude contract"),
     HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
-  override fun then(): Next = Next                          // what follows the subprocess (+ its boundary events)
-  override fun outgoingFlows(): OutgoingFlows = OutgoingFlows  // its outgoing sequence flow(s)
-  override fun start(): Start = Start     // the interior's start event(s)
+  override val next: Next get() = Next                          // what follows the subprocess (+ its boundary events)
+  override val outgoingFlows: OutgoingFlows get() = OutgoingFlows  // its outgoing sequence flow(s)
+  override val startEvents: Start get() = Start     // the interior's start event(s)
   object Next { val gatewayFork get() = GatewayFork; val timerSignatureReminder get() = TimerSignatureReminder /* … */ }
   object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
 }
 ```
 
 Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `name`), **`HasSuccessors<Next>`**,
-**`HasOutgoingFlows<OutgoingFlows>`**, **`FlowScope<Start>`** and the marker **`BoundaryEvent`**.
+**`HasOutgoingFlows<OutgoingFlows>`**, **`FlowScope<Start>`** and **`BoundaryEvent<Host>`** (`attachedTo`, `isInterrupting`).
 
 ### Enumerating elements
 
@@ -508,7 +535,7 @@ var ids = PathWalk.from(Flow.startEventLeasingRequestReceived())
 ```
 
 `via` / `endVia` walk a sequence flow; Java cannot name the node's `OutgoingFlows` type in the step, so the
-lambda receives the current node: `.via(n -> n.outgoingFlows().toSubProcessConcludeContract())`, and `getFlowIds()`
+lambda receives the current node: `.via(n -> n.getOutgoingFlows().toSubProcessConcludeContract())`, and `getFlowIds()`
 returns the flows walked this way.
 
 Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end` (an end event can't continue
@@ -553,7 +580,7 @@ scope) together with its `source` / `sourceExpression` (the origin). Constant na
 ```kotlin
 object Flow {
   object CallActivityCancelBikeOrder : /* … */ {
-    val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
+    val CALLED_PROCESS: ProcessId = ProcessId("cancelBikeOrder")
 
     object Variables {
       val ORDER_IDS: VariableName.Input = VariableName.Input("orderIds")   // the parent-scope view

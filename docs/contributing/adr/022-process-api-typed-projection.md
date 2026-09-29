@@ -25,20 +25,20 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 `flowNode` hangs on a node of `Flow`; everything under `definitions` stays a shared registry.**
 
 1. **`Flow` is flat.** Every element, whatever its subprocess depth, is a direct child of `Flow`, addressed by
-   the camelCase form of its id. A subprocess keeps `start()` for its interior's start events. Uniqueness is
+   the camelCase form of its id. A subprocess exposes its interior's start events via `startEvents`. Uniqueness is
    guaranteed model-wide by the mandatory `collision-detection` rule, which now also rejects the same id
    declared in two scopes.
 2. **Nodes carry their facets**, mirroring the sealed `FlowNodeDefinition` hierarchy: `id` / `elementType` /
-   `name` on all; `JOB_TYPE` on tasks and events with an implementation; `Variables`; `calledProcess` with
-   `Inputs` / `Outputs` on call activities; `timer`; `message` / `signal` / `error` / `escalation`;
-   `attachedTo`, `isInterrupting` and the marker `BoundaryEvent` on boundary events. The `Elements`, `Variables`, `CallActivities` and
+   `name` on all; `JOB_TYPE` on tasks and events with an implementation; `Variables`; `CALLED_PROCESS` with
+   `Inputs` / `Outputs` on call activities; `TIMER`; `MESSAGE` / `SIGNAL` / `ERROR` / `ESCALATION`;
+   `attachedTo`, `isInterrupting` and `BoundaryEvent<Host>` on boundary events. The `Elements`, `Variables`, `CallActivities` and
    `Timers` sections are removed.
 3. **Outgoing sequence flows are named after the element they lead to.** Each node with outgoing flows
-   exposes `outgoingFlows()` / `OutgoingFlows` with one `to<Element>` entry per target: a
+   exposes `outgoingFlows` / `OutgoingFlows` with one `to<Element>` entry per target: a
    `SequenceFlow<Target>(id, name, conditionExpression, isDefault, target)`, or a list of them when several
    flows lead to the same element — the name stays stable and no flow is lost. Flow ids are not used for
    names: modelers rarely rename them (`Flow_1csfyyz`), whereas element names already exist and are unique.
-   `then()` / `Next` stays the element-level view (flows and boundary attachments collapsed by target), so
+   `next` / `Next` stays the element-level view (flows and boundary attachments collapsed by target), so
    existing `ProcessPath` / `PathWalk` steps are unchanged; the additional `via` step walks a chosen sequence
    flow and records it in `flowIds`. Labels are not used either: they are not identifiers and are the most
    volatile part of a model.
@@ -54,7 +54,7 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
    `JobType` stays a `const`. This reverses ADR 020's rejection of inlining: with the type set this small and
    no NuGet pipeline, a package would cost more than the duplication.
 6. **Member names follow JSON v2** (`conditionExpression`, `isInterrupting`, `isDefault`); references that
-   hold the resolved value drop the `Ref` suffix (`attachedTo`, `calledProcess`).
+   hold the resolved value drop the `Ref` suffix (`attachedTo`, `CALLED_PROCESS`).
 7. **One reserved-name rule.** An element whose generated name would shadow a holder (`Flow`, `Next`,
    `Instance`, …), a runtime type or a `java.lang.Object` method breaks compilation in at least one language,
    so the mandatory `reserved-element-name` rule rejects it explicitly rather than each language renaming
@@ -71,7 +71,7 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 
 ### Negative
 - Breaking for 5.x consumers: `Elements.X` → `Flow.X.id`, `Variables.Node.V` → `Flow.Node.Variables.V`,
-  `CallActivities.Node.*` → `Flow.Node.*`, `Timers.T` → `Flow.T.timer`, nested interior nodes → flat.
+  `CallActivities.Node.*` → `Flow.Node.*`, `Timers.T` → `Flow.T.TIMER`, nested interior nodes → flat.
   C# consumers lose `const string` element ids (`Flow.X.Instance.Id.Value` is an instance property).
 - Longer generated files, C# in particular (the runtime block repeats per file).
 - Per-file C# runtime types are unrelated across processes; generic .NET tooling needs its own abstraction.

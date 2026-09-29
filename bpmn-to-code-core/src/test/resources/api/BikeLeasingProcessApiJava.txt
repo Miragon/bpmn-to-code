@@ -22,12 +22,16 @@ import java.lang.String;
 import java.util.List;
 
 public final class BikeLeasingProcessApi {
-  public static final ProcessId PROCESS_ID = new ProcessId("bikeLeasing");
+  public static final ProcessId PROCESS_ID = new ProcessId(Names.PROCESS_ID);
 
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
+  public static final class Names {
+    public static final String PROCESS_ID = "bikeLeasing";
+  }
+
   /**
-   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code then()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code start()}, and {@code all()} lists every element.
+   * Typed navigation over the process flow. Each element is a nested class exposing its {@code id}, {@code elementType} and display {@code name}, plus the elements reachable from it behind {@code getNext()} — so a full path is verified by the compiler and offered by autocomplete. Every element is a direct child of {@code Flow}, whatever its subprocess depth; a subprocess opens its interior via {@code getStartEvents()}, and {@code all()} lists every element.
    */
   public static final class Flow {
     /**
@@ -248,26 +252,32 @@ public final class BikeLeasingProcessApi {
       return new UserTaskUpdateDeliveryAddress();
     }
 
-    public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements HasSuccessors<BoundaryApplicationInvalid.Next>, HasOutgoingFlows<BoundaryApplicationInvalid.OutgoingFlows>, BoundaryEvent {
-      public final BpmnError error = Errors.MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID;
+    public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements HasSuccessors<BoundaryApplicationInvalid.Next>, HasOutgoingFlows<BoundaryApplicationInvalid.OutgoingFlows>, BoundaryEvent<ServiceTaskValidateApplication> {
+      public static final String ELEMENT_ID = "boundary_applicationInvalid";
 
-      public final boolean isInterrupting = true;
+      public static final BpmnError ERROR = Errors.MIRAVELO_APPLICATION_INVALID_APPLICATION_INVALID;
 
       public BoundaryApplicationInvalid() {
-        super(new ElementId("boundary_applicationInvalid"), "ERROR_BOUNDARY_EVENT", "Application invalid");
+        super(new ElementId(ELEMENT_ID), "ERROR_BOUNDARY_EVENT", "Application invalid");
       }
 
-      public ServiceTaskValidateApplication attachedTo() {
+      @Override
+      public ServiceTaskValidateApplication getAttachedTo() {
         return new ServiceTaskValidateApplication();
       }
 
       @Override
-      public Next then() {
+      public boolean isInterrupting() {
+        return true;
+      }
+
+      @Override
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -284,62 +294,86 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class BoundaryCompensateContract extends AbstractFlowNode implements BoundaryEvent {
-      public final boolean isInterrupting = true;
+    public static final class BoundaryCompensateContract extends AbstractFlowNode implements BoundaryEvent<SubProcessConcludeContract> {
+      public static final String ELEMENT_ID = "boundary_compensateContract";
 
       public BoundaryCompensateContract() {
-        super(new ElementId("boundary_compensateContract"), "COMPENSATION_BOUNDARY_EVENT", "Contract to revoke");
+        super(new ElementId(ELEMENT_ID), "COMPENSATION_BOUNDARY_EVENT", "Contract to revoke");
       }
 
-      public SubProcessConcludeContract attachedTo() {
-        return new SubProcessConcludeContract();
-      }
-    }
-
-    public static final class BoundaryCompensateInsurance extends AbstractFlowNode implements BoundaryEvent {
-      public final boolean isInterrupting = true;
-
-      public BoundaryCompensateInsurance() {
-        super(new ElementId("boundary_compensateInsurance"), "COMPENSATION_BOUNDARY_EVENT", "Policy to cancel");
-      }
-
-      public ServiceTaskIssueInsurancePolicy attachedTo() {
-        return new ServiceTaskIssueInsurancePolicy();
-      }
-    }
-
-    public static final class BoundaryCompensateOrder extends AbstractFlowNode implements BoundaryEvent {
-      public final boolean isInterrupting = true;
-
-      public BoundaryCompensateOrder() {
-        super(new ElementId("boundary_compensateOrder"), "COMPENSATION_BOUNDARY_EVENT", "Order to cancel");
-      }
-
-      public ServiceTaskOrderBike attachedTo() {
-        return new ServiceTaskOrderBike();
-      }
-    }
-
-    public static final class BoundaryContractNotSigned extends AbstractFlowNode implements HasSuccessors<BoundaryContractNotSigned.Next>, HasOutgoingFlows<BoundaryContractNotSigned.OutgoingFlows>, BoundaryEvent {
-      public final BpmnEscalation escalation = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED;
-
-      public final boolean isInterrupting = true;
-
-      public BoundaryContractNotSigned() {
-        super(new ElementId("boundary_contractNotSigned"), "ESCALATION_BOUNDARY_EVENT", "Contract not signed");
-      }
-
-      public SubProcessConcludeContract attachedTo() {
+      @Override
+      public SubProcessConcludeContract getAttachedTo() {
         return new SubProcessConcludeContract();
       }
 
       @Override
-      public Next then() {
+      public boolean isInterrupting() {
+        return true;
+      }
+    }
+
+    public static final class BoundaryCompensateInsurance extends AbstractFlowNode implements BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
+      public static final String ELEMENT_ID = "boundary_compensateInsurance";
+
+      public BoundaryCompensateInsurance() {
+        super(new ElementId(ELEMENT_ID), "COMPENSATION_BOUNDARY_EVENT", "Policy to cancel");
+      }
+
+      @Override
+      public ServiceTaskIssueInsurancePolicy getAttachedTo() {
+        return new ServiceTaskIssueInsurancePolicy();
+      }
+
+      @Override
+      public boolean isInterrupting() {
+        return true;
+      }
+    }
+
+    public static final class BoundaryCompensateOrder extends AbstractFlowNode implements BoundaryEvent<ServiceTaskOrderBike> {
+      public static final String ELEMENT_ID = "boundary_compensateOrder";
+
+      public BoundaryCompensateOrder() {
+        super(new ElementId(ELEMENT_ID), "COMPENSATION_BOUNDARY_EVENT", "Order to cancel");
+      }
+
+      @Override
+      public ServiceTaskOrderBike getAttachedTo() {
+        return new ServiceTaskOrderBike();
+      }
+
+      @Override
+      public boolean isInterrupting() {
+        return true;
+      }
+    }
+
+    public static final class BoundaryContractNotSigned extends AbstractFlowNode implements HasSuccessors<BoundaryContractNotSigned.Next>, HasOutgoingFlows<BoundaryContractNotSigned.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract> {
+      public static final String ELEMENT_ID = "boundary_contractNotSigned";
+
+      public static final BpmnEscalation ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED;
+
+      public BoundaryContractNotSigned() {
+        super(new ElementId(ELEMENT_ID), "ESCALATION_BOUNDARY_EVENT", "Contract not signed");
+      }
+
+      @Override
+      public SubProcessConcludeContract getAttachedTo() {
+        return new SubProcessConcludeContract();
+      }
+
+      @Override
+      public boolean isInterrupting() {
+        return true;
+      }
+
+      @Override
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -357,17 +391,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class BusinessRuleTaskCheckCreditRating extends AbstractFlowNode implements HasSuccessors<BusinessRuleTaskCheckCreditRating.Next>, HasOutgoingFlows<BusinessRuleTaskCheckCreditRating.OutgoingFlows> {
+      public static final String ELEMENT_ID = "businessRuleTask_checkCreditRating";
+
       public BusinessRuleTaskCheckCreditRating() {
-        super(new ElementId("businessRuleTask_checkCreditRating"), "BUSINESS_RULE_TASK", "Check credit rating");
+        super(new ElementId(ELEMENT_ID), "BUSINESS_RULE_TASK", "Check credit rating");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -385,18 +421,28 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class CallActivityCancelBikeOrder extends AbstractFlowNode {
-      public final ProcessId calledProcess = new ProcessId("cancelBikeOrder");
+      public static final String ELEMENT_ID = "callActivity_cancelBikeOrder";
+
+      public static final ProcessId CALLED_PROCESS = new ProcessId("cancelBikeOrder");
 
       public CallActivityCancelBikeOrder() {
-        super(new ElementId("callActivity_cancelBikeOrder"), "CALL_ACTIVITY", "Cancel bike order");
+        super(new ElementId(ELEMENT_ID), "CALL_ACTIVITY", "Cancel bike order");
       }
 
       public static final class Variables {
-        public static final VariableName.Input APPLICATION_ID = new VariableName.Input("applicationId");
+        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(Names.APPLICATION_ID);
 
-        public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output("cancellationCosts");
+        public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(Names.CANCELLATION_COSTS);
 
-        public static final VariableName.Input ORDER_IDS = new VariableName.Input("orderIds");
+        public static final VariableName.Input ORDER_IDS = new VariableName.Input(Names.ORDER_IDS);
+
+        public static final class Names {
+          public static final String APPLICATION_ID = "applicationId";
+
+          public static final String CANCELLATION_COSTS = "cancellationCosts";
+
+          public static final String ORDER_IDS = "orderIds";
+        }
       }
 
       public static final class Inputs {
@@ -411,63 +457,79 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class EndEventApplicationCancelled extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "endEvent_applicationCancelled";
+
       public EndEventApplicationCancelled() {
-        super(new ElementId("endEvent_applicationCancelled"), "END_EVENT", "Application cancelled");
+        super(new ElementId(ELEMENT_ID), "END_EVENT", "Application cancelled");
       }
     }
 
     public static final class EndEventApplicationRejected extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "endEvent_applicationRejected";
+
       public EndEventApplicationRejected() {
-        super(new ElementId("endEvent_applicationRejected"), "END_EVENT", "Application rejected");
+        super(new ElementId(ELEMENT_ID), "END_EVENT", "Application rejected");
       }
     }
 
     public static final class EndEventContractConcluded extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "endEvent_contractConcluded";
+
       public EndEventContractConcluded() {
-        super(new ElementId("endEvent_contractConcluded"), "END_EVENT", "Contract concluded");
+        super(new ElementId(ELEMENT_ID), "END_EVENT", "Contract concluded");
       }
     }
 
     public static final class EndEventContractNotSigned extends AbstractFlowNode {
-      public final BpmnEscalation escalation = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED;
+      public static final String ELEMENT_ID = "endEvent_contractNotSigned";
+
+      public static final BpmnEscalation ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED_CONTRACT_NOT_SIGNED;
 
       public EndEventContractNotSigned() {
-        super(new ElementId("endEvent_contractNotSigned"), "ESCALATION_END_EVENT", "Contract not signed");
+        super(new ElementId(ELEMENT_ID), "ESCALATION_END_EVENT", "Contract not signed");
       }
     }
 
     public static final class EndEventCustomerReminded extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "endEvent_customerReminded";
+
       public EndEventCustomerReminded() {
-        super(new ElementId("endEvent_customerReminded"), "END_EVENT", "Customer reminded");
+        super(new ElementId(ELEMENT_ID), "END_EVENT", "Customer reminded");
       }
     }
 
     public static final class EndEventDeliveryAddressUpdated extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "endEvent_deliveryAddressUpdated";
+
       public EndEventDeliveryAddressUpdated() {
-        super(new ElementId("endEvent_deliveryAddressUpdated"), "END_EVENT", "Delivery address updated");
+        super(new ElementId(ELEMENT_ID), "END_EVENT", "Delivery address updated");
       }
     }
 
     public static final class EndEventLeasingActive extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "endEvent_leasingActive";
+
       public EndEventLeasingActive() {
-        super(new ElementId("endEvent_leasingActive"), "END_EVENT", "Leasing active");
+        super(new ElementId(ELEMENT_ID), "END_EVENT", "Leasing active");
       }
     }
 
     public static final class EventContractSigned extends AbstractFlowNode implements HasSuccessors<EventContractSigned.Next>, HasOutgoingFlows<EventContractSigned.OutgoingFlows> {
-      public final MessageName message = Messages.MIRAVELO_CONTRACT_SIGNED;
+      public static final String ELEMENT_ID = "event_contractSigned";
+
+      public static final MessageName MESSAGE = Messages.MIRAVELO_CONTRACT_SIGNED;
 
       public EventContractSigned() {
-        super(new ElementId("event_contractSigned"), "MESSAGE_INTERMEDIATE_CATCH_EVENT", "Contract signed");
+        super(new ElementId(ELEMENT_ID), "MESSAGE_INTERMEDIATE_CATCH_EVENT", "Contract signed");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -485,17 +547,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class EventReverseApplication extends AbstractFlowNode implements HasSuccessors<EventReverseApplication.Next>, HasOutgoingFlows<EventReverseApplication.OutgoingFlows> {
+      public static final String ELEMENT_ID = "event_reverseApplication";
+
       public EventReverseApplication() {
-        super(new ElementId("event_reverseApplication"), "COMPENSATION_INTERMEDIATE_THROW_EVENT", "Application reversed");
+        super(new ElementId(ELEMENT_ID), "COMPENSATION_INTERMEDIATE_THROW_EVENT", "Application reversed");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -514,17 +578,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class GatewayAwaitSignature extends AbstractFlowNode implements HasSuccessors<GatewayAwaitSignature.Next>, HasOutgoingFlows<GatewayAwaitSignature.OutgoingFlows> {
+      public static final String ELEMENT_ID = "gateway_awaitSignature";
+
       public GatewayAwaitSignature() {
-        super(new ElementId("gateway_awaitSignature"), "EVENT_BASED_GATEWAY", "Await signature");
+        super(new ElementId(ELEMENT_ID), "EVENT_BASED_GATEWAY", "Await signature");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -550,17 +616,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class GatewayCollectRejections extends AbstractFlowNode implements HasSuccessors<GatewayCollectRejections.Next>, HasOutgoingFlows<GatewayCollectRejections.OutgoingFlows> {
+      public static final String ELEMENT_ID = "gateway_collectRejections";
+
       public GatewayCollectRejections() {
-        super(new ElementId("gateway_collectRejections"), "EXCLUSIVE_GATEWAY");
+        super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -578,17 +646,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class GatewayFork extends AbstractFlowNode implements HasSuccessors<GatewayFork.Next>, HasOutgoingFlows<GatewayFork.OutgoingFlows> {
+      public static final String ELEMENT_ID = "gateway_fork";
+
       public GatewayFork() {
-        super(new ElementId("gateway_fork"), "PARALLEL_GATEWAY");
+        super(new ElementId(ELEMENT_ID), "PARALLEL_GATEWAY");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -614,17 +684,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class GatewayIsSolvent extends AbstractFlowNode implements HasSuccessors<GatewayIsSolvent.Next>, HasOutgoingFlows<GatewayIsSolvent.OutgoingFlows> {
+      public static final String ELEMENT_ID = "gateway_isSolvent";
+
       public GatewayIsSolvent() {
-        super(new ElementId("gateway_isSolvent"), "EXCLUSIVE_GATEWAY", "Solvent?");
+        super(new ElementId(ELEMENT_ID), "EXCLUSIVE_GATEWAY", "Solvent?");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -650,17 +722,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class GatewayJoin extends AbstractFlowNode implements HasSuccessors<GatewayJoin.Next>, HasOutgoingFlows<GatewayJoin.OutgoingFlows> {
+      public static final String ELEMENT_ID = "gateway_join";
+
       public GatewayJoin() {
-        super(new ElementId("gateway_join"), "PARALLEL_GATEWAY");
+        super(new ElementId(ELEMENT_ID), "PARALLEL_GATEWAY");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -678,19 +752,21 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ReceiveTaskHandoverReported extends AbstractFlowNode implements HasSuccessors<ReceiveTaskHandoverReported.Next>, HasOutgoingFlows<ReceiveTaskHandoverReported.OutgoingFlows> {
-      public final MessageName message = Messages.MIRAVELO_HANDOVER_REPORTED;
+      public static final String ELEMENT_ID = "receiveTask_handoverReported";
+
+      public static final MessageName MESSAGE = Messages.MIRAVELO_HANDOVER_REPORTED;
 
       public ReceiveTaskHandoverReported() {
-        super(new ElementId("receiveTask_handoverReported"), "RECEIVE_TASK", "Await bike handover");
+        super(new ElementId(ELEMENT_ID), "RECEIVE_TASK", "Await bike handover");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -708,42 +784,54 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ServiceTaskCancelContract extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "serviceTask_cancelContract";
+
       public static final String JOB_TYPE = ServiceTasks.CANCEL_CONTRACT_DELEGATE;
 
       public ServiceTaskCancelContract() {
-        super(new ElementId("serviceTask_cancelContract"), "SERVICE_TASK", "Cancel contract");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Cancel contract");
       }
     }
 
     public static final class ServiceTaskCancelPolicy extends AbstractFlowNode {
+      public static final String ELEMENT_ID = "serviceTask_cancelPolicy";
+
       public static final String JOB_TYPE = ServiceTasks.MIRAVELO_CANCEL_POLICY;
 
       public ServiceTaskCancelPolicy() {
-        super(new ElementId("serviceTask_cancelPolicy"), "SERVICE_TASK", "Cancel policy");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Cancel policy");
       }
     }
 
     public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasOutgoingFlows<ServiceTaskIssueInsurancePolicy.OutgoingFlows> {
+      public static final String ELEMENT_ID = "serviceTask_issueInsurancePolicy";
+
       public static final String JOB_TYPE = ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE;
 
       public ServiceTaskIssueInsurancePolicy() {
-        super(new ElementId("serviceTask_issueInsurancePolicy"), "SERVICE_TASK", "Issue insurance policy");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Issue insurance policy");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
       public static final class Variables {
-        public static final VariableName.Input BIKE_ID = new VariableName.Input("bikeId");
+        public static final VariableName.Input BIKE_ID = new VariableName.Input(Names.BIKE_ID);
 
-        public static final VariableName.Input BIKE_IDS = new VariableName.Input("bikeIds");
+        public static final VariableName.Input BIKE_IDS = new VariableName.Input(Names.BIKE_IDS);
+
+        public static final class Names {
+          public static final String BIKE_ID = "bikeId";
+
+          public static final String BIKE_IDS = "bikeIds";
+        }
       }
 
       public static final class Next {
@@ -764,26 +852,34 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasOutgoingFlows<ServiceTaskOrderBike.OutgoingFlows> {
+      public static final String ELEMENT_ID = "serviceTask_orderBike";
+
       public static final String JOB_TYPE = ServiceTasks.MIRAVELO_ORDER_BIKE;
 
       public ServiceTaskOrderBike() {
-        super(new ElementId("serviceTask_orderBike"), "SERVICE_TASK", "Order bike");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Order bike");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
       public static final class Variables {
-        public static final VariableName.Input BIKE_ID = new VariableName.Input("bikeId");
+        public static final VariableName.Input BIKE_ID = new VariableName.Input(Names.BIKE_ID);
 
-        public static final VariableName.Input BIKE_IDS = new VariableName.Input("bikeIds");
+        public static final VariableName.Input BIKE_IDS = new VariableName.Input(Names.BIKE_IDS);
+
+        public static final class Names {
+          public static final String BIKE_ID = "bikeId";
+
+          public static final String BIKE_IDS = "bikeIds";
+        }
       }
 
       public static final class Next {
@@ -804,19 +900,21 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ServiceTaskSendCancellationConfirmation extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>, HasOutgoingFlows<ServiceTaskSendCancellationConfirmation.OutgoingFlows> {
+      public static final String ELEMENT_ID = "serviceTask_sendCancellationConfirmation";
+
       public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_CANCELLATION_CONFIRMATION;
 
       public ServiceTaskSendCancellationConfirmation() {
-        super(new ElementId("serviceTask_sendCancellationConfirmation"), "SERVICE_TASK", "Send cancellation confirmation");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Send cancellation confirmation");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -834,26 +932,34 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
+      public static final String ELEMENT_ID = "serviceTask_sendContract";
+
       public static final String JOB_TYPE = ServiceTasks.SEND_CONTRACT_DELEGATE;
 
       public ServiceTaskSendContract() {
-        super(new ElementId("serviceTask_sendContract"), "SERVICE_TASK", "Send contract");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Send contract");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
       public static final class Variables {
-        public static final VariableName.Input APPLICATION_ID = new VariableName.Input("applicationId");
+        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(Names.APPLICATION_ID);
 
-        public static final VariableName.Output CONTRACT_ID = new VariableName.Output("contractId");
+        public static final VariableName.Output CONTRACT_ID = new VariableName.Output(Names.CONTRACT_ID);
+
+        public static final class Names {
+          public static final String APPLICATION_ID = "applicationId";
+
+          public static final String CONTRACT_ID = "contractId";
+        }
       }
 
       public static final class Next {
@@ -870,19 +976,21 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ServiceTaskSendRejection extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendRejection.Next>, HasOutgoingFlows<ServiceTaskSendRejection.OutgoingFlows> {
+      public static final String ELEMENT_ID = "serviceTask_sendRejection";
+
       public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_REJECTION;
 
       public ServiceTaskSendRejection() {
-        super(new ElementId("serviceTask_sendRejection"), "SERVICE_TASK", "Send rejection");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Send rejection");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -900,19 +1008,21 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ServiceTaskSendReminderMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendReminderMail.Next>, HasOutgoingFlows<ServiceTaskSendReminderMail.OutgoingFlows> {
+      public static final String ELEMENT_ID = "serviceTask_sendReminderMail";
+
       public static final String JOB_TYPE = ServiceTasks.MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_;
 
       public ServiceTaskSendReminderMail() {
-        super(new ElementId("serviceTask_sendReminderMail"), "SERVICE_TASK", "Send reminder mail");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Send reminder mail");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -930,19 +1040,21 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class ServiceTaskValidateApplication extends AbstractFlowNode implements HasSuccessors<ServiceTaskValidateApplication.Next>, HasOutgoingFlows<ServiceTaskValidateApplication.OutgoingFlows> {
+      public static final String ELEMENT_ID = "serviceTask_validateApplication";
+
       public static final String JOB_TYPE = ServiceTasks.VALIDATE_APPLICATION_DELEGATE;
 
       public ServiceTaskValidateApplication() {
-        super(new ElementId("serviceTask_validateApplication"), "SERVICE_TASK", "Validate application");
+        super(new ElementId(ELEMENT_ID), "SERVICE_TASK", "Validate application");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -965,28 +1077,38 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>, HasOutgoingFlows<StartEventAddressChanged.OutgoingFlows> {
-      public final MessageName message = Messages.MIRAVELO_ADDRESS_CHANGED;
+      public static final String ELEMENT_ID = "startEvent_addressChanged";
 
-      public final boolean isInterrupting = false;
+      public static final MessageName MESSAGE = Messages.MIRAVELO_ADDRESS_CHANGED;
 
       public StartEventAddressChanged() {
-        super(new ElementId("startEvent_addressChanged"), "MESSAGE_START_EVENT", "Address changed");
+        super(new ElementId(ELEMENT_ID), "MESSAGE_START_EVENT", "Address changed");
+      }
+
+      public boolean isInterrupting() {
+        return false;
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
       public static final class Variables {
-        public static final VariableName.Input CITY = new VariableName.Input("city");
+        public static final VariableName.Input CITY = new VariableName.Input(Names.CITY);
 
-        public static final VariableName.Input STREET = new VariableName.Input("street");
+        public static final VariableName.Input STREET = new VariableName.Input(Names.STREET);
+
+        public static final class Names {
+          public static final String CITY = "city";
+
+          public static final String STREET = "street";
+        }
       }
 
       public static final class Next {
@@ -1003,21 +1125,25 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class StartEventApplicationWithdrawn extends AbstractFlowNode implements HasSuccessors<StartEventApplicationWithdrawn.Next>, HasOutgoingFlows<StartEventApplicationWithdrawn.OutgoingFlows> {
-      public final MessageName message = Messages.MIRAVELO_APPLICATION_WITHDRAWN;
+      public static final String ELEMENT_ID = "startEvent_applicationWithdrawn";
 
-      public final boolean isInterrupting = true;
+      public static final MessageName MESSAGE = Messages.MIRAVELO_APPLICATION_WITHDRAWN;
 
       public StartEventApplicationWithdrawn() {
-        super(new ElementId("startEvent_applicationWithdrawn"), "MESSAGE_START_EVENT", "Application withdrawn");
+        super(new ElementId(ELEMENT_ID), "MESSAGE_START_EVENT", "Application withdrawn");
+      }
+
+      public boolean isInterrupting() {
+        return true;
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -1035,17 +1161,19 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class StartEventCustomerEligible extends AbstractFlowNode implements HasSuccessors<StartEventCustomerEligible.Next>, HasOutgoingFlows<StartEventCustomerEligible.OutgoingFlows> {
+      public static final String ELEMENT_ID = "startEvent_customerEligible";
+
       public StartEventCustomerEligible() {
-        super(new ElementId("startEvent_customerEligible"), "START_EVENT", "Customer eligible");
+        super(new ElementId(ELEMENT_ID), "START_EVENT", "Customer eligible");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -1063,30 +1191,42 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows> {
-      public final MessageName message = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED;
+      public static final String ELEMENT_ID = "startEvent_leasingRequestReceived";
+
+      public static final MessageName MESSAGE = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED;
 
       public StartEventLeasingRequestReceived() {
-        super(new ElementId("startEvent_leasingRequestReceived"), "MESSAGE_START_EVENT", "Leasing request received");
+        super(new ElementId(ELEMENT_ID), "MESSAGE_START_EVENT", "Leasing request received");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
       public static final class Variables {
-        public static final VariableName.Input AGE = new VariableName.Input("age");
+        public static final VariableName.Input AGE = new VariableName.Input(Names.AGE);
 
-        public static final VariableName.Input APPLICATION_ID = new VariableName.Input("applicationId");
+        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(Names.APPLICATION_ID);
 
-        public static final VariableName.Input BIKE_IDS = new VariableName.Input("bikeIds");
+        public static final VariableName.Input BIKE_IDS = new VariableName.Input(Names.BIKE_IDS);
 
-        public static final VariableName.Input MONTHLY_NET_INCOME = new VariableName.Input("monthlyNetIncome");
+        public static final VariableName.Input MONTHLY_NET_INCOME = new VariableName.Input(Names.MONTHLY_NET_INCOME);
+
+        public static final class Names {
+          public static final String AGE = "age";
+
+          public static final String APPLICATION_ID = "applicationId";
+
+          public static final String BIKE_IDS = "bikeIds";
+
+          public static final String MONTHLY_NET_INCOME = "monthlyNetIncome";
+        }
       }
 
       public static final class Next {
@@ -1103,12 +1243,14 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class SubProcessAddressChanged extends AbstractFlowNode implements FlowScope<SubProcessAddressChanged.Start> {
+      public static final String ELEMENT_ID = "subProcess_addressChanged";
+
       public SubProcessAddressChanged() {
-        super(new ElementId("subProcess_addressChanged"), "EVENT_SUB_PROCESS", "Delivery address changed");
+        super(new ElementId(ELEMENT_ID), "EVENT_SUB_PROCESS", "Delivery address changed");
       }
 
       @Override
-      public Start start() {
+      public Start getStartEvents() {
         return new Start();
       }
 
@@ -1120,12 +1262,14 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class SubProcessApplicationWithdrawn extends AbstractFlowNode implements FlowScope<SubProcessApplicationWithdrawn.Start> {
+      public static final String ELEMENT_ID = "subProcess_applicationWithdrawn";
+
       public SubProcessApplicationWithdrawn() {
-        super(new ElementId("subProcess_applicationWithdrawn"), "EVENT_SUB_PROCESS", "Application withdrawn");
+        super(new ElementId(ELEMENT_ID), "EVENT_SUB_PROCESS", "Application withdrawn");
       }
 
       @Override
-      public Start start() {
+      public Start getStartEvents() {
         return new Start();
       }
 
@@ -1137,22 +1281,24 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class SubProcessConcludeContract extends AbstractFlowNode implements HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
+      public static final String ELEMENT_ID = "subProcess_concludeContract";
+
       public SubProcessConcludeContract() {
-        super(new ElementId("subProcess_concludeContract"), "SUB_PROCESS", "Conclude contract");
+        super(new ElementId(ELEMENT_ID), "SUB_PROCESS", "Conclude contract");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
       @Override
-      public Start start() {
+      public Start getStartEvents() {
         return new Start();
       }
 
@@ -1188,19 +1334,21 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class TimerSignatureDeadline extends AbstractFlowNode implements HasSuccessors<TimerSignatureDeadline.Next>, HasOutgoingFlows<TimerSignatureDeadline.OutgoingFlows> {
-      public final BpmnTimer timer = new BpmnTimer("Duration", "P14D");
+      public static final String ELEMENT_ID = "timer_signatureDeadline";
+
+      public static final BpmnTimer TIMER = new BpmnTimer("Duration", "P14D");
 
       public TimerSignatureDeadline() {
-        super(new ElementId("timer_signatureDeadline"), "TIMER_INTERMEDIATE_CATCH_EVENT", "14 days passed");
+        super(new ElementId(ELEMENT_ID), "TIMER_INTERMEDIATE_CATCH_EVENT", "14 days passed");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -1217,26 +1365,32 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class TimerSignatureReminder extends AbstractFlowNode implements HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent {
-      public final BpmnTimer timer = new BpmnTimer("Duration", "P7D");
+    public static final class TimerSignatureReminder extends AbstractFlowNode implements HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract> {
+      public static final String ELEMENT_ID = "timer_signatureReminder";
 
-      public final boolean isInterrupting = false;
+      public static final BpmnTimer TIMER = new BpmnTimer("Duration", "P7D");
 
       public TimerSignatureReminder() {
-        super(new ElementId("timer_signatureReminder"), "TIMER_BOUNDARY_EVENT", "7 days passed");
+        super(new ElementId(ELEMENT_ID), "TIMER_BOUNDARY_EVENT", "7 days passed");
       }
 
-      public SubProcessConcludeContract attachedTo() {
+      @Override
+      public SubProcessConcludeContract getAttachedTo() {
         return new SubProcessConcludeContract();
       }
 
       @Override
-      public Next then() {
+      public boolean isInterrupting() {
+        return false;
+      }
+
+      @Override
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -1254,19 +1408,21 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class TimerWithdrawalPeriodElapsed extends AbstractFlowNode implements HasSuccessors<TimerWithdrawalPeriodElapsed.Next>, HasOutgoingFlows<TimerWithdrawalPeriodElapsed.OutgoingFlows> {
-      public final BpmnTimer timer = new BpmnTimer("Duration", "${withdrawalPeriod}");
+      public static final String ELEMENT_ID = "timer_withdrawalPeriodElapsed";
+
+      public static final BpmnTimer TIMER = new BpmnTimer("Duration", "${withdrawalPeriod}");
 
       public TimerWithdrawalPeriodElapsed() {
-        super(new ElementId("timer_withdrawalPeriodElapsed"), "TIMER_INTERMEDIATE_CATCH_EVENT", "Withdrawal period elapsed");
+        super(new ElementId(ELEMENT_ID), "TIMER_INTERMEDIATE_CATCH_EVENT", "Withdrawal period elapsed");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
@@ -1284,22 +1440,28 @@ public final class BikeLeasingProcessApi {
     }
 
     public static final class UserTaskUpdateDeliveryAddress extends AbstractFlowNode implements HasSuccessors<UserTaskUpdateDeliveryAddress.Next>, HasOutgoingFlows<UserTaskUpdateDeliveryAddress.OutgoingFlows> {
+      public static final String ELEMENT_ID = "userTask_updateDeliveryAddress";
+
       public UserTaskUpdateDeliveryAddress() {
-        super(new ElementId("userTask_updateDeliveryAddress"), "USER_TASK", "Update delivery address");
+        super(new ElementId(ELEMENT_ID), "USER_TASK", "Update delivery address");
       }
 
       @Override
-      public Next then() {
+      public Next getNext() {
         return new Next();
       }
 
       @Override
-      public OutgoingFlows outgoingFlows() {
+      public OutgoingFlows getOutgoingFlows() {
         return new OutgoingFlows();
       }
 
       public static final class Variables {
-        public static final VariableName.InOut DELIVERY_ADDRESS = new VariableName.InOut("deliveryAddress");
+        public static final VariableName.InOut DELIVERY_ADDRESS = new VariableName.InOut(Names.DELIVERY_ADDRESS);
+
+        public static final class Names {
+          public static final String DELIVERY_ADDRESS = "deliveryAddress";
+        }
       }
 
       public static final class Next {

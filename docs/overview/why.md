@@ -38,7 +38,7 @@ object NewsletterSubscriptionProcessApi {
     object ActivitySendWelcomeMail : AbstractFlowNode(ElementId("Activity_SendWelcomeMail"), "SERVICE_TASK", "Send welcome mail") {
       const val JOB_TYPE = ServiceTasks.NEWSLETTER_SEND_WELCOME_MAIL
       object Variables { val SUBSCRIPTION_ID = VariableName.Input("subscriptionId") }
-      // … successors behind then(), sequence flows behind outgoingFlows()
+      // … successors behind next, sequence flows behind outgoingFlows
     }
   }
 }

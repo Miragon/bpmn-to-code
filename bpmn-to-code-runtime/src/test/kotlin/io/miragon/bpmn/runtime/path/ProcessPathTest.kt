@@ -153,15 +153,15 @@ class ProcessPathTest {
     private object Boundary : AbstractFlowNode(ElementId("Boundary"), "TIMER_BOUNDARY_EVENT")
 
     private object Mid : AbstractFlowNode(ElementId("Mid"), "TASK"), HasSuccessors<Mid.Next> {
-        override fun then(): Next = Next
+        override val next: Next get() = Next
         object Next {
             val end: End get() = End
         }
     }
 
     private object Start : AbstractFlowNode(ElementId("Start"), "START_EVENT"), HasSuccessors<Start.Next>, HasOutgoingFlows<Start.OutgoingFlows> {
-        override fun then(): Next = Next
-        override fun outgoingFlows(): OutgoingFlows = OutgoingFlows
+        override val next: Next get() = Next
+        override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
         object Next {
             val mid: Mid get() = Mid
             val sub: Sub get() = Sub
@@ -174,8 +174,8 @@ class ProcessPathTest {
     private object InnerStart : AbstractFlowNode(ElementId("InnerStart"), "START_EVENT")
 
     private object Sub : AbstractFlowNode(ElementId("Sub"), "SUB_PROCESS"), HasSuccessors<Sub.Next>, FlowScope<Sub.Start> {
-        override fun then(): Next = Next
-        override fun start(): Start = Start
+        override val next: Next get() = Next
+        override val startEvents: Start get() = Start
         object Next {
             val end: End get() = End
             val boundary: Boundary get() = Boundary

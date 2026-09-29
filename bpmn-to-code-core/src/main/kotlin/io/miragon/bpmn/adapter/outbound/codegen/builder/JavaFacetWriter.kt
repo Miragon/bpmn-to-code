@@ -18,25 +18,27 @@ import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
 
 /**
- * Emits a Java `Flow` node's own data: fields (`JOB_TYPE`, `calledProcess`, `timer`, `message`, …), the
- * `attachedTo()` factory for a boundary event's host, and the nested holders (`Variables`, `Inputs`, `Outputs`).
+ * Emits a Java `Flow` node's own data: static constants (`JOB_TYPE`, `CALLED_PROCESS`, `TIMER`, `MESSAGE`, …), the
+ * `getAttachedTo()`/`isInterrupting()` getters of a boundary event, and the nested holders (`Variables`, `Inputs`, `Outputs`).
  * Job types, messages, signals, errors and escalations refer to their shared definition constant.
  */
 internal class JavaFacetWriter {
 
     fun fields(facets: NodeFacets): List<FieldSpec> = listOfNotNull(
         facets.jobType?.let { jobTypeField(it) },
-        facets.calledProcessId?.let { wrappedField("calledProcess", "ProcessId", it) },
-        facets.timer?.let { pairField("timer", "BpmnTimer", it.type, it.expression) },
-        facets.message?.let { sharedField("message", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
-        facets.signal?.let { sharedField("signal", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
-        facets.error?.let { sharedField("error", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
-        facets.escalation?.let { sharedField("escalation", "BpmnEscalation", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
-        facets.isInterrupting?.let { FieldSpec.builder(TypeName.BOOLEAN, "isInterrupting", PUBLIC, FINAL).initializer("\$L", it).build() },
+        facets.calledProcessId?.let { wrappedField("CALLED_PROCESS", "ProcessId", it) },
+        facets.timer?.let { pairField("TIMER", "BpmnTimer", it.type, it.expression) },
+        facets.message?.let { sharedField("MESSAGE", "MessageName", SharedDefinitionType.MESSAGES, it, ::wrappedInitializer) },
+        facets.signal?.let { sharedField("SIGNAL", "SignalName", SharedDefinitionType.SIGNALS, it, ::wrappedInitializer) },
+        facets.error?.let { sharedField("ERROR", "BpmnError", SharedDefinitionType.ERRORS, it, ::namedCodeInitializer) },
+        facets.escalation?.let { sharedField("ESCALATION", "BpmnEscalation", SharedDefinitionType.ESCALATIONS, it, ::namedCodeInitializer) },
     )
 
     fun methods(facets: NodeFacets): List<MethodSpec> = listOfNotNull(
-        facets.attachedTo?.let { attachedToMethod(it.objectName) },
+        facets.attachedTo?.let { ClassName.get("", it.objectName) }?.let { host ->
+            getter("getAttachedTo", host, CodeBlock.of("new \$T()", host), overridesBoundaryEvent = true)
+        },
+        facets.isInterrupting?.let { getter("isInterrupting", TypeName.BOOLEAN, CodeBlock.of("\$L", it), overridesBoundaryEvent = facets.attachedTo != null) },
     )
 
     fun holders(facets: NodeFacets): List<TypeSpec> = listOfNotNull(
@@ -50,7 +52,7 @@ internal class JavaFacetWriter {
         .build()
 
     /**
-     * A field holding a shared definition refers to its constant, e.g. `MessageName message = Messages.X`; only a
+     * A field holding a shared definition refers to its constant, e.g. `MessageName MESSAGE = Messages.X`; only a
      * value without a shared constant falls back to its [literal] form.
      */
     private fun <T> sharedField(
@@ -62,14 +64,14 @@ internal class JavaFacetWriter {
     ): FieldSpec {
         val wrapperClass = ClassName.get(RUNTIME_PACKAGE, wrapper)
         val initializer = shared.constant?.let { sharedReference(type, it) } ?: literal(wrapperClass, shared.value)
-        return FieldSpec.builder(wrapperClass, name, PUBLIC, FINAL).initializer(initializer).build()
+        return FieldSpec.builder(wrapperClass, name, PUBLIC, STATIC, FINAL).initializer(initializer).build()
     }
 
     private fun sharedReference(type: SharedDefinitionType, constant: SharedConstant): CodeBlock = CodeBlock.of("\$T.\$N", ClassName.get("", type.typeName), constant.name)
 
     private fun wrappedField(name: String, wrapper: String, value: String): FieldSpec {
         val wrapperClass = ClassName.get(RUNTIME_PACKAGE, wrapper)
-        return FieldSpec.builder(wrapperClass, name, PUBLIC, FINAL).initializer(wrappedInitializer(wrapperClass, value)).build()
+        return FieldSpec.builder(wrapperClass, name, PUBLIC, STATIC, FINAL).initializer(wrappedInitializer(wrapperClass, value)).build()
     }
 
     private fun wrappedInitializer(wrapperClass: ClassName, value: String): CodeBlock = CodeBlock.of("new \$T(\$S)", wrapperClass, value)
@@ -78,14 +80,13 @@ internal class JavaFacetWriter {
 
     private fun pairField(name: String, wrapper: String, first: String, second: String): FieldSpec {
         val wrapperClass = ClassName.get(RUNTIME_PACKAGE, wrapper)
-        return FieldSpec.builder(wrapperClass, name, PUBLIC, FINAL).initializer("new \$T(\$S, \$S)", wrapperClass, first, second).build()
+        return FieldSpec.builder(wrapperClass, name, PUBLIC, STATIC, FINAL).initializer("new \$T(\$S, \$S)", wrapperClass, first, second).build()
     }
 
-    private fun attachedToMethod(hostObjectName: String): MethodSpec {
-        val hostClass = ClassName.get("", hostObjectName)
-        return MethodSpec.methodBuilder("attachedTo").addModifiers(PUBLIC).returns(hostClass)
-            .addStatement("return new \$T()", hostClass)
-            .build()
+    private fun getter(name: String, returnType: TypeName, returnValue: CodeBlock, overridesBoundaryEvent: Boolean): MethodSpec {
+        val method = MethodSpec.methodBuilder(name).addModifiers(PUBLIC).returns(returnType).addStatement("return \$L", returnValue)
+        if (overridesBoundaryEvent) method.addAnnotation(Override::class.java)
+        return method.build()
     }
 
     private fun variablesHolder(variables: List<VariableFacet>): TypeSpec {
@@ -94,11 +95,11 @@ internal class JavaFacetWriter {
             val subtypeClass = ClassName.get(RUNTIME_PACKAGE, "VariableName").nestedClass(variable.subtype.simpleName)
             holder.addField(
                 FieldSpec.builder(subtypeClass, variable.constantName, PUBLIC, STATIC, FINAL)
-                    .initializer("new \$T(\$S)", subtypeClass, variable.rawName)
+                    .initializer("new \$T(\$N.\$N)", subtypeClass, JAVA_NAMES_HOLDER, variable.constantName)
                     .build(),
             )
         }
-        return holder.build()
+        return holder.addType(javaNamesHolder(variables.map { it.constantName to it.rawName })).build()
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {

@@ -65,4 +65,4 @@ Call activities use `zeebe:calledElement` (not the standard `calledElement` attr
 </bpmn:callActivity>
 ```
 
-The `processId` from the extension element becomes `calledProcess` on the call activity's `Flow` node.
+The `processId` from the extension element becomes `CALLED_PROCESS` on the call activity's `Flow` node.

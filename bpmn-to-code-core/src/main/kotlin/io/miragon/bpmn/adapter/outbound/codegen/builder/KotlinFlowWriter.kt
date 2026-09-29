@@ -18,10 +18,10 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 /**
  * Emits the typed navigation graph of a Kotlin process API `Flow` object: one nested node object per flow
  * node, carrying its metadata via `AbstractFlowNode`, its own facets (see [KotlinFacetWriter]), its reachable
- * successors behind `then()` and its outgoing sequence flows behind `outgoingFlows()`, named after the elements
+ * successors behind `next` and its outgoing sequence flows behind `outgoingFlows`, named after the elements
  * they lead to. All nodes are direct children of `Flow`, whatever their subprocess depth; a subprocess node
- * additionally is a `FlowScope` whose `start()` yields the interior's start elements, and a boundary event is
- * marked `BoundaryEvent`. Every node implements the flow's sealed `Node` interface, and `Flow.entries` lists them all.
+ * additionally is a `FlowScope` whose `startEvents` yields the interior's start elements, and a boundary event is
+ * a `BoundaryEvent` of its host. Every node implements the flow's sealed `Node` interface, and `Flow.entries` lists them all.
  */
 internal class KotlinFlowWriter {
 
@@ -48,6 +48,7 @@ internal class KotlinFlowWriter {
     private fun buildNode(node: FlowGraphNode): TypeSpec {
         val nodeBuilder = TypeSpec.objectBuilder(node.objectName)
         extendFlowNode(nodeBuilder, node)
+        nodeBuilder.addProperty(PropertySpec.builder(ELEMENT_ID, String::class).addModifiers(KModifier.CONST).initializer("%L", kotlinStringLiteral(node.id)).build())
         facetWriter.properties(node.facets).forEach { nodeBuilder.addProperty(it) }
         facetWriter.holders(node.facets).forEach { nodeBuilder.addType(it) }
         if (node.successors.isNotEmpty()) {
@@ -72,8 +73,9 @@ internal class KotlinFlowWriter {
         if (node.outgoingFlows.isNotEmpty()) {
             nodeBuilder.addSuperinterface(ownHolderInterface("HasOutgoingFlows", node, OUTGOING_FLOWS_HOLDER))
         }
-        if (node.isBoundaryEvent) {
-            nodeBuilder.addSuperinterface(ClassName(RUNTIME_PACKAGE, "BoundaryEvent"))
+        val host = node.facets.attachedTo
+        if (node.isBoundaryEvent && host != null) {
+            nodeBuilder.addSuperinterface(ClassName(RUNTIME_PACKAGE, "BoundaryEvent").parameterizedBy(ClassName("", host.objectName)))
         }
     }
 
@@ -92,12 +94,12 @@ internal class KotlinFlowWriter {
     }
 
     private fun addSuccessors(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        nodeBuilder.addFunction(accessorFunction("then", NEXT_HOLDER))
+        nodeBuilder.addProperty(accessorProperty("next", NEXT_HOLDER))
         nodeBuilder.addType(accessorHolder(NEXT_HOLDER, node.successors.map { it.propertyName to it.objectName }))
     }
 
     private fun addOutgoingFlows(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        nodeBuilder.addFunction(accessorFunction("outgoingFlows", OUTGOING_FLOWS_HOLDER))
+        nodeBuilder.addProperty(accessorProperty("outgoingFlows", OUTGOING_FLOWS_HOLDER))
         val holder = TypeSpec.objectBuilder(OUTGOING_FLOWS_HOLDER)
         node.outgoingFlows.forEach { holder.addProperty(outgoingFlowsProperty(it)) }
         nodeBuilder.addType(holder.build())
@@ -105,7 +107,7 @@ internal class KotlinFlowWriter {
 
     private fun addInteriorStarts(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         nodeBuilder.addSuperinterface(ownHolderInterface("FlowScope", node, START_HOLDER))
-        nodeBuilder.addFunction(accessorFunction("start", START_HOLDER))
+        nodeBuilder.addProperty(accessorProperty("startEvents", START_HOLDER))
         nodeBuilder.addType(accessorHolder(START_HOLDER, node.interiorStarts.map { it.propertyName to it.objectName }))
     }
 
@@ -115,10 +117,9 @@ internal class KotlinFlowWriter {
         return holderBuilder.build()
     }
 
-    private fun accessorFunction(functionName: String, holderName: String): FunSpec = FunSpec.builder(functionName)
+    private fun accessorProperty(propertyName: String, holderName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", holderName))
         .addModifiers(KModifier.OVERRIDE)
-        .returns(ClassName("", holderName))
-        .addStatement("return %N", holderName)
+        .getter(FunSpec.getterBuilder().addStatement("return %N", holderName).build())
         .build()
 
     private fun nodeAccessor(propertyName: String, objectName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", objectName))
@@ -151,6 +152,7 @@ internal class KotlinFlowWriter {
 
     private companion object {
         private const val RUNTIME_PACKAGE = "io.miragon.bpmn.runtime"
+        private const val ELEMENT_ID = "ELEMENT_ID"
         private const val NEXT_HOLDER = "Next"
         private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"
         private const val START_HOLDER = "Start"

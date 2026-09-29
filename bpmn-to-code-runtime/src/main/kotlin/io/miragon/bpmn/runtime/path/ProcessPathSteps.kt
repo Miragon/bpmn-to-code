@@ -11,7 +11,7 @@ import io.miragon.bpmn.runtime.SequenceFlow
  * the current node's `Next`, so `it.<successor>` autocompletes — and only an actual successor compiles.
  */
 fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.then(pick: (NEXT) -> M): ProcessPath<M> {
-    val node = pick(current.then())
+    val node = pick(current.next)
     return moveTo(node, listOf(node))
 }
 
@@ -21,7 +21,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.then(pick: (NEXT) 
  * so `it.to<Element>` autocompletes; where several flows lead to the same element, pick one of the list.
  */
 fun <OUTGOING, M : FlowNode> ProcessPath<out HasOutgoingFlows<OUTGOING>>.via(pick: (OUTGOING) -> SequenceFlow<M>): ProcessPath<M> {
-    val flow = pick(current.outgoingFlows())
+    val flow = pick(current.outgoingFlows)
     return moveTo(flow.target, listOf(flow.target), listOf(flow))
 }
 
@@ -33,7 +33,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.thenMultipleTimes(
     repeatTimes: Int,
     pick: (NEXT) -> M,
 ): ProcessPath<M> {
-    val node = pick(current.then())
+    val node = pick(current.next)
     return moveTo(node, List(repeatTimes) { node })
 }
 
@@ -46,7 +46,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.thenMultipleTimes(
  * it separately via `hasPassed(...)`. Reads as two simple steps: `onto { it.sub }.enter { it.start }`.
  */
 fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.onto(subprocess: (NEXT) -> M): ProcessPath<M> {
-    val node = subprocess(current.then())
+    val node = subprocess(current.next)
     return moveTo(node, emptyList())
 }
 
@@ -60,7 +60,7 @@ fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.onto(subprocess: (
  * neither is a dead end — once inside you can only continue out via [inside] or [interruptedBy].
  */
 fun <START, M : FlowNode> ProcessPath<out FlowScope<START>>.enter(pick: (START) -> M): ProcessPath<M> {
-    val node = pick(current.start())
+    val node = pick(current.startEvents)
     return moveTo(node, listOf(node))
 }
 
@@ -69,12 +69,12 @@ fun <START, M : FlowNode> ProcessPath<out FlowScope<START>>.enter(pick: (START) 
  * from a position where it isn't the current node (e.g. `enter(Flow.SubProcess) { it.start }`).
  */
 fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (START) -> M): ProcessPath<M> {
-    val node = pick(scope.start())
+    val node = pick(scope.startEvents)
     return moveTo(node, listOf(node))
 }
 
 /**
- * Leave an activity/subprocess through an attached **boundary** event: re-anchor to [carrier]`.then()` and
+ * Leave an activity/subprocess through an attached **boundary** event: re-anchor to [carrier]`.next` and
  * record the picked boundary continuation — the token leaves the interior *early* via the boundary, which is
  * why this is a re-anchor and not expressible with [inside]. Covers interrupting timers and error boundaries;
  * `it` offers exactly the carrier's boundary events, compile-checked.
@@ -83,7 +83,7 @@ fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(
     carrier: HasSuccessors<NEXT>,
     pick: (NEXT) -> M,
 ): ProcessPath<M> {
-    val node = pick(carrier.then())
+    val node = pick(carrier.next)
     return moveTo(node, listOf(node))
 }
 
