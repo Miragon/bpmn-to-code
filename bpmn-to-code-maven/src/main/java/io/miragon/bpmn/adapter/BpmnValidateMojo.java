@@ -81,21 +81,15 @@ public class BpmnValidateMojo extends AbstractMojo {
 		ValidationResult result = plugin.execute(baseDir, filePattern, engine, config);
 
 		for (ValidationViolation v : result.getWarnings()) {
-			getLog().warn("[BPMN VALIDATION WARN] " + formatLocation(v) + ": " + v.getMessage() + " (rule: " + v.getRuleId() + ")");
+			getLog().warn(v.describe());
 		}
 		for (ValidationViolation v : result.getErrors()) {
-			getLog().error("[BPMN VALIDATION ERROR] " + formatLocation(v) + ": " + v.getMessage() + " (rule: " + v.getRuleId() + ")");
+			getLog().error(v.describe());
 		}
 
 		if (result.hasFailures(failOnWarning)) {
-			throw new MojoFailureException(
-					"BPMN validation failed: " + result.getErrors().size() + " error(s), " + result.getWarnings().size() + " warning(s)"
-			);
+			throw new MojoFailureException(result.getFailureSummary());
 		}
 		getLog().info("BPMN validation passed");
-	}
-
-	private String formatLocation(ValidationViolation v) {
-		return v.getElementId() != null ? v.getProcessId() + "/" + v.getElementId() : v.getProcessId();
 	}
 }

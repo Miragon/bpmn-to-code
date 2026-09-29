@@ -186,17 +186,17 @@ class RequireElementPrefixRule : SingleModelValidationRule {
         return context.model.flowNodes
             .filter { !it.id.contains("_") }
             .map { node ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = node.id,
+                violation(
                     processId = context.model.processId,
+                    elementId = node.id,
                     message = "Element '${node.id}' has no type prefix (e.g. 'Activity_', 'Task_').",
                 )
             }
     }
 }
 ```
+
+`violation(...)` fills in the rule's `id` and `severity`; leave out `elementId` for a finding about the whole process.
 
 Use it in tests:
 
@@ -227,11 +227,9 @@ class RequireCallActivityInputsRule(private val required: Set<String>) : SingleM
         return context.model.callActivities.flatMap { callActivity ->
             val declaredTargets = callActivity.inputMappings.mapNotNull { it.target }.toSet()
             (required - declaredTargets).map { missing ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = callActivity.id,
+                violation(
                     processId = context.model.processId,
+                    elementId = callActivity.id,
                     message = "Call activity '${callActivity.id}' must pass '$missing' to the called process.",
                 )
             }
@@ -306,11 +304,9 @@ class CallActivityTargetExistsRule : CrossModelValidationRule {
             model.callActivities
                 .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }
                 .map { callActivity ->
-                    ValidationViolation(
-                        ruleId = id,
-                        severity = severity,
-                        elementId = callActivity.id,
+                    violation(
                         processId = model.processId,
+                        elementId = callActivity.id,
                         message = "Call activity '${callActivity.id}' references unknown process '${callActivity.calledElement}'.",
                     )
                 }

@@ -28,13 +28,7 @@ class TimerIso8601SyntaxRule : SingleModelValidationRule {
                 TimerType.CYCLE -> TimerValueSyntax.isValidIsoRepeatingInterval(value)
             }
             if (valid) return@mapNotNull null
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = timer.id,
-                processId = context.model.processId,
-                message = "Timer ${type.label} value '$value' is not valid ISO-8601.",
-            )
+            violation(processId = context.model.processId, elementId = timer.id, message = "Timer ${type.label} value '$value' is not valid ISO-8601.")
         }
     }
 }

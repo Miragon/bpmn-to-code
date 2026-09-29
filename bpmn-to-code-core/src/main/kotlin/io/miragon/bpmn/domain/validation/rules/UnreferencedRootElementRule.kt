@@ -43,11 +43,9 @@ class UnreferencedRootElementRule : SingleModelValidationRule {
         model: ProcessModel,
         kind: String,
         element: RootElementDefinition,
-    ): ValidationViolation = ValidationViolation(
-        ruleId = id,
-        severity = severity,
-        elementId = element.id,
+    ): ValidationViolation = violation(
         processId = model.processId,
+        elementId = element.id,
         message = "$kind '${element.id}' is declared but no element references it. " +
             "It still produces a constant in the generated API — remove it from the BPMN file " +
             "if it is left over from an earlier version of the model.",

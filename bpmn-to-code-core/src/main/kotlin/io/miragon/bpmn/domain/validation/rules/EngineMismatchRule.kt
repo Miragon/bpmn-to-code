@@ -27,21 +27,13 @@ class EngineMismatchRule : SingleModelValidationRule {
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val detected = context.model.detectedEngine
         val selected = context.engine
-        val violation = when {
-            detected == selected -> null
-            detected == null -> violation(context = context, severity = Severity.WARN, message = undeterminedMessage(selected))
-            else -> violation(context = context, severity = Severity.ERROR, message = mismatchMessage(detected, selected))
+        val processId = context.model.processId
+        return when {
+            detected == selected -> emptyList()
+            detected == null -> listOf(violation(processId = processId, message = undeterminedMessage(selected), severity = Severity.WARN))
+            else -> listOf(violation(processId = processId, message = mismatchMessage(detected, selected)))
         }
-        return listOfNotNull(violation)
     }
-
-    private fun violation(context: SingleModelValidationContext, severity: Severity, message: String): ValidationViolation = ValidationViolation(
-        ruleId = id,
-        severity = severity,
-        elementId = null,
-        processId = context.model.processId,
-        message = message,
-    )
 
     private fun mismatchMessage(detected: ProcessEngine, selected: ProcessEngine): String {
         val detectedName = displayName(detected)

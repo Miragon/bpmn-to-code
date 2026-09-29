@@ -34,11 +34,9 @@ class ReservedElementNameRule : SingleModelValidationRule {
 
     private fun findReservedElements(model: ProcessModel): List<ValidationViolation> = model.allFlowNodes
         .filter { it.id?.toCamelCase()?.isReserved() == true }.map { node ->
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = node.id,
+            violation(
                 processId = model.processId,
+                elementId = node.id,
                 message = "Element id '${node.id}' would be generated as '${node.id.orEmpty().toCamelCase()}', which is reserved by the Process API. Rename the element.",
             )
         }
@@ -46,10 +44,7 @@ class ReservedElementNameRule : SingleModelValidationRule {
     private fun findReservedVariants(model: ProcessModel): List<ValidationViolation> = model.variants
         .filter { variant -> variant.variantName.toCamelCase().let { it in RESERVED_TYPE_NAMES || it in elementNamesOf(variant) } }
         .map { variant ->
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = null,
+            violation(
                 processId = model.processId,
                 message = "Variant '${variant.variantName}' would be generated as '${variant.variantName.toCamelCase()}', which is reserved by the Process API or names an element of that variant. Rename the variant.",
             )

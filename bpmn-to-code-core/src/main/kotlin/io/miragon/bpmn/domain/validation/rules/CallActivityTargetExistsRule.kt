@@ -21,11 +21,9 @@ class CallActivityTargetExistsRule : CrossModelValidationRule {
     override fun validate(context: CrossModelValidationContext): List<ValidationViolation> = context.models.flatMap { model ->
         model.callActivities
             .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }.map { callActivity ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = callActivity.id,
+                violation(
                     processId = model.processId,
+                    elementId = callActivity.id,
                     message = "Call activity '${callActivity.id}' references unknown process '${callActivity.calledElement}'.",
                 )
             }

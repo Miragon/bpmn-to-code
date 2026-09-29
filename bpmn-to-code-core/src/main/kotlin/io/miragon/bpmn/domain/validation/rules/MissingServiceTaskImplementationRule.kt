@@ -16,11 +16,9 @@ class MissingServiceTaskImplementationRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.serviceTasks
         .filter { !it.hasImplementation() }.map { task ->
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = task.id,
+            violation(
                 processId = context.model.processId,
+                elementId = task.id,
                 message = "Service task has no implementation. ${engineHint(context.engine)}",
             )
         }

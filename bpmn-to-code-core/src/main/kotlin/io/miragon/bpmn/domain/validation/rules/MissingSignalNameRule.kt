@@ -15,12 +15,6 @@ class MissingSignalNameRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.definitions.signals
         .filter { !it.hasName() }.map {
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = null,
-                processId = context.model.processId,
-                message = "Signal event definition is missing a 'name' attribute.",
-            )
+            violation(processId = context.model.processId, message = "Signal event definition is missing a 'name' attribute.")
         }
 }

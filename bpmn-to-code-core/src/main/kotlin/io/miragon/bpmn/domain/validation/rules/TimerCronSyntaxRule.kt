@@ -24,13 +24,7 @@ class TimerCronSyntaxRule : SingleModelValidationRule {
             val value = timer.expression.orEmpty()
             if (value.isBlank() || TimerValueSyntax.isExpression(value)) return@mapNotNull null
             if (TimerValueSyntax.isValidCron(value)) return@mapNotNull null
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = timer.id,
-                processId = context.model.processId,
-                message = "Timer cycle '$value' is not a valid cron expression.",
-            )
+            violation(processId = context.model.processId, elementId = timer.id, message = "Timer cycle '$value' is not a valid cron expression.")
         }
     }
 }

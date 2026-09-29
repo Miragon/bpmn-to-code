@@ -15,15 +15,7 @@ class EmptyProcessRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         if (context.model.allFlowNodes.isEmpty()) {
-            return listOf(
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = null,
-                    processId = context.model.processId,
-                    message = "Process has no elements defined.",
-                ),
-            )
+            return listOf(violation(processId = context.model.processId, message = "Process has no elements defined."))
         }
         return emptyList()
     }

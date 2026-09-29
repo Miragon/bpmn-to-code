@@ -23,15 +23,6 @@ class CollisionDetectionRule(
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val collisions = collisionDetectionService.findCollisions(context.model)
-        return collisions.map { detail ->
-            val conflicting = detail.conflictingIds.joinToString(", ")
-            ValidationViolation(
-                ruleId = id,
-                severity = severity,
-                elementId = null,
-                processId = detail.processId,
-                message = "[${detail.variableType}] '${detail.constantName}' has conflicting IDs: $conflicting",
-            )
-        }
+        return collisions.map { violation(processId = it.processId, message = it.describe()) }
     }
 }
