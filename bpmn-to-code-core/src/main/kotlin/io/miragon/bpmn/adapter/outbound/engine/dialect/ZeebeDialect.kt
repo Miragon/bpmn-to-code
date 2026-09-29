@@ -86,12 +86,9 @@ internal class ZeebeDialect : EngineDialect {
     }
 
     override fun variablesOf(node: FlowNode): List<VariableDefinition> {
-        val ioMapping = ioMappingOf(node)
-        val inputs = ioMapping?.inputs.orEmpty().map { Triple(first = it.target, second = VariableDirection.INPUT, third = it.source) }
-        val outputs = ioMapping?.outputs.orEmpty().map { Triple(first = it.target, second = VariableDirection.OUTPUT, third = it.source) }
+        val ioVariables = ioMappingOf(node)?.toVariables().orEmpty()
         val loopVariables = node.multiInstanceVariables()
-        return (inputs + outputs + loopVariables)
-            .distinct().map { (name, direction, expression) -> VariableDefinition(name = name, direction = direction, valueExpression = expression) }
+        return (ioVariables + loopVariables).distinct()
     }
 
     override fun callActivityOf(callActivity: CallActivity): CallActivityDefinition {
@@ -123,7 +120,7 @@ internal class ZeebeDialect : EngineDialect {
      * Multi-instance collections and element variables are process variables too. The `=`-prefixed FEEL
      * form is the declaration; the variable name itself is the expression without that prefix.
      */
-    private fun FlowNode.multiInstanceVariables(): List<Triple<String, VariableDirection, String?>> {
+    private fun FlowNode.multiInstanceVariables(): List<VariableDefinition> {
         val characteristics = getChildElementsByType(MultiInstanceLoopCharacteristics::class.java)
             .flatMap { it.findExtensionElements() }.filterByType(ZeebeModelConstants.ELEMENT_LOOP_CHARACTERISTICS)
         val inputs = characteristics.attributeValues(
@@ -134,8 +131,9 @@ internal class ZeebeDialect : EngineDialect {
             ZeebeModelConstants.ATTRIBUTE_OUTPUT_ELEMENT,
             ZeebeModelConstants.ATTRIBUTE_OUTPUT_COLLECTION,
         )
-        return inputs.map { Triple(first = it.removePrefix("="), second = VariableDirection.INPUT, third = it) } +
-            outputs.map { Triple(first = it.removePrefix("="), second = VariableDirection.OUTPUT, third = it) }
+        val inputVariables = inputs.map { VariableDefinition(name = it.removePrefix("="), direction = VariableDirection.INPUT, valueExpression = it) }
+        val outputVariables = outputs.map { VariableDefinition(name = it.removePrefix("="), direction = VariableDirection.OUTPUT, valueExpression = it) }
+        return inputVariables + outputVariables
     }
 
     private fun List<ModelElementInstance>.attributeValues(vararg names: String): List<String> = names.flatMap { name -> mapNotNull { it.domElement.getAttribute(name) } }
