@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    id="Definitions_EventDefinitions" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:message id="Message_OrderReceived" name="orderReceived" />
+  <bpmn:signal id="Signal_StockChanged" name="stockChanged" />
+  <bpmn:error id="Error_PaymentFailed" name="paymentFailed" errorCode="PAYMENT_FAILED" />
+  <bpmn:escalation id="Escalation_DeliveryDelayed" name="deliveryDelayed" escalationCode="DELAYED" />
+  <bpmn:process id="EventDefinitionsProcess" isExecutable="true">
+    <bpmn:intermediateCatchEvent id="timer_date">
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">2026-01-01T00:00:00Z</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="timer_duration">
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT15M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="timer_cycle">
+      <bpmn:timerEventDefinition>
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R3/PT10M</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="timer_untyped">
+      <bpmn:timerEventDefinition />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="message_orderReceived">
+      <bpmn:messageEventDefinition messageRef="Message_OrderReceived" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="message_unreferenced">
+      <bpmn:messageEventDefinition />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateThrowEvent id="signal_stockChanged">
+      <bpmn:signalEventDefinition signalRef="Signal_StockChanged" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="error_paymentFailed">
+      <bpmn:errorEventDefinition errorRef="Error_PaymentFailed" />
+    </bpmn:endEvent>
+    <bpmn:endEvent id="escalation_deliveryDelayed">
+      <bpmn:escalationEventDefinition escalationRef="Escalation_DeliveryDelayed" />
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="serviceTask_shipOrder" />
+    <bpmn:intermediateThrowEvent id="compensation_shipOrder">
+      <bpmn:compensateEventDefinition activityRef="serviceTask_shipOrder" waitForCompletion="false" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:intermediateCatchEvent id="conditional_stockLow">
+      <bpmn:conditionalEventDefinition>
+        <bpmn:condition xsi:type="bpmn:tFormalExpression">${stockLow}</bpmn:condition>
+      </bpmn:conditionalEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateThrowEvent id="link_toShipping">
+      <bpmn:linkEventDefinition name="toShipping" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="terminate_orderCancelled">
+      <bpmn:terminateEventDefinition />
+    </bpmn:endEvent>
+    <bpmn:endEvent id="cancel_orderCancelled">
+      <bpmn:cancelEventDefinition />
+    </bpmn:endEvent>
+    <bpmn:receiveTask id="receiveTask_orderReceived" messageRef="Message_OrderReceived" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_EventDefinitions">
+    <bpmndi:BPMNPlane id="BPMNPlane_EventDefinitions" bpmnElement="EventDefinitionsProcess">
+      <bpmndi:BPMNShape id="timer_date_di" bpmnElement="timer_date">
+        <dc:Bounds x="152" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="timer_duration_di" bpmnElement="timer_duration">
+        <dc:Bounds x="232" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="timer_cycle_di" bpmnElement="timer_cycle">
+        <dc:Bounds x="312" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="timer_untyped_di" bpmnElement="timer_untyped">
+        <dc:Bounds x="392" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="message_orderReceived_di" bpmnElement="message_orderReceived">
+        <dc:Bounds x="472" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="message_unreferenced_di" bpmnElement="message_unreferenced">
+        <dc:Bounds x="552" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="signal_stockChanged_di" bpmnElement="signal_stockChanged">
+        <dc:Bounds x="632" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="error_paymentFailed_di" bpmnElement="error_paymentFailed">
+        <dc:Bounds x="712" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="escalation_deliveryDelayed_di" bpmnElement="escalation_deliveryDelayed">
+        <dc:Bounds x="792" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="compensation_shipOrder_di" bpmnElement="compensation_shipOrder">
+        <dc:Bounds x="152" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="conditional_stockLow_di" bpmnElement="conditional_stockLow">
+        <dc:Bounds x="232" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="link_toShipping_di" bpmnElement="link_toShipping">
+        <dc:Bounds x="312" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="terminate_orderCancelled_di" bpmnElement="terminate_orderCancelled">
+        <dc:Bounds x="392" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="cancel_orderCancelled_di" bpmnElement="cancel_orderCancelled">
+        <dc:Bounds x="472" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_shipOrder_di" bpmnElement="serviceTask_shipOrder">
+        <dc:Bounds x="130" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="receiveTask_orderReceived_di" bpmnElement="receiveTask_orderReceived">
+        <dc:Bounds x="290" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

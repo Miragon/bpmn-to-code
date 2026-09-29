@@ -4,7 +4,6 @@ import io.miragon.bpmn.adapter.outbound.engine.bpmn.BpmnDefinitionsReader.findPr
 import io.miragon.bpmn.adapter.outbound.engine.bpmn.BpmnDefinitionsReader.normalizeWhitespace
 import io.miragon.bpmn.adapter.outbound.engine.dialect.EngineDialect
 import io.miragon.bpmn.adapter.outbound.engine.xml.ForeignXmlReader
-import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.FlowScope
@@ -14,20 +13,14 @@ import io.miragon.bpmn.domain.shared.MultiInstanceDefinition
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
-import io.miragon.bpmn.domain.shared.TimerType
 import org.camunda.bpm.model.bpmn.instance.Activity
 import org.camunda.bpm.model.bpmn.instance.BoundaryEvent
 import org.camunda.bpm.model.bpmn.instance.BusinessRuleTask
 import org.camunda.bpm.model.bpmn.instance.CallActivity
 import org.camunda.bpm.model.bpmn.instance.CatchEvent
-import org.camunda.bpm.model.bpmn.instance.CompensateEventDefinition
 import org.camunda.bpm.model.bpmn.instance.ComplexGateway
-import org.camunda.bpm.model.bpmn.instance.ConditionalEventDefinition
 import org.camunda.bpm.model.bpmn.instance.EndEvent
-import org.camunda.bpm.model.bpmn.instance.ErrorEventDefinition
-import org.camunda.bpm.model.bpmn.instance.EscalationEventDefinition
 import org.camunda.bpm.model.bpmn.instance.EventBasedGateway
-import org.camunda.bpm.model.bpmn.instance.EventDefinition
 import org.camunda.bpm.model.bpmn.instance.ExclusiveGateway
 import org.camunda.bpm.model.bpmn.instance.FlowElement
 import org.camunda.bpm.model.bpmn.instance.FlowNode
@@ -35,9 +28,7 @@ import org.camunda.bpm.model.bpmn.instance.Gateway
 import org.camunda.bpm.model.bpmn.instance.InclusiveGateway
 import org.camunda.bpm.model.bpmn.instance.IntermediateCatchEvent
 import org.camunda.bpm.model.bpmn.instance.IntermediateThrowEvent
-import org.camunda.bpm.model.bpmn.instance.LinkEventDefinition
 import org.camunda.bpm.model.bpmn.instance.ManualTask
-import org.camunda.bpm.model.bpmn.instance.MessageEventDefinition
 import org.camunda.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics
 import org.camunda.bpm.model.bpmn.instance.ParallelGateway
 import org.camunda.bpm.model.bpmn.instance.ReceiveTask
@@ -45,12 +36,9 @@ import org.camunda.bpm.model.bpmn.instance.ScriptTask
 import org.camunda.bpm.model.bpmn.instance.SendTask
 import org.camunda.bpm.model.bpmn.instance.SequenceFlow
 import org.camunda.bpm.model.bpmn.instance.ServiceTask
-import org.camunda.bpm.model.bpmn.instance.SignalEventDefinition
 import org.camunda.bpm.model.bpmn.instance.StartEvent
 import org.camunda.bpm.model.bpmn.instance.SubProcess
 import org.camunda.bpm.model.bpmn.instance.Task
-import org.camunda.bpm.model.bpmn.instance.TerminateEventDefinition
-import org.camunda.bpm.model.bpmn.instance.TimerEventDefinition
 import org.camunda.bpm.model.bpmn.instance.Transaction
 import org.camunda.bpm.model.bpmn.instance.UserTask
 import org.camunda.bpm.model.xml.ModelInstance
@@ -78,10 +66,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
      * the domain model keeps it; sequence flows carry the derived flag for the generated `OutgoingFlows` object.
      */
     private val defaultFlowIds: Set<String> by lazy {
-        val fromExclusive = model.getModelElementsByType(ExclusiveGateway::class.java).mapNotNull { it.default?.id }
-        val fromInclusive = model.getModelElementsByType(InclusiveGateway::class.java).mapNotNull { it.default?.id }
-        val fromActivities = model.getModelElementsByType(Activity::class.java).mapNotNull { it.default?.id }
-        (fromExclusive + fromInclusive + fromActivities).toSet()
+        model.getModelElementsByType(FlowNode::class.java).mapNotNull { it.defaultFlowId() }.toSet()
     }
 
     /**
@@ -113,7 +98,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
             outgoing = outgoingFlowIds(),
             variables = dialect.variablesOf(this),
             extensions = extensionReader.extensionsOf(id),
-            engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+            engineAttributes = engineAttributes(),
         )
     }
 
@@ -134,7 +119,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
             defaultFlow = defaultFlowId(),
             variables = dialect.variablesOf(this),
             extensions = extensionReader.extensionsOf(id),
-            engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+            engineAttributes = engineAttributes(),
         )
     }
 
@@ -151,7 +136,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
         defaultFlow = defaultFlowId(),
         variables = dialect.variablesOf(this),
         extensions = extensionReader.extensionsOf(id),
-        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+        engineAttributes = engineAttributes(),
     )
 
     private fun Task.toTask(): FlowNodeDefinition.Activity.Task = FlowNodeDefinition.Activity.Task(
@@ -169,7 +154,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
         defaultFlow = defaultFlowId(),
         variables = dialect.variablesOf(this),
         extensions = extensionReader.extensionsOf(id),
-        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+        engineAttributes = engineAttributes(),
     )
 
     private fun Gateway.toGateway(): FlowNodeDefinition.Gateway = FlowNodeDefinition.Gateway(
@@ -181,7 +166,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
         defaultFlow = defaultFlowId(),
         variables = dialect.variablesOf(this),
         extensions = extensionReader.extensionsOf(id),
-        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+        engineAttributes = engineAttributes(),
     )
 
     private fun FlowNode.toEvent(): FlowNodeDefinition.Event = FlowNodeDefinition.Event(
@@ -190,14 +175,14 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
         displayName = displayName(),
         incoming = incomingFlowIds(),
         outgoing = outgoingFlowIds(),
-        eventDefinitions = eventDefinitions(),
+        eventDefinitions = EventDefinitionReader.eventDefinitionsOf(this),
         attachedToRef = (this as? BoundaryEvent)?.attachedTo?.id,
         interrupting = interrupting(),
         implementation = dialect.implementationOf(this),
         ioMapping = dialect.ioMappingOf(this),
         variables = dialect.variablesOf(this),
         extensions = extensionReader.extensionsOf(id),
-        engineAttributes = extensionReader.foreignAttributesOf(id, dialect.fullyReadAttributesOf(this)),
+        engineAttributes = engineAttributes(),
     )
 
     private fun SequenceFlow.toDefinition(): SequenceFlowDefinition? {
@@ -213,9 +198,12 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
         )
     }
 
-    private fun FlowNode.displayName(): String? = name?.normalizeWhitespace()?.takeIf { it.isNotBlank() }
+    private fun FlowElement.displayName(): String? = name?.normalizeWhitespace()?.takeIf { it.isNotBlank() }
 
-    private fun SequenceFlow.displayName(): String? = name?.normalizeWhitespace()?.takeIf { it.isNotBlank() }
+    private fun FlowNode.engineAttributes(): Map<String, Any?> {
+        val readByDialect = dialect.fullyReadAttributesOf(this)
+        return extensionReader.foreignAttributesOf(id, fullyRead = readByDialect)
+    }
 
     private fun FlowNode.incomingFlowIds(): List<String> = incoming.mapNotNull { it.id }
 
@@ -241,64 +229,9 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
     }
 
     private fun Task.taskMessage(): MessageReference? = when (this) {
-        is ReceiveTask -> message?.toReference()
-        is SendTask -> message?.toReference()
+        is ReceiveTask -> message?.let { EventDefinitionReader.referenceOf(it) }
+        is SendTask -> message?.let { EventDefinitionReader.referenceOf(it) }
         else -> null
-    }
-
-    private fun org.camunda.bpm.model.bpmn.instance.Message.toReference(): MessageReference = MessageReference(
-        messageRef = id ?: name,
-        messageName = name,
-    )
-
-    private fun FlowNode.eventDefinitions(): List<EventDefinitionInstance> = getChildElementsByType(EventDefinition::class.java).mapNotNull { it.toInstance() }
-
-    @Suppress("CyclomaticComplexMethod")
-    private fun EventDefinition.toInstance(): EventDefinitionInstance? = when (this) {
-        is TimerEventDefinition -> toTimer()
-
-        is MessageEventDefinition -> EventDefinitionInstance.Message(
-            reference = message?.toReference() ?: MessageReference(),
-        )
-
-        is SignalEventDefinition -> EventDefinitionInstance.Signal(
-            signalRef = signal?.let { it.id ?: it.name },
-            signalName = signal?.name,
-        )
-
-        is ErrorEventDefinition -> EventDefinitionInstance.Error(
-            errorRef = error?.let { it.id ?: it.name },
-            errorName = error?.name,
-            errorCode = error?.errorCode,
-        )
-
-        is EscalationEventDefinition -> EventDefinitionInstance.Escalation(
-            escalationRef = escalation?.let { it.id ?: it.name },
-            escalationName = escalation?.name,
-            escalationCode = escalation?.escalationCode,
-        )
-
-        is CompensateEventDefinition -> EventDefinitionInstance.Compensation(
-            activityRef = activity?.id,
-            waitForCompletion = isWaitForCompletion,
-        )
-
-        is ConditionalEventDefinition -> EventDefinitionInstance.Conditional(
-            expression = condition?.textContent?.takeIf { it.isNotBlank() },
-        )
-
-        is LinkEventDefinition -> EventDefinitionInstance.Link(linkName = name)
-
-        is TerminateEventDefinition -> EventDefinitionInstance.Terminate
-
-        else -> null
-    }
-
-    private fun TimerEventDefinition.toTimer(): EventDefinitionInstance.Timer = when {
-        timeDate != null -> EventDefinitionInstance.Timer(TimerType.DATE, timeDate.textContent)
-        timeDuration != null -> EventDefinitionInstance.Timer(TimerType.DURATION, timeDuration.textContent)
-        timeCycle != null -> EventDefinitionInstance.Timer(TimerType.CYCLE, timeCycle.textContent)
-        else -> EventDefinitionInstance.Timer()
     }
 
     /**

@@ -44,20 +44,12 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
      * missing-implementation rule can flag it — while other nodes only do when one is actually set.
      */
     override fun implementationOf(node: FlowNode): TaskImplementation? {
-        if (node is ServiceTask) return node.attributeImplementation()?.implementation ?: TaskImplementation.Unspecified
-        return node.getChildElementsByType(MessageEventDefinition::class.java)
-            .firstNotNullOfOrNull { it.attributeImplementation() }?.implementation
+        val implementation = node.resolvedImplementation()?.implementation
+        if (node is ServiceTask) return implementation ?: TaskImplementation.Unspecified
+        return implementation
     }
 
-    override fun fullyReadAttributesOf(node: FlowNode): Set<String> {
-        val resolved = when (node) {
-            is ServiceTask -> node.attributeImplementation()
-
-            else -> node.getChildElementsByType(MessageEventDefinition::class.java)
-                .firstNotNullOfOrNull { it.attributeImplementation() }
-        }
-        return setOfNotNull(resolved?.attributeName)
-    }
+    override fun fullyReadAttributesOf(node: FlowNode): Set<String> = setOfNotNull(node.resolvedImplementation()?.attributeName)
 
     override fun ioMappingOf(node: FlowNode): IoMapping? {
         val parameters = node.findExtensionElements()
@@ -77,16 +69,12 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
 
     override fun variablesOf(node: FlowNode): List<VariableDefinition> {
         val extensions = node.findExtensionElements()
-        val ioMapping = ioMappingOf(node)
-        val ioVariables = ioMapping?.inputs.orEmpty().map { Triple(first = it.target, second = VariableDirection.INPUT, third = it.source) } +
-            ioMapping?.outputs.orEmpty().map { Triple(first = it.target, second = VariableDirection.OUTPUT, third = it.source) }
+        val ioVariables = ioMappingOf(node)?.toVariables().orEmpty()
         val allVariables = ioVariables +
             node.multiInstanceVariables() +
             extensions.callActivityMappingVariables() +
             extensions.additionalVariables()
-        return allVariables
-            .map { (name, direction, expression) -> Triple(first = name.removeExpressionSyntax(), second = direction, third = expression) }
-            .distinct().map { (name, direction, expression) -> VariableDefinition(name = name, direction = direction, valueExpression = expression) }
+        return allVariables.map { it.withoutExpressionSyntax() }.distinct()
     }
 
     override fun callActivityOf(callActivity: CallActivity): CallActivityDefinition {
@@ -113,38 +101,54 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
 
     private data class ResolvedImplementation(val attributeName: String, val implementation: TaskImplementation)
 
+    /**
+     * A service task declares its implementation itself, a message throw event on its message event definition.
+     */
+    private fun FlowNode.resolvedImplementation(): ResolvedImplementation? {
+        if (this is ServiceTask) return attributeImplementation()
+        val messageDefinitions = getChildElementsByType(MessageEventDefinition::class.java)
+        return messageDefinitions.firstNotNullOfOrNull { it.attributeImplementation() }
+    }
+
     private fun ModelElementInstance.attributeImplementation(): ResolvedImplementation? = implementationAttributes.firstNotNullOfOrNull { (name, build) ->
         attribute(name)?.let { ResolvedImplementation(name, build(it)) }
     }
 
     private fun ModelElementInstance.attribute(name: String): String? = getAttributeValueNs(namespace, name)?.takeIf { it.isNotBlank() }
 
-    private fun FlowNode.multiInstanceVariables(): List<Triple<String, VariableDirection, String?>> = getChildElementsByType(MultiInstanceLoopCharacteristics::class.java)
-        .flatMap { loop ->
+    private fun FlowNode.multiInstanceVariables(): List<VariableDefinition> {
+        val loops = getChildElementsByType(MultiInstanceLoopCharacteristics::class.java)
+        val names = loops.flatMap { loop ->
             listOfNotNull(
                 loop.attribute(CamundaModelConstants.COLLECTION_ATTRIBUTE),
                 loop.attribute(CamundaModelConstants.ELEMENT_VARIABLE_ATTRIBUTE),
             )
-        }.map { Triple(first = it, second = VariableDirection.INPUT, third = it) }
+        }
+        return names.map { VariableDefinition(name = it, direction = VariableDirection.INPUT, valueExpression = it) }
+    }
 
-    private fun List<ModelElementInstance>.callActivityMappingVariables(): List<Triple<String, VariableDirection, String?>> {
+    private fun List<ModelElementInstance>.callActivityMappingVariables(): List<VariableDefinition> {
         val inElements = filterByType(BpmnModelConstants.CAMUNDA_ELEMENT_IN)
         val outElements = filterByType(BpmnModelConstants.CAMUNDA_ELEMENT_OUT)
         val sources = inElements.extractAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_SOURCE)
         val sourceExpressions = inElements.extractAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_SOURCE_EXPRESSION)
         val targets = outElements.extractAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_TARGET)
-        return (sources + sourceExpressions).map { Triple(first = it, second = VariableDirection.INPUT, third = it) } +
-            targets.map { Triple(first = it, second = VariableDirection.OUTPUT, third = it) }
+        val inputVariables = (sources + sourceExpressions).map { VariableDefinition(name = it, direction = VariableDirection.INPUT, valueExpression = it) }
+        val outputVariables = targets.map { VariableDefinition(name = it, direction = VariableDirection.OUTPUT, valueExpression = it) }
+        return inputVariables + outputVariables
     }
 
-    private fun List<ModelElementInstance>.additionalVariables(): List<Triple<String, VariableDirection, String?>> {
+    private fun List<ModelElementInstance>.additionalVariables(): List<VariableDefinition> {
         val properties = filterByType(BpmnModelConstants.CAMUNDA_ELEMENT_PROPERTIES)
             .flatMap { it.domElement.childElements }.withElementName(BpmnModelConstants.CAMUNDA_ELEMENT_PROPERTY)
         val inputs = properties.valuesOfProperty(CamundaModelConstants.ADDITIONAL_INPUT_VARIABLES_PROPERTY_NAME)
         val outputs = properties.valuesOfProperty(CamundaModelConstants.ADDITIONAL_OUTPUT_VARIABLES_PROPERTY_NAME)
-        return inputs.map { Triple(first = it, second = VariableDirection.INPUT, third = null) } +
-            outputs.map { Triple(first = it, second = VariableDirection.OUTPUT, third = null) }
+        val inputVariables = inputs.map { VariableDefinition(name = it, direction = VariableDirection.INPUT) }
+        val outputVariables = outputs.map { VariableDefinition(name = it, direction = VariableDirection.OUTPUT) }
+        return inputVariables + outputVariables
     }
+
+    private fun VariableDefinition.withoutExpressionSyntax(): VariableDefinition = copy(name = getRawName().removeExpressionSyntax())
 
     private fun List<DomElement>.valuesOfProperty(propertyName: String): List<String> = withAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_NAME to propertyName)
         .mapNotNull { it.getAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_VALUE) }
