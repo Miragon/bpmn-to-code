@@ -9,21 +9,11 @@ import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
 import io.ktor.utils.io.ExperimentalKtorApi
 import io.miragon.bpmn.web.model.GenerateJsonRequest
-import io.miragon.bpmn.web.model.GenerateJsonResponse
 import io.miragon.bpmn.web.service.WebJsonGenerationService
 
 fun Route.generateJsonRoutes(jsonService: WebJsonGenerationService) {
     post("/api/generate-json") {
         val request = call.receive<GenerateJsonRequest>()
-
-        if (request.files.isEmpty()) {
-            call.respond(status = HttpStatusCode.BadRequest, message = GenerateJsonResponse.noFilesProvided())
-            return@post
-        } else if (request.files.size > 3) {
-            call.respond(status = HttpStatusCode.BadRequest, message = GenerateJsonResponse.tooManyFiles())
-            return@post
-        }
-
         val result = jsonService.generate(request)
         call.respond(result.statusCode, result)
     }.describe {

@@ -2,6 +2,7 @@ package io.miragon.bpmn.web.service
 
 import io.ktor.http.HttpStatusCode
 import io.miragon.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.web.model.BpmnFileData
 import io.miragon.bpmn.web.model.GenerateJsonRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -16,7 +17,7 @@ class WebJsonGenerationServiceTest {
         // given: the sample BPMN served by the web app
         val request = GenerateJsonRequest(
             files = listOf(
-                GenerateJsonRequest.BpmnFileData(
+                BpmnFileData(
                     fileName = "zeebe-bike-leasing.bpmn",
                     content = loadSampleBase64("examples/zeebe-bike-leasing.bpmn"),
                 ),
@@ -43,7 +44,7 @@ class WebJsonGenerationServiceTest {
         // given: a request with invalid Base64 content
         val request = GenerateJsonRequest(
             files = listOf(
-                GenerateJsonRequest.BpmnFileData(fileName = "invalid.bpmn", content = "not-valid-base64!!!"),
+                BpmnFileData(fileName = "invalid.bpmn", content = "not-valid-base64!!!"),
             ),
             config = GenerateJsonRequest.JsonGenerationConfig(processEngine = ProcessEngine.ZEEBE),
         )
@@ -89,8 +90,8 @@ class WebJsonGenerationServiceTest {
         val privateXml = corporateXml.replace("name=\"variantName\" value=\"corporate\"", "name=\"variantName\" value=\"private\"")
         return GenerateJsonRequest(
             files = listOf(
-                GenerateJsonRequest.BpmnFileData(fileName = "corporate.bpmn", content = Base64.getEncoder().encodeToString(corporateXml.encodeToByteArray())),
-                GenerateJsonRequest.BpmnFileData(fileName = "private.bpmn", content = Base64.getEncoder().encodeToString(privateXml.encodeToByteArray())),
+                BpmnFileData(fileName = "corporate.bpmn", content = Base64.getEncoder().encodeToString(corporateXml.encodeToByteArray())),
+                BpmnFileData(fileName = "private.bpmn", content = Base64.getEncoder().encodeToString(privateXml.encodeToByteArray())),
             ),
             config = GenerateJsonRequest.JsonGenerationConfig(
                 processEngine = ProcessEngine.ZEEBE,
