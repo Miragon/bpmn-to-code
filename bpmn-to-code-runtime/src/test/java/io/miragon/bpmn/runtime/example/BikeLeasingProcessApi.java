@@ -42,55 +42,6 @@ public final class BikeLeasingProcessApi {
     private FlowNodes() {
     }
 
-    /**
-     * Every node of this flow.
-     */
-    public static List<FlowNode> all() {
-      return List.of(
-          BoundaryApplicationInvalid.INSTANCE,
-          BoundaryCompensateContract.INSTANCE,
-          BoundaryCompensateInsurance.INSTANCE,
-          BoundaryCompensateOrder.INSTANCE,
-          BoundaryContractNotSigned.INSTANCE,
-          BusinessRuleTaskCheckCreditRating.INSTANCE,
-          CallActivityCancelBikeOrder.INSTANCE,
-          EndEventApplicationCancelled.INSTANCE,
-          EndEventApplicationRejected.INSTANCE,
-          EndEventContractConcluded.INSTANCE,
-          EndEventContractNotSigned.INSTANCE,
-          EndEventCustomerReminded.INSTANCE,
-          EndEventDeliveryAddressUpdated.INSTANCE,
-          EndEventLeasingActive.INSTANCE,
-          EventContractSigned.INSTANCE,
-          EventReverseApplication.INSTANCE,
-          GatewayAwaitSignature.INSTANCE,
-          GatewayCollectRejections.INSTANCE,
-          GatewayFork.INSTANCE,
-          GatewayIsSolvent.INSTANCE,
-          GatewayJoin.INSTANCE,
-          ReceiveTaskHandoverReported.INSTANCE,
-          ServiceTaskCancelContract.INSTANCE,
-          ServiceTaskCancelPolicy.INSTANCE,
-          ServiceTaskIssueInsurancePolicy.INSTANCE,
-          ServiceTaskOrderBike.INSTANCE,
-          ServiceTaskSendCancellationConfirmation.INSTANCE,
-          ServiceTaskSendContract.INSTANCE,
-          ServiceTaskSendRejection.INSTANCE,
-          ServiceTaskSendReminderMail.INSTANCE,
-          ServiceTaskValidateApplication.INSTANCE,
-          StartEventAddressChanged.INSTANCE,
-          StartEventApplicationWithdrawn.INSTANCE,
-          StartEventCustomerEligible.INSTANCE,
-          StartEventLeasingRequestReceived.INSTANCE,
-          SubProcessAddressChanged.INSTANCE,
-          SubProcessApplicationWithdrawn.INSTANCE,
-          SubProcessConcludeContract.INSTANCE,
-          TimerSignatureDeadline.INSTANCE,
-          TimerSignatureReminder.INSTANCE,
-          TimerWithdrawalPeriodElapsed.INSTANCE,
-          UserTaskUpdateDeliveryAddress.INSTANCE);
-    }
-
     public static BoundaryApplicationInvalid boundaryApplicationInvalid() {
       return BoundaryApplicationInvalid.INSTANCE;
     }
@@ -258,6 +209,55 @@ public final class BikeLeasingProcessApi {
 
     public static UserTaskUpdateDeliveryAddress userTaskUpdateDeliveryAddress() {
       return UserTaskUpdateDeliveryAddress.INSTANCE;
+    }
+
+    /**
+     * Every node of this flow.
+     */
+    public static List<FlowNode> all() {
+      return List.of(
+          BoundaryApplicationInvalid.INSTANCE,
+          BoundaryCompensateContract.INSTANCE,
+          BoundaryCompensateInsurance.INSTANCE,
+          BoundaryCompensateOrder.INSTANCE,
+          BoundaryContractNotSigned.INSTANCE,
+          BusinessRuleTaskCheckCreditRating.INSTANCE,
+          CallActivityCancelBikeOrder.INSTANCE,
+          EndEventApplicationCancelled.INSTANCE,
+          EndEventApplicationRejected.INSTANCE,
+          EndEventContractConcluded.INSTANCE,
+          EndEventContractNotSigned.INSTANCE,
+          EndEventCustomerReminded.INSTANCE,
+          EndEventDeliveryAddressUpdated.INSTANCE,
+          EndEventLeasingActive.INSTANCE,
+          EventContractSigned.INSTANCE,
+          EventReverseApplication.INSTANCE,
+          GatewayAwaitSignature.INSTANCE,
+          GatewayCollectRejections.INSTANCE,
+          GatewayFork.INSTANCE,
+          GatewayIsSolvent.INSTANCE,
+          GatewayJoin.INSTANCE,
+          ReceiveTaskHandoverReported.INSTANCE,
+          ServiceTaskCancelContract.INSTANCE,
+          ServiceTaskCancelPolicy.INSTANCE,
+          ServiceTaskIssueInsurancePolicy.INSTANCE,
+          ServiceTaskOrderBike.INSTANCE,
+          ServiceTaskSendCancellationConfirmation.INSTANCE,
+          ServiceTaskSendContract.INSTANCE,
+          ServiceTaskSendRejection.INSTANCE,
+          ServiceTaskSendReminderMail.INSTANCE,
+          ServiceTaskValidateApplication.INSTANCE,
+          StartEventAddressChanged.INSTANCE,
+          StartEventApplicationWithdrawn.INSTANCE,
+          StartEventCustomerEligible.INSTANCE,
+          StartEventLeasingRequestReceived.INSTANCE,
+          SubProcessAddressChanged.INSTANCE,
+          SubProcessApplicationWithdrawn.INSTANCE,
+          SubProcessConcludeContract.INSTANCE,
+          TimerSignatureDeadline.INSTANCE,
+          TimerSignatureReminder.INSTANCE,
+          TimerWithdrawalPeriodElapsed.INSTANCE,
+          UserTaskUpdateDeliveryAddress.INSTANCE);
     }
 
     public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements HasSuccessors<BoundaryApplicationInvalid.Next>, HasOutgoingFlows<BoundaryApplicationInvalid.OutgoingFlows>, BoundaryEvent<ServiceTaskValidateApplication> {

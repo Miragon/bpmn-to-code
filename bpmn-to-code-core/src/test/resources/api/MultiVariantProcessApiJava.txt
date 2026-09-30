@@ -43,22 +43,6 @@ public final class CancelBikeOrderProcessApi {
       private Retail() {
       }
 
-      /**
-       * Every node of this flow.
-       */
-      public static List<FlowNode> all() {
-        return List.of(
-            BoundaryCancellationFailed.INSTANCE,
-            EndEventBikeOrderCancelled.INSTANCE,
-            GatewayCancellationPossible.INSTANCE,
-            GatewayCollectClarifications.INSTANCE,
-            GatewayMergeReturn.INSTANCE,
-            ServiceTaskBookCancellationCosts.INSTANCE,
-            ServiceTaskRequestCancellation.INSTANCE,
-            StartEventCancellationRequired.INSTANCE,
-            UserTaskClarifyReturn.INSTANCE);
-      }
-
       public static BoundaryCancellationFailed boundaryCancellationFailed() {
         return BoundaryCancellationFailed.INSTANCE;
       }
@@ -93,6 +77,22 @@ public final class CancelBikeOrderProcessApi {
 
       public static UserTaskClarifyReturn userTaskClarifyReturn() {
         return UserTaskClarifyReturn.INSTANCE;
+      }
+
+      /**
+       * Every node of this flow.
+       */
+      public static List<FlowNode> all() {
+        return List.of(
+            BoundaryCancellationFailed.INSTANCE,
+            EndEventBikeOrderCancelled.INSTANCE,
+            GatewayCancellationPossible.INSTANCE,
+            GatewayCollectClarifications.INSTANCE,
+            GatewayMergeReturn.INSTANCE,
+            ServiceTaskBookCancellationCosts.INSTANCE,
+            ServiceTaskRequestCancellation.INSTANCE,
+            StartEventCancellationRequired.INSTANCE,
+            UserTaskClarifyReturn.INSTANCE);
       }
 
       public static final class BoundaryCancellationFailed extends AbstractFlowNode implements HasSuccessors<BoundaryCancellationFailed.Next>, HasOutgoingFlows<BoundaryCancellationFailed.OutgoingFlows>, BoundaryEvent<ServiceTaskRequestCancellation> {
