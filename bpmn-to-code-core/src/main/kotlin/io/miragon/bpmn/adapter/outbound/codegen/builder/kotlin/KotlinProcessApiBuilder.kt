@@ -47,9 +47,8 @@ internal class KotlinProcessApiBuilder : ProcessApiBuilder {
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val processIdClass = KotlinRuntimeTypes.PROCESS_ID
             val idProperty = PropertySpec.builder(PROCESS_ID, processIdClass)
-                .initializer("%T(%N.%N)", processIdClass, KotlinNamesHolder.NAME, PROCESS_ID).build()
+                .initializer("%T(%S)", processIdClass, modelApi.model.processId).build()
             builder.addProperty(idProperty)
-            builder.addType(KotlinNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)).build())
         }
     }
 

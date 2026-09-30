@@ -24,15 +24,11 @@ import io.miragon.bpmn.runtime.VariableName;
 import java.util.List;
 
 public final class BikeLeasingProcessApi {
-  public static final ProcessId PROCESS_ID = new ProcessId(Names.PROCESS_ID);
+  public static final ProcessId PROCESS_ID = new ProcessId("bikeLeasing");
 
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
   private BikeLeasingProcessApi() {
-  }
-
-  public static final class Names {
-    public static final String PROCESS_ID = "bikeLeasing";
   }
 
   /**

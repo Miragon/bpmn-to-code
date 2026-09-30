@@ -30,13 +30,9 @@ import kotlin.Suppress
 import kotlin.collections.List
 
 object BikeLeasingProcessApi {
-  val PROCESS_ID: ProcessId = ProcessId(Names.PROCESS_ID)
+  val PROCESS_ID: ProcessId = ProcessId("bikeLeasing")
 
   val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
-
-  object Names {
-    const val PROCESS_ID: String = "bikeLeasing"
-  }
 
   /**
    * Typed navigation over the process flow: one nested object per BPMN element.
