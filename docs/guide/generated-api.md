@@ -14,7 +14,7 @@ sections. It is the code-side twin of the [JSON export](/surface/json): everythi
 |---------|----------|
 | `PROCESS_ID` | The process identifier from the BPMN model (`ProcessId`) |
 | `PROCESS_ENGINE` | The engine the API was generated for, as a typed `BpmnEngine` enum (`ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
-| `FlowNodes` | One node per element, flat, carrying the element's own data (job type, variables, timer, …), its successors behind `next` and its outgoing sequence flows behind `outgoingFlows`, named after the elements they lead to |
+| `FlowNodes` | One node per element, flat, carrying the element's own data (job type, variables, timer, …), and its successors behind `next`, named after the elements they lead to and carrying the sequence flow(s) that lead there |
 | `FlowVariants` | For merged models only: one `FlowNodes` per BPMN file, named after its `variantName` (`FlowVariants.<Variant>.<Node>`) |
 
 Element ids, variables, timers and call-activity mappings have no section of their own: they live on
@@ -73,12 +73,11 @@ import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.Event
 import io.miragon.bpmn.runtime.FlowScope
-import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.TimerType
-import io.miragon.bpmn.runtime.SequenceFlow
+import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.VariableName
 
 object BikeLeasingProcessApi {
@@ -87,34 +86,33 @@ object BikeLeasingProcessApi {
 
   object FlowNodes {
     object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), BpmnElementType.START_EVENT, "Leasing request received"),
-        HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows>, Event, HasMessage {
+        HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage {
       override val eventType = BpmnEventType.MESSAGE
       override val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
       override val next: Next = Next
-      override val outgoingFlows: OutgoingFlows = OutgoingFlows
       object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output(ProcessVariables.APPLICATION_ID) }
-      object Next { val serviceTaskValidateApplication get() = ServiceTaskValidateApplication }
-      object OutgoingFlows {
-        val toServiceTaskValidateApplication: SequenceFlow<ServiceTaskValidateApplication>
-          get() = SequenceFlow(id = ElementId("flow_leasingRequestReceivedToValidateApplication"), target = ServiceTaskValidateApplication)
+      object Next {
+        val serviceTaskValidateApplication: SequenceFlows<ServiceTaskValidateApplication>
+          get() = SequenceFlows.single(flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"), target = ServiceTaskValidateApplication)
       }
     }
 
     object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract"),
-        HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows>, HasJobType {
+        HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
       override val jobType: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
       override val next: Next = Next
-      override val outgoingFlows: OutgoingFlows = OutgoingFlows
       object Variables {
         val APPLICATION_ID: VariableName.Input = VariableName.Input(ProcessVariables.APPLICATION_ID)
         val CONTRACT_ID: VariableName.Output = VariableName.Output(ProcessVariables.CONTRACT_ID)
       }
-      object Next { val gatewayAwaitSignature get() = GatewayAwaitSignature }
-      object OutgoingFlows { /* one SequenceFlow per element it leads to, named to<Element> */ }
+      object Next {
+        val gatewayAwaitSignature: SequenceFlows<GatewayAwaitSignature>
+          get() = SequenceFlows.single(flowId = ElementId("flow_sendContractToAwaitSignature"), target = GatewayAwaitSignature)
+      }
     }
 
     object TimerSignatureReminder : AbstractFlowNode(ElementId("timer_signatureReminder"), BpmnElementType.BOUNDARY_EVENT, "7 days passed"),
-        HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
+        HasSuccessors<TimerSignatureReminder.Next>, BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
       override val eventType = BpmnEventType.TIMER
       override val timer: BpmnTimer = BpmnTimer(type = TimerType.DURATION, timerValue = "P7D")
       override val attachedTo: SubProcessConcludeContract get() = SubProcessConcludeContract
@@ -123,7 +121,7 @@ object BikeLeasingProcessApi {
     }
 
     object SubProcessConcludeContract : AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
-        HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
+        HasSuccessors<SubProcessConcludeContract.Next>, FlowScope<SubProcessConcludeContract.Start> {
       override val startEvents: Start = Start
       object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
       // …
@@ -186,7 +184,7 @@ public final class BikeLeasingProcessApi {
         // … one static accessor per element
 
         public static final class ServiceTaskSendContract extends AbstractFlowNode
-                implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows>, HasJobType {
+                implements HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
             public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
 
             private ServiceTaskSendContract() {
@@ -196,18 +194,14 @@ public final class BikeLeasingProcessApi {
             @Override public String getJobType() { return ServiceTasks.MIRAVELO_SEND_CONTRACT; }
 
             @Override public Next getNext() { return new Next(); }
-            @Override public OutgoingFlows getOutgoingFlows() { return new OutgoingFlows(); }
 
             public static final class Variables {
                 public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
                 public static final VariableName.Output CONTRACT_ID = new VariableName.Output(ProcessVariables.CONTRACT_ID);
             }
             public static final class Next {
-                public GatewayAwaitSignature gatewayAwaitSignature() { return GatewayAwaitSignature.INSTANCE; }
-            }
-            public static final class OutgoingFlows {
-                public SequenceFlow<GatewayAwaitSignature> toGatewayAwaitSignature() {
-                    return new SequenceFlow<>(new ElementId("flow_sendContractToAwaitSignature"), null, null, false, GatewayAwaitSignature.INSTANCE);
+                public SequenceFlows<GatewayAwaitSignature> gatewayAwaitSignature() {
+                    return SequenceFlows.single(new ElementId("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.INSTANCE);
                 }
             }
         }
@@ -235,7 +229,7 @@ public static class BikeLeasingProcessApi
     public const string ProcessId = "bikeLeasing";
     public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
-    public static class Runtime { /* IFlowNode, IEvent, SequenceFlow<T>, ElementId, VariableName, BpmnTimer, the enums, … inlined */ }
+    public static class Runtime { /* IFlowNode, IEvent, ISuccessor<T>, SequenceFlows<T>, AttachedBoundaryEvent<T>, ElementId, VariableName, BpmnTimer, the enums, … inlined */ }
 
     public static class FlowNodes
     {
@@ -259,13 +253,7 @@ public static class BikeLeasingProcessApi
             public Successors Next => new();
             public sealed class Successors
             {
-                public GatewayAwaitSignature GatewayAwaitSignature => GatewayAwaitSignature.Instance;
-            }
-
-            public OutgoingSequenceFlows OutgoingFlows => new();
-            public sealed class OutgoingSequenceFlows
-            {
-                public Runtime.SequenceFlow<GatewayAwaitSignature> ToGatewayAwaitSignature => new(new("flow_sendContractToAwaitSignature"), null, null, false, GatewayAwaitSignature.Instance);
+                public Runtime.SequenceFlows<GatewayAwaitSignature> GatewayAwaitSignature => Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), FlowNodes.GatewayAwaitSignature.Instance);
             }
         }
         // …
@@ -304,11 +292,10 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | `message` / `signal` / `error` / `escalation`, `HasMessage` / `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnErrorDefinition` / `BpmnEscalationDefinition`, referring to the shared definition | `eventDefinitions[*]` |
 | `attachedTo`, `BoundaryEvent<Host>` | boundary events | the host node | `attachedToRef` |
 | `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
-| `next` → `Next` | nodes with successors | the reachable nodes, boundary events included | `outgoing` |
-| `outgoingFlows` → `OutgoingFlows` | nodes with outgoing sequence flows | one `to<Element>` per element the flows lead to: a `SequenceFlow<Target>`, or a `List` when several flows lead there | `sequenceFlows[]` |
+| `next` → `Next` | nodes with successors | one successor per reachable element: `SequenceFlows<Target>` (the sequence flow(s) leading there) or `AttachedBoundaryEvent<Target>` | `outgoing`, `sequenceFlows[]` |
 | `startEvents` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
 
-Java mirrors the shape with getters: `FlowNodes.serviceTaskSendContract().getNext()`, `getOutgoingFlows()`,
+Java mirrors the shape with getters: `FlowNodes.serviceTaskSendContract().getNext()`,
 `getStartEvents()`, `getAttachedTo()` and `isInterrupting()`, and the facets `getJobType()`, `getCalledProcess()`,
 `getTimer()`, `getMessage()`, … (`FlowNodes.timerSignatureReminder().getTimer()`). C# reaches a node through its
 singleton, `FlowNodes.ServiceTaskSendContract.Instance`, and implements `Runtime.ITimerEvent` etc. with the
@@ -327,7 +314,7 @@ timers.forEach { println("${it.id}: ${it.timer.timerValue}") }
 Kotlin follows the [Kotlin coding conventions](https://kotlinlang.org/docs/coding-conventions.html#property-names):
 fixed values — `const val`s and object `val`s holding immutable data that implement no interface — are
 UPPER_SNAKE (`ELEMENT_ID`, `Variables.APPLICATION_ID`); members of the runtime interfaces are camelCase
-(`jobType`, `timer`, `calledProcess`, `message`, `next`, `outgoingFlows`, `startEvents`, `attachedTo`,
+(`jobType`, `timer`, `calledProcess`, `message`, `next`, `startEvents`, `attachedTo`,
 `isInterrupting`). Java exposes per-node constants (`ELEMENT_ID`, `INSTANCE`) as `static final` fields and
 everything else through the getters of the runtime interfaces.
 
@@ -357,61 +344,84 @@ escalations work the same way: `FlowNodes.X.message` is the `Messages` constant.
 element of the model declares is written on the node itself.
 :::
 
-### Outgoing sequence flows
+### Sequence flows
 
-`OutgoingFlows` lists the outgoing sequence flows of a node, **named after the element each flow leads to**
-(`to<Element>`), so a condition is found by where it goes — not by a flow id that the modeler usually leaves
-as `Flow_1csfyyz`. Each entry is a `SequenceFlow<Target>` carrying the flow's `id`, label, raw
-`conditionExpression` (`${…}` on Camunda 7 / Operaton, `=…` FEEL on Zeebe), `isDefault` marker and typed
-`target`.
+Every successor in `Next` is **named after the element it leads to**, so a condition is found by where it goes —
+not by a flow id that the modeler usually leaves as `Flow_1csfyyz`. A successor reached by sequence flows is a
+`SequenceFlows<Target>`: its `flow` (Java `getFlow()`, C# `Flow`) is a `SequenceFlow<Target>` carrying the flow's
+`id`, label, raw `conditionExpression` (`${…}` on Camunda 7 / Operaton, `=…` FEEL on Zeebe), `isDefault` marker and
+typed `target`.
 
 ```kotlin
-val flows = FlowNodes.GatewayIsSolvent.outgoingFlows
+object GatewayIsSolvent : /* … */ HasSuccessors<GatewayIsSolvent.Next> {
+  override val next: Next = Next
+  object Next {
+    val gatewayCollectRejections: SequenceFlows<GatewayCollectRejections>
+      get() = SequenceFlows.single(
+        flowId = ElementId("flow_isSolventToCollectRejections"),
+        name = "No",
+        conditionExpression = $$"""${!solvent}""",
+        target = GatewayCollectRejections,
+      )
+    val subProcessConcludeContract: SequenceFlows<SubProcessConcludeContract>
+      get() = SequenceFlows.single(flowId = ElementId("flow_isSolventToConcludeContract"), name = "Yes", isDefault = true, target = SubProcessConcludeContract)
+  }
+}
+```
 
-assertThat(flows.toGatewayCollectRejections.conditionExpression).isEqualTo("=not(solvent)")
-assertThat(flows.toGatewayCollectRejections.target).isEqualTo(FlowNodes.GatewayCollectRejections)
-assertThat(flows.toSubProcessConcludeContract.isDefault).isTrue()
+```kotlin
+val next = FlowNodes.GatewayIsSolvent.next
+
+assertThat(next.gatewayCollectRejections.flow.conditionExpression).isEqualTo("\${!solvent}")
+assertThat(next.gatewayCollectRejections.target).isEqualTo(FlowNodes.GatewayCollectRejections)
+assertThat(next.subProcessConcludeContract.flow.isDefault).isTrue()
 ```
 
 ```java
-var flows = FlowNodes.gatewayIsSolvent().getOutgoingFlows();
-assertThat(flows.toGatewayCollectRejections().getConditionExpression()).isEqualTo("=not(solvent)");
-assertThat(flows.toSubProcessConcludeContract().isDefault()).isTrue();
+var next = FlowNodes.gatewayIsSolvent().getNext();
+assertThat(next.gatewayCollectRejections().getFlow().getConditionExpression()).isEqualTo("${!solvent}");
+assertThat(next.subProcessConcludeContract().getFlow().isDefault()).isTrue();
 ```
 
-When **several sequence flows lead to the same element**, the entry keeps its name and becomes a list —
-no flow is lost and no other entry is renamed:
+When **several sequence flows lead to the same element**, the successor keeps its name and holds all of them in
+`flows` (C# `Flows`) — no flow is lost and no other entry is renamed; `flow` then fails and asks you to pick one:
 
 ```kotlin
-val toApprove: List<SequenceFlow<TaskApprove>> = FlowNodes.GatewayAmount.outgoingFlows.toTaskApprove
-assertThat(toApprove.map { it.conditionExpression }).containsExactly("=amount < 100", "=customer.isVip")
+val toApprove: SequenceFlows<TaskApprove> = FlowNodes.GatewayAmount.next.taskApprove
+assertThat(toApprove.flows.map { it.conditionExpression }).containsExactly("=amount < 100", "=customer.isVip")
 ```
 
-Boundary events are **not** sequence flows: they appear in the host's `Next` (so a walk can leave through
-them), point back at their host via `attachedTo` and implement `BoundaryEvent<Host>`
-(C#: `Runtime.IBoundaryEvent`), but never appear in `OutgoingFlows`.
+Boundary events are **not** sequence flows: they appear in the host's `Next` as an `AttachedBoundaryEvent<Target>`
+(so a walk can leave through them), point back at their host via `attachedTo` and implement `BoundaryEvent<Host>`
+(C#: `Runtime.IBoundaryEvent`).
 
 ### Navigation
 
 `next` returns the node's `Next`, whose properties are the reachable elements — continuations and boundary
-events alike. The return type of every step is the next node, so **a path that doesn't exist in the model
+events alike — each a `Successor` whose `target` is the next node (C# `ISuccessor<T>` / `Target`). The target type is
+fixed per step, so **a path that doesn't exist in the model
 doesn't compile**: regenerate after a model change and the affected step breaks the build at that exact edge.
 A subprocess additionally implements `FlowScope` and opens its interior via `startEvents`.
 
 ```kotlin
 object SubProcessConcludeContract :
     AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
-    HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
+    HasSuccessors<SubProcessConcludeContract.Next>, FlowScope<SubProcessConcludeContract.Start> {
   override val next: Next = Next                          // what follows the subprocess (+ its boundary events)
-  override val outgoingFlows: OutgoingFlows = OutgoingFlows  // its outgoing sequence flow(s)
   override val startEvents: Start = Start                  // the interior's start event(s)
-  object Next { val gatewayFork get() = GatewayFork; val timerSignatureReminder get() = TimerSignatureReminder /* … */ }
+  object Next {
+    val gatewayFork: SequenceFlows<GatewayFork>
+      get() = SequenceFlows.single(flowId = ElementId("flow_concludeContractToFork"), target = GatewayFork)
+    val timerSignatureReminder: AttachedBoundaryEvent<TimerSignatureReminder>
+      get() = AttachedBoundaryEvent(target = TimerSignatureReminder)
+    // …
+  }
   object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
 }
 ```
 
 Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `name`), **`HasSuccessors<Next>`**,
-**`HasOutgoingFlows<OutgoingFlows>`**, **`FlowScope<Start>`**, **`Event`** (`eventType`) and
+**`Successor<Target>`** (`SequenceFlows`, `AttachedBoundaryEvent`), **`FlowScope<Start>`**, **`Event`** (`eventType`) and
 **`BoundaryEvent<Host>`** (an `Event` with `attachedTo`, `isInterrupting`).
 
 ### Enumerating elements
@@ -515,25 +525,22 @@ assertThat(pi).hasPassed(*nodesOf(orderBranch, insuranceBranch).map { it.id.valu
 > The guarantee is **structural single-step adjacency**, not token-accurate reachability (a valid path is one
 > the model allows, not necessarily one the engine executes at runtime — XOR picks one branch, AND runs all).
 > `ids` holds element ids only, which is what engine assertions consume; the branch a gateway takes is
-> expressed by the successor you pick, and its condition is readable in `OutgoingFlows`.
+> expressed by the successor you pick, and its condition is readable on the successor's `flow`.
 
-To pin **which sequence flow** a step takes — a gateway's default flow, or one of several flows to the same
-element — walk it with `via`. The lambda's `it` is the node's `OutgoingFlows`; the target is recorded in `ids`
-as usual and the flow itself in `flowIds`, ready to compare against the engine's taken sequence flows:
+Each step also records **which sequence flow** it takes in `flowIds`, ready to compare against the engine's taken
+sequence flows — whenever the successor is unambiguous (a single flow, or one you picked from `flows`). Boundary
+events and subprocess brackets record no flow:
 
 ```kotlin
 val path = ProcessPath.from(FlowNodes.BusinessRuleTaskCheckCreditRating)
     .then { it.gatewayIsSolvent }
-    .via { it.toGatewayCollectRejections }
+    .then { it.subProcessConcludeContract }
 
-assertThat(path.ids).containsExactly("businessRuleTask_checkCreditRating", "gateway_isSolvent", "gateway_collectRejections")
-assertThat(path.flowIds).containsExactly("flow_isSolventToCollectRejections")
+assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "flow_isSolventToConcludeContract")
 
 // several flows to the same element: pick one
-.via { it.toTaskApprove.first { flow -> flow.conditionExpression == "=customer.isVip" } }
+.then { next -> next.taskApprove.flows.single { it.conditionExpression == "=customer.isVip" } }
 ```
-
-Only `via` records a flow; `then` picks an element and records none.
 
 ### From Java
 
@@ -550,9 +557,7 @@ var ids = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
     .getIds();
 ```
 
-`via` / `endVia` walk a sequence flow; Java cannot name the node's `OutgoingFlows` type in the step, so the
-lambda receives the current node: `.via(n -> n.getOutgoingFlows().toSubProcessConcludeContract())`, and `getFlowIds()`
-returns the flows walked this way.
+`getFlowIds()` returns the sequence flows walked, as in Kotlin.
 
 Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end` (an end event can't continue
 a chain) and subprocess descent names the subprocess explicitly (`enter(FlowNodes.subProcessConcludeContract(), …)` /
@@ -648,7 +653,7 @@ abstraction. The [shared definition](#shared-definitions) files need no runtime 
 `(Reference, Code)` tuples).
 
 Nodes are sealed singletons reached via `FlowNodes.<Node>.Instance` and navigated through instance properties
-(`Instance.Next.X`, `Instance.OutgoingFlows.ToX.ConditionExpression`, `Instance.Start.X`). `ServiceTasks.X` is a
+(`Instance.Next.X.Target`, `Instance.Next.X.Flow.ConditionExpression`, `Instance.Start.X`). `ServiceTasks.X` is a
 `const string` and therefore usable in attributes and `switch` labels; `Id`, `Name`, `JobType` and the other
 facets are instance properties and are not. The file is marked `<auto-generated/>`, enables
 nullable annotations itself and suppresses CS1591, so it compiles under any consumer settings.
@@ -662,7 +667,7 @@ Variables are extracted from direction-aware BPMN sources. See the engine-specif
 - [Operaton](/engines/operaton) — same patterns as Camunda 7, using the `operaton:` namespace
 
 ::: info
-bpmn-to-code **only extracts variables from explicit BPMN definitions**. Variables only referenced in expressions (sequence flows, gateway conditions, script tasks) are intentionally ignored. This is by design — the BPMN model should be the single source of truth for its variable contract. The expressions themselves remain readable on the sequence flows in `OutgoingFlows`.
+bpmn-to-code **only extracts variables from explicit BPMN definitions**. Variables only referenced in expressions (sequence flows, gateway conditions, script tasks) are intentionally ignored. This is by design — the BPMN model should be the single source of truth for its variable contract. The expressions themselves remain readable on the sequence flows in each node's `Next`.
 :::
 
 ## Model Merging

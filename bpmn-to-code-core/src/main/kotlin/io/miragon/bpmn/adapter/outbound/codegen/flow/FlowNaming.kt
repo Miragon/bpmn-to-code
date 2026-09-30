@@ -25,7 +25,5 @@ internal object FlowNaming {
         node.id to FlowEdge(propertyName = decapitalize(objectName), objectName = objectName)
     }
 
-    fun outgoingFlowsProperty(target: FlowEdge): String = "to${target.objectName}"
-
     private fun decapitalize(name: String): String = name.replaceFirstChar { it.lowercaseChar() }
 }

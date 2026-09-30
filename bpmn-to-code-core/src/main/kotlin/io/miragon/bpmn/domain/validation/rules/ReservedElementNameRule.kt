@@ -11,7 +11,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 /**
  * Rejects element ids and variant names whose generated name would shadow a part of the Process API itself.
  *
- * Every element becomes a nested type inside `FlowNodes`, next to the holders (`Next`, `OutgoingFlows`, `Start`, …), the
+ * Every element becomes a nested type inside `FlowNodes`, next to the holders (`Next`, `Start`, …), the
  * `entries` / `all()` / `All` enumeration, and refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
  * element named like one of those would shadow it in at least one target language and the generated file
  * would not compile; an element whose accessor is named like a `java.lang.Object` method breaks the Java
@@ -63,7 +63,6 @@ class ReservedElementNameRule : SingleModelValidationRule {
             "All",
             "Next",
             "Start",
-            "OutgoingFlows",
             "Variables",
             "Inputs",
             "Outputs",
@@ -71,7 +70,6 @@ class ReservedElementNameRule : SingleModelValidationRule {
             "Runtime",
             "Successors",
             "Interior",
-            "OutgoingSequenceFlows",
             "NodeVariables",
             "InputMappings",
             "OutputMappings",
@@ -98,10 +96,12 @@ class ReservedElementNameRule : SingleModelValidationRule {
             "BpmnEscalationDefinition",
             "InputOutputMapping",
             "SequenceFlow",
+            "SequenceFlows",
+            "AttachedBoundaryEvent",
+            "ISuccessor",
             "FlowNode",
             "AbstractFlowNode",
             "HasSuccessors",
-            "HasOutgoingFlows",
             "BoundaryEvent",
             "IBoundaryEvent",
             "FlowScope",

@@ -3,7 +3,6 @@ package io.miragon.bpmn.runtime.path
 import io.miragon.bpmn.runtime.AttachedBoundaryEvent
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
-import io.miragon.bpmn.runtime.HasOutgoingFlows
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.SequenceFlows
@@ -16,13 +15,6 @@ import io.miragon.bpmn.runtime.Successor
  * [SequenceFlows] with exactly one flow.
  */
 fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.then(pick: (NEXT) -> Successor<M>): ProcessPath<M> = traverse(pick(current.next))
-
-/**
- * Sequence-flow step for nodes that expose `OutgoingFlows` (the generated Java and C# APIs): advance along an
- * outgoing sequence flow of the current node and record both its target and the flow itself (see
- * [ProcessPath.flowIds]). Generated Kotlin nodes record their flows through [then] instead.
- */
-fun <OUTGOING, M : FlowNode> ProcessPath<out HasOutgoingFlows<OUTGOING>>.via(pick: (OUTGOING) -> SequenceFlow<M>): ProcessPath<M> = traverse(pick(current.outgoingFlows))
 
 /**
  * Successor step that records the same successor [repeatTimes] times in a row — for a sequential multi-instance
@@ -114,5 +106,3 @@ private fun Successor<*>.takenFlow(): SequenceFlow<*>? = when (this) {
     is SequenceFlows -> flows.singleOrNull()
     is AttachedBoundaryEvent -> null
 }
-
-internal fun <M : FlowNode> ProcessPath<*>.advanceTo(node: M, repeatTimes: Int = 1): ProcessPath<M> = moveTo(node, List(repeatTimes) { node })

@@ -13,13 +13,13 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 /**
  * Emits the typed navigation graph of a C# process API `FlowNodes` class: one nested sealed singleton class per flow
  * node, reached as `FlowNodes.<Node>.Instance`. A node carries its metadata (`Id`, `ElementType`, `Name`), its own
- * facets (see [CSharpFacetWriter]), its successors behind `Next`, its outgoing sequence flows behind
- * `OutgoingFlows` (named after the elements they lead to), and — for a subprocess — its interior's start elements
- * behind `Start`. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a boundary event
+ * facets (see [CSharpFacetWriter]), its successors behind `Next` (named after the elements they lead to: the
+ * `SequenceFlows` to an element, or an attached boundary event), and — for a subprocess — its interior's start
+ * elements behind `Start`. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a boundary event
  * additionally implements `IBoundaryEvent`. `FlowNodes.All` lists every node.
  *
- * Holder classes (`Successors`, `OutgoingSequenceFlows`, `Interior`) are named differently from the properties
- * that expose them (`Next`, `OutgoingFlows`, `Start`), since C# rejects a member sharing its enclosing type's
+ * Holder classes (`Successors`, `Interior`) are named differently from the properties that expose them (`Next`,
+ * `Start`), since C# rejects a member sharing its enclosing type's
  * name (CS0102).
  * Everything that crosses into another node is expression-bodied, so static initialisation never cycles.
  */
@@ -51,14 +51,32 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
             facetWriter.writeProperties(node.facets)
             facetWriter.writeHolders(node.facets)
             if (node.successors.isNotEmpty()) {
-                writeNodeHolder(propertyName = "Next", holderName = "Successors", edges = node.successors)
-            }
-            if (node.outgoingFlows.isNotEmpty()) {
-                writeOutgoingFlows(node.outgoingFlows)
+                writeSuccessors(node)
             }
             if (node.interiorStarts.isNotEmpty()) {
                 writeNodeHolder(propertyName = "Start", holderName = "Interior", edges = node.interiorStarts)
             }
+        }
+    }
+
+    private fun writeSuccessors(node: FlowGraphNode) {
+        writer.line()
+        writer.expressionProperty(name = "Next", type = "Successors", expression = "new()")
+        writer.sealedClass("Successors") {
+            node.successors.forEach { successor -> writeSuccessor(successor, node.outgoingFlows.find { it.target.objectName == successor.objectName }) }
+        }
+    }
+
+    /**
+     * A successor reached by sequence flows is the `SequenceFlows` carrying them; one reached without a flow is an
+     * `AttachedBoundaryEvent`. A single flow is created via `SequenceFlows.Single`, several flows to the same target
+     * are listed. The target is qualified with `FlowNodes`, as the successor property named after it shadows its type.
+     */
+    private fun writeSuccessor(successor: FlowEdge, flowsToTarget: FlowsToTarget?) {
+        val target = targetInstance(successor.objectName)
+        when (flowsToTarget) {
+            null -> writer.expressionProperty(name = successor.objectName, type = "${CSharpRuntimeTypes.ATTACHED_BOUNDARY_EVENT}<${successor.objectName}>", expression = "new($target)")
+            else -> writer.expressionProperty(name = successor.objectName, type = "${CSharpRuntimeTypes.SEQUENCE_FLOWS}<${successor.objectName}>", expression = sequenceFlowsConstruction(flowsToTarget.flows, successor.objectName))
         }
     }
 
@@ -70,33 +88,25 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         }
     }
 
-    /**
-     * A single flow to the target is a `SequenceFlow<Target>`; several flows to the same target keep the name and
-     * become an `IReadOnlyList<SequenceFlow<Target>>`, so no flow is lost and no sibling is renamed.
-     */
-    private fun writeOutgoingFlows(outgoingFlows: List<FlowsToTarget>) {
-        writer.line()
-        writer.expressionProperty(name = "OutgoingFlows", type = "OutgoingSequenceFlows", expression = "new()")
-        writer.sealedClass("OutgoingSequenceFlows") {
-            outgoingFlows.forEach { flowsToTarget ->
-                val flowType = "${CSharpRuntimeTypes.SEQUENCE_FLOW}<${flowsToTarget.target.objectName}>"
-                val propertyName = flowsToTarget.propertyName.replaceFirstChar { it.uppercaseChar() }
-                val constructions = flowsToTarget.flows.map { sequenceFlowConstruction(it, flowsToTarget.target.objectName) }
-                when (constructions.size) {
-                    1 -> writer.expressionProperty(name = propertyName, type = flowType, expression = constructions.single())
-                    else -> writer.expressionProperty(name = propertyName, type = "System.Collections.Generic.IReadOnlyList<$flowType>", expression = "new $flowType[] { ${constructions.joinToString(", ")} }")
-                }
-            }
+    private fun sequenceFlowsConstruction(flows: List<SequenceFlowEdge>, targetObjectName: String): String {
+        val target = targetInstance(targetObjectName)
+        val singleFlow = flows.singleOrNull()
+        if (singleFlow != null) {
+            return "${CSharpRuntimeTypes.SEQUENCE_FLOWS}.Single(${singleFlowArguments(singleFlow, target)})"
         }
+        val flowType = "${CSharpRuntimeTypes.SEQUENCE_FLOW}<$targetObjectName>"
+        val constructions = flows.map { flow -> "new(new(${stringLiteral(flow.id)}), ${nullableStringLiteral(flow.name)}, ${nullableStringLiteral(flow.conditionExpression)}, ${flow.isDefault}, $target)" }
+        return "new($target, new $flowType[] { ${constructions.joinToString(", ")} })"
     }
 
-    private fun sequenceFlowConstruction(flow: SequenceFlowEdge, targetObjectName: String): String {
-        val id = "new(${stringLiteral(flow.id)})"
-        val target = "$targetObjectName.Instance"
-        val arguments = when {
-            flow.hasOnlyDefaults() -> listOf(id, target)
-            else -> listOf(id, nullableStringLiteral(flow.name), nullableStringLiteral(flow.conditionExpression), flow.isDefault.toString(), target)
-        }
-        return arguments.joinToString(", ", prefix = "new(", postfix = ")")
+    private fun singleFlowArguments(flow: SequenceFlowEdge, target: String): String {
+        val metadata = listOfNotNull(
+            flow.name?.let { "name: ${stringLiteral(it)}" },
+            flow.conditionExpression?.let { "conditionExpression: ${stringLiteral(it)}" },
+            "isDefault: true".takeIf { flow.isDefault },
+        )
+        return (listOf("new(${stringLiteral(flow.id)})", target) + metadata).joinToString(", ")
     }
+
+    private fun targetInstance(objectName: String): String = "FlowNodes.$objectName.Instance"
 }

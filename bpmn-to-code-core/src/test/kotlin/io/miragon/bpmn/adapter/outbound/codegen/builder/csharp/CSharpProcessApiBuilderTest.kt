@@ -80,15 +80,15 @@ class CSharpProcessApiBuilderTest {
         assertMatchesGolden(result.content, "/api/MultiVariantProcessApiCsharp.txt")
         assertThat(result.content).contains("public static class FlowVariants", "public static class Retail")
         assertThat(result.content).contains(
-            $$"public Runtime.SequenceFlow<GatewayCollectClarifications> ToGatewayCollectClarifications => new(new(\"flow_cancellationNotPossibleToCollectClarifications\"), \"No\", \"${!cancellationPossible}\", false, GatewayCollectClarifications.Instance);",
+            $$"public Runtime.SequenceFlows<GatewayCollectClarifications> GatewayCollectClarifications => Runtime.SequenceFlows.Single(new(\"flow_cancellationNotPossibleToCollectClarifications\"), FlowNodes.GatewayCollectClarifications.Instance, name: \"No\", conditionExpression: \"${!cancellationPossible}\");",
         )
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlow<GatewayMergeReturn> ToGatewayMergeReturn => new(new(\"flow_cancellationPossibleToMergeReturn\"), \"Yes\", null, true, GatewayMergeReturn.Instance);",
+            "public Runtime.SequenceFlows<GatewayMergeReturn> GatewayMergeReturn => Runtime.SequenceFlows.Single(new(\"flow_cancellationPossibleToMergeReturn\"), FlowNodes.GatewayMergeReturn.Instance, name: \"Yes\", isDefault: true);",
         )
     }
 
     @Test
-    fun `several flows to the same element share one outgoing-flows property as a list`() {
+    fun `several flows to the same element share one SequenceFlows successor`() {
         // given: a gateway with two conditional flows that both lead to the same task
         val model = testProcessModel(
             flowNodes = listOf(
@@ -114,9 +114,9 @@ class CSharpProcessApiBuilderTest {
         // when
         val result = underTest.buildApiFile(csharpApi(model))
 
-        // then: one stable name for both flows, typed as a read-only list
+        // then: one stable name for both flows, carried by one SequenceFlows
         assertThat(result.content).contains(
-            "public System.Collections.Generic.IReadOnlyList<Runtime.SequenceFlow<Approve>> ToApprove => new Runtime.SequenceFlow<Approve>[] {",
+            "public Runtime.SequenceFlows<Approve> Approve => new(FlowNodes.Approve.Instance, new Runtime.SequenceFlow<Approve>[] {",
         )
     }
 

@@ -2,6 +2,7 @@
 package io.miragon.bpmn.runtime.example;
 
 import io.miragon.bpmn.runtime.AbstractFlowNode;
+import io.miragon.bpmn.runtime.AttachedBoundaryEvent;
 import io.miragon.bpmn.runtime.BoundaryEvent;
 import io.miragon.bpmn.runtime.BpmnElementType;
 import io.miragon.bpmn.runtime.BpmnEngine;
@@ -18,12 +19,11 @@ import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasJobType;
 import io.miragon.bpmn.runtime.HasMessage;
-import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.InputOutputMapping;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
-import io.miragon.bpmn.runtime.SequenceFlow;
+import io.miragon.bpmn.runtime.SequenceFlows;
 import io.miragon.bpmn.runtime.TimerEvent;
 import io.miragon.bpmn.runtime.TimerType;
 import io.miragon.bpmn.runtime.VariableName;
@@ -259,10 +259,7 @@ public final class BikeLeasingProcessApi {
           UserTaskUpdateDeliveryAddress.INSTANCE);
     }
 
-    public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements HasSuccessors<BoundaryApplicationInvalid.Next>,
-        HasOutgoingFlows<BoundaryApplicationInvalid.OutgoingFlows>,
-        BoundaryEvent<ServiceTaskValidateApplication>,
-        ErrorEvent {
+    public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements HasSuccessors<BoundaryApplicationInvalid.Next>, BoundaryEvent<ServiceTaskValidateApplication>, ErrorEvent {
       public static final String ELEMENT_ID = "boundary_applicationInvalid";
 
       public static final BoundaryApplicationInvalid INSTANCE = new BoundaryApplicationInvalid();
@@ -296,20 +293,9 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public GatewayCollectRejections gatewayCollectRejections() {
-          return GatewayCollectRejections.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayCollectRejections> toGatewayCollectRejections() {
-          return new SequenceFlow<>(new ElementId("flow_applicationInvalidToCollectRejections"), GatewayCollectRejections.INSTANCE);
+        public SequenceFlows<GatewayCollectRejections> gatewayCollectRejections() {
+          return SequenceFlows.single(new ElementId("flow_applicationInvalidToCollectRejections"), GatewayCollectRejections.INSTANCE);
         }
       }
     }
@@ -389,10 +375,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class BoundaryContractNotSigned extends AbstractFlowNode implements HasSuccessors<BoundaryContractNotSigned.Next>,
-        HasOutgoingFlows<BoundaryContractNotSigned.OutgoingFlows>,
-        BoundaryEvent<SubProcessConcludeContract>,
-        EscalationEvent {
+    public static final class BoundaryContractNotSigned extends AbstractFlowNode implements HasSuccessors<BoundaryContractNotSigned.Next>, BoundaryEvent<SubProcessConcludeContract>, EscalationEvent {
       public static final String ELEMENT_ID = "boundary_contractNotSigned";
 
       public static final BoundaryContractNotSigned INSTANCE = new BoundaryContractNotSigned();
@@ -426,25 +409,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public GatewayCollectRejections gatewayCollectRejections() {
-          return GatewayCollectRejections.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayCollectRejections> toGatewayCollectRejections() {
-          return new SequenceFlow<>(new ElementId("flow_contractNotSignedToCollectRejections"), GatewayCollectRejections.INSTANCE);
+        public SequenceFlows<GatewayCollectRejections> gatewayCollectRejections() {
+          return SequenceFlows.single(new ElementId("flow_contractNotSignedToCollectRejections"), GatewayCollectRejections.INSTANCE);
         }
       }
     }
 
-    public static final class BusinessRuleTaskCheckCreditRating extends AbstractFlowNode implements HasSuccessors<BusinessRuleTaskCheckCreditRating.Next>, HasOutgoingFlows<BusinessRuleTaskCheckCreditRating.OutgoingFlows> {
+    public static final class BusinessRuleTaskCheckCreditRating extends AbstractFlowNode implements HasSuccessors<BusinessRuleTaskCheckCreditRating.Next> {
       public static final String ELEMENT_ID = "businessRuleTask_checkCreditRating";
 
       public static final BusinessRuleTaskCheckCreditRating INSTANCE = new BusinessRuleTaskCheckCreditRating();
@@ -458,20 +430,9 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public GatewayIsSolvent gatewayIsSolvent() {
-          return GatewayIsSolvent.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayIsSolvent> toGatewayIsSolvent() {
-          return new SequenceFlow<>(new ElementId("flow_checkCreditRatingToIsSolvent"), GatewayIsSolvent.INSTANCE);
+        public SequenceFlows<GatewayIsSolvent> gatewayIsSolvent() {
+          return SequenceFlows.single(new ElementId("flow_checkCreditRatingToIsSolvent"), GatewayIsSolvent.INSTANCE);
         }
       }
     }
@@ -628,10 +589,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class EventContractSigned extends AbstractFlowNode implements HasSuccessors<EventContractSigned.Next>,
-        HasOutgoingFlows<EventContractSigned.OutgoingFlows>,
-        Event,
-        HasMessage {
+    public static final class EventContractSigned extends AbstractFlowNode implements HasSuccessors<EventContractSigned.Next>, Event, HasMessage {
       public static final String ELEMENT_ID = "event_contractSigned";
 
       public static final EventContractSigned INSTANCE = new EventContractSigned();
@@ -655,25 +613,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EndEventContractConcluded endEventContractConcluded() {
-          return EndEventContractConcluded.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EndEventContractConcluded> toEndEventContractConcluded() {
-          return new SequenceFlow<>(new ElementId("flow_contractSignedToContractConcluded"), EndEventContractConcluded.INSTANCE);
+        public SequenceFlows<EndEventContractConcluded> endEventContractConcluded() {
+          return SequenceFlows.single(new ElementId("flow_contractSignedToContractConcluded"), EndEventContractConcluded.INSTANCE);
         }
       }
     }
 
-    public static final class EventReverseApplication extends AbstractFlowNode implements HasSuccessors<EventReverseApplication.Next>, HasOutgoingFlows<EventReverseApplication.OutgoingFlows>, Event {
+    public static final class EventReverseApplication extends AbstractFlowNode implements HasSuccessors<EventReverseApplication.Next>, Event {
       public static final String ELEMENT_ID = "event_reverseApplication";
 
       public static final EventReverseApplication INSTANCE = new EventReverseApplication();
@@ -692,26 +639,15 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public ServiceTaskSendCancellationConfirmation serviceTaskSendCancellationConfirmation() {
-          return ServiceTaskSendCancellationConfirmation.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<ServiceTaskSendCancellationConfirmation> toServiceTaskSendCancellationConfirmation(
+        public SequenceFlows<ServiceTaskSendCancellationConfirmation> serviceTaskSendCancellationConfirmation(
             ) {
-          return new SequenceFlow<>(new ElementId("flow_reverseApplicationToSendCancellationConfirmation"), ServiceTaskSendCancellationConfirmation.INSTANCE);
+          return SequenceFlows.single(new ElementId("flow_reverseApplicationToSendCancellationConfirmation"), ServiceTaskSendCancellationConfirmation.INSTANCE);
         }
       }
     }
 
-    public static final class GatewayAwaitSignature extends AbstractFlowNode implements HasSuccessors<GatewayAwaitSignature.Next>, HasOutgoingFlows<GatewayAwaitSignature.OutgoingFlows> {
+    public static final class GatewayAwaitSignature extends AbstractFlowNode implements HasSuccessors<GatewayAwaitSignature.Next> {
       public static final String ELEMENT_ID = "gateway_awaitSignature";
 
       public static final GatewayAwaitSignature INSTANCE = new GatewayAwaitSignature();
@@ -725,33 +661,18 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EventContractSigned eventContractSigned() {
-          return EventContractSigned.INSTANCE;
+        public SequenceFlows<EventContractSigned> eventContractSigned() {
+          return SequenceFlows.single(new ElementId("flow_awaitSignatureToContractSigned"), EventContractSigned.INSTANCE);
         }
 
-        public TimerSignatureDeadline timerSignatureDeadline() {
-          return TimerSignatureDeadline.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EventContractSigned> toEventContractSigned() {
-          return new SequenceFlow<>(new ElementId("flow_awaitSignatureToContractSigned"), EventContractSigned.INSTANCE);
-        }
-
-        public SequenceFlow<TimerSignatureDeadline> toTimerSignatureDeadline() {
-          return new SequenceFlow<>(new ElementId("flow_awaitSignatureToSignatureDeadline"), TimerSignatureDeadline.INSTANCE);
+        public SequenceFlows<TimerSignatureDeadline> timerSignatureDeadline() {
+          return SequenceFlows.single(new ElementId("flow_awaitSignatureToSignatureDeadline"), TimerSignatureDeadline.INSTANCE);
         }
       }
     }
 
-    public static final class GatewayCollectRejections extends AbstractFlowNode implements HasSuccessors<GatewayCollectRejections.Next>, HasOutgoingFlows<GatewayCollectRejections.OutgoingFlows> {
+    public static final class GatewayCollectRejections extends AbstractFlowNode implements HasSuccessors<GatewayCollectRejections.Next> {
       public static final String ELEMENT_ID = "gateway_collectRejections";
 
       public static final GatewayCollectRejections INSTANCE = new GatewayCollectRejections();
@@ -765,25 +686,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public ServiceTaskSendRejection serviceTaskSendRejection() {
-          return ServiceTaskSendRejection.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<ServiceTaskSendRejection> toServiceTaskSendRejection() {
-          return new SequenceFlow<>(new ElementId("flow_collectRejectionsToSendRejection"), ServiceTaskSendRejection.INSTANCE);
+        public SequenceFlows<ServiceTaskSendRejection> serviceTaskSendRejection() {
+          return SequenceFlows.single(new ElementId("flow_collectRejectionsToSendRejection"), ServiceTaskSendRejection.INSTANCE);
         }
       }
     }
 
-    public static final class GatewayFork extends AbstractFlowNode implements HasSuccessors<GatewayFork.Next>, HasOutgoingFlows<GatewayFork.OutgoingFlows> {
+    public static final class GatewayFork extends AbstractFlowNode implements HasSuccessors<GatewayFork.Next> {
       public static final String ELEMENT_ID = "gateway_fork";
 
       public static final GatewayFork INSTANCE = new GatewayFork();
@@ -797,33 +707,18 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public ServiceTaskIssueInsurancePolicy serviceTaskIssueInsurancePolicy() {
-          return ServiceTaskIssueInsurancePolicy.INSTANCE;
+        public SequenceFlows<ServiceTaskIssueInsurancePolicy> serviceTaskIssueInsurancePolicy() {
+          return SequenceFlows.single(new ElementId("flow_forkToIssueInsurancePolicy"), ServiceTaskIssueInsurancePolicy.INSTANCE);
         }
 
-        public ServiceTaskOrderBike serviceTaskOrderBike() {
-          return ServiceTaskOrderBike.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<ServiceTaskIssueInsurancePolicy> toServiceTaskIssueInsurancePolicy() {
-          return new SequenceFlow<>(new ElementId("flow_forkToIssueInsurancePolicy"), ServiceTaskIssueInsurancePolicy.INSTANCE);
-        }
-
-        public SequenceFlow<ServiceTaskOrderBike> toServiceTaskOrderBike() {
-          return new SequenceFlow<>(new ElementId("flow_forkToOrderBike"), ServiceTaskOrderBike.INSTANCE);
+        public SequenceFlows<ServiceTaskOrderBike> serviceTaskOrderBike() {
+          return SequenceFlows.single(new ElementId("flow_forkToOrderBike"), ServiceTaskOrderBike.INSTANCE);
         }
       }
     }
 
-    public static final class GatewayIsSolvent extends AbstractFlowNode implements HasSuccessors<GatewayIsSolvent.Next>, HasOutgoingFlows<GatewayIsSolvent.OutgoingFlows> {
+    public static final class GatewayIsSolvent extends AbstractFlowNode implements HasSuccessors<GatewayIsSolvent.Next> {
       public static final String ELEMENT_ID = "gateway_isSolvent";
 
       public static final GatewayIsSolvent INSTANCE = new GatewayIsSolvent();
@@ -837,33 +732,18 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public GatewayCollectRejections gatewayCollectRejections() {
-          return GatewayCollectRejections.INSTANCE;
+        public SequenceFlows<GatewayCollectRejections> gatewayCollectRejections() {
+          return SequenceFlows.single(new ElementId("flow_isSolventToCollectRejections"), "No", "${!solvent}", false, GatewayCollectRejections.INSTANCE);
         }
 
-        public SubProcessConcludeContract subProcessConcludeContract() {
-          return SubProcessConcludeContract.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayCollectRejections> toGatewayCollectRejections() {
-          return new SequenceFlow<>(new ElementId("flow_isSolventToCollectRejections"), "No", "${!solvent}", false, GatewayCollectRejections.INSTANCE);
-        }
-
-        public SequenceFlow<SubProcessConcludeContract> toSubProcessConcludeContract() {
-          return new SequenceFlow<>(new ElementId("flow_isSolventToConcludeContract"), "Yes", null, true, SubProcessConcludeContract.INSTANCE);
+        public SequenceFlows<SubProcessConcludeContract> subProcessConcludeContract() {
+          return SequenceFlows.single(new ElementId("flow_isSolventToConcludeContract"), "Yes", null, true, SubProcessConcludeContract.INSTANCE);
         }
       }
     }
 
-    public static final class GatewayJoin extends AbstractFlowNode implements HasSuccessors<GatewayJoin.Next>, HasOutgoingFlows<GatewayJoin.OutgoingFlows> {
+    public static final class GatewayJoin extends AbstractFlowNode implements HasSuccessors<GatewayJoin.Next> {
       public static final String ELEMENT_ID = "gateway_join";
 
       public static final GatewayJoin INSTANCE = new GatewayJoin();
@@ -877,25 +757,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public ReceiveTaskHandoverReported receiveTaskHandoverReported() {
-          return ReceiveTaskHandoverReported.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<ReceiveTaskHandoverReported> toReceiveTaskHandoverReported() {
-          return new SequenceFlow<>(new ElementId("flow_joinToHandoverReported"), ReceiveTaskHandoverReported.INSTANCE);
+        public SequenceFlows<ReceiveTaskHandoverReported> receiveTaskHandoverReported() {
+          return SequenceFlows.single(new ElementId("flow_joinToHandoverReported"), ReceiveTaskHandoverReported.INSTANCE);
         }
       }
     }
 
-    public static final class ReceiveTaskHandoverReported extends AbstractFlowNode implements HasSuccessors<ReceiveTaskHandoverReported.Next>, HasOutgoingFlows<ReceiveTaskHandoverReported.OutgoingFlows>, HasMessage {
+    public static final class ReceiveTaskHandoverReported extends AbstractFlowNode implements HasSuccessors<ReceiveTaskHandoverReported.Next>, HasMessage {
       public static final String ELEMENT_ID = "receiveTask_handoverReported";
 
       public static final ReceiveTaskHandoverReported INSTANCE = new ReceiveTaskHandoverReported();
@@ -914,20 +783,9 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public TimerWithdrawalPeriodElapsed timerWithdrawalPeriodElapsed() {
-          return TimerWithdrawalPeriodElapsed.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<TimerWithdrawalPeriodElapsed> toTimerWithdrawalPeriodElapsed() {
-          return new SequenceFlow<>(new ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"), TimerWithdrawalPeriodElapsed.INSTANCE);
+        public SequenceFlows<TimerWithdrawalPeriodElapsed> timerWithdrawalPeriodElapsed() {
+          return SequenceFlows.single(new ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"), TimerWithdrawalPeriodElapsed.INSTANCE);
         }
       }
     }
@@ -962,7 +820,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasOutgoingFlows<ServiceTaskIssueInsurancePolicy.OutgoingFlows>, HasJobType {
+    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_issueInsurancePolicy";
 
       public static final ServiceTaskIssueInsurancePolicy INSTANCE = new ServiceTaskIssueInsurancePolicy();
@@ -981,11 +839,6 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Variables {
         public static final VariableName.Input BIKE_ID = new VariableName.Input(ProcessVariables.BIKE_ID);
 
@@ -996,23 +849,17 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public BoundaryCompensateInsurance boundaryCompensateInsurance() {
-          return BoundaryCompensateInsurance.INSTANCE;
+        public AttachedBoundaryEvent<BoundaryCompensateInsurance> boundaryCompensateInsurance() {
+          return new AttachedBoundaryEvent<>(BoundaryCompensateInsurance.INSTANCE);
         }
 
-        public GatewayJoin gatewayJoin() {
-          return GatewayJoin.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayJoin> toGatewayJoin() {
-          return new SequenceFlow<>(new ElementId("flow_issueInsurancePolicyToJoin"), GatewayJoin.INSTANCE);
+        public SequenceFlows<GatewayJoin> gatewayJoin() {
+          return SequenceFlows.single(new ElementId("flow_issueInsurancePolicyToJoin"), GatewayJoin.INSTANCE);
         }
       }
     }
 
-    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasOutgoingFlows<ServiceTaskOrderBike.OutgoingFlows>, HasJobType {
+    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_orderBike";
 
       public static final ServiceTaskOrderBike INSTANCE = new ServiceTaskOrderBike();
@@ -1031,11 +878,6 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Variables {
         public static final VariableName.Input BIKE_ID = new VariableName.Input(ProcessVariables.BIKE_ID);
 
@@ -1046,23 +888,17 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public BoundaryCompensateOrder boundaryCompensateOrder() {
-          return BoundaryCompensateOrder.INSTANCE;
+        public AttachedBoundaryEvent<BoundaryCompensateOrder> boundaryCompensateOrder() {
+          return new AttachedBoundaryEvent<>(BoundaryCompensateOrder.INSTANCE);
         }
 
-        public GatewayJoin gatewayJoin() {
-          return GatewayJoin.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayJoin> toGatewayJoin() {
-          return new SequenceFlow<>(new ElementId("flow_orderBikeToJoin"), GatewayJoin.INSTANCE);
+        public SequenceFlows<GatewayJoin> gatewayJoin() {
+          return SequenceFlows.single(new ElementId("flow_orderBikeToJoin"), GatewayJoin.INSTANCE);
         }
       }
     }
 
-    public static final class ServiceTaskSendCancellationConfirmation extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>, HasOutgoingFlows<ServiceTaskSendCancellationConfirmation.OutgoingFlows>, HasJobType {
+    public static final class ServiceTaskSendCancellationConfirmation extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendCancellationConfirmation";
 
       public static final ServiceTaskSendCancellationConfirmation INSTANCE = new ServiceTaskSendCancellationConfirmation();
@@ -1081,25 +917,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EndEventApplicationCancelled endEventApplicationCancelled() {
-          return EndEventApplicationCancelled.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EndEventApplicationCancelled> toEndEventApplicationCancelled() {
-          return new SequenceFlow<>(new ElementId("flow_sendCancellationConfirmationToApplicationCancelled"), EndEventApplicationCancelled.INSTANCE);
+        public SequenceFlows<EndEventApplicationCancelled> endEventApplicationCancelled() {
+          return SequenceFlows.single(new ElementId("flow_sendCancellationConfirmationToApplicationCancelled"), EndEventApplicationCancelled.INSTANCE);
         }
       }
     }
 
-    public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows>, HasJobType {
+    public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendContract";
 
       public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
@@ -1118,11 +943,6 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Variables {
         public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
 
@@ -1133,19 +953,13 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public GatewayAwaitSignature gatewayAwaitSignature() {
-          return GatewayAwaitSignature.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayAwaitSignature> toGatewayAwaitSignature() {
-          return new SequenceFlow<>(new ElementId("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.INSTANCE);
+        public SequenceFlows<GatewayAwaitSignature> gatewayAwaitSignature() {
+          return SequenceFlows.single(new ElementId("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.INSTANCE);
         }
       }
     }
 
-    public static final class ServiceTaskSendRejection extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendRejection.Next>, HasOutgoingFlows<ServiceTaskSendRejection.OutgoingFlows>, HasJobType {
+    public static final class ServiceTaskSendRejection extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendRejection.Next>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendRejection";
 
       public static final ServiceTaskSendRejection INSTANCE = new ServiceTaskSendRejection();
@@ -1164,25 +978,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EndEventApplicationRejected endEventApplicationRejected() {
-          return EndEventApplicationRejected.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EndEventApplicationRejected> toEndEventApplicationRejected() {
-          return new SequenceFlow<>(new ElementId("flow_sendRejectionToApplicationRejected"), EndEventApplicationRejected.INSTANCE);
+        public SequenceFlows<EndEventApplicationRejected> endEventApplicationRejected() {
+          return SequenceFlows.single(new ElementId("flow_sendRejectionToApplicationRejected"), EndEventApplicationRejected.INSTANCE);
         }
       }
     }
 
-    public static final class ServiceTaskSendReminderMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendReminderMail.Next>, HasOutgoingFlows<ServiceTaskSendReminderMail.OutgoingFlows>, HasJobType {
+    public static final class ServiceTaskSendReminderMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendReminderMail.Next>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendReminderMail";
 
       public static final ServiceTaskSendReminderMail INSTANCE = new ServiceTaskSendReminderMail();
@@ -1201,25 +1004,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EndEventCustomerReminded endEventCustomerReminded() {
-          return EndEventCustomerReminded.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EndEventCustomerReminded> toEndEventCustomerReminded() {
-          return new SequenceFlow<>(new ElementId("flow_sendReminderMailToCustomerReminded"), EndEventCustomerReminded.INSTANCE);
+        public SequenceFlows<EndEventCustomerReminded> endEventCustomerReminded() {
+          return SequenceFlows.single(new ElementId("flow_sendReminderMailToCustomerReminded"), EndEventCustomerReminded.INSTANCE);
         }
       }
     }
 
-    public static final class ServiceTaskValidateApplication extends AbstractFlowNode implements HasSuccessors<ServiceTaskValidateApplication.Next>, HasOutgoingFlows<ServiceTaskValidateApplication.OutgoingFlows>, HasJobType {
+    public static final class ServiceTaskValidateApplication extends AbstractFlowNode implements HasSuccessors<ServiceTaskValidateApplication.Next>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_validateApplication";
 
       public static final ServiceTaskValidateApplication INSTANCE = new ServiceTaskValidateApplication();
@@ -1238,33 +1030,19 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public BoundaryApplicationInvalid boundaryApplicationInvalid() {
-          return BoundaryApplicationInvalid.INSTANCE;
+        public AttachedBoundaryEvent<BoundaryApplicationInvalid> boundaryApplicationInvalid() {
+          return new AttachedBoundaryEvent<>(BoundaryApplicationInvalid.INSTANCE);
         }
 
-        public BusinessRuleTaskCheckCreditRating businessRuleTaskCheckCreditRating() {
-          return BusinessRuleTaskCheckCreditRating.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<BusinessRuleTaskCheckCreditRating> toBusinessRuleTaskCheckCreditRating(
+        public SequenceFlows<BusinessRuleTaskCheckCreditRating> businessRuleTaskCheckCreditRating(
             ) {
-          return new SequenceFlow<>(new ElementId("flow_validateApplicationToCheckCreditRating"), BusinessRuleTaskCheckCreditRating.INSTANCE);
+          return SequenceFlows.single(new ElementId("flow_validateApplicationToCheckCreditRating"), BusinessRuleTaskCheckCreditRating.INSTANCE);
         }
       }
     }
 
-    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>,
-        HasOutgoingFlows<StartEventAddressChanged.OutgoingFlows>,
-        Event,
-        HasMessage {
+    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>, Event, HasMessage {
       public static final String ELEMENT_ID = "startEvent_addressChanged";
 
       public static final StartEventAddressChanged INSTANCE = new StartEventAddressChanged();
@@ -1292,11 +1070,6 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Variables {
         public static final VariableName.Input CITY = new VariableName.Input(ProcessVariables.CITY);
 
@@ -1307,22 +1080,13 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public UserTaskUpdateDeliveryAddress userTaskUpdateDeliveryAddress() {
-          return UserTaskUpdateDeliveryAddress.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<UserTaskUpdateDeliveryAddress> toUserTaskUpdateDeliveryAddress() {
-          return new SequenceFlow<>(new ElementId("flow_addressChangedToUpdateDeliveryAddress"), UserTaskUpdateDeliveryAddress.INSTANCE);
+        public SequenceFlows<UserTaskUpdateDeliveryAddress> userTaskUpdateDeliveryAddress() {
+          return SequenceFlows.single(new ElementId("flow_addressChangedToUpdateDeliveryAddress"), UserTaskUpdateDeliveryAddress.INSTANCE);
         }
       }
     }
 
-    public static final class StartEventApplicationWithdrawn extends AbstractFlowNode implements HasSuccessors<StartEventApplicationWithdrawn.Next>,
-        HasOutgoingFlows<StartEventApplicationWithdrawn.OutgoingFlows>,
-        Event,
-        HasMessage {
+    public static final class StartEventApplicationWithdrawn extends AbstractFlowNode implements HasSuccessors<StartEventApplicationWithdrawn.Next>, Event, HasMessage {
       public static final String ELEMENT_ID = "startEvent_applicationWithdrawn";
 
       public static final StartEventApplicationWithdrawn INSTANCE = new StartEventApplicationWithdrawn();
@@ -1350,25 +1114,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EventReverseApplication eventReverseApplication() {
-          return EventReverseApplication.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EventReverseApplication> toEventReverseApplication() {
-          return new SequenceFlow<>(new ElementId("flow_applicationWithdrawnToReverseApplication"), EventReverseApplication.INSTANCE);
+        public SequenceFlows<EventReverseApplication> eventReverseApplication() {
+          return SequenceFlows.single(new ElementId("flow_applicationWithdrawnToReverseApplication"), EventReverseApplication.INSTANCE);
         }
       }
     }
 
-    public static final class StartEventCustomerEligible extends AbstractFlowNode implements HasSuccessors<StartEventCustomerEligible.Next>, HasOutgoingFlows<StartEventCustomerEligible.OutgoingFlows>, Event {
+    public static final class StartEventCustomerEligible extends AbstractFlowNode implements HasSuccessors<StartEventCustomerEligible.Next>, Event {
       public static final String ELEMENT_ID = "startEvent_customerEligible";
 
       public static final StartEventCustomerEligible INSTANCE = new StartEventCustomerEligible();
@@ -1387,28 +1140,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public ServiceTaskSendContract serviceTaskSendContract() {
-          return ServiceTaskSendContract.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<ServiceTaskSendContract> toServiceTaskSendContract() {
-          return new SequenceFlow<>(new ElementId("flow_customerEligibleToSendContract"), ServiceTaskSendContract.INSTANCE);
+        public SequenceFlows<ServiceTaskSendContract> serviceTaskSendContract() {
+          return SequenceFlows.single(new ElementId("flow_customerEligibleToSendContract"), ServiceTaskSendContract.INSTANCE);
         }
       }
     }
 
-    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>,
-        HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows>,
-        Event,
-        HasMessage {
+    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage {
       public static final String ELEMENT_ID = "startEvent_leasingRequestReceived";
 
       public static final StartEventLeasingRequestReceived INSTANCE = new StartEventLeasingRequestReceived();
@@ -1432,11 +1171,6 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Variables {
         public static final VariableName.Input AGE = new VariableName.Input(ProcessVariables.AGE);
 
@@ -1451,14 +1185,8 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public ServiceTaskValidateApplication serviceTaskValidateApplication() {
-          return ServiceTaskValidateApplication.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<ServiceTaskValidateApplication> toServiceTaskValidateApplication() {
-          return new SequenceFlow<>(new ElementId("flow_leasingRequestReceivedToValidateApplication"), ServiceTaskValidateApplication.INSTANCE);
+        public SequenceFlows<ServiceTaskValidateApplication> serviceTaskValidateApplication() {
+          return SequenceFlows.single(new ElementId("flow_leasingRequestReceivedToValidateApplication"), ServiceTaskValidateApplication.INSTANCE);
         }
       }
     }
@@ -1505,7 +1233,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class SubProcessConcludeContract extends AbstractFlowNode implements HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
+    public static final class SubProcessConcludeContract extends AbstractFlowNode implements HasSuccessors<SubProcessConcludeContract.Next>, FlowScope<SubProcessConcludeContract.Start> {
       public static final String ELEMENT_ID = "subProcess_concludeContract";
 
       public static final SubProcessConcludeContract INSTANCE = new SubProcessConcludeContract();
@@ -1520,36 +1248,25 @@ public final class BikeLeasingProcessApi {
       }
 
       @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
-      @Override
       public Start getStartEvents() {
         return new Start();
       }
 
       public static final class Next {
-        public BoundaryCompensateContract boundaryCompensateContract() {
-          return BoundaryCompensateContract.INSTANCE;
+        public AttachedBoundaryEvent<BoundaryCompensateContract> boundaryCompensateContract() {
+          return new AttachedBoundaryEvent<>(BoundaryCompensateContract.INSTANCE);
         }
 
-        public BoundaryContractNotSigned boundaryContractNotSigned() {
-          return BoundaryContractNotSigned.INSTANCE;
+        public AttachedBoundaryEvent<BoundaryContractNotSigned> boundaryContractNotSigned() {
+          return new AttachedBoundaryEvent<>(BoundaryContractNotSigned.INSTANCE);
         }
 
-        public GatewayFork gatewayFork() {
-          return GatewayFork.INSTANCE;
+        public SequenceFlows<GatewayFork> gatewayFork() {
+          return SequenceFlows.single(new ElementId("flow_concludeContractToFork"), GatewayFork.INSTANCE);
         }
 
-        public TimerSignatureReminder timerSignatureReminder() {
-          return TimerSignatureReminder.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<GatewayFork> toGatewayFork() {
-          return new SequenceFlow<>(new ElementId("flow_concludeContractToFork"), GatewayFork.INSTANCE);
+        public AttachedBoundaryEvent<TimerSignatureReminder> timerSignatureReminder() {
+          return new AttachedBoundaryEvent<>(TimerSignatureReminder.INSTANCE);
         }
       }
 
@@ -1560,10 +1277,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class TimerSignatureDeadline extends AbstractFlowNode implements HasSuccessors<TimerSignatureDeadline.Next>,
-        HasOutgoingFlows<TimerSignatureDeadline.OutgoingFlows>,
-        Event,
-        TimerEvent {
+    public static final class TimerSignatureDeadline extends AbstractFlowNode implements HasSuccessors<TimerSignatureDeadline.Next>, Event, TimerEvent {
       public static final String ELEMENT_ID = "timer_signatureDeadline";
 
       public static final TimerSignatureDeadline INSTANCE = new TimerSignatureDeadline();
@@ -1587,28 +1301,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EndEventContractNotSigned endEventContractNotSigned() {
-          return EndEventContractNotSigned.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EndEventContractNotSigned> toEndEventContractNotSigned() {
-          return new SequenceFlow<>(new ElementId("flow_signatureDeadlineToContractNotSigned"), EndEventContractNotSigned.INSTANCE);
+        public SequenceFlows<EndEventContractNotSigned> endEventContractNotSigned() {
+          return SequenceFlows.single(new ElementId("flow_signatureDeadlineToContractNotSigned"), EndEventContractNotSigned.INSTANCE);
         }
       }
     }
 
-    public static final class TimerSignatureReminder extends AbstractFlowNode implements HasSuccessors<TimerSignatureReminder.Next>,
-        HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>,
-        BoundaryEvent<SubProcessConcludeContract>,
-        TimerEvent {
+    public static final class TimerSignatureReminder extends AbstractFlowNode implements HasSuccessors<TimerSignatureReminder.Next>, BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
       public static final String ELEMENT_ID = "timer_signatureReminder";
 
       public static final TimerSignatureReminder INSTANCE = new TimerSignatureReminder();
@@ -1642,28 +1342,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public ServiceTaskSendReminderMail serviceTaskSendReminderMail() {
-          return ServiceTaskSendReminderMail.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<ServiceTaskSendReminderMail> toServiceTaskSendReminderMail() {
-          return new SequenceFlow<>(new ElementId("flow_signatureReminderToSendReminderMail"), ServiceTaskSendReminderMail.INSTANCE);
+        public SequenceFlows<ServiceTaskSendReminderMail> serviceTaskSendReminderMail() {
+          return SequenceFlows.single(new ElementId("flow_signatureReminderToSendReminderMail"), ServiceTaskSendReminderMail.INSTANCE);
         }
       }
     }
 
-    public static final class TimerWithdrawalPeriodElapsed extends AbstractFlowNode implements HasSuccessors<TimerWithdrawalPeriodElapsed.Next>,
-        HasOutgoingFlows<TimerWithdrawalPeriodElapsed.OutgoingFlows>,
-        Event,
-        TimerEvent {
+    public static final class TimerWithdrawalPeriodElapsed extends AbstractFlowNode implements HasSuccessors<TimerWithdrawalPeriodElapsed.Next>, Event, TimerEvent {
       public static final String ELEMENT_ID = "timer_withdrawalPeriodElapsed";
 
       public static final TimerWithdrawalPeriodElapsed INSTANCE = new TimerWithdrawalPeriodElapsed();
@@ -1687,25 +1373,14 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Next {
-        public EndEventLeasingActive endEventLeasingActive() {
-          return EndEventLeasingActive.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EndEventLeasingActive> toEndEventLeasingActive() {
-          return new SequenceFlow<>(new ElementId("flow_withdrawalPeriodElapsedToLeasingActive"), EndEventLeasingActive.INSTANCE);
+        public SequenceFlows<EndEventLeasingActive> endEventLeasingActive() {
+          return SequenceFlows.single(new ElementId("flow_withdrawalPeriodElapsedToLeasingActive"), EndEventLeasingActive.INSTANCE);
         }
       }
     }
 
-    public static final class UserTaskUpdateDeliveryAddress extends AbstractFlowNode implements HasSuccessors<UserTaskUpdateDeliveryAddress.Next>, HasOutgoingFlows<UserTaskUpdateDeliveryAddress.OutgoingFlows> {
+    public static final class UserTaskUpdateDeliveryAddress extends AbstractFlowNode implements HasSuccessors<UserTaskUpdateDeliveryAddress.Next> {
       public static final String ELEMENT_ID = "userTask_updateDeliveryAddress";
 
       public static final UserTaskUpdateDeliveryAddress INSTANCE = new UserTaskUpdateDeliveryAddress();
@@ -1719,11 +1394,6 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      @Override
-      public OutgoingFlows getOutgoingFlows() {
-        return new OutgoingFlows();
-      }
-
       public static final class Variables {
         public static final VariableName.InOut DELIVERY_ADDRESS = new VariableName.InOut(ProcessVariables.DELIVERY_ADDRESS);
 
@@ -1732,14 +1402,8 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public EndEventDeliveryAddressUpdated endEventDeliveryAddressUpdated() {
-          return EndEventDeliveryAddressUpdated.INSTANCE;
-        }
-      }
-
-      public static final class OutgoingFlows {
-        public SequenceFlow<EndEventDeliveryAddressUpdated> toEndEventDeliveryAddressUpdated() {
-          return new SequenceFlow<>(new ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"), EndEventDeliveryAddressUpdated.INSTANCE);
+        public SequenceFlows<EndEventDeliveryAddressUpdated> endEventDeliveryAddressUpdated() {
+          return SequenceFlows.single(new ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"), EndEventDeliveryAddressUpdated.INSTANCE);
         }
       }
     }

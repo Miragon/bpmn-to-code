@@ -18,10 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PathWalkJavaApiTest {
 
     @Test
-    void viaWalksChosenSequenceFlowsAndRecordsThemNextToTheElements() {
+    void thenRecordsTheWalkedSequenceFlowsNextToTheElements() {
         var walk = PathWalk.from(FlowNodes.businessRuleTaskCheckCreditRating())
-            .via(n -> n.getOutgoingFlows().toGatewayIsSolvent())
-            .via(n -> n.getOutgoingFlows().toSubProcessConcludeContract());
+            .then(n -> n.gatewayIsSolvent())
+            .then(n -> n.subProcessConcludeContract());
 
         assertThat(walk.getIds()).containsExactly(
             "businessRuleTask_checkCreditRating",
@@ -32,24 +32,24 @@ class PathWalkJavaApiTest {
     }
 
     @Test
-    void viaRecordsTheWalkedSequenceFlowsIncludingThoseOfTheSubprocessInterior() {
+    void thenRecordsTheWalkedSequenceFlowsIncludingThoseOfTheSubprocessInterior() {
         var flowIds = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
-            .via(n -> n.getOutgoingFlows().toServiceTaskValidateApplication())
-            .via(n -> n.getOutgoingFlows().toBusinessRuleTaskCheckCreditRating())
-            .via(n -> n.getOutgoingFlows().toGatewayIsSolvent())
-            .via(n -> n.getOutgoingFlows().toSubProcessConcludeContract())
+            .then(n -> n.serviceTaskValidateApplication())
+            .then(n -> n.businessRuleTaskCheckCreditRating())
+            .then(n -> n.gatewayIsSolvent())
+            .then(n -> n.subProcessConcludeContract())
             .inside(FlowNodes.subProcessConcludeContract(), s ->
                 PathWalk.from(s.startEventCustomerEligible())
-                    .via(n -> n.getOutgoingFlows().toServiceTaskSendContract())
-                    .via(n -> n.getOutgoingFlows().toGatewayAwaitSignature())
-                    .via(n -> n.getOutgoingFlows().toEventContractSigned())
-                    .endVia(n -> n.getOutgoingFlows().toEndEventContractConcluded()))
-            .via(n -> n.getOutgoingFlows().toGatewayFork())
-            .via(n -> n.getOutgoingFlows().toServiceTaskOrderBike())
-            .via(n -> n.getOutgoingFlows().toGatewayJoin())
-            .via(n -> n.getOutgoingFlows().toReceiveTaskHandoverReported())
-            .via(n -> n.getOutgoingFlows().toTimerWithdrawalPeriodElapsed())
-            .endVia(n -> n.getOutgoingFlows().toEndEventLeasingActive())
+                    .then(n -> n.serviceTaskSendContract())
+                    .then(n -> n.gatewayAwaitSignature())
+                    .then(n -> n.eventContractSigned())
+                    .end(n -> n.endEventContractConcluded()))
+            .then(n -> n.gatewayFork())
+            .then(n -> n.serviceTaskOrderBike())
+            .then(n -> n.gatewayJoin())
+            .then(n -> n.receiveTaskHandoverReported())
+            .then(n -> n.timerWithdrawalPeriodElapsed())
+            .end(n -> n.endEventLeasingActive())
             .getFlowIds();
 
         assertThat(flowIds).containsExactly(

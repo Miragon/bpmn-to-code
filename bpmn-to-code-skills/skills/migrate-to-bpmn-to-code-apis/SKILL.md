@@ -35,7 +35,7 @@ Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references 
 | variable | `Api.FlowNodes.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.FlowNodes.Node.Instance.Variables.V` |
 | call activity | `Api.FlowNodes.Node.calledProcess` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.FlowNodes.node().getCalledProcess()`, `Api.FlowNodes.Node.Inputs.M` | `Api.FlowNodes.Node.Instance.CalledProcess`, `.Inputs.M` |
 | timer | `Api.FlowNodes.Node.timer` (`BpmnTimer`) | `Api.FlowNodes.node().getTimer()` | `Api.FlowNodes.Node.Instance.Timer` |
-| sequence flow | `Api.FlowNodes.Node.outgoingFlows.to<Target>` (`SequenceFlow<Target>`) | `Api.FlowNodes.node().getOutgoingFlows().to<Target>()` | `Api.FlowNodes.Node.Instance.OutgoingFlows.To<Target>` |
+| sequence flow | `Api.FlowNodes.Node.next.<target>.flow` (`SequenceFlows<Target>`, `.flows` when several lead there) | `Api.FlowNodes.node().getNext().<target>().getFlow()` | `Api.FlowNodes.Node.Instance.Next.<Target>.Flow` |
 
 Only `ServiceTasks.X` is a plain string constant; a node's `jobType` refers to it but is no compile-time constant,
 so annotations (`@JobWorker(type = …)`) always use `ServiceTasks.X` — a job type can be shared by several processes.
@@ -161,7 +161,7 @@ Locate the generated API files as in Mode A Step 1 and parse the **current** (6.
 Flag, do not auto-rewrite:
 
 - **C# `const` usages**: `Elements.X` in a `switch` label or attribute has no 6.0 equivalent, because `FlowNodes.X.Instance.Id` is an instance property. Propose `ServiceTasks.X` where the code actually meant a job type, otherwise ask.
-- **Element ids that 6.0 rejects**: an element named `FlowNodes`, `Next`, `Start`, `OutgoingFlows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
+- **Element ids that 6.0 rejects**: an element named `FlowNodes`, `Next`, `Start`, `SequenceFlows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
 
 ### Step 3 – Present, confirm, apply, verify
 

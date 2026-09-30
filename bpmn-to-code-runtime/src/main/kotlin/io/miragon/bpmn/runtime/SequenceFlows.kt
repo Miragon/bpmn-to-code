@@ -15,8 +15,21 @@ data class SequenceFlows<out TARGET : FlowNode>(
 
     constructor(target: TARGET, vararg flows: SequenceFlow<TARGET>) : this(target, flows.toList())
 
-    constructor(target: TARGET, flowId: ElementId) : this(target, listOf(SequenceFlow(flowId, target)))
-
     val flow: SequenceFlow<TARGET>
         get() = flows.singleOrNull() ?: error("${flows.size} sequence flows lead to $target; pick one of `flows`")
+
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        fun <TARGET : FlowNode> single(
+            flowId: ElementId,
+            name: String? = null,
+            conditionExpression: String? = null,
+            isDefault: Boolean = false,
+            target: TARGET,
+        ): SequenceFlows<TARGET> = SequenceFlows(
+            target,
+            SequenceFlow(id = flowId, name = name, conditionExpression = conditionExpression, isDefault = isDefault, target = target),
+        )
+    }
 }

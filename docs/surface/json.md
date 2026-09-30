@@ -134,7 +134,7 @@ const nextNodeIds = node.outgoing
     .map(flow => flow.targetRef)
 ```
 
-The extra hop is what makes conditions and default flows attributable: the flow object carries `conditionExpression` and `isDefault`, and the gateway carries `default`. The generated Process API mirrors the flow object as a `SequenceFlow` in `FlowNodes.<Source>.OutgoingFlows`, named after its target.
+The extra hop is what makes conditions and default flows attributable: the flow object carries `conditionExpression` and `isDefault`, and the gateway carries `default`. The generated Process API mirrors the flow object as a `SequenceFlow` in `FlowNodes.<Source>.Next`, named after its target.
 
 ## Node Ordering
 

@@ -141,7 +141,7 @@ class GradlePluginSmokeTest {
 
                 object UsesApi {
                     fun describe(): String {
-                        val edge = FlowNodes.StartEventLeasingRequestReceived.outgoingFlows.toServiceTaskValidateApplication
+                        val edge = FlowNodes.StartEventLeasingRequestReceived.next.serviceTaskValidateApplication.flow
                         val condition: String? = edge.conditionExpression
                         val input = FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS
                         val mapping = FlowNodes.CallActivityCancelBikeOrder.Inputs.ORDER_IDS
@@ -165,7 +165,7 @@ class GradlePluginSmokeTest {
 
                 public final class UsesApi {
                     public static String describe() {
-                        var edge = FlowNodes.startEventLeasingRequestReceived().getOutgoingFlows().toServiceTaskValidateApplication();
+                        var edge = FlowNodes.startEventLeasingRequestReceived().getNext().serviceTaskValidateApplication().getFlow();
                         String condition = edge.getConditionExpression();
                         var input = FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS;
                         var mapping = FlowNodes.CallActivityCancelBikeOrder.Inputs.ORDER_IDS;
