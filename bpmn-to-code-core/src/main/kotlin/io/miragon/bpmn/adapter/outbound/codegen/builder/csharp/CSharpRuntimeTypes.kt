@@ -31,6 +31,8 @@ internal object CSharpRuntimeTypes {
     const val TIMER_TYPE = "$CLASS_NAME.TimerType"
     const val VARIABLE_NAME = "$CLASS_NAME.VariableName"
 
+    fun facetInterface(typeName: String): String = "$CLASS_NAME.I$typeName"
+
     fun enumMember(enumType: String, constantName: String): String = "$enumType.${pascalCase(constantName)}"
 
     val SOURCE: String = """
@@ -51,6 +53,48 @@ internal object CSharpRuntimeTypes {
         /// <summary>Marks a boundary event: one of its host's successors, reached without a sequence flow.</summary>
         public interface IBoundaryEvent : IEvent
         {
+        }
+
+        /// <summary>A flow node implemented by a job worker of JobType.</summary>
+        public interface IHasJobType : IFlowNode
+        {
+            string JobType { get; }
+        }
+
+        /// <summary>A call activity, calling the process CalledProcess.</summary>
+        public interface ICallActivity : IFlowNode
+        {
+            ProcessId CalledProcess { get; }
+        }
+
+        /// <summary>An event with a Timer definition.</summary>
+        public interface ITimerEvent : IEvent
+        {
+            BpmnTimer Timer { get; }
+        }
+
+        /// <summary>A flow node that sends or receives the Message.</summary>
+        public interface IHasMessage : IFlowNode
+        {
+            MessageName Message { get; }
+        }
+
+        /// <summary>An event that throws or catches the Signal.</summary>
+        public interface ISignalEvent : IEvent
+        {
+            SignalName Signal { get; }
+        }
+
+        /// <summary>An event that throws or catches the Error.</summary>
+        public interface IErrorEvent : IEvent
+        {
+            BpmnErrorDefinition Error { get; }
+        }
+
+        /// <summary>An event that throws or catches the Escalation.</summary>
+        public interface IEscalationEvent : IEvent
+        {
+            BpmnEscalationDefinition Escalation { get; }
         }
 
         /// <summary>A sequence flow without its target type, for generic tooling.</summary>

@@ -40,13 +40,11 @@ internal abstract class JavaSharedDefinitionWriter<T : Any> {
     }
 
     /**
-     * A node's field holding a value of this kind: its shared constant, or the value itself when no shared constant
-     * holds it.
+     * A node's value of this kind: its shared constant, or the value itself when no shared constant holds it.
      */
-    fun nodeField(name: String, shared: SharedValue<T>): FieldSpec {
+    fun nodeValue(shared: SharedValue<T>): CodeBlock {
         val constant = shared.constant
-        val initializer = if (constant != null) reference(constant) else initializer(shared.value)
-        return field(name = name, initializer = initializer)
+        return if (constant != null) reference(constant) else initializer(shared.value)
     }
 
     private fun reference(constant: SharedConstant): CodeBlock = CodeBlock.of($$"$T.$N", ClassName.get("", type.typeName), constant.name)

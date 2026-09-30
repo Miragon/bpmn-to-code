@@ -7,7 +7,7 @@ import com.squareup.kotlinpoet.ClassName
  */
 internal object KotlinRuntimeTypes {
 
-    private const val PACKAGE = "io.miragon.bpmn.runtime"
+    const val PACKAGE = "io.miragon.bpmn.runtime"
 
     val ABSTRACT_FLOW_NODE = ClassName(PACKAGE, "AbstractFlowNode")
     val ATTACHED_BOUNDARY_EVENT = ClassName(PACKAGE, "AttachedBoundaryEvent")

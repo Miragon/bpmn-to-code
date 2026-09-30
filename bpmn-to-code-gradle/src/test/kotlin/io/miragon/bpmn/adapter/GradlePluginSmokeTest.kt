@@ -145,10 +145,10 @@ class GradlePluginSmokeTest {
                         val condition: String? = edge.conditionExpression
                         val input = FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS
                         val mapping = FlowNodes.CallActivityCancelBikeOrder.Inputs.ORDER_IDS
-                        val timer = FlowNodes.TimerSignatureReminder.TIMER
+                        val timer = FlowNodes.TimerSignatureReminder.timer
                         val host = FlowNodes.TimerSignatureReminder.attachedTo
-                        val called = FlowNodes.CallActivityCancelBikeOrder.CALLED_PROCESS
-                        val jobType = FlowNodes.ServiceTaskSendContract.JOB_TYPE
+                        val called = FlowNodes.CallActivityCancelBikeOrder.calledProcess
+                        val jobType = FlowNodes.ServiceTaskSendContract.jobType
                         return listOf(condition, edge.isDefault, edge.target.id, input, mapping, timer.timerValue, host.name, called, jobType).joinToString()
                     }
                 }
@@ -169,10 +169,10 @@ class GradlePluginSmokeTest {
                         String condition = edge.getConditionExpression();
                         var input = FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS;
                         var mapping = FlowNodes.CallActivityCancelBikeOrder.Inputs.ORDER_IDS;
-                        var timer = FlowNodes.TimerSignatureReminder.TIMER;
+                        var timer = FlowNodes.timerSignatureReminder().getTimer();
                         var host = FlowNodes.timerSignatureReminder().getAttachedTo();
-                        var called = FlowNodes.CallActivityCancelBikeOrder.CALLED_PROCESS;
-                        String jobType = FlowNodes.ServiceTaskSendContract.JOB_TYPE;
+                        var called = FlowNodes.callActivityCancelBikeOrder().getCalledProcess();
+                        String jobType = FlowNodes.serviceTaskSendContract().getJobType();
                         return condition + edge.isDefault() + edge.getTarget().getId() + input + mapping + timer.getTimerValue() + host.getName() + called + jobType;
                     }
                 }

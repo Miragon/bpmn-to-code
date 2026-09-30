@@ -96,7 +96,32 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val escalation: SharedValue<Pair<String, String>>? = null,
         val attachedTo: FlowEdge? = null,
         val isInterrupting: Boolean? = null,
-    )
+    ) {
+        /** The runtime facet interfaces of the facets this node carries. */
+        val facetInterfaces: List<FacetInterface>
+            get() {
+                val facetsByInterface = mapOf(
+                    FacetInterface.HAS_JOB_TYPE to jobType,
+                    FacetInterface.CALL_ACTIVITY to calledProcessId,
+                    FacetInterface.TIMER_EVENT to timer,
+                    FacetInterface.HAS_MESSAGE to message,
+                    FacetInterface.SIGNAL_EVENT to signal,
+                    FacetInterface.ERROR_EVENT to error,
+                    FacetInterface.ESCALATION_EVENT to escalation,
+                )
+                return facetsByInterface.filterValues { it != null }.keys.toList()
+            }
+    }
+
+    enum class FacetInterface(val typeName: String) {
+        HAS_JOB_TYPE("HasJobType"),
+        CALL_ACTIVITY("CallActivity"),
+        TIMER_EVENT("TimerEvent"),
+        HAS_MESSAGE("HasMessage"),
+        SIGNAL_EVENT("SignalEvent"),
+        ERROR_EVENT("ErrorEvent"),
+        ESCALATION_EVENT("EscalationEvent"),
+    }
 
     data class VariableFacet(val constantName: String, val rawName: String, val subtype: VariableNameSubtype)
 

@@ -31,14 +31,15 @@ Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references 
 | process id | `Api.PROCESS_ID` (`ProcessId`) | same | `Api.ProcessId` (`const string`) |
 | shared definitions | `Messages.X` (`MessageName`), `Signals.X` (`SignalName`), `Errors.X` (`BpmnErrorDefinition`), `Escalations.X`, `ServiceTasks.X` (`const String`) | same | `Messages.X` (`const string`), `Errors.X.Reference` / `.Code`, `ServiceTasks.X` |
 | element id | `Api.FlowNodes.Node.id` (`ElementId`) | `Api.FlowNodes.node().getId()` | `Api.FlowNodes.Node.Instance.Id` |
-| job type of one element | `Api.FlowNodes.Node.JOB_TYPE` (`const String`) | `Api.FlowNodes.Node.JOB_TYPE` | `Api.FlowNodes.Node.JobType` (`const string`) |
+| job type of one element | `Api.FlowNodes.Node.jobType` (`String`, `HasJobType`) | `Api.FlowNodes.node().getJobType()` | `Api.FlowNodes.Node.Instance.JobType` |
 | variable | `Api.FlowNodes.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.FlowNodes.Node.Instance.Variables.V` |
-| call activity | `Api.FlowNodes.Node.CALLED_PROCESS` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.FlowNodes.Node.CALLED_PROCESS`, `Api.FlowNodes.Node.Inputs.M` | `Api.FlowNodes.Node.Instance.CalledProcess`, `.Inputs.M` |
-| timer | `Api.FlowNodes.Node.TIMER` (`BpmnTimer`) | `Api.FlowNodes.Node.TIMER` | `Api.FlowNodes.Node.Instance.Timer` |
+| call activity | `Api.FlowNodes.Node.calledProcess` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.FlowNodes.node().getCalledProcess()`, `Api.FlowNodes.Node.Inputs.M` | `Api.FlowNodes.Node.Instance.CalledProcess`, `.Inputs.M` |
+| timer | `Api.FlowNodes.Node.timer` (`BpmnTimer`) | `Api.FlowNodes.node().getTimer()` | `Api.FlowNodes.Node.Instance.Timer` |
 | sequence flow | `Api.FlowNodes.Node.outgoingFlows.to<Target>` (`SequenceFlow<Target>`) | `Api.FlowNodes.node().getOutgoingFlows().to<Target>()` | `Api.FlowNodes.Node.Instance.OutgoingFlows.To<Target>` |
 
-Only `ServiceTasks.X` and `FlowNodes.Node.JOB_TYPE` / `JobType` (which refers to `ServiceTasks.X`) are plain string constants; every other member is a
-typed wrapper. A wrapper is not a drop-in for a `String` parameter — reach the raw string with `.value`
+Only `ServiceTasks.X` is a plain string constant; a node's `jobType` refers to it but is no compile-time constant,
+so annotations (`@JobWorker(type = …)`) always use `ServiceTasks.X` — a job type can be shared by several processes.
+Every other member is a typed wrapper. A wrapper is not a drop-in for a `String` parameter — reach the raw string with `.value`
 (Kotlin), `.getValue()` (Java) or `.Value` (C#).
 
 ## Mode A — strings to references
@@ -105,7 +106,7 @@ Group the proposed replacements by file and present a summary table:
 **Total: 3 replacements across 2 files**
 ```
 
-If a string value matches constants from multiple API classes and the context does not make it clear which process is intended, flag it and ask the user which reference to use. If a variable name is declared on several nodes, prefer the node whose element the surrounding code handles (a worker for `ServiceTasks.X` uses the node with `JOB_TYPE == X`) and otherwise ask.
+If a string value matches constants from multiple API classes and the context does not make it clear which process is intended, flag it and ask the user which reference to use. If a variable name is declared on several nodes, prefer the node whose element the surrounding code handles (a worker for `ServiceTasks.X` uses the node with `jobType == X`) and otherwise ask.
 
 If no matches are found, report that no hardcoded strings were found that match the generated API.
 
@@ -148,9 +149,9 @@ Locate the generated API files as in Mode A Step 1 and parse the **current** (6.
 | `Elements.X` | `FlowNodes.X.id` | `FlowNodes.x().getId()` | `FlowNodes.X.Instance.Id` |
 | `Elements.X.value` | `FlowNodes.X.id.value` | `FlowNodes.x().getId().getValue()` | `FlowNodes.X.Instance.Id.Value` |
 | `Variables.Node.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Instance.Variables.V` |
-| `CallActivities.Node.PROCESS_ID` | `FlowNodes.Node.CALLED_PROCESS` | `FlowNodes.Node.CALLED_PROCESS` | `FlowNodes.Node.Instance.CalledProcess` |
+| `CallActivities.Node.PROCESS_ID` | `FlowNodes.Node.calledProcess` | `FlowNodes.node().getCalledProcess()` | `FlowNodes.Node.Instance.CalledProcess` |
 | `CallActivities.Node.Inputs.M` / `.Outputs.M` | `FlowNodes.Node.Inputs.M` / `.Outputs.M` | same | `FlowNodes.Node.Instance.Inputs.M` |
-| `Timers.T` | `FlowNodes.T.TIMER` | `FlowNodes.T.TIMER` | `FlowNodes.T.Instance.Timer` |
+| `Timers.T` | `FlowNodes.T.timer` | `FlowNodes.t().getTimer()` | `FlowNodes.T.Instance.Timer` |
 | `Flow.Sub.Inner` / `Flow.sub().inner()` | `FlowNodes.Inner` | `FlowNodes.inner()` | `FlowNodes.Inner` |
 | `Flow.Sub.Inner.Next::x` (method refs) | `FlowNodes.Inner.Next::x` | same | — |
 | `Flow.X` (any other reference) | `FlowNodes.X` | `FlowNodes.x()` | `FlowNodes.X` |
@@ -159,7 +160,7 @@ Locate the generated API files as in Mode A Step 1 and parse the **current** (6.
 
 Flag, do not auto-rewrite:
 
-- **C# `const` usages**: `Elements.X` in a `switch` label or attribute has no 6.0 equivalent, because `FlowNodes.X.Instance.Id` is an instance property. Propose `ServiceTasks.X` / `FlowNodes.X.JobType` where the code actually meant a job type, otherwise ask.
+- **C# `const` usages**: `Elements.X` in a `switch` label or attribute has no 6.0 equivalent, because `FlowNodes.X.Instance.Id` is an instance property. Propose `ServiceTasks.X` where the code actually meant a job type, otherwise ask.
 - **Element ids that 6.0 rejects**: an element named `FlowNodes`, `Next`, `Start`, `OutgoingFlows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
 
 ### Step 3 – Present, confirm, apply, verify

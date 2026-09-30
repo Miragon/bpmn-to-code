@@ -7,7 +7,7 @@ import com.palantir.javapoet.ClassName
  */
 internal object JavaRuntimeTypes {
 
-    private const val PACKAGE = "io.miragon.bpmn.runtime"
+    const val PACKAGE = "io.miragon.bpmn.runtime"
 
     val ABSTRACT_FLOW_NODE: ClassName = ClassName.get(PACKAGE, "AbstractFlowNode")
     val BOUNDARY_EVENT: ClassName = ClassName.get(PACKAGE, "BoundaryEvent")

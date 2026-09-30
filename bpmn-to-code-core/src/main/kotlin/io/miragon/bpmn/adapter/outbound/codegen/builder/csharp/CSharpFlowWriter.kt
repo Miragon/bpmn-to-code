@@ -30,7 +30,7 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
     fun write(graph: FlowGraph) {
         writer.forEachSeparated(graph.nodes) { node -> writeNode(node) }
         writer.line()
-        writer.staticListProperty(name = "All", elementType = CSharpRuntimeTypes.FLOW_NODE, elements = graph.nodes.map { "${it.objectName}.Instance" }, doc = "Every node of this flow.")
+        writer.staticListProperty(name = "All", elementType = CSharpRuntimeTypes.FLOW_NODE, elements = graph.nodes.map { "${it.objectName}.Instance" })
     }
 
     private fun writeNode(node: FlowGraphNode) {
@@ -39,9 +39,9 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
             node.eventType != null -> CSharpRuntimeTypes.EVENT
             else -> CSharpRuntimeTypes.FLOW_NODE
         }
-        writer.sealedClass(node.objectName, implements = nodeInterface) {
+        val interfaces = listOf(nodeInterface) + facetWriter.interfaces(node.facets)
+        writer.sealedClass(node.objectName, implements = interfaces.joinToString(", ")) {
             writer.singleton()
-            facetWriter.writeMembers(node.facets)
             writer.line()
             writer.constant("ElementId", node.id)
             writer.readonlyProperty(name = "Id", type = CSharpRuntimeTypes.ELEMENT_ID, initializer = "new(ElementId)")

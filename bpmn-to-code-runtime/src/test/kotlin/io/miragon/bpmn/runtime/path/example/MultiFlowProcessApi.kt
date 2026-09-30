@@ -25,9 +25,6 @@ object OrderProcessApi {
    * Typed navigation over the process flow: one nested object per BPMN element.
    */
   object FlowNodes {
-    /**
-     * Every node of this flow.
-     */
     val entries: List<FlowNode> = listOf(
       GatewayAmount,
       TaskApprove,
@@ -40,8 +37,7 @@ object OrderProcessApi {
     ), HasSuccessors<GatewayAmount.Next> {
       const val ELEMENT_ID: String = "gateway_amount"
 
-      override val next: Next
-        get() = Next
+      override val next: Next = Next
 
       object Next {
         val taskApprove: SequenceFlows<TaskApprove>

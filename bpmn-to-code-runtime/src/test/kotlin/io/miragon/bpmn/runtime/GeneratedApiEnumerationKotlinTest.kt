@@ -22,6 +22,18 @@ class GeneratedApiEnumerationKotlinTest {
     }
 
     @Test
+    fun `facet interfaces filter the entries by the facet a node carries`() {
+        val timers = FlowNodes.entries.filterIsInstance<TimerEvent>()
+
+        assertThat(timers).containsExactly(
+            FlowNodes.TimerSignatureDeadline,
+            FlowNodes.TimerSignatureReminder,
+            FlowNodes.TimerWithdrawalPeriodElapsed,
+        )
+        assertThat(timers.map { it.timer.timerValue }).containsExactly("P14D", "P7D", $$"${withdrawalPeriod}")
+    }
+
+    @Test
     fun `shared definitions list exactly their values in declaration order`() {
         assertThat(ServiceTasks.entries).containsExactly(
             ServiceTasks.CANCEL_CONTRACT_DELEGATE,

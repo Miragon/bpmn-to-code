@@ -38,7 +38,6 @@ internal class JavaFlowWriter {
     private fun allNodes(graph: FlowGraph): MethodSpec {
         val nodes = graph.nodes.map { JavaFlowNodeType(it.objectName).instance() }
         return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
-            .addJavadoc("Every node of this flow.\n")
             .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), JavaRuntimeTypes.FLOW_NODE))
             .addStatement($$"return $T.of(\n$L)", List::class.java, CodeBlock.join(nodes, ",\n")).build()
     }
@@ -46,7 +45,6 @@ internal class JavaFlowWriter {
     private fun buildNode(node: FlowGraphNode): TypeSpec {
         val classBuilder = TypeSpec.classBuilder(node.objectName).addModifiers(PUBLIC, STATIC, FINAL)
         extendFlowNode(classBuilder, node)
-        facetWriter.fields(node.facets).forEach { classBuilder.addField(it) }
         facetWriter.methods(node.facets).forEach { classBuilder.addMethod(it) }
         facetWriter.holders(node.facets).forEach { classBuilder.addType(it) }
         if (node.successors.isNotEmpty()) {
@@ -82,6 +80,7 @@ internal class JavaFlowWriter {
         if (node.interiorStarts.isNotEmpty()) {
             classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
         }
+        classBuilder.addSuperinterfaces(facetWriter.superinterfaces(node.facets))
         node.eventType?.let { eventType ->
             val eventTypeClass = JavaRuntimeTypes.BPMN_EVENT_TYPE
             classBuilder.addMethod(

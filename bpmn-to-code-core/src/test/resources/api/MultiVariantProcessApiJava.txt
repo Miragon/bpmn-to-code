@@ -9,6 +9,8 @@ import io.miragon.bpmn.runtime.BpmnEventType;
 import io.miragon.bpmn.runtime.ElementId;
 import io.miragon.bpmn.runtime.Event;
 import io.miragon.bpmn.runtime.FlowNode;
+import io.miragon.bpmn.runtime.HasJobType;
+import io.miragon.bpmn.runtime.HasMessage;
 import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.MessageName;
@@ -75,9 +77,6 @@ public final class CancelBikeOrderProcessApi {
         return UserTaskClarifyReturn.INSTANCE;
       }
 
-      /**
-       * Every node of this flow.
-       */
       public static List<FlowNode> all() {
         return List.of(
             BoundaryCancellationFailed.INSTANCE,
@@ -138,14 +137,10 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class EndEventBikeOrderCancelled extends AbstractFlowNode implements Event {
+      public static final class EndEventBikeOrderCancelled extends AbstractFlowNode implements Event, HasJobType, HasMessage {
         public static final String ELEMENT_ID = "endEvent_bikeOrderCancelled";
 
         public static final EndEventBikeOrderCancelled INSTANCE = new EndEventBikeOrderCancelled();
-
-        public static final String JOB_TYPE = ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED;
-
-        public static final MessageName MESSAGE = Messages.MIRAVELO_BIKE_ORDER_CANCELLED;
 
         private EndEventBikeOrderCancelled() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.END_EVENT, "Bike order cancelled");
@@ -154,6 +149,16 @@ public final class CancelBikeOrderProcessApi {
         @Override
         public BpmnEventType getEventType() {
           return BpmnEventType.MESSAGE;
+        }
+
+        @Override
+        public String getJobType() {
+          return ServiceTasks.MIRAVELO_BIKE_ORDER_CANCELLED;
+        }
+
+        @Override
+        public MessageName getMessage() {
+          return Messages.MIRAVELO_BIKE_ORDER_CANCELLED;
         }
       }
 
@@ -262,15 +267,18 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows> {
+      public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasOutgoingFlows<ServiceTaskBookCancellationCosts.OutgoingFlows>, HasJobType {
         public static final String ELEMENT_ID = "serviceTask_bookCancellationCosts";
 
         public static final ServiceTaskBookCancellationCosts INSTANCE = new ServiceTaskBookCancellationCosts();
 
-        public static final String JOB_TYPE = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE;
-
         private ServiceTaskBookCancellationCosts() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Book cancellation costs");
+        }
+
+        @Override
+        public String getJobType() {
+          return ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE;
         }
 
         @Override
@@ -307,15 +315,18 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasSuccessors<ServiceTaskRequestCancellation.Next>, HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows> {
+      public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasSuccessors<ServiceTaskRequestCancellation.Next>, HasOutgoingFlows<ServiceTaskRequestCancellation.OutgoingFlows>, HasJobType {
         public static final String ELEMENT_ID = "serviceTask_requestCancellation";
 
         public static final ServiceTaskRequestCancellation INSTANCE = new ServiceTaskRequestCancellation();
 
-        public static final String JOB_TYPE = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION;
-
         private ServiceTaskRequestCancellation() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Request cancellation");
+        }
+
+        @Override
+        public String getJobType() {
+          return ServiceTasks.MIRAVELO_REQUEST_CANCELLATION;
         }
 
         @Override

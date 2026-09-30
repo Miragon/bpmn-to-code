@@ -86,11 +86,11 @@ object BikeLeasingProcessApi {
 
   object FlowNodes {
     object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), BpmnElementType.START_EVENT, "Leasing request received"),
-        HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows>, Event {
+        HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows>, Event, HasMessage {
       override val eventType = BpmnEventType.MESSAGE
-      val MESSAGE: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
-      override val next: Next get() = Next
-      override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
+      override val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
+      override val next: Next = Next
+      override val outgoingFlows: OutgoingFlows = OutgoingFlows
       object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output("applicationId") }
       object Next { val serviceTaskValidateApplication get() = ServiceTaskValidateApplication }
       object OutgoingFlows {
@@ -100,10 +100,10 @@ object BikeLeasingProcessApi {
     }
 
     object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract"),
-        HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
-      const val JOB_TYPE: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
-      override val next: Next get() = Next
-      override val outgoingFlows: OutgoingFlows get() = OutgoingFlows
+        HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows>, HasJobType {
+      override val jobType: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
+      override val next: Next = Next
+      override val outgoingFlows: OutgoingFlows = OutgoingFlows
       object Variables {
         val APPLICATION_ID: VariableName.Input = VariableName.Input("applicationId")
         val CONTRACT_ID: VariableName.Output = VariableName.Output("contractId")
@@ -113,9 +113,9 @@ object BikeLeasingProcessApi {
     }
 
     object TimerSignatureReminder : AbstractFlowNode(ElementId("timer_signatureReminder"), BpmnElementType.BOUNDARY_EVENT, "7 days passed"),
-        HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract> {
+        HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
       override val eventType = BpmnEventType.TIMER
-      val TIMER: BpmnTimer = BpmnTimer(type = TimerType.DURATION, timerValue = "P7D")
+      override val timer: BpmnTimer = BpmnTimer(type = TimerType.DURATION, timerValue = "P7D")
       override val attachedTo: SubProcessConcludeContract get() = SubProcessConcludeContract
       override val isInterrupting: Boolean = false
       // …
@@ -123,7 +123,7 @@ object BikeLeasingProcessApi {
 
     object SubProcessConcludeContract : AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
         HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
-      override val startEvents: Start get() = Start
+      override val startEvents: Start = Start
       object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
       // …
     }
@@ -178,13 +178,14 @@ public final class BikeLeasingProcessApi {
         // … one static accessor per element
 
         public static final class ServiceTaskSendContract extends AbstractFlowNode
-                implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
+                implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows>, HasJobType {
             public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
-            public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_CONTRACT;
 
             private ServiceTaskSendContract() {
                 super(new ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract");
             }
+
+            @Override public String getJobType() { return ServiceTasks.MIRAVELO_SEND_CONTRACT; }
 
             @Override public Next getNext() { return new Next(); }
             @Override public OutgoingFlows getOutgoingFlows() { return new OutgoingFlows(); }
@@ -230,15 +231,15 @@ public static class BikeLeasingProcessApi
 
     public static class FlowNodes
     {
-        public sealed class ServiceTaskSendContract : Runtime.IFlowNode
+        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendContract Instance = new();
             private ServiceTaskSendContract() { }
-            public const string JobType = ServiceTasks.MiraveloSendContract;
 
             public Runtime.ElementId Id { get; } = new("serviceTask_sendContract");
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send contract";
+            public string JobType { get; } = ServiceTasks.MiraveloSendContract;
 
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
@@ -288,11 +289,11 @@ Each node extends **`AbstractFlowNode`** and exposes:
 |---|---|---|---|
 | `id`, `elementType`, `name` | every node | `ElementId`, `BpmnElementType`, `String?` | `id`, `type`, `name` |
 | `eventType`, marker `Event` | events | `BpmnEventType` (`NONE`, `TIMER`, …, `TERMINATE`, `MULTIPLE`) | `eventDefinitions[]` |
-| `JOB_TYPE` | tasks and events with an implementation | `const String`, referring to `ServiceTasks` | `implementation.jobType` |
+| `jobType`, `HasJobType` | tasks and events with an implementation | `String`, referring to `ServiceTasks` | `implementation.jobType` |
 | `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut` | `variables[]` |
-| `CALLED_PROCESS`, `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
-| `TIMER` | timer events | `BpmnTimer` (`type`: `TimerType` — `DATE`, `DURATION`, `CYCLE`) | `eventDefinitions[timer]` |
-| `MESSAGE` / `SIGNAL` / `ERROR` / `ESCALATION` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnErrorDefinition` / `BpmnEscalationDefinition`, referring to the shared definition | `eventDefinitions[*]` |
+| `calledProcess`, `CallActivity`; `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
+| `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `TimerType` — `DATE`, `DURATION`, `CYCLE`) | `eventDefinitions[timer]` |
+| `message` / `signal` / `error` / `escalation`, `HasMessage` / `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnErrorDefinition` / `BpmnEscalationDefinition`, referring to the shared definition | `eventDefinitions[*]` |
 | `attachedTo`, `BoundaryEvent<Host>` | boundary events | the host node | `attachedToRef` |
 | `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
 | `next` → `Next` | nodes with successors | the reachable nodes, boundary events included | `outgoing` |
@@ -300,19 +301,27 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | `startEvents` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
 
 Java mirrors the shape with getters: `FlowNodes.serviceTaskSendContract().getNext()`, `getOutgoingFlows()`,
-`getStartEvents()`, `getAttachedTo()` and `isInterrupting()`; facets are `public static final` constants
-read via the class (`FlowNodes.TimerSignatureReminder.TIMER`, `FlowNodes.CallActivityCancelBikeOrder.CALLED_PROCESS`),
-like `JOB_TYPE`. C# reaches a node through its singleton, `FlowNodes.ServiceTaskSendContract.Instance`,
-and keeps `JobType` a `const` on the class.
+`getStartEvents()`, `getAttachedTo()` and `isInterrupting()`, and the facets `getJobType()`, `getCalledProcess()`,
+`getTimer()`, `getMessage()`, … (`FlowNodes.timerSignatureReminder().getTimer()`). C# reaches a node through its
+singleton, `FlowNodes.ServiceTaskSendContract.Instance`, and implements `Runtime.ITimerEvent` etc. with the
+properties `JobType`, `CalledProcess`, `Timer`, `Message`, ….
+
+Every facet comes with its runtime interface, so generic code can pick the nodes that carry it without knowing
+their types:
+
+```kotlin
+val timers: List<TimerEvent> = FlowNodes.entries.filterIsInstance<TimerEvent>()
+timers.forEach { println("${it.id}: ${it.timer.timerValue}") }
+```
 
 #### Naming rule
 
 Kotlin follows the [Kotlin coding conventions](https://kotlinlang.org/docs/coding-conventions.html#property-names):
-fixed values — `const val`s and object `val`s holding immutable data without a custom getter — are
-UPPER_SNAKE (`JOB_TYPE`, `TIMER`, `CALLED_PROCESS`); navigation — custom getters and members of the runtime
-interfaces — is camelCase (`next`, `outgoingFlows`, `startEvents`, `attachedTo`, `isInterrupting`). Java
-exposes per-node values as `static final` constants and instance data only through the getters of the
-runtime interfaces.
+fixed values — `const val`s and object `val`s holding immutable data that implement no interface — are
+UPPER_SNAKE (`ELEMENT_ID`, `Variables.APPLICATION_ID`); members of the runtime interfaces are camelCase
+(`jobType`, `timer`, `calledProcess`, `message`, `next`, `outgoingFlows`, `startEvents`, `attachedTo`,
+`isInterrupting`). Java exposes per-node constants (`ELEMENT_ID`, `INSTANCE`) as `static final` fields and
+everything else through the getters of the runtime interfaces.
 
 #### Raw names for annotations and `when` / `switch`
 
@@ -326,17 +335,17 @@ in C#:
 | `FlowNodes.X.id` | `FlowNodes.X.ELEMENT_ID` | `FlowNodes.X.ElementId` |
 
 ```kotlin
-@JobWorker(type = FlowNodes.ServiceTaskSendContract.JOB_TYPE)
+@JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
 fun sendContract(@Variable(name = FlowNodes.ServiceTaskSendContract.Variables.Names.APPLICATION_ID) applicationId: String) { … }
 ```
 
-::: tip `ServiceTasks.X` or `FlowNodes.X.JOB_TYPE`?
-Both are the same constant: `FlowNodes.<Task>.JOB_TYPE` **is** `ServiceTasks.X`. `ServiceTasks` has **one
-constant per distinct job type** across all processes of the run and is the canonical argument for
-`@JobWorker(type = …)`; `FlowNodes.<Task>.JOB_TYPE` tells you which of them **this element** uses — handy in
-tests that go from an element to its worker. Messages, signals, errors and escalations work the same way:
-`FlowNodes.X.MESSAGE` is the `Messages` constant. Only a value that no root element of the model declares is
-written on the node itself.
+::: tip Annotate workers with `ServiceTasks.X`
+`ServiceTasks` has **one constant per distinct job type** across all processes of the run, and a job type can
+be shared by several processes — so `@JobWorker(type = ServiceTasks.X)` is the reference whose find-usages
+leads to every element it serves. A node's `jobType` refers to that same constant and tells you which job type
+**this element** uses — handy in tests that go from an element to its worker. Messages, signals, errors and
+escalations work the same way: `FlowNodes.X.message` is the `Messages` constant. Only a value that no root
+element of the model declares is written on the node itself.
 :::
 
 ### Outgoing sequence flows
@@ -384,9 +393,9 @@ A subprocess additionally implements `FlowScope` and opens its interior via `sta
 object SubProcessConcludeContract :
     AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
     HasSuccessors<SubProcessConcludeContract.Next>, HasOutgoingFlows<SubProcessConcludeContract.OutgoingFlows>, FlowScope<SubProcessConcludeContract.Start> {
-  override val next: Next get() = Next                          // what follows the subprocess (+ its boundary events)
-  override val outgoingFlows: OutgoingFlows get() = OutgoingFlows  // its outgoing sequence flow(s)
-  override val startEvents: Start get() = Start     // the interior's start event(s)
+  override val next: Next = Next                          // what follows the subprocess (+ its boundary events)
+  override val outgoingFlows: OutgoingFlows = OutgoingFlows  // its outgoing sequence flow(s)
+  override val startEvents: Start = Start                  // the interior's start event(s)
   object Next { val gatewayFork get() = GatewayFork; val timerSignatureReminder get() = TimerSignatureReminder /* … */ }
   object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
 }
@@ -578,7 +587,7 @@ scope) together with its `source` / `sourceExpression` (the origin). Constant na
 ```kotlin
 object FlowNodes {
   object CallActivityCancelBikeOrder : /* … */ {
-    val CALLED_PROCESS: ProcessId = ProcessId("cancelBikeOrder")
+    override val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
 
     object Variables {
       val ORDER_IDS: VariableName.Input = VariableName.Input("orderIds")   // the parent-scope view
@@ -630,9 +639,9 @@ abstraction. The [shared definition](#shared-definitions) files need no runtime 
 `(Reference, Code)` tuples).
 
 Nodes are sealed singletons reached via `FlowNodes.<Node>.Instance` and navigated through instance properties
-(`Instance.Next.X`, `Instance.OutgoingFlows.ToX.ConditionExpression`, `Instance.Start.X`). `ServiceTasks.X` and
-`FlowNodes.<Node>.JobType` are `const string` and therefore usable in attributes and `switch` labels; `Id`, `Name`
-and the other facets are instance properties and are not. The file is marked `<auto-generated/>`, enables
+(`Instance.Next.X`, `Instance.OutgoingFlows.ToX.ConditionExpression`, `Instance.Start.X`). `ServiceTasks.X` is a
+`const string` and therefore usable in attributes and `switch` labels; `Id`, `Name`, `JobType` and the other
+facets are instance properties and are not. The file is marked `<auto-generated/>`, enables
 nullable annotations itself and suppresses CS1591, so it compiles under any consumer settings.
 
 ## Variable Extraction

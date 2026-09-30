@@ -39,13 +39,14 @@ internal abstract class KotlinSharedDefinitionWriter<T : Any> {
     }
 
     /**
-     * A node's property holding a value of this kind: its shared constant — the shared types live in the Process API's
-     * package, so the plain name resolves without an import — or the value itself when no shared constant holds it.
+     * A node's property implementing its runtime facet interface with a value of this kind: its shared constant — the
+     * shared types live in the Process API's package, so the plain name resolves without an import — or the value
+     * itself when no shared constant holds it.
      */
     fun nodeProperty(name: String, shared: SharedValue<T>): PropertySpec {
         val constant = shared.constant
         val initializer = if (constant != null) reference(constant) else initializer(shared.value)
-        return property(name = name, initializer = initializer)
+        return PropertySpec.builder(name, elementType).addModifiers(KModifier.OVERRIDE).initializer(initializer).build()
     }
 
     private fun reference(constant: SharedConstant): CodeBlock = CodeBlock.of("%L.%N", type.typeName, constant.name)
