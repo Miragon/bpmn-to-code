@@ -50,8 +50,7 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
         override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
             val processIdClass = JavaRuntimeTypes.PROCESS_ID
             val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
-            builder.addField(fieldBuilder.initializer($$"new $T($N.$N)", processIdClass, JavaNamesHolder.NAME, PROCESS_ID).build())
-            builder.addType(JavaNamesHolder(listOf(PROCESS_ID to modelApi.model.processId)).build())
+            builder.addField(fieldBuilder.initializer($$"new $T($S)", processIdClass, modelApi.model.processId).build())
         }
     }
 

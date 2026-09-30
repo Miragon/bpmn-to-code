@@ -220,12 +220,10 @@ class ProcessPathKotlinApiTest {
         @VariableAnnotation(name = BikeLeasing.ServiceTaskSendContract.Variables.Names.APPLICATION_ID)
         fun describe(elementId: String): String = when (elementId) {
             BikeLeasing.ServiceTaskSendContract.ELEMENT_ID -> "send contract"
-            BikeLeasingProcessApi.Names.PROCESS_ID -> "process"
             else -> "other"
         }
 
         assertThat(describe("serviceTask_sendContract")).isEqualTo("send contract")
-        assertThat(describe("bikeLeasing")).isEqualTo("process")
         assertThat(BikeLeasing.ServiceTaskSendContract.id.value).isEqualTo(BikeLeasing.ServiceTaskSendContract.ELEMENT_ID)
         assertThat(BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID.value)
             .isEqualTo(BikeLeasing.ServiceTaskSendContract.Variables.Names.APPLICATION_ID)

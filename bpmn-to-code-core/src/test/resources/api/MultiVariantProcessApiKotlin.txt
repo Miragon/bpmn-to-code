@@ -24,13 +24,9 @@ import kotlin.Suppress
 import kotlin.collections.List
 
 object CancelBikeOrderProcessApi {
-  val PROCESS_ID: ProcessId = ProcessId(Names.PROCESS_ID)
+  val PROCESS_ID: ProcessId = ProcessId("cancelBikeOrder")
 
   val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
-
-  object Names {
-    const val PROCESS_ID: String = "cancelBikeOrder"
-  }
 
   /**
    * The `FlowNodes` of each merged BPMN file, keyed by its `variantName`.

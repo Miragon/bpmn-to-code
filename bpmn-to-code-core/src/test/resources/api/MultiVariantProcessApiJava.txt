@@ -18,15 +18,11 @@ import io.miragon.bpmn.runtime.VariableName;
 import java.util.List;
 
 public final class CancelBikeOrderProcessApi {
-  public static final ProcessId PROCESS_ID = new ProcessId(Names.PROCESS_ID);
+  public static final ProcessId PROCESS_ID = new ProcessId("cancelBikeOrder");
 
   public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
   private CancelBikeOrderProcessApi() {
-  }
-
-  public static final class Names {
-    public static final String PROCESS_ID = "cancelBikeOrder";
   }
 
   /**
