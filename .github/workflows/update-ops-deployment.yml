@@ -126,3 +126,7 @@ jobs:
 
           Updates \`${DEPLOYMENT_FILE}\` to \`${IMAGE}:${VERSION}\`." \
             || echo "A pull request for ${branch} already exists — pushed the update to it."
+          # ops/main has no required checks, so --auto is rejected on a clean PR; merge directly then.
+          if [[ "$VERSION" == *-SNAPSHOT ]]; then
+            gh pr merge "$branch" --squash --delete-branch --auto || gh pr merge "$branch" --squash --delete-branch
+          fi
