@@ -26,7 +26,9 @@ internal object CSharpRuntimeTypes {
     const val INPUT_OUTPUT_MAPPING = "$CLASS_NAME.InputOutputMapping"
     const val MESSAGE_NAME = "$CLASS_NAME.MessageName"
     const val PROCESS_ID = "$CLASS_NAME.ProcessId"
+    const val ATTACHED_BOUNDARY_EVENT = "$CLASS_NAME.AttachedBoundaryEvent"
     const val SEQUENCE_FLOW = "$CLASS_NAME.SequenceFlow"
+    const val SEQUENCE_FLOWS = "$CLASS_NAME.SequenceFlows"
     const val SIGNAL_NAME = "$CLASS_NAME.SignalName"
     const val TIMER_TYPE = "$CLASS_NAME.TimerType"
     const val VARIABLE_NAME = "$CLASS_NAME.VariableName"
@@ -115,6 +117,30 @@ internal object CSharpRuntimeTypes {
 
             IFlowNode ISequenceFlow.Target => Target;
         }
+
+        /// <summary>What can follow a flow node in its Next: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
+        public interface ISuccessor<out TTarget>
+            where TTarget : IFlowNode
+        {
+            TTarget Target { get; }
+        }
+
+        /// <summary>The sequence flows from one node to the same Target; usually exactly one, reachable as Flow.</summary>
+        public sealed record SequenceFlows<TTarget>(TTarget Target, System.Collections.Generic.IReadOnlyList<SequenceFlow<TTarget>> Flows) : ISuccessor<TTarget>
+            where TTarget : IFlowNode
+        {
+            public SequenceFlow<TTarget> Flow => Flows.Count == 1 ? Flows[0] : throw new System.InvalidOperationException($"{Flows.Count} sequence flows lead to {Target.Id}; pick one of Flows");
+        }
+
+        public static class SequenceFlows
+        {
+            public static SequenceFlows<TTarget> Single<TTarget>(ElementId flowId, TTarget target, string? name = null, string? conditionExpression = null, bool isDefault = false)
+                where TTarget : IFlowNode => new(target, new[] { new SequenceFlow<TTarget>(flowId, name, conditionExpression, isDefault, target) });
+        }
+
+        /// <summary>A boundary event attached to the current node: the token can leave through it, but no sequence flow leads there.</summary>
+        public sealed record AttachedBoundaryEvent<TTarget>(TTarget Target) : ISuccessor<TTarget>
+            where TTarget : IFlowNode;
 
         public sealed record ElementId(string Value)
         {

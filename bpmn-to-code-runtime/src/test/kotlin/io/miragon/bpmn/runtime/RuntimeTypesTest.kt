@@ -156,20 +156,13 @@ class RuntimeTypesTest {
     }
 
     @Test
-    fun `HasOutgoingFlows exposes the node's outgoing sequence flows holder`() {
+    fun `SequenceFlows single holds exactly the one flow with its metadata`() {
         val end = flowNode("end")
-        val start = object : AbstractFlowNode(ElementId("start"), BpmnElementType.START_EVENT), HasOutgoingFlows<SequenceFlow<AbstractFlowNode>> {
-            override val outgoingFlows: SequenceFlow<AbstractFlowNode> = SequenceFlow(
-                id = ElementId("flow_1"),
-                name = null,
-                conditionExpression = "= ok",
-                isDefault = false,
-                target = end,
-            )
-        }
 
-        assertThat(start.outgoingFlows.target).isEqualTo(end)
-        assertThat(start.outgoingFlows.conditionExpression).isEqualTo("= ok")
+        val flows = SequenceFlows.single(flowId = ElementId("flow_1"), name = "Yes", isDefault = true, target = end)
+
+        assertThat(flows.target).isEqualTo(end)
+        assertThat(flows.flow).isEqualTo(SequenceFlow(id = ElementId("flow_1"), name = "Yes", conditionExpression = null, isDefault = true, target = end))
     }
 
     @Test

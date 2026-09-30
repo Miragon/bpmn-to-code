@@ -1,7 +1,7 @@
 package io.miragon.bpmn.runtime
 
 /**
- * One outgoing `bpmn:sequenceFlow` of a generated `FlowNodes` node, as exposed by its `OutgoingFlows` holder
+ * One outgoing `bpmn:sequenceFlow` of a generated `FlowNodes` node, held by the [SequenceFlows] its `Next` offers
  * under the name of the element it leads to.
  *
  * [conditionExpression] is the raw expression text from the model (`${…}` for Camunda 7 / Operaton,

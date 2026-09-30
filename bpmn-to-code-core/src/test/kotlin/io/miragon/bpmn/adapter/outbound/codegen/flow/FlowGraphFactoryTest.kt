@@ -315,11 +315,10 @@ class FlowGraphFactoryTest {
     // --- Sequence-flow edges --------------------------------------------------------------------------------
 
     @Test
-    fun `exclusive gateway names its outgoing flows after the elements they lead to, with label, condition and default marker`() {
+    fun `exclusive gateway groups its outgoing flows by the elements they lead to, with label, condition and default marker`() {
         val gateway = cancellationGraph.node("gatewayCancellationPossible")
 
         val toMerge = gateway.outgoingFlows.single { it.target.objectName == "GatewayMergeReturn" }
-        assertThat(toMerge.propertyName).isEqualTo("toGatewayMergeReturn")
         val possible = toMerge.flows.single()
         assertThat(possible.id).isEqualTo("flow_cancellationPossibleToMergeReturn")
         assertThat(possible.isDefault).isTrue()
@@ -358,7 +357,7 @@ class FlowGraphFactoryTest {
 
         assertThat(split.successors.map { it.propertyName }).containsExactly("target")
         val toTarget = split.outgoingFlows.single()
-        assertThat(toTarget.propertyName).isEqualTo("toTarget")
+        assertThat(toTarget.target.objectName).isEqualTo("Target")
         assertThat(toTarget.flows.map { it.conditionExpression }).containsExactly("=a", "=b")
     }
 

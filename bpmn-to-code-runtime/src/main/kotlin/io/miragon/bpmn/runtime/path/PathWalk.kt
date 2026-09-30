@@ -4,6 +4,7 @@ import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.SequenceFlow
+import io.miragon.bpmn.runtime.Successor
 import java.util.function.Function
 
 /**
@@ -23,40 +24,26 @@ import java.util.function.Function
 class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val path: ProcessPath<N>) {
 
     /**
-     * Advances to a real successor and records it. `pick`'s input is the current node's `Next`, so only an
-     * actual successor compiles.
+     * Advances to a real successor and records it, together with the sequence flow walked when it is unambiguous
+     * (see [flowIds]). `pick`'s input is the current node's `Next`, so only an actual successor compiles.
      */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> then(pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.advanceTo(pick.apply(path.current.next)))
-
-    /**
-     * Advances along an outgoing sequence flow of the current node and records its target and the flow (see
-     * [flowIds]). `pick`'s input is the current node itself, so `n -> n.outgoingFlows.toX()` offers exactly its
-     * own outgoing flows — Java cannot name the node's `OutgoingFlows` holder type here the way Kotlin's
-     * [ProcessPath] `via` does.
-     */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> via(pick: Function<in N, SequenceFlow<M>>): PathWalk<M, MNEXT> = PathWalk(path.traverse(pick.apply(path.current)))
-
-    /**
-     * Terminal form of [via]: advances along an outgoing sequence flow to a final element (e.g. an end event) and
-     * stops, yielding a [Trail].
-     */
-    fun <M : FlowNode> endVia(pick: Function<in N, SequenceFlow<M>>): Trail = Trail(path.traverse(pick.apply(path.current)))
+    fun <M : HasSuccessors<MNEXT>, MNEXT> then(pick: Function<NEXT, out Successor<M>>): PathWalk<M, MNEXT> = PathWalk(path.traverse(pick.apply(path.current.next)))
 
     /**
      * Records the same successor [times] times in a row — for a sequential multi-instance activity or a
      * consecutive self-repeat.
      */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> thenMultipleTimes(times: Int, pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.advanceTo(pick.apply(path.current.next), times))
+    fun <M : HasSuccessors<MNEXT>, MNEXT> thenMultipleTimes(times: Int, pick: Function<NEXT, out Successor<M>>): PathWalk<M, MNEXT> = PathWalk(path.traverse(pick.apply(path.current.next), times))
 
     /**
      * Advances onto a subprocess node **without** recording it — positions for [enter] / [inside].
      */
-    fun <M : HasSuccessors<MNEXT>, MNEXT> onto(pick: Function<NEXT, M>): PathWalk<M, MNEXT> = PathWalk(path.moveTo(pick.apply(path.current.next), emptyList()))
+    fun <M : HasSuccessors<MNEXT>, MNEXT> onto(pick: Function<NEXT, out Successor<M>>): PathWalk<M, MNEXT> = PathWalk(path.onto { pick.apply(it) })
 
     /**
      * Terminal step: advances to a final successor (e.g. an end event) and stops, yielding a [Trail].
      */
-    fun <M : FlowNode> end(pick: Function<NEXT, M>): Trail = Trail(path.advanceTo(pick.apply(path.current.next)))
+    fun <M : FlowNode> end(pick: Function<NEXT, out Successor<M>>): Trail = Trail(path.traverse(pick.apply(path.current.next)))
 
     /**
      * Descends into the named subprocess [scope] and records the picked inner node — the re-anchor form of enter.
@@ -78,8 +65,8 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
      */
     fun <C, M : HasSuccessors<MNEXT>, MNEXT> interruptedBy(
         carrier: HasSuccessors<C>,
-        pick: Function<C, M>,
-    ): PathWalk<M, MNEXT> = PathWalk(path.advanceTo(pick.apply(carrier.next)))
+        pick: Function<C, out Successor<M>>,
+    ): PathWalk<M, MNEXT> = PathWalk(path.traverse(pick.apply(carrier.next)))
 
     /**
      * Unchecked re-anchor to an arbitrary node — does not record. The escape hatch; prefer the checked steps.
@@ -104,7 +91,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
     val distinctIds: List<String> get() = path.distinctIds
 
     /**
-     * The ids of the sequence flows walked via [via] / [endVia], in walk order.
+     * The ids of the sequence flows walked, in walk order.
      */
     val flowIds: List<String> get() = path.flowIds
 
@@ -130,7 +117,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
         val distinctIds: List<String> get() = path.distinctIds
 
         /**
-         * The ids of the sequence flows walked via [via] / [endVia], in walk order.
+         * The ids of the sequence flows walked, in walk order.
          */
         val flowIds: List<String> get() = path.flowIds
 

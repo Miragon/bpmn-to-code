@@ -97,8 +97,8 @@ object FlowGraphFactory {
     ): List<FlowsToTarget> = graph.outgoingFlowsOf(node)
         .mapNotNull { flow -> names[flow.targetRef]?.let { target -> target to flow.toEdge() } }
         .groupBy({ (target, _) -> target }, { (_, flow) -> flow })
-        .map { (target, flows) -> FlowsToTarget(propertyName = FlowNaming.outgoingFlowsProperty(target), target = target, flows = flows.sortedBy { it.id }) }
-        .sortedBy { it.propertyName }
+        .map { (target, flows) -> FlowsToTarget(target = target, flows = flows.sortedBy { it.id }) }
+        .sortedBy { it.target.propertyName }
 
     private fun SequenceFlowDefinition.toEdge(): SequenceFlowEdge = SequenceFlowEdge(
         id = requireNotNull(id) { "a resolved sequence flow always has an id" },

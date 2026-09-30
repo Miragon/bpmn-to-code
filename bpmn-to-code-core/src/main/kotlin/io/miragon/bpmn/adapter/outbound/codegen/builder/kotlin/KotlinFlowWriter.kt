@@ -96,7 +96,7 @@ internal class KotlinFlowWriter {
 
     /**
      * A successor reached by sequence flows is the `SequenceFlows` carrying them; one reached without a flow is an
-     * `AttachedBoundaryEvent`. A single flow without name, condition or default marker uses the short `flowId` form.
+     * `AttachedBoundaryEvent`. A single flow is created via `SequenceFlows.single`, several flows to the same target are listed.
      */
     private fun successorProperty(successor: FlowEdge, flowsToTarget: FlowsToTarget?): PropertySpec {
         val target = ClassName("", successor.objectName)
@@ -110,9 +110,19 @@ internal class KotlinFlowWriter {
 
     private fun sequenceFlowsCall(flowsToTarget: FlowsToTarget): CodeBlock {
         val targetName = flowsToTarget.target.objectName
-        val plainFlow = flowsToTarget.flows.singleOrNull()?.takeIf { it.hasOnlyDefaults() }
-        if (plainFlow != null) {
-            return CodeBlock.of("%T(flowId = %T(%S), target = %N)", KotlinRuntimeTypes.SEQUENCE_FLOWS, KotlinRuntimeTypes.ELEMENT_ID, plainFlow.id, targetName)
+        val singleFlow = flowsToTarget.flows.singleOrNull()
+        if (singleFlow?.hasOnlyDefaults() == true) {
+            return CodeBlock.of("%T.single(flowId = %T(%S), target = %N)", KotlinRuntimeTypes.SEQUENCE_FLOWS, KotlinRuntimeTypes.ELEMENT_ID, singleFlow.id, targetName)
+        }
+        if (singleFlow != null) {
+            val arguments = KotlinCodeFormat.namedArguments(
+                "flowId" to CodeBlock.of("%T(%S)", KotlinRuntimeTypes.ELEMENT_ID, singleFlow.id),
+                "name" to singleFlow.name?.let { stringLiteral(it) },
+                "conditionExpression" to singleFlow.conditionExpression?.let { stringLiteral(it) },
+                "isDefault" to CodeBlock.of("%L", true).takeIf { singleFlow.isDefault },
+                "target" to CodeBlock.of("%N", targetName),
+            )
+            return CodeBlock.of("%T.single(%L)", KotlinRuntimeTypes.SEQUENCE_FLOWS, arguments)
         }
         val flows = flowsToTarget.flows.map { sequenceFlowCall(it, targetName) }
         return CodeBlock.of("%T(⇥\ntarget = %N,\nflows = listOf(⇥\n%L,⇤\n),⇤\n)", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, flows.joinToCode(",\n"))

@@ -91,8 +91,8 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
 
     /**
      * Renders the process as a typed navigation graph: one nested singleton class per element exposing its
-     * `Id`, `ElementType` and `Name`, its facets, its successors behind `Next`, its sequence flows behind
-     * `OutgoingFlows`; every node is a direct child of `FlowNodes`, and a subprocess opens its interior via `Start`.
+     * `Id`, `ElementType` and `Name`, its facets and its successors behind `Next`; every node is a direct child of
+     * `FlowNodes`, and a subprocess opens its interior via `Start`.
      */
     private fun writeFlow(builder: CSharpWriter, graph: ProcessGraph, definitions: RootElements, className: String = "FlowNodes") {
         builder.docComment("Typed navigation over the process flow: one nested singleton class per BPMN element, reached as FlowNodes.Element.Instance.")

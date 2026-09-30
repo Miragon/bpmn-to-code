@@ -7,6 +7,7 @@ import com.palantir.javapoet.MethodSpec
 import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
@@ -18,9 +19,9 @@ import javax.lang.model.element.Modifier.STATIC
 
 /**
  * Emits the typed navigation graph of a Java process API `FlowNodes` class: one nested node class per flow node,
- * carrying its metadata via `AbstractFlowNode`, its own facets (see [JavaFacetWriter]), its reachable
- * successors behind `getNext()` and its outgoing sequence flows behind `getOutgoingFlows()`, named after the
- * elements they lead to. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess
+ * carrying its metadata via `AbstractFlowNode`, its own facets (see [JavaFacetWriter]) and its successors behind
+ * `getNext()`, named after the elements they lead to: the `SequenceFlows` to an element, or an attached boundary
+ * event. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess
  * class additionally is a `FlowScope` whose `getStartEvents()` yields the interior's start elements, and a boundary event
  * is a `BoundaryEvent` of its host. Every node is a singleton (see [JavaFlowNodeType]), and `FlowNodes` exposes a
  * static accessor method per node and `all()` listing every node.
@@ -50,9 +51,6 @@ internal class JavaFlowWriter {
         if (node.successors.isNotEmpty()) {
             addSuccessors(classBuilder, node)
         }
-        if (node.outgoingFlows.isNotEmpty()) {
-            addOutgoingFlows(classBuilder, node)
-        }
         if (node.interiorStarts.isNotEmpty()) {
             addInteriorStarts(classBuilder, node)
         }
@@ -66,9 +64,6 @@ internal class JavaFlowWriter {
         classBuilder.addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).addStatement(superCall(node)).build())
         if (node.successors.isNotEmpty()) {
             classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.HAS_SUCCESSORS, node = node, holderName = NEXT_HOLDER))
-        }
-        if (node.outgoingFlows.isNotEmpty()) {
-            classBuilder.addSuperinterface(ownHolderInterface(interfaceType = JavaRuntimeTypes.HAS_OUTGOING_FLOWS, node = node, holderName = OUTGOING_FLOWS_HOLDER))
         }
         val host = node.facets.attachedTo
         when {
@@ -106,13 +101,8 @@ internal class JavaFlowWriter {
 
     private fun addSuccessors(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         classBuilder.addMethod(accessorMethod("getNext", NEXT_HOLDER))
-        classBuilder.addType(accessorHolder(NEXT_HOLDER, node.successors.map { it.propertyName to it.objectName }))
-    }
-
-    private fun addOutgoingFlows(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
-        classBuilder.addMethod(accessorMethod("getOutgoingFlows", OUTGOING_FLOWS_HOLDER))
-        val holder = TypeSpec.classBuilder(OUTGOING_FLOWS_HOLDER).addModifiers(PUBLIC, STATIC, FINAL)
-        node.outgoingFlows.forEach { holder.addMethod(outgoingFlowsMethod(it)) }
+        val holder = TypeSpec.classBuilder(NEXT_HOLDER).addModifiers(PUBLIC, STATIC, FINAL)
+        node.successors.forEach { successor -> holder.addMethod(successorMethod(successor, node.outgoingFlows.find { it.target.objectName == successor.objectName })) }
         classBuilder.addType(holder.build())
     }
 
@@ -140,28 +130,35 @@ internal class JavaFlowWriter {
     }
 
     /**
-     * A single flow to the target is a `SequenceFlow<Target>`; several flows to the same target keep the name and
-     * become a `List<SequenceFlow<Target>>`, so no flow is lost and no sibling is renamed.
+     * A successor reached by sequence flows is the `SequenceFlows` carrying them; one reached without a flow is an
+     * `AttachedBoundaryEvent`. A single flow is created via `SequenceFlows.single`, several flows to the same target
+     * are listed.
      */
-    private fun outgoingFlowsMethod(flowsToTarget: FlowsToTarget): MethodSpec {
-        val target = JavaFlowNodeType(flowsToTarget.target.objectName)
-        val sequenceFlowType = ParameterizedTypeName.get(JavaRuntimeTypes.SEQUENCE_FLOW, target.className)
-        val constructions = flowsToTarget.flows.map { sequenceFlowConstruction(it, target) }
-        val method = MethodSpec.methodBuilder(flowsToTarget.propertyName).addModifiers(PUBLIC)
-        return when (constructions.size) {
-            1 -> method.returns(sequenceFlowType).addStatement($$"return $L", constructions.single())
-
-            else -> method.returns(ParameterizedTypeName.get(ClassName.get(List::class.java), sequenceFlowType))
-                .addStatement($$"return $T.of($L)", List::class.java, CodeBlock.join(constructions, ", "))
-        }.build()
+    private fun successorMethod(successor: FlowEdge, flowsToTarget: FlowsToTarget?): MethodSpec {
+        val target = JavaFlowNodeType(successor.objectName)
+        val (successorType, value) = when (flowsToTarget) {
+            null -> JavaRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of($$"new $T<>($L)", JavaRuntimeTypes.ATTACHED_BOUNDARY_EVENT, target.instance())
+            else -> JavaRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsConstruction(flowsToTarget.flows, target)
+        }
+        return MethodSpec.methodBuilder(successor.propertyName).addModifiers(PUBLIC)
+            .returns(ParameterizedTypeName.get(successorType, target.className))
+            .addStatement($$"return $L", value).build()
     }
 
-    private fun sequenceFlowConstruction(flow: SequenceFlowEdge, target: JavaFlowNodeType): CodeBlock = when {
-        flow.hasOnlyDefaults() -> CodeBlock.of($$"new $T<>(new $T($S), $L)", JavaRuntimeTypes.SEQUENCE_FLOW, JavaRuntimeTypes.ELEMENT_ID, flow.id, target.instance())
+    private fun sequenceFlowsConstruction(flows: List<SequenceFlowEdge>, target: JavaFlowNodeType): CodeBlock {
+        val singleFlow = flows.singleOrNull()
+        if (singleFlow != null) {
+            return CodeBlock.of($$"$T.single($L)", JavaRuntimeTypes.SEQUENCE_FLOWS, flowArguments(singleFlow, target))
+        }
+        val constructions = flows.map { CodeBlock.of($$"new $T<>($L)", JavaRuntimeTypes.SEQUENCE_FLOW, flowArguments(it, target)) }
+        return CodeBlock.of($$"new $T<>($L, $T.of($L))", JavaRuntimeTypes.SEQUENCE_FLOWS, target.instance(), List::class.java, CodeBlock.join(constructions, ", "))
+    }
+
+    private fun flowArguments(flow: SequenceFlowEdge, target: JavaFlowNodeType): CodeBlock = when {
+        flow.hasOnlyDefaults() -> CodeBlock.of($$"new $T($S), $L", JavaRuntimeTypes.ELEMENT_ID, flow.id, target.instance())
 
         else -> CodeBlock.of(
-            $$"new $T<>(new $T($S), $S, $S, $L, $L)",
-            JavaRuntimeTypes.SEQUENCE_FLOW,
+            $$"new $T($S), $S, $S, $L, $L",
             JavaRuntimeTypes.ELEMENT_ID,
             flow.id,
             flow.name,
@@ -174,7 +171,6 @@ internal class JavaFlowWriter {
     private companion object {
         private const val ELEMENT_ID = "ELEMENT_ID"
         private const val NEXT_HOLDER = "Next"
-        private const val OUTGOING_FLOWS_HOLDER = "OutgoingFlows"
         private const val START_HOLDER = "Start"
     }
 }

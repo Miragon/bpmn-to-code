@@ -8,7 +8,7 @@ import io.miragon.bpmn.runtime.SequenceFlow
  *
  * Start with [from] at a named node (e.g. `ProcessPath.from(FlowNodes.StartEventSubmitRegistrationForm)`),
  * chain steps, then feed [ids] to your engine's existing string-based flow assertion — e.g.
- * `assertThat(instance).hasPassedInOrder(*path.ids.toTypedArray())`. The **edge steps** ([then] / [onto] / [via]) and
+ * `assertThat(instance).hasPassedInOrder(*path.ids.toTypedArray())`. The **edge steps** ([then] / [onto]) and
  * the **subprocess steps** ([enter] / [inside]) are checked against the model at compile time, so a model
  * change breaks the build at the exact edge that moved. [interruptedBy] checks the picked boundary successor
  * but names its carrier freely; [jumpTo] is the single fully-unchecked opt-out and is marked [RiskyNavigation].
@@ -44,8 +44,7 @@ class ProcessPath<N : FlowNode> internal constructor(
 
     /**
      * The ids of the recorded sequence flows, in walk order — for comparing against the engine's taken sequence
-     * flows. [then] and [onto] record the flow they walk when it is unambiguous, [via] records the picked flow;
-     * boundary events, [enter] and several flows to the same element record none.
+     * flows. [then] and [onto] record the flow they walk when it is unambiguous; boundary events, [enter] and several flows to the same element record none.
      */
     val flowIds: List<String> get() = takenFlows.map { it.id.value }
 

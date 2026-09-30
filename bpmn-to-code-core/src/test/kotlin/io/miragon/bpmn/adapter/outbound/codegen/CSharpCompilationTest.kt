@@ -57,7 +57,7 @@ class CSharpCompilationTest {
     fun `generated csharp with several sequence flows to the same element compiles`() {
         val generated = generateFromXml(listOf(TWO_FLOWS_TO_ONE_TASK), ProcessEngine.ZEEBE)
         assertThat(generated.single { it.processId == "approval" }.content)
-            .contains("IReadOnlyList<Runtime.SequenceFlow<TaskApprove>> ToTaskApprove")
+            .contains("public Runtime.SequenceFlows<TaskApprove> TaskApprove => new(FlowNodes.TaskApprove.Instance, new Runtime.SequenceFlow<TaskApprove>[] {")
 
         assertCompiles(project(csproj(), generated))
     }
@@ -139,7 +139,7 @@ class CSharpCompilationTest {
         """.trimIndent()
 
         /**
-         * A gateway whose two conditional flows both lead to the same task, so `OutgoingFlows` exposes a list.
+         * A gateway whose two conditional flows both lead to the same task, so one `SequenceFlows` carries both.
          */
         val TWO_FLOWS_TO_ONE_TASK = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -207,7 +207,8 @@ class CSharpCompilationTest {
                 public static void Navigate()
                 {
                     var start = Api.FlowNodes.StartEventLeasingRequestReceived.Instance;
-                    var edge = start.OutgoingFlows.ToServiceTaskValidateApplication;
+                    var successor = start.Next.ServiceTaskValidateApplication;
+                    var edge = successor.Flow;
                     string? condition = edge.ConditionExpression;
                     bool isDefault = edge.IsDefault;
                     Api.FlowNodes.ServiceTaskValidateApplication target = edge.Target;
@@ -215,11 +216,13 @@ class CSharpCompilationTest {
                     Api.Runtime.IHasJobType jobTask = Api.FlowNodes.ServiceTaskSendContract.Instance;
                     string jobType = jobTask.JobType;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
-                    if (!edge.Equals(start.OutgoingFlows.ToServiceTaskValidateApplication)) throw new InvalidOperationException();
+                    if (!edge.Equals(start.Next.ServiceTaskValidateApplication.Flow)) throw new InvalidOperationException();
+                    Api.Runtime.ISuccessor<Api.Runtime.IFlowNode> genericSuccessor = successor;
                     Api.Runtime.IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder.Instance;
+                    Api.Runtime.AttachedBoundaryEvent<Api.FlowNodes.TimerSignatureReminder> attached = Api.FlowNodes.SubProcessConcludeContract.Instance.Next.TimerSignatureReminder;
 
-                    var creditRating = start.Next.ServiceTaskValidateApplication.Next.BusinessRuleTaskCheckCreditRating;
-                    var subProcess = creditRating.Next.GatewayIsSolvent.Next.SubProcessConcludeContract;
+                    var creditRating = successor.Target.Next.BusinessRuleTaskCheckCreditRating.Target;
+                    var subProcess = creditRating.Next.GatewayIsSolvent.Target.Next.SubProcessConcludeContract.Target;
                     var innerStart = subProcess.Start.StartEventCustomerEligible;
                     string? innerName = innerStart.Name;
                     string hostId = Api.FlowNodes.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
@@ -229,7 +232,7 @@ class CSharpCompilationTest {
                     Api.Runtime.InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
 
                     NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Instance.Id;
-                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id}");
+                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id} {genericSuccessor.Target.Id} {attached.Target.Id}");
                 }
             }
         """.trimIndent()

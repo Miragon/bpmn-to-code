@@ -56,7 +56,7 @@ class JavaProcessApiBuilderTest {
 
         // then: every node is only reachable through its INSTANCE
         val content = result.content
-        assertThat(content).doesNotContainPattern("(?<!INSTANCE = )new (?!Next|OutgoingFlows|Start)\\w+\\(\\)")
+        assertThat(content).doesNotContainPattern("(?<!INSTANCE = )new (?!Next|Start)\\w+\\(\\)")
         assertThat(content).contains("private BusinessRuleTaskCheckCreditRating()")
         assertThat(content).contains("private Variables()")
         assertThat(content).contains("public static final BusinessRuleTaskCheckCreditRating INSTANCE = new BusinessRuleTaskCheckCreditRating();")
@@ -84,7 +84,7 @@ class JavaProcessApiBuilderTest {
     }
 
     @Test
-    fun `several flows to the same element share one outgoing-flows method as a list`() {
+    fun `several flows to the same element share one SequenceFlows successor`() {
         // given: a gateway with two conditional flows that both lead to the same task
         val model = testProcessModel(
             flowNodes = listOf(
@@ -110,8 +110,9 @@ class JavaProcessApiBuilderTest {
         // when
         val result = underTest.buildApiFile(testProcessModelApi(model = model, language = OutputLanguage.JAVA))
 
-        // then: one stable name for both flows, typed as a list
-        assertThat(result.content).contains("public List<SequenceFlow<Approve>> toApprove()")
+        // then: one stable name for both flows, carried by one SequenceFlows
+        assertThat(result.content).contains("public SequenceFlows<Approve> approve()")
+        assertThat(result.content).contains("\"flow_small\"", "\"flow_vip\"")
         assertJavaSyntaxValid(result.fileName, result.content)
     }
 

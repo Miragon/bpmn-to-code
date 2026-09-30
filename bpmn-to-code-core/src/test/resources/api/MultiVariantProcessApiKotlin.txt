@@ -17,7 +17,6 @@ import io.miragon.bpmn.runtime.HasMessage
 import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
-import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.VariableName
 import kotlin.Boolean
@@ -69,7 +68,7 @@ object CancelBikeOrderProcessApi {
 
         object Next {
           val gatewayCollectClarifications: SequenceFlows<GatewayCollectClarifications>
-            get() = SequenceFlows(flowId = ElementId("flow_cancellationFailedToCollectClarifications"), target = GatewayCollectClarifications)
+            get() = SequenceFlows.single(flowId = ElementId("flow_cancellationFailedToCollectClarifications"), target = GatewayCollectClarifications)
         }
       }
 
@@ -98,29 +97,19 @@ object CancelBikeOrderProcessApi {
 
         object Next {
           val gatewayCollectClarifications: SequenceFlows<GatewayCollectClarifications>
-            get() = SequenceFlows(
+            get() = SequenceFlows.single(
+              flowId = ElementId("flow_cancellationNotPossibleToCollectClarifications"),
+              name = "No",
+              conditionExpression = $$"""${!cancellationPossible}""",
               target = GatewayCollectClarifications,
-              flows = listOf(
-                SequenceFlow(
-                  id = ElementId("flow_cancellationNotPossibleToCollectClarifications"),
-                  name = "No",
-                  conditionExpression = $$"""${!cancellationPossible}""",
-                  target = GatewayCollectClarifications,
-                ),
-              ),
             )
 
           val gatewayMergeReturn: SequenceFlows<GatewayMergeReturn>
-            get() = SequenceFlows(
+            get() = SequenceFlows.single(
+              flowId = ElementId("flow_cancellationPossibleToMergeReturn"),
+              name = "Yes",
+              isDefault = true,
               target = GatewayMergeReturn,
-              flows = listOf(
-                SequenceFlow(
-                  id = ElementId("flow_cancellationPossibleToMergeReturn"),
-                  name = "Yes",
-                  isDefault = true,
-                  target = GatewayMergeReturn,
-                ),
-              ),
             )
         }
       }
@@ -135,7 +124,7 @@ object CancelBikeOrderProcessApi {
 
         object Next {
           val userTaskClarifyReturn: SequenceFlows<UserTaskClarifyReturn>
-            get() = SequenceFlows(flowId = ElementId("flow_collectClarificationsToClarifyReturn"), target = UserTaskClarifyReturn)
+            get() = SequenceFlows.single(flowId = ElementId("flow_collectClarificationsToClarifyReturn"), target = UserTaskClarifyReturn)
         }
       }
 
@@ -150,7 +139,7 @@ object CancelBikeOrderProcessApi {
         object Next {
           val serviceTaskBookCancellationCosts:
               SequenceFlows<ServiceTaskBookCancellationCosts>
-            get() = SequenceFlows(flowId = ElementId("flow_mergeReturnToBookCancellationCosts"), target = ServiceTaskBookCancellationCosts)
+            get() = SequenceFlows.single(flowId = ElementId("flow_mergeReturnToBookCancellationCosts"), target = ServiceTaskBookCancellationCosts)
         }
       }
 
@@ -172,7 +161,7 @@ object CancelBikeOrderProcessApi {
 
         object Next {
           val endEventBikeOrderCancelled: SequenceFlows<EndEventBikeOrderCancelled>
-            get() = SequenceFlows(flowId = ElementId("flow_bookCancellationCostsToBikeOrderCancelled"), target = EndEventBikeOrderCancelled)
+            get() = SequenceFlows.single(flowId = ElementId("flow_bookCancellationCostsToBikeOrderCancelled"), target = EndEventBikeOrderCancelled)
         }
       }
 
@@ -197,7 +186,7 @@ object CancelBikeOrderProcessApi {
             get() = AttachedBoundaryEvent(target = BoundaryCancellationFailed)
 
           val gatewayCancellationPossible: SequenceFlows<GatewayCancellationPossible>
-            get() = SequenceFlows(flowId = ElementId("flow_requestCancellationToCancellationPossible"), target = GatewayCancellationPossible)
+            get() = SequenceFlows.single(flowId = ElementId("flow_requestCancellationToCancellationPossible"), target = GatewayCancellationPossible)
         }
       }
 
@@ -218,7 +207,7 @@ object CancelBikeOrderProcessApi {
 
         object Next {
           val serviceTaskRequestCancellation: SequenceFlows<ServiceTaskRequestCancellation>
-            get() = SequenceFlows(flowId = ElementId("flow_cancellationRequiredToRequestCancellation"), target = ServiceTaskRequestCancellation)
+            get() = SequenceFlows.single(flowId = ElementId("flow_cancellationRequiredToRequestCancellation"), target = ServiceTaskRequestCancellation)
         }
       }
 
@@ -233,7 +222,7 @@ object CancelBikeOrderProcessApi {
 
         object Next {
           val gatewayMergeReturn: SequenceFlows<GatewayMergeReturn>
-            get() = SequenceFlows(flowId = ElementId("flow_clarifyReturnToMergeReturn"), target = GatewayMergeReturn)
+            get() = SequenceFlows.single(flowId = ElementId("flow_clarifyReturnToMergeReturn"), target = GatewayMergeReturn)
         }
       }
     }

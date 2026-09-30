@@ -173,8 +173,8 @@ class ProcessPathTest {
     private object Start : AbstractFlowNode(ElementId("Start"), BpmnElementType.START_EVENT), HasSuccessors<Start.Next> {
         override val next: Next get() = Next
         object Next {
-            val mid: SequenceFlows<Mid> get() = SequenceFlows(Mid, ElementId("flow_startToMid"))
-            val sub: SequenceFlows<Sub> get() = SequenceFlows(Sub, ElementId("flow_startToSub"))
+            val mid: SequenceFlows<Mid> get() = SequenceFlows.single(flowId = ElementId("flow_startToMid"), target = Mid)
+            val sub: SequenceFlows<Sub> get() = SequenceFlows.single(flowId = ElementId("flow_startToSub"), target = Sub)
         }
     }
 
@@ -184,7 +184,7 @@ class ProcessPathTest {
         override val next: Next get() = Next
         override val startEvents: Start get() = Start
         object Next {
-            val end: SequenceFlows<End> get() = SequenceFlows(End, ElementId("flow_subToEnd"))
+            val end: SequenceFlows<End> get() = SequenceFlows.single(flowId = ElementId("flow_subToEnd"), target = End)
             val boundary: AttachedBoundaryEvent<Boundary> get() = AttachedBoundaryEvent(Boundary)
         }
         object Start {
