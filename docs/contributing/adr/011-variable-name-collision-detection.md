@@ -30,7 +30,8 @@ Implement comprehensive collision detection that:
 Since the Process API became node-centric (ADR 022), each check mirrors the scope the generated name lives in:
 - **Flow nodes** are named model-wide, because `Flow` is flat: every element, whatever its subprocess depth, becomes one nested object named `getRawName().toCamelCase()`. Ids such as `foo` and `-foo` fold to the same object name `Foo`, which would emit two `object Foo` and fail to compile. The same id declared in two scopes (root and subprocess interior) survives merging as two nodes and is reported as well.
 - **Registries** (`ServiceTasks`, `Messages`, `Signals`, `Errors`, `Escalations`) are named model-wide on the `UPPER_SNAKE` basis.
-- **Variables** and **call-activity mappings** are named per node — they live inside the node's `Variables`, `Inputs` / `Outputs` holders — so the same variable name on two different nodes is not a collision, while `userId` and `user_id` on one node is. Outgoing sequence flows are named after their target element and so inherit its uniqueness.
+- **Variables** are named run-wide — their raw names live once in the shared `ProcessVariables` ([ADR 021](021-shared-definition-apis.md)) — so `userId` and `user_id` collide wherever they are declared, even in two processes, while the same name on several nodes does not.
+- **Call-activity mappings** are named per node — they live inside the node's `Inputs` / `Outputs` holders — so the same target on two different nodes is not a collision, while `childId` and `child_id` on one node is. Outgoing sequence flows are named after their target element and so inherit its uniqueness.
 
 The former `Elements` and `Timers` bases disappeared with their sections. Names that would shadow the API's own holders or runtime types (`Flow`, `Next`, `Instance`, `ElementId`, …) are not collisions between elements and are rejected by the separate mandatory `reserved-element-name` rule.
 

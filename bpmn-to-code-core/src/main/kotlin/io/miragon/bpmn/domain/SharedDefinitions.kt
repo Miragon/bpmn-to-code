@@ -2,12 +2,13 @@ package io.miragon.bpmn.domain
 
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
+import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableMapping
 
 /**
- * Identifiers the engine resolves across process boundaries — job types, message, signal, error and
- * escalation names. Unlike element ids or variables they are not owned by one process, so they are
- * generated once per run instead of once per Process API.
+ * Identifiers that are not owned by one process — job types, message, signal, error and escalation names the engine
+ * resolves across process boundaries, and the names of process variables several processes share. Unlike element ids
+ * they are generated once per run instead of once per Process API.
  */
 data class SharedDefinitions(
     val serviceTasks: List<ServiceTaskDefinition> = emptyList(),
@@ -15,6 +16,7 @@ data class SharedDefinitions(
     val signals: List<RootElementDefinition.Signal> = emptyList(),
     val errors: List<RootElementDefinition.Error> = emptyList(),
     val escalations: List<RootElementDefinition.Escalation> = emptyList(),
+    val processVariables: List<VariableDefinition> = emptyList(),
 ) {
 
     companion object {
@@ -24,6 +26,7 @@ data class SharedDefinitions(
             signals = models.flatMap { it.definitions.signals }.distinctByValue(),
             errors = models.flatMap { it.definitions.errors }.distinctByValue(),
             escalations = models.flatMap { it.definitions.escalations }.distinctByValue(),
+            processVariables = models.flatMap { it.variables }.distinctByValue(),
         )
 
         private fun <T : VariableMapping<*>> List<T>.distinctByValue(): List<T> = filter { it.getRawName().isNotEmpty() }

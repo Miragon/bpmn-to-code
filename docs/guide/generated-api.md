@@ -24,7 +24,7 @@ the node that declares them.
 
 Job types, message names, signal names, errors and escalations identify something the engine resolves
 across process boundaries: two processes subscribing to the same message or served by the same worker
-use the same value. They are therefore not nested in a Process API but generated once per run, each
+use the same value. Variable names are shared the same way — several order processes all carry an `orderId`. They are therefore not nested in a Process API but generated once per run, each
 kind in its own file next to the Process APIs:
 
 | File | Contents |
@@ -34,6 +34,7 @@ kind in its own file next to the Process APIs:
 | `Signals` | Signal names from signal events (`SignalName`) |
 | `Errors` | Error definitions with name and code (`BpmnErrorDefinition`) |
 | `Escalations` | Escalation definitions with name and code (`BpmnEscalationDefinition`) |
+| `ProcessVariables` | One `const` per distinct variable name — **the constant to use in `@Variable(name = …)`**; each node's typed `Variables` refer to it |
 
 Each value appears once, no matter how many processes use it, and a file is only generated when at least
 one process contains a matching element. Errors and escalations are named `NAME_CODE`
@@ -91,7 +92,7 @@ object BikeLeasingProcessApi {
       override val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
       override val next: Next = Next
       override val outgoingFlows: OutgoingFlows = OutgoingFlows
-      object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output("applicationId") }
+      object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output(ProcessVariables.APPLICATION_ID) }
       object Next { val serviceTaskValidateApplication get() = ServiceTaskValidateApplication }
       object OutgoingFlows {
         val toServiceTaskValidateApplication: SequenceFlow<ServiceTaskValidateApplication>
@@ -105,8 +106,8 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
       override val outgoingFlows: OutgoingFlows = OutgoingFlows
       object Variables {
-        val APPLICATION_ID: VariableName.Input = VariableName.Input("applicationId")
-        val CONTRACT_ID: VariableName.Output = VariableName.Output("contractId")
+        val APPLICATION_ID: VariableName.Input = VariableName.Input(ProcessVariables.APPLICATION_ID)
+        val CONTRACT_ID: VariableName.Output = VariableName.Output(ProcessVariables.CONTRACT_ID)
       }
       object Next { val gatewayAwaitSignature get() = GatewayAwaitSignature }
       object OutgoingFlows { /* one SequenceFlow per element it leads to, named to<Element> */ }
@@ -153,6 +154,13 @@ object Errors {
   )
 }
 
+// ProcessVariables.kt
+object ProcessVariables {
+  const val APPLICATION_ID: String = "applicationId"
+  const val CONTRACT_ID: String = "contractId"
+  // …
+}
+
 // Escalations.kt
 object Escalations {
   val MIRAVELO_CONTRACT_NOT_SIGNED: BpmnEscalationDefinition = BpmnEscalationDefinition(
@@ -191,8 +199,8 @@ public final class BikeLeasingProcessApi {
             @Override public OutgoingFlows getOutgoingFlows() { return new OutgoingFlows(); }
 
             public static final class Variables {
-                public static final VariableName.Input APPLICATION_ID = new VariableName.Input("applicationId");
-                public static final VariableName.Output CONTRACT_ID = new VariableName.Output("contractId");
+                public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
+                public static final VariableName.Output CONTRACT_ID = new VariableName.Output(ProcessVariables.CONTRACT_ID);
             }
             public static final class Next {
                 public GatewayAwaitSignature gatewayAwaitSignature() { return GatewayAwaitSignature.INSTANCE; }
@@ -212,7 +220,7 @@ public final class Messages {
     public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
 }
 
-// ... same structure for ServiceTasks, Signals, Errors, Escalations
+// ... same structure for ServiceTasks, Signals, Errors, Escalations, ProcessVariables
 ```
 
 ```csharp [C#]
@@ -244,8 +252,8 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input ApplicationId { get; } = new("applicationId");
-                public Runtime.VariableName.Output ContractId { get; } = new("contractId");
+                public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
+                public Runtime.VariableName.Output ContractId { get; } = new(ProcessVariables.ContractId);
             }
 
             public Successors Next => new();
@@ -270,7 +278,7 @@ public static class ServiceTasks
     public const string MiraveloSendContract = "miravelo.sendContract";
 }
 
-// ... same structure for Messages, Signals, Errors (MiraveloApplicationInvalid.Reference / .Code), Escalations
+// ... same structure for Messages, Signals, Errors (MiraveloApplicationInvalid.Reference / .Code), Escalations, ProcessVariables
 ```
 
 :::
@@ -290,7 +298,7 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | `id`, `elementType`, `name` | every node | `ElementId`, `BpmnElementType`, `String?` | `id`, `type`, `name` |
 | `eventType`, marker `Event` | events | `BpmnEventType` (`NONE`, `TIMER`, …, `TERMINATE`, `MULTIPLE`) | `eventDefinitions[]` |
 | `jobType`, `HasJobType` | tasks and events with an implementation | `String`, referring to `ServiceTasks` | `implementation.jobType` |
-| `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut` | `variables[]` |
+| `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut`, wrapping a `ProcessVariables` constant | `variables[]` |
 | `calledProcess`, `CallActivity`; `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
 | `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `TimerType` — `DATE`, `DURATION`, `CYCLE`) | `eventDefinitions[timer]` |
 | `message` / `signal` / `error` / `escalation`, `HasMessage` / `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnErrorDefinition` / `BpmnEscalationDefinition`, referring to the shared definition | `eventDefinitions[*]` |
@@ -325,18 +333,19 @@ everything else through the getters of the runtime interfaces.
 
 #### Raw names for annotations and `when` / `switch`
 
-The typed wrappers for variables and element ids are no compile-time constants, so each
-comes with its raw `String` next to it — `const val` in Kotlin, `static final String` in Java, `const string`
-in C#:
+The typed wrappers for variables and element ids are no compile-time constants, so each has a raw
+`String` constant — `const val` in Kotlin, `static final String` in Java, `const string` in C#. An element id sits
+on its node; a variable name sits once per run in the shared `ProcessVariables`, which every node's typed
+`Variables` refer to:
 
 | Typed wrapper | Raw constant (Kotlin / Java) | C# |
 |---|---|---|
-| `FlowNodes.X.Variables.APPLICATION_ID` | `FlowNodes.X.Variables.Names.APPLICATION_ID` | `FlowNodes.X.NodeVariables.Names.ApplicationId` |
+| `FlowNodes.X.Variables.APPLICATION_ID` | `ProcessVariables.APPLICATION_ID` | `ProcessVariables.ApplicationId` |
 | `FlowNodes.X.id` | `FlowNodes.X.ELEMENT_ID` | `FlowNodes.X.ElementId` |
 
 ```kotlin
 @JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
-fun sendContract(@Variable(name = FlowNodes.ServiceTaskSendContract.Variables.Names.APPLICATION_ID) applicationId: String) { … }
+fun sendContract(@Variable(name = ProcessVariables.APPLICATION_ID) applicationId: String) { … }
 ```
 
 ::: tip Annotate workers with `ServiceTasks.X`

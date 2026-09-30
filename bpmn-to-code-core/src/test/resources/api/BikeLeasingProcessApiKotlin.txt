@@ -209,20 +209,13 @@ object BikeLeasingProcessApi {
       override val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
 
       object Variables {
-        val APPLICATION_ID: VariableName.Input = VariableName.Input(Names.APPLICATION_ID)
+        val APPLICATION_ID: VariableName.Input =
+            VariableName.Input(ProcessVariables.APPLICATION_ID)
 
         val CANCELLATION_COSTS: VariableName.Output =
-            VariableName.Output(Names.CANCELLATION_COSTS)
+            VariableName.Output(ProcessVariables.CANCELLATION_COSTS)
 
-        val ORDER_IDS: VariableName.Input = VariableName.Input(Names.ORDER_IDS)
-
-        object Names {
-          const val APPLICATION_ID: String = "applicationId"
-
-          const val CANCELLATION_COSTS: String = "cancellationCosts"
-
-          const val ORDER_IDS: String = "orderIds"
-        }
+        val ORDER_IDS: VariableName.Input = VariableName.Input(ProcessVariables.ORDER_IDS)
       }
 
       object Inputs {
@@ -505,15 +498,9 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Variables {
-        val BIKE_ID: VariableName.Input = VariableName.Input(Names.BIKE_ID)
+        val BIKE_ID: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_ID)
 
-        val BIKE_IDS: VariableName.Input = VariableName.Input(Names.BIKE_IDS)
-
-        object Names {
-          const val BIKE_ID: String = "bikeId"
-
-          const val BIKE_IDS: String = "bikeIds"
-        }
+        val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
       }
 
       object Next {
@@ -537,15 +524,9 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Variables {
-        val BIKE_ID: VariableName.Input = VariableName.Input(Names.BIKE_ID)
+        val BIKE_ID: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_ID)
 
-        val BIKE_IDS: VariableName.Input = VariableName.Input(Names.BIKE_IDS)
-
-        object Names {
-          const val BIKE_ID: String = "bikeId"
-
-          const val BIKE_IDS: String = "bikeIds"
-        }
+        val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
       }
 
       object Next {
@@ -586,15 +567,11 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Variables {
-        val APPLICATION_ID: VariableName.Input = VariableName.Input(Names.APPLICATION_ID)
+        val APPLICATION_ID: VariableName.Input =
+            VariableName.Input(ProcessVariables.APPLICATION_ID)
 
-        val CONTRACT_ID: VariableName.Output = VariableName.Output(Names.CONTRACT_ID)
-
-        object Names {
-          const val APPLICATION_ID: String = "applicationId"
-
-          const val CONTRACT_ID: String = "contractId"
-        }
+        val CONTRACT_ID: VariableName.Output =
+            VariableName.Output(ProcessVariables.CONTRACT_ID)
       }
 
       object Next {
@@ -674,15 +651,9 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Variables {
-        val CITY: VariableName.Input = VariableName.Input(Names.CITY)
+        val CITY: VariableName.Input = VariableName.Input(ProcessVariables.CITY)
 
-        val STREET: VariableName.Input = VariableName.Input(Names.STREET)
-
-        object Names {
-          const val CITY: String = "city"
-
-          const val STREET: String = "street"
-        }
+        val STREET: VariableName.Input = VariableName.Input(ProcessVariables.STREET)
       }
 
       object Next {
@@ -743,24 +714,15 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Variables {
-        val AGE: VariableName.Input = VariableName.Input(Names.AGE)
+        val AGE: VariableName.Input = VariableName.Input(ProcessVariables.AGE)
 
-        val APPLICATION_ID: VariableName.Input = VariableName.Input(Names.APPLICATION_ID)
+        val APPLICATION_ID: VariableName.Input =
+            VariableName.Input(ProcessVariables.APPLICATION_ID)
 
-        val BIKE_IDS: VariableName.Input = VariableName.Input(Names.BIKE_IDS)
+        val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
 
         val MONTHLY_NET_INCOME: VariableName.Input =
-            VariableName.Input(Names.MONTHLY_NET_INCOME)
-
-        object Names {
-          const val AGE: String = "age"
-
-          const val APPLICATION_ID: String = "applicationId"
-
-          const val BIKE_IDS: String = "bikeIds"
-
-          const val MONTHLY_NET_INCOME: String = "monthlyNetIncome"
-        }
+            VariableName.Input(ProcessVariables.MONTHLY_NET_INCOME)
       }
 
       object Next {
@@ -912,11 +874,8 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Variables {
-        val DELIVERY_ADDRESS: VariableName.InOut = VariableName.InOut(Names.DELIVERY_ADDRESS)
-
-        object Names {
-          const val DELIVERY_ADDRESS: String = "deliveryAddress"
-        }
+        val DELIVERY_ADDRESS: VariableName.InOut =
+            VariableName.InOut(ProcessVariables.DELIVERY_ADDRESS)
       }
 
       object Next {

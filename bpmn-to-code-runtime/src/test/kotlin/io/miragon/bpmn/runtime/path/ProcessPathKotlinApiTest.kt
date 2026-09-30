@@ -11,6 +11,7 @@ import io.miragon.bpmn.runtime.TimerType
 import io.miragon.bpmn.runtime.VariableName
 import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi
 import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+import io.miragon.bpmn.runtime.path.example.ProcessVariables
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes as BikeLeasing
@@ -217,7 +218,7 @@ class ProcessPathKotlinApiTest {
 
     @Test
     fun `raw names are compile-time constants usable in annotations and when branches`() {
-        @VariableAnnotation(name = BikeLeasing.ServiceTaskSendContract.Variables.Names.APPLICATION_ID)
+        @VariableAnnotation(name = ProcessVariables.APPLICATION_ID)
         fun describe(elementId: String): String = when (elementId) {
             BikeLeasing.ServiceTaskSendContract.ELEMENT_ID -> "send contract"
             else -> "other"
@@ -226,7 +227,7 @@ class ProcessPathKotlinApiTest {
         assertThat(describe("serviceTask_sendContract")).isEqualTo("send contract")
         assertThat(BikeLeasing.ServiceTaskSendContract.id.value).isEqualTo(BikeLeasing.ServiceTaskSendContract.ELEMENT_ID)
         assertThat(BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID.value)
-            .isEqualTo(BikeLeasing.ServiceTaskSendContract.Variables.Names.APPLICATION_ID)
+            .isEqualTo(ProcessVariables.APPLICATION_ID)
     }
 
     @Test

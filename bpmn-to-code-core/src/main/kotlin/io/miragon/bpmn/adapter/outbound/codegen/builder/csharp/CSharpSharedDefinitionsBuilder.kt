@@ -4,6 +4,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpEscalationsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpSignalsWriter
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -22,6 +23,7 @@ internal class CSharpSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         CSharpSignalsWriter,
         CSharpErrorsWriter,
         CSharpEscalationsWriter,
+        CSharpProcessVariablesWriter,
     )
 
     override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers

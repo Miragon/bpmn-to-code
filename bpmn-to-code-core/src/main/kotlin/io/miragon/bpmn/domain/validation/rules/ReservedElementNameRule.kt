@@ -127,6 +127,7 @@ class ReservedElementNameRule : SingleModelValidationRule {
             "Signals",
             "Escalations",
             "ServiceTasks",
+            "ProcessVariables",
             "FlowVariants",
         )
 

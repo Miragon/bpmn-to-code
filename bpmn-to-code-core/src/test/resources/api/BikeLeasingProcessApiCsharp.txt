@@ -338,15 +338,9 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input ApplicationId { get; } = new(Names.ApplicationId);
-                public Runtime.VariableName.Output CancellationCosts { get; } = new(Names.CancellationCosts);
-                public Runtime.VariableName.Input OrderIds { get; } = new(Names.OrderIds);
-                public static class Names
-                {
-                    public const string ApplicationId = "applicationId";
-                    public const string CancellationCosts = "cancellationCosts";
-                    public const string OrderIds = "orderIds";
-                }
+                public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
+                public Runtime.VariableName.Output CancellationCosts { get; } = new(ProcessVariables.CancellationCosts);
+                public Runtime.VariableName.Input OrderIds { get; } = new(ProcessVariables.OrderIds);
             }
 
             public InputMappings Inputs { get; } = new();
@@ -680,13 +674,8 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input BikeId { get; } = new(Names.BikeId);
-                public Runtime.VariableName.Input BikeIds { get; } = new(Names.BikeIds);
-                public static class Names
-                {
-                    public const string BikeId = "bikeId";
-                    public const string BikeIds = "bikeIds";
-                }
+                public Runtime.VariableName.Input BikeId { get; } = new(ProcessVariables.BikeId);
+                public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
             }
 
             public Successors Next => new();
@@ -717,13 +706,8 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input BikeId { get; } = new(Names.BikeId);
-                public Runtime.VariableName.Input BikeIds { get; } = new(Names.BikeIds);
-                public static class Names
-                {
-                    public const string BikeId = "bikeId";
-                    public const string BikeIds = "bikeIds";
-                }
+                public Runtime.VariableName.Input BikeId { get; } = new(ProcessVariables.BikeId);
+                public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
             }
 
             public Successors Next => new();
@@ -778,13 +762,8 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input ApplicationId { get; } = new(Names.ApplicationId);
-                public Runtime.VariableName.Output ContractId { get; } = new(Names.ContractId);
-                public static class Names
-                {
-                    public const string ApplicationId = "applicationId";
-                    public const string ContractId = "contractId";
-                }
+                public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
+                public Runtime.VariableName.Output ContractId { get; } = new(ProcessVariables.ContractId);
             }
 
             public Successors Next => new();
@@ -889,13 +868,8 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input City { get; } = new(Names.City);
-                public Runtime.VariableName.Input Street { get; } = new(Names.Street);
-                public static class Names
-                {
-                    public const string City = "city";
-                    public const string Street = "street";
-                }
+                public Runtime.VariableName.Input City { get; } = new(ProcessVariables.City);
+                public Runtime.VariableName.Input Street { get; } = new(ProcessVariables.Street);
             }
 
             public Successors Next => new();
@@ -976,17 +950,10 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.Input Age { get; } = new(Names.Age);
-                public Runtime.VariableName.Input ApplicationId { get; } = new(Names.ApplicationId);
-                public Runtime.VariableName.Input BikeIds { get; } = new(Names.BikeIds);
-                public Runtime.VariableName.Input MonthlyNetIncome { get; } = new(Names.MonthlyNetIncome);
-                public static class Names
-                {
-                    public const string Age = "age";
-                    public const string ApplicationId = "applicationId";
-                    public const string BikeIds = "bikeIds";
-                    public const string MonthlyNetIncome = "monthlyNetIncome";
-                }
+                public Runtime.VariableName.Input Age { get; } = new(ProcessVariables.Age);
+                public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
+                public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
+                public Runtime.VariableName.Input MonthlyNetIncome { get; } = new(ProcessVariables.MonthlyNetIncome);
             }
 
             public Successors Next => new();
@@ -1158,11 +1125,7 @@ public static class BikeLeasingProcessApi
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
             {
-                public Runtime.VariableName.InOut DeliveryAddress { get; } = new(Names.DeliveryAddress);
-                public static class Names
-                {
-                    public const string DeliveryAddress = "deliveryAddress";
-                }
+                public Runtime.VariableName.InOut DeliveryAddress { get; } = new(ProcessVariables.DeliveryAddress);
             }
 
             public Successors Next => new();

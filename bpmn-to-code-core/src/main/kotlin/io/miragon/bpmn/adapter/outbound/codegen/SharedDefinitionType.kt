@@ -10,4 +10,5 @@ internal enum class SharedDefinitionType(val typeName: String) {
     SIGNALS("Signals"),
     ERRORS("Errors"),
     ESCALATIONS("Escalations"),
+    PROCESS_VARIABLES("ProcessVariables"),
 }

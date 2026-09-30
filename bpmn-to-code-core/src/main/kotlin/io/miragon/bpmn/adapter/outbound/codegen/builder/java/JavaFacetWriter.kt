@@ -9,10 +9,12 @@ import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaEscalationsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
@@ -23,7 +25,7 @@ import javax.lang.model.element.Modifier.STATIC
 /**
  * Emits a Java `FlowNodes` node's own data: the facet getters (`getJobType()`, `getCalledProcess()`, `getTimer()`, …)
  * implementing their runtime facet interfaces, the `getAttachedTo()`/`isInterrupting()` getters of a boundary event, and the nested holders (`Variables`, `Inputs`, `Outputs`).
- * Job types, messages, signals, errors and escalations refer to their shared definition constant.
+ * Job types, messages, signals, errors, escalations and variable names refer to their shared definition constant.
  */
 internal class JavaFacetWriter {
 
@@ -82,10 +84,10 @@ internal class JavaFacetWriter {
             val subtypeClass = JavaRuntimeTypes.VARIABLE_NAME.nestedClass(variable.subtype.simpleName)
             holder.addField(
                 FieldSpec.builder(subtypeClass, variable.constantName, PUBLIC, STATIC, FINAL)
-                    .initializer($$"new $T($N.$N)", subtypeClass, JavaNamesHolder.NAME, variable.constantName).build(),
+                    .initializer($$"new $T($L)", subtypeClass, JavaProcessVariablesWriter.reference(SharedConstant(variable.constantName))).build(),
             )
         }
-        return holder.addType(JavaNamesHolder(variables.map { it.constantName to it.rawName }).build()).build()
+        return holder.build()
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {

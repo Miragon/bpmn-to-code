@@ -8,17 +8,19 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpEscalationsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
  * Emits a C# `FlowNodes` node's own data: the facet properties (`JobType`, `CalledProcess`, `Timer`, `Message`, …)
  * implementing their runtime facet interfaces (`IHasJobType`, `ITimerEvent`, …), the `AttachedTo` link to a boundary event's host, and the nested
- * holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors and escalations refer to
- * their shared definition constant. Only `AttachedTo` crosses into another node, and it is expression-bodied
+ * holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors, escalations and
+ * variable names refer to their shared definition constant. Only `AttachedTo` crosses into another node, and it is expression-bodied
  * so the node's own initialisation never touches another singleton.
  */
 internal class CSharpFacetWriter(private val writer: CSharpWriter) {
@@ -55,10 +57,8 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         writer.sealedClass("NodeVariables") {
             variables.forEach { variable ->
                 val subtype = "${CSharpRuntimeTypes.VARIABLE_NAME}.${variable.subtype.simpleName}"
-                writer.readonlyProperty(name = pascalCase(variable.rawName), type = subtype, initializer = "new(Names.${pascalCase(variable.rawName)})")
-            }
-            writer.staticClass("Names") {
-                variables.forEach { variable -> writer.constant(pascalCase(variable.rawName), variable.rawName) }
+                val nameConstant = CSharpProcessVariablesWriter.reference(SharedConstant(variable.constantName))
+                writer.readonlyProperty(name = pascalCase(variable.rawName), type = subtype, initializer = "new($nameConstant)")
             }
         }
     }

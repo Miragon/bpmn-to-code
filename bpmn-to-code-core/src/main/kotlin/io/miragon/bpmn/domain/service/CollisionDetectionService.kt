@@ -17,7 +17,7 @@ import io.miragon.bpmn.domain.validation.model.CollisionDetail
  * because the two elements could differ and only the first would be emitted.
  *
  * Each check mirrors one scope of the generated API: flow nodes are named model-wide (the flat `FlowNodes`),
- * variables and call-activity mappings per node, and the shared definitions across all
+ * call-activity mappings per node, and the shared definitions — process variables included — across all
  * models of a run ([findSharedCollisions]).
  */
 class CollisionDetectionService {
@@ -45,6 +45,7 @@ class CollisionDetectionService {
         findSharedCollisionsIn(models, "Signal") { it.definitions.signals },
         findSharedCollisionsIn(models, "Error") { it.definitions.errors },
         findSharedCollisionsIn(models, "Escalation") { it.definitions.escalations },
+        findSharedCollisionsIn(models, "Variable") { it.variables },
     ).flatten()
 
     private fun <T : VariableMapping<*>> findSharedCollisionsIn(
@@ -70,7 +71,6 @@ class CollisionDetectionService {
 
     private fun findCollisionsOn(processId: String, node: FlowNodeDefinition): List<CollisionDetail> {
         val collisions = mutableListOf<CollisionDetail>()
-        collisions.addAll(findCollisionsIn(processId = processId, items = node.variables, variableType = "Variable"))
         (node as? FlowNodeDefinition.Activity.CallActivity)?.definition?.let { callActivity ->
             collisions.addAll(findMappingCollisions(processId, callActivity.inputMappings))
             collisions.addAll(findMappingCollisions(processId, callActivity.outputMappings))
@@ -100,13 +100,6 @@ class CollisionDetectionService {
                 conflictingIds = List(occurrences) { id },
             )
         }
-
-    private fun <T : VariableMapping<*>> findCollisionsIn(
-        processId: String,
-        items: List<T>,
-        variableType: String,
-        constantName: (T) -> String = { it.getName() },
-    ): List<CollisionDetail> = findCollisionsIn(processId = processId, items = items, variableType = variableType, rawName = { it.getRawName() }, constantName = constantName)
 
     private fun <T> findCollisionsIn(
         processId: String,

@@ -335,11 +335,7 @@ public static class CancelBikeOrderProcessApi
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
                 {
-                    public Runtime.VariableName.Output CancellationCosts { get; } = new(Names.CancellationCosts);
-                    public static class Names
-                    {
-                        public const string CancellationCosts = "cancellationCosts";
-                    }
+                    public Runtime.VariableName.Output CancellationCosts { get; } = new(ProcessVariables.CancellationCosts);
                 }
 
                 public Successors Next => new();
@@ -369,11 +365,7 @@ public static class CancelBikeOrderProcessApi
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
                 {
-                    public Runtime.VariableName.Output CancellationPossible { get; } = new(Names.CancellationPossible);
-                    public static class Names
-                    {
-                        public const string CancellationPossible = "cancellationPossible";
-                    }
+                    public Runtime.VariableName.Output CancellationPossible { get; } = new(ProcessVariables.CancellationPossible);
                 }
 
                 public Successors Next => new();
@@ -404,11 +396,7 @@ public static class CancelBikeOrderProcessApi
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
                 {
-                    public Runtime.VariableName.Input OrderIds { get; } = new(Names.OrderIds);
-                    public static class Names
-                    {
-                        public const string OrderIds = "orderIds";
-                    }
+                    public Runtime.VariableName.Input OrderIds { get; } = new(ProcessVariables.OrderIds);
                 }
 
                 public Successors Next => new();
