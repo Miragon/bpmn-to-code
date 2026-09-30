@@ -163,55 +163,6 @@ public static class BikeLeasingProcessApi
     /// </summary>
     public static class FlowNodes
     {
-        /// <summary>
-        /// Every node of this flow.
-        /// </summary>
-        public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]
-        {
-            BoundaryApplicationInvalid.Instance,
-            BoundaryCompensateContract.Instance,
-            BoundaryCompensateInsurance.Instance,
-            BoundaryCompensateOrder.Instance,
-            BoundaryContractNotSigned.Instance,
-            BusinessRuleTaskCheckCreditRating.Instance,
-            CallActivityCancelBikeOrder.Instance,
-            EndEventApplicationCancelled.Instance,
-            EndEventApplicationRejected.Instance,
-            EndEventContractConcluded.Instance,
-            EndEventContractNotSigned.Instance,
-            EndEventCustomerReminded.Instance,
-            EndEventDeliveryAddressUpdated.Instance,
-            EndEventLeasingActive.Instance,
-            EventContractSigned.Instance,
-            EventReverseApplication.Instance,
-            GatewayAwaitSignature.Instance,
-            GatewayCollectRejections.Instance,
-            GatewayFork.Instance,
-            GatewayIsSolvent.Instance,
-            GatewayJoin.Instance,
-            ReceiveTaskHandoverReported.Instance,
-            ServiceTaskCancelContract.Instance,
-            ServiceTaskCancelPolicy.Instance,
-            ServiceTaskIssueInsurancePolicy.Instance,
-            ServiceTaskOrderBike.Instance,
-            ServiceTaskSendCancellationConfirmation.Instance,
-            ServiceTaskSendContract.Instance,
-            ServiceTaskSendRejection.Instance,
-            ServiceTaskSendReminderMail.Instance,
-            ServiceTaskValidateApplication.Instance,
-            StartEventAddressChanged.Instance,
-            StartEventApplicationWithdrawn.Instance,
-            StartEventCustomerEligible.Instance,
-            StartEventLeasingRequestReceived.Instance,
-            SubProcessAddressChanged.Instance,
-            SubProcessApplicationWithdrawn.Instance,
-            SubProcessConcludeContract.Instance,
-            TimerSignatureDeadline.Instance,
-            TimerSignatureReminder.Instance,
-            TimerWithdrawalPeriodElapsed.Instance,
-            UserTaskUpdateDeliveryAddress.Instance,
-        };
-
         public sealed class BoundaryApplicationInvalid : Runtime.IBoundaryEvent
         {
             public static readonly BoundaryApplicationInvalid Instance = new();
@@ -1184,5 +1135,54 @@ public static class BikeLeasingProcessApi
                 public Runtime.SequenceFlow<EndEventDeliveryAddressUpdated> ToEndEventDeliveryAddressUpdated => new(new("flow_updateDeliveryAddressToDeliveryAddressUpdated"), EndEventDeliveryAddressUpdated.Instance);
             }
         }
+
+        /// <summary>
+        /// Every node of this flow.
+        /// </summary>
+        public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]
+        {
+            BoundaryApplicationInvalid.Instance,
+            BoundaryCompensateContract.Instance,
+            BoundaryCompensateInsurance.Instance,
+            BoundaryCompensateOrder.Instance,
+            BoundaryContractNotSigned.Instance,
+            BusinessRuleTaskCheckCreditRating.Instance,
+            CallActivityCancelBikeOrder.Instance,
+            EndEventApplicationCancelled.Instance,
+            EndEventApplicationRejected.Instance,
+            EndEventContractConcluded.Instance,
+            EndEventContractNotSigned.Instance,
+            EndEventCustomerReminded.Instance,
+            EndEventDeliveryAddressUpdated.Instance,
+            EndEventLeasingActive.Instance,
+            EventContractSigned.Instance,
+            EventReverseApplication.Instance,
+            GatewayAwaitSignature.Instance,
+            GatewayCollectRejections.Instance,
+            GatewayFork.Instance,
+            GatewayIsSolvent.Instance,
+            GatewayJoin.Instance,
+            ReceiveTaskHandoverReported.Instance,
+            ServiceTaskCancelContract.Instance,
+            ServiceTaskCancelPolicy.Instance,
+            ServiceTaskIssueInsurancePolicy.Instance,
+            ServiceTaskOrderBike.Instance,
+            ServiceTaskSendCancellationConfirmation.Instance,
+            ServiceTaskSendContract.Instance,
+            ServiceTaskSendRejection.Instance,
+            ServiceTaskSendReminderMail.Instance,
+            ServiceTaskValidateApplication.Instance,
+            StartEventAddressChanged.Instance,
+            StartEventApplicationWithdrawn.Instance,
+            StartEventCustomerEligible.Instance,
+            StartEventLeasingRequestReceived.Instance,
+            SubProcessAddressChanged.Instance,
+            SubProcessApplicationWithdrawn.Instance,
+            SubProcessConcludeContract.Instance,
+            TimerSignatureDeadline.Instance,
+            TimerSignatureReminder.Instance,
+            TimerWithdrawalPeriodElapsed.Instance,
+            UserTaskUpdateDeliveryAddress.Instance,
+        };
     }
 }

@@ -30,8 +30,8 @@ internal class JavaFlowWriter {
     private val facetWriter = JavaFacetWriter()
 
     fun write(builder: TypeSpec.Builder, graph: FlowGraph) {
-        builder.addMethod(allNodes(graph))
         graph.nodes.forEach { node -> builder.addMethod(nodeAccessor(node.propertyName, node.objectName, PUBLIC, STATIC)) }
+        builder.addMethod(allNodes(graph))
         graph.nodes.forEach { node -> builder.addType(buildNode(node)) }
     }
 
