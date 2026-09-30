@@ -110,7 +110,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val gatewayCollectRejections: SequenceFlows<GatewayCollectRejections>
-          get() = SequenceFlows(target = GatewayCollectRejections, flowId = ElementId("flow_applicationInvalidToCollectRejections"))
+          get() = SequenceFlows(flowId = ElementId("flow_applicationInvalidToCollectRejections"), target = GatewayCollectRejections)
       }
     }
 
@@ -180,7 +180,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val gatewayCollectRejections: SequenceFlows<GatewayCollectRejections>
-          get() = SequenceFlows(target = GatewayCollectRejections, flowId = ElementId("flow_contractNotSignedToCollectRejections"))
+          get() = SequenceFlows(flowId = ElementId("flow_contractNotSignedToCollectRejections"), target = GatewayCollectRejections)
       }
     }
 
@@ -195,7 +195,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val gatewayIsSolvent: SequenceFlows<GatewayIsSolvent>
-          get() = SequenceFlows(target = GatewayIsSolvent, flowId = ElementId("flow_checkCreditRatingToIsSolvent"))
+          get() = SequenceFlows(flowId = ElementId("flow_checkCreditRatingToIsSolvent"), target = GatewayIsSolvent)
       }
     }
 
@@ -325,7 +325,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val endEventContractConcluded: SequenceFlows<EndEventContractConcluded>
-          get() = SequenceFlows(target = EndEventContractConcluded, flowId = ElementId("flow_contractSignedToContractConcluded"))
+          get() = SequenceFlows(flowId = ElementId("flow_contractSignedToContractConcluded"), target = EndEventContractConcluded)
       }
     }
 
@@ -343,7 +343,7 @@ object BikeLeasingProcessApi {
       object Next {
         val serviceTaskSendCancellationConfirmation:
             SequenceFlows<ServiceTaskSendCancellationConfirmation>
-          get() = SequenceFlows(target = ServiceTaskSendCancellationConfirmation, flowId = ElementId("flow_reverseApplicationToSendCancellationConfirmation"))
+          get() = SequenceFlows(flowId = ElementId("flow_reverseApplicationToSendCancellationConfirmation"), target = ServiceTaskSendCancellationConfirmation)
       }
     }
 
@@ -358,10 +358,10 @@ object BikeLeasingProcessApi {
 
       object Next {
         val eventContractSigned: SequenceFlows<EventContractSigned>
-          get() = SequenceFlows(target = EventContractSigned, flowId = ElementId("flow_awaitSignatureToContractSigned"))
+          get() = SequenceFlows(flowId = ElementId("flow_awaitSignatureToContractSigned"), target = EventContractSigned)
 
         val timerSignatureDeadline: SequenceFlows<TimerSignatureDeadline>
-          get() = SequenceFlows(target = TimerSignatureDeadline, flowId = ElementId("flow_awaitSignatureToSignatureDeadline"))
+          get() = SequenceFlows(flowId = ElementId("flow_awaitSignatureToSignatureDeadline"), target = TimerSignatureDeadline)
       }
     }
 
@@ -375,7 +375,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val serviceTaskSendRejection: SequenceFlows<ServiceTaskSendRejection>
-          get() = SequenceFlows(target = ServiceTaskSendRejection, flowId = ElementId("flow_collectRejectionsToSendRejection"))
+          get() = SequenceFlows(flowId = ElementId("flow_collectRejectionsToSendRejection"), target = ServiceTaskSendRejection)
       }
     }
 
@@ -389,10 +389,10 @@ object BikeLeasingProcessApi {
 
       object Next {
         val serviceTaskIssueInsurancePolicy: SequenceFlows<ServiceTaskIssueInsurancePolicy>
-          get() = SequenceFlows(target = ServiceTaskIssueInsurancePolicy, flowId = ElementId("flow_forkToIssueInsurancePolicy"))
+          get() = SequenceFlows(flowId = ElementId("flow_forkToIssueInsurancePolicy"), target = ServiceTaskIssueInsurancePolicy)
 
         val serviceTaskOrderBike: SequenceFlows<ServiceTaskOrderBike>
-          get() = SequenceFlows(target = ServiceTaskOrderBike, flowId = ElementId("flow_forkToOrderBike"))
+          get() = SequenceFlows(flowId = ElementId("flow_forkToOrderBike"), target = ServiceTaskOrderBike)
       }
     }
 
@@ -444,7 +444,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val receiveTaskHandoverReported: SequenceFlows<ReceiveTaskHandoverReported>
-          get() = SequenceFlows(target = ReceiveTaskHandoverReported, flowId = ElementId("flow_joinToHandoverReported"))
+          get() = SequenceFlows(flowId = ElementId("flow_joinToHandoverReported"), target = ReceiveTaskHandoverReported)
       }
     }
 
@@ -461,7 +461,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val timerWithdrawalPeriodElapsed: SequenceFlows<TimerWithdrawalPeriodElapsed>
-          get() = SequenceFlows(target = TimerWithdrawalPeriodElapsed, flowId = ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"))
+          get() = SequenceFlows(flowId = ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"), target = TimerWithdrawalPeriodElapsed)
       }
     }
 
@@ -508,7 +508,7 @@ object BikeLeasingProcessApi {
           get() = AttachedBoundaryEvent(target = BoundaryCompensateInsurance)
 
         val gatewayJoin: SequenceFlows<GatewayJoin>
-          get() = SequenceFlows(target = GatewayJoin, flowId = ElementId("flow_issueInsurancePolicyToJoin"))
+          get() = SequenceFlows(flowId = ElementId("flow_issueInsurancePolicyToJoin"), target = GatewayJoin)
       }
     }
 
@@ -534,7 +534,7 @@ object BikeLeasingProcessApi {
           get() = AttachedBoundaryEvent(target = BoundaryCompensateOrder)
 
         val gatewayJoin: SequenceFlows<GatewayJoin>
-          get() = SequenceFlows(target = GatewayJoin, flowId = ElementId("flow_orderBikeToJoin"))
+          get() = SequenceFlows(flowId = ElementId("flow_orderBikeToJoin"), target = GatewayJoin)
       }
     }
 
@@ -551,7 +551,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val endEventApplicationCancelled: SequenceFlows<EndEventApplicationCancelled>
-          get() = SequenceFlows(target = EndEventApplicationCancelled, flowId = ElementId("flow_sendCancellationConfirmationToApplicationCancelled"))
+          get() = SequenceFlows(flowId = ElementId("flow_sendCancellationConfirmationToApplicationCancelled"), target = EndEventApplicationCancelled)
       }
     }
 
@@ -576,7 +576,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val gatewayAwaitSignature: SequenceFlows<GatewayAwaitSignature>
-          get() = SequenceFlows(target = GatewayAwaitSignature, flowId = ElementId("flow_sendContractToAwaitSignature"))
+          get() = SequenceFlows(flowId = ElementId("flow_sendContractToAwaitSignature"), target = GatewayAwaitSignature)
       }
     }
 
@@ -593,7 +593,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val endEventApplicationRejected: SequenceFlows<EndEventApplicationRejected>
-          get() = SequenceFlows(target = EndEventApplicationRejected, flowId = ElementId("flow_sendRejectionToApplicationRejected"))
+          get() = SequenceFlows(flowId = ElementId("flow_sendRejectionToApplicationRejected"), target = EndEventApplicationRejected)
       }
     }
 
@@ -610,7 +610,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val endEventCustomerReminded: SequenceFlows<EndEventCustomerReminded>
-          get() = SequenceFlows(target = EndEventCustomerReminded, flowId = ElementId("flow_sendReminderMailToCustomerReminded"))
+          get() = SequenceFlows(flowId = ElementId("flow_sendReminderMailToCustomerReminded"), target = EndEventCustomerReminded)
       }
     }
 
@@ -631,7 +631,7 @@ object BikeLeasingProcessApi {
 
         val businessRuleTaskCheckCreditRating:
             SequenceFlows<BusinessRuleTaskCheckCreditRating>
-          get() = SequenceFlows(target = BusinessRuleTaskCheckCreditRating, flowId = ElementId("flow_validateApplicationToCheckCreditRating"))
+          get() = SequenceFlows(flowId = ElementId("flow_validateApplicationToCheckCreditRating"), target = BusinessRuleTaskCheckCreditRating)
       }
     }
 
@@ -658,7 +658,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val userTaskUpdateDeliveryAddress: SequenceFlows<UserTaskUpdateDeliveryAddress>
-          get() = SequenceFlows(target = UserTaskUpdateDeliveryAddress, flowId = ElementId("flow_addressChangedToUpdateDeliveryAddress"))
+          get() = SequenceFlows(flowId = ElementId("flow_addressChangedToUpdateDeliveryAddress"), target = UserTaskUpdateDeliveryAddress)
       }
     }
 
@@ -679,7 +679,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val eventReverseApplication: SequenceFlows<EventReverseApplication>
-          get() = SequenceFlows(target = EventReverseApplication, flowId = ElementId("flow_applicationWithdrawnToReverseApplication"))
+          get() = SequenceFlows(flowId = ElementId("flow_applicationWithdrawnToReverseApplication"), target = EventReverseApplication)
       }
     }
 
@@ -696,7 +696,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val serviceTaskSendContract: SequenceFlows<ServiceTaskSendContract>
-          get() = SequenceFlows(target = ServiceTaskSendContract, flowId = ElementId("flow_customerEligibleToSendContract"))
+          get() = SequenceFlows(flowId = ElementId("flow_customerEligibleToSendContract"), target = ServiceTaskSendContract)
       }
     }
 
@@ -727,7 +727,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val serviceTaskValidateApplication: SequenceFlows<ServiceTaskValidateApplication>
-          get() = SequenceFlows(target = ServiceTaskValidateApplication, flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"))
+          get() = SequenceFlows(flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"), target = ServiceTaskValidateApplication)
       }
     }
 
@@ -780,7 +780,7 @@ object BikeLeasingProcessApi {
           get() = AttachedBoundaryEvent(target = BoundaryContractNotSigned)
 
         val gatewayFork: SequenceFlows<GatewayFork>
-          get() = SequenceFlows(target = GatewayFork, flowId = ElementId("flow_concludeContractToFork"))
+          get() = SequenceFlows(flowId = ElementId("flow_concludeContractToFork"), target = GatewayFork)
 
         val timerSignatureReminder: AttachedBoundaryEvent<TimerSignatureReminder>
           get() = AttachedBoundaryEvent(target = TimerSignatureReminder)
@@ -810,7 +810,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val endEventContractNotSigned: SequenceFlows<EndEventContractNotSigned>
-          get() = SequenceFlows(target = EndEventContractNotSigned, flowId = ElementId("flow_signatureDeadlineToContractNotSigned"))
+          get() = SequenceFlows(flowId = ElementId("flow_signatureDeadlineToContractNotSigned"), target = EndEventContractNotSigned)
       }
     }
 
@@ -838,7 +838,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val serviceTaskSendReminderMail: SequenceFlows<ServiceTaskSendReminderMail>
-          get() = SequenceFlows(target = ServiceTaskSendReminderMail, flowId = ElementId("flow_signatureReminderToSendReminderMail"))
+          get() = SequenceFlows(flowId = ElementId("flow_signatureReminderToSendReminderMail"), target = ServiceTaskSendReminderMail)
       }
     }
 
@@ -860,7 +860,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val endEventLeasingActive: SequenceFlows<EndEventLeasingActive>
-          get() = SequenceFlows(target = EndEventLeasingActive, flowId = ElementId("flow_withdrawalPeriodElapsedToLeasingActive"))
+          get() = SequenceFlows(flowId = ElementId("flow_withdrawalPeriodElapsedToLeasingActive"), target = EndEventLeasingActive)
       }
     }
 
@@ -880,7 +880,7 @@ object BikeLeasingProcessApi {
 
       object Next {
         val endEventDeliveryAddressUpdated: SequenceFlows<EndEventDeliveryAddressUpdated>
-          get() = SequenceFlows(target = EndEventDeliveryAddressUpdated, flowId = ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"))
+          get() = SequenceFlows(flowId = ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"), target = EndEventDeliveryAddressUpdated)
       }
     }
   }
