@@ -193,7 +193,6 @@ class CSharpCompilationTest {
             public static class Consumer
             {
                 [JobType(ServiceTasks.MiraveloSendContract)]
-                [JobType(Api.FlowNodes.ServiceTaskSendContract.JobType)]
                 public static string Describe(string jobType)
                 {
                     switch (jobType)
@@ -213,6 +212,8 @@ class CSharpCompilationTest {
                     bool isDefault = edge.IsDefault;
                     Api.FlowNodes.ServiceTaskValidateApplication target = edge.Target;
                     Api.Runtime.ISequenceFlow generic = edge;
+                    Api.Runtime.IHasJobType jobTask = Api.FlowNodes.ServiceTaskSendContract.Instance;
+                    string jobType = jobTask.JobType;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
                     if (!edge.Equals(start.OutgoingFlows.ToServiceTaskValidateApplication)) throw new InvalidOperationException();
                     Api.Runtime.IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder.Instance;

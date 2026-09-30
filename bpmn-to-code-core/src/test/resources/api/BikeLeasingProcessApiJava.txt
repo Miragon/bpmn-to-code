@@ -9,16 +9,22 @@ import io.miragon.bpmn.runtime.BpmnErrorDefinition;
 import io.miragon.bpmn.runtime.BpmnEscalationDefinition;
 import io.miragon.bpmn.runtime.BpmnEventType;
 import io.miragon.bpmn.runtime.BpmnTimer;
+import io.miragon.bpmn.runtime.CallActivity;
 import io.miragon.bpmn.runtime.ElementId;
+import io.miragon.bpmn.runtime.ErrorEvent;
+import io.miragon.bpmn.runtime.EscalationEvent;
 import io.miragon.bpmn.runtime.Event;
 import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.FlowScope;
+import io.miragon.bpmn.runtime.HasJobType;
+import io.miragon.bpmn.runtime.HasMessage;
 import io.miragon.bpmn.runtime.HasOutgoingFlows;
 import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.InputOutputMapping;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SequenceFlow;
+import io.miragon.bpmn.runtime.TimerEvent;
 import io.miragon.bpmn.runtime.TimerType;
 import io.miragon.bpmn.runtime.VariableName;
 import java.util.List;
@@ -207,9 +213,6 @@ public final class BikeLeasingProcessApi {
       return UserTaskUpdateDeliveryAddress.INSTANCE;
     }
 
-    /**
-     * Every node of this flow.
-     */
     public static List<FlowNode> all() {
       return List.of(
           BoundaryApplicationInvalid.INSTANCE,
@@ -256,12 +259,13 @@ public final class BikeLeasingProcessApi {
           UserTaskUpdateDeliveryAddress.INSTANCE);
     }
 
-    public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements HasSuccessors<BoundaryApplicationInvalid.Next>, HasOutgoingFlows<BoundaryApplicationInvalid.OutgoingFlows>, BoundaryEvent<ServiceTaskValidateApplication> {
+    public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements HasSuccessors<BoundaryApplicationInvalid.Next>,
+        HasOutgoingFlows<BoundaryApplicationInvalid.OutgoingFlows>,
+        BoundaryEvent<ServiceTaskValidateApplication>,
+        ErrorEvent {
       public static final String ELEMENT_ID = "boundary_applicationInvalid";
 
       public static final BoundaryApplicationInvalid INSTANCE = new BoundaryApplicationInvalid();
-
-      public static final BpmnErrorDefinition ERROR = Errors.MIRAVELO_APPLICATION_INVALID;
 
       private BoundaryApplicationInvalid() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.BOUNDARY_EVENT, "Application invalid");
@@ -270,6 +274,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.ERROR;
+      }
+
+      @Override
+      public BpmnErrorDefinition getError() {
+        return Errors.MIRAVELO_APPLICATION_INVALID;
       }
 
       @Override
@@ -380,12 +389,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class BoundaryContractNotSigned extends AbstractFlowNode implements HasSuccessors<BoundaryContractNotSigned.Next>, HasOutgoingFlows<BoundaryContractNotSigned.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract> {
+    public static final class BoundaryContractNotSigned extends AbstractFlowNode implements HasSuccessors<BoundaryContractNotSigned.Next>,
+        HasOutgoingFlows<BoundaryContractNotSigned.OutgoingFlows>,
+        BoundaryEvent<SubProcessConcludeContract>,
+        EscalationEvent {
       public static final String ELEMENT_ID = "boundary_contractNotSigned";
 
       public static final BoundaryContractNotSigned INSTANCE = new BoundaryContractNotSigned();
-
-      public static final BpmnEscalationDefinition ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED;
 
       private BoundaryContractNotSigned() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.BOUNDARY_EVENT, "Contract not signed");
@@ -394,6 +404,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.ESCALATION;
+      }
+
+      @Override
+      public BpmnEscalationDefinition getEscalation() {
+        return Escalations.MIRAVELO_CONTRACT_NOT_SIGNED;
       }
 
       @Override
@@ -461,15 +476,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class CallActivityCancelBikeOrder extends AbstractFlowNode {
+    public static final class CallActivityCancelBikeOrder extends AbstractFlowNode implements CallActivity {
       public static final String ELEMENT_ID = "callActivity_cancelBikeOrder";
 
       public static final CallActivityCancelBikeOrder INSTANCE = new CallActivityCancelBikeOrder();
 
-      public static final ProcessId CALLED_PROCESS = new ProcessId("cancelBikeOrder");
-
       private CallActivityCancelBikeOrder() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.CALL_ACTIVITY, "Cancel bike order");
+      }
+
+      @Override
+      public ProcessId getCalledProcess() {
+        return new ProcessId("cancelBikeOrder");
       }
 
       public static final class Variables {
@@ -553,12 +571,10 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class EndEventContractNotSigned extends AbstractFlowNode implements Event {
+    public static final class EndEventContractNotSigned extends AbstractFlowNode implements Event, EscalationEvent {
       public static final String ELEMENT_ID = "endEvent_contractNotSigned";
 
       public static final EndEventContractNotSigned INSTANCE = new EndEventContractNotSigned();
-
-      public static final BpmnEscalationDefinition ESCALATION = Escalations.MIRAVELO_CONTRACT_NOT_SIGNED;
 
       private EndEventContractNotSigned() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.END_EVENT, "Contract not signed");
@@ -567,6 +583,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.ESCALATION;
+      }
+
+      @Override
+      public BpmnEscalationDefinition getEscalation() {
+        return Escalations.MIRAVELO_CONTRACT_NOT_SIGNED;
       }
     }
 
@@ -615,12 +636,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class EventContractSigned extends AbstractFlowNode implements HasSuccessors<EventContractSigned.Next>, HasOutgoingFlows<EventContractSigned.OutgoingFlows>, Event {
+    public static final class EventContractSigned extends AbstractFlowNode implements HasSuccessors<EventContractSigned.Next>,
+        HasOutgoingFlows<EventContractSigned.OutgoingFlows>,
+        Event,
+        HasMessage {
       public static final String ELEMENT_ID = "event_contractSigned";
 
       public static final EventContractSigned INSTANCE = new EventContractSigned();
-
-      public static final MessageName MESSAGE = Messages.MIRAVELO_CONTRACT_SIGNED;
 
       private EventContractSigned() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.INTERMEDIATE_CATCH_EVENT, "Contract signed");
@@ -629,6 +651,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.MESSAGE;
+      }
+
+      @Override
+      public MessageName getMessage() {
+        return Messages.MIRAVELO_CONTRACT_SIGNED;
       }
 
       @Override
@@ -876,15 +903,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ReceiveTaskHandoverReported extends AbstractFlowNode implements HasSuccessors<ReceiveTaskHandoverReported.Next>, HasOutgoingFlows<ReceiveTaskHandoverReported.OutgoingFlows> {
+    public static final class ReceiveTaskHandoverReported extends AbstractFlowNode implements HasSuccessors<ReceiveTaskHandoverReported.Next>, HasOutgoingFlows<ReceiveTaskHandoverReported.OutgoingFlows>, HasMessage {
       public static final String ELEMENT_ID = "receiveTask_handoverReported";
 
       public static final ReceiveTaskHandoverReported INSTANCE = new ReceiveTaskHandoverReported();
 
-      public static final MessageName MESSAGE = Messages.MIRAVELO_HANDOVER_REPORTED;
-
       private ReceiveTaskHandoverReported() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.RECEIVE_TASK, "Await bike handover");
+      }
+
+      @Override
+      public MessageName getMessage() {
+        return Messages.MIRAVELO_HANDOVER_REPORTED;
       }
 
       @Override
@@ -910,39 +940,48 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskCancelContract extends AbstractFlowNode {
+    public static final class ServiceTaskCancelContract extends AbstractFlowNode implements HasJobType {
       public static final String ELEMENT_ID = "serviceTask_cancelContract";
 
       public static final ServiceTaskCancelContract INSTANCE = new ServiceTaskCancelContract();
 
-      public static final String JOB_TYPE = ServiceTasks.CANCEL_CONTRACT_DELEGATE;
-
       private ServiceTaskCancelContract() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Cancel contract");
       }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.CANCEL_CONTRACT_DELEGATE;
+      }
     }
 
-    public static final class ServiceTaskCancelPolicy extends AbstractFlowNode {
+    public static final class ServiceTaskCancelPolicy extends AbstractFlowNode implements HasJobType {
       public static final String ELEMENT_ID = "serviceTask_cancelPolicy";
 
       public static final ServiceTaskCancelPolicy INSTANCE = new ServiceTaskCancelPolicy();
 
-      public static final String JOB_TYPE = ServiceTasks.MIRAVELO_CANCEL_POLICY;
-
       private ServiceTaskCancelPolicy() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Cancel policy");
       }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.MIRAVELO_CANCEL_POLICY;
+      }
     }
 
-    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasOutgoingFlows<ServiceTaskIssueInsurancePolicy.OutgoingFlows> {
+    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasOutgoingFlows<ServiceTaskIssueInsurancePolicy.OutgoingFlows>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_issueInsurancePolicy";
 
       public static final ServiceTaskIssueInsurancePolicy INSTANCE = new ServiceTaskIssueInsurancePolicy();
 
-      public static final String JOB_TYPE = ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE;
-
       private ServiceTaskIssueInsurancePolicy() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Issue insurance policy");
+      }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE;
       }
 
       @Override
@@ -987,15 +1026,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasOutgoingFlows<ServiceTaskOrderBike.OutgoingFlows> {
+    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasOutgoingFlows<ServiceTaskOrderBike.OutgoingFlows>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_orderBike";
 
       public static final ServiceTaskOrderBike INSTANCE = new ServiceTaskOrderBike();
 
-      public static final String JOB_TYPE = ServiceTasks.MIRAVELO_ORDER_BIKE;
-
       private ServiceTaskOrderBike() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Order bike");
+      }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.MIRAVELO_ORDER_BIKE;
       }
 
       @Override
@@ -1040,15 +1082,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskSendCancellationConfirmation extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>, HasOutgoingFlows<ServiceTaskSendCancellationConfirmation.OutgoingFlows> {
+    public static final class ServiceTaskSendCancellationConfirmation extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>, HasOutgoingFlows<ServiceTaskSendCancellationConfirmation.OutgoingFlows>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendCancellationConfirmation";
 
       public static final ServiceTaskSendCancellationConfirmation INSTANCE = new ServiceTaskSendCancellationConfirmation();
 
-      public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_CANCELLATION_CONFIRMATION;
-
       private ServiceTaskSendCancellationConfirmation() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Send cancellation confirmation");
+      }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.MIRAVELO_SEND_CANCELLATION_CONFIRMATION;
       }
 
       @Override
@@ -1074,15 +1119,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows> {
+    public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendContract.Next>, HasOutgoingFlows<ServiceTaskSendContract.OutgoingFlows>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendContract";
 
       public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
 
-      public static final String JOB_TYPE = ServiceTasks.SEND_CONTRACT_DELEGATE;
-
       private ServiceTaskSendContract() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Send contract");
+      }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.SEND_CONTRACT_DELEGATE;
       }
 
       @Override
@@ -1123,15 +1171,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskSendRejection extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendRejection.Next>, HasOutgoingFlows<ServiceTaskSendRejection.OutgoingFlows> {
+    public static final class ServiceTaskSendRejection extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendRejection.Next>, HasOutgoingFlows<ServiceTaskSendRejection.OutgoingFlows>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendRejection";
 
       public static final ServiceTaskSendRejection INSTANCE = new ServiceTaskSendRejection();
 
-      public static final String JOB_TYPE = ServiceTasks.MIRAVELO_SEND_REJECTION;
-
       private ServiceTaskSendRejection() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Send rejection");
+      }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.MIRAVELO_SEND_REJECTION;
       }
 
       @Override
@@ -1157,15 +1208,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskSendReminderMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendReminderMail.Next>, HasOutgoingFlows<ServiceTaskSendReminderMail.OutgoingFlows> {
+    public static final class ServiceTaskSendReminderMail extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendReminderMail.Next>, HasOutgoingFlows<ServiceTaskSendReminderMail.OutgoingFlows>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_sendReminderMail";
 
       public static final ServiceTaskSendReminderMail INSTANCE = new ServiceTaskSendReminderMail();
 
-      public static final String JOB_TYPE = ServiceTasks.MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_;
-
       private ServiceTaskSendReminderMail() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Send reminder mail");
+      }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_;
       }
 
       @Override
@@ -1191,15 +1245,18 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskValidateApplication extends AbstractFlowNode implements HasSuccessors<ServiceTaskValidateApplication.Next>, HasOutgoingFlows<ServiceTaskValidateApplication.OutgoingFlows> {
+    public static final class ServiceTaskValidateApplication extends AbstractFlowNode implements HasSuccessors<ServiceTaskValidateApplication.Next>, HasOutgoingFlows<ServiceTaskValidateApplication.OutgoingFlows>, HasJobType {
       public static final String ELEMENT_ID = "serviceTask_validateApplication";
 
       public static final ServiceTaskValidateApplication INSTANCE = new ServiceTaskValidateApplication();
 
-      public static final String JOB_TYPE = ServiceTasks.VALIDATE_APPLICATION_DELEGATE;
-
       private ServiceTaskValidateApplication() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Validate application");
+      }
+
+      @Override
+      public String getJobType() {
+        return ServiceTasks.VALIDATE_APPLICATION_DELEGATE;
       }
 
       @Override
@@ -1230,12 +1287,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>, HasOutgoingFlows<StartEventAddressChanged.OutgoingFlows>, Event {
+    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>,
+        HasOutgoingFlows<StartEventAddressChanged.OutgoingFlows>,
+        Event,
+        HasMessage {
       public static final String ELEMENT_ID = "startEvent_addressChanged";
 
       public static final StartEventAddressChanged INSTANCE = new StartEventAddressChanged();
-
-      public static final MessageName MESSAGE = Messages.MIRAVELO_ADDRESS_CHANGED;
 
       private StartEventAddressChanged() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Address changed");
@@ -1244,6 +1302,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.MESSAGE;
+      }
+
+      @Override
+      public MessageName getMessage() {
+        return Messages.MIRAVELO_ADDRESS_CHANGED;
       }
 
       public boolean isInterrupting() {
@@ -1288,12 +1351,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class StartEventApplicationWithdrawn extends AbstractFlowNode implements HasSuccessors<StartEventApplicationWithdrawn.Next>, HasOutgoingFlows<StartEventApplicationWithdrawn.OutgoingFlows>, Event {
+    public static final class StartEventApplicationWithdrawn extends AbstractFlowNode implements HasSuccessors<StartEventApplicationWithdrawn.Next>,
+        HasOutgoingFlows<StartEventApplicationWithdrawn.OutgoingFlows>,
+        Event,
+        HasMessage {
       public static final String ELEMENT_ID = "startEvent_applicationWithdrawn";
 
       public static final StartEventApplicationWithdrawn INSTANCE = new StartEventApplicationWithdrawn();
-
-      public static final MessageName MESSAGE = Messages.MIRAVELO_APPLICATION_WITHDRAWN;
 
       private StartEventApplicationWithdrawn() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Application withdrawn");
@@ -1302,6 +1366,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.MESSAGE;
+      }
+
+      @Override
+      public MessageName getMessage() {
+        return Messages.MIRAVELO_APPLICATION_WITHDRAWN;
       }
 
       public boolean isInterrupting() {
@@ -1368,12 +1437,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>, HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows>, Event {
+    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>,
+        HasOutgoingFlows<StartEventLeasingRequestReceived.OutgoingFlows>,
+        Event,
+        HasMessage {
       public static final String ELEMENT_ID = "startEvent_leasingRequestReceived";
 
       public static final StartEventLeasingRequestReceived INSTANCE = new StartEventLeasingRequestReceived();
-
-      public static final MessageName MESSAGE = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED;
 
       private StartEventLeasingRequestReceived() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Leasing request received");
@@ -1382,6 +1452,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.MESSAGE;
+      }
+
+      @Override
+      public MessageName getMessage() {
+        return Messages.MIRAVELO_LEASING_REQUEST_RECEIVED;
       }
 
       @Override
@@ -1527,12 +1602,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class TimerSignatureDeadline extends AbstractFlowNode implements HasSuccessors<TimerSignatureDeadline.Next>, HasOutgoingFlows<TimerSignatureDeadline.OutgoingFlows>, Event {
+    public static final class TimerSignatureDeadline extends AbstractFlowNode implements HasSuccessors<TimerSignatureDeadline.Next>,
+        HasOutgoingFlows<TimerSignatureDeadline.OutgoingFlows>,
+        Event,
+        TimerEvent {
       public static final String ELEMENT_ID = "timer_signatureDeadline";
 
       public static final TimerSignatureDeadline INSTANCE = new TimerSignatureDeadline();
-
-      public static final BpmnTimer TIMER = new BpmnTimer(TimerType.DURATION, "P14D");
 
       private TimerSignatureDeadline() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.INTERMEDIATE_CATCH_EVENT, "14 days passed");
@@ -1541,6 +1617,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.TIMER;
+      }
+
+      @Override
+      public BpmnTimer getTimer() {
+        return new BpmnTimer(TimerType.DURATION, "P14D");
       }
 
       @Override
@@ -1566,12 +1647,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class TimerSignatureReminder extends AbstractFlowNode implements HasSuccessors<TimerSignatureReminder.Next>, HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>, BoundaryEvent<SubProcessConcludeContract> {
+    public static final class TimerSignatureReminder extends AbstractFlowNode implements HasSuccessors<TimerSignatureReminder.Next>,
+        HasOutgoingFlows<TimerSignatureReminder.OutgoingFlows>,
+        BoundaryEvent<SubProcessConcludeContract>,
+        TimerEvent {
       public static final String ELEMENT_ID = "timer_signatureReminder";
 
       public static final TimerSignatureReminder INSTANCE = new TimerSignatureReminder();
-
-      public static final BpmnTimer TIMER = new BpmnTimer(TimerType.DURATION, "P7D");
 
       private TimerSignatureReminder() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.BOUNDARY_EVENT, "7 days passed");
@@ -1580,6 +1662,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.TIMER;
+      }
+
+      @Override
+      public BpmnTimer getTimer() {
+        return new BpmnTimer(TimerType.DURATION, "P7D");
       }
 
       @Override
@@ -1615,12 +1702,13 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class TimerWithdrawalPeriodElapsed extends AbstractFlowNode implements HasSuccessors<TimerWithdrawalPeriodElapsed.Next>, HasOutgoingFlows<TimerWithdrawalPeriodElapsed.OutgoingFlows>, Event {
+    public static final class TimerWithdrawalPeriodElapsed extends AbstractFlowNode implements HasSuccessors<TimerWithdrawalPeriodElapsed.Next>,
+        HasOutgoingFlows<TimerWithdrawalPeriodElapsed.OutgoingFlows>,
+        Event,
+        TimerEvent {
       public static final String ELEMENT_ID = "timer_withdrawalPeriodElapsed";
 
       public static final TimerWithdrawalPeriodElapsed INSTANCE = new TimerWithdrawalPeriodElapsed();
-
-      public static final BpmnTimer TIMER = new BpmnTimer(TimerType.DURATION, "${withdrawalPeriod}");
 
       private TimerWithdrawalPeriodElapsed() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.INTERMEDIATE_CATCH_EVENT, "Withdrawal period elapsed");
@@ -1629,6 +1717,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public BpmnEventType getEventType() {
         return BpmnEventType.TIMER;
+      }
+
+      @Override
+      public BpmnTimer getTimer() {
+        return new BpmnTimer(TimerType.DURATION, "${withdrawalPeriod}");
       }
 
       @Override

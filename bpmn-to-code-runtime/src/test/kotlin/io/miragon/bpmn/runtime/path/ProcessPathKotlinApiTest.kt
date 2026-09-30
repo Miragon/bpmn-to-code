@@ -200,17 +200,17 @@ class ProcessPathKotlinApiTest {
 
         val input: VariableName.Input = BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID
         assertThat(input.value).isEqualTo("applicationId")
-        assertThat(BikeLeasing.ServiceTaskValidateApplication.JOB_TYPE).isEqualTo($$"${validateApplicationDelegate}")
-        assertThat(BikeLeasing.StartEventLeasingRequestReceived.MESSAGE).isEqualTo(MessageName("miravelo.leasingRequestReceived"))
-        assertThat(BikeLeasing.BoundaryApplicationInvalid.ERROR).isEqualTo(BpmnErrorDefinition("miravelo.applicationInvalid", "applicationInvalid"))
+        assertThat(BikeLeasing.ServiceTaskValidateApplication.jobType).isEqualTo($$"${validateApplicationDelegate}")
+        assertThat(BikeLeasing.StartEventLeasingRequestReceived.message).isEqualTo(MessageName("miravelo.leasingRequestReceived"))
+        assertThat(BikeLeasing.BoundaryApplicationInvalid.error).isEqualTo(BpmnErrorDefinition("miravelo.applicationInvalid", "applicationInvalid"))
 
-        assertThat(BikeLeasing.TimerSignatureReminder.TIMER).isEqualTo(BpmnTimer(TimerType.DURATION, "P7D"))
+        assertThat(BikeLeasing.TimerSignatureReminder.timer).isEqualTo(BpmnTimer(TimerType.DURATION, "P7D"))
         assertThat(BikeLeasing.TimerSignatureReminder.attachedTo).isEqualTo(SubProcessConcludeContract)
         assertThat(BikeLeasing.TimerSignatureReminder.isInterrupting).isFalse()
         assertThat(BikeLeasing.TimerSignatureReminder).isInstanceOf(BoundaryEvent::class.java)
         assertThat(BikeLeasing.ReceiveTaskHandoverReported).isNotInstanceOf(BoundaryEvent::class.java)
 
-        assertThat(BikeLeasing.CallActivityCancelBikeOrder.CALLED_PROCESS).isEqualTo(ProcessId("cancelBikeOrder"))
+        assertThat(BikeLeasing.CallActivityCancelBikeOrder.calledProcess).isEqualTo(ProcessId("cancelBikeOrder"))
         assertThat(BikeLeasing.CallActivityCancelBikeOrder.Inputs.ORDER_IDS.target).isEqualTo("orderIds")
         assertThat(BikeLeasing.CallActivityCancelBikeOrder.Outputs.CANCELLATION_COSTS.source).isEqualTo("cancellationCosts")
     }

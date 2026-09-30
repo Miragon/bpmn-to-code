@@ -18,21 +18,21 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
- * Emits a Kotlin `FlowNodes` node's own data: constants (`JOB_TYPE`, `CALLED_PROCESS`, `TIMER`, `MESSAGE`, …)
- * and the nested holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors and
+ * Emits a Kotlin `FlowNodes` node's own data: the facet properties (`jobType`, `calledProcess`, `timer`, `message`, …)
+ * implementing their runtime facet interfaces, and the nested holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors and
  * escalations refer to their shared definition constant. A boundary event's `attachedTo` and `isInterrupting`
  * implement `BoundaryEvent`; `attachedTo` is a getter so object initialisation never touches another node.
  */
 internal class KotlinFacetWriter {
 
     fun properties(facets: NodeFacets): List<PropertySpec> = listOfNotNull(
-        facets.jobType?.let { KotlinServiceTasksWriter.nodeProperty(name = "JOB_TYPE", shared = it) },
-        facets.calledProcessId?.let { wrappedProperty(name = "CALLED_PROCESS", wrapper = KotlinRuntimeTypes.PROCESS_ID, value = it) },
+        facets.jobType?.let { KotlinServiceTasksWriter.nodeProperty(name = "jobType", shared = it) },
+        facets.calledProcessId?.let { calledProcessProperty(it) },
         facets.timer?.let { timerProperty(it) },
-        facets.message?.let { KotlinMessagesWriter.nodeProperty(name = "MESSAGE", shared = it) },
-        facets.signal?.let { KotlinSignalsWriter.nodeProperty(name = "SIGNAL", shared = it) },
-        facets.error?.let { KotlinErrorsWriter.nodeProperty(name = "ERROR", shared = it) },
-        facets.escalation?.let { KotlinEscalationsWriter.nodeProperty(name = "ESCALATION", shared = it) },
+        facets.message?.let { KotlinMessagesWriter.nodeProperty(name = "message", shared = it) },
+        facets.signal?.let { KotlinSignalsWriter.nodeProperty(name = "signal", shared = it) },
+        facets.error?.let { KotlinErrorsWriter.nodeProperty(name = "error", shared = it) },
+        facets.escalation?.let { KotlinEscalationsWriter.nodeProperty(name = "escalation", shared = it) },
         facets.attachedTo?.let { attachedToProperty(it.objectName) },
         facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
     )
@@ -43,14 +43,19 @@ internal class KotlinFacetWriter {
         facets.outputs.takeIf { it.isNotEmpty() }?.let { mappingsHolder("Outputs", it) },
     )
 
-    private fun wrappedProperty(name: String, wrapper: ClassName, value: String): PropertySpec = PropertySpec.builder(name, wrapper)
-        .initializer(CodeBlock.of("%T(%L)", wrapper, stringLiteral(value))).build()
+    fun superinterfaces(facets: NodeFacets): List<ClassName> = facets.facetInterfaces.map { ClassName(KotlinRuntimeTypes.PACKAGE, it.typeName) }
+
+    private fun calledProcessProperty(calledProcessId: String): PropertySpec {
+        val processIdClass = KotlinRuntimeTypes.PROCESS_ID
+        val initializer = CodeBlock.of("%T(%L)", processIdClass, stringLiteral(calledProcessId))
+        return PropertySpec.builder("calledProcess", processIdClass, KModifier.OVERRIDE).initializer(initializer).build()
+    }
 
     private fun timerProperty(timer: TimerFacet): PropertySpec {
         val timerClass = KotlinRuntimeTypes.BPMN_TIMER
         val type = CodeBlock.of("%T.%L", KotlinRuntimeTypes.TIMER_TYPE, timer.type.name)
         val initializer = KotlinCodeFormat.namedCall(timerClass, "type" to type, "timerValue" to stringLiteral(timer.expression), placement = KotlinCodeFormat.Placement.INITIALIZER)
-        return PropertySpec.builder("TIMER", timerClass).initializer(initializer).build()
+        return PropertySpec.builder("timer", timerClass, KModifier.OVERRIDE).initializer(initializer).build()
     }
 
     private fun attachedToProperty(hostObjectName: String): PropertySpec = PropertySpec.builder("attachedTo", ClassName("", hostObjectName))

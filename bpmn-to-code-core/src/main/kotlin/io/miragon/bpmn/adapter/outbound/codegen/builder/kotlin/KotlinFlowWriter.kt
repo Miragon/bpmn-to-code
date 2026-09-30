@@ -35,7 +35,6 @@ internal class KotlinFlowWriter {
     }
 
     private fun entries(graph: FlowGraph): PropertySpec = PropertySpec.builder("entries", LIST.parameterizedBy(KotlinRuntimeTypes.FLOW_NODE))
-        .addKdoc("Every node of this flow.")
         .initializer(KotlinCodeFormat.listOfNames(graph.nodes.map { it.objectName })).build()
 
     private fun buildNode(node: FlowGraphNode): TypeSpec {
@@ -69,6 +68,7 @@ internal class KotlinFlowWriter {
         if (node.interiorStarts.isNotEmpty()) {
             nodeBuilder.addSuperinterface(ownHolderInterface(interfaceType = KotlinRuntimeTypes.FLOW_SCOPE, node = node, holderName = START_HOLDER))
         }
+        nodeBuilder.addSuperinterfaces(facetWriter.superinterfaces(node.facets))
         node.eventType?.let { eventType ->
             val eventTypeClass = KotlinRuntimeTypes.BPMN_EVENT_TYPE
             nodeBuilder.addProperty(PropertySpec.builder("eventType", eventTypeClass, KModifier.OVERRIDE).initializer("%T.%L", eventTypeClass, eventType).build())
@@ -101,7 +101,7 @@ internal class KotlinFlowWriter {
     private fun successorProperty(successor: FlowEdge, flowsToTarget: FlowsToTarget?): PropertySpec {
         val target = ClassName("", successor.objectName)
         val (successorType, value) = when (flowsToTarget) {
-            null -> KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of("%T(%N)", KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT, successor.objectName)
+            null -> KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of("%T(target = %N)", KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT, successor.objectName)
             else -> KotlinRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsCall(flowsToTarget)
         }
         val getter = FunSpec.getterBuilder().addStatement("return %L", value).build()
@@ -112,10 +112,10 @@ internal class KotlinFlowWriter {
         val targetName = flowsToTarget.target.objectName
         val plainFlow = flowsToTarget.flows.singleOrNull()?.takeIf { it.hasOnlyDefaults() }
         if (plainFlow != null) {
-            return CodeBlock.of("%T(%N, flowId = %T(%S))", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, KotlinRuntimeTypes.ELEMENT_ID, plainFlow.id)
+            return CodeBlock.of("%T(target = %N, flowId = %T(%S))", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, KotlinRuntimeTypes.ELEMENT_ID, plainFlow.id)
         }
         val flows = flowsToTarget.flows.map { sequenceFlowCall(it, targetName) }
-        return CodeBlock.of("%T(⇥\n%N,\n%L,⇤\n)", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, flows.joinToCode(",\n"))
+        return CodeBlock.of("%T(⇥\ntarget = %N,\nflows = listOf(⇥\n%L,⇤\n),⇤\n)", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, flows.joinToCode(",\n"))
     }
 
     private fun addInteriorStarts(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
@@ -131,7 +131,7 @@ internal class KotlinFlowWriter {
 
     private fun accessorProperty(propertyName: String, holderName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", holderName))
         .addModifiers(KModifier.OVERRIDE)
-        .getter(FunSpec.getterBuilder().addStatement("return %N", holderName).build()).build()
+        .initializer("%N", holderName).build()
 
     private fun nodeAccessor(propertyName: String, objectName: String): PropertySpec = PropertySpec.builder(propertyName, ClassName("", objectName))
         .getter(FunSpec.getterBuilder().addStatement("return %N", objectName).build()).build()

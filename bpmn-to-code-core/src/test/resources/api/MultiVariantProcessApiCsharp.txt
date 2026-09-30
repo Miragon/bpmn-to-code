@@ -34,6 +34,48 @@ public static class CancelBikeOrderProcessApi
         {
         }
 
+        /// <summary>A flow node implemented by a job worker of JobType.</summary>
+        public interface IHasJobType : IFlowNode
+        {
+            string JobType { get; }
+        }
+
+        /// <summary>A call activity, calling the process CalledProcess.</summary>
+        public interface ICallActivity : IFlowNode
+        {
+            ProcessId CalledProcess { get; }
+        }
+
+        /// <summary>An event with a Timer definition.</summary>
+        public interface ITimerEvent : IEvent
+        {
+            BpmnTimer Timer { get; }
+        }
+
+        /// <summary>A flow node that sends or receives the Message.</summary>
+        public interface IHasMessage : IFlowNode
+        {
+            MessageName Message { get; }
+        }
+
+        /// <summary>An event that throws or catches the Signal.</summary>
+        public interface ISignalEvent : IEvent
+        {
+            SignalName Signal { get; }
+        }
+
+        /// <summary>An event that throws or catches the Error.</summary>
+        public interface IErrorEvent : IEvent
+        {
+            BpmnErrorDefinition Error { get; }
+        }
+
+        /// <summary>An event that throws or catches the Escalation.</summary>
+        public interface IEscalationEvent : IEvent
+        {
+            BpmnEscalationDefinition Escalation { get; }
+        }
+
         /// <summary>A sequence flow without its target type, for generic tooling.</summary>
         public interface ISequenceFlow
         {
@@ -194,17 +236,17 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class EndEventBikeOrderCancelled : Runtime.IEvent
+            public sealed class EndEventBikeOrderCancelled : Runtime.IEvent, Runtime.IHasJobType, Runtime.IHasMessage
             {
                 public static readonly EndEventBikeOrderCancelled Instance = new();
                 private EndEventBikeOrderCancelled() { }
-                public const string JobType = ServiceTasks.MiraveloBikeOrderCancelled;
 
                 public const string ElementId = "endEvent_bikeOrderCancelled";
                 public Runtime.ElementId Id { get; } = new(ElementId);
                 public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
                 public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
                 public string? Name => "Bike order cancelled";
+                public string JobType { get; } = ServiceTasks.MiraveloBikeOrderCancelled;
                 public Runtime.MessageName Message { get; } = new(Messages.MiraveloBikeOrderCancelled);
             }
 
@@ -279,16 +321,16 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class ServiceTaskBookCancellationCosts : Runtime.IFlowNode
+            public sealed class ServiceTaskBookCancellationCosts : Runtime.IFlowNode, Runtime.IHasJobType
             {
                 public static readonly ServiceTaskBookCancellationCosts Instance = new();
                 private ServiceTaskBookCancellationCosts() { }
-                public const string JobType = ServiceTasks.BookCancellationCostsDelegate;
 
                 public const string ElementId = "serviceTask_bookCancellationCosts";
                 public Runtime.ElementId Id { get; } = new(ElementId);
                 public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
                 public string? Name => "Book cancellation costs";
+                public string JobType { get; } = ServiceTasks.BookCancellationCostsDelegate;
 
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
@@ -313,16 +355,16 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class ServiceTaskRequestCancellation : Runtime.IFlowNode
+            public sealed class ServiceTaskRequestCancellation : Runtime.IFlowNode, Runtime.IHasJobType
             {
                 public static readonly ServiceTaskRequestCancellation Instance = new();
                 private ServiceTaskRequestCancellation() { }
-                public const string JobType = ServiceTasks.MiraveloRequestCancellation;
 
                 public const string ElementId = "serviceTask_requestCancellation";
                 public Runtime.ElementId Id { get; } = new(ElementId);
                 public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
                 public string? Name => "Request cancellation";
+                public string JobType { get; } = ServiceTasks.MiraveloRequestCancellation;
 
                 public NodeVariables Variables { get; } = new();
                 public sealed class NodeVariables
@@ -405,9 +447,6 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            /// <summary>
-            /// Every node of this flow.
-            /// </summary>
             public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]
             {
                 BoundaryCancellationFailed.Instance,

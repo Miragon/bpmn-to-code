@@ -29,9 +29,10 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
    guaranteed model-wide by the mandatory `collision-detection` rule, which now also rejects the same id
    declared in two scopes.
 2. **Nodes carry their facets**, mirroring the sealed `FlowNodeDefinition` hierarchy: `id` / `elementType` /
-   `name` on all; `JOB_TYPE` on tasks and events with an implementation; `Variables`; `CALLED_PROCESS` with
-   `Inputs` / `Outputs` on call activities; `TIMER`; `MESSAGE` / `SIGNAL` / `ERROR` / `ESCALATION`;
-   `attachedTo`, `isInterrupting` and `BoundaryEvent<Host>` on boundary events. The `Elements`, `Variables`, `CallActivities` and
+   `name` on all; `jobType` on tasks and events with an implementation; `Variables`; `calledProcess` with
+   `Inputs` / `Outputs` on call activities; `timer`; `message` / `signal` / `error` / `escalation`;
+   `attachedTo`, `isInterrupting` and `BoundaryEvent<Host>` on boundary events. Each value facet implements a
+   runtime interface (`HasJobType`, `TimerEvent`, …), so generic code can filter nodes by facet. The `Elements`, `Variables`, `CallActivities` and
    `Timers` sections are removed.
 3. **Outgoing sequence flows are named after the element they lead to.** Each node with outgoing flows
    exposes `outgoingFlows` / `OutgoingFlows` with one `to<Element>` entry per target: a
@@ -45,16 +46,16 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 4. **Registries stay shared** where BPMN itself models a shared identity: root elements (`Messages`, `Errors`,
    `Signals`, `Escalations`) and job types (`ServiceTasks`, one `const` per distinct type, the canonical
    argument for `@JobWorker`) are the shared definition files of [ADR 021](021-shared-definition-apis.md).
-   A node refers to that shared constant instead of repeating the value (`JOB_TYPE = ServiceTasks.X`,
+   A node refers to that shared constant instead of repeating the value (`jobType = ServiceTasks.X`,
    `message: MessageName = Messages.X`), so a value exists once per run and a node shows where it comes
    from. Only a value no root element declares — an unresolved reference — is written on the node itself.
 5. **C# reaches parity by inlining its runtime.** The runtime types are emitted into every generated file
    as a nested `Runtime` class, so the file still has no dependencies and two files never clash. Nodes are
    sealed singletons (`Flow.X.Instance`) navigated by instance, because static members cannot chain;
-   `JobType` stays a `const`. This reverses ADR 020's rejection of inlining: with the type set this small and
+   `JobType` is an `IHasJobType` property, and `ServiceTasks.X` is the `const` for attributes. This reverses ADR 020's rejection of inlining: with the type set this small and
    no NuGet pipeline, a package would cost more than the duplication.
 6. **Member names follow JSON v2** (`conditionExpression`, `isInterrupting`, `isDefault`); references that
-   hold the resolved value drop the `Ref` suffix (`attachedTo`, `CALLED_PROCESS`).
+   hold the resolved value drop the `Ref` suffix (`attachedTo`, `calledProcess`).
 7. **One reserved-name rule.** An element whose generated name would shadow a holder (`Flow`, `Next`,
    `Instance`, …), a runtime type or a `java.lang.Object` method breaks compilation in at least one language,
    so the mandatory `reserved-element-name` rule rejects it explicitly rather than each language renaming
@@ -71,7 +72,7 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 
 ### Negative
 - Breaking for 5.x consumers: `Elements.X` → `Flow.X.id`, `Variables.Node.V` → `Flow.Node.Variables.V`,
-  `CallActivities.Node.*` → `Flow.Node.*`, `Timers.T` → `Flow.T.TIMER`, nested interior nodes → flat.
+  `CallActivities.Node.*` → `Flow.Node.*`, `Timers.T` → `Flow.T.timer`, nested interior nodes → flat.
   C# consumers lose `const string` element ids (`Flow.X.Instance.Id.Value` is an instance property).
 - Longer generated files, C# in particular (the runtime block repeats per file).
 - Per-file C# runtime types are unrelated across processes; generic .NET tooling needs its own abstraction.

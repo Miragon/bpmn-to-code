@@ -66,8 +66,7 @@ internal class CSharpWriter {
      * A static read-only list with one element per line. Expression-bodied, so it never takes part in static
      * initialisation.
      */
-    fun staticListProperty(name: String, elementType: String, elements: List<String>, doc: String? = null) {
-        doc?.let { docComment(it) }
+    fun staticListProperty(name: String, elementType: String, elements: List<String>) {
         line("public static System.Collections.Generic.IReadOnlyList<$elementType> $name => new $elementType[]")
         line("{")
         elements.forEach { line("    $it,") }

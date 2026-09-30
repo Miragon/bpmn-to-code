@@ -34,6 +34,48 @@ public static class BikeLeasingProcessApi
         {
         }
 
+        /// <summary>A flow node implemented by a job worker of JobType.</summary>
+        public interface IHasJobType : IFlowNode
+        {
+            string JobType { get; }
+        }
+
+        /// <summary>A call activity, calling the process CalledProcess.</summary>
+        public interface ICallActivity : IFlowNode
+        {
+            ProcessId CalledProcess { get; }
+        }
+
+        /// <summary>An event with a Timer definition.</summary>
+        public interface ITimerEvent : IEvent
+        {
+            BpmnTimer Timer { get; }
+        }
+
+        /// <summary>A flow node that sends or receives the Message.</summary>
+        public interface IHasMessage : IFlowNode
+        {
+            MessageName Message { get; }
+        }
+
+        /// <summary>An event that throws or catches the Signal.</summary>
+        public interface ISignalEvent : IEvent
+        {
+            SignalName Signal { get; }
+        }
+
+        /// <summary>An event that throws or catches the Error.</summary>
+        public interface IErrorEvent : IEvent
+        {
+            BpmnErrorDefinition Error { get; }
+        }
+
+        /// <summary>An event that throws or catches the Escalation.</summary>
+        public interface IEscalationEvent : IEvent
+        {
+            BpmnEscalationDefinition Escalation { get; }
+        }
+
         /// <summary>A sequence flow without its target type, for generic tooling.</summary>
         public interface ISequenceFlow
         {
@@ -163,7 +205,7 @@ public static class BikeLeasingProcessApi
     /// </summary>
     public static class FlowNodes
     {
-        public sealed class BoundaryApplicationInvalid : Runtime.IBoundaryEvent
+        public sealed class BoundaryApplicationInvalid : Runtime.IBoundaryEvent, Runtime.IErrorEvent
         {
             public static readonly BoundaryApplicationInvalid Instance = new();
             private BoundaryApplicationInvalid() { }
@@ -232,7 +274,7 @@ public static class BikeLeasingProcessApi
             public bool IsInterrupting => true;
         }
 
-        public sealed class BoundaryContractNotSigned : Runtime.IBoundaryEvent
+        public sealed class BoundaryContractNotSigned : Runtime.IBoundaryEvent, Runtime.IEscalationEvent
         {
             public static readonly BoundaryContractNotSigned Instance = new();
             private BoundaryContractNotSigned() { }
@@ -282,7 +324,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class CallActivityCancelBikeOrder : Runtime.IFlowNode
+        public sealed class CallActivityCancelBikeOrder : Runtime.IFlowNode, Runtime.ICallActivity
         {
             public static readonly CallActivityCancelBikeOrder Instance = new();
             private CallActivityCancelBikeOrder() { }
@@ -357,7 +399,7 @@ public static class BikeLeasingProcessApi
             public string? Name => "Contract concluded";
         }
 
-        public sealed class EndEventContractNotSigned : Runtime.IEvent
+        public sealed class EndEventContractNotSigned : Runtime.IEvent, Runtime.IEscalationEvent
         {
             public static readonly EndEventContractNotSigned Instance = new();
             private EndEventContractNotSigned() { }
@@ -406,7 +448,7 @@ public static class BikeLeasingProcessApi
             public string? Name => "Leasing active";
         }
 
-        public sealed class EventContractSigned : Runtime.IEvent
+        public sealed class EventContractSigned : Runtime.IEvent, Runtime.IHasMessage
         {
             public static readonly EventContractSigned Instance = new();
             private EventContractSigned() { }
@@ -576,7 +618,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ReceiveTaskHandoverReported : Runtime.IFlowNode
+        public sealed class ReceiveTaskHandoverReported : Runtime.IFlowNode, Runtime.IHasMessage
         {
             public static readonly ReceiveTaskHandoverReported Instance = new();
             private ReceiveTaskHandoverReported() { }
@@ -600,40 +642,40 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ServiceTaskCancelContract : Runtime.IFlowNode
+        public sealed class ServiceTaskCancelContract : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskCancelContract Instance = new();
             private ServiceTaskCancelContract() { }
-            public const string JobType = ServiceTasks.CancelContractDelegate;
 
             public const string ElementId = "serviceTask_cancelContract";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Cancel contract";
+            public string JobType { get; } = ServiceTasks.CancelContractDelegate;
         }
 
-        public sealed class ServiceTaskCancelPolicy : Runtime.IFlowNode
+        public sealed class ServiceTaskCancelPolicy : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskCancelPolicy Instance = new();
             private ServiceTaskCancelPolicy() { }
-            public const string JobType = ServiceTasks.MiraveloCancelPolicy;
 
             public const string ElementId = "serviceTask_cancelPolicy";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Cancel policy";
+            public string JobType { get; } = ServiceTasks.MiraveloCancelPolicy;
         }
 
-        public sealed class ServiceTaskIssueInsurancePolicy : Runtime.IFlowNode
+        public sealed class ServiceTaskIssueInsurancePolicy : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskIssueInsurancePolicy Instance = new();
             private ServiceTaskIssueInsurancePolicy() { }
-            public const string JobType = ServiceTasks.IoMiraveloLeasingIssueInsurancePolicyDelegate;
 
             public const string ElementId = "serviceTask_issueInsurancePolicy";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Issue insurance policy";
+            public string JobType { get; } = ServiceTasks.IoMiraveloLeasingIssueInsurancePolicyDelegate;
 
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
@@ -661,16 +703,16 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ServiceTaskOrderBike : Runtime.IFlowNode
+        public sealed class ServiceTaskOrderBike : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskOrderBike Instance = new();
             private ServiceTaskOrderBike() { }
-            public const string JobType = ServiceTasks.MiraveloOrderBike;
 
             public const string ElementId = "serviceTask_orderBike";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Order bike";
+            public string JobType { get; } = ServiceTasks.MiraveloOrderBike;
 
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
@@ -698,16 +740,16 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ServiceTaskSendCancellationConfirmation : Runtime.IFlowNode
+        public sealed class ServiceTaskSendCancellationConfirmation : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendCancellationConfirmation Instance = new();
             private ServiceTaskSendCancellationConfirmation() { }
-            public const string JobType = ServiceTasks.MiraveloSendCancellationConfirmation;
 
             public const string ElementId = "serviceTask_sendCancellationConfirmation";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send cancellation confirmation";
+            public string JobType { get; } = ServiceTasks.MiraveloSendCancellationConfirmation;
 
             public Successors Next => new();
             public sealed class Successors
@@ -722,16 +764,16 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ServiceTaskSendContract : Runtime.IFlowNode
+        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendContract Instance = new();
             private ServiceTaskSendContract() { }
-            public const string JobType = ServiceTasks.SendContractDelegate;
 
             public const string ElementId = "serviceTask_sendContract";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send contract";
+            public string JobType { get; } = ServiceTasks.SendContractDelegate;
 
             public NodeVariables Variables { get; } = new();
             public sealed class NodeVariables
@@ -758,16 +800,16 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ServiceTaskSendRejection : Runtime.IFlowNode
+        public sealed class ServiceTaskSendRejection : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendRejection Instance = new();
             private ServiceTaskSendRejection() { }
-            public const string JobType = ServiceTasks.MiraveloSendRejection;
 
             public const string ElementId = "serviceTask_sendRejection";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send rejection";
+            public string JobType { get; } = ServiceTasks.MiraveloSendRejection;
 
             public Successors Next => new();
             public sealed class Successors
@@ -782,16 +824,16 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ServiceTaskSendReminderMail : Runtime.IFlowNode
+        public sealed class ServiceTaskSendReminderMail : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendReminderMail Instance = new();
             private ServiceTaskSendReminderMail() { }
-            public const string JobType = ServiceTasks.MailServiceSendReminderApplicationId;
 
             public const string ElementId = "serviceTask_sendReminderMail";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send reminder mail";
+            public string JobType { get; } = ServiceTasks.MailServiceSendReminderApplicationId;
 
             public Successors Next => new();
             public sealed class Successors
@@ -806,16 +848,16 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class ServiceTaskValidateApplication : Runtime.IFlowNode
+        public sealed class ServiceTaskValidateApplication : Runtime.IFlowNode, Runtime.IHasJobType
         {
             public static readonly ServiceTaskValidateApplication Instance = new();
             private ServiceTaskValidateApplication() { }
-            public const string JobType = ServiceTasks.ValidateApplicationDelegate;
 
             public const string ElementId = "serviceTask_validateApplication";
             public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Validate application";
+            public string JobType { get; } = ServiceTasks.ValidateApplicationDelegate;
 
             public Successors Next => new();
             public sealed class Successors
@@ -831,7 +873,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class StartEventAddressChanged : Runtime.IEvent
+        public sealed class StartEventAddressChanged : Runtime.IEvent, Runtime.IHasMessage
         {
             public static readonly StartEventAddressChanged Instance = new();
             private StartEventAddressChanged() { }
@@ -869,7 +911,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class StartEventApplicationWithdrawn : Runtime.IEvent
+        public sealed class StartEventApplicationWithdrawn : Runtime.IEvent, Runtime.IHasMessage
         {
             public static readonly StartEventApplicationWithdrawn Instance = new();
             private StartEventApplicationWithdrawn() { }
@@ -919,7 +961,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class StartEventLeasingRequestReceived : Runtime.IEvent
+        public sealed class StartEventLeasingRequestReceived : Runtime.IEvent, Runtime.IHasMessage
         {
             public static readonly StartEventLeasingRequestReceived Instance = new();
             private StartEventLeasingRequestReceived() { }
@@ -1026,7 +1068,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class TimerSignatureDeadline : Runtime.IEvent
+        public sealed class TimerSignatureDeadline : Runtime.IEvent, Runtime.ITimerEvent
         {
             public static readonly TimerSignatureDeadline Instance = new();
             private TimerSignatureDeadline() { }
@@ -1051,7 +1093,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class TimerSignatureReminder : Runtime.IBoundaryEvent
+        public sealed class TimerSignatureReminder : Runtime.IBoundaryEvent, Runtime.ITimerEvent
         {
             public static readonly TimerSignatureReminder Instance = new();
             private TimerSignatureReminder() { }
@@ -1078,7 +1120,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class TimerWithdrawalPeriodElapsed : Runtime.IEvent
+        public sealed class TimerWithdrawalPeriodElapsed : Runtime.IEvent, Runtime.ITimerEvent
         {
             public static readonly TimerWithdrawalPeriodElapsed Instance = new();
             private TimerWithdrawalPeriodElapsed() { }
@@ -1136,9 +1178,6 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        /// <summary>
-        /// Every node of this flow.
-        /// </summary>
         public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]
         {
             BoundaryApplicationInvalid.Instance,
