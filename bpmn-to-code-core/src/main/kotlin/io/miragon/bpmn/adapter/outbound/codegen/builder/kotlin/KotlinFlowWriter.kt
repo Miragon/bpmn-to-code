@@ -112,7 +112,7 @@ internal class KotlinFlowWriter {
         val targetName = flowsToTarget.target.objectName
         val plainFlow = flowsToTarget.flows.singleOrNull()?.takeIf { it.hasOnlyDefaults() }
         if (plainFlow != null) {
-            return CodeBlock.of("%T(target = %N, flowId = %T(%S))", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, KotlinRuntimeTypes.ELEMENT_ID, plainFlow.id)
+            return CodeBlock.of("%T(flowId = %T(%S), target = %N)", KotlinRuntimeTypes.SEQUENCE_FLOWS, KotlinRuntimeTypes.ELEMENT_ID, plainFlow.id, targetName)
         }
         val flows = flowsToTarget.flows.map { sequenceFlowCall(it, targetName) }
         return CodeBlock.of("%T(⇥\ntarget = %N,\nflows = listOf(⇥\n%L,⇤\n),⇤\n)", KotlinRuntimeTypes.SEQUENCE_FLOWS, targetName, flows.joinToCode(",\n"))
