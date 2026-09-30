@@ -10,17 +10,19 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinEscalationsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
  * Emits a Kotlin `FlowNodes` node's own data: the facet properties (`jobType`, `calledProcess`, `timer`, `message`, …)
- * implementing their runtime facet interfaces, and the nested holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors and
- * escalations refer to their shared definition constant. A boundary event's `attachedTo` and `isInterrupting`
+ * implementing their runtime facet interfaces, and the nested holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors,
+ * escalations and variable names refer to their shared definition constant. A boundary event's `attachedTo` and `isInterrupting`
  * implement `BoundaryEvent`; `attachedTo` is a getter so object initialisation never touches another node.
  */
 internal class KotlinFacetWriter {
@@ -74,10 +76,10 @@ internal class KotlinFacetWriter {
             val subtypeClass = KotlinRuntimeTypes.VARIABLE_NAME.nestedClass(variable.subtype.simpleName)
             holder.addProperty(
                 PropertySpec.builder(variable.constantName, subtypeClass)
-                    .initializer("%T(%N.%N)", subtypeClass, KotlinNamesHolder.NAME, variable.constantName).build(),
+                    .initializer("%T(%L)", subtypeClass, KotlinProcessVariablesWriter.reference(SharedConstant(variable.constantName))).build(),
             )
         }
-        return holder.addType(KotlinNamesHolder(variables.map { it.constantName to it.rawName }).build()).build()
+        return holder.build()
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {

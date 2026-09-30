@@ -1,6 +1,9 @@
 package io.miragon.bpmn.domain
 
+import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.RootElementDefinition
+import io.miragon.bpmn.domain.shared.VariableDefinition
+import io.miragon.bpmn.domain.shared.VariableDirection
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -26,6 +29,33 @@ class SharedDefinitionsTest {
         // then: each identifier appears once
         assertThat(result.serviceTasks.map { it.getValue() }).containsExactly("newsletter.sendMail")
         assertThat(result.messages.map { it.getValue() }).containsExactly("Message_FormSubmitted")
+    }
+
+    @Test
+    fun `from keeps one entry for a variable used by two processes in different directions`() {
+        // given: two processes both declaring orderId, one reading and one writing it
+        val first = testProcessModel(
+            processId = "first",
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "Task_A", variables = listOf(VariableDefinition(name = "orderId", direction = VariableDirection.INPUT)))),
+        )
+        val second = testProcessModel(
+            processId = "second",
+            flowNodes = listOf(
+                FlowNodeDefinition.Unknown(
+                    id = "Task_B",
+                    variables = listOf(
+                        VariableDefinition(name = "orderId", direction = VariableDirection.OUTPUT),
+                        VariableDefinition(name = "amount", direction = VariableDirection.INPUT),
+                    ),
+                ),
+            ),
+        )
+
+        // when: collecting the shared definitions
+        val result = SharedDefinitions.from(listOf(first, second))
+
+        // then: each variable name appears once, sorted
+        assertThat(result.processVariables.map { it.getValue() }).containsExactly("amount", "orderId")
     }
 
     @Test

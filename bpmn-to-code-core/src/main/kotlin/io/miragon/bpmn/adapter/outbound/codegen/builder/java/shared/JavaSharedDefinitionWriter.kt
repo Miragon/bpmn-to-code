@@ -47,7 +47,7 @@ internal abstract class JavaSharedDefinitionWriter<T : Any> {
         return if (constant != null) reference(constant) else initializer(shared.value)
     }
 
-    private fun reference(constant: SharedConstant): CodeBlock = CodeBlock.of($$"$T.$N", ClassName.get("", type.typeName), constant.name)
+    fun reference(constant: SharedConstant): CodeBlock = CodeBlock.of($$"$T.$N", ClassName.get("", type.typeName), constant.name)
 
     private fun field(name: String, initializer: CodeBlock): FieldSpec = FieldSpec.builder(elementType, name, PUBLIC, STATIC, FINAL).initializer(initializer).build()
 

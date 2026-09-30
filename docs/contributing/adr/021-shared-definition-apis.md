@@ -31,6 +31,13 @@ constant and one of them was silently lost.
 - **Collisions are checked across all processes.** Two different values that normalize to the same
   constant name — in one process or in two — fail generation. `SharedDefinitionCollisionRule` is a
   mandatory cross-model rule; `CollisionDetectionRule` keeps checking the process-local sections.
+- **Variable names are shared too.** `ProcessVariables` holds each variable name of the run once as a raw
+  string constant. Variables live on the process instance, but several processes use the same names (an
+  `orderId` across all order processes), so one constant makes every usage findable across processes. The
+  direction stays process-bound: each node's typed `Variables` wrap the shared constant as `Input`, `Output` or
+  `InOut`. The file is named `ProcessVariables`, not `Variables`, since each node's own `Variables` holder
+  would shadow it. As for the other kinds, `orderId` and `order_id` fold to one constant and fail generation,
+  now across processes as well.
 - **No flag.** This is the layout of 6.0.0; the old nesting is not kept as an option.
 
 ## Consequences

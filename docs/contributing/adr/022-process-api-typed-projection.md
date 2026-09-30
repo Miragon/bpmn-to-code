@@ -68,7 +68,7 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
 - Conditions and default markers are readable and assertable in code, in all three languages.
 - C# ships the full API, without a runtime package to publish and version.
 - Collision detection mirrors the generated scopes exactly: model-wide for nodes, run-wide for the shared
-  registries, per node for variables and call-activity mappings.
+  registries (process variables included), per node for call-activity mappings.
 
 ### Negative
 - Breaking for 5.x consumers: `Elements.X` → `Flow.X.id`, `Variables.Node.V` → `Flow.Node.Variables.V`,

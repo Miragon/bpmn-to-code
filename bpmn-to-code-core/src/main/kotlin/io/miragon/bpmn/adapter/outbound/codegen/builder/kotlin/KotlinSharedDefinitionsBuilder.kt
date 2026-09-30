@@ -4,6 +4,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinEscalationsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinSignalsWriter
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -20,6 +21,7 @@ internal class KotlinSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         KotlinSignalsWriter,
         KotlinErrorsWriter,
         KotlinEscalationsWriter,
+        KotlinProcessVariablesWriter,
     )
 
     override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers

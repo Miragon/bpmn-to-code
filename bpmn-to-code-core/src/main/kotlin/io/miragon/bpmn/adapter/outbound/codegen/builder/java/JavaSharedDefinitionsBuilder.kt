@@ -4,6 +4,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaEscalationsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaSignalsWriter
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -20,6 +21,7 @@ internal class JavaSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         JavaSignalsWriter,
         JavaErrorsWriter,
         JavaEscalationsWriter,
+        JavaProcessVariablesWriter,
     )
 
     override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers

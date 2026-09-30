@@ -231,33 +231,44 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
-    fun `findCollisions detects variables colliding within one node but not across nodes`() {
-        // given: one node declaring userId and user_id, and another node reusing userId
+    fun `findSharedCollisions detects variables of different processes that fold to the same constant`() {
+        // given: one process declaring userId and another declaring user_id
+        val first = testProcessModel(
+            processId = "first",
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "node1", variables = listOf(VariableDefinition(name = "userId", direction = VariableDirection.INPUT)))),
+        )
+        val second = testProcessModel(
+            processId = "second",
+            flowNodes = listOf(FlowNodeDefinition.Unknown(id = "node2", variables = listOf(VariableDefinition(name = "user_id", direction = VariableDirection.OUTPUT)))),
+        )
+
+        // when: checking for collisions across the run
+        val collisions = underTest.findSharedCollisions(listOf(first, second))
+
+        // then: both would become ProcessVariables.USER_ID, so one Variable collision is reported
+        assertThat(collisions).hasSize(1)
+        assertThat(collisions[0].variableType).isEqualTo("Variable")
+        assertThat(collisions[0].constantName).isEqualTo("USER_ID")
+        assertThat(collisions[0].processId).isEqualTo("first, second")
+        assertThat(collisions[0].conflictingIds).containsExactly("userId", "user_id")
+    }
+
+    @Test
+    fun `findSharedCollisions ignores the same variable declared by several nodes`() {
+        // given: two nodes declaring userId with different directions
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(
-                FlowNodeDefinition.Unknown(
-                    id = "node1",
-                    variables = listOf(
-                        VariableDefinition(name = "userId", direction = VariableDirection.INPUT),
-                        VariableDefinition(name = "user_id", direction = VariableDirection.INPUT),
-                    ),
-                ),
-                FlowNodeDefinition.Unknown(
-                    id = "node2",
-                    variables = listOf(VariableDefinition(name = "user-id", direction = VariableDirection.OUTPUT)),
-                ),
+                FlowNodeDefinition.Unknown(id = "node1", variables = listOf(VariableDefinition(name = "userId", direction = VariableDirection.INPUT))),
+                FlowNodeDefinition.Unknown(id = "node2", variables = listOf(VariableDefinition(name = "userId", direction = VariableDirection.OUTPUT))),
             ),
         )
 
         // when: checking for collisions
-        val collisions = underTest.findCollisions(model)
+        val collisions = underTest.findCollisions(model) + underTest.findSharedCollisions(listOf(model))
 
-        // then: only the per-node pair is reported; node2's variable lives in its own Variables holder
-        assertThat(collisions).hasSize(1)
-        assertThat(collisions[0].variableType).isEqualTo("Variable")
-        assertThat(collisions[0].constantName).isEqualTo("USER_ID")
-        assertThat(collisions[0].conflictingIds).containsExactlyInAnyOrder("userId", "user_id")
+        // then: one name, one constant - no collision
+        assertThat(collisions).isEmpty()
     }
 
     @Test

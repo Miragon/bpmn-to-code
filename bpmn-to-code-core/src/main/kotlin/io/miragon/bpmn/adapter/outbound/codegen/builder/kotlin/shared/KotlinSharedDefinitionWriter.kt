@@ -49,7 +49,7 @@ internal abstract class KotlinSharedDefinitionWriter<T : Any> {
         return PropertySpec.builder(name, elementType).addModifiers(KModifier.OVERRIDE).initializer(initializer).build()
     }
 
-    private fun reference(constant: SharedConstant): CodeBlock = CodeBlock.of("%L.%N", type.typeName, constant.name)
+    fun reference(constant: SharedConstant): CodeBlock = CodeBlock.of("%L.%N", type.typeName, constant.name)
 
     private fun property(name: String, initializer: CodeBlock): PropertySpec = PropertySpec.builder(name, elementType)
         .addModifiers(modifiers).initializer(initializer).build()

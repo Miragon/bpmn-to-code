@@ -292,13 +292,9 @@ public final class CancelBikeOrderProcessApi {
         }
 
         public static final class Variables {
-          public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(Names.CANCELLATION_COSTS);
+          public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(ProcessVariables.CANCELLATION_COSTS);
 
           private Variables() {
-          }
-
-          public static final class Names {
-            public static final String CANCELLATION_COSTS = "cancellationCosts";
           }
         }
 
@@ -340,13 +336,9 @@ public final class CancelBikeOrderProcessApi {
         }
 
         public static final class Variables {
-          public static final VariableName.Output CANCELLATION_POSSIBLE = new VariableName.Output(Names.CANCELLATION_POSSIBLE);
+          public static final VariableName.Output CANCELLATION_POSSIBLE = new VariableName.Output(ProcessVariables.CANCELLATION_POSSIBLE);
 
           private Variables() {
-          }
-
-          public static final class Names {
-            public static final String CANCELLATION_POSSIBLE = "cancellationPossible";
           }
         }
 
@@ -392,13 +384,9 @@ public final class CancelBikeOrderProcessApi {
         }
 
         public static final class Variables {
-          public static final VariableName.Input ORDER_IDS = new VariableName.Input(Names.ORDER_IDS);
+          public static final VariableName.Input ORDER_IDS = new VariableName.Input(ProcessVariables.ORDER_IDS);
 
           private Variables() {
-          }
-
-          public static final class Names {
-            public static final String ORDER_IDS = "orderIds";
           }
         }
 

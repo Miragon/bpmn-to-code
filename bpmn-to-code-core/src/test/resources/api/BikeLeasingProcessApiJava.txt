@@ -491,21 +491,13 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Variables {
-        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(Names.APPLICATION_ID);
+        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
 
-        public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(Names.CANCELLATION_COSTS);
+        public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(ProcessVariables.CANCELLATION_COSTS);
 
-        public static final VariableName.Input ORDER_IDS = new VariableName.Input(Names.ORDER_IDS);
+        public static final VariableName.Input ORDER_IDS = new VariableName.Input(ProcessVariables.ORDER_IDS);
 
         private Variables() {
-        }
-
-        public static final class Names {
-          public static final String APPLICATION_ID = "applicationId";
-
-          public static final String CANCELLATION_COSTS = "cancellationCosts";
-
-          public static final String ORDER_IDS = "orderIds";
         }
       }
 
@@ -995,17 +987,11 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Variables {
-        public static final VariableName.Input BIKE_ID = new VariableName.Input(Names.BIKE_ID);
+        public static final VariableName.Input BIKE_ID = new VariableName.Input(ProcessVariables.BIKE_ID);
 
-        public static final VariableName.Input BIKE_IDS = new VariableName.Input(Names.BIKE_IDS);
+        public static final VariableName.Input BIKE_IDS = new VariableName.Input(ProcessVariables.BIKE_IDS);
 
         private Variables() {
-        }
-
-        public static final class Names {
-          public static final String BIKE_ID = "bikeId";
-
-          public static final String BIKE_IDS = "bikeIds";
         }
       }
 
@@ -1051,17 +1037,11 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Variables {
-        public static final VariableName.Input BIKE_ID = new VariableName.Input(Names.BIKE_ID);
+        public static final VariableName.Input BIKE_ID = new VariableName.Input(ProcessVariables.BIKE_ID);
 
-        public static final VariableName.Input BIKE_IDS = new VariableName.Input(Names.BIKE_IDS);
+        public static final VariableName.Input BIKE_IDS = new VariableName.Input(ProcessVariables.BIKE_IDS);
 
         private Variables() {
-        }
-
-        public static final class Names {
-          public static final String BIKE_ID = "bikeId";
-
-          public static final String BIKE_IDS = "bikeIds";
         }
       }
 
@@ -1144,17 +1124,11 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Variables {
-        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(Names.APPLICATION_ID);
+        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
 
-        public static final VariableName.Output CONTRACT_ID = new VariableName.Output(Names.CONTRACT_ID);
+        public static final VariableName.Output CONTRACT_ID = new VariableName.Output(ProcessVariables.CONTRACT_ID);
 
         private Variables() {
-        }
-
-        public static final class Names {
-          public static final String APPLICATION_ID = "applicationId";
-
-          public static final String CONTRACT_ID = "contractId";
         }
       }
 
@@ -1324,17 +1298,11 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Variables {
-        public static final VariableName.Input CITY = new VariableName.Input(Names.CITY);
+        public static final VariableName.Input CITY = new VariableName.Input(ProcessVariables.CITY);
 
-        public static final VariableName.Input STREET = new VariableName.Input(Names.STREET);
+        public static final VariableName.Input STREET = new VariableName.Input(ProcessVariables.STREET);
 
         private Variables() {
-        }
-
-        public static final class Names {
-          public static final String CITY = "city";
-
-          public static final String STREET = "street";
         }
       }
 
@@ -1470,25 +1438,15 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Variables {
-        public static final VariableName.Input AGE = new VariableName.Input(Names.AGE);
+        public static final VariableName.Input AGE = new VariableName.Input(ProcessVariables.AGE);
 
-        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(Names.APPLICATION_ID);
+        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
 
-        public static final VariableName.Input BIKE_IDS = new VariableName.Input(Names.BIKE_IDS);
+        public static final VariableName.Input BIKE_IDS = new VariableName.Input(ProcessVariables.BIKE_IDS);
 
-        public static final VariableName.Input MONTHLY_NET_INCOME = new VariableName.Input(Names.MONTHLY_NET_INCOME);
+        public static final VariableName.Input MONTHLY_NET_INCOME = new VariableName.Input(ProcessVariables.MONTHLY_NET_INCOME);
 
         private Variables() {
-        }
-
-        public static final class Names {
-          public static final String AGE = "age";
-
-          public static final String APPLICATION_ID = "applicationId";
-
-          public static final String BIKE_IDS = "bikeIds";
-
-          public static final String MONTHLY_NET_INCOME = "monthlyNetIncome";
         }
       }
 
@@ -1767,13 +1725,9 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Variables {
-        public static final VariableName.InOut DELIVERY_ADDRESS = new VariableName.InOut(Names.DELIVERY_ADDRESS);
+        public static final VariableName.InOut DELIVERY_ADDRESS = new VariableName.InOut(ProcessVariables.DELIVERY_ADDRESS);
 
         private Variables() {
-        }
-
-        public static final class Names {
-          public static final String DELIVERY_ADDRESS = "deliveryAddress";
         }
       }
 

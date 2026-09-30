@@ -167,11 +167,7 @@ object CancelBikeOrderProcessApi {
 
         object Variables {
           val CANCELLATION_COSTS: VariableName.Output =
-              VariableName.Output(Names.CANCELLATION_COSTS)
-
-          object Names {
-            const val CANCELLATION_COSTS: String = "cancellationCosts"
-          }
+              VariableName.Output(ProcessVariables.CANCELLATION_COSTS)
         }
 
         object Next {
@@ -193,11 +189,7 @@ object CancelBikeOrderProcessApi {
 
         object Variables {
           val CANCELLATION_POSSIBLE: VariableName.Output =
-              VariableName.Output(Names.CANCELLATION_POSSIBLE)
-
-          object Names {
-            const val CANCELLATION_POSSIBLE: String = "cancellationPossible"
-          }
+              VariableName.Output(ProcessVariables.CANCELLATION_POSSIBLE)
         }
 
         object Next {
@@ -221,11 +213,7 @@ object CancelBikeOrderProcessApi {
         override val next: Next = Next
 
         object Variables {
-          val ORDER_IDS: VariableName.Input = VariableName.Input(Names.ORDER_IDS)
-
-          object Names {
-            const val ORDER_IDS: String = "orderIds"
-          }
+          val ORDER_IDS: VariableName.Input = VariableName.Input(ProcessVariables.ORDER_IDS)
         }
 
         object Next {
