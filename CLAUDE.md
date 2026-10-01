@@ -11,6 +11,7 @@ bpmn-to-code is a Gradle and Maven plugin that generates type-safe API definitio
 - **bpmn-to-code-maven**: Maven plugin wrapper
 - **bpmn-to-code-web**: Web plugin wrapper
 - **bpmn-to-code-testing**: Arch-Unit like feature that allows us to test bpmnModels for specific rules
+- **bpmn-to-code-benchmark**: Hand-run benchmark comparing the generator with a released version; see [`docs/contributing/benchmark.md`](docs/contributing/benchmark.md)
 
 ## Architecture
 
