@@ -24,15 +24,18 @@ import io.miragon.bpmn.web.config.CorsConfig
 import io.miragon.bpmn.web.model.ConfigResponse
 import io.miragon.bpmn.web.routes.generateJsonRoutes
 import io.miragon.bpmn.web.routes.generateRoutes
+import io.miragon.bpmn.web.service.GeneratorWarmUp
 import io.miragon.bpmn.web.service.WebGenerationService
 import io.miragon.bpmn.web.service.WebJsonGenerationService
 import kotlinx.serialization.json.Json
+import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
 
 fun main() {
     val appConfig = AppConfig.fromEnvironment()
 
+    thread(isDaemon = true, name = "generator-warm-up") { GeneratorWarmUp().run() }
     embeddedServer(
         factory = Netty,
         port = appConfig.port,

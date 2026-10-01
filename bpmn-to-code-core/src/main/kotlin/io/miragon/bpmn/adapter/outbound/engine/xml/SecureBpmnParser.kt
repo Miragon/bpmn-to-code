@@ -1,6 +1,5 @@
 package io.miragon.bpmn.adapter.outbound.engine.xml
 
-import org.camunda.bpm.model.bpmn.Bpmn
 import org.camunda.bpm.model.bpmn.BpmnModelInstance
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
@@ -10,9 +9,8 @@ import java.io.InputStream
 import javax.xml.parsers.SAXParserFactory
 
 /**
- * Camunda's Bpmn.readModelFromStream does not disable external entity resolution, making it
- * vulnerable to XXE if attacker-controlled BPMN files reach the parser. This wrapper rejects
- * any file containing a DOCTYPE declaration before handing off to Camunda.
+ * A DOCTYPE declaration is how XXE attacks reach an XML parser, so this wrapper rejects any file that
+ * contains one with a [SecurityException] naming the reason, before [BpmnDocumentParser] reads it.
  */
 internal object SecureBpmnParser {
 
@@ -26,7 +24,7 @@ internal object SecureBpmnParser {
         val stream = bytes.inputStream()
         rejectDoctypeDeclaration(stream)
         stream.reset()
-        return Bpmn.readModelFromStream(stream)
+        return BpmnDocumentParser.parse(stream)
     }
 
     private fun rejectDoctypeDeclaration(stream: InputStream) {
