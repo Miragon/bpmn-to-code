@@ -36,7 +36,7 @@ Direction mapping per source:
 
 | Source | Direction |
 |--------|-----------|
-| `<zeebe:input>`, `<camunda:inputParameter>`, `<camunda:in source="…">` or `sourceExpression="…">` | INPUT |
+| `<zeebe:input>`, `<camunda:inputParameter>`, `<camunda:in source="…">` or `sourceExpression="${variable}">` (plain variable references only; literals and complex expressions yield no variable) | INPUT |
 | `<zeebe:output>`, `<camunda:outputParameter>`, `<camunda:out target="…">` | OUTPUT |
 | Multi-instance `inputElement` / `inputCollection` (Zeebe), `camunda:collection` / `camunda:elementVariable` (C7/Operaton) | INPUT |
 | Multi-instance `outputElement` / `outputCollection` (Zeebe) | OUTPUT |

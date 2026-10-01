@@ -639,7 +639,7 @@ data class InputOutputMapping(
 ::: tip Engine differences
 The `target` is populated the same way for every engine. The origin differs:
 
-- **Camunda 7 / Operaton** (`camunda:in` / `camunda:out`): `source` holds a plain variable name, `sourceExpression` a `${...}` expression.
+- **Camunda 7 / Operaton** (`camunda:in` / `camunda:out`): `source` holds a plain variable name, `sourceExpression` a `${...}` expression. A `sourceExpression` only adds a variable to `Variables` when it is a plain variable reference such as `${applicationId}`; literals (`Berlin`, `${true}`, `${42}`) and complex expressions (`${order.id}`) appear in `Inputs` only.
 - **Zeebe** (`zeebe:input` / `zeebe:output`): `source` holds a FEEL expression (e.g. `=orderId`) and `sourceExpression` is always `null`.
 
 The "pass all variables" mode (`variables="all"` / `propagateAll{Parent,Child}Variables`) is not surfaced as constants.
