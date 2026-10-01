@@ -111,9 +111,6 @@ internal class KotlinFlowWriter {
     private fun sequenceFlowsCall(flowsToTarget: FlowsToTarget): CodeBlock {
         val targetName = flowsToTarget.target.objectName
         val singleFlow = flowsToTarget.flows.singleOrNull()
-        if (singleFlow?.hasOnlyDefaults() == true) {
-            return CodeBlock.of("%T.single(flowId = %T(%S), target = %N)", KotlinRuntimeTypes.SEQUENCE_FLOWS, KotlinRuntimeTypes.ELEMENT_ID, singleFlow.id, targetName)
-        }
         if (singleFlow != null) {
             val arguments = KotlinCodeFormat.namedArguments(
                 "flowId" to CodeBlock.of("%T(%S)", KotlinRuntimeTypes.ELEMENT_ID, singleFlow.id),

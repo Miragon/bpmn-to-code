@@ -101,7 +101,10 @@ object BikeLeasingProcessApi {
       object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output(ProcessVariables.APPLICATION_ID) }
       object Next {
         val serviceTaskValidateApplication: SequenceFlows<ServiceTaskValidateApplication>
-          get() = SequenceFlows.single(flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"), target = ServiceTaskValidateApplication)
+          get() = SequenceFlows.single(
+            flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"),
+            target = ServiceTaskValidateApplication,
+          )
       }
     }
 
@@ -115,7 +118,10 @@ object BikeLeasingProcessApi {
       }
       object Next {
         val gatewayAwaitSignature: SequenceFlows<GatewayAwaitSignature>
-          get() = SequenceFlows.single(flowId = ElementId("flow_sendContractToAwaitSignature"), target = GatewayAwaitSignature)
+          get() = SequenceFlows.single(
+            flowId = ElementId("flow_sendContractToAwaitSignature"),
+            target = GatewayAwaitSignature,
+          )
       }
     }
 
@@ -372,7 +378,12 @@ object GatewayIsSolvent : /* … */ HasSuccessors<GatewayIsSolvent.Next> {
         target = GatewayCollectRejections,
       )
     val subProcessConcludeContract: SequenceFlows<SubProcessConcludeContract>
-      get() = SequenceFlows.single(flowId = ElementId("flow_isSolventToConcludeContract"), name = "Yes", isDefault = true, target = SubProcessConcludeContract)
+      get() = SequenceFlows.single(
+        flowId = ElementId("flow_isSolventToConcludeContract"),
+        name = "Yes",
+        isDefault = true,
+        target = SubProcessConcludeContract,
+      )
   }
 }
 ```
@@ -419,7 +430,10 @@ object SubProcessConcludeContract :
   override val startEvents: Start = Start                  // the interior's start event(s)
   object Next {
     val gatewayFork: SequenceFlows<GatewayFork>
-      get() = SequenceFlows.single(flowId = ElementId("flow_concludeContractToFork"), target = GatewayFork)
+      get() = SequenceFlows.single(
+        flowId = ElementId("flow_concludeContractToFork"),
+        target = GatewayFork,
+      )
     val timerSignatureReminder: AttachedBoundaryEvent<TimerSignatureReminder>
       get() = AttachedBoundaryEvent(target = TimerSignatureReminder)
     // …
