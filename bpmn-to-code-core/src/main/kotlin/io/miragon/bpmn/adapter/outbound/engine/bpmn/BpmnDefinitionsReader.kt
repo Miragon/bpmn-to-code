@@ -18,6 +18,8 @@ import org.camunda.bpm.model.xml.instance.ModelElementInstance
  */
 internal object BpmnDefinitionsReader {
 
+    private val whitespace = Regex("\\s+")
+
     fun ModelInstance.getProcessId(): String {
         val process = this.findProcess()
         val processId = process.getAttributeValue(BpmnModelConstants.BPMN_ATTRIBUTE_ID)
@@ -47,8 +49,12 @@ internal object BpmnDefinitionsReader {
         return variantProperty?.getAttribute("value")?.takeIf { it.isNotBlank() }
     }
 
+    /**
+     * The first `bpmn:process` among the root elements. Root elements are direct children of `bpmn:definitions`,
+     * so looking there spares a search through the whole document, diagram included.
+     */
     fun ModelInstance.findProcess(): Process {
-        val process = this.getModelElementsByType(Process::class.java).firstOrNull()
+        val process = documentElement.getChildElementsByType(Process::class.java).firstOrNull()
         requireNotNull(process) { "BPMN model does not contain a Process element" }
         return process
     }
@@ -79,7 +85,7 @@ internal object BpmnDefinitionsReader {
     private fun <E : ModelElementInstance, D : RootElementDefinition> ModelInstance.registryOf(
         type: Class<E>,
         toDefinition: (E) -> D,
-    ): List<D> = getModelElementsByType(type).map(toDefinition).distinctBy { it.id }
+    ): List<D> = documentElement.getChildElementsByType(type).map(toDefinition).distinctBy { it.id }
 
-    fun String.normalizeWhitespace(): String = this.replace(Regex("\\s+"), " ").trim()
+    fun String.normalizeWhitespace(): String = this.replace(whitespace, " ").trim()
 }

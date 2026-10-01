@@ -55,25 +55,27 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
 
     private val extensionReader = ForeignXmlReader(modelInstance = model, engineNamespace = dialect.namespace, fullyReadExtensions = dialect.fullyReadExtensions)
 
+    private val process = model.findProcess()
+
     private val boundaryEventsByHost: Map<String, List<String>> by lazy {
-        model.getModelElementsByType(BoundaryEvent::class.java)
+        boundaryEventsIn(process.flowElements)
             .mapNotNull { event -> event.attachedTo?.id?.let { host -> host to event.id } }
             .filter { (_, eventId) -> eventId != null }.groupBy({ it.first }, { it.second })
-    }
-
-    /**
-     * Default-flow ids, collected once. BPMN puts `default` on the *source* element, which is also where
-     * the domain model keeps it; sequence flows carry the derived flag for the generated `SequenceFlows`.
-     */
-    private val defaultFlowIds: Set<String> by lazy {
-        model.getModelElementsByType(FlowNode::class.java).mapNotNull { it.defaultFlowId() }.toSet()
     }
 
     /**
      * The root scope of the `bpmn:Process`. Nested scopes are reachable through the sub-process nodes
      * that own them.
      */
-    fun read(): FlowScope = readScope(model.findProcess().flowElements)
+    fun read(): FlowScope = readScope(process.flowElements)
+
+    private fun boundaryEventsIn(elements: Collection<FlowElement>): List<BoundaryEvent> = elements.flatMap { element ->
+        when (element) {
+            is BoundaryEvent -> listOf(element)
+            is SubProcess -> boundaryEventsIn(element.flowElements)
+            else -> emptyList()
+        }
+    }
 
     private fun readScope(elements: Collection<FlowElement>): FlowScope = FlowScope(
         flowNodes = elements.filterIsInstance<FlowNode>().map { it.toDefinition() },
@@ -185,8 +187,13 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
         engineAttributes = engineAttributes(),
     )
 
+    /**
+     * BPMN puts `default` on the *source* element, which is also where the domain model keeps it; sequence
+     * flows carry the derived flag for the generated `SequenceFlows`.
+     */
     private fun SequenceFlow.toDefinition(): SequenceFlowDefinition? {
-        val sourceRef = source?.id ?: return null
+        val sourceNode = source ?: return null
+        val sourceRef = sourceNode.id ?: return null
         val targetRef = target?.id ?: return null
         return SequenceFlowDefinition(
             id = id,
@@ -194,7 +201,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
             targetRef = targetRef,
             flowName = displayName(),
             conditionExpression = conditionExpression?.textContent?.takeIf { it.isNotBlank() },
-            isDefault = id != null && id in defaultFlowIds,
+            isDefault = id != null && sourceNode.defaultFlowId() == id,
         )
     }
 
