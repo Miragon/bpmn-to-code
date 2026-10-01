@@ -72,6 +72,36 @@ class GradleValidationSmokeTest {
             .withProjectDir(projectDir).withPluginClasspath().withArguments("validateBpmnModels").buildAndFail()
 
         // then: the failure names the missing input
-        assertThat(result.output).contains("processEngine has not been initialized")
+        assertThat(result.output).contains("property 'processEngine' doesn't have a configured value")
+    }
+
+    @Test
+    fun `validateBpmnModels accepts lazily provided and string-typed values`(@TempDir projectDir: File) {
+        // given: a project that wires its inputs from providers and names the engine as a string
+        val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
+        val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn"))
+        File(resourcesDir, "bike-leasing.bpmn").writeBytes(bpmnStream.readBytes())
+        File(projectDir, "settings.gradle").writeText("")
+        File(projectDir, "build.gradle").writeText(
+            """
+            plugins {
+                id 'io.miragon.bpmn-to-code-gradle'
+            }
+
+            tasks.named('validateBpmnModels') {
+                baseDir = layout.projectDirectory.asFile.absolutePath
+                filePattern = providers.provider { 'src/main/resources/*.bpmn' }
+                processEngine = 'ZEEBE'
+                disabledRules = ['empty-process']
+            }
+            """.trimIndent(),
+        )
+
+        // when: running the validateBpmnModels task
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments("validateBpmnModels").build()
+
+        // then: the task resolves every value and succeeds
+        assertThat(result.task(":validateBpmnModels")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     }
 }
