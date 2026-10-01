@@ -399,6 +399,54 @@ class CamundaDialectExtractionTest {
         )
     }
 
+    @Test
+    fun `extract takes a variable from a source expression that is a plain variable reference`() {
+        val xml = callActivityWithInputMappings(
+            $$"""<camunda:in sourceExpression="${ladeeinheitId}" target="ladeeinheit" />""",
+            """<camunda:in sourceExpression="#{ auftragId }" target="auftrag" />""",
+        )
+
+        val bpmnModel = camunda7Reader.read(xml.toByteArray())
+
+        val callActivity = bpmnModel.allFlowNodes.single { it.id == "CallActivity_SourceExpressions" }
+        assertThat(callActivity.variables).containsExactly(
+            VariableDefinition(
+                name = "ladeeinheitId",
+                direction = VariableDirection.INPUT,
+                valueExpression = $$"${ladeeinheitId}",
+            ),
+            VariableDefinition(
+                name = "auftragId",
+                direction = VariableDirection.INPUT,
+                valueExpression = "#{ auftragId }",
+            ),
+        )
+    }
+
+    @Test
+    fun `extract takes no variable from a literal or complex source expression`() {
+        val sourceExpressions = listOf(
+            "Wareneingangsbahn",
+            $$"${true}",
+            $$"${false}",
+            $$"${null}",
+            $$"${42}",
+            $$"${'text'}",
+            $$"${order.id}",
+        )
+        val inputMappings = sourceExpressions.mapIndexed { index, sourceExpression ->
+            """<camunda:in sourceExpression="$sourceExpression" target="target$index" />"""
+        }
+        val xml = callActivityWithInputMappings(*inputMappings.toTypedArray())
+
+        val bpmnModel = camunda7Reader.read(xml.toByteArray())
+
+        val callActivity = bpmnModel.allFlowNodes.single { it.id == "CallActivity_SourceExpressions" }
+        assertThat(callActivity.variables).isEmpty()
+        val mappedSourceExpressions = bpmnModel.callActivities.single().inputMappings.map { it.sourceExpression }
+        assertThat(mappedSourceExpressions).containsExactlyElementsOf(sourceExpressions)
+    }
+
     @ParameterizedTest
     @EnumSource(ProcessEngine::class, names = ["CAMUNDA_7", "OPERATON"])
     fun `extract leaves propagate-all null when variables=all is not declared`(engine: ProcessEngine) {
@@ -459,6 +507,21 @@ class CamundaDialectExtractionTest {
         val boundaryEvent = bpmnModel.allFlowNodes.single { it.id == "boundary_cancellationFailed" } as FlowNodeDefinition.Event
         assertThat(boundaryEvent.eventDefinitions).containsExactly(EventDefinitionInstance.Error(errorRef = null, errorName = null, errorCode = null))
     }
+
+    private fun callActivityWithInputMappings(vararg inputMappings: String): String = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                          xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                          targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="source-expression-process" isExecutable="true">
+            <bpmn:callActivity id="CallActivity_SourceExpressions" name="Source expressions" calledElement="child-process">
+              <bpmn:extensionElements>
+                ${inputMappings.joinToString(separator = "")}
+              </bpmn:extensionElements>
+            </bpmn:callActivity>
+          </bpmn:process>
+        </bpmn:definitions>
+    """.trimIndent()
 
     private fun extract(engine: ProcessEngine, fixture: String): ProcessModel {
         val (folder, namespace) = when (engine) {

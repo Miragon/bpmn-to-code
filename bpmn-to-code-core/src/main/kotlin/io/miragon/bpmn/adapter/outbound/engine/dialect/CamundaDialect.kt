@@ -133,9 +133,20 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
         val sources = inElements.extractAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_SOURCE)
         val sourceExpressions = inElements.extractAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_SOURCE_EXPRESSION)
         val targets = outElements.extractAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_TARGET)
-        val inputVariables = (sources + sourceExpressions).map { VariableDefinition(name = it, direction = VariableDirection.INPUT, valueExpression = it) }
+        val sourceVariables = sources.map { VariableDefinition(name = it, direction = VariableDirection.INPUT, valueExpression = it) }
+        val referencedVariables = sourceExpressions.mapNotNull { it.toReferencedInputVariable() }
         val outputVariables = targets.map { VariableDefinition(name = it, direction = VariableDirection.OUTPUT, valueExpression = it) }
-        return inputVariables + outputVariables
+        return sourceVariables + referencedVariables + outputVariables
+    }
+
+    private fun String.toReferencedInputVariable(): VariableDefinition? {
+        val variableName = referencedVariableName() ?: return null
+        return VariableDefinition(name = variableName, direction = VariableDirection.INPUT, valueExpression = this)
+    }
+
+    private fun String.referencedVariableName(): String? {
+        val identifier = PLAIN_VARIABLE_REFERENCE.matchEntire(trim())?.groupValues?.get(1)
+        return identifier?.takeUnless { it in EXPRESSION_LITERALS }
     }
 
     private fun List<ModelElementInstance>.additionalVariables(): List<VariableDefinition> {
@@ -185,5 +196,10 @@ internal class CamundaDialect(override val namespace: String) : EngineDialect {
         val target = getAttribute(BpmnModelConstants.CAMUNDA_ATTRIBUTE_NAME)?.takeIf { it.isNotBlank() } ?: return null
         val source = textContent?.trim()?.takeIf { it.isNotBlank() }
         return IoMapping.Parameter(target = target, source = source)
+    }
+
+    private companion object {
+        val PLAIN_VARIABLE_REFERENCE = Regex("""[$#]\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}""")
+        val EXPRESSION_LITERALS = setOf("true", "false", "null")
     }
 }
