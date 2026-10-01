@@ -17,6 +17,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -74,7 +75,14 @@ class GenerateProcessApiServiceTest {
         verify { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") }
         verify { codeGenerator.generateCode(expectedModelApi) }
         verify { codeGenerator.generateSharedCode(match { it.packagePath == "de.emaarco.example" && it.outputLanguage == OutputLanguage.KOTLIN }) }
-        verify { fileSystemOutput.writeFiles(listOf(expectedGeneratedFile, sharedFile), "outputFolder") }
+        verifyOrder {
+            fileSystemOutput.deleteStaleFiles(
+                generatedFiles = listOf(expectedGeneratedFile, sharedFile),
+                outputFolderPath = "outputFolder",
+                packagePath = "de.emaarco.example",
+            )
+            fileSystemOutput.writeFiles(listOf(expectedGeneratedFile, sharedFile), "outputFolder")
+        }
         confirmVerified(codeGenerator, bpmnFileLoader, fileSystemOutput)
         assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("dummy.bpmn"))))
     }
@@ -89,9 +97,16 @@ class GenerateProcessApiServiceTest {
         // when: generateProcessApi is invoked
         val results = underTest.generateProcessApi(command())
 
-        // then: nothing is generated, written or reported
+        // then: nothing is generated, written or reported, and previously generated files become stale
         assertThat(results).isEmpty()
         verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify {
+            fileSystemOutput.deleteStaleFiles(
+                generatedFiles = emptyList(),
+                outputFolderPath = "outputFolder",
+                packagePath = "de.emaarco.example",
+            )
+        }
         verify { fileSystemOutput.writeFiles(emptyList(), "outputFolder") }
     }
 
@@ -144,9 +159,10 @@ class GenerateProcessApiServiceTest {
         every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(variantResource("v1.bpmn"), variantResource("v2.bpmn"))
         every { bpmnService.extract(any(), any()) } returns dummyModel
 
-        // when / then: it fails naming both files and writes nothing
+        // when / then: it fails naming both files and neither deletes nor writes anything
         assertThatThrownBy { underTest.generateProcessApi(command()) }
             .isInstanceOf(DuplicateProcessIdException::class.java).hasMessageContaining("v1.bpmn, v2.bpmn")
+        verify(exactly = 0) { fileSystemOutput.deleteStaleFiles(generatedFiles = any(), outputFolderPath = any(), packagePath = any()) }
         verify(exactly = 0) { fileSystemOutput.writeFiles(any(), any()) }
     }
 

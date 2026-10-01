@@ -2,8 +2,8 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.JavaFile
 import com.palantir.javapoet.TypeSpec
-import io.miragon.bpmn.adapter.outbound.codegen.GeneratedFileHeader
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.GeneratedFileHeader
 import io.miragon.bpmn.domain.shared.OutputLanguage
 
 /**

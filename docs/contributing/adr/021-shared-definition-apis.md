@@ -47,8 +47,9 @@ constant and one of them was silently lost.
   same `packagePath` overwrite each other's shared files, so each run needs its own package.
 - The generic type names (`ServiceTasks`, `Errors`, …) can clash with user types in the same package.
   They are package-scoped, so moving the generated code to its own package resolves that.
-- Generated files are not deleted by the generator. A shared file that is no longer produced — e.g. after
-  removing the last signal — stays in the output folder until it is cleaned, as a renamed process's API
-  already did before.
+- A shared file that is no longer produced — e.g. after removing the last signal — would linger in the
+  output folder, as a renamed process's API already did before. The generator therefore removes the files
+  it owns (header-carrying files in the `packagePath`) but no longer produces, which makes one package per
+  run mandatory: a second run would remove the first run's Process APIs.
 - `NAME_CODE` is redundant for textual codes that repeat the name (`INVALID_MAIL` / `INVALID_MAIL`).
 - Breaking for every 5.x user of the nested registries.

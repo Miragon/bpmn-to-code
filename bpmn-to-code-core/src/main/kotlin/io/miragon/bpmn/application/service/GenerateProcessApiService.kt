@@ -36,6 +36,11 @@ class GenerateProcessApiService(
         val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
         val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(mergedModels, command))
         val generatedFiles = (processFiles + sharedFiles).distinctBy { it.packagePath to it.fileName }
+        fileSystemOutput.deleteStaleFiles(
+            generatedFiles = generatedFiles,
+            outputFolderPath = command.outputFolderPath,
+            packagePath = command.packagePath,
+        )
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
         val filesByProcessId = sources.groupBy({ it.model.processId }, { it.fileName })
         return mergedModels.map { model ->
