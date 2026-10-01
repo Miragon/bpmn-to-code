@@ -9,7 +9,7 @@ All plugin parameters, available for both the Gradle and Maven plugins.
 | `baseDir` | `String` | yes | — | Base directory for resolving relative paths |
 | `filePattern` | `String` | yes | — | Glob pattern to locate BPMN files (e.g. `src/main/resources/**/*.bpmn`) |
 | `outputFolderPath` | `String` | yes | — | Directory where generated code is written |
-| `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`). Use one package per generation run — the [shared definition files](/guide/generated-api#shared-definitions) of two runs in the same package overwrite each other |
+| `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`). Use one package per generation run — two runs in the same package overwrite each other's [shared definition files](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
 | `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (experimental) |
 | `processEngine` | `ProcessEngine` | yes | — | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
 | `enableVariants` | `Boolean` | no | `false` | Merge BPMN files sharing a `processId` into one API with `FlowVariants` (see [Model Merging](/guide/generated-api#model-merging)). When `false`, a `processId` defined in several files fails generation |

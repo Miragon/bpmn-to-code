@@ -3,8 +3,8 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.TypeSpec
-import io.miragon.bpmn.adapter.outbound.codegen.GeneratedFileHeader
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.GeneratedFileHeader
 import io.miragon.bpmn.domain.shared.OutputLanguage
 
 /**
