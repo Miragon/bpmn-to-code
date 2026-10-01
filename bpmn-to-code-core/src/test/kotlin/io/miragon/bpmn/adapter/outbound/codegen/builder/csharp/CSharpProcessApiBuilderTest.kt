@@ -80,10 +80,10 @@ class CSharpProcessApiBuilderTest {
         assertMatchesGolden(result.content, "/api/MultiVariantProcessApiCsharp.txt")
         assertThat(result.content).contains("public static class FlowVariants", "public static class Retail")
         assertThat(result.content).contains(
-            $$"public Runtime.SequenceFlows<GatewayCollectClarifications> GatewayCollectClarifications => Runtime.SequenceFlows.Single(new(\"flow_cancellationNotPossibleToCollectClarifications\"), FlowNodes.GatewayCollectClarifications.Instance, name: \"No\", conditionExpression: \"${!cancellationPossible}\");",
+            $$"Runtime.SequenceFlows.Single(new(\"flow_cancellationNotPossibleToCollectClarifications\"), GatewayCollectClarifications.Instance, name: \"No\", conditionExpression: \"${!cancellationPossible}\"),",
         )
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlows<GatewayMergeReturn> GatewayMergeReturn => Runtime.SequenceFlows.Single(new(\"flow_cancellationPossibleToMergeReturn\"), FlowNodes.GatewayMergeReturn.Instance, name: \"Yes\", isDefault: true);",
+            "Runtime.SequenceFlows.Single(new(\"flow_cancellationPossibleToMergeReturn\"), GatewayMergeReturn.Instance, name: \"Yes\", isDefault: true),",
         )
     }
 
@@ -116,7 +116,7 @@ class CSharpProcessApiBuilderTest {
 
         // then: one stable name for both flows, carried by one SequenceFlows
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlows<Approve> Approve => new(FlowNodes.Approve.Instance, new Runtime.SequenceFlow<Approve>[] {",
+            "new Runtime.SequenceFlows<Approve>(Approve.Instance, new Runtime.SequenceFlow<Approve>[] {",
         )
     }
 

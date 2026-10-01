@@ -8,6 +8,7 @@ import io.miragon.bpmn.runtime.example.ServiceTasks;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +20,10 @@ class GeneratedApiEnumerationJavaTest {
 
     @Test
     void flowAllListsExactlyTheNodesOfTheProcess() {
-        var everyNodeClass = Arrays.stream(FlowNodes.class.getDeclaredClasses()).filter(FlowNode.class::isAssignableFrom).toList();
+        var everyNodeClass = Arrays.stream(FlowNodes.class.getDeclaredClasses())
+            .flatMap(nested -> Stream.concat(Stream.of(nested), Arrays.stream(nested.getDeclaredClasses())))
+            .filter(nested -> FlowNode.class.isAssignableFrom(nested) && !nested.isInterface())
+            .toList();
 
         assertThat(FlowNodes.all()).hasSize(42).extracting(Object::getClass).containsExactlyInAnyOrderElementsOf(everyNodeClass);
     }

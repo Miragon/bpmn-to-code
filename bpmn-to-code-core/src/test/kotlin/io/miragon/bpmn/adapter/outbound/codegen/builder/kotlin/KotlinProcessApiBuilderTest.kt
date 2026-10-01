@@ -78,8 +78,9 @@ class KotlinProcessApiBuilderTest {
         // when
         val result = underTest.buildApiFile(testProcessModelApi(model = model))
 
-        // then: one stable name for both flows, carried by one transition
-        assertThat(result.content).contains("val approve: SequenceFlows<Approve>")
+        // then: the target is the gateway's one successor, and one SequenceFlows carries both flows
+        assertThat(result.content).contains("), LeadsTo<Approve> {")
+        assertThat(result.content).containsOnlyOnce("SequenceFlows(")
         assertThat(result.content).contains("\"flow_small\"", "\"flow_vip\"")
         assertKotlinSyntaxValid(result.content)
     }

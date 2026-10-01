@@ -18,7 +18,7 @@ import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes as B
 
 /**
  * Exercises [ProcessPath] over the *actually generated* Kotlin bike-leasing API — which doubles as the compile
- * contract that the generated `: HasSuccessors<Next>` / `: FlowNode` code resolves against the runtime
+ * contract that the generated `: LeadsTo<…>` / `: FlowNode` code resolves against the runtime
  * interfaces. Bike leasing is the single navigation fixture and covers every element type: message start,
  * service/business-rule/receive task, embedded subprocess with interior, event-based gateway, parallel (AND)
  * split/join, call activity, boundary events (error, escalation, non-interrupting timer), terminate end, and
@@ -38,21 +38,21 @@ class ProcessPathKotlinApiTest {
         // The interior walk as a reusable, fully-checked block — typed on the subprocess so every hop compiles.
         val contractInterior: ProcessPath<SubProcessConcludeContract>.() -> ProcessPath<*> = {
             enter { it.startEventCustomerEligible }
-                .then { it.serviceTaskSendContract }
-                .then { it.gatewayAwaitSignature }.then { it.eventContractSigned }.then { it.endEventContractConcluded }
+                .then(BikeLeasing.ServiceTaskSendContract)
+                .then(BikeLeasing.GatewayAwaitSignature).then(BikeLeasing.EventContractSigned).then(BikeLeasing.EndEventContractConcluded)
         }
 
         val path = ProcessPath.from(BikeLeasing.StartEventLeasingRequestReceived)
-            .then { it.serviceTaskValidateApplication }
-            .then { it.businessRuleTaskCheckCreditRating }
-            .then { it.gatewayIsSolvent }
-            .onto { it.subProcessConcludeContract }
+            .then(BikeLeasing.ServiceTaskValidateApplication)
+            .then(BikeLeasing.BusinessRuleTaskCheckCreditRating)
+            .then(BikeLeasing.GatewayIsSolvent)
+            .onto(BikeLeasing.SubProcessConcludeContract)
             .inside(contractInterior)
-            .then { it.gatewayFork }
-            .then { it.serviceTaskOrderBike }
-            .then { it.gatewayJoin }
-            .then { it.receiveTaskHandoverReported }
-            .then { it.timerWithdrawalPeriodElapsed }.then { it.endEventLeasingActive }
+            .then(BikeLeasing.GatewayFork)
+            .then(BikeLeasing.ServiceTaskOrderBike)
+            .then(BikeLeasing.GatewayJoin)
+            .then(BikeLeasing.ReceiveTaskHandoverReported)
+            .then(BikeLeasing.TimerWithdrawalPeriodElapsed).then(BikeLeasing.EndEventLeasingActive)
 
         assertThat(path.ids).containsExactly(
             "startEvent_leasingRequestReceived",
@@ -80,16 +80,16 @@ class ProcessPathKotlinApiTest {
         // enter(scope) descends straight into a named interior from a non-adjacent position (here after the
         // credit rating, skipping the gateway) — the re-anchor form.
         val path = ProcessPath.from(BikeLeasing.StartEventLeasingRequestReceived)
-            .then { it.serviceTaskValidateApplication }
-            .then { it.businessRuleTaskCheckCreditRating }
+            .then(BikeLeasing.ServiceTaskValidateApplication)
+            .then(BikeLeasing.BusinessRuleTaskCheckCreditRating)
             .enter(SubProcessConcludeContract) { it.startEventCustomerEligible }
-            .then { it.serviceTaskSendContract }
-            .then { it.gatewayAwaitSignature }
-            .then { it.timerSignatureDeadline }
-            .then { it.endEventContractNotSigned }
-            .interruptedBy(SubProcessConcludeContract) { it.boundaryContractNotSigned }
-            .then { it.gatewayCollectRejections }
-            .then { it.serviceTaskSendRejection }.then { it.endEventApplicationRejected }
+            .then(BikeLeasing.ServiceTaskSendContract)
+            .then(BikeLeasing.GatewayAwaitSignature)
+            .then(BikeLeasing.TimerSignatureDeadline)
+            .then(BikeLeasing.EndEventContractNotSigned)
+            .interruptedBy(SubProcessConcludeContract, BikeLeasing.BoundaryContractNotSigned)
+            .then(BikeLeasing.GatewayCollectRejections)
+            .then(BikeLeasing.ServiceTaskSendRejection).then(BikeLeasing.EndEventApplicationRejected)
 
         assertThat(path.ids).containsExactly(
             "startEvent_leasingRequestReceived",
@@ -110,10 +110,10 @@ class ProcessPathKotlinApiTest {
     @Test
     fun `error boundary on a task is a successor of the task`() {
         val path = ProcessPath.from(BikeLeasing.StartEventLeasingRequestReceived)
-            .then { it.serviceTaskValidateApplication }
-            .then { it.boundaryApplicationInvalid }
-            .then { it.gatewayCollectRejections }
-            .then { it.serviceTaskSendRejection }.then { it.endEventApplicationRejected }
+            .then(BikeLeasing.ServiceTaskValidateApplication)
+            .then(BikeLeasing.BoundaryApplicationInvalid)
+            .then(BikeLeasing.GatewayCollectRejections)
+            .then(BikeLeasing.ServiceTaskSendRejection).then(BikeLeasing.EndEventApplicationRejected)
 
         assertThat(path.ids).containsExactly(
             "startEvent_leasingRequestReceived",
@@ -128,9 +128,9 @@ class ProcessPathKotlinApiTest {
     @Test
     fun `non-interrupting timer boundary branches off the subprocess into the reminder`() {
         val path = ProcessPath.from(BikeLeasing.GatewayIsSolvent)
-            .onto { it.subProcessConcludeContract }
-            .then { it.timerSignatureReminder }
-            .then { it.serviceTaskSendReminderMail }.then { it.endEventCustomerReminded }
+            .onto(BikeLeasing.SubProcessConcludeContract)
+            .then(BikeLeasing.TimerSignatureReminder)
+            .then(BikeLeasing.ServiceTaskSendReminderMail).then(BikeLeasing.EndEventCustomerReminded)
 
         assertThat(path.ids).containsExactly(
             "gateway_isSolvent",
@@ -145,10 +145,10 @@ class ProcessPathKotlinApiTest {
     @Test
     fun `parallel branches assert as an unordered deduplicated set via nodesOf`() {
         val orderBranch = ProcessPath.from(BikeLeasing.GatewayFork)
-            .then { it.serviceTaskOrderBike }.then { it.gatewayJoin }.then { it.receiveTaskHandoverReported }.nodes
+            .then(BikeLeasing.ServiceTaskOrderBike).then(BikeLeasing.GatewayJoin).then(BikeLeasing.ReceiveTaskHandoverReported).nodes
         val insuranceBranch = ProcessPath.from(BikeLeasing.GatewayFork)
-            .then { it.serviceTaskIssueInsurancePolicy }
-            .then { it.gatewayJoin }.then { it.receiveTaskHandoverReported }.nodes
+            .then(BikeLeasing.ServiceTaskIssueInsurancePolicy)
+            .then(BikeLeasing.GatewayJoin).then(BikeLeasing.ReceiveTaskHandoverReported).nodes
 
         assertThat(nodesOf(orderBranch, insuranceBranch).map { it.id.value })
             .contains("serviceTask_orderBike", "serviceTask_issueInsurancePolicy", "gateway_join")
@@ -161,10 +161,10 @@ class ProcessPathKotlinApiTest {
     @Test
     fun `jumpTo re-anchors to the fork to walk the second parallel branch in one chain`() {
         val passed = ProcessPath.from(BikeLeasing.GatewayFork)
-            .then { it.serviceTaskOrderBike }
+            .then(BikeLeasing.ServiceTaskOrderBike)
             .jumpTo(BikeLeasing.GatewayFork)
-            .then { it.serviceTaskIssueInsurancePolicy }
-            .then { it.gatewayJoin }.then { it.receiveTaskHandoverReported }.nodes
+            .then(BikeLeasing.ServiceTaskIssueInsurancePolicy)
+            .then(BikeLeasing.GatewayJoin).then(BikeLeasing.ReceiveTaskHandoverReported).nodes
 
         assertThat(passed.map { it.id.value }).containsExactly(
             "gateway_fork",
@@ -192,12 +192,12 @@ class ProcessPathKotlinApiTest {
         assertThat(BikeLeasing.ReceiveTaskHandoverReported.name).isEqualTo("Await bike handover")
         assertThat(BikeLeasing.GatewayFork.name).isNull()
 
-        val flow = BikeLeasing.StartEventLeasingRequestReceived.next.serviceTaskValidateApplication.flow
+        val flow = BikeLeasing.StartEventLeasingRequestReceived.flowsTo(BikeLeasing.ServiceTaskValidateApplication).flow
         assertThat(flow.id.value).isEqualTo("flow_leasingRequestReceivedToValidateApplication")
         assertThat(flow.target).isEqualTo(BikeLeasing.ServiceTaskValidateApplication)
         assertThat(flow.conditionExpression).isNull()
         assertThat(flow.isDefault).isFalse()
-        assertThat(flow).isEqualTo(BikeLeasing.StartEventLeasingRequestReceived.next.serviceTaskValidateApplication.flow)
+        assertThat(flow).isEqualTo(BikeLeasing.StartEventLeasingRequestReceived.flowsTo(BikeLeasing.ServiceTaskValidateApplication).flow)
 
         val input: VariableName.Input = BikeLeasing.ServiceTaskSendContract.Variables.APPLICATION_ID
         assertThat(input.value).isEqualTo("applicationId")
@@ -233,7 +233,7 @@ class ProcessPathKotlinApiTest {
     @Test
     fun `then records the sequence flows it walks next to the elements`() {
         val path = ProcessPath.from(BikeLeasing.BusinessRuleTaskCheckCreditRating)
-            .then { it.gatewayIsSolvent }.then { it.subProcessConcludeContract }
+            .then(BikeLeasing.GatewayIsSolvent).then(BikeLeasing.SubProcessConcludeContract)
 
         assertThat(path.ids).containsExactly(
             "businessRuleTask_checkCreditRating",
@@ -241,7 +241,7 @@ class ProcessPathKotlinApiTest {
             "subProcess_concludeContract",
         )
         assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "flow_isSolventToConcludeContract")
-        assertThat(BikeLeasing.GatewayIsSolvent.next.subProcessConcludeContract.flow.isDefault).isTrue()
+        assertThat(BikeLeasing.GatewayIsSolvent.flowsTo(BikeLeasing.SubProcessConcludeContract).flow.isDefault).isTrue()
     }
 
     @Test

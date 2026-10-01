@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_branchingLoop" targetNamespace="http://bpmn.io/schema/bpmn" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="branchingLoop" isExecutable="true">
+    <bpmn:startEvent id="startEvent_reviewRequested">
+      <bpmn:outgoing>flow_reviewRequestedToApproved</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="gateway_approved" default="flow_approvedToReworkable">
+      <bpmn:incoming>flow_reviewRequestedToApproved</bpmn:incoming>
+      <bpmn:incoming>flow_reworkableToApproved</bpmn:incoming>
+      <bpmn:outgoing>flow_approvedToReviewDone</bpmn:outgoing>
+      <bpmn:outgoing>flow_approvedToReworkable</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="gateway_reworkable" default="flow_reworkableToReviewAborted">
+      <bpmn:incoming>flow_approvedToReworkable</bpmn:incoming>
+      <bpmn:outgoing>flow_reworkableToApproved</bpmn:outgoing>
+      <bpmn:outgoing>flow_reworkableToReviewAborted</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="endEvent_reviewDone">
+      <bpmn:incoming>flow_approvedToReviewDone</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="endEvent_reviewAborted">
+      <bpmn:incoming>flow_reworkableToReviewAborted</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_reviewRequestedToApproved" sourceRef="startEvent_reviewRequested" targetRef="gateway_approved" />
+    <bpmn:sequenceFlow id="flow_approvedToReviewDone" sourceRef="gateway_approved" targetRef="endEvent_reviewDone">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">=approved</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_approvedToReworkable" sourceRef="gateway_approved" targetRef="gateway_reworkable" />
+    <bpmn:sequenceFlow id="flow_reworkableToApproved" sourceRef="gateway_reworkable" targetRef="gateway_approved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">=reworkable</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_reworkableToReviewAborted" sourceRef="gateway_reworkable" targetRef="endEvent_reviewAborted" />
+  </bpmn:process>
+</bpmn:definitions>

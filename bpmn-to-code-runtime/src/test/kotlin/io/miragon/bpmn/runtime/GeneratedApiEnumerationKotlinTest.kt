@@ -16,9 +16,11 @@ class GeneratedApiEnumerationKotlinTest {
 
     @Test
     fun `flow entries list exactly the nodes of the process`() {
-        val everyNode = FlowNodes::class.nestedClasses.map { it.objectInstance }.filterIsInstance<FlowNode>()
+        val nestedClasses = FlowNodes::class.java.declaredClasses.flatMap { listOf(it) + it.declaredClasses }
+        val everyNodeClass = nestedClasses.filter { FlowNode::class.java.isAssignableFrom(it) && !it.isInterface }
 
-        assertThat(FlowNodes.entries).hasSize(42).containsExactlyInAnyOrderElementsOf(everyNode)
+        assertThat(FlowNodes.entries).hasSize(42)
+        assertThat(FlowNodes.entries.map<FlowNode, Class<*>> { it.javaClass }).containsExactlyInAnyOrderElementsOf(everyNodeClass)
     }
 
     @Test

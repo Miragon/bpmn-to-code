@@ -95,7 +95,14 @@ public static class CancelBikeOrderProcessApi
             IFlowNode ISequenceFlow.Target => Target;
         }
 
-        /// <summary>What can follow a flow node in its Next: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
+        /// <summary>A flow node with successors, listed in Outgoing. TFollowing is the one element it leads to, or its Next marker when it leads to several.</summary>
+        public interface ILeadsTo<TFollowing> : IFlowNode
+            where TFollowing : IFlowNode
+        {
+            System.Collections.Generic.IReadOnlyList<ISuccessor<TFollowing>> Outgoing { get; }
+        }
+
+        /// <summary>What can follow a flow node in its Outgoing: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
         public interface ISuccessor<out TTarget>
             where TTarget : IFlowNode
         {
@@ -113,6 +120,17 @@ public static class CancelBikeOrderProcessApi
         {
             public static SequenceFlows<TTarget> Single<TTarget>(ElementId flowId, TTarget target, string? name = null, string? conditionExpression = null, bool isDefault = false)
                 where TTarget : IFlowNode => new(target, new[] { new SequenceFlow<TTarget>(flowId, name, conditionExpression, isDefault, target) });
+
+            /// <summary>The sequence flows among outgoing that lead to target.</summary>
+            public static SequenceFlows<TTarget> To<TTarget>(System.Collections.Generic.IEnumerable<ISuccessor<IFlowNode>> outgoing, TTarget target)
+                where TTarget : IFlowNode
+            {
+                foreach (var successor in outgoing)
+                {
+                    if (successor is SequenceFlows<TTarget> flows) return flows;
+                }
+                throw new System.InvalidOperationException($"no sequence flow leads to {target.Id}");
+            }
         }
 
         /// <summary>A boundary event attached to the current node: the token can leave through it, but no sequence flow leads there.</summary>
@@ -234,7 +252,7 @@ public static class CancelBikeOrderProcessApi
         /// </summary>
         public static class Retail
         {
-            public sealed class BoundaryCancellationFailed : Runtime.IBoundaryEvent
+            public sealed class BoundaryCancellationFailed : Runtime.IBoundaryEvent, Runtime.ILeadsTo<GatewayCollectClarifications>, Next.ServiceTaskRequestCancellation
             {
                 public static readonly BoundaryCancellationFailed Instance = new();
                 private BoundaryCancellationFailed() { }
@@ -247,11 +265,11 @@ public static class CancelBikeOrderProcessApi
                 public ServiceTaskRequestCancellation AttachedTo => ServiceTaskRequestCancellation.Instance;
                 public bool IsInterrupting => true;
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<GatewayCollectClarifications>> Outgoing => new Runtime.ISuccessor<GatewayCollectClarifications>[]
                 {
-                    public Runtime.SequenceFlows<GatewayCollectClarifications> GatewayCollectClarifications => Runtime.SequenceFlows.Single(new("flow_cancellationFailedToCollectClarifications"), FlowNodes.GatewayCollectClarifications.Instance);
-                }
+                    Runtime.SequenceFlows.Single(new("flow_cancellationFailedToCollectClarifications"), GatewayCollectClarifications.Instance),
+                };
+                public Runtime.SequenceFlows<GatewayCollectClarifications> FlowsTo(GatewayCollectClarifications target) => Runtime.SequenceFlows.To(Outgoing, target);
             }
 
             public sealed class EndEventBikeOrderCancelled : Runtime.IEvent, Runtime.IHasJobType, Runtime.IHasMessage
@@ -268,7 +286,7 @@ public static class CancelBikeOrderProcessApi
                 public Runtime.MessageName Message { get; } = new(Messages.MiraveloBikeOrderCancelled);
             }
 
-            public sealed class GatewayCancellationPossible : Runtime.IFlowNode
+            public sealed class GatewayCancellationPossible : Runtime.IFlowNode, Runtime.ILeadsTo<Next.GatewayCancellationPossible>, Next.ServiceTaskRequestCancellation
             {
                 public static readonly GatewayCancellationPossible Instance = new();
                 private GatewayCancellationPossible() { }
@@ -278,15 +296,15 @@ public static class CancelBikeOrderProcessApi
                 public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
                 public string? Name => "Cancellation possible?";
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.GatewayCancellationPossible>> Outgoing => new Runtime.ISuccessor<Next.GatewayCancellationPossible>[]
                 {
-                    public Runtime.SequenceFlows<GatewayCollectClarifications> GatewayCollectClarifications => Runtime.SequenceFlows.Single(new("flow_cancellationNotPossibleToCollectClarifications"), FlowNodes.GatewayCollectClarifications.Instance, name: "No", conditionExpression: "${!cancellationPossible}");
-                    public Runtime.SequenceFlows<GatewayMergeReturn> GatewayMergeReturn => Runtime.SequenceFlows.Single(new("flow_cancellationPossibleToMergeReturn"), FlowNodes.GatewayMergeReturn.Instance, name: "Yes", isDefault: true);
-                }
+                    Runtime.SequenceFlows.Single(new("flow_cancellationNotPossibleToCollectClarifications"), GatewayCollectClarifications.Instance, name: "No", conditionExpression: "${!cancellationPossible}"),
+                    Runtime.SequenceFlows.Single(new("flow_cancellationPossibleToMergeReturn"), GatewayMergeReturn.Instance, name: "Yes", isDefault: true),
+                };
+                public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.GatewayCancellationPossible => Runtime.SequenceFlows.To(Outgoing, target);
             }
 
-            public sealed class GatewayCollectClarifications : Runtime.IFlowNode
+            public sealed class GatewayCollectClarifications : Runtime.IFlowNode, Runtime.ILeadsTo<UserTaskClarifyReturn>, Next.GatewayCancellationPossible
             {
                 public static readonly GatewayCollectClarifications Instance = new();
                 private GatewayCollectClarifications() { }
@@ -296,14 +314,14 @@ public static class CancelBikeOrderProcessApi
                 public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
                 public string? Name => null;
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<UserTaskClarifyReturn>> Outgoing => new Runtime.ISuccessor<UserTaskClarifyReturn>[]
                 {
-                    public Runtime.SequenceFlows<UserTaskClarifyReturn> UserTaskClarifyReturn => Runtime.SequenceFlows.Single(new("flow_collectClarificationsToClarifyReturn"), FlowNodes.UserTaskClarifyReturn.Instance);
-                }
+                    Runtime.SequenceFlows.Single(new("flow_collectClarificationsToClarifyReturn"), UserTaskClarifyReturn.Instance),
+                };
+                public Runtime.SequenceFlows<UserTaskClarifyReturn> FlowsTo(UserTaskClarifyReturn target) => Runtime.SequenceFlows.To(Outgoing, target);
             }
 
-            public sealed class GatewayMergeReturn : Runtime.IFlowNode
+            public sealed class GatewayMergeReturn : Runtime.IFlowNode, Runtime.ILeadsTo<ServiceTaskBookCancellationCosts>, Next.GatewayCancellationPossible
             {
                 public static readonly GatewayMergeReturn Instance = new();
                 private GatewayMergeReturn() { }
@@ -313,14 +331,14 @@ public static class CancelBikeOrderProcessApi
                 public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
                 public string? Name => null;
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ServiceTaskBookCancellationCosts>> Outgoing => new Runtime.ISuccessor<ServiceTaskBookCancellationCosts>[]
                 {
-                    public Runtime.SequenceFlows<ServiceTaskBookCancellationCosts> ServiceTaskBookCancellationCosts => Runtime.SequenceFlows.Single(new("flow_mergeReturnToBookCancellationCosts"), FlowNodes.ServiceTaskBookCancellationCosts.Instance);
-                }
+                    Runtime.SequenceFlows.Single(new("flow_mergeReturnToBookCancellationCosts"), ServiceTaskBookCancellationCosts.Instance),
+                };
+                public Runtime.SequenceFlows<ServiceTaskBookCancellationCosts> FlowsTo(ServiceTaskBookCancellationCosts target) => Runtime.SequenceFlows.To(Outgoing, target);
             }
 
-            public sealed class ServiceTaskBookCancellationCosts : Runtime.IFlowNode, Runtime.IHasJobType
+            public sealed class ServiceTaskBookCancellationCosts : Runtime.IFlowNode, Runtime.ILeadsTo<EndEventBikeOrderCancelled>, Runtime.IHasJobType
             {
                 public static readonly ServiceTaskBookCancellationCosts Instance = new();
                 private ServiceTaskBookCancellationCosts() { }
@@ -337,14 +355,14 @@ public static class CancelBikeOrderProcessApi
                     public Runtime.VariableName.Output CancellationCosts { get; } = new(ProcessVariables.CancellationCosts);
                 }
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventBikeOrderCancelled>> Outgoing => new Runtime.ISuccessor<EndEventBikeOrderCancelled>[]
                 {
-                    public Runtime.SequenceFlows<EndEventBikeOrderCancelled> EndEventBikeOrderCancelled => Runtime.SequenceFlows.Single(new("flow_bookCancellationCostsToBikeOrderCancelled"), FlowNodes.EndEventBikeOrderCancelled.Instance);
-                }
+                    Runtime.SequenceFlows.Single(new("flow_bookCancellationCostsToBikeOrderCancelled"), EndEventBikeOrderCancelled.Instance),
+                };
+                public Runtime.SequenceFlows<EndEventBikeOrderCancelled> FlowsTo(EndEventBikeOrderCancelled target) => Runtime.SequenceFlows.To(Outgoing, target);
             }
 
-            public sealed class ServiceTaskRequestCancellation : Runtime.IFlowNode, Runtime.IHasJobType
+            public sealed class ServiceTaskRequestCancellation : Runtime.IFlowNode, Runtime.ILeadsTo<Next.ServiceTaskRequestCancellation>, Runtime.IHasJobType
             {
                 public static readonly ServiceTaskRequestCancellation Instance = new();
                 private ServiceTaskRequestCancellation() { }
@@ -361,15 +379,15 @@ public static class CancelBikeOrderProcessApi
                     public Runtime.VariableName.Output CancellationPossible { get; } = new(ProcessVariables.CancellationPossible);
                 }
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.ServiceTaskRequestCancellation>> Outgoing => new Runtime.ISuccessor<Next.ServiceTaskRequestCancellation>[]
                 {
-                    public Runtime.AttachedBoundaryEvent<BoundaryCancellationFailed> BoundaryCancellationFailed => new(FlowNodes.BoundaryCancellationFailed.Instance);
-                    public Runtime.SequenceFlows<GatewayCancellationPossible> GatewayCancellationPossible => Runtime.SequenceFlows.Single(new("flow_requestCancellationToCancellationPossible"), FlowNodes.GatewayCancellationPossible.Instance);
-                }
+                    new Runtime.AttachedBoundaryEvent<BoundaryCancellationFailed>(BoundaryCancellationFailed.Instance),
+                    Runtime.SequenceFlows.Single(new("flow_requestCancellationToCancellationPossible"), GatewayCancellationPossible.Instance),
+                };
+                public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.ServiceTaskRequestCancellation => Runtime.SequenceFlows.To(Outgoing, target);
             }
 
-            public sealed class StartEventCancellationRequired : Runtime.IEvent
+            public sealed class StartEventCancellationRequired : Runtime.IEvent, Runtime.ILeadsTo<ServiceTaskRequestCancellation>
             {
                 public static readonly StartEventCancellationRequired Instance = new();
                 private StartEventCancellationRequired() { }
@@ -386,14 +404,14 @@ public static class CancelBikeOrderProcessApi
                     public Runtime.VariableName.Input OrderIds { get; } = new(ProcessVariables.OrderIds);
                 }
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ServiceTaskRequestCancellation>> Outgoing => new Runtime.ISuccessor<ServiceTaskRequestCancellation>[]
                 {
-                    public Runtime.SequenceFlows<ServiceTaskRequestCancellation> ServiceTaskRequestCancellation => Runtime.SequenceFlows.Single(new("flow_cancellationRequiredToRequestCancellation"), FlowNodes.ServiceTaskRequestCancellation.Instance);
-                }
+                    Runtime.SequenceFlows.Single(new("flow_cancellationRequiredToRequestCancellation"), ServiceTaskRequestCancellation.Instance),
+                };
+                public Runtime.SequenceFlows<ServiceTaskRequestCancellation> FlowsTo(ServiceTaskRequestCancellation target) => Runtime.SequenceFlows.To(Outgoing, target);
             }
 
-            public sealed class UserTaskClarifyReturn : Runtime.IFlowNode
+            public sealed class UserTaskClarifyReturn : Runtime.IFlowNode, Runtime.ILeadsTo<GatewayMergeReturn>
             {
                 public static readonly UserTaskClarifyReturn Instance = new();
                 private UserTaskClarifyReturn() { }
@@ -403,11 +421,20 @@ public static class CancelBikeOrderProcessApi
                 public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.UserTask;
                 public string? Name => "Clarify return";
 
-                public Successors Next => new();
-                public sealed class Successors
+                public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<GatewayMergeReturn>> Outgoing => new Runtime.ISuccessor<GatewayMergeReturn>[]
                 {
-                    public Runtime.SequenceFlows<GatewayMergeReturn> GatewayMergeReturn => Runtime.SequenceFlows.Single(new("flow_clarifyReturnToMergeReturn"), FlowNodes.GatewayMergeReturn.Instance);
-                }
+                    Runtime.SequenceFlows.Single(new("flow_clarifyReturnToMergeReturn"), GatewayMergeReturn.Instance),
+                };
+                public Runtime.SequenceFlows<GatewayMergeReturn> FlowsTo(GatewayMergeReturn target) => Runtime.SequenceFlows.To(Outgoing, target);
+            }
+
+            /// <summary>
+            /// One marker per element leading to several others, implemented by every element it leads to.
+            /// </summary>
+            public static class Next
+            {
+                public interface GatewayCancellationPossible : Runtime.IFlowNode { }
+                public interface ServiceTaskRequestCancellation : Runtime.IFlowNode { }
             }
 
             public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]

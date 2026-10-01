@@ -1,8 +1,8 @@
 package io.miragon.bpmn.runtime
 
 /**
- * One outgoing `bpmn:sequenceFlow` of a generated `FlowNodes` node, held by the [SequenceFlows] its `Next` offers
- * under the name of the element it leads to.
+ * One outgoing `bpmn:sequenceFlow` of a generated `FlowNodes` node, held by the [SequenceFlows] its `outgoing`
+ * lists for the element it leads to.
  *
  * [conditionExpression] is the raw expression text from the model (`${…}` for Camunda 7 / Operaton,
  * `=…` FEEL for Zeebe) or `null` when the flow is unconditional; [isDefault] marks the source's
@@ -17,4 +17,6 @@ data class SequenceFlow<out TARGET : FlowNode>(
     override val target: TARGET,
 ) : Successor<TARGET> {
     constructor(id: ElementId, target: TARGET) : this(id, null, null, false, target)
+
+    internal fun <M : FlowNode> leadingTo(target: M): SequenceFlow<M> = SequenceFlow(id, name, conditionExpression, isDefault, target)
 }

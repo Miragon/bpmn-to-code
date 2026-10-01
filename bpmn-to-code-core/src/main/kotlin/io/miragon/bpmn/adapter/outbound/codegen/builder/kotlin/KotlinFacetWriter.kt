@@ -13,6 +13,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinMess
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinSignalsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
@@ -35,7 +36,7 @@ internal class KotlinFacetWriter {
         facets.signal?.let { KotlinSignalsWriter.nodeProperty(name = "signal", shared = it) },
         facets.error?.let { KotlinErrorsWriter.nodeProperty(name = "error", shared = it) },
         facets.escalation?.let { KotlinEscalationsWriter.nodeProperty(name = "escalation", shared = it) },
-        facets.attachedTo?.let { attachedToProperty(it.objectName) },
+        facets.attachedTo?.let { attachedToProperty(it) },
         facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
     )
 
@@ -60,9 +61,9 @@ internal class KotlinFacetWriter {
         return PropertySpec.builder("timer", timerClass, KModifier.OVERRIDE).initializer(initializer).build()
     }
 
-    private fun attachedToProperty(hostObjectName: String): PropertySpec = PropertySpec.builder("attachedTo", ClassName("", hostObjectName))
+    private fun attachedToProperty(host: FlowEdge): PropertySpec = PropertySpec.builder("attachedTo", KotlinFlowNodeType(host).typeName)
         .addModifiers(KModifier.OVERRIDE)
-        .getter(FunSpec.getterBuilder().addStatement("return %N", hostObjectName).build()).build()
+        .getter(FunSpec.getterBuilder().addStatement("return %N", host.objectName).build()).build()
 
     private fun isInterruptingProperty(isInterrupting: Boolean, overridesBoundaryEvent: Boolean): PropertySpec {
         val property = PropertySpec.builder("isInterrupting", Boolean::class).initializer("%L", isInterrupting)

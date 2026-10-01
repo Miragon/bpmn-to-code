@@ -22,6 +22,23 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
+private val coverageExclusions = listOf(
+    $$"**/*$DefaultImpls*",
+    $$"**/*$Companion*",
+)
+
+tasks.jacocoTestReport {
+    classDirectories.setFrom(
+        files(classDirectories.files.map { fileTree(it) { exclude(coverageExclusions) } })
+    )
+}
+
+tasks.jacocoTestCoverageVerification {
+    classDirectories.setFrom(
+        files(classDirectories.files.map { fileTree(it) { exclude(coverageExclusions) } })
+    )
+}
+
 // The checked-in generated sample API (ProcessPath test fixture) is generated code, not hand-written —
 // exclude it from detekt, as a consumer would exclude their own generated output.
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {

@@ -23,6 +23,8 @@ internal object CSharpRuntimeTypes {
     const val ELEMENT_ID = "$CLASS_NAME.ElementId"
     const val EVENT = "$CLASS_NAME.IEvent"
     const val FLOW_NODE = "$CLASS_NAME.IFlowNode"
+    const val LEADS_TO = "$CLASS_NAME.ILeadsTo"
+    const val SUCCESSOR = "$CLASS_NAME.ISuccessor"
     const val INPUT_OUTPUT_MAPPING = "$CLASS_NAME.InputOutputMapping"
     const val MESSAGE_NAME = "$CLASS_NAME.MessageName"
     const val PROCESS_ID = "$CLASS_NAME.ProcessId"
@@ -118,7 +120,14 @@ internal object CSharpRuntimeTypes {
             IFlowNode ISequenceFlow.Target => Target;
         }
 
-        /// <summary>What can follow a flow node in its Next: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
+        /// <summary>A flow node with successors, listed in Outgoing. TFollowing is the one element it leads to, or its Next marker when it leads to several.</summary>
+        public interface ILeadsTo<TFollowing> : IFlowNode
+            where TFollowing : IFlowNode
+        {
+            System.Collections.Generic.IReadOnlyList<ISuccessor<TFollowing>> Outgoing { get; }
+        }
+
+        /// <summary>What can follow a flow node in its Outgoing: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
         public interface ISuccessor<out TTarget>
             where TTarget : IFlowNode
         {
@@ -136,6 +145,17 @@ internal object CSharpRuntimeTypes {
         {
             public static SequenceFlows<TTarget> Single<TTarget>(ElementId flowId, TTarget target, string? name = null, string? conditionExpression = null, bool isDefault = false)
                 where TTarget : IFlowNode => new(target, new[] { new SequenceFlow<TTarget>(flowId, name, conditionExpression, isDefault, target) });
+
+            /// <summary>The sequence flows among outgoing that lead to target.</summary>
+            public static SequenceFlows<TTarget> To<TTarget>(System.Collections.Generic.IEnumerable<ISuccessor<IFlowNode>> outgoing, TTarget target)
+                where TTarget : IFlowNode
+            {
+                foreach (var successor in outgoing)
+                {
+                    if (successor is SequenceFlows<TTarget> flows) return flows;
+                }
+                throw new System.InvalidOperationException($"no sequence flow leads to {target.Id}");
+            }
         }
 
         /// <summary>A boundary event attached to the current node: the token can leave through it, but no sequence flow leads there.</summary>

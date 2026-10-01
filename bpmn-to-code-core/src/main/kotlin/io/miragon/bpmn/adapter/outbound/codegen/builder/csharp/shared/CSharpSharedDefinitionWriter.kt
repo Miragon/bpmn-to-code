@@ -31,7 +31,7 @@ internal abstract class CSharpSharedDefinitionWriter<T : Any> {
         writer.staticClass(type.typeName) {
             writeMembers(writer, ofKind)
             writer.line()
-            writer.staticListProperty(name = "All", elementType = allElementType, elements = ofKind.map { allElement(memberReference(it.getName())) })
+            writer.listProperty(name = "All", elementType = allElementType, elements = ofKind.map { allElement(memberReference(it.getName())) }, modifiers = "public static")
         }
     }
 

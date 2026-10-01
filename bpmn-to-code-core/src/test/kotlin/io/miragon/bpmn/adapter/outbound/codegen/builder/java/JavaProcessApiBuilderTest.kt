@@ -56,7 +56,7 @@ class JavaProcessApiBuilderTest {
 
         // then: every node is only reachable through its INSTANCE
         val content = result.content
-        assertThat(content).doesNotContainPattern("(?<!INSTANCE = )new (?!Next|Start)\\w+\\(\\)")
+        assertThat(content).doesNotContainPattern("(?<!INSTANCE = )new (?!Start)\\w+\\(\\)")
         assertThat(content).contains("private BusinessRuleTaskCheckCreditRating()")
         assertThat(content).contains("private Variables()")
         assertThat(content).contains("public static final BusinessRuleTaskCheckCreditRating INSTANCE = new BusinessRuleTaskCheckCreditRating();")
@@ -110,8 +110,9 @@ class JavaProcessApiBuilderTest {
         // when
         val result = underTest.buildApiFile(testProcessModelApi(model = model, language = OutputLanguage.JAVA))
 
-        // then: one stable name for both flows, carried by one SequenceFlows
-        assertThat(result.content).contains("public SequenceFlows<Approve> approve()")
+        // then: the target is the gateway's one successor, and one SequenceFlows carries both flows
+        assertThat(result.content).contains("class Split extends AbstractFlowNode implements LeadsTo<Approve> {")
+        assertThat(result.content).containsOnlyOnce("new SequenceFlows<>(Approve.INSTANCE")
         assertThat(result.content).contains("\"flow_small\"", "\"flow_vip\"")
         assertJavaSyntaxValid(result.fileName, result.content)
     }

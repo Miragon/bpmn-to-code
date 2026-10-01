@@ -85,7 +85,7 @@ internal class KotlinProcessApiBuilder : ProcessApiBuilder {
 
     /**
      * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
-     * `elementType` and display `name`, plus its reachable successors behind `next`. Boundary events and
+     * `elementType` and display `name`, plus its reachable successors in `outgoing`. Boundary events and
      * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
      * opens its interior via `startEvents`.
      */

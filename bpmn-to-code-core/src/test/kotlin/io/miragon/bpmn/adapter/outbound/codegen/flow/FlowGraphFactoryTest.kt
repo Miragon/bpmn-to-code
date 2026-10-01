@@ -57,6 +57,20 @@ class FlowGraphFactoryTest {
     }
 
     @Test
+    fun `predecessors are the elements a node is a successor of`() {
+        // a join of two flows lists both sources
+        assertThat(leasingGraph.node("gatewayJoin").predecessors.map { it.propertyName })
+            .containsExactly("serviceTaskIssueInsurancePolicy", "serviceTaskOrderBike")
+
+        // a boundary event's predecessor is its host
+        assertThat(leasingGraph.node("boundaryApplicationInvalid").predecessors.map { it.propertyName })
+            .containsExactly("serviceTaskValidateApplication")
+
+        // a start event has none
+        assertThat(leasingGraph.node("startEventLeasingRequestReceived").predecessors).isEmpty()
+    }
+
+    @Test
     fun `subprocess points at its interior start events while interior edges stay on the interior nodes`() {
         assertThat(leasingGraph.node("subProcessConcludeContract").interiorStarts.map { it.propertyName })
             .containsExactly("startEventCustomerEligible")

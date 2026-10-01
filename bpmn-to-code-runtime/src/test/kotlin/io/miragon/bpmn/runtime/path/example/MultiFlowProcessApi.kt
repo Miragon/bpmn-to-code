@@ -8,10 +8,11 @@ import io.miragon.bpmn.runtime.BpmnElementType
 import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowNode
-import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.LeadsTo
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.SequenceFlows
+import io.miragon.bpmn.runtime.Successor
 import kotlin.String
 import kotlin.Suppress
 import kotlin.collections.List
@@ -34,51 +35,53 @@ object OrderProcessApi {
     object GatewayAmount : AbstractFlowNode(
       id = ElementId(GatewayAmount.ELEMENT_ID),
       elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
-    ), HasSuccessors<GatewayAmount.Next> {
+    ), LeadsTo<Next.GatewayAmount> {
       const val ELEMENT_ID: String = "gateway_amount"
 
-      override val next: Next = Next
-
-      object Next {
-        val taskApprove: SequenceFlows<TaskApprove>
-          get() = SequenceFlows(
-            TaskApprove,
-            SequenceFlow(
-              id = ElementId("flow_small"),
-              conditionExpression = "=amount < 100",
-              target = TaskApprove,
+      override val outgoing: List<Successor<Next.GatewayAmount>>
+        get() = listOf(
+          SequenceFlows(
+            target = TaskApprove,
+            flows = listOf(
+              SequenceFlow(
+                id = ElementId("flow_small"),
+                conditionExpression = "=amount < 100",
+                target = TaskApprove,
+              ),
+              SequenceFlow(
+                id = ElementId("flow_vip"),
+                conditionExpression = "=customer.isVip",
+                target = TaskApprove,
+              ),
             ),
-            SequenceFlow(
-              id = ElementId("flow_vip"),
-              conditionExpression = "=customer.isVip",
-              target = TaskApprove,
-            ),
-          )
-
-        val taskReview: SequenceFlows<TaskReview>
-          get() = SequenceFlows(
-            TaskReview,
-            SequenceFlow(
-              id = ElementId("flow_review"),
-              isDefault = true,
-              target = TaskReview,
-            ),
-          )
-      }
+          ),
+          SequenceFlows.single(
+            flowId = ElementId("flow_review"),
+            isDefault = true,
+            target = TaskReview,
+          ),
+        )
     }
 
     object TaskApprove : AbstractFlowNode(
       id = ElementId(TaskApprove.ELEMENT_ID),
       elementType = BpmnElementType.UNKNOWN,
-    ) {
+    ), Next.GatewayAmount {
       const val ELEMENT_ID: String = "task_approve"
     }
 
     object TaskReview : AbstractFlowNode(
       id = ElementId(TaskReview.ELEMENT_ID),
       elementType = BpmnElementType.UNKNOWN,
-    ) {
+    ), Next.GatewayAmount {
       const val ELEMENT_ID: String = "task_review"
+    }
+
+    /**
+     * One marker per element leading to several others, implemented by every element it leads to.
+     */
+    object Next {
+      interface GatewayAmount : FlowNode
     }
   }
 }

@@ -87,7 +87,7 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
 
     /**
      * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
-     * `elementType` and display `name`, plus its reachable successors behind `getNext()`. Boundary events and
+     * `elementType` and display `name`, plus its reachable successors in `getOutgoing()`. Boundary events and
      * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
      * opens its interior via `getStartEvents()`.
      */

@@ -95,7 +95,14 @@ public static class BikeLeasingProcessApi
             IFlowNode ISequenceFlow.Target => Target;
         }
 
-        /// <summary>What can follow a flow node in its Next: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
+        /// <summary>A flow node with successors, listed in Outgoing. TFollowing is the one element it leads to, or its Next marker when it leads to several.</summary>
+        public interface ILeadsTo<TFollowing> : IFlowNode
+            where TFollowing : IFlowNode
+        {
+            System.Collections.Generic.IReadOnlyList<ISuccessor<TFollowing>> Outgoing { get; }
+        }
+
+        /// <summary>What can follow a flow node in its Outgoing: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
         public interface ISuccessor<out TTarget>
             where TTarget : IFlowNode
         {
@@ -113,6 +120,17 @@ public static class BikeLeasingProcessApi
         {
             public static SequenceFlows<TTarget> Single<TTarget>(ElementId flowId, TTarget target, string? name = null, string? conditionExpression = null, bool isDefault = false)
                 where TTarget : IFlowNode => new(target, new[] { new SequenceFlow<TTarget>(flowId, name, conditionExpression, isDefault, target) });
+
+            /// <summary>The sequence flows among outgoing that lead to target.</summary>
+            public static SequenceFlows<TTarget> To<TTarget>(System.Collections.Generic.IEnumerable<ISuccessor<IFlowNode>> outgoing, TTarget target)
+                where TTarget : IFlowNode
+            {
+                foreach (var successor in outgoing)
+                {
+                    if (successor is SequenceFlows<TTarget> flows) return flows;
+                }
+                throw new System.InvalidOperationException($"no sequence flow leads to {target.Id}");
+            }
         }
 
         /// <summary>A boundary event attached to the current node: the token can leave through it, but no sequence flow leads there.</summary>
@@ -229,7 +247,7 @@ public static class BikeLeasingProcessApi
     /// </summary>
     public static class FlowNodes
     {
-        public sealed class BoundaryApplicationInvalid : Runtime.IBoundaryEvent, Runtime.IErrorEvent
+        public sealed class BoundaryApplicationInvalid : Runtime.IBoundaryEvent, Runtime.ILeadsTo<GatewayCollectRejections>, Next.ServiceTaskValidateApplication, Runtime.IErrorEvent
         {
             public static readonly BoundaryApplicationInvalid Instance = new();
             private BoundaryApplicationInvalid() { }
@@ -243,14 +261,14 @@ public static class BikeLeasingProcessApi
             public ServiceTaskValidateApplication AttachedTo => ServiceTaskValidateApplication.Instance;
             public bool IsInterrupting => true;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<GatewayCollectRejections>> Outgoing => new Runtime.ISuccessor<GatewayCollectRejections>[]
             {
-                public Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => Runtime.SequenceFlows.Single(new("flow_applicationInvalidToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_applicationInvalidToCollectRejections"), GatewayCollectRejections.Instance),
+            };
+            public Runtime.SequenceFlows<GatewayCollectRejections> FlowsTo(GatewayCollectRejections target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class BoundaryCompensateContract : Runtime.IBoundaryEvent
+        public sealed class BoundaryCompensateContract : Runtime.IBoundaryEvent, Next.SubProcessConcludeContract
         {
             public static readonly BoundaryCompensateContract Instance = new();
             private BoundaryCompensateContract() { }
@@ -264,7 +282,7 @@ public static class BikeLeasingProcessApi
             public bool IsInterrupting => true;
         }
 
-        public sealed class BoundaryCompensateInsurance : Runtime.IBoundaryEvent
+        public sealed class BoundaryCompensateInsurance : Runtime.IBoundaryEvent, Next.ServiceTaskIssueInsurancePolicy
         {
             public static readonly BoundaryCompensateInsurance Instance = new();
             private BoundaryCompensateInsurance() { }
@@ -278,7 +296,7 @@ public static class BikeLeasingProcessApi
             public bool IsInterrupting => true;
         }
 
-        public sealed class BoundaryCompensateOrder : Runtime.IBoundaryEvent
+        public sealed class BoundaryCompensateOrder : Runtime.IBoundaryEvent, Next.ServiceTaskOrderBike
         {
             public static readonly BoundaryCompensateOrder Instance = new();
             private BoundaryCompensateOrder() { }
@@ -292,7 +310,7 @@ public static class BikeLeasingProcessApi
             public bool IsInterrupting => true;
         }
 
-        public sealed class BoundaryContractNotSigned : Runtime.IBoundaryEvent, Runtime.IEscalationEvent
+        public sealed class BoundaryContractNotSigned : Runtime.IBoundaryEvent, Runtime.ILeadsTo<GatewayCollectRejections>, Next.SubProcessConcludeContract, Runtime.IEscalationEvent
         {
             public static readonly BoundaryContractNotSigned Instance = new();
             private BoundaryContractNotSigned() { }
@@ -306,14 +324,14 @@ public static class BikeLeasingProcessApi
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => true;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<GatewayCollectRejections>> Outgoing => new Runtime.ISuccessor<GatewayCollectRejections>[]
             {
-                public Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => Runtime.SequenceFlows.Single(new("flow_contractNotSignedToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_contractNotSignedToCollectRejections"), GatewayCollectRejections.Instance),
+            };
+            public Runtime.SequenceFlows<GatewayCollectRejections> FlowsTo(GatewayCollectRejections target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class BusinessRuleTaskCheckCreditRating : Runtime.IFlowNode
+        public sealed class BusinessRuleTaskCheckCreditRating : Runtime.IFlowNode, Runtime.ILeadsTo<GatewayIsSolvent>, Next.ServiceTaskValidateApplication
         {
             public static readonly BusinessRuleTaskCheckCreditRating Instance = new();
             private BusinessRuleTaskCheckCreditRating() { }
@@ -323,11 +341,11 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BusinessRuleTask;
             public string? Name => "Check credit rating";
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<GatewayIsSolvent>> Outgoing => new Runtime.ISuccessor<GatewayIsSolvent>[]
             {
-                public Runtime.SequenceFlows<GatewayIsSolvent> GatewayIsSolvent => Runtime.SequenceFlows.Single(new("flow_checkCreditRatingToIsSolvent"), FlowNodes.GatewayIsSolvent.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_checkCreditRatingToIsSolvent"), GatewayIsSolvent.Instance),
+            };
+            public Runtime.SequenceFlows<GatewayIsSolvent> FlowsTo(GatewayIsSolvent target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
         public sealed class CallActivityCancelBikeOrder : Runtime.IFlowNode, Runtime.ICallActivity
@@ -448,7 +466,7 @@ public static class BikeLeasingProcessApi
             public string? Name => "Leasing active";
         }
 
-        public sealed class EventContractSigned : Runtime.IEvent, Runtime.IHasMessage
+        public sealed class EventContractSigned : Runtime.IEvent, Runtime.ILeadsTo<EndEventContractConcluded>, Next.GatewayAwaitSignature, Runtime.IHasMessage
         {
             public static readonly EventContractSigned Instance = new();
             private EventContractSigned() { }
@@ -460,14 +478,14 @@ public static class BikeLeasingProcessApi
             public string? Name => "Contract signed";
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloContractSigned);
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventContractConcluded>> Outgoing => new Runtime.ISuccessor<EndEventContractConcluded>[]
             {
-                public Runtime.SequenceFlows<EndEventContractConcluded> EndEventContractConcluded => Runtime.SequenceFlows.Single(new("flow_contractSignedToContractConcluded"), FlowNodes.EndEventContractConcluded.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_contractSignedToContractConcluded"), EndEventContractConcluded.Instance),
+            };
+            public Runtime.SequenceFlows<EndEventContractConcluded> FlowsTo(EndEventContractConcluded target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class EventReverseApplication : Runtime.IEvent
+        public sealed class EventReverseApplication : Runtime.IEvent, Runtime.ILeadsTo<ServiceTaskSendCancellationConfirmation>
         {
             public static readonly EventReverseApplication Instance = new();
             private EventReverseApplication() { }
@@ -478,14 +496,14 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
             public string? Name => "Application reversed";
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ServiceTaskSendCancellationConfirmation>> Outgoing => new Runtime.ISuccessor<ServiceTaskSendCancellationConfirmation>[]
             {
-                public Runtime.SequenceFlows<ServiceTaskSendCancellationConfirmation> ServiceTaskSendCancellationConfirmation => Runtime.SequenceFlows.Single(new("flow_reverseApplicationToSendCancellationConfirmation"), FlowNodes.ServiceTaskSendCancellationConfirmation.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_reverseApplicationToSendCancellationConfirmation"), ServiceTaskSendCancellationConfirmation.Instance),
+            };
+            public Runtime.SequenceFlows<ServiceTaskSendCancellationConfirmation> FlowsTo(ServiceTaskSendCancellationConfirmation target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class GatewayAwaitSignature : Runtime.IFlowNode
+        public sealed class GatewayAwaitSignature : Runtime.IFlowNode, Runtime.ILeadsTo<Next.GatewayAwaitSignature>
         {
             public static readonly GatewayAwaitSignature Instance = new();
             private GatewayAwaitSignature() { }
@@ -495,15 +513,15 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EventBasedGateway;
             public string? Name => "Await signature";
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.GatewayAwaitSignature>> Outgoing => new Runtime.ISuccessor<Next.GatewayAwaitSignature>[]
             {
-                public Runtime.SequenceFlows<EventContractSigned> EventContractSigned => Runtime.SequenceFlows.Single(new("flow_awaitSignatureToContractSigned"), FlowNodes.EventContractSigned.Instance);
-                public Runtime.SequenceFlows<TimerSignatureDeadline> TimerSignatureDeadline => Runtime.SequenceFlows.Single(new("flow_awaitSignatureToSignatureDeadline"), FlowNodes.TimerSignatureDeadline.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_awaitSignatureToContractSigned"), EventContractSigned.Instance),
+                Runtime.SequenceFlows.Single(new("flow_awaitSignatureToSignatureDeadline"), TimerSignatureDeadline.Instance),
+            };
+            public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.GatewayAwaitSignature => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class GatewayCollectRejections : Runtime.IFlowNode
+        public sealed class GatewayCollectRejections : Runtime.IFlowNode, Runtime.ILeadsTo<ServiceTaskSendRejection>, Next.GatewayIsSolvent
         {
             public static readonly GatewayCollectRejections Instance = new();
             private GatewayCollectRejections() { }
@@ -513,14 +531,14 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
             public string? Name => null;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ServiceTaskSendRejection>> Outgoing => new Runtime.ISuccessor<ServiceTaskSendRejection>[]
             {
-                public Runtime.SequenceFlows<ServiceTaskSendRejection> ServiceTaskSendRejection => Runtime.SequenceFlows.Single(new("flow_collectRejectionsToSendRejection"), FlowNodes.ServiceTaskSendRejection.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_collectRejectionsToSendRejection"), ServiceTaskSendRejection.Instance),
+            };
+            public Runtime.SequenceFlows<ServiceTaskSendRejection> FlowsTo(ServiceTaskSendRejection target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class GatewayFork : Runtime.IFlowNode
+        public sealed class GatewayFork : Runtime.IFlowNode, Runtime.ILeadsTo<Next.GatewayFork>, Next.SubProcessConcludeContract
         {
             public static readonly GatewayFork Instance = new();
             private GatewayFork() { }
@@ -530,15 +548,15 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ParallelGateway;
             public string? Name => null;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.GatewayFork>> Outgoing => new Runtime.ISuccessor<Next.GatewayFork>[]
             {
-                public Runtime.SequenceFlows<ServiceTaskIssueInsurancePolicy> ServiceTaskIssueInsurancePolicy => Runtime.SequenceFlows.Single(new("flow_forkToIssueInsurancePolicy"), FlowNodes.ServiceTaskIssueInsurancePolicy.Instance);
-                public Runtime.SequenceFlows<ServiceTaskOrderBike> ServiceTaskOrderBike => Runtime.SequenceFlows.Single(new("flow_forkToOrderBike"), FlowNodes.ServiceTaskOrderBike.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_forkToIssueInsurancePolicy"), ServiceTaskIssueInsurancePolicy.Instance),
+                Runtime.SequenceFlows.Single(new("flow_forkToOrderBike"), ServiceTaskOrderBike.Instance),
+            };
+            public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.GatewayFork => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class GatewayIsSolvent : Runtime.IFlowNode
+        public sealed class GatewayIsSolvent : Runtime.IFlowNode, Runtime.ILeadsTo<Next.GatewayIsSolvent>
         {
             public static readonly GatewayIsSolvent Instance = new();
             private GatewayIsSolvent() { }
@@ -548,15 +566,15 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
             public string? Name => "Solvent?";
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.GatewayIsSolvent>> Outgoing => new Runtime.ISuccessor<Next.GatewayIsSolvent>[]
             {
-                public Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => Runtime.SequenceFlows.Single(new("flow_isSolventToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance, name: "No", conditionExpression: "${!solvent}");
-                public Runtime.SequenceFlows<SubProcessConcludeContract> SubProcessConcludeContract => Runtime.SequenceFlows.Single(new("flow_isSolventToConcludeContract"), FlowNodes.SubProcessConcludeContract.Instance, name: "Yes", isDefault: true);
-            }
+                Runtime.SequenceFlows.Single(new("flow_isSolventToCollectRejections"), GatewayCollectRejections.Instance, name: "No", conditionExpression: "${!solvent}"),
+                Runtime.SequenceFlows.Single(new("flow_isSolventToConcludeContract"), SubProcessConcludeContract.Instance, name: "Yes", isDefault: true),
+            };
+            public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.GatewayIsSolvent => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class GatewayJoin : Runtime.IFlowNode
+        public sealed class GatewayJoin : Runtime.IFlowNode, Runtime.ILeadsTo<ReceiveTaskHandoverReported>, Next.ServiceTaskIssueInsurancePolicy, Next.ServiceTaskOrderBike
         {
             public static readonly GatewayJoin Instance = new();
             private GatewayJoin() { }
@@ -566,14 +584,14 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ParallelGateway;
             public string? Name => null;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ReceiveTaskHandoverReported>> Outgoing => new Runtime.ISuccessor<ReceiveTaskHandoverReported>[]
             {
-                public Runtime.SequenceFlows<ReceiveTaskHandoverReported> ReceiveTaskHandoverReported => Runtime.SequenceFlows.Single(new("flow_joinToHandoverReported"), FlowNodes.ReceiveTaskHandoverReported.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_joinToHandoverReported"), ReceiveTaskHandoverReported.Instance),
+            };
+            public Runtime.SequenceFlows<ReceiveTaskHandoverReported> FlowsTo(ReceiveTaskHandoverReported target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class ReceiveTaskHandoverReported : Runtime.IFlowNode, Runtime.IHasMessage
+        public sealed class ReceiveTaskHandoverReported : Runtime.IFlowNode, Runtime.ILeadsTo<TimerWithdrawalPeriodElapsed>, Runtime.IHasMessage
         {
             public static readonly ReceiveTaskHandoverReported Instance = new();
             private ReceiveTaskHandoverReported() { }
@@ -584,11 +602,11 @@ public static class BikeLeasingProcessApi
             public string? Name => "Await bike handover";
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloHandoverReported);
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<TimerWithdrawalPeriodElapsed>> Outgoing => new Runtime.ISuccessor<TimerWithdrawalPeriodElapsed>[]
             {
-                public Runtime.SequenceFlows<TimerWithdrawalPeriodElapsed> TimerWithdrawalPeriodElapsed => Runtime.SequenceFlows.Single(new("flow_handoverReportedToWithdrawalPeriodElapsed"), FlowNodes.TimerWithdrawalPeriodElapsed.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_handoverReportedToWithdrawalPeriodElapsed"), TimerWithdrawalPeriodElapsed.Instance),
+            };
+            public Runtime.SequenceFlows<TimerWithdrawalPeriodElapsed> FlowsTo(TimerWithdrawalPeriodElapsed target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
         public sealed class ServiceTaskCancelContract : Runtime.IFlowNode, Runtime.IHasJobType
@@ -615,7 +633,7 @@ public static class BikeLeasingProcessApi
             public string JobType { get; } = ServiceTasks.MiraveloCancelPolicy;
         }
 
-        public sealed class ServiceTaskIssueInsurancePolicy : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskIssueInsurancePolicy : Runtime.IFlowNode, Runtime.ILeadsTo<Next.ServiceTaskIssueInsurancePolicy>, Next.GatewayFork, Runtime.IHasJobType
         {
             public static readonly ServiceTaskIssueInsurancePolicy Instance = new();
             private ServiceTaskIssueInsurancePolicy() { }
@@ -633,15 +651,15 @@ public static class BikeLeasingProcessApi
                 public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
             }
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.ServiceTaskIssueInsurancePolicy>> Outgoing => new Runtime.ISuccessor<Next.ServiceTaskIssueInsurancePolicy>[]
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryCompensateInsurance> BoundaryCompensateInsurance => new(FlowNodes.BoundaryCompensateInsurance.Instance);
-                public Runtime.SequenceFlows<GatewayJoin> GatewayJoin => Runtime.SequenceFlows.Single(new("flow_issueInsurancePolicyToJoin"), FlowNodes.GatewayJoin.Instance);
-            }
+                new Runtime.AttachedBoundaryEvent<BoundaryCompensateInsurance>(BoundaryCompensateInsurance.Instance),
+                Runtime.SequenceFlows.Single(new("flow_issueInsurancePolicyToJoin"), GatewayJoin.Instance),
+            };
+            public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.ServiceTaskIssueInsurancePolicy => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class ServiceTaskOrderBike : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskOrderBike : Runtime.IFlowNode, Runtime.ILeadsTo<Next.ServiceTaskOrderBike>, Next.GatewayFork, Runtime.IHasJobType
         {
             public static readonly ServiceTaskOrderBike Instance = new();
             private ServiceTaskOrderBike() { }
@@ -659,15 +677,15 @@ public static class BikeLeasingProcessApi
                 public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
             }
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.ServiceTaskOrderBike>> Outgoing => new Runtime.ISuccessor<Next.ServiceTaskOrderBike>[]
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryCompensateOrder> BoundaryCompensateOrder => new(FlowNodes.BoundaryCompensateOrder.Instance);
-                public Runtime.SequenceFlows<GatewayJoin> GatewayJoin => Runtime.SequenceFlows.Single(new("flow_orderBikeToJoin"), FlowNodes.GatewayJoin.Instance);
-            }
+                new Runtime.AttachedBoundaryEvent<BoundaryCompensateOrder>(BoundaryCompensateOrder.Instance),
+                Runtime.SequenceFlows.Single(new("flow_orderBikeToJoin"), GatewayJoin.Instance),
+            };
+            public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.ServiceTaskOrderBike => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class ServiceTaskSendCancellationConfirmation : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendCancellationConfirmation : Runtime.IFlowNode, Runtime.ILeadsTo<EndEventApplicationCancelled>, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendCancellationConfirmation Instance = new();
             private ServiceTaskSendCancellationConfirmation() { }
@@ -678,14 +696,14 @@ public static class BikeLeasingProcessApi
             public string? Name => "Send cancellation confirmation";
             public string JobType { get; } = ServiceTasks.MiraveloSendCancellationConfirmation;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventApplicationCancelled>> Outgoing => new Runtime.ISuccessor<EndEventApplicationCancelled>[]
             {
-                public Runtime.SequenceFlows<EndEventApplicationCancelled> EndEventApplicationCancelled => Runtime.SequenceFlows.Single(new("flow_sendCancellationConfirmationToApplicationCancelled"), FlowNodes.EndEventApplicationCancelled.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_sendCancellationConfirmationToApplicationCancelled"), EndEventApplicationCancelled.Instance),
+            };
+            public Runtime.SequenceFlows<EndEventApplicationCancelled> FlowsTo(EndEventApplicationCancelled target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.ILeadsTo<GatewayAwaitSignature>, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendContract Instance = new();
             private ServiceTaskSendContract() { }
@@ -703,14 +721,14 @@ public static class BikeLeasingProcessApi
                 public Runtime.VariableName.Output ContractId { get; } = new(ProcessVariables.ContractId);
             }
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<GatewayAwaitSignature>> Outgoing => new Runtime.ISuccessor<GatewayAwaitSignature>[]
             {
-                public Runtime.SequenceFlows<GatewayAwaitSignature> GatewayAwaitSignature => Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), FlowNodes.GatewayAwaitSignature.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.Instance),
+            };
+            public Runtime.SequenceFlows<GatewayAwaitSignature> FlowsTo(GatewayAwaitSignature target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class ServiceTaskSendRejection : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendRejection : Runtime.IFlowNode, Runtime.ILeadsTo<EndEventApplicationRejected>, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendRejection Instance = new();
             private ServiceTaskSendRejection() { }
@@ -721,14 +739,14 @@ public static class BikeLeasingProcessApi
             public string? Name => "Send rejection";
             public string JobType { get; } = ServiceTasks.MiraveloSendRejection;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventApplicationRejected>> Outgoing => new Runtime.ISuccessor<EndEventApplicationRejected>[]
             {
-                public Runtime.SequenceFlows<EndEventApplicationRejected> EndEventApplicationRejected => Runtime.SequenceFlows.Single(new("flow_sendRejectionToApplicationRejected"), FlowNodes.EndEventApplicationRejected.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_sendRejectionToApplicationRejected"), EndEventApplicationRejected.Instance),
+            };
+            public Runtime.SequenceFlows<EndEventApplicationRejected> FlowsTo(EndEventApplicationRejected target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class ServiceTaskSendReminderMail : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendReminderMail : Runtime.IFlowNode, Runtime.ILeadsTo<EndEventCustomerReminded>, Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendReminderMail Instance = new();
             private ServiceTaskSendReminderMail() { }
@@ -739,14 +757,14 @@ public static class BikeLeasingProcessApi
             public string? Name => "Send reminder mail";
             public string JobType { get; } = ServiceTasks.MailServiceSendReminderApplicationId;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventCustomerReminded>> Outgoing => new Runtime.ISuccessor<EndEventCustomerReminded>[]
             {
-                public Runtime.SequenceFlows<EndEventCustomerReminded> EndEventCustomerReminded => Runtime.SequenceFlows.Single(new("flow_sendReminderMailToCustomerReminded"), FlowNodes.EndEventCustomerReminded.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_sendReminderMailToCustomerReminded"), EndEventCustomerReminded.Instance),
+            };
+            public Runtime.SequenceFlows<EndEventCustomerReminded> FlowsTo(EndEventCustomerReminded target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class ServiceTaskValidateApplication : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskValidateApplication : Runtime.IFlowNode, Runtime.ILeadsTo<Next.ServiceTaskValidateApplication>, Runtime.IHasJobType
         {
             public static readonly ServiceTaskValidateApplication Instance = new();
             private ServiceTaskValidateApplication() { }
@@ -757,15 +775,15 @@ public static class BikeLeasingProcessApi
             public string? Name => "Validate application";
             public string JobType { get; } = ServiceTasks.ValidateApplicationDelegate;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.ServiceTaskValidateApplication>> Outgoing => new Runtime.ISuccessor<Next.ServiceTaskValidateApplication>[]
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryApplicationInvalid> BoundaryApplicationInvalid => new(FlowNodes.BoundaryApplicationInvalid.Instance);
-                public Runtime.SequenceFlows<BusinessRuleTaskCheckCreditRating> BusinessRuleTaskCheckCreditRating => Runtime.SequenceFlows.Single(new("flow_validateApplicationToCheckCreditRating"), FlowNodes.BusinessRuleTaskCheckCreditRating.Instance);
-            }
+                new Runtime.AttachedBoundaryEvent<BoundaryApplicationInvalid>(BoundaryApplicationInvalid.Instance),
+                Runtime.SequenceFlows.Single(new("flow_validateApplicationToCheckCreditRating"), BusinessRuleTaskCheckCreditRating.Instance),
+            };
+            public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.ServiceTaskValidateApplication => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class StartEventAddressChanged : Runtime.IEvent, Runtime.IHasMessage
+        public sealed class StartEventAddressChanged : Runtime.IEvent, Runtime.ILeadsTo<UserTaskUpdateDeliveryAddress>, Runtime.IHasMessage
         {
             public static readonly StartEventAddressChanged Instance = new();
             private StartEventAddressChanged() { }
@@ -785,14 +803,14 @@ public static class BikeLeasingProcessApi
                 public Runtime.VariableName.Input Street { get; } = new(ProcessVariables.Street);
             }
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<UserTaskUpdateDeliveryAddress>> Outgoing => new Runtime.ISuccessor<UserTaskUpdateDeliveryAddress>[]
             {
-                public Runtime.SequenceFlows<UserTaskUpdateDeliveryAddress> UserTaskUpdateDeliveryAddress => Runtime.SequenceFlows.Single(new("flow_addressChangedToUpdateDeliveryAddress"), FlowNodes.UserTaskUpdateDeliveryAddress.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_addressChangedToUpdateDeliveryAddress"), UserTaskUpdateDeliveryAddress.Instance),
+            };
+            public Runtime.SequenceFlows<UserTaskUpdateDeliveryAddress> FlowsTo(UserTaskUpdateDeliveryAddress target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class StartEventApplicationWithdrawn : Runtime.IEvent, Runtime.IHasMessage
+        public sealed class StartEventApplicationWithdrawn : Runtime.IEvent, Runtime.ILeadsTo<EventReverseApplication>, Runtime.IHasMessage
         {
             public static readonly StartEventApplicationWithdrawn Instance = new();
             private StartEventApplicationWithdrawn() { }
@@ -805,14 +823,14 @@ public static class BikeLeasingProcessApi
             public Runtime.MessageName Message { get; } = new(Messages.MiraveloApplicationWithdrawn);
             public bool IsInterrupting => true;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EventReverseApplication>> Outgoing => new Runtime.ISuccessor<EventReverseApplication>[]
             {
-                public Runtime.SequenceFlows<EventReverseApplication> EventReverseApplication => Runtime.SequenceFlows.Single(new("flow_applicationWithdrawnToReverseApplication"), FlowNodes.EventReverseApplication.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_applicationWithdrawnToReverseApplication"), EventReverseApplication.Instance),
+            };
+            public Runtime.SequenceFlows<EventReverseApplication> FlowsTo(EventReverseApplication target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class StartEventCustomerEligible : Runtime.IEvent
+        public sealed class StartEventCustomerEligible : Runtime.IEvent, Runtime.ILeadsTo<ServiceTaskSendContract>
         {
             public static readonly StartEventCustomerEligible Instance = new();
             private StartEventCustomerEligible() { }
@@ -823,14 +841,14 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
             public string? Name => "Customer eligible";
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ServiceTaskSendContract>> Outgoing => new Runtime.ISuccessor<ServiceTaskSendContract>[]
             {
-                public Runtime.SequenceFlows<ServiceTaskSendContract> ServiceTaskSendContract => Runtime.SequenceFlows.Single(new("flow_customerEligibleToSendContract"), FlowNodes.ServiceTaskSendContract.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_customerEligibleToSendContract"), ServiceTaskSendContract.Instance),
+            };
+            public Runtime.SequenceFlows<ServiceTaskSendContract> FlowsTo(ServiceTaskSendContract target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class StartEventLeasingRequestReceived : Runtime.IEvent, Runtime.IHasMessage
+        public sealed class StartEventLeasingRequestReceived : Runtime.IEvent, Runtime.ILeadsTo<ServiceTaskValidateApplication>, Runtime.IHasMessage
         {
             public static readonly StartEventLeasingRequestReceived Instance = new();
             private StartEventLeasingRequestReceived() { }
@@ -851,11 +869,11 @@ public static class BikeLeasingProcessApi
                 public Runtime.VariableName.Input MonthlyNetIncome { get; } = new(ProcessVariables.MonthlyNetIncome);
             }
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ServiceTaskValidateApplication>> Outgoing => new Runtime.ISuccessor<ServiceTaskValidateApplication>[]
             {
-                public Runtime.SequenceFlows<ServiceTaskValidateApplication> ServiceTaskValidateApplication => Runtime.SequenceFlows.Single(new("flow_leasingRequestReceivedToValidateApplication"), FlowNodes.ServiceTaskValidateApplication.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_leasingRequestReceivedToValidateApplication"), ServiceTaskValidateApplication.Instance),
+            };
+            public Runtime.SequenceFlows<ServiceTaskValidateApplication> FlowsTo(ServiceTaskValidateApplication target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
         public sealed class SubProcessAddressChanged : Runtime.IFlowNode
@@ -892,7 +910,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class SubProcessConcludeContract : Runtime.IFlowNode
+        public sealed class SubProcessConcludeContract : Runtime.IFlowNode, Runtime.ILeadsTo<Next.SubProcessConcludeContract>, Next.GatewayIsSolvent
         {
             public static readonly SubProcessConcludeContract Instance = new();
             private SubProcessConcludeContract() { }
@@ -902,14 +920,14 @@ public static class BikeLeasingProcessApi
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.SubProcess;
             public string? Name => "Conclude contract";
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<Next.SubProcessConcludeContract>> Outgoing => new Runtime.ISuccessor<Next.SubProcessConcludeContract>[]
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryCompensateContract> BoundaryCompensateContract => new(FlowNodes.BoundaryCompensateContract.Instance);
-                public Runtime.AttachedBoundaryEvent<BoundaryContractNotSigned> BoundaryContractNotSigned => new(FlowNodes.BoundaryContractNotSigned.Instance);
-                public Runtime.SequenceFlows<GatewayFork> GatewayFork => Runtime.SequenceFlows.Single(new("flow_concludeContractToFork"), FlowNodes.GatewayFork.Instance);
-                public Runtime.AttachedBoundaryEvent<TimerSignatureReminder> TimerSignatureReminder => new(FlowNodes.TimerSignatureReminder.Instance);
-            }
+                new Runtime.AttachedBoundaryEvent<BoundaryCompensateContract>(BoundaryCompensateContract.Instance),
+                new Runtime.AttachedBoundaryEvent<BoundaryContractNotSigned>(BoundaryContractNotSigned.Instance),
+                Runtime.SequenceFlows.Single(new("flow_concludeContractToFork"), GatewayFork.Instance),
+                new Runtime.AttachedBoundaryEvent<TimerSignatureReminder>(TimerSignatureReminder.Instance),
+            };
+            public Runtime.SequenceFlows<TTarget> FlowsTo<TTarget>(TTarget target) where TTarget : Next.SubProcessConcludeContract => Runtime.SequenceFlows.To(Outgoing, target);
 
             public Interior Start => new();
             public sealed class Interior
@@ -918,7 +936,7 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class TimerSignatureDeadline : Runtime.IEvent, Runtime.ITimerEvent
+        public sealed class TimerSignatureDeadline : Runtime.IEvent, Runtime.ILeadsTo<EndEventContractNotSigned>, Next.GatewayAwaitSignature, Runtime.ITimerEvent
         {
             public static readonly TimerSignatureDeadline Instance = new();
             private TimerSignatureDeadline() { }
@@ -930,14 +948,14 @@ public static class BikeLeasingProcessApi
             public string? Name => "14 days passed";
             public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "P14D");
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventContractNotSigned>> Outgoing => new Runtime.ISuccessor<EndEventContractNotSigned>[]
             {
-                public Runtime.SequenceFlows<EndEventContractNotSigned> EndEventContractNotSigned => Runtime.SequenceFlows.Single(new("flow_signatureDeadlineToContractNotSigned"), FlowNodes.EndEventContractNotSigned.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_signatureDeadlineToContractNotSigned"), EndEventContractNotSigned.Instance),
+            };
+            public Runtime.SequenceFlows<EndEventContractNotSigned> FlowsTo(EndEventContractNotSigned target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class TimerSignatureReminder : Runtime.IBoundaryEvent, Runtime.ITimerEvent
+        public sealed class TimerSignatureReminder : Runtime.IBoundaryEvent, Runtime.ILeadsTo<ServiceTaskSendReminderMail>, Next.SubProcessConcludeContract, Runtime.ITimerEvent
         {
             public static readonly TimerSignatureReminder Instance = new();
             private TimerSignatureReminder() { }
@@ -951,14 +969,14 @@ public static class BikeLeasingProcessApi
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => false;
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<ServiceTaskSendReminderMail>> Outgoing => new Runtime.ISuccessor<ServiceTaskSendReminderMail>[]
             {
-                public Runtime.SequenceFlows<ServiceTaskSendReminderMail> ServiceTaskSendReminderMail => Runtime.SequenceFlows.Single(new("flow_signatureReminderToSendReminderMail"), FlowNodes.ServiceTaskSendReminderMail.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_signatureReminderToSendReminderMail"), ServiceTaskSendReminderMail.Instance),
+            };
+            public Runtime.SequenceFlows<ServiceTaskSendReminderMail> FlowsTo(ServiceTaskSendReminderMail target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class TimerWithdrawalPeriodElapsed : Runtime.IEvent, Runtime.ITimerEvent
+        public sealed class TimerWithdrawalPeriodElapsed : Runtime.IEvent, Runtime.ILeadsTo<EndEventLeasingActive>, Runtime.ITimerEvent
         {
             public static readonly TimerWithdrawalPeriodElapsed Instance = new();
             private TimerWithdrawalPeriodElapsed() { }
@@ -970,14 +988,14 @@ public static class BikeLeasingProcessApi
             public string? Name => "Withdrawal period elapsed";
             public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "${withdrawalPeriod}");
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventLeasingActive>> Outgoing => new Runtime.ISuccessor<EndEventLeasingActive>[]
             {
-                public Runtime.SequenceFlows<EndEventLeasingActive> EndEventLeasingActive => Runtime.SequenceFlows.Single(new("flow_withdrawalPeriodElapsedToLeasingActive"), FlowNodes.EndEventLeasingActive.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_withdrawalPeriodElapsedToLeasingActive"), EndEventLeasingActive.Instance),
+            };
+            public Runtime.SequenceFlows<EndEventLeasingActive> FlowsTo(EndEventLeasingActive target) => Runtime.SequenceFlows.To(Outgoing, target);
         }
 
-        public sealed class UserTaskUpdateDeliveryAddress : Runtime.IFlowNode
+        public sealed class UserTaskUpdateDeliveryAddress : Runtime.IFlowNode, Runtime.ILeadsTo<EndEventDeliveryAddressUpdated>
         {
             public static readonly UserTaskUpdateDeliveryAddress Instance = new();
             private UserTaskUpdateDeliveryAddress() { }
@@ -993,11 +1011,25 @@ public static class BikeLeasingProcessApi
                 public Runtime.VariableName.InOut DeliveryAddress { get; } = new(ProcessVariables.DeliveryAddress);
             }
 
-            public Successors Next => new();
-            public sealed class Successors
+            public System.Collections.Generic.IReadOnlyList<Runtime.ISuccessor<EndEventDeliveryAddressUpdated>> Outgoing => new Runtime.ISuccessor<EndEventDeliveryAddressUpdated>[]
             {
-                public Runtime.SequenceFlows<EndEventDeliveryAddressUpdated> EndEventDeliveryAddressUpdated => Runtime.SequenceFlows.Single(new("flow_updateDeliveryAddressToDeliveryAddressUpdated"), FlowNodes.EndEventDeliveryAddressUpdated.Instance);
-            }
+                Runtime.SequenceFlows.Single(new("flow_updateDeliveryAddressToDeliveryAddressUpdated"), EndEventDeliveryAddressUpdated.Instance),
+            };
+            public Runtime.SequenceFlows<EndEventDeliveryAddressUpdated> FlowsTo(EndEventDeliveryAddressUpdated target) => Runtime.SequenceFlows.To(Outgoing, target);
+        }
+
+        /// <summary>
+        /// One marker per element leading to several others, implemented by every element it leads to.
+        /// </summary>
+        public static class Next
+        {
+            public interface GatewayAwaitSignature : Runtime.IFlowNode { }
+            public interface GatewayFork : Runtime.IFlowNode { }
+            public interface GatewayIsSolvent : Runtime.IFlowNode { }
+            public interface ServiceTaskIssueInsurancePolicy : Runtime.IFlowNode { }
+            public interface ServiceTaskOrderBike : Runtime.IFlowNode { }
+            public interface ServiceTaskValidateApplication : Runtime.IFlowNode { }
+            public interface SubProcessConcludeContract : Runtime.IFlowNode { }
         }
 
         public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]

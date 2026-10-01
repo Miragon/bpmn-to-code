@@ -3,7 +3,7 @@ package io.miragon.bpmn.runtime
 /**
  * Base class for generated navigation nodes: it carries the element [id], [elementType] and display [name] so
  * each generated node doesn't repeat the [FlowNode] accessors. Nodes with successors additionally implement
- * [HasSuccessors] (their per-node `next`, whose `Next` type differs per node, stays on the node itself).
+ * [LeadsTo] (their per-node `outgoing`, typed to the node's own successor marker, stays on the node itself).
  *
  * Identity is the element [id]: two nodes for the same element are equal, whatever their [name]. Generated
  * nodes are singletons, but merged variants each generate their own node for a shared element, so id-based

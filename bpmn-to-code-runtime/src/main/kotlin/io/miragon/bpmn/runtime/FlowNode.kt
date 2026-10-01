@@ -5,7 +5,7 @@ package io.miragon.bpmn.runtime
  *
  * Gives generic tooling (path builders, drift contracts, assertions) a shared handle on a flow element —
  * its [id], flat [elementType] and display [name] — without knowing the concrete generated node type.
- * Terminal elements (e.g. end events) implement [FlowNode] only; nodes with successors implement [HasSuccessors].
+ * Terminal elements (e.g. end events) implement [FlowNode] only; nodes with successors implement [LeadsTo].
  */
 interface FlowNode {
     val id: ElementId

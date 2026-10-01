@@ -37,6 +37,7 @@ class CSharpCompilationTest {
         "/bpmn/zeebe/membership.bpmn, ZEEBE",
         "/bpmn/c7/membership.bpmn, CAMUNDA_7",
         "/bpmn/nested-subprocess.bpmn, ZEEBE",
+        "/bpmn/branching-loop.bpmn, ZEEBE",
     )
     fun `generated csharp compiles`(bpmnResource: String, engine: ProcessEngine) {
         val projectDir = project(csproj(), generate(listOf(bpmnResource), engine))
@@ -57,7 +58,7 @@ class CSharpCompilationTest {
     fun `generated csharp with several sequence flows to the same element compiles`() {
         val generated = generateFromXml(listOf(TWO_FLOWS_TO_ONE_TASK), ProcessEngine.ZEEBE)
         assertThat(generated.single { it.processId == "approval" }.content)
-            .contains("public Runtime.SequenceFlows<TaskApprove> TaskApprove => new(FlowNodes.TaskApprove.Instance, new Runtime.SequenceFlow<TaskApprove>[] {")
+            .contains("new Runtime.SequenceFlows<TaskApprove>(TaskApprove.Instance, new Runtime.SequenceFlow<TaskApprove>[] {")
 
         assertCompiles(project(csproj(), generated))
     }
@@ -207,7 +208,7 @@ class CSharpCompilationTest {
                 public static void Navigate()
                 {
                     var start = Api.FlowNodes.StartEventLeasingRequestReceived.Instance;
-                    var successor = start.Next.ServiceTaskValidateApplication;
+                    var successor = start.FlowsTo(Api.FlowNodes.ServiceTaskValidateApplication.Instance);
                     var edge = successor.Flow;
                     string? condition = edge.ConditionExpression;
                     bool isDefault = edge.IsDefault;
@@ -216,13 +217,16 @@ class CSharpCompilationTest {
                     Api.Runtime.IHasJobType jobTask = Api.FlowNodes.ServiceTaskSendContract.Instance;
                     string jobType = jobTask.JobType;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
-                    if (!edge.Equals(start.Next.ServiceTaskValidateApplication.Flow)) throw new InvalidOperationException();
+                    if (!edge.Equals(start.FlowsTo(Api.FlowNodes.ServiceTaskValidateApplication.Instance).Flow)) throw new InvalidOperationException();
                     Api.Runtime.ISuccessor<Api.Runtime.IFlowNode> genericSuccessor = successor;
                     Api.Runtime.IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder.Instance;
-                    Api.Runtime.AttachedBoundaryEvent<Api.FlowNodes.TimerSignatureReminder> attached = Api.FlowNodes.SubProcessConcludeContract.Instance.Next.TimerSignatureReminder;
+                    Api.Runtime.ILeadsTo<Api.FlowNodes.Next.SubProcessConcludeContract> host = Api.FlowNodes.SubProcessConcludeContract.Instance;
+                    Api.FlowNodes.Next.SubProcessConcludeContract attached = Api.FlowNodes.TimerSignatureReminder.Instance;
 
-                    var creditRating = successor.Target.Next.BusinessRuleTaskCheckCreditRating.Target;
-                    var subProcess = creditRating.Next.GatewayIsSolvent.Target.Next.SubProcessConcludeContract.Target;
+                    var creditRating = successor.Target.FlowsTo(Api.FlowNodes.BusinessRuleTaskCheckCreditRating.Instance).Target;
+                    var gateway = creditRating.FlowsTo(Api.FlowNodes.GatewayIsSolvent.Instance).Target;
+                    var subProcess = gateway.FlowsTo(Api.FlowNodes.SubProcessConcludeContract.Instance).Target;
+                    bool isDefaultPath = gateway.FlowsTo(Api.FlowNodes.SubProcessConcludeContract.Instance).Flow.IsDefault;
                     var innerStart = subProcess.Start.StartEventCustomerEligible;
                     string? innerName = innerStart.Name;
                     string hostId = Api.FlowNodes.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
@@ -232,7 +236,7 @@ class CSharpCompilationTest {
                     Api.Runtime.InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
 
                     NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Instance.Id;
-                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id} {genericSuccessor.Target.Id} {attached.Target.Id}");
+                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id} {genericSuccessor.Target.Id} {attached.Id} {host.Outgoing.Count} {isDefaultPath}");
                 }
             }
         """.trimIndent()

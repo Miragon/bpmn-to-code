@@ -29,17 +29,28 @@ object FlowGraphFactory {
 
     fun build(graph: ProcessGraph, definitions: RootElements): FlowGraph {
         val nodes = graph.allFlowNodes.mapNotNull { node -> node.id?.let { id -> FlowNodeWithId(id, node) } }
-        val names = FlowNaming.assign(nodes)
+        val names = namesMarkingBranches(nodes, graph)
         val facets = FlowFacetsFactory(names, definitions)
+        val successorsById = nodes.associate { it.id to buildSuccessors(node = it.definition, names = names, graph = graph) }
         val navNodes = nodes
-            .sortedBy { names.getValue(it.id).objectName }.map { node -> buildNode(node = node, allNodes = nodes, names = names, facets = facets, graph = graph) }
+            .sortedBy { names.getValue(it.id).objectName }
+            .map { node -> buildNode(node = node, allNodes = nodes, names = names, successorsById = successorsById, facets = facets, graph = graph) }
         return FlowGraph(navNodes)
+    }
+
+    private fun namesMarkingBranches(nodes: List<FlowNodeWithId>, graph: ProcessGraph): Map<String, FlowEdge> {
+        val names = FlowNaming.assign(nodes)
+        return nodes.associate { node ->
+            val successors = buildSuccessors(node = node.definition, names = names, graph = graph)
+            node.id to names.getValue(node.id).copy(branches = successors.size > 1)
+        }
     }
 
     private fun buildNode(
         node: FlowNodeWithId,
         allNodes: List<FlowNodeWithId>,
         names: Map<String, FlowEdge>,
+        successorsById: Map<String, List<FlowEdge>>,
         facets: FlowFacetsFactory,
         graph: ProcessGraph,
     ): FlowGraphNode {
@@ -53,7 +64,8 @@ object FlowGraphFactory {
             eventType = (definition as? FlowNodeDefinition.Event)?.let { ElementTypeName.eventTypeOf(it) },
             name = definition.displayName,
             isBoundaryEvent = definition is FlowNodeDefinition.Event && definition.shape == EventShape.BOUNDARY_EVENT,
-            successors = buildSuccessors(node = definition, names = names, graph = graph),
+            successors = successorsById.getValue(node.id),
+            predecessors = buildPredecessors(node = ownNames, names = names, successorsById = successorsById),
             outgoingFlows = buildOutgoingFlows(node = definition, names = names, graph = graph),
             interiorStarts = buildInteriorStarts(node, allNodes, names, graph),
             facets = facets.of(definition),
@@ -86,6 +98,15 @@ object FlowGraphFactory {
         .distinct()
         .mapNotNull { targetId -> names[targetId] }
         .distinctBy { it.objectName }.sortedBy { it.propertyName }
+
+    private fun buildPredecessors(
+        node: FlowEdge,
+        names: Map<String, FlowEdge>,
+        successorsById: Map<String, List<FlowEdge>>,
+    ): List<FlowEdge> {
+        val predecessorIds = successorsById.filterValues { successors -> node in successors }.keys
+        return predecessorIds.map { names.getValue(it) }.sortedBy { it.propertyName }
+    }
 
     /**
      * The outgoing sequence flows whose target is a known node, grouped by that target; no flow is dropped.

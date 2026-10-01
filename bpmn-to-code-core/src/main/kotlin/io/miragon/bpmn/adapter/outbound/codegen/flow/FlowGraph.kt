@@ -24,6 +24,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
      * @property isBoundaryEvent whether this node is a boundary event, reached from its host without a sequence flow.
      * @property successors the reachable next elements — sequence-flow continuation and boundary edges unified,
      *   each named after the element it points to.
+     * @property predecessors the elements this node is a successor of — the reverse of [successors].
      * @property outgoingFlows the outgoing sequence flows, grouped by the element they lead to and named after it;
      *   boundary edges are not sequence flows and never appear here.
      * @property interiorStarts for a subprocess, the start events directly inside it; empty for every other node
@@ -39,18 +40,23 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val name: String?,
         val isBoundaryEvent: Boolean,
         val successors: List<FlowEdge>,
+        val predecessors: List<FlowEdge>,
         val outgoingFlows: List<FlowsToTarget>,
         val interiorStarts: List<FlowEdge>,
         val facets: NodeFacets,
-    )
+    ) {
+        /** Whether this node leads to more than one element. */
+        val branches: Boolean get() = successors.size > 1
+    }
 
     /**
      * A directed edge to a reachable node, named after the target element.
      *
      * @property propertyName the target's camelCase [FlowGraphNode.propertyName] — the property emitted on the source node.
      * @property objectName the target's PascalCase [FlowGraphNode.objectName] — what the getter returns.
+     * @property branches whether the target itself leads to more than one element (see [FlowGraphNode.branches]).
      */
-    data class FlowEdge(val propertyName: String, val objectName: String)
+    data class FlowEdge(val propertyName: String, val objectName: String, val branches: Boolean = false)
 
     /**
      * The outgoing sequence flows of a node that lead to the same element.

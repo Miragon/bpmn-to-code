@@ -16,8 +16,8 @@ import javax.tools.JavaFileObject
 import javax.tools.ToolProvider
 
 /**
- * Regression gate for a subprocess nested inside another subprocess: every nesting level repeats the `Next` and
- * `Start` holder names, and Java forbids a nested type sharing a simple name with an enclosing one (JLS 8.1.3).
+ * Regression gate for a subprocess nested inside another subprocess: every nesting level repeats the `Start`
+ * holder name, and Java forbids a nested type sharing a simple name with an enclosing one (JLS 8.1.3).
  * The existing golden tests only *parse* the output, so they can't catch this; here we generate the Java API and
  * actually **compile** it against the runtime interfaces.
  */
@@ -28,6 +28,12 @@ class NestedSubProcessCompilationTest {
     @Test
     fun `generated java for nested subprocesses compiles`() {
         val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/nested-subprocess.bpmn")).readText()
+        assertCompiles(generate(listOf(bpmnXml)))
+    }
+
+    @Test
+    fun `generated java for two branching nodes in a loop compiles`() {
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/branching-loop.bpmn")).readText()
         assertCompiles(generate(listOf(bpmnXml)))
     }
 

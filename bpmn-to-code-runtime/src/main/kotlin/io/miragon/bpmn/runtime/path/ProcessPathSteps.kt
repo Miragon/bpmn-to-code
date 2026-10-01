@@ -3,50 +3,54 @@ package io.miragon.bpmn.runtime.path
 import io.miragon.bpmn.runtime.AttachedBoundaryEvent
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
-import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.LeadsTo
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.Successor
 
 /**
- * Edge step: advance to a successor of the current node and record its target. The lambda's parameter `it` is
- * the current node's `Next`, so `it.<successor>` autocompletes — and only an actual successor compiles. The
- * sequence flow is recorded too (see [ProcessPath.flowIds]) when it is unambiguous: a picked [SequenceFlow], or a
- * [SequenceFlows] with exactly one flow.
+ * Edge step: advance to [target], a successor of the current node, and record it. Only an element the current
+ * node leads to compiles, as it has to be what the node is a `LeadsTo` of. The sequence flow is recorded
+ * too (see [ProcessPath.flowIds]) when exactly one flow leads there.
  */
-fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.then(pick: (NEXT) -> Successor<M>): ProcessPath<M> = traverse(pick(current.next))
+fun <FOLLOWING : FlowNode, M : FOLLOWING> ProcessPath<out LeadsTo<FOLLOWING>>.then(target: M): ProcessPath<M> = traverse(current.successorTo(target))
+
+/**
+ * Edge step along one picked [flow] — for when several sequence flows lead to the same element, e.g.
+ * `then(Gateway.flowsTo(Task).flows.single { it.name == "Yes" })`. Records the target and exactly that flow.
+ */
+fun <FOLLOWING : FlowNode, M : FOLLOWING> ProcessPath<out LeadsTo<FOLLOWING>>.then(flow: SequenceFlow<M>): ProcessPath<M> = traverse(flow)
 
 /**
  * Successor step that records the same successor [repeatTimes] times in a row — for a sequential multi-instance
  * activity or a genuine consecutive self-repeat. The flow leading there is recorded once, as the engine takes it
  * once. Multi-node cycles are written out with plain [then] instead.
  */
-fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.thenMultipleTimes(
+fun <FOLLOWING : FlowNode, M : FOLLOWING> ProcessPath<out LeadsTo<FOLLOWING>>.thenMultipleTimes(
     repeatTimes: Int,
-    pick: (NEXT) -> Successor<M>,
-): ProcessPath<M> = traverse(pick(current.next), repeatTimes)
+    target: M,
+): ProcessPath<M> = traverse(current.successorTo(target), repeatTimes)
 
 /**
  * Position **onto** a subprocess node ([subprocess], a compile-checked successor of the current node) without
- * recording it, ready to descend with [enter] or walk it with [inside]. The lambda's `it` is the current
- * node's `Next`, so `it.<subprocess>` autocompletes — one lambda, so the IDE completes it immediately.
+ * recording it, ready to descend with [enter] or walk it with [inside].
  *
  * A subprocess is a scope *bracket*, not a point in the ordered flow, so its marker isn't recorded here; assert
  * it separately via `hasPassed(...)`. The flow into the subprocess is recorded like in [then]. Reads as two simple
- * steps: `onto { it.sub }.enter { it.start }`.
+ * steps: `onto(Sub).enter { it.start }`.
  */
-fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.onto(subprocess: (NEXT) -> Successor<M>): ProcessPath<M> {
-    val successor = subprocess(current.next)
+fun <FOLLOWING : FlowNode, M : FOLLOWING> ProcessPath<out LeadsTo<FOLLOWING>>.onto(subprocess: M): ProcessPath<M> {
+    val successor = current.successorTo(subprocess)
     return moveTo(node = successor.target, nodesToRecord = emptyList(), flowsToRecord = listOfNotNull(successor.takenFlow()))
 }
 
 /**
  * Descend into the current subprocess node's interior and record the entered inner node. The lambda's `it`
  * is the subprocess's `Start`, so `it.<start>` autocompletes — only a real inner start compiles. Reach the
- * subprocess node first with [onto] (checked edge) — e.g. `onto { it.sub }.enter { it.start }`.
+ * subprocess node first with [onto] (checked edge) — e.g. `onto(Sub).enter { it.start }`.
  *
  * To leave the subprocess again: a **normal** full walk uses [inside] (which resumes on the subprocess node
- * automatically), a **boundary** interruption uses [interruptedBy]. A bare `onto { … }.enter { … }` chain with
+ * automatically), a **boundary** interruption uses [interruptedBy]. A bare `onto(…).enter { … }` chain with
  * neither is a dead end — once inside you can only continue out via [inside] or [interruptedBy].
  */
 fun <START, M : FlowNode> ProcessPath<out FlowScope<START>>.enter(pick: (START) -> M): ProcessPath<M> {
@@ -64,19 +68,19 @@ fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (S
 }
 
 /**
- * Leave an activity/subprocess through an attached **boundary** event: re-anchor to [carrier]`.next` and
- * record the picked boundary continuation — the token leaves the interior *early* via the boundary, which is
- * why this is a re-anchor and not expressible with [inside]. Covers interrupting timers and error boundaries;
- * `it` offers exactly the carrier's boundary events, compile-checked.
+ * Leave an activity/subprocess through an attached **boundary** event: re-anchor to [carrier] and record
+ * [boundary] — the token leaves the interior *early* via the boundary, which is why this is a re-anchor and not
+ * expressible with [inside]. Covers interrupting timers and error boundaries; only a successor of the carrier
+ * compiles.
  */
-fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(carrier: HasSuccessors<NEXT>, pick: (NEXT) -> Successor<M>): ProcessPath<M> = traverse(pick(carrier.next))
+fun <FOLLOWING : FlowNode, M : FOLLOWING> ProcessPath<*>.interruptedBy(carrier: LeadsTo<FOLLOWING>, boundary: M): ProcessPath<M> = traverse(carrier.successorTo(boundary))
 
 /**
  * Walk the **current subprocess** node's interior in a scoped block, then continue **on the subprocess node
  * itself** — so the step after the block is a plain, typed [then] without naming the subprocess again. Only
  * callable on a subprocess node (reached via [onto]); the block opens with `enter { it.start }`, its walked
  * nodes are recorded, and the current node afterwards is the subprocess (unchanged). Nesting works: an inner
- * subprocess is entered with its own `onto { … }.inside { … }`, each block capturing its subprocess via the
+ * subprocess is entered with its own `onto(…).inside { … }`, each block capturing its subprocess via the
  * closure.
  */
 fun <START, N : FlowScope<START>> ProcessPath<N>.inside(block: ProcessPath<N>.() -> ProcessPath<*>): ProcessPath<N> {
@@ -100,6 +104,15 @@ fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> = branches.flatMap 
 fun <M : FlowNode> ProcessPath<*>.jumpTo(node: M): ProcessPath<M> = moveTo(node, emptyList())
 
 internal fun <M : FlowNode> ProcessPath<*>.traverse(successor: Successor<M>, repeatTimes: Int = 1): ProcessPath<M> = moveTo(node = successor.target, nodesToRecord = List(repeatTimes) { successor.target }, flowsToRecord = listOfNotNull(successor.takenFlow()))
+
+private fun <FOLLOWING : FlowNode, M : FOLLOWING> LeadsTo<FOLLOWING>.successorTo(target: M): Successor<M> {
+    val successor = outgoing.singleOrNull { it.target == target } ?: error("$this does not lead to $target")
+    return when (successor) {
+        is AttachedBoundaryEvent -> AttachedBoundaryEvent(target)
+        is SequenceFlows -> flowsTo(target)
+        is SequenceFlow -> successor.leadingTo(target)
+    }
+}
 
 private fun Successor<*>.takenFlow(): SequenceFlow<*>? = when (this) {
     is SequenceFlow -> this

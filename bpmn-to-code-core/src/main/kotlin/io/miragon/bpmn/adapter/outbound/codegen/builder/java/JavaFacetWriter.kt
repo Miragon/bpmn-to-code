@@ -39,8 +39,8 @@ internal class JavaFacetWriter {
         facets.signal?.let { getter(name = "getSignal", returnType = JavaRuntimeTypes.SIGNAL_NAME, returnValue = JavaSignalsWriter.nodeValue(it), overrides = true) },
         facets.error?.let { getter(name = "getError", returnType = JavaRuntimeTypes.BPMN_ERROR_DEFINITION, returnValue = JavaErrorsWriter.nodeValue(it), overrides = true) },
         facets.escalation?.let { escalationGetter(it) },
-        facets.attachedTo?.let { JavaFlowNodeType(it.objectName) }?.let { host ->
-            getter(name = "getAttachedTo", returnType = host.className, returnValue = host.instance(), overrides = true)
+        facets.attachedTo?.let { JavaFlowNodeType(it) }?.let { host ->
+            getter(name = "getAttachedTo", returnType = host.typeName, returnValue = host.instance(), overrides = true)
         },
         facets.isInterrupting?.let { getter(name = "isInterrupting", returnType = TypeName.BOOLEAN, returnValue = CodeBlock.of($$"$L", it), overrides = facets.attachedTo != null) },
     )

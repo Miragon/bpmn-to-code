@@ -12,16 +12,16 @@ class MultiFlowSequenceFlowsTest {
 
     @Test
     fun `several flows to the same element share one transition`() {
-        val approve = MultiFlow.GatewayAmount.next.taskApprove
+        val approve = MultiFlow.GatewayAmount.flowsTo(MultiFlow.TaskApprove)
 
         assertThat(approve.target).isEqualTo(MultiFlow.TaskApprove)
         assertThat(approve.flows.map { it.conditionExpression }).containsExactly("=amount < 100", "=customer.isVip")
-        assertThat(MultiFlow.GatewayAmount.next.taskReview.flow.isDefault).isTrue()
+        assertThat(MultiFlow.GatewayAmount.flowsTo(MultiFlow.TaskReview).flow.isDefault).isTrue()
     }
 
     @Test
     fun `then onto a shared transition records the element but no ambiguous flow`() {
-        val path = ProcessPath.from(MultiFlow.GatewayAmount).then { it.taskApprove }
+        val path = ProcessPath.from(MultiFlow.GatewayAmount).then(MultiFlow.TaskApprove)
 
         assertThat(path.ids).containsExactly("gateway_amount", "task_approve")
         assertThat(path.flowIds).isEmpty()
@@ -30,7 +30,7 @@ class MultiFlowSequenceFlowsTest {
     @Test
     fun `then along a picked flow records exactly that flow`() {
         val path = ProcessPath.from(MultiFlow.GatewayAmount)
-            .then { next -> next.taskApprove.flows.single { it.conditionExpression == "=customer.isVip" } }
+            .then(MultiFlow.GatewayAmount.flowsTo(MultiFlow.TaskApprove).flows.single { it.conditionExpression == "=customer.isVip" })
 
         assertThat(path.ids).containsExactly("gateway_amount", "task_approve")
         assertThat(path.flowIds).containsExactly("flow_vip")

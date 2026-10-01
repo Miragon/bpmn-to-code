@@ -21,11 +21,12 @@ import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasJobType
 import io.miragon.bpmn.runtime.HasMessage
-import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.InputOutputMapping
+import io.miragon.bpmn.runtime.LeadsTo
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.SequenceFlows
+import io.miragon.bpmn.runtime.Successor
 import io.miragon.bpmn.runtime.TimerEvent
 import io.miragon.bpmn.runtime.TimerType
 import io.miragon.bpmn.runtime.VariableName
@@ -92,7 +93,7 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryApplicationInvalid.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Application invalid",
-    ), HasSuccessors<BoundaryApplicationInvalid.Next>,
+    ), LeadsTo<GatewayCollectRejections>, Next.ServiceTaskValidateApplication,
         BoundaryEvent<ServiceTaskValidateApplication>, ErrorEvent {
       override val eventType: BpmnEventType = BpmnEventType.ERROR
 
@@ -105,22 +106,20 @@ object BikeLeasingProcessApi {
 
       override val isInterrupting: Boolean = true
 
-      override val next: Next = Next
-
-      object Next {
-        val gatewayCollectRejections: SequenceFlows<GatewayCollectRejections>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<GatewayCollectRejections>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_applicationInvalidToCollectRejections"),
             target = GatewayCollectRejections,
-          )
-      }
+          ),
+        )
     }
 
     object BoundaryCompensateContract : AbstractFlowNode(
       id = ElementId(BoundaryCompensateContract.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Contract to revoke",
-    ), BoundaryEvent<SubProcessConcludeContract> {
+    ), Next.SubProcessConcludeContract, BoundaryEvent<SubProcessConcludeContract> {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "boundary_compensateContract"
@@ -135,7 +134,7 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryCompensateInsurance.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Policy to cancel",
-    ), BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
+    ), Next.ServiceTaskIssueInsurancePolicy, BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "boundary_compensateInsurance"
@@ -150,7 +149,7 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryCompensateOrder.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Order to cancel",
-    ), BoundaryEvent<ServiceTaskOrderBike> {
+    ), Next.ServiceTaskOrderBike, BoundaryEvent<ServiceTaskOrderBike> {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "boundary_compensateOrder"
@@ -165,8 +164,8 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryContractNotSigned.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Contract not signed",
-    ), HasSuccessors<BoundaryContractNotSigned.Next>, BoundaryEvent<SubProcessConcludeContract>,
-        EscalationEvent {
+    ), LeadsTo<GatewayCollectRejections>, Next.SubProcessConcludeContract,
+        BoundaryEvent<SubProcessConcludeContract>, EscalationEvent {
       override val eventType: BpmnEventType = BpmnEventType.ESCALATION
 
       const val ELEMENT_ID: String = "boundary_contractNotSigned"
@@ -178,33 +177,29 @@ object BikeLeasingProcessApi {
 
       override val isInterrupting: Boolean = true
 
-      override val next: Next = Next
-
-      object Next {
-        val gatewayCollectRejections: SequenceFlows<GatewayCollectRejections>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<GatewayCollectRejections>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_contractNotSignedToCollectRejections"),
             target = GatewayCollectRejections,
-          )
-      }
+          ),
+        )
     }
 
     object BusinessRuleTaskCheckCreditRating : AbstractFlowNode(
       id = ElementId(BusinessRuleTaskCheckCreditRating.ELEMENT_ID),
       elementType = BpmnElementType.BUSINESS_RULE_TASK,
       name = "Check credit rating",
-    ), HasSuccessors<BusinessRuleTaskCheckCreditRating.Next> {
+    ), LeadsTo<GatewayIsSolvent>, Next.ServiceTaskValidateApplication {
       const val ELEMENT_ID: String = "businessRuleTask_checkCreditRating"
 
-      override val next: Next = Next
-
-      object Next {
-        val gatewayIsSolvent: SequenceFlows<GatewayIsSolvent>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<GatewayIsSolvent>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_checkCreditRatingToIsSolvent"),
             target = GatewayIsSolvent,
-          )
-      }
+          ),
+        )
     }
 
     object CallActivityCancelBikeOrder : AbstractFlowNode(
@@ -322,172 +317,150 @@ object BikeLeasingProcessApi {
       id = ElementId(EventContractSigned.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT,
       name = "Contract signed",
-    ), HasSuccessors<EventContractSigned.Next>, Event, HasMessage {
+    ), LeadsTo<EndEventContractConcluded>, Next.GatewayAwaitSignature, Event, HasMessage {
       override val eventType: BpmnEventType = BpmnEventType.MESSAGE
 
       const val ELEMENT_ID: String = "event_contractSigned"
 
       override val message: MessageName = Messages.MIRAVELO_CONTRACT_SIGNED
 
-      override val next: Next = Next
-
-      object Next {
-        val endEventContractConcluded: SequenceFlows<EndEventContractConcluded>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<EndEventContractConcluded>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_contractSignedToContractConcluded"),
             target = EndEventContractConcluded,
-          )
-      }
+          ),
+        )
     }
 
     object EventReverseApplication : AbstractFlowNode(
       id = ElementId(EventReverseApplication.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_THROW_EVENT,
       name = "Application reversed",
-    ), HasSuccessors<EventReverseApplication.Next>, Event {
+    ), LeadsTo<ServiceTaskSendCancellationConfirmation>, Event {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "event_reverseApplication"
 
-      override val next: Next = Next
-
-      object Next {
-        val serviceTaskSendCancellationConfirmation:
-            SequenceFlows<ServiceTaskSendCancellationConfirmation>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<ServiceTaskSendCancellationConfirmation>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_reverseApplicationToSendCancellationConfirmation"),
             target = ServiceTaskSendCancellationConfirmation,
-          )
-      }
+          ),
+        )
     }
 
     object GatewayAwaitSignature : AbstractFlowNode(
       id = ElementId(GatewayAwaitSignature.ELEMENT_ID),
       elementType = BpmnElementType.EVENT_BASED_GATEWAY,
       name = "Await signature",
-    ), HasSuccessors<GatewayAwaitSignature.Next> {
+    ), LeadsTo<Next.GatewayAwaitSignature> {
       const val ELEMENT_ID: String = "gateway_awaitSignature"
 
-      override val next: Next = Next
-
-      object Next {
-        val eventContractSigned: SequenceFlows<EventContractSigned>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<Next.GatewayAwaitSignature>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_awaitSignatureToContractSigned"),
             target = EventContractSigned,
-          )
-
-        val timerSignatureDeadline: SequenceFlows<TimerSignatureDeadline>
-          get() = SequenceFlows.single(
+          ),
+          SequenceFlows.single(
             flowId = ElementId("flow_awaitSignatureToSignatureDeadline"),
             target = TimerSignatureDeadline,
-          )
-      }
+          ),
+        )
     }
 
     object GatewayCollectRejections : AbstractFlowNode(
       id = ElementId(GatewayCollectRejections.ELEMENT_ID),
       elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
-    ), HasSuccessors<GatewayCollectRejections.Next> {
+    ), LeadsTo<ServiceTaskSendRejection>, Next.GatewayIsSolvent {
       const val ELEMENT_ID: String = "gateway_collectRejections"
 
-      override val next: Next = Next
-
-      object Next {
-        val serviceTaskSendRejection: SequenceFlows<ServiceTaskSendRejection>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<ServiceTaskSendRejection>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_collectRejectionsToSendRejection"),
             target = ServiceTaskSendRejection,
-          )
-      }
+          ),
+        )
     }
 
     object GatewayFork : AbstractFlowNode(
       id = ElementId(GatewayFork.ELEMENT_ID),
       elementType = BpmnElementType.PARALLEL_GATEWAY,
-    ), HasSuccessors<GatewayFork.Next> {
+    ), LeadsTo<Next.GatewayFork>, Next.SubProcessConcludeContract {
       const val ELEMENT_ID: String = "gateway_fork"
 
-      override val next: Next = Next
-
-      object Next {
-        val serviceTaskIssueInsurancePolicy: SequenceFlows<ServiceTaskIssueInsurancePolicy>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<Next.GatewayFork>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_forkToIssueInsurancePolicy"),
             target = ServiceTaskIssueInsurancePolicy,
-          )
-
-        val serviceTaskOrderBike: SequenceFlows<ServiceTaskOrderBike>
-          get() = SequenceFlows.single(
+          ),
+          SequenceFlows.single(
             flowId = ElementId("flow_forkToOrderBike"),
             target = ServiceTaskOrderBike,
-          )
-      }
+          ),
+        )
     }
 
     object GatewayIsSolvent : AbstractFlowNode(
       id = ElementId(GatewayIsSolvent.ELEMENT_ID),
       elementType = BpmnElementType.EXCLUSIVE_GATEWAY,
       name = "Solvent?",
-    ), HasSuccessors<GatewayIsSolvent.Next> {
+    ), LeadsTo<Next.GatewayIsSolvent> {
       const val ELEMENT_ID: String = "gateway_isSolvent"
 
-      override val next: Next = Next
-
-      object Next {
-        val gatewayCollectRejections: SequenceFlows<GatewayCollectRejections>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<Next.GatewayIsSolvent>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_isSolventToCollectRejections"),
             name = "No",
             conditionExpression = $$"""${!solvent}""",
             target = GatewayCollectRejections,
-          )
-
-        val subProcessConcludeContract: SequenceFlows<SubProcessConcludeContract>
-          get() = SequenceFlows.single(
+          ),
+          SequenceFlows.single(
             flowId = ElementId("flow_isSolventToConcludeContract"),
             name = "Yes",
             isDefault = true,
             target = SubProcessConcludeContract,
-          )
-      }
+          ),
+        )
     }
 
     object GatewayJoin : AbstractFlowNode(
       id = ElementId(GatewayJoin.ELEMENT_ID),
       elementType = BpmnElementType.PARALLEL_GATEWAY,
-    ), HasSuccessors<GatewayJoin.Next> {
+    ), LeadsTo<ReceiveTaskHandoverReported>, Next.ServiceTaskIssueInsurancePolicy,
+        Next.ServiceTaskOrderBike {
       const val ELEMENT_ID: String = "gateway_join"
 
-      override val next: Next = Next
-
-      object Next {
-        val receiveTaskHandoverReported: SequenceFlows<ReceiveTaskHandoverReported>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<ReceiveTaskHandoverReported>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_joinToHandoverReported"),
             target = ReceiveTaskHandoverReported,
-          )
-      }
+          ),
+        )
     }
 
     object ReceiveTaskHandoverReported : AbstractFlowNode(
       id = ElementId(ReceiveTaskHandoverReported.ELEMENT_ID),
       elementType = BpmnElementType.RECEIVE_TASK,
       name = "Await bike handover",
-    ), HasSuccessors<ReceiveTaskHandoverReported.Next>, HasMessage {
+    ), LeadsTo<TimerWithdrawalPeriodElapsed>, HasMessage {
       const val ELEMENT_ID: String = "receiveTask_handoverReported"
 
       override val message: MessageName = Messages.MIRAVELO_HANDOVER_REPORTED
 
-      override val next: Next = Next
-
-      object Next {
-        val timerWithdrawalPeriodElapsed: SequenceFlows<TimerWithdrawalPeriodElapsed>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<TimerWithdrawalPeriodElapsed>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_handoverReportedToWithdrawalPeriodElapsed"),
             target = TimerWithdrawalPeriodElapsed,
-          )
-      }
+          ),
+        )
     }
 
     object ServiceTaskCancelContract : AbstractFlowNode(
@@ -514,29 +487,25 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskIssueInsurancePolicy.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Issue insurance policy",
-    ), HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType {
+    ), LeadsTo<Next.ServiceTaskIssueInsurancePolicy>, Next.GatewayFork, HasJobType {
       const val ELEMENT_ID: String = "serviceTask_issueInsurancePolicy"
 
       override val jobType: String =
           ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE
 
-      override val next: Next = Next
+      override val outgoing: List<Successor<Next.ServiceTaskIssueInsurancePolicy>>
+        get() = listOf(
+          AttachedBoundaryEvent(target = BoundaryCompensateInsurance),
+          SequenceFlows.single(
+            flowId = ElementId("flow_issueInsurancePolicyToJoin"),
+            target = GatewayJoin,
+          ),
+        )
 
       object Variables {
         val BIKE_ID: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_ID)
 
         val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
-      }
-
-      object Next {
-        val boundaryCompensateInsurance: AttachedBoundaryEvent<BoundaryCompensateInsurance>
-          get() = AttachedBoundaryEvent(target = BoundaryCompensateInsurance)
-
-        val gatewayJoin: SequenceFlows<GatewayJoin>
-          get() = SequenceFlows.single(
-            flowId = ElementId("flow_issueInsurancePolicyToJoin"),
-            target = GatewayJoin,
-          )
       }
     }
 
@@ -544,28 +513,24 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskOrderBike.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Order bike",
-    ), HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType {
+    ), LeadsTo<Next.ServiceTaskOrderBike>, Next.GatewayFork, HasJobType {
       const val ELEMENT_ID: String = "serviceTask_orderBike"
 
       override val jobType: String = ServiceTasks.MIRAVELO_ORDER_BIKE
 
-      override val next: Next = Next
+      override val outgoing: List<Successor<Next.ServiceTaskOrderBike>>
+        get() = listOf(
+          AttachedBoundaryEvent(target = BoundaryCompensateOrder),
+          SequenceFlows.single(
+            flowId = ElementId("flow_orderBikeToJoin"),
+            target = GatewayJoin,
+          ),
+        )
 
       object Variables {
         val BIKE_ID: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_ID)
 
         val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
-      }
-
-      object Next {
-        val boundaryCompensateOrder: AttachedBoundaryEvent<BoundaryCompensateOrder>
-          get() = AttachedBoundaryEvent(target = BoundaryCompensateOrder)
-
-        val gatewayJoin: SequenceFlows<GatewayJoin>
-          get() = SequenceFlows.single(
-            flowId = ElementId("flow_orderBikeToJoin"),
-            target = GatewayJoin,
-          )
       }
     }
 
@@ -573,32 +538,36 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskSendCancellationConfirmation.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send cancellation confirmation",
-    ), HasSuccessors<ServiceTaskSendCancellationConfirmation.Next>, HasJobType {
+    ), LeadsTo<EndEventApplicationCancelled>, HasJobType {
       const val ELEMENT_ID: String = "serviceTask_sendCancellationConfirmation"
 
       override val jobType: String = ServiceTasks.MIRAVELO_SEND_CANCELLATION_CONFIRMATION
 
-      override val next: Next = Next
-
-      object Next {
-        val endEventApplicationCancelled: SequenceFlows<EndEventApplicationCancelled>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<EndEventApplicationCancelled>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_sendCancellationConfirmationToApplicationCancelled"),
             target = EndEventApplicationCancelled,
-          )
-      }
+          ),
+        )
     }
 
     object ServiceTaskSendContract : AbstractFlowNode(
       id = ElementId(ServiceTaskSendContract.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send contract",
-    ), HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
+    ), LeadsTo<GatewayAwaitSignature>, HasJobType {
       const val ELEMENT_ID: String = "serviceTask_sendContract"
 
       override val jobType: String = ServiceTasks.SEND_CONTRACT_DELEGATE
 
-      override val next: Next = Next
+      override val outgoing: List<Successor<GatewayAwaitSignature>>
+        get() = listOf(
+          SequenceFlows.single(
+            flowId = ElementId("flow_sendContractToAwaitSignature"),
+            target = GatewayAwaitSignature,
+          ),
+        )
 
       object Variables {
         val APPLICATION_ID: VariableName.Input =
@@ -607,85 +576,68 @@ object BikeLeasingProcessApi {
         val CONTRACT_ID: VariableName.Output =
             VariableName.Output(ProcessVariables.CONTRACT_ID)
       }
-
-      object Next {
-        val gatewayAwaitSignature: SequenceFlows<GatewayAwaitSignature>
-          get() = SequenceFlows.single(
-            flowId = ElementId("flow_sendContractToAwaitSignature"),
-            target = GatewayAwaitSignature,
-          )
-      }
     }
 
     object ServiceTaskSendRejection : AbstractFlowNode(
       id = ElementId(ServiceTaskSendRejection.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send rejection",
-    ), HasSuccessors<ServiceTaskSendRejection.Next>, HasJobType {
+    ), LeadsTo<EndEventApplicationRejected>, HasJobType {
       const val ELEMENT_ID: String = "serviceTask_sendRejection"
 
       override val jobType: String = ServiceTasks.MIRAVELO_SEND_REJECTION
 
-      override val next: Next = Next
-
-      object Next {
-        val endEventApplicationRejected: SequenceFlows<EndEventApplicationRejected>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<EndEventApplicationRejected>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_sendRejectionToApplicationRejected"),
             target = EndEventApplicationRejected,
-          )
-      }
+          ),
+        )
     }
 
     object ServiceTaskSendReminderMail : AbstractFlowNode(
       id = ElementId(ServiceTaskSendReminderMail.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send reminder mail",
-    ), HasSuccessors<ServiceTaskSendReminderMail.Next>, HasJobType {
+    ), LeadsTo<EndEventCustomerReminded>, HasJobType {
       const val ELEMENT_ID: String = "serviceTask_sendReminderMail"
 
       override val jobType: String = ServiceTasks.MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_
 
-      override val next: Next = Next
-
-      object Next {
-        val endEventCustomerReminded: SequenceFlows<EndEventCustomerReminded>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<EndEventCustomerReminded>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_sendReminderMailToCustomerReminded"),
             target = EndEventCustomerReminded,
-          )
-      }
+          ),
+        )
     }
 
     object ServiceTaskValidateApplication : AbstractFlowNode(
       id = ElementId(ServiceTaskValidateApplication.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Validate application",
-    ), HasSuccessors<ServiceTaskValidateApplication.Next>, HasJobType {
+    ), LeadsTo<Next.ServiceTaskValidateApplication>, HasJobType {
       const val ELEMENT_ID: String = "serviceTask_validateApplication"
 
       override val jobType: String = ServiceTasks.VALIDATE_APPLICATION_DELEGATE
 
-      override val next: Next = Next
-
-      object Next {
-        val boundaryApplicationInvalid: AttachedBoundaryEvent<BoundaryApplicationInvalid>
-          get() = AttachedBoundaryEvent(target = BoundaryApplicationInvalid)
-
-        val businessRuleTaskCheckCreditRating:
-            SequenceFlows<BusinessRuleTaskCheckCreditRating>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<Next.ServiceTaskValidateApplication>>
+        get() = listOf(
+          AttachedBoundaryEvent(target = BoundaryApplicationInvalid),
+          SequenceFlows.single(
             flowId = ElementId("flow_validateApplicationToCheckCreditRating"),
             target = BusinessRuleTaskCheckCreditRating,
-          )
-      }
+          ),
+        )
     }
 
     object StartEventAddressChanged : AbstractFlowNode(
       id = ElementId(StartEventAddressChanged.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Address changed",
-    ), HasSuccessors<StartEventAddressChanged.Next>, Event, HasMessage {
+    ), LeadsTo<UserTaskUpdateDeliveryAddress>, Event, HasMessage {
       override val eventType: BpmnEventType = BpmnEventType.MESSAGE
 
       const val ELEMENT_ID: String = "startEvent_addressChanged"
@@ -694,20 +646,18 @@ object BikeLeasingProcessApi {
 
       val isInterrupting: Boolean = false
 
-      override val next: Next = Next
+      override val outgoing: List<Successor<UserTaskUpdateDeliveryAddress>>
+        get() = listOf(
+          SequenceFlows.single(
+            flowId = ElementId("flow_addressChangedToUpdateDeliveryAddress"),
+            target = UserTaskUpdateDeliveryAddress,
+          ),
+        )
 
       object Variables {
         val CITY: VariableName.Input = VariableName.Input(ProcessVariables.CITY)
 
         val STREET: VariableName.Input = VariableName.Input(ProcessVariables.STREET)
-      }
-
-      object Next {
-        val userTaskUpdateDeliveryAddress: SequenceFlows<UserTaskUpdateDeliveryAddress>
-          get() = SequenceFlows.single(
-            flowId = ElementId("flow_addressChangedToUpdateDeliveryAddress"),
-            target = UserTaskUpdateDeliveryAddress,
-          )
       }
     }
 
@@ -715,7 +665,7 @@ object BikeLeasingProcessApi {
       id = ElementId(StartEventApplicationWithdrawn.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Application withdrawn",
-    ), HasSuccessors<StartEventApplicationWithdrawn.Next>, Event, HasMessage {
+    ), LeadsTo<EventReverseApplication>, Event, HasMessage {
       override val eventType: BpmnEventType = BpmnEventType.MESSAGE
 
       const val ELEMENT_ID: String = "startEvent_applicationWithdrawn"
@@ -724,49 +674,51 @@ object BikeLeasingProcessApi {
 
       val isInterrupting: Boolean = true
 
-      override val next: Next = Next
-
-      object Next {
-        val eventReverseApplication: SequenceFlows<EventReverseApplication>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<EventReverseApplication>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_applicationWithdrawnToReverseApplication"),
             target = EventReverseApplication,
-          )
-      }
+          ),
+        )
     }
 
     object StartEventCustomerEligible : AbstractFlowNode(
       id = ElementId(StartEventCustomerEligible.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Customer eligible",
-    ), HasSuccessors<StartEventCustomerEligible.Next>, Event {
+    ), LeadsTo<ServiceTaskSendContract>, Event {
       override val eventType: BpmnEventType = BpmnEventType.NONE
 
       const val ELEMENT_ID: String = "startEvent_customerEligible"
 
-      override val next: Next = Next
-
-      object Next {
-        val serviceTaskSendContract: SequenceFlows<ServiceTaskSendContract>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<ServiceTaskSendContract>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_customerEligibleToSendContract"),
             target = ServiceTaskSendContract,
-          )
-      }
+          ),
+        )
     }
 
     object StartEventLeasingRequestReceived : AbstractFlowNode(
       id = ElementId(StartEventLeasingRequestReceived.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Leasing request received",
-    ), HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage {
+    ), LeadsTo<ServiceTaskValidateApplication>, Event, HasMessage {
       override val eventType: BpmnEventType = BpmnEventType.MESSAGE
 
       const val ELEMENT_ID: String = "startEvent_leasingRequestReceived"
 
       override val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
 
-      override val next: Next = Next
+      override val outgoing: List<Successor<ServiceTaskValidateApplication>>
+        get() = listOf(
+          SequenceFlows.single(
+            flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"),
+            target = ServiceTaskValidateApplication,
+          ),
+        )
 
       object Variables {
         val AGE: VariableName.Input = VariableName.Input(ProcessVariables.AGE)
@@ -778,14 +730,6 @@ object BikeLeasingProcessApi {
 
         val MONTHLY_NET_INCOME: VariableName.Input =
             VariableName.Input(ProcessVariables.MONTHLY_NET_INCOME)
-      }
-
-      object Next {
-        val serviceTaskValidateApplication: SequenceFlows<ServiceTaskValidateApplication>
-          get() = SequenceFlows.single(
-            flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"),
-            target = ServiceTaskValidateApplication,
-          )
       }
     }
 
@@ -823,29 +767,22 @@ object BikeLeasingProcessApi {
       id = ElementId(SubProcessConcludeContract.ELEMENT_ID),
       elementType = BpmnElementType.SUB_PROCESS,
       name = "Conclude contract",
-    ), HasSuccessors<SubProcessConcludeContract.Next>, FlowScope<SubProcessConcludeContract.Start> {
+    ), LeadsTo<Next.SubProcessConcludeContract>, Next.GatewayIsSolvent,
+        FlowScope<SubProcessConcludeContract.Start> {
       const val ELEMENT_ID: String = "subProcess_concludeContract"
 
-      override val next: Next = Next
-
-      override val startEvents: Start = Start
-
-      object Next {
-        val boundaryCompensateContract: AttachedBoundaryEvent<BoundaryCompensateContract>
-          get() = AttachedBoundaryEvent(target = BoundaryCompensateContract)
-
-        val boundaryContractNotSigned: AttachedBoundaryEvent<BoundaryContractNotSigned>
-          get() = AttachedBoundaryEvent(target = BoundaryContractNotSigned)
-
-        val gatewayFork: SequenceFlows<GatewayFork>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<Next.SubProcessConcludeContract>>
+        get() = listOf(
+          AttachedBoundaryEvent(target = BoundaryCompensateContract),
+          AttachedBoundaryEvent(target = BoundaryContractNotSigned),
+          SequenceFlows.single(
             flowId = ElementId("flow_concludeContractToFork"),
             target = GatewayFork,
-          )
+          ),
+          AttachedBoundaryEvent(target = TimerSignatureReminder),
+        )
 
-        val timerSignatureReminder: AttachedBoundaryEvent<TimerSignatureReminder>
-          get() = AttachedBoundaryEvent(target = TimerSignatureReminder)
-      }
+      override val startEvents: Start = Start
 
       object Start {
         val startEventCustomerEligible: StartEventCustomerEligible
@@ -857,7 +794,7 @@ object BikeLeasingProcessApi {
       id = ElementId(TimerSignatureDeadline.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT,
       name = "14 days passed",
-    ), HasSuccessors<TimerSignatureDeadline.Next>, Event, TimerEvent {
+    ), LeadsTo<EndEventContractNotSigned>, Next.GatewayAwaitSignature, Event, TimerEvent {
       override val eventType: BpmnEventType = BpmnEventType.TIMER
 
       const val ELEMENT_ID: String = "timer_signatureDeadline"
@@ -867,23 +804,21 @@ object BikeLeasingProcessApi {
         timerValue = "P14D",
       )
 
-      override val next: Next = Next
-
-      object Next {
-        val endEventContractNotSigned: SequenceFlows<EndEventContractNotSigned>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<EndEventContractNotSigned>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_signatureDeadlineToContractNotSigned"),
             target = EndEventContractNotSigned,
-          )
-      }
+          ),
+        )
     }
 
     object TimerSignatureReminder : AbstractFlowNode(
       id = ElementId(TimerSignatureReminder.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "7 days passed",
-    ), HasSuccessors<TimerSignatureReminder.Next>, BoundaryEvent<SubProcessConcludeContract>,
-        TimerEvent {
+    ), LeadsTo<ServiceTaskSendReminderMail>, Next.SubProcessConcludeContract,
+        BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
       override val eventType: BpmnEventType = BpmnEventType.TIMER
 
       const val ELEMENT_ID: String = "timer_signatureReminder"
@@ -898,22 +833,20 @@ object BikeLeasingProcessApi {
 
       override val isInterrupting: Boolean = false
 
-      override val next: Next = Next
-
-      object Next {
-        val serviceTaskSendReminderMail: SequenceFlows<ServiceTaskSendReminderMail>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<ServiceTaskSendReminderMail>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_signatureReminderToSendReminderMail"),
             target = ServiceTaskSendReminderMail,
-          )
-      }
+          ),
+        )
     }
 
     object TimerWithdrawalPeriodElapsed : AbstractFlowNode(
       id = ElementId(TimerWithdrawalPeriodElapsed.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT,
       name = "Withdrawal period elapsed",
-    ), HasSuccessors<TimerWithdrawalPeriodElapsed.Next>, Event, TimerEvent {
+    ), LeadsTo<EndEventLeasingActive>, Event, TimerEvent {
       override val eventType: BpmnEventType = BpmnEventType.TIMER
 
       const val ELEMENT_ID: String = "timer_withdrawalPeriodElapsed"
@@ -923,38 +856,53 @@ object BikeLeasingProcessApi {
         timerValue = $$"""${withdrawalPeriod}""",
       )
 
-      override val next: Next = Next
-
-      object Next {
-        val endEventLeasingActive: SequenceFlows<EndEventLeasingActive>
-          get() = SequenceFlows.single(
+      override val outgoing: List<Successor<EndEventLeasingActive>>
+        get() = listOf(
+          SequenceFlows.single(
             flowId = ElementId("flow_withdrawalPeriodElapsedToLeasingActive"),
             target = EndEventLeasingActive,
-          )
-      }
+          ),
+        )
     }
 
     object UserTaskUpdateDeliveryAddress : AbstractFlowNode(
       id = ElementId(UserTaskUpdateDeliveryAddress.ELEMENT_ID),
       elementType = BpmnElementType.USER_TASK,
       name = "Update delivery address",
-    ), HasSuccessors<UserTaskUpdateDeliveryAddress.Next> {
+    ), LeadsTo<EndEventDeliveryAddressUpdated> {
       const val ELEMENT_ID: String = "userTask_updateDeliveryAddress"
 
-      override val next: Next = Next
+      override val outgoing: List<Successor<EndEventDeliveryAddressUpdated>>
+        get() = listOf(
+          SequenceFlows.single(
+            flowId = ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"),
+            target = EndEventDeliveryAddressUpdated,
+          ),
+        )
 
       object Variables {
         val DELIVERY_ADDRESS: VariableName.InOut =
             VariableName.InOut(ProcessVariables.DELIVERY_ADDRESS)
       }
+    }
 
-      object Next {
-        val endEventDeliveryAddressUpdated: SequenceFlows<EndEventDeliveryAddressUpdated>
-          get() = SequenceFlows.single(
-            flowId = ElementId("flow_updateDeliveryAddressToDeliveryAddressUpdated"),
-            target = EndEventDeliveryAddressUpdated,
-          )
-      }
+    /**
+     * One marker per element leading to several others, implemented by every element it leads to.
+     */
+    object Next {
+      interface GatewayAwaitSignature : FlowNode
+
+      interface GatewayFork : FlowNode
+
+      interface GatewayIsSolvent : FlowNode
+
+      interface ServiceTaskIssueInsurancePolicy : FlowNode
+
+      interface ServiceTaskOrderBike : FlowNode
+
+      interface ServiceTaskValidateApplication : FlowNode
+
+      interface SubProcessConcludeContract : FlowNode
     }
   }
 }
