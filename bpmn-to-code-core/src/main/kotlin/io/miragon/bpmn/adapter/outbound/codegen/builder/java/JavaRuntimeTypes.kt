@@ -30,5 +30,6 @@ internal object JavaRuntimeTypes {
     val SEQUENCE_FLOWS: ClassName = ClassName.get(PACKAGE, "SequenceFlows")
     val SIGNAL_NAME: ClassName = ClassName.get(PACKAGE, "SignalName")
     val TIMER_TYPE: ClassName = ClassName.get(PACKAGE, "TimerType")
+    val VARIABLE_DEFINITIONS: ClassName = ClassName.get(PACKAGE, "VariableDefinitions")
     val VARIABLE_NAME: ClassName = ClassName.get(PACKAGE, "VariableName")
 }

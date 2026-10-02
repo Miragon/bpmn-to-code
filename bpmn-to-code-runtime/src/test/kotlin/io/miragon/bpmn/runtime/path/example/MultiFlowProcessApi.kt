@@ -25,7 +25,7 @@ object OrderProcessApi {
    * Typed navigation over the process flow: one nested object per BPMN element.
    */
   object FlowNodes {
-    val entries: List<FlowNode> = listOf(
+    val all: List<FlowNode> = listOf(
       GatewayAmount,
       TaskApprove,
       TaskReview,

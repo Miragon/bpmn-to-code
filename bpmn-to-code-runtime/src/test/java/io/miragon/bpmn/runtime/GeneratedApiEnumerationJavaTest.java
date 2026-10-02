@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Enumerates the generated Java bike-leasing API via its {@code all()} accessors. The
- * {@code GeneratedApiEnumerationKotlinTest} sibling covers Kotlin's {@code entries}.
+ * {@code GeneratedApiEnumerationKotlinTest} sibling covers Kotlin's {@code all}.
  */
 class GeneratedApiEnumerationJavaTest {
 
@@ -46,5 +46,31 @@ class GeneratedApiEnumerationJavaTest {
         );
         assertThat(Errors.all()).containsExactly(Errors.MIRAVELO_APPLICATION_INVALID);
         assertThat(Escalations.all()).containsExactly(Escalations.MIRAVELO_CONTRACT_NOT_SIGNED);
+    }
+
+    @Test
+    void aNodeListsTheVariablesItDeclaresAllOfThemOrByDirection() {
+        var variables = FlowNodes.CallActivityCancelBikeOrder.INSTANCE.getVariables();
+
+        assertThat(variables.getAll()).containsExactly(
+            FlowNodes.CallActivityCancelBikeOrder.Variables.APPLICATION_ID,
+            FlowNodes.CallActivityCancelBikeOrder.Variables.CANCELLATION_COSTS,
+            FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS
+        );
+        assertThat(variables.getInputs()).containsExactly(
+            FlowNodes.CallActivityCancelBikeOrder.Variables.APPLICATION_ID,
+            FlowNodes.CallActivityCancelBikeOrder.Variables.ORDER_IDS
+        );
+        assertThat(variables.getOutputs()).containsExactly(FlowNodes.CallActivityCancelBikeOrder.Variables.CANCELLATION_COSTS);
+        assertThat(FlowNodes.CallActivityCancelBikeOrder.INSTANCE.getVariables()).isSameAs(variables);
+    }
+
+    @Test
+    void theVariablesFacetReachesTheVariablesOfAnyNodeGenerically() {
+        var nodesWithVariables = FlowNodes.all().stream().filter(HasVariables.class::isInstance).map(HasVariables.class::cast).toList();
+
+        assertThat(nodesWithVariables).contains(FlowNodes.CallActivityCancelBikeOrder.INSTANCE, FlowNodes.ServiceTaskOrderBike.INSTANCE);
+        assertThat(nodesWithVariables).allSatisfy(node -> assertThat(node.getVariables().getAll()).isNotEmpty());
+        assertThat(HasVariables.distinctVariablesOf(java.util.List.of(FlowNodes.ServiceTaskOrderBike.INSTANCE))).containsExactly("bikeId", "bikeIds");
     }
 }

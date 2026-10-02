@@ -40,7 +40,7 @@ object ServiceTasks {
 
   const val MIRAVELO_SEND_REJECTION: String = "miravelo.sendRejection"
 
-  val entries: List<String> = listOf(
+  val all: List<String> = listOf(
     BOOK_CANCELLATION_COSTS_DELEGATE,
     CANCEL_CONTRACT_DELEGATE,
     MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_,

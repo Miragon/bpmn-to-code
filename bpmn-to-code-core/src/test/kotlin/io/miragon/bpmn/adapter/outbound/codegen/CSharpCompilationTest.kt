@@ -62,6 +62,16 @@ class CSharpCompilationTest {
         assertCompiles(project(csproj(), generated))
     }
 
+    @Test
+    fun `generated csharp with variables named like the members of their holder compiles`() {
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn")).readText()
+        val renamed = bpmnXml.replace("target=\"bikeIds\"", "target=\"inputs\"").replace("target=\"age\"", "target=\"outputs\"")
+        val generated = generateFromXml(listOf(renamed), ProcessEngine.ZEEBE)
+        assertThat(generated.single { it.processId == "bikeLeasing" }.content).contains(" Inputs_ { get; }", " Outputs_ { get; }")
+
+        assertCompiles(project(csproj(), generated))
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["<Nullable>disable</Nullable>", "<GenerateDocumentationFile>true</GenerateDocumentationFile>"])
     fun `generated csharp compiles whatever the consuming project's nullable and documentation settings`(setting: String) {
@@ -228,6 +238,9 @@ class CSharpCompilationTest {
                     string hostId = Api.FlowNodes.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
                     bool interrupts = Api.FlowNodes.TimerSignatureReminder.Instance.IsInterrupting;
                     Api.Runtime.VariableName.Input input = Api.FlowNodes.ServiceTaskSendContract.Instance.Variables.ApplicationId;
+                    Api.Runtime.IHasVariables withVariables = Api.FlowNodes.ServiceTaskSendContract.Instance;
+                    int declared = withVariables.Variables.All.Count + withVariables.Variables.Inputs.Count + withVariables.Variables.Outputs.Count;
+                    if (declared == 0) throw new InvalidOperationException();
                     Api.Runtime.ProcessId called = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.CalledProcess;
                     Api.Runtime.InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
 

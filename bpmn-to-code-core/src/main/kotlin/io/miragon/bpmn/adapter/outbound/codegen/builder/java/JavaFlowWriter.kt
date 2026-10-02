@@ -46,6 +46,7 @@ internal class JavaFlowWriter {
     private fun buildNode(node: FlowGraphNode): TypeSpec {
         val classBuilder = TypeSpec.classBuilder(node.objectName).addModifiers(PUBLIC, STATIC, FINAL)
         extendFlowNode(classBuilder, node)
+        facetWriter.fields(node.facets).forEach { classBuilder.addField(it) }
         facetWriter.methods(node.facets).forEach { classBuilder.addMethod(it) }
         facetWriter.holders(node.facets).forEach { classBuilder.addType(it) }
         if (node.successors.isNotEmpty()) {

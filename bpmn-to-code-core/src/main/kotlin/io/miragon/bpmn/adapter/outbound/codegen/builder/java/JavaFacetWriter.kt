@@ -4,6 +4,7 @@ import com.palantir.javapoet.ClassName
 import com.palantir.javapoet.CodeBlock
 import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.MethodSpec
+import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaErrorsWriter
@@ -19,11 +20,12 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 import javax.lang.model.element.Modifier.FINAL
+import javax.lang.model.element.Modifier.PRIVATE
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
 
 /**
- * Emits a Java `FlowNodes` node's own data: the facet getters (`getJobType()`, `getCalledProcess()`, `getTimer()`, …)
+ * Emits a Java `FlowNodes` node's own data: the facet getters (`getJobType()`, `getCalledProcess()`, `getTimer()`, `getVariables()`, …)
  * implementing their runtime facet interfaces, the `getAttachedTo()`/`isInterrupting()` getters of a boundary event, and the nested holders (`Variables`, `Inputs`, `Outputs`).
  * Job types, messages, signals, errors, escalations and variable names refer to their shared definition constant.
  */
@@ -43,6 +45,15 @@ internal class JavaFacetWriter {
             getter(name = "getAttachedTo", returnType = host.className, returnValue = host.instance(), overrides = true)
         },
         facets.isInterrupting?.let { getter(name = "isInterrupting", returnType = TypeName.BOOLEAN, returnValue = CodeBlock.of($$"$L", it), overrides = facets.attachedTo != null) },
+        facets.variables.takeIf { it.isNotEmpty() }?.let {
+            getter(name = "getVariables", returnType = VARIABLES_HOLDER, returnValue = CodeBlock.of($$"$N", VARIABLES_FIELD), overrides = true)
+        },
+    )
+
+    fun fields(facets: NodeFacets): List<FieldSpec> = listOfNotNull(
+        facets.variables.takeIf { it.isNotEmpty() }?.let {
+            FieldSpec.builder(VARIABLES_HOLDER, VARIABLES_FIELD, PRIVATE, STATIC, FINAL).initializer($$"new $T()", VARIABLES_HOLDER).build()
+        },
     )
 
     fun holders(facets: NodeFacets): List<TypeSpec> = listOfNotNull(
@@ -76,10 +87,12 @@ internal class JavaFacetWriter {
 
     private companion object {
         private val STRING: ClassName = ClassName.get(String::class.java)
+        private val VARIABLES_HOLDER: ClassName = ClassName.get("", "Variables")
+        private const val VARIABLES_FIELD = "VARIABLES"
     }
 
     private fun variablesHolder(variables: List<VariableFacet>): TypeSpec {
-        val holder = JavaConstantHolder("Variables").builder(STATIC)
+        val holder = JavaConstantHolder(VARIABLES_HOLDER.simpleName()).builder(STATIC).superclass(JavaRuntimeTypes.VARIABLE_DEFINITIONS)
         variables.forEach { variable ->
             val subtypeClass = JavaRuntimeTypes.VARIABLE_NAME.nestedClass(variable.subtype.simpleName)
             holder.addField(
@@ -87,7 +100,16 @@ internal class JavaFacetWriter {
                     .initializer($$"new $T($L)", subtypeClass, JavaProcessVariablesWriter.reference(SharedConstant(variable.constantName))).build(),
             )
         }
+        holder.addMethod(allVariables(variables))
         return holder.build()
+    }
+
+    private fun allVariables(variables: List<VariableFacet>): MethodSpec {
+        val listClass = ClassName.get(List::class.java)
+        val constants = variables.map { CodeBlock.of($$"$N", it.constantName) }
+        return MethodSpec.methodBuilder("getAll").addAnnotation(Override::class.java).addModifiers(PUBLIC)
+            .returns(ParameterizedTypeName.get(listClass, JavaRuntimeTypes.VARIABLE_NAME))
+            .addStatement($$"return $T.of($L)", listClass, CodeBlock.join(constants, ", ")).build()
     }
 
     private fun mappingsHolder(holderName: String, mappings: List<MappingFacet>): TypeSpec {

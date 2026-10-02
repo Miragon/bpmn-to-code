@@ -20,8 +20,9 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
- * Emits a Kotlin `FlowNodes` node's own data: the facet properties (`jobType`, `calledProcess`, `timer`, `message`, …)
- * implementing their runtime facet interfaces, and the nested holders (`Variables`, `Inputs`, `Outputs`). Job types, messages, signals, errors,
+ * Emits a Kotlin `FlowNodes` node's own data: the facet properties (`jobType`, `calledProcess`, `timer`, `message`, `variables`, …)
+ * implementing their runtime facet interfaces, and the nested holders (`Variables`, `Inputs`, `Outputs`).
+ * `Variables` registers each variable it declares, so its `all` needs no generated list. Job types, messages, signals, errors,
  * escalations and variable names refer to their shared definition constant. A boundary event's `attachedTo` and `isInterrupting`
  * implement `BoundaryEvent`; `attachedTo` is a getter so object initialisation never touches another node.
  */
@@ -37,6 +38,7 @@ internal class KotlinFacetWriter {
         facets.escalation?.let { KotlinEscalationsWriter.nodeProperty(name = "escalation", shared = it) },
         facets.attachedTo?.let { attachedToProperty(it.objectName) },
         facets.isInterrupting?.let { isInterruptingProperty(it, overridesBoundaryEvent = facets.attachedTo != null) },
+        facets.variables.takeIf { it.isNotEmpty() }?.let { variablesProperty() },
     )
 
     fun holders(facets: NodeFacets): List<TypeSpec> = listOfNotNull(
@@ -70,14 +72,16 @@ internal class KotlinFacetWriter {
         return property.build()
     }
 
+    private fun variablesProperty(): PropertySpec = PropertySpec.builder("variables", ClassName("", VARIABLES_HOLDER), KModifier.OVERRIDE)
+        .initializer("%N", VARIABLES_HOLDER).build()
+
     private fun variablesHolder(variables: List<VariableFacet>): TypeSpec {
-        val holder = TypeSpec.objectBuilder("Variables")
+        val holder = TypeSpec.objectBuilder(VARIABLES_HOLDER).superclass(KotlinRuntimeTypes.REGISTERED_VARIABLE_DEFINITIONS)
         variables.forEach { variable ->
             val subtypeClass = KotlinRuntimeTypes.VARIABLE_NAME.nestedClass(variable.subtype.simpleName)
-            holder.addProperty(
-                PropertySpec.builder(variable.constantName, subtypeClass)
-                    .initializer("%T(%L)", subtypeClass, KotlinProcessVariablesWriter.reference(SharedConstant(variable.constantName))).build(),
-            )
+            val registerFunction = variable.subtype.simpleName.replaceFirstChar { it.lowercaseChar() }
+            val nameConstant = KotlinProcessVariablesWriter.reference(SharedConstant(variable.constantName))
+            holder.addProperty(PropertySpec.builder(variable.constantName, subtypeClass).initializer("%N(%L)", registerFunction, nameConstant).build())
         }
         return holder.build()
     }
@@ -98,4 +102,8 @@ internal class KotlinFacetWriter {
         "sourceExpression" to mapping.sourceExpression?.let { stringLiteral(it) },
         placement = KotlinCodeFormat.Placement.INITIALIZER,
     )
+
+    private companion object {
+        private const val VARIABLES_HOLDER = "Variables"
+    }
 }

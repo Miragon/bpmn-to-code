@@ -23,18 +23,18 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
  * behind `next`, named after the elements they lead to: the `SequenceFlows` to an element, or an attached boundary
  * event. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess node
  * additionally is a `FlowScope` whose `startEvents` yields the interior's start elements, and a boundary event is
- * a `BoundaryEvent` of its host. `FlowNodes.entries` lists every node.
+ * a `BoundaryEvent` of its host. `FlowNodes.all` lists every node.
  */
 internal class KotlinFlowWriter {
 
     private val facetWriter = KotlinFacetWriter()
 
     fun write(builder: TypeSpec.Builder, graph: FlowGraph) {
-        builder.addProperty(entries(graph))
+        builder.addProperty(allNodes(graph))
         graph.nodes.forEach { node -> builder.addType(buildNode(node)) }
     }
 
-    private fun entries(graph: FlowGraph): PropertySpec = PropertySpec.builder("entries", LIST.parameterizedBy(KotlinRuntimeTypes.FLOW_NODE))
+    private fun allNodes(graph: FlowGraph): PropertySpec = PropertySpec.builder("all", LIST.parameterizedBy(KotlinRuntimeTypes.FLOW_NODE))
         .initializer(KotlinCodeFormat.listOfNames(graph.nodes.map { it.objectName })).build()
 
     private fun buildNode(node: FlowGraphNode): TypeSpec {

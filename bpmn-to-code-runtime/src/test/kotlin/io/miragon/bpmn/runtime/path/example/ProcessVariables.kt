@@ -36,7 +36,7 @@ object ProcessVariables {
 
   const val STREET: String = "street"
 
-  val entries: List<String> = listOf(
+  val all: List<String> = listOf(
     AGE,
     APPLICATION_ID,
     BIKE_ID,

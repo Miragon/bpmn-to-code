@@ -106,6 +106,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
                     FacetInterface.SIGNAL_EVENT to signal,
                     FacetInterface.ERROR_EVENT to error,
                     FacetInterface.ESCALATION_EVENT to escalation,
+                    FacetInterface.HAS_VARIABLES to variables.takeIf { it.isNotEmpty() },
                 )
                 return facetsByInterface.filterValues { it != null }.keys.toList()
             }
@@ -119,6 +120,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         SIGNAL_EVENT("SignalEvent"),
         ERROR_EVENT("ErrorEvent"),
         ESCALATION_EVENT("EscalationEvent"),
+        HAS_VARIABLES("HasVariables"),
     }
 
     data class VariableFacet(val constantName: String, val rawName: String, val subtype: VariableNameSubtype)

@@ -54,13 +54,22 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
     private fun writeVariables(variables: List<VariableFacet>) {
         writer.line()
         writer.readonlyProperty(name = "Variables", type = "NodeVariables", initializer = "new()")
-        writer.sealedClass("NodeVariables") {
+        writer.line("${CSharpRuntimeTypes.VARIABLE_DEFINITIONS} ${CSharpRuntimeTypes.HAS_VARIABLES}.Variables => Variables;")
+        writer.sealedClass("NodeVariables", implements = CSharpRuntimeTypes.VARIABLE_DEFINITIONS) {
             variables.forEach { variable ->
                 val subtype = "${CSharpRuntimeTypes.VARIABLE_NAME}.${variable.subtype.simpleName}"
                 val nameConstant = CSharpProcessVariablesWriter.reference(SharedConstant(variable.constantName))
-                writer.readonlyProperty(name = pascalCase(variable.rawName), type = subtype, initializer = "new($nameConstant)")
+                writer.readonlyProperty(name = variablePropertyName(variable), type = subtype, initializer = "new($nameConstant)")
             }
+            val allVariables = variables.joinToString(", ") { variablePropertyName(it) }
+            writer.line("public override System.Collections.Generic.IReadOnlyList<${CSharpRuntimeTypes.VARIABLE_NAME}> All => new ${CSharpRuntimeTypes.VARIABLE_NAME}[] { $allVariables };")
         }
+    }
+
+    // A variable called `all`, `inputs` or `outputs` would hide the member of that name it inherits from `VariableDefinitions`.
+    private fun variablePropertyName(variable: VariableFacet): String {
+        val propertyName = pascalCase(variable.rawName)
+        return if (propertyName in CSharpRuntimeTypes.VARIABLE_DEFINITIONS_MEMBERS) propertyName + "_" else propertyName
     }
 
     private fun writeMappings(propertyName: String, holderName: String, mappings: List<MappingFacet>) {

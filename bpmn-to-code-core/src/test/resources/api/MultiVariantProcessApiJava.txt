@@ -13,9 +13,11 @@ import io.miragon.bpmn.runtime.FlowNode;
 import io.miragon.bpmn.runtime.HasJobType;
 import io.miragon.bpmn.runtime.HasMessage;
 import io.miragon.bpmn.runtime.HasSuccessors;
+import io.miragon.bpmn.runtime.HasVariables;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SequenceFlows;
+import io.miragon.bpmn.runtime.VariableDefinitions;
 import io.miragon.bpmn.runtime.VariableName;
 import java.util.List;
 
@@ -219,10 +221,12 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasJobType {
+      public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasJobType, HasVariables {
         public static final String ELEMENT_ID = "serviceTask_bookCancellationCosts";
 
         public static final ServiceTaskBookCancellationCosts INSTANCE = new ServiceTaskBookCancellationCosts();
+
+        private static final Variables VARIABLES = new Variables();
 
         private ServiceTaskBookCancellationCosts() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Book cancellation costs");
@@ -234,14 +238,24 @@ public final class CancelBikeOrderProcessApi {
         }
 
         @Override
+        public Variables getVariables() {
+          return VARIABLES;
+        }
+
+        @Override
         public Next getNext() {
           return new Next();
         }
 
-        public static final class Variables {
+        public static final class Variables extends VariableDefinitions {
           public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(ProcessVariables.CANCELLATION_COSTS);
 
           private Variables() {
+          }
+
+          @Override
+          public List<VariableName> getAll() {
+            return List.of(CANCELLATION_COSTS);
           }
         }
 
@@ -252,10 +266,12 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasSuccessors<ServiceTaskRequestCancellation.Next>, HasJobType {
+      public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasSuccessors<ServiceTaskRequestCancellation.Next>, HasJobType, HasVariables {
         public static final String ELEMENT_ID = "serviceTask_requestCancellation";
 
         public static final ServiceTaskRequestCancellation INSTANCE = new ServiceTaskRequestCancellation();
+
+        private static final Variables VARIABLES = new Variables();
 
         private ServiceTaskRequestCancellation() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Request cancellation");
@@ -267,14 +283,24 @@ public final class CancelBikeOrderProcessApi {
         }
 
         @Override
+        public Variables getVariables() {
+          return VARIABLES;
+        }
+
+        @Override
         public Next getNext() {
           return new Next();
         }
 
-        public static final class Variables {
+        public static final class Variables extends VariableDefinitions {
           public static final VariableName.Output CANCELLATION_POSSIBLE = new VariableName.Output(ProcessVariables.CANCELLATION_POSSIBLE);
 
           private Variables() {
+          }
+
+          @Override
+          public List<VariableName> getAll() {
+            return List.of(CANCELLATION_POSSIBLE);
           }
         }
 
@@ -289,10 +315,12 @@ public final class CancelBikeOrderProcessApi {
         }
       }
 
-      public static final class StartEventCancellationRequired extends AbstractFlowNode implements HasSuccessors<StartEventCancellationRequired.Next>, Event {
+      public static final class StartEventCancellationRequired extends AbstractFlowNode implements HasSuccessors<StartEventCancellationRequired.Next>, Event, HasVariables {
         public static final String ELEMENT_ID = "startEvent_cancellationRequired";
 
         public static final StartEventCancellationRequired INSTANCE = new StartEventCancellationRequired();
+
+        private static final Variables VARIABLES = new Variables();
 
         private StartEventCancellationRequired() {
           super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Cancellation required");
@@ -304,14 +332,24 @@ public final class CancelBikeOrderProcessApi {
         }
 
         @Override
+        public Variables getVariables() {
+          return VARIABLES;
+        }
+
+        @Override
         public Next getNext() {
           return new Next();
         }
 
-        public static final class Variables {
+        public static final class Variables extends VariableDefinitions {
           public static final VariableName.Input ORDER_IDS = new VariableName.Input(ProcessVariables.ORDER_IDS);
 
           private Variables() {
+          }
+
+          @Override
+          public List<VariableName> getAll() {
+            return List.of(ORDER_IDS);
           }
         }
 

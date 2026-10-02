@@ -41,7 +41,7 @@ one process contains a matching element. Errors and escalations are named `NAME_
 (`MIRAVELO_APPLICATION_INVALID`) because the engine matches them by code — the same name with another code is a
 different error. Without a code the constant is named after the name alone.
 
-Every file also lists its values: Kotlin `ServiceTasks.entries`, Java `ServiceTasks.all()`, C#
+Every file also lists its values: Kotlin `ServiceTasks.all`, Java `ServiceTasks.all()`, C#
 `ServiceTasks.All`. That turns "every job type has a registered worker" or "every message is correlated
 somewhere" into a plain loop in a test, instead of reading the constants back via reflection. When the model gains
 a job type, the list grows with it, and the test fails until the worker exists.
@@ -94,11 +94,12 @@ object BikeLeasingProcessApi {
 
   object FlowNodes {
     object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), BpmnElementType.START_EVENT, "Leasing request received"),
-        HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage {
+        HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage, HasVariables {
       override val eventType = BpmnEventType.MESSAGE
       override val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
+      override val variables: Variables = Variables
       override val next: Next = Next
-      object Variables { val APPLICATION_ID: VariableName.Output = VariableName.Output(ProcessVariables.APPLICATION_ID) }
+      object Variables : RegisteredVariableDefinitions() { val APPLICATION_ID: VariableName.Output = output(ProcessVariables.APPLICATION_ID) }
       object Next {
         val serviceTaskValidateApplication: SequenceFlows<ServiceTaskValidateApplication>
           get() = SequenceFlows.single(
@@ -109,12 +110,13 @@ object BikeLeasingProcessApi {
     }
 
     object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract"),
-        HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
+        HasSuccessors<ServiceTaskSendContract.Next>, HasJobType, HasVariables {
       override val jobType: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
+      override val variables: Variables = Variables
       override val next: Next = Next
-      object Variables {
-        val APPLICATION_ID: VariableName.Input = VariableName.Input(ProcessVariables.APPLICATION_ID)
-        val CONTRACT_ID: VariableName.Output = VariableName.Output(ProcessVariables.CONTRACT_ID)
+      object Variables : RegisteredVariableDefinitions() {
+        val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
+        val CONTRACT_ID: VariableName.Output = output(ProcessVariables.CONTRACT_ID)
       }
       object Next {
         val gatewayAwaitSignature: SequenceFlows<GatewayAwaitSignature>
@@ -207,11 +209,15 @@ public final class BikeLeasingProcessApi {
 
             @Override public String getJobType() { return ServiceTasks.MIRAVELO_SEND_CONTRACT; }
 
+            @Override public Variables getVariables() { return VARIABLES; }
+
             @Override public Next getNext() { return new Next(); }
 
-            public static final class Variables {
+            public static final class Variables extends VariableDefinitions {
                 public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
                 public static final VariableName.Output CONTRACT_ID = new VariableName.Output(ProcessVariables.CONTRACT_ID);
+
+                @Override public List<VariableName> getAll() { return List.of(APPLICATION_ID, CONTRACT_ID); }
             }
             public static final class Next {
                 public SequenceFlows<GatewayAwaitSignature> gatewayAwaitSignature() {
@@ -258,10 +264,12 @@ public static class BikeLeasingProcessApi
             public string JobType { get; } = ServiceTasks.MiraveloSendContract;
 
             public NodeVariables Variables { get; } = new();
-            public sealed class NodeVariables
+            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : Runtime.VariableDefinitions
             {
                 public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
                 public Runtime.VariableName.Output ContractId { get; } = new(ProcessVariables.ContractId);
+                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { ApplicationId, ContractId };
             }
 
             public Successors Next => new();
@@ -300,7 +308,7 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | `id`, `elementType`, `name` | every node | `ElementId`, `BpmnElementType`, `String?` | `id`, `type`, `name` |
 | `eventType`, marker `Event` | events | `BpmnEventType` (`NONE`, `TIMER`, …, `TERMINATE`, `MULTIPLE`) | `eventDefinitions[]` |
 | `jobType`, `HasJobType` | tasks and events with an implementation | `String`, referring to `ServiceTasks` | `implementation.jobType` |
-| `Variables` | nodes declaring variables | `VariableName.Input` / `.Output` / `.InOut`, wrapping a `ProcessVariables` constant | `variables[]` |
+| `variables`, `HasVariables`; `Variables` | nodes declaring variables | `VariableDefinitions` listing `all` / `inputs` / `outputs`; each a `VariableName.Input` / `.Output` / `.InOut`, wrapping a `ProcessVariables` constant | `variables[]` |
 | `calledProcess`, `CallActivity`; `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
 | `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `TimerType` — `DATE`, `DURATION`, `CYCLE`) | `eventDefinitions[timer]` |
 | `message` / `signal` / `error` / `escalation`, `HasMessage` / `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnErrorDefinition` / `BpmnEscalationDefinition`, referring to the shared definition | `eventDefinitions[*]` |
@@ -319,7 +327,7 @@ Every facet comes with its runtime interface, so generic code can pick the nodes
 their types:
 
 ```kotlin
-val timers: List<TimerEvent> = FlowNodes.entries.filterIsInstance<TimerEvent>()
+val timers: List<TimerEvent> = FlowNodes.all.filterIsInstance<TimerEvent>()
 timers.forEach { println("${it.id}: ${it.timer.timerValue}") }
 ```
 
@@ -450,7 +458,7 @@ Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `nam
 
 Some tests are not about one path but about **every element** of a process: every job type has a registered
 worker, every node id exists in the deployed model, every user task has a form. For these, each `FlowNodes` (and
-each variant under `FlowVariants`) lists its nodes: Kotlin `FlowNodes.entries`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
+each variant under `FlowVariants`) lists its nodes: Kotlin `FlowNodes.all`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
 The test becomes a plain loop, with no reflection over nested classes that would also pick up holders like
 `Next` or `Variables`.
 
@@ -458,7 +466,7 @@ The test becomes a plain loop, with no reflection over nested classes that would
 @Test
 fun `every node of the model is deployed`() {
     val deployedIds = deployedModel.flowNodeIds()
-    assertThat(FlowNodes.entries.map { it.id.value }).allMatch { it in deployedIds }
+    assertThat(FlowNodes.all.map { it.id.value }).allMatch { it in deployedIds }
 }
 ```
 
@@ -596,15 +604,19 @@ compile-time direction enforcement.
 ```kotlin
 object FlowNodes {
   object ServiceTaskSendContract : /* … */ {
-    object Variables {
-      val APPLICATION_ID: VariableName.Input = VariableName.Input("applicationId")
-      val CONTRACT_ID: VariableName.Output = VariableName.Output("contractId")
+    override val variables: Variables = Variables
+
+    object Variables : RegisteredVariableDefinitions() {
+      val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
+      val CONTRACT_ID: VariableName.Output = output(ProcessVariables.CONTRACT_ID)
     }
   }
 
   object StartEventLeasingRequestReceived : /* … */ {
-    object Variables {
-      val APPLICATION_ID: VariableName.Output = VariableName.Output("applicationId")
+    override val variables: Variables = Variables
+
+    object Variables : RegisteredVariableDefinitions() {
+      val APPLICATION_ID: VariableName.Output = output(ProcessVariables.APPLICATION_ID)
     }
   }
 }
@@ -612,6 +624,28 @@ object FlowNodes {
 
 `Variables` is only emitted on nodes that declare at least one variable. C# emits the same subtypes
 (`Runtime.VariableName.Input` and friends) as properties of a `NodeVariables` holder.
+
+A node also lists its variables: `all` of them, those it reads (`inputs`) and those it writes (`outputs`). A
+`VariableName.InOut` is in both. Such a node implements `HasVariables`, so generic code reaches the variables
+of any node — for example to fetch only what a job worker reads:
+
+| | Kotlin | Java | C# |
+|---|---|---|---|
+| One variable | `ServiceTaskSendContract.variables.APPLICATION_ID` | `ServiceTaskSendContract.Variables.APPLICATION_ID` | `ServiceTaskSendContract.Instance.Variables.ApplicationId` |
+| All / read / written | `variables.all` / `.inputs` / `.outputs` | `getVariables().getAll()` / `.getInputs()` / `.getOutputs()` | `Variables.All` / `.Inputs` / `.Outputs` |
+
+```kotlin
+val workers = FlowNodes.all.filterIsInstance<HasJobType>()
+workers.forEach { task ->
+    val readVariables = (task as? HasVariables)?.variables?.inputs.orEmpty()
+    client.newWorker().jobType(task.jobType).fetchVariables(readVariables.map { it.value }) // …
+}
+
+val variablesOfTheProcess: List<String> = HasVariables.distinctVariablesOf(FlowNodes.all)
+```
+
+In C#, a variable named `all`, `inputs` or `outputs` gets a trailing underscore (`Inputs_`), because the
+holder inherits members of those names.
 
 ## Call-Activity Variable Mappings
 
@@ -625,8 +659,8 @@ object FlowNodes {
   object CallActivityCancelBikeOrder : /* … */ {
     override val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
 
-    object Variables {
-      val ORDER_IDS: VariableName.Input = VariableName.Input("orderIds")   // the parent-scope view
+    object Variables : RegisteredVariableDefinitions() {
+      val ORDER_IDS: VariableName.Input = input(ProcessVariables.ORDER_IDS)   // the parent-scope view
       // …
     }
 

@@ -40,6 +40,12 @@ public static class CancelBikeOrderProcessApi
             string JobType { get; }
         }
 
+        /// <summary>A flow node that declares process variables, exposed behind Variables.</summary>
+        public interface IHasVariables : IFlowNode
+        {
+            VariableDefinitions Variables { get; }
+        }
+
         /// <summary>A call activity, calling the process CalledProcess.</summary>
         public interface ICallActivity : IFlowNode
         {
@@ -149,6 +155,16 @@ public static class CancelBikeOrderProcessApi
             public sealed record Output(string Value) : VariableName(Value);
 
             public sealed record InOut(string Value) : VariableName(Value);
+        }
+
+        /// <summary>The variables a node declares: All of them, those it reads (Inputs) and those it writes (Outputs).</summary>
+        public abstract class VariableDefinitions
+        {
+            public abstract System.Collections.Generic.IReadOnlyList<VariableName> All { get; }
+
+            public System.Collections.Generic.IReadOnlyList<VariableName> Inputs => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(All, variable => variable is not VariableName.Output));
+
+            public System.Collections.Generic.IReadOnlyList<VariableName> Outputs => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(All, variable => variable is not VariableName.Input));
         }
 
         /// <summary>BPMN element type of a flow node; an event's definition is its EventType.</summary>
@@ -320,7 +336,7 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class ServiceTaskBookCancellationCosts : Runtime.IFlowNode, Runtime.IHasJobType
+            public sealed class ServiceTaskBookCancellationCosts : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
             {
                 public static readonly ServiceTaskBookCancellationCosts Instance = new();
                 private ServiceTaskBookCancellationCosts() { }
@@ -332,9 +348,11 @@ public static class CancelBikeOrderProcessApi
                 public string JobType { get; } = ServiceTasks.BookCancellationCostsDelegate;
 
                 public NodeVariables Variables { get; } = new();
-                public sealed class NodeVariables
+                Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
+                public sealed class NodeVariables : Runtime.VariableDefinitions
                 {
                     public Runtime.VariableName.Output CancellationCosts { get; } = new(ProcessVariables.CancellationCosts);
+                    public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { CancellationCosts };
                 }
 
                 public Successors Next => new();
@@ -344,7 +362,7 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class ServiceTaskRequestCancellation : Runtime.IFlowNode, Runtime.IHasJobType
+            public sealed class ServiceTaskRequestCancellation : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
             {
                 public static readonly ServiceTaskRequestCancellation Instance = new();
                 private ServiceTaskRequestCancellation() { }
@@ -356,9 +374,11 @@ public static class CancelBikeOrderProcessApi
                 public string JobType { get; } = ServiceTasks.MiraveloRequestCancellation;
 
                 public NodeVariables Variables { get; } = new();
-                public sealed class NodeVariables
+                Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
+                public sealed class NodeVariables : Runtime.VariableDefinitions
                 {
                     public Runtime.VariableName.Output CancellationPossible { get; } = new(ProcessVariables.CancellationPossible);
+                    public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { CancellationPossible };
                 }
 
                 public Successors Next => new();
@@ -369,7 +389,7 @@ public static class CancelBikeOrderProcessApi
                 }
             }
 
-            public sealed class StartEventCancellationRequired : Runtime.IEvent
+            public sealed class StartEventCancellationRequired : Runtime.IEvent, Runtime.IHasVariables
             {
                 public static readonly StartEventCancellationRequired Instance = new();
                 private StartEventCancellationRequired() { }
@@ -381,9 +401,11 @@ public static class CancelBikeOrderProcessApi
                 public string? Name => "Cancellation required";
 
                 public NodeVariables Variables { get; } = new();
-                public sealed class NodeVariables
+                Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
+                public sealed class NodeVariables : Runtime.VariableDefinitions
                 {
                     public Runtime.VariableName.Input OrderIds { get; } = new(ProcessVariables.OrderIds);
+                    public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { OrderIds };
                 }
 
                 public Successors Next => new();
