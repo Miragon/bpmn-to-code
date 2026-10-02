@@ -24,6 +24,7 @@ ktlintPlugin = "0.14.0"
 pitest = "1.19.0"
 pitestCore = "1.19.4"
 pitestJunit5 = "1.2.3"
+jmh = "1.37"
 
 [libraries]
 # Plugin dependencies
@@ -59,6 +60,10 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 # Test-only: validates the generated process JSON against the published schema.
 # Deliberately NOT part of the `testing` bundle — it pulls Jackson in, and only bpmn-to-code-core needs it.
 jsonSchemaValidator = { module = "com.networknt:json-schema-validator", version.ref = "jsonSchemaValidator" }
+
+# Benchmark dependencies
+jmhCore = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
+jmhAnnotationProcessor = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 
 [bundles]
 codegen = ["kotlinpoet", "javapoet"]

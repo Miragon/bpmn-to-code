@@ -119,6 +119,7 @@ export default defineConfig({
           { text: 'Docker Deployment', link: '/contributing/docker-hub-deployment' },
           { text: 'Best Practices', link: '/contributing/best-practices' },
           { text: 'Publishing Snapshots', link: '/contributing/publishing-snapshots' },
+          { text: 'Benchmarking the Generator', link: '/contributing/benchmark' },
           { text: 'Architecture Decisions', link: '/contributing/adr/' },
         ],
       },
