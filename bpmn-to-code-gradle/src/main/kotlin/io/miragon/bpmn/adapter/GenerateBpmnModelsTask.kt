@@ -1,15 +1,15 @@
 package io.miragon.bpmn.adapter
 
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiFilesystemPlugin
+import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
 
-@DisableCachingByDefault(
-    because = "Task produces output based on files that can change at any time without the plugin knowing about it",
-)
+@CacheableTask
 abstract class GenerateBpmnModelsTask : AbstractBpmnTask() {
 
     @get:Input
@@ -26,15 +26,16 @@ abstract class GenerateBpmnModelsTask : AbstractBpmnTask() {
 
     init {
         enableVariants.convention(false)
+        GenerationCaching(this).enable(generatedDirectory = packageDirectory())
     }
 
     @TaskAction
     fun execute() {
         val service = CreateProcessApiFilesystemPlugin()
         val results = service.execute(
-            baseDir = baseDir.get(),
+            baseDir = absolutePathOf(baseDir),
             filePattern = filePattern.get(),
-            outputFolderPath = outputFolderPath.get(),
+            outputFolderPath = absolutePathOf(outputFolderPath),
             packagePath = packagePath.get(),
             outputLanguage = outputLanguage.get(),
             engine = processEngine.get(),
@@ -49,5 +50,9 @@ abstract class GenerateBpmnModelsTask : AbstractBpmnTask() {
             logger.lifecycle("  Generated: ${result.processId} (from $files)")
         }
         logger.lifecycle("BPMN models generated successfully (${results.size} models)")
+    }
+
+    private fun packageDirectory(): Provider<String> = outputFolderPath.zip(packagePath) { folder, packageName ->
+        "$folder/${GeneratedApiFile.packageDirectoryOf(packageName)}"
     }
 }

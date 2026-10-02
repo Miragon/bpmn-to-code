@@ -155,4 +155,36 @@ class BpmnFileLoaderTest {
             "test/order-process.bpmn",
         )
     }
+
+    @Test
+    fun `isBpmnFileToLoad accepts exactly the files loadFrom reads`(@TempDir tempDir: Path) {
+        // given: BPMN files in the search directory, in a subdirectory and behind a symlinked directory
+        val resources = Files.createDirectories(tempDir.resolve("project/src/main/resources"))
+        val nested = Files.createDirectory(resources.resolve("nested"))
+        val external = Files.createDirectory(tempDir.resolve("external"))
+        Files.createSymbolicLink(resources.resolve("linked"), external)
+        Files.createFile(resources.resolve("order.bpmn"))
+        Files.createFile(resources.resolve("notes.txt"))
+        Files.createFile(nested.resolve("payment.bpmn"))
+        Files.createFile(external.resolve("shipping.bpmn"))
+        val candidates = listOf(
+            "order.bpmn",
+            "notes.txt",
+            "nested/payment.bpmn",
+            "linked/shipping.bpmn",
+        )
+        val baseDirectory = tempDir.resolve("project").toString()
+        val filePattern = "src/main/resources/**/*.bpmn"
+
+        // when: asking for each candidate and loading the files
+        val accepted = candidates.filter { candidate ->
+            underTest.isBpmnFileToLoad(baseDirectory = baseDirectory, filePattern = filePattern, pathInSearchDirectory = candidate)
+        }
+        val loaded = underTest.loadFrom(baseDirectory, filePattern)
+
+        // then: both agree, and the file behind the symlinked directory is left out
+        assertThat(underTest.resolveSearchDirectory(baseDirectory, filePattern)).isEqualTo(resources)
+        assertThat(accepted).containsExactly("order.bpmn", "nested/payment.bpmn")
+        assertThat(loaded.map { it.fileName }).containsExactlyInAnyOrder("order.bpmn", "payment.bpmn")
+    }
 }

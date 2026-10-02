@@ -11,9 +11,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @Incubating
-@DisableCachingByDefault(
-    because = "Validation depends on BPMN files that can change at any time without the plugin knowing about it",
-)
+@DisableCachingByDefault(because = "Validation only reports findings and produces no output worth caching")
 abstract class ValidateBpmnModelsTask : AbstractBpmnTask() {
 
     @get:Input
@@ -33,7 +31,7 @@ abstract class ValidateBpmnModelsTask : AbstractBpmnTask() {
         val treatWarningsAsErrors = failOnWarning.get()
         val config = ValidationConfig(failOnWarning = treatWarningsAsErrors, disabledRules = disabledRules.get())
         val result = plugin.execute(
-            baseDir = baseDir.get(),
+            baseDir = absolutePathOf(baseDir),
             filePattern = filePattern.get(),
             engine = processEngine.get(),
             validationConfig = config,

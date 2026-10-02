@@ -33,6 +33,10 @@ tasks.register("generateAll") {
 }
 ```
 
+Give each task its own package: tasks generating into the same package delete each other's files. When generating
+into the build directory, also avoid a package nested in another task's package (`com.example` and
+`com.example.c8`), which stops Gradle from caching the outer task.
+
 Common reasons to split into multiple tasks:
 - Different engines (e.g. some processes on Zeebe, others on Camunda 7)
 - Different output packages per domain or team
