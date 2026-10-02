@@ -22,9 +22,11 @@ import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasJobType
 import io.miragon.bpmn.runtime.HasMessage
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.HasVariables
 import io.miragon.bpmn.runtime.InputOutputMapping
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
+import io.miragon.bpmn.runtime.RegisteredVariableDefinitions
 import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.TimerEvent
 import io.miragon.bpmn.runtime.TimerType
@@ -43,7 +45,7 @@ object BikeLeasingProcessApi {
    * Typed navigation over the process flow: one nested object per BPMN element.
    */
   object FlowNodes {
-    val entries: List<FlowNode> = listOf(
+    val all: List<FlowNode> = listOf(
       BoundaryApplicationInvalid,
       BoundaryCompensateContract,
       BoundaryCompensateInsurance,
@@ -211,19 +213,20 @@ object BikeLeasingProcessApi {
       id = ElementId(CallActivityCancelBikeOrder.ELEMENT_ID),
       elementType = BpmnElementType.CALL_ACTIVITY,
       name = "Cancel bike order",
-    ), CallActivity {
+    ), CallActivity, HasVariables {
       const val ELEMENT_ID: String = "callActivity_cancelBikeOrder"
 
       override val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
 
-      object Variables {
-        val APPLICATION_ID: VariableName.Input =
-            VariableName.Input(ProcessVariables.APPLICATION_ID)
+      override val variables: Variables = Variables
+
+      object Variables : RegisteredVariableDefinitions() {
+        val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
 
         val CANCELLATION_COSTS: VariableName.Output =
-            VariableName.Output(ProcessVariables.CANCELLATION_COSTS)
+            output(ProcessVariables.CANCELLATION_COSTS)
 
-        val ORDER_IDS: VariableName.Input = VariableName.Input(ProcessVariables.ORDER_IDS)
+        val ORDER_IDS: VariableName.Input = input(ProcessVariables.ORDER_IDS)
       }
 
       object Inputs {
@@ -514,18 +517,20 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskIssueInsurancePolicy.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Issue insurance policy",
-    ), HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType {
+    ), HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType, HasVariables {
       const val ELEMENT_ID: String = "serviceTask_issueInsurancePolicy"
 
       override val jobType: String =
           ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE
 
+      override val variables: Variables = Variables
+
       override val next: Next = Next
 
-      object Variables {
-        val BIKE_ID: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_ID)
+      object Variables : RegisteredVariableDefinitions() {
+        val BIKE_ID: VariableName.Input = input(ProcessVariables.BIKE_ID)
 
-        val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
+        val BIKE_IDS: VariableName.Input = input(ProcessVariables.BIKE_IDS)
       }
 
       object Next {
@@ -544,17 +549,19 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskOrderBike.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Order bike",
-    ), HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType {
+    ), HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType, HasVariables {
       const val ELEMENT_ID: String = "serviceTask_orderBike"
 
       override val jobType: String = ServiceTasks.MIRAVELO_ORDER_BIKE
 
+      override val variables: Variables = Variables
+
       override val next: Next = Next
 
-      object Variables {
-        val BIKE_ID: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_ID)
+      object Variables : RegisteredVariableDefinitions() {
+        val BIKE_ID: VariableName.Input = input(ProcessVariables.BIKE_ID)
 
-        val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
+        val BIKE_IDS: VariableName.Input = input(ProcessVariables.BIKE_IDS)
       }
 
       object Next {
@@ -593,19 +600,19 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskSendContract.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Send contract",
-    ), HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
+    ), HasSuccessors<ServiceTaskSendContract.Next>, HasJobType, HasVariables {
       const val ELEMENT_ID: String = "serviceTask_sendContract"
 
       override val jobType: String = ServiceTasks.SEND_CONTRACT_DELEGATE
 
+      override val variables: Variables = Variables
+
       override val next: Next = Next
 
-      object Variables {
-        val APPLICATION_ID: VariableName.Input =
-            VariableName.Input(ProcessVariables.APPLICATION_ID)
+      object Variables : RegisteredVariableDefinitions() {
+        val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
 
-        val CONTRACT_ID: VariableName.Output =
-            VariableName.Output(ProcessVariables.CONTRACT_ID)
+        val CONTRACT_ID: VariableName.Output = output(ProcessVariables.CONTRACT_ID)
       }
 
       object Next {
@@ -685,7 +692,7 @@ object BikeLeasingProcessApi {
       id = ElementId(StartEventAddressChanged.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Address changed",
-    ), HasSuccessors<StartEventAddressChanged.Next>, Event, HasMessage {
+    ), HasSuccessors<StartEventAddressChanged.Next>, Event, HasMessage, HasVariables {
       override val eventType: BpmnEventType = BpmnEventType.MESSAGE
 
       const val ELEMENT_ID: String = "startEvent_addressChanged"
@@ -694,12 +701,14 @@ object BikeLeasingProcessApi {
 
       val isInterrupting: Boolean = false
 
+      override val variables: Variables = Variables
+
       override val next: Next = Next
 
-      object Variables {
-        val CITY: VariableName.Input = VariableName.Input(ProcessVariables.CITY)
+      object Variables : RegisteredVariableDefinitions() {
+        val CITY: VariableName.Input = input(ProcessVariables.CITY)
 
-        val STREET: VariableName.Input = VariableName.Input(ProcessVariables.STREET)
+        val STREET: VariableName.Input = input(ProcessVariables.STREET)
       }
 
       object Next {
@@ -759,25 +768,26 @@ object BikeLeasingProcessApi {
       id = ElementId(StartEventLeasingRequestReceived.ELEMENT_ID),
       elementType = BpmnElementType.START_EVENT,
       name = "Leasing request received",
-    ), HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage {
+    ), HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage, HasVariables {
       override val eventType: BpmnEventType = BpmnEventType.MESSAGE
 
       const val ELEMENT_ID: String = "startEvent_leasingRequestReceived"
 
       override val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
 
+      override val variables: Variables = Variables
+
       override val next: Next = Next
 
-      object Variables {
-        val AGE: VariableName.Input = VariableName.Input(ProcessVariables.AGE)
+      object Variables : RegisteredVariableDefinitions() {
+        val AGE: VariableName.Input = input(ProcessVariables.AGE)
 
-        val APPLICATION_ID: VariableName.Input =
-            VariableName.Input(ProcessVariables.APPLICATION_ID)
+        val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
 
-        val BIKE_IDS: VariableName.Input = VariableName.Input(ProcessVariables.BIKE_IDS)
+        val BIKE_IDS: VariableName.Input = input(ProcessVariables.BIKE_IDS)
 
         val MONTHLY_NET_INCOME: VariableName.Input =
-            VariableName.Input(ProcessVariables.MONTHLY_NET_INCOME)
+            input(ProcessVariables.MONTHLY_NET_INCOME)
       }
 
       object Next {
@@ -938,14 +948,15 @@ object BikeLeasingProcessApi {
       id = ElementId(UserTaskUpdateDeliveryAddress.ELEMENT_ID),
       elementType = BpmnElementType.USER_TASK,
       name = "Update delivery address",
-    ), HasSuccessors<UserTaskUpdateDeliveryAddress.Next> {
+    ), HasSuccessors<UserTaskUpdateDeliveryAddress.Next>, HasVariables {
       const val ELEMENT_ID: String = "userTask_updateDeliveryAddress"
+
+      override val variables: Variables = Variables
 
       override val next: Next = Next
 
-      object Variables {
-        val DELIVERY_ADDRESS: VariableName.InOut =
-            VariableName.InOut(ProcessVariables.DELIVERY_ADDRESS)
+      object Variables : RegisteredVariableDefinitions() {
+        val DELIVERY_ADDRESS: VariableName.InOut = inOut(ProcessVariables.DELIVERY_ADDRESS)
       }
 
       object Next {

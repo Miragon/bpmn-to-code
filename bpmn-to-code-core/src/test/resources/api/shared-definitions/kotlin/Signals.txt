@@ -13,7 +13,7 @@ import kotlin.collections.List
 object Signals {
   val MIRAVELO_MEMBER_ACTIVATED: SignalName = SignalName("miravelo.memberActivated")
 
-  val entries: List<SignalName> = listOf(
+  val all: List<SignalName> = listOf(
     MIRAVELO_MEMBER_ACTIVATED,
   )
 }

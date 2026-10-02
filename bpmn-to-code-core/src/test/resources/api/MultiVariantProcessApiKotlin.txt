@@ -15,8 +15,10 @@ import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.HasJobType
 import io.miragon.bpmn.runtime.HasMessage
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.HasVariables
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
+import io.miragon.bpmn.runtime.RegisteredVariableDefinitions
 import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.VariableName
 import kotlin.Boolean
@@ -37,7 +39,7 @@ object CancelBikeOrderProcessApi {
      * Typed navigation over the process flow: one nested object per BPMN element.
      */
     object Retail {
-      val entries: List<FlowNode> = listOf(
+      val all: List<FlowNode> = listOf(
         BoundaryCancellationFailed,
         EndEventBikeOrderCancelled,
         GatewayCancellationPossible,
@@ -156,16 +158,18 @@ object CancelBikeOrderProcessApi {
         id = ElementId(ServiceTaskBookCancellationCosts.ELEMENT_ID),
         elementType = BpmnElementType.SERVICE_TASK,
         name = "Book cancellation costs",
-      ), HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasJobType {
+      ), HasSuccessors<ServiceTaskBookCancellationCosts.Next>, HasJobType, HasVariables {
         const val ELEMENT_ID: String = "serviceTask_bookCancellationCosts"
 
         override val jobType: String = ServiceTasks.BOOK_CANCELLATION_COSTS_DELEGATE
 
+        override val variables: Variables = Variables
+
         override val next: Next = Next
 
-        object Variables {
+        object Variables : RegisteredVariableDefinitions() {
           val CANCELLATION_COSTS: VariableName.Output =
-              VariableName.Output(ProcessVariables.CANCELLATION_COSTS)
+              output(ProcessVariables.CANCELLATION_COSTS)
         }
 
         object Next {
@@ -181,16 +185,18 @@ object CancelBikeOrderProcessApi {
         id = ElementId(ServiceTaskRequestCancellation.ELEMENT_ID),
         elementType = BpmnElementType.SERVICE_TASK,
         name = "Request cancellation",
-      ), HasSuccessors<ServiceTaskRequestCancellation.Next>, HasJobType {
+      ), HasSuccessors<ServiceTaskRequestCancellation.Next>, HasJobType, HasVariables {
         const val ELEMENT_ID: String = "serviceTask_requestCancellation"
 
         override val jobType: String = ServiceTasks.MIRAVELO_REQUEST_CANCELLATION
 
+        override val variables: Variables = Variables
+
         override val next: Next = Next
 
-        object Variables {
+        object Variables : RegisteredVariableDefinitions() {
           val CANCELLATION_POSSIBLE: VariableName.Output =
-              VariableName.Output(ProcessVariables.CANCELLATION_POSSIBLE)
+              output(ProcessVariables.CANCELLATION_POSSIBLE)
         }
 
         object Next {
@@ -209,15 +215,17 @@ object CancelBikeOrderProcessApi {
         id = ElementId(StartEventCancellationRequired.ELEMENT_ID),
         elementType = BpmnElementType.START_EVENT,
         name = "Cancellation required",
-      ), HasSuccessors<StartEventCancellationRequired.Next>, Event {
+      ), HasSuccessors<StartEventCancellationRequired.Next>, Event, HasVariables {
         override val eventType: BpmnEventType = BpmnEventType.NONE
 
         const val ELEMENT_ID: String = "startEvent_cancellationRequired"
 
+        override val variables: Variables = Variables
+
         override val next: Next = Next
 
-        object Variables {
-          val ORDER_IDS: VariableName.Input = VariableName.Input(ProcessVariables.ORDER_IDS)
+        object Variables : RegisteredVariableDefinitions() {
+          val ORDER_IDS: VariableName.Input = input(ProcessVariables.ORDER_IDS)
         }
 
         object Next {

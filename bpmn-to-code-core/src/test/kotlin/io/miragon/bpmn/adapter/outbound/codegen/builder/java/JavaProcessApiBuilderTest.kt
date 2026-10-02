@@ -56,7 +56,7 @@ class JavaProcessApiBuilderTest {
 
         // then: every node is only reachable through its INSTANCE
         val content = result.content
-        assertThat(content).doesNotContainPattern("(?<!INSTANCE = )new (?!Next|Start)\\w+\\(\\)")
+        assertThat(content).doesNotContainPattern("(?<!INSTANCE = )new (?!Next|Start|Variables)\\w+\\(\\)")
         assertThat(content).contains("private BusinessRuleTaskCheckCreditRating()")
         assertThat(content).contains("private Variables()")
         assertThat(content).contains("public static final BusinessRuleTaskCheckCreditRating INSTANCE = new BusinessRuleTaskCheckCreditRating();")

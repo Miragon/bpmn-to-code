@@ -16,7 +16,7 @@ object Errors {
     code = "applicationInvalid",
   )
 
-  val entries: List<BpmnErrorDefinition> = listOf(
+  val all: List<BpmnErrorDefinition> = listOf(
     MIRAVELO_APPLICATION_INVALID,
   )
 }

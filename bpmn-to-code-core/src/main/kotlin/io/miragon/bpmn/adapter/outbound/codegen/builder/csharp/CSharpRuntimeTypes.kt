@@ -31,7 +31,11 @@ internal object CSharpRuntimeTypes {
     const val SEQUENCE_FLOWS = "$CLASS_NAME.SequenceFlows"
     const val SIGNAL_NAME = "$CLASS_NAME.SignalName"
     const val TIMER_TYPE = "$CLASS_NAME.TimerType"
+    const val VARIABLE_DEFINITIONS = "$CLASS_NAME.VariableDefinitions"
     const val VARIABLE_NAME = "$CLASS_NAME.VariableName"
+    const val HAS_VARIABLES = "$CLASS_NAME.IHasVariables"
+
+    val VARIABLE_DEFINITIONS_MEMBERS = setOf("All", "Inputs", "Outputs")
 
     fun facetInterface(typeName: String): String = "$CLASS_NAME.I$typeName"
 
@@ -61,6 +65,12 @@ internal object CSharpRuntimeTypes {
         public interface IHasJobType : IFlowNode
         {
             string JobType { get; }
+        }
+
+        /// <summary>A flow node that declares process variables, exposed behind Variables.</summary>
+        public interface IHasVariables : IFlowNode
+        {
+            VariableDefinitions Variables { get; }
         }
 
         /// <summary>A call activity, calling the process CalledProcess.</summary>
@@ -172,6 +182,16 @@ internal object CSharpRuntimeTypes {
             public sealed record Output(string Value) : VariableName(Value);
 
             public sealed record InOut(string Value) : VariableName(Value);
+        }
+
+        /// <summary>The variables a node declares: All of them, those it reads (Inputs) and those it writes (Outputs).</summary>
+        public abstract class VariableDefinitions
+        {
+            public abstract System.Collections.Generic.IReadOnlyList<VariableName> All { get; }
+
+            public System.Collections.Generic.IReadOnlyList<VariableName> Inputs => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(All, variable => variable is not VariableName.Output));
+
+            public System.Collections.Generic.IReadOnlyList<VariableName> Outputs => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(All, variable => variable is not VariableName.Input));
         }
 
         /// <summary>BPMN element type of a flow node; an event's definition is its EventType.</summary>

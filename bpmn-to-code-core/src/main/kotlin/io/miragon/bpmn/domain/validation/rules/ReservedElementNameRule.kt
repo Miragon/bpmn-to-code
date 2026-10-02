@@ -12,7 +12,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
  * Rejects element ids and variant names whose generated name would shadow a part of the Process API itself.
  *
  * Every element becomes a nested type inside `FlowNodes`, next to the holders (`Next`, `Start`, …), the
- * `entries` / `all()` / `All` enumeration, and refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
+ * `all` / `all()` / `All` enumeration, and refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
  * element named like one of those would shadow it in at least one target language and the generated file
  * would not compile; an element whose accessor is named like a `java.lang.Object` method breaks the Java
  * output the same way. In C#, the members of a node (`Id`, `Name`, `Message`, `Timer`, …) are PascalCase too
@@ -106,6 +106,9 @@ class ReservedElementNameRule : SingleModelValidationRule {
             "IBoundaryEvent",
             "FlowScope",
             "HasJobType",
+            "HasVariables",
+            "VariableDefinitions",
+            "RegisteredVariableDefinitions",
             "CallActivity",
             "TimerEvent",
             "HasMessage",
@@ -113,6 +116,7 @@ class ReservedElementNameRule : SingleModelValidationRule {
             "ErrorEvent",
             "EscalationEvent",
             "IHasJobType",
+            "IHasVariables",
             "ICallActivity",
             "ITimerEvent",
             "IHasMessage",

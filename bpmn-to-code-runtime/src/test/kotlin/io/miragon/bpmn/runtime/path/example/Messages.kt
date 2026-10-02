@@ -23,7 +23,7 @@ object Messages {
   val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName =
       MessageName("miravelo.leasingRequestReceived")
 
-  val entries: List<MessageName> = listOf(
+  val all: List<MessageName> = listOf(
     MIRAVELO_ADDRESS_CHANGED,
     MIRAVELO_APPLICATION_WITHDRAWN,
     MIRAVELO_CONTRACT_SIGNED,

@@ -15,7 +15,7 @@ import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.shared.VariableMapping
 
 /**
- * Writes the Kotlin object of one kind of shared definition: a property per definition plus `entries`.
+ * Writes the Kotlin object of one kind of shared definition: a property per definition plus `all`.
  */
 internal abstract class KotlinSharedDefinitionWriter<T : Any> {
 
@@ -34,7 +34,7 @@ internal abstract class KotlinSharedDefinitionWriter<T : Any> {
         val ofKind = definitionsOf(definitions)
         return TypeSpec.objectBuilder(type.typeName).addKdoc(kdoc)
             .addProperties(ofKind.map { property(name = it.getName(), initializer = initializer(it.getValue())) })
-            .addProperty(entries(ofKind))
+            .addProperty(allDefinitions(ofKind))
             .build()
     }
 
@@ -54,6 +54,6 @@ internal abstract class KotlinSharedDefinitionWriter<T : Any> {
     private fun property(name: String, initializer: CodeBlock): PropertySpec = PropertySpec.builder(name, elementType)
         .addModifiers(modifiers).initializer(initializer).build()
 
-    private fun entries(definitions: List<VariableMapping<T>>): PropertySpec = PropertySpec.builder("entries", LIST.parameterizedBy(elementType))
+    private fun allDefinitions(definitions: List<VariableMapping<T>>): PropertySpec = PropertySpec.builder("all", LIST.parameterizedBy(elementType))
         .initializer(KotlinCodeFormat.listOfNames(definitions.map { it.getName() })).build()
 }

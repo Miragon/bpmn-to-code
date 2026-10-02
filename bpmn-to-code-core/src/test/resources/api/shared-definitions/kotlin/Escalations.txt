@@ -16,7 +16,7 @@ object Escalations {
     code = "contractNotSigned",
   )
 
-  val entries: List<BpmnEscalationDefinition> = listOf(
+  val all: List<BpmnEscalationDefinition> = listOf(
     MIRAVELO_CONTRACT_NOT_SIGNED,
   )
 }

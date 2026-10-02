@@ -26,6 +26,7 @@ internal object KotlinRuntimeTypes {
     val INPUT_OUTPUT_MAPPING = ClassName(PACKAGE, "InputOutputMapping")
     val MESSAGE_NAME = ClassName(PACKAGE, "MessageName")
     val PROCESS_ID = ClassName(PACKAGE, "ProcessId")
+    val REGISTERED_VARIABLE_DEFINITIONS = ClassName(PACKAGE, "RegisteredVariableDefinitions")
     val SEQUENCE_FLOW = ClassName(PACKAGE, "SequenceFlow")
     val SIGNAL_NAME = ClassName(PACKAGE, "SignalName")
     val TIMER_TYPE = ClassName(PACKAGE, "TimerType")

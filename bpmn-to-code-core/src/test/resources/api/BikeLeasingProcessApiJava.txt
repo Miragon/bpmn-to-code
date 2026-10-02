@@ -20,12 +20,14 @@ import io.miragon.bpmn.runtime.FlowScope;
 import io.miragon.bpmn.runtime.HasJobType;
 import io.miragon.bpmn.runtime.HasMessage;
 import io.miragon.bpmn.runtime.HasSuccessors;
+import io.miragon.bpmn.runtime.HasVariables;
 import io.miragon.bpmn.runtime.InputOutputMapping;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SequenceFlows;
 import io.miragon.bpmn.runtime.TimerEvent;
 import io.miragon.bpmn.runtime.TimerType;
+import io.miragon.bpmn.runtime.VariableDefinitions;
 import io.miragon.bpmn.runtime.VariableName;
 import java.util.List;
 
@@ -437,10 +439,12 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class CallActivityCancelBikeOrder extends AbstractFlowNode implements CallActivity {
+    public static final class CallActivityCancelBikeOrder extends AbstractFlowNode implements CallActivity, HasVariables {
       public static final String ELEMENT_ID = "callActivity_cancelBikeOrder";
 
       public static final CallActivityCancelBikeOrder INSTANCE = new CallActivityCancelBikeOrder();
+
+      private static final Variables VARIABLES = new Variables();
 
       private CallActivityCancelBikeOrder() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.CALL_ACTIVITY, "Cancel bike order");
@@ -451,7 +455,12 @@ public final class BikeLeasingProcessApi {
         return new ProcessId("cancelBikeOrder");
       }
 
-      public static final class Variables {
+      @Override
+      public Variables getVariables() {
+        return VARIABLES;
+      }
+
+      public static final class Variables extends VariableDefinitions {
         public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
 
         public static final VariableName.Output CANCELLATION_COSTS = new VariableName.Output(ProcessVariables.CANCELLATION_COSTS);
@@ -459,6 +468,11 @@ public final class BikeLeasingProcessApi {
         public static final VariableName.Input ORDER_IDS = new VariableName.Input(ProcessVariables.ORDER_IDS);
 
         private Variables() {
+        }
+
+        @Override
+        public List<VariableName> getAll() {
+          return List.of(APPLICATION_ID, CANCELLATION_COSTS, ORDER_IDS);
         }
       }
 
@@ -820,10 +834,12 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType {
+    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType, HasVariables {
       public static final String ELEMENT_ID = "serviceTask_issueInsurancePolicy";
 
       public static final ServiceTaskIssueInsurancePolicy INSTANCE = new ServiceTaskIssueInsurancePolicy();
+
+      private static final Variables VARIABLES = new Variables();
 
       private ServiceTaskIssueInsurancePolicy() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Issue insurance policy");
@@ -835,16 +851,26 @@ public final class BikeLeasingProcessApi {
       }
 
       @Override
+      public Variables getVariables() {
+        return VARIABLES;
+      }
+
+      @Override
       public Next getNext() {
         return new Next();
       }
 
-      public static final class Variables {
+      public static final class Variables extends VariableDefinitions {
         public static final VariableName.Input BIKE_ID = new VariableName.Input(ProcessVariables.BIKE_ID);
 
         public static final VariableName.Input BIKE_IDS = new VariableName.Input(ProcessVariables.BIKE_IDS);
 
         private Variables() {
+        }
+
+        @Override
+        public List<VariableName> getAll() {
+          return List.of(BIKE_ID, BIKE_IDS);
         }
       }
 
@@ -859,10 +885,12 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType {
+    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType, HasVariables {
       public static final String ELEMENT_ID = "serviceTask_orderBike";
 
       public static final ServiceTaskOrderBike INSTANCE = new ServiceTaskOrderBike();
+
+      private static final Variables VARIABLES = new Variables();
 
       private ServiceTaskOrderBike() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Order bike");
@@ -874,16 +902,26 @@ public final class BikeLeasingProcessApi {
       }
 
       @Override
+      public Variables getVariables() {
+        return VARIABLES;
+      }
+
+      @Override
       public Next getNext() {
         return new Next();
       }
 
-      public static final class Variables {
+      public static final class Variables extends VariableDefinitions {
         public static final VariableName.Input BIKE_ID = new VariableName.Input(ProcessVariables.BIKE_ID);
 
         public static final VariableName.Input BIKE_IDS = new VariableName.Input(ProcessVariables.BIKE_IDS);
 
         private Variables() {
+        }
+
+        @Override
+        public List<VariableName> getAll() {
+          return List.of(BIKE_ID, BIKE_IDS);
         }
       }
 
@@ -924,10 +962,12 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
+    public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasSuccessors<ServiceTaskSendContract.Next>, HasJobType, HasVariables {
       public static final String ELEMENT_ID = "serviceTask_sendContract";
 
       public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
+
+      private static final Variables VARIABLES = new Variables();
 
       private ServiceTaskSendContract() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.SERVICE_TASK, "Send contract");
@@ -939,16 +979,26 @@ public final class BikeLeasingProcessApi {
       }
 
       @Override
+      public Variables getVariables() {
+        return VARIABLES;
+      }
+
+      @Override
       public Next getNext() {
         return new Next();
       }
 
-      public static final class Variables {
+      public static final class Variables extends VariableDefinitions {
         public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
 
         public static final VariableName.Output CONTRACT_ID = new VariableName.Output(ProcessVariables.CONTRACT_ID);
 
         private Variables() {
+        }
+
+        @Override
+        public List<VariableName> getAll() {
+          return List.of(APPLICATION_ID, CONTRACT_ID);
         }
       }
 
@@ -1042,10 +1092,15 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>, Event, HasMessage {
+    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>,
+        Event,
+        HasMessage,
+        HasVariables {
       public static final String ELEMENT_ID = "startEvent_addressChanged";
 
       public static final StartEventAddressChanged INSTANCE = new StartEventAddressChanged();
+
+      private static final Variables VARIABLES = new Variables();
 
       private StartEventAddressChanged() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Address changed");
@@ -1066,16 +1121,26 @@ public final class BikeLeasingProcessApi {
       }
 
       @Override
+      public Variables getVariables() {
+        return VARIABLES;
+      }
+
+      @Override
       public Next getNext() {
         return new Next();
       }
 
-      public static final class Variables {
+      public static final class Variables extends VariableDefinitions {
         public static final VariableName.Input CITY = new VariableName.Input(ProcessVariables.CITY);
 
         public static final VariableName.Input STREET = new VariableName.Input(ProcessVariables.STREET);
 
         private Variables() {
+        }
+
+        @Override
+        public List<VariableName> getAll() {
+          return List.of(CITY, STREET);
         }
       }
 
@@ -1147,10 +1212,15 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage {
+    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>,
+        Event,
+        HasMessage,
+        HasVariables {
       public static final String ELEMENT_ID = "startEvent_leasingRequestReceived";
 
       public static final StartEventLeasingRequestReceived INSTANCE = new StartEventLeasingRequestReceived();
+
+      private static final Variables VARIABLES = new Variables();
 
       private StartEventLeasingRequestReceived() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.START_EVENT, "Leasing request received");
@@ -1167,11 +1237,16 @@ public final class BikeLeasingProcessApi {
       }
 
       @Override
+      public Variables getVariables() {
+        return VARIABLES;
+      }
+
+      @Override
       public Next getNext() {
         return new Next();
       }
 
-      public static final class Variables {
+      public static final class Variables extends VariableDefinitions {
         public static final VariableName.Input AGE = new VariableName.Input(ProcessVariables.AGE);
 
         public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
@@ -1181,6 +1256,11 @@ public final class BikeLeasingProcessApi {
         public static final VariableName.Input MONTHLY_NET_INCOME = new VariableName.Input(ProcessVariables.MONTHLY_NET_INCOME);
 
         private Variables() {
+        }
+
+        @Override
+        public List<VariableName> getAll() {
+          return List.of(AGE, APPLICATION_ID, BIKE_IDS, MONTHLY_NET_INCOME);
         }
       }
 
@@ -1380,13 +1460,20 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class UserTaskUpdateDeliveryAddress extends AbstractFlowNode implements HasSuccessors<UserTaskUpdateDeliveryAddress.Next> {
+    public static final class UserTaskUpdateDeliveryAddress extends AbstractFlowNode implements HasSuccessors<UserTaskUpdateDeliveryAddress.Next>, HasVariables {
       public static final String ELEMENT_ID = "userTask_updateDeliveryAddress";
 
       public static final UserTaskUpdateDeliveryAddress INSTANCE = new UserTaskUpdateDeliveryAddress();
 
+      private static final Variables VARIABLES = new Variables();
+
       private UserTaskUpdateDeliveryAddress() {
         super(new ElementId(ELEMENT_ID), BpmnElementType.USER_TASK, "Update delivery address");
+      }
+
+      @Override
+      public Variables getVariables() {
+        return VARIABLES;
       }
 
       @Override
@@ -1394,10 +1481,15 @@ public final class BikeLeasingProcessApi {
         return new Next();
       }
 
-      public static final class Variables {
+      public static final class Variables extends VariableDefinitions {
         public static final VariableName.InOut DELIVERY_ADDRESS = new VariableName.InOut(ProcessVariables.DELIVERY_ADDRESS);
 
         private Variables() {
+        }
+
+        @Override
+        public List<VariableName> getAll() {
+          return List.of(DELIVERY_ADDRESS);
         }
       }
 

@@ -246,6 +246,34 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
+    fun `node lists the variables it declares behind the variables facet`() {
+        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
+
+        assertThat(result.content).contains("public sealed class ServiceTaskOrderBike : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables")
+        assertThat(result.content).contains("Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;")
+        assertThat(result.content).contains("public sealed class NodeVariables : Runtime.VariableDefinitions")
+        assertThat(result.content).contains(
+            "public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { BikeId, BikeIds };",
+        )
+    }
+
+    @Test
+    fun `renames a variable that would hide a member its holder inherits`() {
+        // given: a node whose variables are named like the members of VariableDefinitions
+        val variables = listOf("all", "inputs", "outputs", "orderId").map { VariableDefinition(name = it, direction = VariableDirection.INPUT) }
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = "task", variables = variables)))
+
+        // when: we build the process API file
+        val result = underTest.buildApiFile(csharpApi(model))
+
+        // then: only the colliding variables are renamed, in the declaration and in the list
+        assertThat(result.content).contains("public Runtime.VariableName.Input All_ { get; } = new(ProcessVariables.All);")
+        assertThat(result.content).contains(
+            "public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { All_, Inputs_, OrderId, Outputs_ };",
+        )
+    }
+
+    @Test
     fun `maps content of id to valid identifier format`() {
         // given: a model with flow nodes whose ids use dashes
         val defaultModel = testBikeLeasingModel()
