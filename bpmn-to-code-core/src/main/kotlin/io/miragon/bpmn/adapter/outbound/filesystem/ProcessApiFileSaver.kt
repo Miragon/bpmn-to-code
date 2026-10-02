@@ -42,7 +42,7 @@ internal class ProcessApiFileSaver : SaveProcessApiPort {
         }
     }
 
-    private fun packageDirOf(outputFolder: File, packagePath: String) = File(outputFolder, packagePath.replace('.', File.separatorChar))
+    private fun packageDirOf(outputFolder: File, packagePath: String) = File(outputFolder, GeneratedApiFile.packageDirectoryOf(packagePath))
 
     private fun carriesGeneratedHeader(file: File): Boolean = file.useLines { GeneratedFileHeader.isCarriedBy(it) }
 }
