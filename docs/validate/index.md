@@ -71,7 +71,7 @@ BPMN validation failed: 1 error(s), 1 warning(s)
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.0.0</version>
+    <version>6.1.0</version>
     <executions>
         <execution>
             <id>validate-bpmn</id>
