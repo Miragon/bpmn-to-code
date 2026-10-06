@@ -249,7 +249,7 @@ public static class BikeLeasingProcessApi
     public const string ProcessId = "bikeLeasing";
     public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
-    public static class Runtime { /* IFlowNode, IEvent, ISuccessor<T>, SequenceFlows<T>, AttachedBoundaryEvent<T>, ElementId, VariableName, BpmnTimer, the enums, … inlined */ }
+    public static class Runtime { /* IFlowNode, IEvent, ISuccessor<T>, SequenceFlows<T>, AttachedBoundaryEvent<T>, AssociatedCompensationHandler<T>, ElementId, VariableName, BpmnTimer, the enums, … inlined */ }
 
     public static class FlowNodes
     {
@@ -312,9 +312,10 @@ Each node extends **`AbstractFlowNode`** and exposes:
 | `calledProcess`, `CallActivity`; `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
 | `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `TimerType` — `DATE`, `DURATION`, `CYCLE`) | `eventDefinitions[timer]` |
 | `message` / `signal` / `error` / `escalation`, `HasMessage` / `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnErrorDefinition` / `BpmnEscalationDefinition`, referring to the shared definition | `eventDefinitions[*]` |
+| `CompensationThrowEvent` | intermediate throw and end events that throw a compensation | marker without members | `eventDefinitions[compensation]` |
 | `attachedTo`, `BoundaryEvent<Host>` | boundary events | the host node | `attachedToRef` |
 | `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
-| `next` → `Next` | nodes with successors | one successor per reachable element: `SequenceFlows<Target>` (the sequence flow(s) leading there) or `AttachedBoundaryEvent<Target>` | `outgoing`, `sequenceFlows[]` |
+| `next` → `Next` | nodes with successors | one successor per reachable element: `SequenceFlows<Target>` (the sequence flow(s) leading there), `AttachedBoundaryEvent<Target>` or `AssociatedCompensationHandler<Target>` | `outgoing`, `sequenceFlows[]`, `boundaryEventRefs`, `compensationHandlerRef` |
 | `startEvents` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
 
 Java mirrors the shape with getters: `FlowNodes.serviceTaskSendContract().getNext()`,
@@ -422,10 +423,27 @@ Boundary events are **not** sequence flows: they appear in the host's `Next` as 
 (so a walk can leave through them), point back at their host via `attachedTo` and implement `BoundaryEvent<Host>`
 (C#: `Runtime.IBoundaryEvent`).
 
+A **compensation handler** is not reached by a sequence flow either: BPMN connects it to its compensation boundary
+event with an association. It appears in that boundary event's `Next` as an
+`AssociatedCompensationHandler<Target>`:
+
+```kotlin
+object BoundaryCompensateContract : AbstractFlowNode(…),
+    HasSuccessors<BoundaryCompensateContract.Next>, BoundaryEvent<SubProcessConcludeContract> {
+  override val next: Next = Next
+  object Next {
+    val serviceTaskCancelContract: AssociatedCompensationHandler<ServiceTaskCancelContract>
+      get() = AssociatedCompensationHandler(target = ServiceTaskCancelContract)
+  }
+}
+```
+
+`isInterrupting` carries no meaning on a compensation boundary event: BPMN does not define `cancelActivity` for it.
+
 ### Navigation
 
-`next` returns the node's `Next`, whose properties are the reachable elements — continuations and boundary
-events alike — each a `Successor` whose `target` is the next node (C# `ISuccessor<T>` / `Target`). The target type is
+`next` returns the node's `Next`, whose properties are the reachable elements — continuations, boundary
+events and compensation handlers alike — each a `Successor` whose `target` is the next node (C# `ISuccessor<T>` / `Target`). The target type is
 fixed per step, so **a path that doesn't exist in the model
 doesn't compile**: regenerate after a model change and the affected step breaks the build at that exact edge.
 A subprocess additionally implements `FlowScope` and opens its interior via `startEvents`.
@@ -451,8 +469,12 @@ object SubProcessConcludeContract :
 ```
 
 Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `name`), **`HasSuccessors<Next>`**,
-**`Successor<Target>`** (`SequenceFlows`, `AttachedBoundaryEvent`), **`FlowScope<Start>`**, **`Event`** (`eventType`) and
-**`BoundaryEvent<Host>`** (an `Event` with `attachedTo`, `isInterrupting`).
+**`Successor<Target>`** (`SequenceFlows`, `AttachedBoundaryEvent`, `AssociatedCompensationHandler`),
+**`FlowScope<Start>`**, **`Event`** (`eventType`) and **`BoundaryEvent<Host>`** (an `Event` with `attachedTo`, `isInterrupting`).
+
+> `AssociatedCompensationHandler` joined the sealed `Successor` in 6.1.0. Code with an exhaustive `when` over
+> `Successor` needs a branch for it. The generated code needs a runtime of at least the generator's version, so
+> raise the plugin and `bpmn-to-code-runtime` together.
 
 ### Enumerating elements
 
@@ -533,6 +555,9 @@ needed to get hold of the start event.
   interruption uses `interruptedBy(FlowNodes.SubProcessConcludeContract) { it.boundaryContractNotSigned }` — the token leaves the interior
   *early* via the boundary (interrupting timers, error and escalation boundaries), which is why it's a re-anchor and can't be
   expressed with `inside`.
+- **Compensation** — `throwingCompensation(FlowNodes.BoundaryCompensateContract) { it.serviceTaskCancelContract }` records
+  a compensation boundary event and its handler and stays on the current node, so the walk continues from the event
+  that threw the compensation. See [Walking a compensated path](#walking-a-compensated-path).
 - **Escape hatch** — `jumpTo(node)` re-anchors to any node without checking adjacency and without recording it
   (e.g. stepping back to a parallel fork). It is gated behind `@RiskyNavigation` (`@OptIn` required), so it
   stands out in code and review; prefer the checked steps above.
@@ -559,7 +584,7 @@ assertThat(pi).hasPassed(*nodesOf(orderBranch, insuranceBranch).map { it.id.valu
 
 Each step also records **which sequence flow** it takes in `flowIds`, ready to compare against the engine's taken
 sequence flows — whenever the successor is unambiguous (a single flow, or one you picked from `flows`). Boundary
-events and subprocess brackets record no flow:
+events, compensation handlers and subprocess brackets record no flow:
 
 ```kotlin
 val path = ProcessPath.from(FlowNodes.BusinessRuleTaskCheckCreditRating)
@@ -571,6 +596,37 @@ assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "f
 // several flows to the same element: pick one
 .then { next -> next.taskApprove.flows.single { it.conditionExpression == "=customer.isVip" } }
 ```
+
+### Walking a compensated path
+
+Record the event that throws the compensation, then each compensation it triggers with `throwingCompensation`: the
+compensation boundary event of the compensated activity, and the handler picked from its `Next`. The step is only
+callable on a `CompensationThrowEvent`, and only a compensation boundary event offers a handler, so nothing else
+compiles. The walk stays on the throwing event and continues with its own successors:
+
+```kotlin
+val path = ProcessPath.from(FlowNodes.StartEventApplicationWithdrawn)
+    .then { it.eventReverseApplication }
+    .throwingCompensation(FlowNodes.BoundaryCompensateContract) { it.serviceTaskCancelContract }
+    .then { it.serviceTaskSendCancellationConfirmation }
+
+assertThat(pi).hasPassedInOrder(*path.ids.toTypedArray())
+```
+
+The throwing event comes first because an engine starts it before the handler it triggers; Zeebe's in-order
+assertion compares by start time. The handler is not a token-flow successor of the boundary event, but it is structurally adjacent to it, which
+is all the navigation guarantees.
+
+Whether the boundary event itself belongs into the path depends on the engine:
+
+| Engine | Reports the compensation boundary event | Step |
+|--------|------------------------------------------|------|
+| Zeebe (checked on 8.9) | yes | `throwingCompensation(boundary) { … }` |
+| Camunda 7 (checked on 7.24), Operaton (checked on 1.0) | no | `throwingCompensation(boundary, includeBoundaryEvent = false) { … }` |
+
+A compensation throw event without an `activityRef` triggers every handler in its scope, and their relative order
+is not defined. Chain several `throwingCompensation` steps when you assert an unordered set (`hasPassed`), or walk each
+handler separately and unite them with `nodesOf`, as for parallel branches.
 
 ### From Java
 
@@ -593,6 +649,22 @@ Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end
 a chain) and subprocess descent names the subprocess explicitly (`enter(FlowNodes.subProcessConcludeContract(), …)` /
 `inside(FlowNodes.subProcessConcludeContract(), …)`). The raw extension steps are also reachable from Java as static calls
 (`ProcessPathStepsKt.then(path, n -> n.x())`) — checked but not fluent; prefer `PathWalk`.
+
+`throwingCompensation` works the same way and keeps the walk on the current node. It is also available on the `Trail` that
+`end` returns, for an end event that throws a compensation. Unlike in Kotlin, the compiler does not check that the
+current node is a compensation throw event:
+
+```java
+var ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
+    .then(n -> n.eventReverseApplication())
+    .throwingCompensation(FlowNodes.boundaryCompensateContract(), n -> n.serviceTaskCancelContract())
+    .then(n -> n.serviceTaskSendCancellationConfirmation())
+    .end(n -> n.endEventApplicationCancelled())
+    .getIds();
+```
+
+On Camunda 7 and Operaton pass `false` as the second argument, so the boundary event is left out:
+`throwingCompensation(FlowNodes.boundaryCompensateContract(), false, n -> n.serviceTaskCancelContract())`.
 
 ## Variables with Direction
 

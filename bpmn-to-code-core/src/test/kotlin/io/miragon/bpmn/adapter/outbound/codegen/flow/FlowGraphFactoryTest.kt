@@ -3,6 +3,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.flow
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.jobWorkerTask
@@ -44,15 +45,15 @@ class FlowGraphFactoryTest {
     @Test
     fun `sequence-flow and boundary edges are unified as target-named successors`() {
         // given: subProcess_concludeContract follows into the fork gateway and has three boundary events attached
-        assertThat(leasingGraph.node("subProcessConcludeContract").successors.map { it.propertyName })
+        assertThat(leasingGraph.node("subProcessConcludeContract").successors.map { it.target.propertyName })
             .containsExactly("boundaryCompensateContract", "boundaryContractNotSigned", "gatewayFork", "timerSignatureReminder")
 
         // and: the service task follows into the credit rating and carries an error boundary
-        assertThat(leasingGraph.node("serviceTaskValidateApplication").successors.map { it.propertyName })
+        assertThat(leasingGraph.node("serviceTaskValidateApplication").successors.map { it.target.propertyName })
             .containsExactly("boundaryApplicationInvalid", "businessRuleTaskCheckCreditRating")
 
         // boundary event is itself a node whose successor is the escape target
-        assertThat(leasingGraph.node("boundaryApplicationInvalid").successors.map { it.propertyName })
+        assertThat(leasingGraph.node("boundaryApplicationInvalid").successors.map { it.target.propertyName })
             .containsExactly("gatewayCollectRejections")
     }
 
@@ -60,9 +61,9 @@ class FlowGraphFactoryTest {
     fun `subprocess points at its interior start events while interior edges stay on the interior nodes`() {
         assertThat(leasingGraph.node("subProcessConcludeContract").interiorStarts.map { it.propertyName })
             .containsExactly("startEventCustomerEligible")
-        assertThat(leasingGraph.node("startEventCustomerEligible").successors.map { it.propertyName })
+        assertThat(leasingGraph.node("startEventCustomerEligible").successors.map { it.target.propertyName })
             .containsExactly("serviceTaskSendContract")
-        assertThat(leasingGraph.node("gatewayAwaitSignature").successors.map { it.propertyName })
+        assertThat(leasingGraph.node("gatewayAwaitSignature").successors.map { it.target.propertyName })
             .containsExactly("eventContractSigned", "timerSignatureDeadline")
     }
 
@@ -318,13 +319,13 @@ class FlowGraphFactoryTest {
     fun `exclusive gateway groups its outgoing flows by the elements they lead to, with label, condition and default marker`() {
         val gateway = cancellationGraph.node("gatewayCancellationPossible")
 
-        val toMerge = gateway.outgoingFlows.single { it.target.objectName == "GatewayMergeReturn" }
+        val toMerge = gateway.flowSuccessors().single { it.target.objectName == "GatewayMergeReturn" }
         val possible = toMerge.flows.single()
         assertThat(possible.id).isEqualTo("flow_cancellationPossibleToMergeReturn")
         assertThat(possible.isDefault).isTrue()
         assertThat(possible.conditionExpression).isNull()
 
-        val notPossible = gateway.outgoingFlows.single { it.target.objectName != "GatewayMergeReturn" }.flows.single()
+        val notPossible = gateway.flowSuccessors().single { it.target.objectName != "GatewayMergeReturn" }.flows.single()
         assertThat(notPossible.id).isEqualTo("flow_cancellationNotPossibleToCollectClarifications")
         assertThat(notPossible.isDefault).isFalse()
         assertThat(notPossible.conditionExpression).isEqualTo($$"${!cancellationPossible}")
@@ -355,8 +356,8 @@ class FlowGraphFactoryTest {
         )
         val split = FlowGraphFactory.build(model).node("split")
 
-        assertThat(split.successors.map { it.propertyName }).containsExactly("target")
-        val toTarget = split.outgoingFlows.single()
+        assertThat(split.successors.map { it.target.propertyName }).containsExactly("target")
+        val toTarget = split.flowSuccessors().single()
         assertThat(toTarget.target.objectName).isEqualTo("Target")
         assertThat(toTarget.flows.map { it.conditionExpression }).containsExactly("=a", "=b")
     }
@@ -365,10 +366,60 @@ class FlowGraphFactoryTest {
     fun `boundary attachments are successors, marked as boundary events and never outgoing flows`() {
         val subProcess = leasingGraph.node("subProcessConcludeContract")
 
-        assertThat(subProcess.successors.map { it.propertyName }).contains("timerSignatureReminder")
-        assertThat(subProcess.outgoingFlows.map { it.target.propertyName }).containsExactly("gatewayFork")
+        assertThat(subProcess.successors.filterIsInstance<SuccessorEdge.AttachedBoundaryEvent>().map { it.target.propertyName })
+            .containsExactly("boundaryCompensateContract", "boundaryContractNotSigned", "timerSignatureReminder")
+        assertThat(subProcess.flowSuccessors().map { it.target.propertyName }).containsExactly("gatewayFork")
         assertThat(leasingGraph.node("timerSignatureReminder").isBoundaryEvent).isTrue()
         assertThat(subProcess.isBoundaryEvent).isFalse()
+    }
+
+    @Test
+    fun `compensation boundary event leads to its associated handler and to nothing else`() {
+        val handler = leasingGraph.node("boundaryCompensateContract").successors.single()
+
+        assertThat(handler).isEqualTo(SuccessorEdge.AssociatedCompensationHandler(FlowGraph.FlowEdge("serviceTaskCancelContract", "ServiceTaskCancelContract")))
+        assertThat(leasingGraph.node("timerSignatureReminder").successors).allMatch { it is SuccessorEdge.ViaSequenceFlows }
+    }
+
+    @Test
+    fun `only an event that throws a compensation is a compensation throw event`() {
+        val throwing = FlowGraph.FacetInterface.COMPENSATION_THROW_EVENT
+
+        assertThat(leasingGraph.node("eventReverseApplication").facets.facetInterfaces).contains(throwing)
+        assertThat(leasingGraph.node("boundaryCompensateContract").facets.facetInterfaces).doesNotContain(throwing)
+        assertThat(leasingGraph.node("endEventApplicationRejected").facets.facetInterfaces).doesNotContain(throwing)
+    }
+
+    @Test
+    fun `compensation handler that is no node of the model is not a successor`() {
+        val model = testProcessModel(flowNodes = listOf(compensationBoundary(id = "boundary", handlerRef = "missing")))
+
+        assertThat(FlowGraphFactory.build(model).node("boundary").successors).isEmpty()
+    }
+
+    @Test
+    fun `target reached in several ways is listed once, by its sequence flows before anything else`() {
+        // given: an invalid model whose compensation boundary event also reaches its handler by a sequence flow,
+        // and whose handler has that boundary event attached as well as following it by a sequence flow
+        val model = testProcessModel(
+            flowNodes = listOf(
+                compensationBoundary(id = "boundary", handlerRef = "handler").copy(outgoing = listOf("flow_toHandler")),
+                jobWorkerTask(
+                    id = "handler",
+                    jobType = "handler.worker",
+                    outgoing = listOf("flow_toBoundary"),
+                    boundaryEventRefs = listOf("boundary"),
+                ),
+            ),
+            sequenceFlows = listOf(
+                SequenceFlowDefinition(id = "flow_toHandler", sourceRef = "boundary", targetRef = "handler"),
+                SequenceFlowDefinition(id = "flow_toBoundary", sourceRef = "handler", targetRef = "boundary"),
+            ),
+        )
+        val graph = FlowGraphFactory.build(model)
+
+        assertThat(graph.node("boundary").successors.single()).isInstanceOf(SuccessorEdge.ViaSequenceFlows::class.java)
+        assertThat(graph.node("handler").successors.single()).isInstanceOf(SuccessorEdge.ViaSequenceFlows::class.java)
     }
 
     @Test
@@ -377,7 +428,7 @@ class FlowGraphFactoryTest {
         val graph = FlowGraphFactory.build(model)
 
         assertThat(graph.nodes).hasSize(1)
-        assertThat(graph.node("lonely").outgoingFlows).isEmpty()
+        assertThat(graph.node("lonely").successors).isEmpty()
         assertThat(graph.node("lonely").facets.jobType?.value).isEqualTo("lonely.worker")
     }
 
@@ -386,6 +437,15 @@ class FlowGraphFactoryTest {
         shape = EventShape.START_EVENT,
         eventDefinitions = definitions.toList(),
     )
+
+    private fun compensationBoundary(id: String, handlerRef: String) = FlowNodeDefinition.Event(
+        id = id,
+        shape = EventShape.BOUNDARY_EVENT,
+        eventDefinitions = listOf(EventDefinitionInstance.Compensation()),
+        compensationHandlerRef = handlerRef,
+    )
+
+    private fun FlowGraphNode.flowSuccessors(): List<SuccessorEdge.ViaSequenceFlows> = successors.filterIsInstance<SuccessorEdge.ViaSequenceFlows>()
 
     private fun FlowGraphFactory.build(model: ProcessModel): FlowGraph = build(model.graph, model.definitions)
 

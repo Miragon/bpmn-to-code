@@ -230,6 +230,8 @@ class CSharpCompilationTest {
                     Api.Runtime.ISuccessor<Api.Runtime.IFlowNode> genericSuccessor = successor;
                     Api.Runtime.IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder.Instance;
                     Api.Runtime.AttachedBoundaryEvent<Api.FlowNodes.TimerSignatureReminder> attached = Api.FlowNodes.SubProcessConcludeContract.Instance.Next.TimerSignatureReminder;
+                    Api.Runtime.ICompensationThrowEvent thrower = Api.FlowNodes.EventReverseApplication.Instance;
+                    Api.Runtime.AssociatedCompensationHandler<Api.FlowNodes.ServiceTaskCancelContract> handler = Api.FlowNodes.BoundaryCompensateContract.Instance.Next.ServiceTaskCancelContract;
 
                     var creditRating = successor.Target.Next.BusinessRuleTaskCheckCreditRating.Target;
                     var subProcess = creditRating.Next.GatewayIsSolvent.Target.Next.SubProcessConcludeContract.Target;
@@ -245,7 +247,7 @@ class CSharpCompilationTest {
                     Api.Runtime.InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
 
                     NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Instance.Id;
-                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id} {genericSuccessor.Target.Id} {attached.Target.Id}");
+                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id} {genericSuccessor.Target.Id} {attached.Target.Id} {handler.Target.Id} {thrower.Id}");
                 }
             }
         """.trimIndent()

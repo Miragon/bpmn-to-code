@@ -91,6 +91,10 @@ own private `Scope` DTO for exactly this.
 > **Update (2026-09):** Merging and sorting a scope are now `FlowScope.merge(...)` and `FlowScope.sorted()`, and
 > `ProcessModel.mergeByProcessId(...)` replaces `ModelMergerService`.
 
+> **Update (2026-10):** `Event` also carries `compensationHandlerRef`, the handler a compensation boundary event is
+> associated with. BPMN expresses that relation through a `bpmn:association`; the model keeps it as a reference
+> on the event, like `attachedToRef`, instead of modelling artifacts.
+
 Because merging, validation, collision detection and the code builders all reason over a flat node set,
 `ProcessModel` exposes a derived DFS-flattened view:
 

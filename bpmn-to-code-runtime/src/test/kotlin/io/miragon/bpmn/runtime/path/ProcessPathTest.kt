@@ -1,8 +1,11 @@
 package io.miragon.bpmn.runtime.path
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.AssociatedCompensationHandler
 import io.miragon.bpmn.runtime.AttachedBoundaryEvent
 import io.miragon.bpmn.runtime.BpmnElementType
+import io.miragon.bpmn.runtime.BpmnEventType
+import io.miragon.bpmn.runtime.CompensationThrowEvent
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
@@ -134,6 +137,31 @@ class ProcessPathTest {
     }
 
     @Test
+    fun `then onto the compensation handler of a boundary event records the handler and no flow`() {
+        val path = ProcessPath.from(Start).onto { it.sub }.interruptedBy(Sub) { it.boundary }.then { it.handler }
+
+        assertThat(path.ids).containsExactly("Start", "Boundary", "Handler")
+        assertThat(path.flowIds).containsExactly("flow_startToSub")
+        assertThat(path.current).isEqualTo(Handler)
+    }
+
+    @Test
+    fun `throwingCompensation records the boundary event and its handler and stays on the current node`() {
+        val path = ProcessPath.from(Throw).throwingCompensation(Boundary) { it.handler }.then { it.end }
+
+        assertThat(path.ids).containsExactly("Throw", "Boundary", "Handler", "End")
+        assertThat(path.flowIds).containsExactly("flow_throwToEnd")
+    }
+
+    @Test
+    fun `throwingCompensation records the handler alone for an engine that does not report the boundary event`() {
+        val path = ProcessPath.from(Throw).throwingCompensation(Boundary, includeBoundaryEvent = false) { it.handler }
+
+        assertThat(path.ids).containsExactly("Throw", "Handler")
+        assertThat(path.current).isEqualTo(Throw)
+    }
+
+    @Test
     fun `sequence flows need at least one flow`() {
         assertThat(runCatching { SequenceFlows(Mid, emptyList()) }.exceptionOrNull()).hasMessageContaining("at least one sequence flow")
     }
@@ -157,7 +185,22 @@ class ProcessPathTest {
 
     private object End : AbstractFlowNode(ElementId("End"), BpmnElementType.END_EVENT)
 
-    private object Boundary : AbstractFlowNode(ElementId("Boundary"), BpmnElementType.BOUNDARY_EVENT)
+    private object Throw : AbstractFlowNode(ElementId("Throw"), BpmnElementType.INTERMEDIATE_THROW_EVENT), HasSuccessors<Throw.Next>, CompensationThrowEvent {
+        override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
+        override val next: Next get() = Next
+        object Next {
+            val end: SequenceFlows<End> get() = SequenceFlows.single(flowId = ElementId("flow_throwToEnd"), target = End)
+        }
+    }
+
+    private object Handler : AbstractFlowNode(ElementId("Handler"), BpmnElementType.SERVICE_TASK)
+
+    private object Boundary : AbstractFlowNode(ElementId("Boundary"), BpmnElementType.BOUNDARY_EVENT), HasSuccessors<Boundary.Next> {
+        override val next: Next get() = Next
+        object Next {
+            val handler: AssociatedCompensationHandler<Handler> get() = AssociatedCompensationHandler(Handler)
+        }
+    }
 
     private object Mid : AbstractFlowNode(ElementId("Mid"), BpmnElementType.TASK), HasSuccessors<Mid.Next> {
         override val next: Next get() = Next

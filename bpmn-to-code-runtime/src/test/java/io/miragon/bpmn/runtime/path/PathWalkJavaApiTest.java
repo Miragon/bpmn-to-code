@@ -10,10 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Exercises the fluent {@link PathWalk} facade over the generated Java bike-leasing API from <em>Java</em> — the
- * recommended fluent form for Java consumers. Runs the <em>identical</em> cases and paths as
- * {@code PathWalkKotlinApiTest}. The API-agnostic node-metadata / compensation checks live once in the
- * extension-DSL tests ({@code ProcessPathKotlinApiTest} / {@code ProcessPathJavaApiTest}) and are not
- * duplicated here. The compile-time edge check is intact: {@code n} is the current node's {@code Next}.
+ * recommended fluent form for Java consumers. Runs the same cases and paths as {@code ProcessPathKotlinApiTest}.
+ * The API-agnostic node-metadata checks live once in that test and are not duplicated here. The compile-time edge check is intact: {@code n} is the current node's {@code Next}.
  */
 class PathWalkJavaApiTest {
 
@@ -137,6 +135,58 @@ class PathWalkJavaApiTest {
             "gateway_collectRejections",
             "serviceTask_sendRejection",
             "endEvent_applicationRejected"
+        );
+    }
+
+    @Test
+    void compensatedPathRecordsEachCompensationAfterTheEventThatThrowsItAndContinuesFromThatEvent() {
+        var trail = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
+            .then(n -> n.eventReverseApplication())
+            .throwingCompensation(FlowNodes.boundaryCompensateContract(), n -> n.serviceTaskCancelContract())
+            .throwingCompensation(FlowNodes.boundaryCompensateOrder(), n -> n.callActivityCancelBikeOrder())
+            .then(n -> n.serviceTaskSendCancellationConfirmation())
+            .end(n -> n.endEventApplicationCancelled());
+
+        assertThat(trail.getIds()).containsExactly(
+            "startEvent_applicationWithdrawn",
+            "event_reverseApplication",
+            "boundary_compensateContract",
+            "serviceTask_cancelContract",
+            "boundary_compensateOrder",
+            "callActivity_cancelBikeOrder",
+            "serviceTask_sendCancellationConfirmation",
+            "endEvent_applicationCancelled"
+        );
+        assertThat(trail.getFlowIds()).containsExactly(
+            "flow_applicationWithdrawnToReverseApplication",
+            "flow_reverseApplicationToSendCancellationConfirmation",
+            "flow_sendCancellationConfirmationToApplicationCancelled"
+        );
+    }
+
+    @Test
+    void compensationHandlerIsRecordedAloneForAnEngineThatDoesNotReportTheBoundaryEvent() {
+        var ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
+            .then(n -> n.eventReverseApplication())
+            .throwingCompensation(FlowNodes.boundaryCompensateInsurance(), false, n -> n.serviceTaskCancelPolicy())
+            .getIds();
+
+        assertThat(ids).containsExactly("startEvent_applicationWithdrawn", "event_reverseApplication", "serviceTask_cancelPolicy");
+    }
+
+    @Test
+    void trailRecordsACompensationAfterItsTerminalNode() {
+        var trail = PathWalk.from(FlowNodes.serviceTaskSendCancellationConfirmation())
+            .end(n -> n.endEventApplicationCancelled())
+            .throwingCompensation(FlowNodes.boundaryCompensateContract(), n -> n.serviceTaskCancelContract())
+            .throwingCompensation(FlowNodes.boundaryCompensateOrder(), false, n -> n.callActivityCancelBikeOrder());
+
+        assertThat(trail.getIds()).containsExactly(
+            "serviceTask_sendCancellationConfirmation",
+            "endEvent_applicationCancelled",
+            "boundary_compensateContract",
+            "serviceTask_cancelContract",
+            "callActivity_cancelBikeOrder"
         );
     }
 

@@ -86,6 +86,21 @@ class ProcessJsonSchemaTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(ProcessEngine::class)
+    fun `every compensation handler reference points at a compensation activity of its own scope`(engine: ProcessEngine) {
+        // when
+        val scopes = generateAll(engine).flatMap { (_, json) -> mapper.readTree(json).scopes() }
+
+        // then: the handler is a node next to the boundary event, and it is marked as a compensation activity
+        val handlersByScope = scopes.map { scope -> scope to scope["flowNodes"].mapNotNull { it["compensationHandlerRef"]?.asText() } }
+        assertThat(handlersByScope.flatMap { (_, handlerIds) -> handlerIds }).isNotEmpty
+        handlersByScope.forEach { (scope, handlerIds) ->
+            val compensationActivityIds = scope["flowNodes"].filter { it["isForCompensation"]?.asBoolean() == true }.idsOf()
+            assertThat(handlerIds).isSubsetOf(compensationActivityIds)
+        }
+    }
+
     @Test
     fun `a message correlation key is declared once, on the message it belongs to`() {
         // given: a Zeebe process whose zeebe:subscription sits on the bpmn:Message root element
@@ -138,7 +153,7 @@ class ProcessJsonSchemaTest {
         return fromEvents + listOfNotNull(this["messageRef"]?.asText())
     }
 
-    private fun JsonNode?.idsOf(): List<String> = this?.map { it["id"].asText() } ?: emptyList()
+    private fun Iterable<JsonNode>?.idsOf(): List<String> = this?.map { it["id"].asText() } ?: emptyList()
 
     private fun JsonNode.stringsAt(field: String): List<String> = this[field]?.map { it.asText() } ?: emptyList()
 

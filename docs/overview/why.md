@@ -85,7 +85,7 @@ bpmn-to-code generates a structured JSON file alongside the Kotlin/Java API. It 
 ```json
 {
   "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
-  "formatVersion": "2.0",
+  "formatVersion": "2.1",
   "process": {
     "id": "newsletterSubscription",
     "flowNodes": [

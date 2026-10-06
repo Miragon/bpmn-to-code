@@ -23,7 +23,8 @@ sealed interface FlowNodeDefinition {
 
     /**
      * Unions the additive list fields of [others] into this node, used when merging process variants that
-     * declare the same element with variant-specific extension data. Base attributes stay this node's.
+     * declare the same element with variant-specific extension data. Base attributes stay this node's; an event
+     * without a compensation handler takes the first one another variant declares.
      */
     fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition
 
@@ -47,6 +48,7 @@ sealed interface FlowNodeDefinition {
      *
      * [attachedToRef] and [interrupting] are only populated where BPMN defines them: `attachedToRef` and
      * `cancelActivity` on a boundary event, `isInterrupting` on an event sub-process start event.
+     * [compensationHandlerRef] is the compensation activity a compensation boundary event is associated with.
      * [implementation] covers `camunda:ServiceTaskLike` on a message throw event.
      */
     data class Event(
@@ -58,13 +60,22 @@ sealed interface FlowNodeDefinition {
         val eventDefinitions: List<EventDefinitionInstance> = emptyList(),
         val attachedToRef: String? = null,
         val interrupting: Boolean? = null,
+        val compensationHandlerRef: String? = null,
         val implementation: TaskImplementation? = null,
         val ioMapping: IoMapping? = null,
         override val variables: List<VariableDefinition> = emptyList(),
         override val extensions: List<EngineExtension> = emptyList(),
         override val engineAttributes: Map<String, Any?> = emptyMap(),
     ) : FlowNodeDefinition {
-        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(variables = mergeVariables(this, others))
+        fun throwsCompensation(): Boolean {
+            val compensates = eventDefinitions.any { it is EventDefinitionInstance.Compensation }
+            return compensates && shape.direction == EventDirection.THROW
+        }
+
+        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
+            variables = mergeVariables(this, others),
+            compensationHandlerRef = mergeCompensationHandlerRef(this, others),
+        )
     }
 
     /**
@@ -176,6 +187,11 @@ sealed interface FlowNodeDefinition {
             node: FlowNodeDefinition,
             others: List<FlowNodeDefinition>,
         ): List<VariableDefinition> = (node.variables + others.flatMap { it.variables }).distinct()
+
+        private fun mergeCompensationHandlerRef(event: Event, others: List<FlowNodeDefinition>): String? {
+            val fromOthers = others.filterIsInstance<Event>().firstNotNullOfOrNull { it.compensationHandlerRef }
+            return event.compensationHandlerRef ?: fromOthers
+        }
 
         private fun mergeBoundaryEventRefs(node: Activity, others: List<FlowNodeDefinition>): List<String> {
             val fromOthers = others.filterIsInstance<Activity>().flatMap { it.boundaryEventRefs }

@@ -4,6 +4,7 @@
 package de.emaarco.example
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
+import io.miragon.bpmn.runtime.AssociatedCompensationHandler
 import io.miragon.bpmn.runtime.AttachedBoundaryEvent
 import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnElementType
@@ -13,6 +14,7 @@ import io.miragon.bpmn.runtime.BpmnEscalationDefinition
 import io.miragon.bpmn.runtime.BpmnEventType
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.CallActivity
+import io.miragon.bpmn.runtime.CompensationThrowEvent
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.ErrorEvent
 import io.miragon.bpmn.runtime.EscalationEvent
@@ -122,7 +124,7 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryCompensateContract.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Contract to revoke",
-    ), BoundaryEvent<SubProcessConcludeContract> {
+    ), HasSuccessors<BoundaryCompensateContract.Next>, BoundaryEvent<SubProcessConcludeContract> {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "boundary_compensateContract"
@@ -131,13 +133,22 @@ object BikeLeasingProcessApi {
         get() = SubProcessConcludeContract
 
       override val isInterrupting: Boolean = true
+
+      override val next: Next = Next
+
+      object Next {
+        val serviceTaskCancelContract:
+            AssociatedCompensationHandler<ServiceTaskCancelContract>
+          get() = AssociatedCompensationHandler(target = ServiceTaskCancelContract)
+      }
     }
 
     object BoundaryCompensateInsurance : AbstractFlowNode(
       id = ElementId(BoundaryCompensateInsurance.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Policy to cancel",
-    ), BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
+    ), HasSuccessors<BoundaryCompensateInsurance.Next>,
+        BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "boundary_compensateInsurance"
@@ -146,13 +157,20 @@ object BikeLeasingProcessApi {
         get() = ServiceTaskIssueInsurancePolicy
 
       override val isInterrupting: Boolean = true
+
+      override val next: Next = Next
+
+      object Next {
+        val serviceTaskCancelPolicy: AssociatedCompensationHandler<ServiceTaskCancelPolicy>
+          get() = AssociatedCompensationHandler(target = ServiceTaskCancelPolicy)
+      }
     }
 
     object BoundaryCompensateOrder : AbstractFlowNode(
       id = ElementId(BoundaryCompensateOrder.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Order to cancel",
-    ), BoundaryEvent<ServiceTaskOrderBike> {
+    ), HasSuccessors<BoundaryCompensateOrder.Next>, BoundaryEvent<ServiceTaskOrderBike> {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "boundary_compensateOrder"
@@ -161,6 +179,14 @@ object BikeLeasingProcessApi {
         get() = ServiceTaskOrderBike
 
       override val isInterrupting: Boolean = true
+
+      override val next: Next = Next
+
+      object Next {
+        val callActivityCancelBikeOrder:
+            AssociatedCompensationHandler<CallActivityCancelBikeOrder>
+          get() = AssociatedCompensationHandler(target = CallActivityCancelBikeOrder)
+      }
     }
 
     object BoundaryContractNotSigned : AbstractFlowNode(
@@ -347,7 +373,7 @@ object BikeLeasingProcessApi {
       id = ElementId(EventReverseApplication.ELEMENT_ID),
       elementType = BpmnElementType.INTERMEDIATE_THROW_EVENT,
       name = "Application reversed",
-    ), HasSuccessors<EventReverseApplication.Next>, Event {
+    ), HasSuccessors<EventReverseApplication.Next>, Event, CompensationThrowEvent {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "event_reverseApplication"

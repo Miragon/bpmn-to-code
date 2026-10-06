@@ -1,6 +1,6 @@
 {
     "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
-    "formatVersion": "2.0",
+    "formatVersion": "2.1",
     "process": {
         "id": "bikeLeasing",
         "name": "MiraVelo Bike Leasing",
@@ -334,6 +334,7 @@
                 "type": "boundaryEvent",
                 "name": "Contract to revoke",
                 "attachedToRef": "subProcess_concludeContract",
+                "compensationHandlerRef": "serviceTask_cancelContract",
                 "cancelActivity": true,
                 "eventDefinitions": [
                     {
@@ -447,6 +448,7 @@
                 "type": "boundaryEvent",
                 "name": "Policy to cancel",
                 "attachedToRef": "serviceTask_issueInsurancePolicy",
+                "compensationHandlerRef": "serviceTask_cancelPolicy",
                 "cancelActivity": true,
                 "eventDefinitions": [
                     {
@@ -541,6 +543,7 @@
                 "type": "boundaryEvent",
                 "name": "Order to cancel",
                 "attachedToRef": "serviceTask_orderBike",
+                "compensationHandlerRef": "callActivity_cancelBikeOrder",
                 "cancelActivity": true,
                 "eventDefinitions": [
                     {

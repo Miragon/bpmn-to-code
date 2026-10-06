@@ -16,7 +16,9 @@ import io.miragon.bpmn.domain.shared.TimerDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
+import io.miragon.bpmn.domain.testBikeLeasingModel
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.entry
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -132,6 +134,14 @@ class CamundaDialectExtractionTest {
             "event_reverseApplication" to EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false),
         )
 
+        // --- compensation handlers, reached through the association of their boundary event ---
+        assertThat(bpmnModel.compensationHandlersByEvent()).isEqualTo(testBikeLeasingModel().compensationHandlersByEvent())
+        assertThat(bpmnModel.compensationHandlersByEvent()).containsOnly(
+            entry("boundary_compensateContract", "serviceTask_cancelContract"),
+            entry("boundary_compensateOrder", "callActivity_cancelBikeOrder"),
+            entry("boundary_compensateInsurance", "serviceTask_cancelPolicy"),
+        )
+
         // --- call activity (the compensation handler of the bike order) ---
         val callActivity = bpmnModel.callActivities.single { it.id == "callActivity_cancelBikeOrder" }
         assertThat(callActivity.hasCalledElement()).isTrue()
@@ -205,6 +215,7 @@ class CamundaDialectExtractionTest {
         assertThat(event("endEvent_membershipDeclined").eventDefinitions).contains(
             EventDefinitionInstance.Compensation(activityRef = "serviceTask_claimMembership", waitForCompletion = false),
         )
+        assertThat(event("boundary_compensateClaim").compensationHandlerRef).isEqualTo("serviceTask_revokeClaim")
         val implementations = bpmnModel.serviceTasks.associate { it.id to it.implementation }
         assertThat(implementations["serviceTask_sendWelcomeMail"]).isEqualTo(TaskImplementation.Expression($$"${mailService.sendWelcomeMail(email)}"))
         assertThat(implementations["serviceTask_notifyCommunity"]).isEqualTo(TaskImplementation.JavaClass("io.miravelo.membership.NotifyCommunityDelegate"))
@@ -522,6 +533,10 @@ class CamundaDialectExtractionTest {
           </bpmn:process>
         </bpmn:definitions>
     """.trimIndent()
+
+    private fun ProcessModel.compensationHandlersByEvent(): Map<String?, String> = allFlowNodes
+        .filterIsInstance<FlowNodeDefinition.Event>()
+        .mapNotNull { event -> event.compensationHandlerRef?.let { event.id to it } }.toMap()
 
     private fun extract(engine: ProcessEngine, fixture: String): ProcessModel {
         val (folder, namespace) = when (engine) {

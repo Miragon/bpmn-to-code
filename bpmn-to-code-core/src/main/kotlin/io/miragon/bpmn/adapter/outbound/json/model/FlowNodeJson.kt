@@ -12,7 +12,8 @@ import kotlinx.serialization.json.JsonElement
  *
  * The optional members are independent facets, each present only where BPMN allows it: containment
  * ([flowNodes] / [sequenceFlows]) on sub-processes, [eventDefinitions] on events, [multiInstance] and
- * [ioMapping] on activities, and so on. [extensions] and [engineAttributes] carry everything the engine
+ * [ioMapping] on activities, and so on. [compensationHandlerRef] is the one relation BPMN expresses through a
+ * `bpmn:association` instead of an attribute: the handler of a compensation boundary event. [extensions] and [engineAttributes] carry everything the engine
  * adds outside the BPMN namespace, verbatim.
  */
 @Serializable
@@ -24,6 +25,7 @@ internal data class FlowNodeJson(
     val outgoing: List<String> = emptyList(),
     val default: String? = null,
     val attachedToRef: String? = null,
+    val compensationHandlerRef: String? = null,
     val cancelActivity: Boolean? = null,
     val isInterrupting: Boolean? = null,
     val triggeredByEvent: Boolean? = null,

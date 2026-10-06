@@ -52,6 +52,11 @@ class ProcessGraph(
      */
     fun attachedElementsOf(node: FlowNodeDefinition): List<String> = (node as? FlowNodeDefinition.Activity)?.boundaryEventRefs ?: emptyList()
 
+    /**
+     * The compensation handler associated with [node]; `null` for anything that is not a compensation boundary event.
+     */
+    fun compensationHandlerOf(node: FlowNodeDefinition): String? = (node as? FlowNodeDefinition.Event)?.compensationHandlerRef
+
     private fun flatten(nodes: List<FlowNodeDefinition>): List<FlowNodeDefinition> = nodes.flatMap { node ->
         if (node is FlowNodeDefinition.Activity.SubProcess) {
             listOf(node) + flatten(node.flowNodes)

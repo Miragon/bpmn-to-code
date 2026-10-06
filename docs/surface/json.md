@@ -13,11 +13,18 @@ Every file declares the schema it conforms to:
 ```json
 {
     "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
-    "formatVersion": "2.0"
+    "formatVersion": "2.1"
 }
 ```
 
 The schema is published as [JSON Schema 2020-12](https://json-schema.org/), so consumers can validate the output and pin a version. It is closed (`additionalProperties: false`) — an unknown field means the file was produced by a newer bpmn-to-code than your schema.
+
+Additive changes raise the minor `formatVersion` and stay in the same schema document, so a consumer should accept every `2.x` and validate against the schema that ships with its generator version (bundled in the plugin jar under `META-INF/bpmn-to-code/schema/`).
+
+| `formatVersion` | Since | Change |
+|-----------------|-------|--------|
+| `2.0` | 6.0.0 | Initial version of the format |
+| `2.1` | 6.1.0 | `compensationHandlerRef` on compensation boundary events |
 
 ## Document Structure
 
@@ -34,7 +41,7 @@ For the MiraVelo bike-leasing process (abridged):
 ```json
 {
     "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
-    "formatVersion": "2.0",
+    "formatVersion": "2.1",
     "process": {
         "id": "bikeLeasing",
         "name": "MiraVelo Bike Leasing",
@@ -136,11 +143,13 @@ const nextNodeIds = node.outgoing
 
 The extra hop is what makes conditions and default flows attributable: the flow object carries `conditionExpression` and `isDefault`, and the gateway carries `default`. The generated Process API mirrors the flow object as a `SequenceFlow` in `FlowNodes.<Source>.Next`, named after its target.
 
+A compensation handler has no sequence flow at all: BPMN connects it to its compensation boundary event through a `bpmn:association`. The boundary event names it in `compensationHandlerRef` — a field derived from that association, not a `bpmn-moddle` property. The generated Process API mirrors it as an `AssociatedCompensationHandler` in the boundary event's `Next`.
+
 ## Node Ordering
 
 Flow nodes are sorted in **process-flow order** — a depth-first traversal from the start event(s), per scope. This means the JSON reads top-to-bottom in execution order, without tracing sequence flows manually.
 
-Boundary events appear immediately after the element they are attached to.
+Boundary events appear immediately after the element they are attached to. Compensation handlers have no incoming sequence flow, so they follow at the end of their scope in alphabetical order.
 
 ## Flow Node Fields
 
@@ -153,6 +162,7 @@ Boundary events appear immediately after the element they are attached to.
 | `default` | no | ID of the default sequence flow (on the gateway or activity that owns it) |
 | `eventDefinitions` | no | Triggers and results of an event — a list, because BPMN allows several |
 | `attachedToRef` | no | Host activity of a boundary event |
+| `compensationHandlerRef` | no | Compensation boundary events: the compensation handler the event is associated with |
 | `cancelActivity` | no | Boundary events: whether the event interrupts its host |
 | `isInterrupting` | no | Event sub-process start events: whether the event interrupts its scope |
 | `triggeredByEvent` | no | Marks a sub-process as an event sub-process |

@@ -7,14 +7,15 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
 
 /**
  * Emits the typed navigation graph of a C# process API `FlowNodes` class: one nested sealed singleton class per flow
  * node, reached as `FlowNodes.<Node>.Instance`. A node carries its metadata (`Id`, `ElementType`, `Name`), its own
  * facets (see [CSharpFacetWriter]), its successors behind `Next` (named after the elements they lead to: the
- * `SequenceFlows` to an element, or an attached boundary event), and — for a subprocess — its interior's start
+ * `SequenceFlows` to an element, an attached boundary event, or the compensation handler associated with a
+ * compensation boundary event), and — for a subprocess — its interior's start
  * elements behind `Start`. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a boundary event
  * additionally implements `IBoundaryEvent`. `FlowNodes.All` lists every node.
  *
@@ -63,21 +64,24 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         writer.line()
         writer.expressionProperty(name = "Next", type = "Successors", expression = "new()")
         writer.sealedClass("Successors") {
-            node.successors.forEach { successor -> writeSuccessor(successor, node.outgoingFlows.find { it.target.objectName == successor.objectName }) }
+            node.successors.forEach { successor -> writeSuccessor(successor) }
         }
     }
 
     /**
      * A successor reached by sequence flows is the `SequenceFlows` carrying them; one reached without a flow is an
-     * `AttachedBoundaryEvent`. A single flow is created via `SequenceFlows.Single`, several flows to the same target
-     * are listed. The target is qualified with `FlowNodes`, as the successor property named after it shadows its type.
+     * `AttachedBoundaryEvent` or an `AssociatedCompensationHandler`. A single flow is created via
+     * `SequenceFlows.Single`, several flows to the same target are listed. The target is qualified with `FlowNodes`,
+     * as the successor property named after it shadows its type.
      */
-    private fun writeSuccessor(successor: FlowEdge, flowsToTarget: FlowsToTarget?) {
-        val target = targetInstance(successor.objectName)
-        when (flowsToTarget) {
-            null -> writer.expressionProperty(name = successor.objectName, type = "${CSharpRuntimeTypes.ATTACHED_BOUNDARY_EVENT}<${successor.objectName}>", expression = "new($target)")
-            else -> writer.expressionProperty(name = successor.objectName, type = "${CSharpRuntimeTypes.SEQUENCE_FLOWS}<${successor.objectName}>", expression = sequenceFlowsConstruction(flowsToTarget.flows, successor.objectName))
+    private fun writeSuccessor(successor: SuccessorEdge) {
+        val targetName = successor.target.objectName
+        val (successorType, expression) = when (successor) {
+            is SuccessorEdge.ViaSequenceFlows -> CSharpRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsConstruction(successor.flows, targetName)
+            is SuccessorEdge.AttachedBoundaryEvent -> CSharpRuntimeTypes.ATTACHED_BOUNDARY_EVENT to "new(${targetInstance(targetName)})"
+            is SuccessorEdge.AssociatedCompensationHandler -> CSharpRuntimeTypes.ASSOCIATED_COMPENSATION_HANDLER to "new(${targetInstance(targetName)})"
         }
+        writer.expressionProperty(name = targetName, type = "$successorType<$targetName>", expression = expression)
     }
 
     private fun writeNodeHolder(propertyName: String, holderName: String, edges: List<FlowEdge>) {

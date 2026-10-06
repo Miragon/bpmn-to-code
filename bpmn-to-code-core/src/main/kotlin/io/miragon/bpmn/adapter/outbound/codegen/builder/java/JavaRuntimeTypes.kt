@@ -11,6 +11,7 @@ internal object JavaRuntimeTypes {
 
     val ABSTRACT_FLOW_NODE: ClassName = ClassName.get(PACKAGE, "AbstractFlowNode")
     val ATTACHED_BOUNDARY_EVENT: ClassName = ClassName.get(PACKAGE, "AttachedBoundaryEvent")
+    val ASSOCIATED_COMPENSATION_HANDLER: ClassName = ClassName.get(PACKAGE, "AssociatedCompensationHandler")
     val BOUNDARY_EVENT: ClassName = ClassName.get(PACKAGE, "BoundaryEvent")
     val BPMN_ELEMENT_TYPE: ClassName = ClassName.get(PACKAGE, "BpmnElementType")
     val BPMN_ENGINE: ClassName = ClassName.get(PACKAGE, "BpmnEngine")

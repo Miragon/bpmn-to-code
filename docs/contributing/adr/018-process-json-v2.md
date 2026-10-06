@@ -168,6 +168,10 @@ The schema is published with the documentation at
 Additive changes bump the minor version and reuse the same document; any breaking change gets a new
 major-versioned schema URL, so a consumer can pin exactly what it parses.
 
+> **Update (2026-10):** `2.1` is the first additive change: `compensationHandlerRef` on compensation boundary
+> events. The schema document and its URL stay `2.0.json`, and `formatVersion` accepts `2.0` and `2.1`. In a merged
+> model the union keeps the handler of the first variant that declares one; the per-variant lists stay exact.
+
 ### Determinism is preserved
 
 ADR 012's guarantee stands: same BPMN in, byte-identical JSON out. Depth-first ordering now applies **per

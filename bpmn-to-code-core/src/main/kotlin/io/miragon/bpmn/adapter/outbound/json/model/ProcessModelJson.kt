@@ -6,7 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Root of the generated process JSON (format 2.0).
+ * Root of the generated process JSON (format 2.1).
  *
  * The shape is aligned with OMG BPMN 2.0 / `bpmn-moddle`: a scope owns its flow nodes **and** its sequence
  * flows, a node references flows by id, and `bpmn:Definitions` root elements live in a shared registry.
@@ -22,7 +22,7 @@ internal data class ProcessModelJson(
     val variants: List<VariantJson>? = null,
 ) {
     companion object {
-        const val FORMAT_VERSION = "2.0"
+        const val FORMAT_VERSION = "2.1"
         const val SCHEMA_URL = "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json"
     }
 }

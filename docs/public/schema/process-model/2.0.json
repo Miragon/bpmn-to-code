@@ -7,7 +7,7 @@
     "required": ["process"],
     "properties": {
         "$schema": { "type": "string", "format": "uri" },
-        "formatVersion": { "type": "string", "const": "2.0" },
+        "formatVersion": { "type": "string", "enum": ["2.0", "2.1"] },
         "process": { "$ref": "#/$defs/process" },
         "definitions": { "$ref": "#/$defs/definitions" },
         "variants": {
@@ -147,6 +147,7 @@
                 },
                 "default": { "type": "string", "description": "Id of the default sequence flow." },
                 "attachedToRef": { "type": "string", "description": "Host activity of a boundary event." },
+                "compensationHandlerRef": { "type": "string", "description": "Compensation boundary events: the compensation handler the event is associated with. Since 2.1." },
                 "cancelActivity": { "type": "boolean", "description": "Boundary events: whether the event interrupts its host." },
                 "isInterrupting": { "type": "boolean", "description": "Event sub-process start events: whether the event interrupts its scope." },
                 "triggeredByEvent": { "type": "boolean", "description": "Marks a sub-process as an event sub-process." },

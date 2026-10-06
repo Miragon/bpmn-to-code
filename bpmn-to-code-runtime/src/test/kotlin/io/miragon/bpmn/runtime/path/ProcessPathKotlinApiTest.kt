@@ -24,7 +24,7 @@ import io.miragon.bpmn.runtime.path.example.BikeLeasingProcessApi.FlowNodes as B
  * split/join, call activity, boundary events (error, escalation, non-interrupting timer), terminate end, and
  * compensation.
  *
- * The `ProcessPathJavaApiTest` sibling mirrors these cases over the generated Java API; the [ProcessPathTest]
+ * The `PathWalkJavaApiTest` sibling mirrors these cases over the generated Java API; the [ProcessPathTest]
  * unit test covers each operator's mechanics in isolation over a hand-built stub graph.
  */
 class ProcessPathKotlinApiTest {
@@ -244,12 +244,60 @@ class ProcessPathKotlinApiTest {
         assertThat(BikeLeasing.GatewayIsSolvent.next.subProcessConcludeContract.flow.isDefault).isTrue()
     }
 
+    // --- Compensation -------------------------------------------------------------------------------------
+
     @Test
-    fun `compensation handler is reachable only by name, not through the navigation graph`() {
-        // Compensation handlers hang off a boundary event via an association, not a sequence flow, so they have
-        // no incoming edge in the graph — no then/onto/enter reaches them. They stay addressable by name.
-        val handler = BikeLeasing.ServiceTaskCancelContract
-        assertThat(handler.id.value).isEqualTo("serviceTask_cancelContract")
-        assertThat(handler.elementType).isEqualTo(BpmnElementType.SERVICE_TASK)
+    fun `compensated path records each compensation after the event that throws it and continues from that event`() {
+        // The throw event comes first: an engine starts it before the boundary events and handlers it triggers.
+        val path = ProcessPath.from(BikeLeasing.StartEventApplicationWithdrawn)
+            .then { it.eventReverseApplication }
+            .throwingCompensation(BikeLeasing.BoundaryCompensateContract) { it.serviceTaskCancelContract }
+            .throwingCompensation(BikeLeasing.BoundaryCompensateOrder) { it.callActivityCancelBikeOrder }
+            .then { it.serviceTaskSendCancellationConfirmation }
+            .then { it.endEventApplicationCancelled }
+
+        assertThat(path.ids).containsExactly(
+            "startEvent_applicationWithdrawn",
+            "event_reverseApplication",
+            "boundary_compensateContract",
+            "serviceTask_cancelContract",
+            "boundary_compensateOrder",
+            "callActivity_cancelBikeOrder",
+            "serviceTask_sendCancellationConfirmation",
+            "endEvent_applicationCancelled",
+        )
+        assertThat(path.flowIds).containsExactly(
+            "flow_applicationWithdrawnToReverseApplication",
+            "flow_reverseApplicationToSendCancellationConfirmation",
+            "flow_sendCancellationConfirmationToApplicationCancelled",
+        )
+    }
+
+    @Test
+    fun `compensation handler is recorded alone for an engine that does not report the boundary event`() {
+        val path = ProcessPath.from(BikeLeasing.StartEventApplicationWithdrawn)
+            .then { it.eventReverseApplication }
+            .throwingCompensation(BikeLeasing.BoundaryCompensateInsurance, includeBoundaryEvent = false) { it.serviceTaskCancelPolicy }
+            .then { it.serviceTaskSendCancellationConfirmation }
+
+        assertThat(path.ids).containsExactly(
+            "startEvent_applicationWithdrawn",
+            "event_reverseApplication",
+            "serviceTask_cancelPolicy",
+            "serviceTask_sendCancellationConfirmation",
+        )
+    }
+
+    @Test
+    fun `several compensation handlers are walked separately and united into an unordered set`() {
+        val contract = ProcessPath.from(BikeLeasing.BoundaryCompensateContract).then { it.serviceTaskCancelContract }.nodes
+        val insurance = ProcessPath.from(BikeLeasing.BoundaryCompensateInsurance).then { it.serviceTaskCancelPolicy }.nodes
+
+        assertThat(nodesOf(contract, insurance).map { it.id.value }).containsExactly(
+            "boundary_compensateContract",
+            "serviceTask_cancelContract",
+            "boundary_compensateInsurance",
+            "serviceTask_cancelPolicy",
+        )
     }
 }

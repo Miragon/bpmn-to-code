@@ -1,5 +1,6 @@
 package io.miragon.bpmn.runtime.path
 
+import io.miragon.bpmn.runtime.AssociatedCompensationHandler
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
@@ -18,8 +19,9 @@ import java.util.function.Function
  * library stays first-class from Java too.
  *
  * Two shape differences forced by Java's type system (vs. the Kotlin extension DSL): the terminal step is [end]
- * (an end event is not `HasSuccessors`, so it can't continue a chain), and descending into a subprocess names the
- * subprocess explicitly ([enter] / [inside] take the subprocess node as its [FlowScope]).
+ * (an end event is not `HasSuccessors`, so it can't continue a chain; only [Trail.throwingCompensation] adds to it
+ * afterwards), and descending into a subprocess names the subprocess explicitly ([enter] / [inside] take the
+ * subprocess node as its [FlowScope]).
  */
 class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val path: ProcessPath<N>) {
 
@@ -69,6 +71,19 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
     ): PathWalk<M, MNEXT> = PathWalk(path.traverse(pick.apply(carrier.next)))
 
     /**
+     * Records a compensation the current event throws — the compensation [boundaryEvent] and its picked handler —
+     * and stays on the current node. Pass `includeBoundaryEvent = false` where the engine does not report the
+     * boundary event (Camunda 7, Operaton). Unlike the Kotlin step, this does not check that the current node is a
+     * compensation throw event: a method cannot narrow the node type of its [PathWalk].
+     */
+    @JvmOverloads
+    fun <C, H : FlowNode> throwingCompensation(
+        boundaryEvent: HasSuccessors<C>,
+        includeBoundaryEvent: Boolean = true,
+        pick: Function<C, out AssociatedCompensationHandler<H>>,
+    ): PathWalk<N, NEXT> = PathWalk(path.recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick.apply(boundaryEvent.next)))
+
+    /**
      * Unchecked re-anchor to an arbitrary node — does not record. The escape hatch; prefer the checked steps.
      */
     @RiskyNavigation
@@ -97,9 +112,20 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
 
     /**
      * The terminal result of a [PathWalk] (produced by [end] or a subprocess [inside] block) — no further
-     * navigation, just the recorded [ids] / [nodes].
+     * navigation, just the recorded [ids] / [nodes] and the compensations its last node triggered.
      */
     class Trail internal constructor(private val path: ProcessPath<*>) {
+
+        /**
+         * Records a compensation the terminal node triggered, like [PathWalk.throwingCompensation] — for an end event
+         * that throws a compensation.
+         */
+        @JvmOverloads
+        fun <C, H : FlowNode> throwingCompensation(
+            boundaryEvent: HasSuccessors<C>,
+            includeBoundaryEvent: Boolean = true,
+            pick: Function<C, out AssociatedCompensationHandler<H>>,
+        ): Trail = Trail(path.recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick.apply(boundaryEvent.next)))
 
         /**
          * The nodes recorded so far, in walk order.

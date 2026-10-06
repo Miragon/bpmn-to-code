@@ -476,4 +476,58 @@ class ProcessModelMergeTest {
         assertThatThrownBy { ProcessModel.mergeByProcessId(listOf(model1, model2)) }
             .isInstanceOf(IllegalArgumentException::class.java).hasMessageContaining("variantName")
     }
+
+    @Test
+    fun `takes the compensation handler from the variant that declares one`() {
+        // given: only the second variant associates the boundary event with a handler
+        val withoutHandler = testProcessModel(
+            processId = "order-process",
+            variantName = "de",
+            flowNodes = listOf(compensationBoundary(handlerRef = null)),
+        )
+        val withHandler = testProcessModel(
+            processId = "order-process",
+            variantName = "en",
+            flowNodes = listOf(compensationBoundary(handlerRef = "Task_Refund"), FlowNodeDefinition.Unknown(id = "Task_Refund")),
+        )
+
+        // when
+        val merged = ProcessModel.mergeByProcessId(listOf(withoutHandler, withHandler)).single()
+
+        // then
+        assertThat(merged.compensationHandlerOfBoundary()).isEqualTo("Task_Refund")
+    }
+
+    @Test
+    fun `keeps the first variant's compensation handler when variants disagree`() {
+        // given: both variants associate the boundary event with a different handler
+        val first = testProcessModel(
+            processId = "order-process",
+            variantName = "de",
+            flowNodes = listOf(compensationBoundary(handlerRef = "Task_Refund"), FlowNodeDefinition.Unknown(id = "Task_Refund")),
+        )
+        val second = testProcessModel(
+            processId = "order-process",
+            variantName = "en",
+            flowNodes = listOf(compensationBoundary(handlerRef = "Task_Voucher"), FlowNodeDefinition.Unknown(id = "Task_Voucher")),
+        )
+
+        // when
+        val merged = ProcessModel.mergeByProcessId(listOf(first, second)).single()
+
+        // then: the first variant wins, and the other handler stays part of the merged process
+        assertThat(merged.compensationHandlerOfBoundary()).isEqualTo("Task_Refund")
+        assertThat(merged.flowNodes.map { it.id }).contains("Task_Voucher")
+    }
+
+    private fun compensationBoundary(handlerRef: String?): FlowNodeDefinition.Event = FlowNodeDefinition.Event(
+        id = "Boundary_Compensate",
+        shape = EventShape.BOUNDARY_EVENT,
+        compensationHandlerRef = handlerRef,
+    )
+
+    private fun ProcessModel.compensationHandlerOfBoundary(): String? {
+        val boundary = flowNodes.filterIsInstance<FlowNodeDefinition.Event>().single { it.id == "Boundary_Compensate" }
+        return boundary.compensationHandlerRef
+    }
 }
