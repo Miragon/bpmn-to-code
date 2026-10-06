@@ -88,7 +88,7 @@ Works with Claude Code out of the box.
 <!-- x-release-please-start-version -->
 ```kotlin
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "6.1.0"
+    id("io.miragon.bpmn-to-code-gradle") version "6.1.1"
 }
 
 tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
@@ -109,7 +109,7 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.1.0</version>
+    <version>6.1.1</version>
     <executions>
         <execution>
             <goals><goal>generate-bpmn-api</goal></goals>
@@ -132,7 +132,7 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 <!-- x-release-please-start-version -->
 ```kotlin
 dependencies {
-    testImplementation("io.miragon:bpmn-to-code-testing:6.1.0")
+    testImplementation("io.miragon:bpmn-to-code-testing:6.1.1")
 }
 ```
 <!-- x-release-please-end -->

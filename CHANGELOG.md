@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.1.1](https://github.com/Miragon/bpmn-to-code/compare/v6.1.0...v6.1.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **runtime:** leave the compensation boundary event out of a process path by default ([#192](https://github.com/Miragon/bpmn-to-code/issues/192)) ([de3af61](https://github.com/Miragon/bpmn-to-code/commit/de3af61399f59dad4dd331f7a3c23ab9a841d1ce))
+
 ## [6.1.0](https://github.com/Miragon/bpmn-to-code/compare/v6.0.0...v6.1.0) (2026-10-06)
 
 
