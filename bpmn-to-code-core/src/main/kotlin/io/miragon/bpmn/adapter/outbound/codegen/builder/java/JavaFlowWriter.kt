@@ -7,10 +7,9 @@ import com.palantir.javapoet.MethodSpec
 import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PRIVATE
@@ -20,8 +19,8 @@ import javax.lang.model.element.Modifier.STATIC
 /**
  * Emits the typed navigation graph of a Java process API `FlowNodes` class: one nested node class per flow node,
  * carrying its metadata via `AbstractFlowNode`, its own facets (see [JavaFacetWriter]) and its successors behind
- * `getNext()`, named after the elements they lead to: the `SequenceFlows` to an element, or an attached boundary
- * event. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess
+ * `getNext()`, named after the elements they lead to: the `SequenceFlows` to an element, an attached boundary
+ * event, or the compensation handler associated with a compensation boundary event. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess
  * class additionally is a `FlowScope` whose `getStartEvents()` yields the interior's start elements, and a boundary event
  * is a `BoundaryEvent` of its host. Every node is a singleton (see [JavaFlowNodeType]), and `FlowNodes` exposes a
  * static accessor method per node and `all()` listing every node.
@@ -103,7 +102,7 @@ internal class JavaFlowWriter {
     private fun addSuccessors(classBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         classBuilder.addMethod(accessorMethod("getNext", NEXT_HOLDER))
         val holder = TypeSpec.classBuilder(NEXT_HOLDER).addModifiers(PUBLIC, STATIC, FINAL)
-        node.successors.forEach { successor -> holder.addMethod(successorMethod(successor, node.outgoingFlows.find { it.target.objectName == successor.objectName })) }
+        node.successors.forEach { successor -> holder.addMethod(successorMethod(successor)) }
         classBuilder.addType(holder.build())
     }
 
@@ -132,16 +131,17 @@ internal class JavaFlowWriter {
 
     /**
      * A successor reached by sequence flows is the `SequenceFlows` carrying them; one reached without a flow is an
-     * `AttachedBoundaryEvent`. A single flow is created via `SequenceFlows.single`, several flows to the same target
-     * are listed.
+     * `AttachedBoundaryEvent` or an `AssociatedCompensationHandler`. A single flow is created via
+     * `SequenceFlows.single`, several flows to the same target are listed.
      */
-    private fun successorMethod(successor: FlowEdge, flowsToTarget: FlowsToTarget?): MethodSpec {
-        val target = JavaFlowNodeType(successor.objectName)
-        val (successorType, value) = when (flowsToTarget) {
-            null -> JavaRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of($$"new $T<>($L)", JavaRuntimeTypes.ATTACHED_BOUNDARY_EVENT, target.instance())
-            else -> JavaRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsConstruction(flowsToTarget.flows, target)
+    private fun successorMethod(successor: SuccessorEdge): MethodSpec {
+        val target = JavaFlowNodeType(successor.target.objectName)
+        val (successorType, value) = when (successor) {
+            is SuccessorEdge.ViaSequenceFlows -> JavaRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsConstruction(successor.flows, target)
+            is SuccessorEdge.AttachedBoundaryEvent -> JavaRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of($$"new $T<>($L)", JavaRuntimeTypes.ATTACHED_BOUNDARY_EVENT, target.instance())
+            is SuccessorEdge.AssociatedCompensationHandler -> JavaRuntimeTypes.ASSOCIATED_COMPENSATION_HANDLER to CodeBlock.of($$"new $T<>($L)", JavaRuntimeTypes.ASSOCIATED_COMPENSATION_HANDLER, target.instance())
         }
-        return MethodSpec.methodBuilder(successor.propertyName).addModifiers(PUBLIC)
+        return MethodSpec.methodBuilder(successor.target.propertyName).addModifiers(PUBLIC)
             .returns(ParameterizedTypeName.get(successorType, target.className))
             .addStatement($$"return $L", value).build()
     }

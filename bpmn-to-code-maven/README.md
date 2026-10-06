@@ -25,6 +25,9 @@ Add the `bpmn-to-code-runtime` dependency (it ships the shared types — `Proces
 ```
 <!-- x-release-please-end -->
 
+Keep the runtime on the same version as the plugin: generated code may use runtime types that an older runtime
+does not have yet.
+
 Then add the plugin configuration within the `<build>` section. It tells the plugin where to locate your
 BPMN files, where to output the generated API files, and how to format the output (language, package, engine).
 

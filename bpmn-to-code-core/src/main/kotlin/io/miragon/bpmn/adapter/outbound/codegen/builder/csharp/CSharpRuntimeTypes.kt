@@ -27,6 +27,7 @@ internal object CSharpRuntimeTypes {
     const val MESSAGE_NAME = "$CLASS_NAME.MessageName"
     const val PROCESS_ID = "$CLASS_NAME.ProcessId"
     const val ATTACHED_BOUNDARY_EVENT = "$CLASS_NAME.AttachedBoundaryEvent"
+    const val ASSOCIATED_COMPENSATION_HANDLER = "$CLASS_NAME.AssociatedCompensationHandler"
     const val SEQUENCE_FLOW = "$CLASS_NAME.SequenceFlow"
     const val SEQUENCE_FLOWS = "$CLASS_NAME.SequenceFlows"
     const val SIGNAL_NAME = "$CLASS_NAME.SignalName"
@@ -109,6 +110,11 @@ internal object CSharpRuntimeTypes {
             BpmnEscalationDefinition Escalation { get; }
         }
 
+        /// <summary>An event that throws a compensation: an intermediate throw event or an end event.</summary>
+        public interface ICompensationThrowEvent : IEvent
+        {
+        }
+
         /// <summary>A sequence flow without its target type, for generic tooling.</summary>
         public interface ISequenceFlow
         {
@@ -128,7 +134,7 @@ internal object CSharpRuntimeTypes {
             IFlowNode ISequenceFlow.Target => Target;
         }
 
-        /// <summary>What can follow a flow node in its Next: the SequenceFlows to an element or an AttachedBoundaryEvent.</summary>
+        /// <summary>What can follow a flow node in its Next: the SequenceFlows to an element, an AttachedBoundaryEvent or an AssociatedCompensationHandler.</summary>
         public interface ISuccessor<out TTarget>
             where TTarget : IFlowNode
         {
@@ -150,6 +156,10 @@ internal object CSharpRuntimeTypes {
 
         /// <summary>A boundary event attached to the current node: the token can leave through it, but no sequence flow leads there.</summary>
         public sealed record AttachedBoundaryEvent<TTarget>(TTarget Target) : ISuccessor<TTarget>
+            where TTarget : IFlowNode;
+
+        /// <summary>The compensation handler associated with the current compensation boundary event: it runs when the event triggers, but no sequence flow leads there.</summary>
+        public sealed record AssociatedCompensationHandler<TTarget>(TTarget Target) : ISuccessor<TTarget>
             where TTarget : IFlowNode;
 
         public sealed record ElementId(string Value)

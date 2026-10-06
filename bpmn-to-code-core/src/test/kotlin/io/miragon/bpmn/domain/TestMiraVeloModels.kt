@@ -149,6 +149,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false)),
         attachedToRef = "subProcess_concludeContract",
         interrupting = true,
+        compensationHandlerRef = "serviceTask_cancelContract",
     ),
     FlowNodeDefinition.Event(
         id = "boundary_contractNotSigned",
@@ -264,6 +265,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false)),
         attachedToRef = "serviceTask_orderBike",
         interrupting = true,
+        compensationHandlerRef = "callActivity_cancelBikeOrder",
     ),
     FlowNodeDefinition.Event(
         id = "boundary_compensateInsurance",
@@ -272,6 +274,7 @@ fun bikeLeasingFlowNodes(): List<FlowNodeDefinition> = listOf(
         eventDefinitions = listOf(EventDefinitionInstance.Compensation(activityRef = null, waitForCompletion = false)),
         attachedToRef = "serviceTask_issueInsurancePolicy",
         interrupting = true,
+        compensationHandlerRef = "serviceTask_cancelPolicy",
     ),
     FlowNodeDefinition.Activity.CallActivity(
         id = "callActivity_cancelBikeOrder",

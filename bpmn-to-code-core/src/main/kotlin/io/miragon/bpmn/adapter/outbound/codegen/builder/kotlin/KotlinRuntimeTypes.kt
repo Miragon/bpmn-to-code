@@ -11,6 +11,7 @@ internal object KotlinRuntimeTypes {
 
     val ABSTRACT_FLOW_NODE = ClassName(PACKAGE, "AbstractFlowNode")
     val ATTACHED_BOUNDARY_EVENT = ClassName(PACKAGE, "AttachedBoundaryEvent")
+    val ASSOCIATED_COMPENSATION_HANDLER = ClassName(PACKAGE, "AssociatedCompensationHandler")
     val BOUNDARY_EVENT = ClassName(PACKAGE, "BoundaryEvent")
     val BPMN_ELEMENT_TYPE = ClassName(PACKAGE, "BpmnElementType")
     val BPMN_ENGINE = ClassName(PACKAGE, "BpmnEngine")

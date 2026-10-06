@@ -99,6 +99,12 @@ class ZeebeExtractionTest {
         assertThat(compensateOrder.attachedToRef).isEqualTo("serviceTask_orderBike")
         assertThat(compensateOrder.interrupting).isTrue()
 
+        // a compensation boundary event knows its handler through the association, any other boundary event has none
+        assertThat(compensateOrder.compensationHandlerRef).isEqualTo("callActivity_cancelBikeOrder")
+        assertThat(event("boundary_compensateContract").compensationHandlerRef).isEqualTo("serviceTask_cancelContract")
+        assertThat(event("boundary_compensateInsurance").compensationHandlerRef).isEqualTo("serviceTask_cancelPolicy")
+        assertThat(reminder.compensationHandlerRef).isNull()
+
         // derived timer registry
         assertThat(bpmnModel.timers).containsExactlyInAnyOrder(
             TimerDefinition(id = "timer_signatureDeadline", type = TimerType.DURATION, expression = "P14D"),
@@ -164,6 +170,7 @@ class ZeebeExtractionTest {
         assertThat(sendTask.kind).isEqualTo(TaskKind.SEND)
         assertThat(sendTask.implementation).isEqualTo(TaskImplementation.JobWorker("miravelo.sendConfirmationMail"))
         assertThat(event("timer_resendDaily").eventDefinitions).containsExactly(EventDefinitionInstance.Timer(TimerType.CYCLE, "R/P1D"))
+        assertThat(event("boundary_compensateClaim").compensationHandlerRef).isEqualTo("serviceTask_revokeClaim")
         assertThat(event("endEvent_membershipActivated").eventDefinitions)
             .containsExactly(EventDefinitionInstance.Signal(signalRef = "signal_memberActivated", signalName = "miravelo.memberActivated"))
         assertThat(bpmnModel.definitions.messages.associate { it.getValue() to it.correlationKey })

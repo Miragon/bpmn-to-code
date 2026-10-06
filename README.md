@@ -52,7 +52,7 @@ Generates a structured JSON alongside the API. Your process is readable by AI ag
 ```json
 {
   "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
-  "formatVersion": "2.0",
+  "formatVersion": "2.1",
   "process": {
     "id": "bikeLeasing",
     "flowNodes": [

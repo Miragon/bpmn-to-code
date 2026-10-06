@@ -22,10 +22,8 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
      * @property name the element's display name, or `null` when the model declares none.
      * @property eventType the event's `BpmnEventType` constant name; `null` for every non-event node.
      * @property isBoundaryEvent whether this node is a boundary event, reached from its host without a sequence flow.
-     * @property successors the reachable next elements — sequence-flow continuation and boundary edges unified,
-     *   each named after the element it points to.
-     * @property outgoingFlows the outgoing sequence flows, grouped by the element they lead to and named after it;
-     *   boundary edges are not sequence flows and never appear here.
+     * @property successors the reachable next elements — sequence-flow continuation, boundary edges and the
+     *   compensation handler of a compensation boundary event unified, each named after the element it points to.
      * @property interiorStarts for a subprocess, the start events directly inside it; empty for every other node
      *   and for a subprocess without a start event.
      * @property facets the element's own data (job type, variables, timer, …), mirroring the BPMN subtype.
@@ -38,8 +36,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val eventType: String?,
         val name: String?,
         val isBoundaryEvent: Boolean,
-        val successors: List<FlowEdge>,
-        val outgoingFlows: List<FlowsToTarget>,
+        val successors: List<SuccessorEdge>,
         val interiorStarts: List<FlowEdge>,
         val facets: NodeFacets,
     )
@@ -53,12 +50,29 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
     data class FlowEdge(val propertyName: String, val objectName: String)
 
     /**
-     * The outgoing sequence flows of a node that lead to the same element.
-     *
-     * @property flows usually exactly one; several when more than one sequence flow leads to [target], all kept in
-     *   one `SequenceFlows`.
+     * How a node reaches one of its successors.
      */
-    data class FlowsToTarget(val target: FlowEdge, val flows: List<SequenceFlowEdge>)
+    sealed interface SuccessorEdge {
+        val target: FlowEdge
+
+        /**
+         * The outgoing sequence flows of a node that lead to the same element.
+         *
+         * @property flows usually exactly one; several when more than one sequence flow leads to [target], all kept
+         *   in one `SequenceFlows`.
+         */
+        data class ViaSequenceFlows(override val target: FlowEdge, val flows: List<SequenceFlowEdge>) : SuccessorEdge
+
+        /**
+         * A boundary event attached to the node; no sequence flow leads there.
+         */
+        data class AttachedBoundaryEvent(override val target: FlowEdge) : SuccessorEdge
+
+        /**
+         * The compensation handler a compensation boundary event is associated with; no sequence flow leads there.
+         */
+        data class AssociatedCompensationHandler(override val target: FlowEdge) : SuccessorEdge
+    }
 
     /**
      * One outgoing `bpmn:sequenceFlow`.
@@ -80,6 +94,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
      * @property attachedTo for a boundary event, the node it is attached to.
      * @property isInterrupting for a boundary event whether it cancels its host; for an event-subprocess start
      *   event whether it interrupts the parent scope.
+     * @property throwsCompensation whether the node is an intermediate throw or end event that throws a compensation.
      */
     data class NodeFacets(
         val jobType: SharedValue<String>? = null,
@@ -94,6 +109,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val escalation: SharedValue<Pair<String, String>>? = null,
         val attachedTo: FlowEdge? = null,
         val isInterrupting: Boolean? = null,
+        val throwsCompensation: Boolean = false,
     ) {
         /** The runtime facet interfaces of the facets this node carries. */
         val facetInterfaces: List<FacetInterface>
@@ -106,6 +122,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
                     FacetInterface.SIGNAL_EVENT to signal,
                     FacetInterface.ERROR_EVENT to error,
                     FacetInterface.ESCALATION_EVENT to escalation,
+                    FacetInterface.COMPENSATION_THROW_EVENT to throwsCompensation.takeIf { it },
                     FacetInterface.HAS_VARIABLES to variables.takeIf { it.isNotEmpty() },
                 )
                 return facetsByInterface.filterValues { it != null }.keys.toList()
@@ -120,6 +137,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         SIGNAL_EVENT("SignalEvent"),
         ERROR_EVENT("ErrorEvent"),
         ESCALATION_EVENT("EscalationEvent"),
+        COMPENSATION_THROW_EVENT("CompensationThrowEvent"),
         HAS_VARIABLES("HasVariables"),
     }
 

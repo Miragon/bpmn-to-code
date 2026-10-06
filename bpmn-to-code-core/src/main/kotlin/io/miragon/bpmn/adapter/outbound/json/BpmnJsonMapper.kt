@@ -30,7 +30,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
- * Maps the domain model onto the public process-JSON contract (format 2.0, see ADR 018).
+ * Maps the domain model onto the public process-JSON contract (format 2.1, see ADR 018).
  *
  * Each scope is emitted with its own nodes and sequence flows, so nesting is structural rather than
  * inferred, and every node is sorted into process-flow order within its scope.
@@ -78,6 +78,7 @@ internal class BpmnJsonMapper {
             outgoing = outgoing,
             default = defaultFlow(),
             attachedToRef = event?.attachedToRef,
+            compensationHandlerRef = event?.compensationHandlerRef,
             cancelActivity = event?.takeIf { it.shape == EventShape.BOUNDARY_EVENT }?.interrupting,
             isInterrupting = event?.takeIf { it.shape == EventShape.START_EVENT }?.interrupting,
             triggeredByEvent = subProcess?.takeIf { it.kind == SubProcessKind.EVENT }?.let { true },

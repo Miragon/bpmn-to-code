@@ -12,16 +12,15 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.joinToCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowsToTarget
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
 
 /**
  * Emits the typed navigation graph of a Kotlin process API `FlowNodes` object: one nested node object per flow
  * node, carrying its metadata via `AbstractFlowNode`, its own facets (see [KotlinFacetWriter]) and its successors
- * behind `next`, named after the elements they lead to: the `SequenceFlows` to an element, or an attached boundary
- * event. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess node
+ * behind `next`, named after the elements they lead to: the `SequenceFlows` to an element, an attached boundary
+ * event, or the compensation handler associated with a compensation boundary event. All nodes are direct children of `FlowNodes`, whatever their subprocess depth; a subprocess node
  * additionally is a `FlowScope` whose `startEvents` yields the interior's start elements, and a boundary event is
  * a `BoundaryEvent` of its host. `FlowNodes.all` lists every node.
  */
@@ -90,25 +89,27 @@ internal class KotlinFlowWriter {
     private fun addSuccessors(nodeBuilder: TypeSpec.Builder, node: FlowGraphNode) {
         nodeBuilder.addProperty(accessorProperty("next", NEXT_HOLDER))
         val holder = TypeSpec.objectBuilder(NEXT_HOLDER)
-        node.successors.forEach { successor -> holder.addProperty(successorProperty(successor, node.outgoingFlows.find { it.target.objectName == successor.objectName })) }
+        node.successors.forEach { successor -> holder.addProperty(successorProperty(successor)) }
         nodeBuilder.addType(holder.build())
     }
 
     /**
      * A successor reached by sequence flows is the `SequenceFlows` carrying them; one reached without a flow is an
-     * `AttachedBoundaryEvent`. A single flow is created via `SequenceFlows.single`, several flows to the same target are listed.
+     * `AttachedBoundaryEvent` or an `AssociatedCompensationHandler`. A single flow is created via
+     * `SequenceFlows.single`, several flows to the same target are listed.
      */
-    private fun successorProperty(successor: FlowEdge, flowsToTarget: FlowsToTarget?): PropertySpec {
-        val target = ClassName("", successor.objectName)
-        val (successorType, value) = when (flowsToTarget) {
-            null -> KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of("%T(target = %N)", KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT, successor.objectName)
-            else -> KotlinRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsCall(flowsToTarget)
+    private fun successorProperty(successor: SuccessorEdge): PropertySpec {
+        val targetName = successor.target.objectName
+        val (successorType, value) = when (successor) {
+            is SuccessorEdge.ViaSequenceFlows -> KotlinRuntimeTypes.SEQUENCE_FLOWS to sequenceFlowsCall(successor)
+            is SuccessorEdge.AttachedBoundaryEvent -> KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT to CodeBlock.of("%T(target = %N)", KotlinRuntimeTypes.ATTACHED_BOUNDARY_EVENT, targetName)
+            is SuccessorEdge.AssociatedCompensationHandler -> KotlinRuntimeTypes.ASSOCIATED_COMPENSATION_HANDLER to CodeBlock.of("%T(target = %N)", KotlinRuntimeTypes.ASSOCIATED_COMPENSATION_HANDLER, targetName)
         }
         val getter = FunSpec.getterBuilder().addStatement("return %L", value).build()
-        return PropertySpec.builder(successor.propertyName, successorType.parameterizedBy(target)).getter(getter).build()
+        return PropertySpec.builder(successor.target.propertyName, successorType.parameterizedBy(ClassName("", targetName))).getter(getter).build()
     }
 
-    private fun sequenceFlowsCall(flowsToTarget: FlowsToTarget): CodeBlock {
+    private fun sequenceFlowsCall(flowsToTarget: SuccessorEdge.ViaSequenceFlows): CodeBlock {
         val targetName = flowsToTarget.target.objectName
         val singleFlow = flowsToTarget.flows.singleOrNull()
         if (singleFlow != null) {

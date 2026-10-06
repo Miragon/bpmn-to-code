@@ -37,4 +37,16 @@ class ProcessGraphTest {
     fun `followingElementsOf resolves the targets of the outgoing flows`() {
         assertThat(underTest.followingElementsOf(gateway)).containsExactly("no", "yes")
     }
+
+    @Test
+    fun `compensationHandlerOf is the handler of a compensation boundary event and nothing for any other node`() {
+        val boundary = FlowNodeDefinition.Event(
+            id = "boundary",
+            shape = EventShape.BOUNDARY_EVENT,
+            compensationHandlerRef = "handler",
+        )
+
+        assertThat(underTest.compensationHandlerOf(boundary)).isEqualTo("handler")
+        assertThat(underTest.compensationHandlerOf(gateway)).isNull()
+    }
 }

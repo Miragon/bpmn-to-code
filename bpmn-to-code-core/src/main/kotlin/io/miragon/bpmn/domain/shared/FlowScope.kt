@@ -21,7 +21,8 @@ data class FlowScope(
      * is preserved instead of being dropped by simple deduplication. Sub-process scopes are merged recursively,
      * so nesting survives the merge.
      *
-     * A merged node's base attributes come from the first scope in the given order, this one first.
+     * A merged node's base attributes come from the first scope in the given order, this one first; a compensation
+     * boundary event's handler comes from the first scope that declares one.
      */
     fun merge(others: List<FlowScope>): FlowScope {
         val scopes = listOf(this) + others

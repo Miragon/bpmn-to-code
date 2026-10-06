@@ -48,6 +48,7 @@ internal class FlowFacetsFactory(
             escalation = event?.firstDefinition<EventDefinitionInstance.Escalation>()?.resolve()?.sharedIn(definitions.escalations),
             attachedTo = event?.attachedToRef?.let { names[it] },
             isInterrupting = event?.isInterrupting(),
+            throwsCompensation = event?.throwsCompensation() ?: false,
         )
     }
 

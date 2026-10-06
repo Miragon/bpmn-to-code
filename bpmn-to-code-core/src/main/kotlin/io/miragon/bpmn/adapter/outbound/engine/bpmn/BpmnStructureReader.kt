@@ -14,10 +14,13 @@ import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.SubProcessKind
 import io.miragon.bpmn.domain.shared.TaskKind
 import org.camunda.bpm.model.bpmn.instance.Activity
+import org.camunda.bpm.model.bpmn.instance.Artifact
+import org.camunda.bpm.model.bpmn.instance.Association
 import org.camunda.bpm.model.bpmn.instance.BoundaryEvent
 import org.camunda.bpm.model.bpmn.instance.BusinessRuleTask
 import org.camunda.bpm.model.bpmn.instance.CallActivity
 import org.camunda.bpm.model.bpmn.instance.CatchEvent
+import org.camunda.bpm.model.bpmn.instance.CompensateEventDefinition
 import org.camunda.bpm.model.bpmn.instance.ComplexGateway
 import org.camunda.bpm.model.bpmn.instance.EndEvent
 import org.camunda.bpm.model.bpmn.instance.EventBasedGateway
@@ -42,6 +45,7 @@ import org.camunda.bpm.model.bpmn.instance.Task
 import org.camunda.bpm.model.bpmn.instance.Transaction
 import org.camunda.bpm.model.bpmn.instance.UserTask
 import org.camunda.bpm.model.xml.ModelInstance
+import org.camunda.bpm.model.xml.instance.ModelElementInstance
 
 /**
  * Reads the engine-independent BPMN structure of a process into the domain's scope tree.
@@ -63,6 +67,12 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
             .filter { (_, eventId) -> eventId != null }.groupBy({ it.first }, { it.second })
     }
 
+    private val compensationHandlerByEvent: Map<String, String> by lazy {
+        associationsIn(artifacts = process.artifacts, elements = process.flowElements)
+            .mapNotNull { it.toCompensationHandlerOfEvent() }
+            .distinctBy { (eventId, _) -> eventId }.toMap()
+    }
+
     /**
      * The root scope of the `bpmn:Process`. Nested scopes are reachable through the sub-process nodes
      * that own them.
@@ -76,6 +86,26 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
             else -> emptyList()
         }
     }
+
+    private fun associationsIn(artifacts: Collection<Artifact>, elements: Collection<FlowElement>): List<Association> {
+        val nested = elements.filterIsInstance<SubProcess>()
+            .flatMap { associationsIn(artifacts = it.artifacts, elements = it.flowElements) }
+        return artifacts.filterIsInstance<Association>() + nested
+    }
+
+    /**
+     * A compensation boundary event points at its handler through an association; associations to anything else —
+     * a text annotation, an activity that is no compensation handler, an element of another process — are no handlers.
+     */
+    private fun Association.toCompensationHandlerOfEvent(): Pair<String, String>? {
+        val eventId = (source as? BoundaryEvent)?.takeIf { it.isCompensationEvent() }?.id
+        val handlerId = (target as? Activity)?.takeIf { it.isForCompensation && it.isPartOfProcess() }?.id
+        return if (eventId != null && handlerId != null) eventId to handlerId else null
+    }
+
+    private fun BoundaryEvent.isCompensationEvent(): Boolean = eventDefinitions.any { it is CompensateEventDefinition }
+
+    private fun ModelElementInstance.isPartOfProcess(): Boolean = generateSequence(parentElement) { it.parentElement }.any { it == process }
 
     private fun readScope(elements: Collection<FlowElement>): FlowScope = FlowScope(
         flowNodes = elements.filterIsInstance<FlowNode>().map { it.toDefinition() },
@@ -180,6 +210,7 @@ internal class BpmnStructureReader(private val model: ModelInstance, private val
         eventDefinitions = EventDefinitionReader.eventDefinitionsOf(this),
         attachedToRef = (this as? BoundaryEvent)?.attachedTo?.id,
         interrupting = interrupting(),
+        compensationHandlerRef = id?.let { compensationHandlerByEvent[it] },
         implementation = dialect.implementationOf(this),
         ioMapping = dialect.ioMappingOf(this),
         variables = dialect.variablesOf(this),

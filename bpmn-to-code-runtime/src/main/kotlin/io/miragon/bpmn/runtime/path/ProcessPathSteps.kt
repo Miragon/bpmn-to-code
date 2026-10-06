@@ -1,6 +1,8 @@
 package io.miragon.bpmn.runtime.path
 
+import io.miragon.bpmn.runtime.AssociatedCompensationHandler
 import io.miragon.bpmn.runtime.AttachedBoundaryEvent
+import io.miragon.bpmn.runtime.CompensationThrowEvent
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
@@ -67,9 +69,26 @@ fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (S
  * Leave an activity/subprocess through an attached **boundary** event: re-anchor to [carrier]`.next` and
  * record the picked boundary continuation — the token leaves the interior *early* via the boundary, which is
  * why this is a re-anchor and not expressible with [inside]. Covers interrupting timers and error boundaries;
- * `it` offers exactly the carrier's boundary events, compile-checked.
+ * `it` offers exactly the carrier's boundary events, compile-checked. A compensation is recorded with
+ * [throwingCompensation] instead.
  */
 fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(carrier: HasSuccessors<NEXT>, pick: (NEXT) -> Successor<M>): ProcessPath<M> = traverse(pick(carrier.next))
+
+/**
+ * Record a compensation the current event throws: the compensation [boundaryEvent] of the compensated activity
+ * and the handler it is associated with, picked from the boundary event's `Next`. Only callable on a
+ * [CompensationThrowEvent], and only a compensation boundary event offers a handler, so nothing else compiles.
+ * The walk **stays on the current node**, as the token continues from the event that threw the compensation,
+ * not from the handler.
+ *
+ * Zeebe reports the boundary event as a passed element, Camunda 7 and Operaton do not: there, pass
+ * `includeBoundaryEvent = false` to record the handler alone.
+ */
+fun <N : CompensationThrowEvent, NEXT, H : FlowNode> ProcessPath<N>.throwingCompensation(
+    boundaryEvent: HasSuccessors<NEXT>,
+    includeBoundaryEvent: Boolean = true,
+    pick: (NEXT) -> AssociatedCompensationHandler<H>,
+): ProcessPath<N> = recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick(boundaryEvent.next))
 
 /**
  * Walk the **current subprocess** node's interior in a scoped block, then continue **on the subprocess node
@@ -99,10 +118,19 @@ fun nodesOf(vararg branches: List<FlowNode>): List<FlowNode> = branches.flatMap 
 @RiskyNavigation
 fun <M : FlowNode> ProcessPath<*>.jumpTo(node: M): ProcessPath<M> = moveTo(node, emptyList())
 
+internal fun <N : FlowNode> ProcessPath<N>.recordCompensation(
+    boundaryEvent: FlowNode,
+    includeBoundaryEvent: Boolean,
+    handler: AssociatedCompensationHandler<*>,
+): ProcessPath<N> {
+    val recordedBoundaryEvent = listOfNotNull(boundaryEvent.takeIf { includeBoundaryEvent })
+    return moveTo(node = current, nodesToRecord = recordedBoundaryEvent + handler.target)
+}
+
 internal fun <M : FlowNode> ProcessPath<*>.traverse(successor: Successor<M>, repeatTimes: Int = 1): ProcessPath<M> = moveTo(node = successor.target, nodesToRecord = List(repeatTimes) { successor.target }, flowsToRecord = listOfNotNull(successor.takenFlow()))
 
 private fun Successor<*>.takenFlow(): SequenceFlow<*>? = when (this) {
     is SequenceFlow -> this
     is SequenceFlows -> flows.singleOrNull()
-    is AttachedBoundaryEvent -> null
+    is AttachedBoundaryEvent, is AssociatedCompensationHandler -> null
 }
