@@ -5,79 +5,33 @@ New entries are appended automatically by [release-please](https://github.com/go
 
 ## [6.0.0](https://github.com/Miragon/bpmn-to-code/compare/v5.2.0...v6.0.0) (2026-10-02)
 
+See the [v6 migration guide](https://miragon.github.io/bpmn-to-code/changelog/v6.html) for before/after examples.
 
 ### ⚠ BREAKING CHANGES
 
-* **codegen:** list a node's variables through a HasVariables facet ([#184](https://github.com/Miragon/bpmn-to-code/issues/184))
-* **gradle:** skip generation while BPMN files are unchanged ([#183](https://github.com/Miragon/bpmn-to-code/issues/183))
-* **gradle:** make task properties lazy ([#176](https://github.com/Miragon/bpmn-to-code/issues/176))
-* **codegen:** model Java and C# successors as SequenceFlows ([#171](https://github.com/Miragon/bpmn-to-code/issues/171))
-* **codegen:** share process variable names across processes as ProcessVariables ([#169](https://github.com/Miragon/bpmn-to-code/issues/169))
-* **codegen:** expose node facets through filterable runtime interfaces ([#165](https://github.com/Miragon/bpmn-to-code/issues/165))
-* **domain:** merge process models as domain behaviour ([#146](https://github.com/Miragon/bpmn-to-code/issues/146))
-* **domain:** keep VariableMapping only on generated constants ([#143](https://github.com/Miragon/bpmn-to-code/issues/143))
-* **codegen:** resolve misleading and clashing generated names ([#132](https://github.com/Miragon/bpmn-to-code/issues/132))
-* **codegen:** use enums for element type, event type, timer type ([#130](https://github.com/Miragon/bpmn-to-code/issues/130))
-* **codegen:** consistent member naming on flow nodes and raw-name constants ([#128](https://github.com/Miragon/bpmn-to-code/issues/128))
-* **codegen:** node-centric Process API with outgoing sequence flows ([#107](https://github.com/Miragon/bpmn-to-code/issues/107))
-* **codegen:** generate shared definition APIs instead of per-process registries ([#105](https://github.com/Miragon/bpmn-to-code/issues/105))
-* **codegen:** reshape Relations into a leaner Flow navigation api ([#97](https://github.com/Miragon/bpmn-to-code/issues/97))
-* **json:** drop redundant variables facet and modeler metadata ([#94](https://github.com/Miragon/bpmn-to-code/issues/94))
-* **codegen:** drop redundant Flows and Compensations API sections ([#85](https://github.com/Miragon/bpmn-to-code/issues/85))
-* **core:** typed process navigation via reshaped Relations ([#55](https://github.com/Miragon/bpmn-to-code/issues/55))
-* **domain,json:** BPMN-aligned sealed domain model and process JSON v2 ([#81](https://github.com/Miragon/bpmn-to-code/issues/81))
+* **Process API:** node-centric `FlowNodes` tree with typed sequence flows replaces the `Elements`, `Relations`, `Flows` and `Compensations` sections ([#55](https://github.com/Miragon/bpmn-to-code/issues/55), [#85](https://github.com/Miragon/bpmn-to-code/issues/85), [#97](https://github.com/Miragon/bpmn-to-code/issues/97), [#107](https://github.com/Miragon/bpmn-to-code/issues/107), [#171](https://github.com/Miragon/bpmn-to-code/issues/171))
+* **Process API:** consistent member names, enums for element, event and timer type, and node facets as filterable runtime interfaces such as `HasVariables` ([#128](https://github.com/Miragon/bpmn-to-code/issues/128), [#130](https://github.com/Miragon/bpmn-to-code/issues/130), [#132](https://github.com/Miragon/bpmn-to-code/issues/132), [#165](https://github.com/Miragon/bpmn-to-code/issues/165), [#184](https://github.com/Miragon/bpmn-to-code/issues/184))
+* **Shared definitions:** job types, messages, signals, errors, escalations and process variable names are generated once per run instead of per process ([#105](https://github.com/Miragon/bpmn-to-code/issues/105), [#169](https://github.com/Miragon/bpmn-to-code/issues/169))
+* **JSON:** BPMN-aligned process JSON v2 without the redundant variables facet and modeler metadata ([#81](https://github.com/Miragon/bpmn-to-code/issues/81), [#94](https://github.com/Miragon/bpmn-to-code/issues/94))
+* **Domain model:** one sealed, BPMN-aligned model, which affects custom validation rules ([#81](https://github.com/Miragon/bpmn-to-code/issues/81), [#143](https://github.com/Miragon/bpmn-to-code/issues/143), [#146](https://github.com/Miragon/bpmn-to-code/issues/146))
+* **Gradle:** task properties are lazy and generation is skipped while BPMN files are unchanged ([#176](https://github.com/Miragon/bpmn-to-code/issues/176), [#183](https://github.com/Miragon/bpmn-to-code/issues/183))
+* **Variants:** merging process variants is opt-in via `enableVariants` ([#123](https://github.com/Miragon/bpmn-to-code/issues/123))
 
 ### Features
 
-* **codegen:** consistent member naming on flow nodes and raw-name constants ([#128](https://github.com/Miragon/bpmn-to-code/issues/128)) ([5e311ba](https://github.com/Miragon/bpmn-to-code/commit/5e311bae14defbbf3ee4178a119b448ba673ce04))
-* **codegen:** document Timers, Errors, Escalations and Signals sections ([#102](https://github.com/Miragon/bpmn-to-code/issues/102)) ([b286d7e](https://github.com/Miragon/bpmn-to-code/commit/b286d7e7b095f97182aae018c903f67805dd2ffd))
-* **codegen:** expose node facets through filterable runtime interfaces ([#165](https://github.com/Miragon/bpmn-to-code/issues/165)) ([12b8629](https://github.com/Miragon/bpmn-to-code/commit/12b862918c4a280d6794800866e5c32281b91645))
-* **codegen:** generate C# process api (beta) ([#90](https://github.com/Miragon/bpmn-to-code/issues/90)) ([a03b492](https://github.com/Miragon/bpmn-to-code/commit/a03b4928763892fa07718036f6fd87fa2244c241))
-* **codegen:** generate shared definition APIs instead of per-process registries ([#105](https://github.com/Miragon/bpmn-to-code/issues/105)) ([de87da7](https://github.com/Miragon/bpmn-to-code/commit/de87da782de8372dc73f6beccc84dde462939c3d))
-* **codegen:** generate the typed Flow for C# with inlined runtime types ([#108](https://github.com/Miragon/bpmn-to-code/issues/108)) ([49c795b](https://github.com/Miragon/bpmn-to-code/commit/49c795b4f453df98c58604d1c4cffe8c6988c897))
-* **codegen:** list a node's variables through a HasVariables facet ([#184](https://github.com/Miragon/bpmn-to-code/issues/184)) ([db1521e](https://github.com/Miragon/bpmn-to-code/commit/db1521ea2b0d2eaede231dcac2349f4a39fde088))
-* **codegen:** make generated flow nodes and shared definitions enumerable ([#125](https://github.com/Miragon/bpmn-to-code/issues/125)) ([3e53cf4](https://github.com/Miragon/bpmn-to-code/commit/3e53cf4a66533afd442219abf26fbb1997e5b4ae))
-* **codegen:** node-centric Process API with outgoing sequence flows ([#107](https://github.com/Miragon/bpmn-to-code/issues/107)) ([ba892aa](https://github.com/Miragon/bpmn-to-code/commit/ba892aac349c52f4d9173eb8b8a717bea23b6ee5))
-* **codegen:** share process variable names across processes as ProcessVariables ([#169](https://github.com/Miragon/bpmn-to-code/issues/169)) ([ff6f87a](https://github.com/Miragon/bpmn-to-code/commit/ff6f87a822683e76446cd844e4598ca4dbebe4b5))
-* **codegen:** use enums for element type, event type, timer type ([#130](https://github.com/Miragon/bpmn-to-code/issues/130)) ([03ea5bd](https://github.com/Miragon/bpmn-to-code/commit/03ea5bdddbb994108a356e9835fbd20b8bc49780))
-* **codegen:** use named arguments in generated Kotlin errors and escalations ([#127](https://github.com/Miragon/bpmn-to-code/issues/127)) ([0d60da4](https://github.com/Miragon/bpmn-to-code/commit/0d60da4e781063465d425bc1bc7b690f26349274))
-* **core:** bundle process-model JSON schema in the jar ([#86](https://github.com/Miragon/bpmn-to-code/issues/86)) ([a1f9fe9](https://github.com/Miragon/bpmn-to-code/commit/a1f9fe9d80f6d7a57a1841c20633cbccd98644c2))
-* **core:** remove stale generated files ([#174](https://github.com/Miragon/bpmn-to-code/issues/174)) ([#177](https://github.com/Miragon/bpmn-to-code/issues/177)) ([3ce3a3f](https://github.com/Miragon/bpmn-to-code/commit/3ce3a3f9cb6882d0f7461b0e33946258ee42ec9b))
-* **core:** typed process navigation via reshaped Relations ([#55](https://github.com/Miragon/bpmn-to-code/issues/55)) ([3bcb956](https://github.com/Miragon/bpmn-to-code/commit/3bcb9560d6ed0351e035b38eed0a4457ad435e99))
-* **domain,json:** BPMN-aligned sealed domain model and process JSON v2 ([#81](https://github.com/Miragon/bpmn-to-code/issues/81)) ([a1d21b9](https://github.com/Miragon/bpmn-to-code/commit/a1d21b9710059adc96266657ebb7add07aea2681))
-* **gradle:** skip generation while BPMN files are unchanged ([#183](https://github.com/Miragon/bpmn-to-code/issues/183)) ([bf08d5b](https://github.com/Miragon/bpmn-to-code/commit/bf08d5bdee543112c327871c5e8f7b6113483e2c))
-* **json:** emit isDefault on sequence flows ([#100](https://github.com/Miragon/bpmn-to-code/issues/100)) ([94e6da6](https://github.com/Miragon/bpmn-to-code/commit/94e6da6c82b4cf8d1ffa0d05624e5ebb2a945977))
-* **json:** expose interrupting flag on boundary and event sub-process start events ([#78](https://github.com/Miragon/bpmn-to-code/issues/78)) ([21353f4](https://github.com/Miragon/bpmn-to-code/commit/21353f4b7e30335debc8a5546e37d446f213edbb))
-* **json:** expose zeebe message-subscription correlationKey in message-event properties ([#80](https://github.com/Miragon/bpmn-to-code/issues/80)) ([8cb7e18](https://github.com/Miragon/bpmn-to-code/commit/8cb7e182586238758a76eb29e0c4c67cbc8691ec))
-* make variant generation opt-in via enableVariants ([#123](https://github.com/Miragon/bpmn-to-code/issues/123)) ([76ac460](https://github.com/Miragon/bpmn-to-code/commit/76ac46081e6eeb0d8409d1da4c507cd51158c9bb))
-* **web:** make server port configurable via PORT env var ([#93](https://github.com/Miragon/bpmn-to-code/issues/93)) ([95fc034](https://github.com/Miragon/bpmn-to-code/commit/95fc034177603e5beff67e41ea5a7a54ce1a4301))
-
+* **C#:** generate the Process API including the typed flow, with inlined runtime types (beta) ([#90](https://github.com/Miragon/bpmn-to-code/issues/90), [#108](https://github.com/Miragon/bpmn-to-code/issues/108))
+* **codegen:** enumerable flow nodes and shared definitions, documented timer, error, escalation and signal sections, named arguments in Kotlin errors and escalations ([#102](https://github.com/Miragon/bpmn-to-code/issues/102), [#125](https://github.com/Miragon/bpmn-to-code/issues/125), [#127](https://github.com/Miragon/bpmn-to-code/issues/127))
+* **json:** `isDefault` on sequence flows, `interrupting` on boundary and event sub-process start events, Zeebe `correlationKey` on message events ([#78](https://github.com/Miragon/bpmn-to-code/issues/78), [#80](https://github.com/Miragon/bpmn-to-code/issues/80), [#100](https://github.com/Miragon/bpmn-to-code/issues/100))
+* **core:** bundle the process-model JSON schema in the jar and remove stale generated files ([#86](https://github.com/Miragon/bpmn-to-code/issues/86), [#174](https://github.com/Miragon/bpmn-to-code/issues/174), [#177](https://github.com/Miragon/bpmn-to-code/issues/177))
+* **web:** configurable server port via `PORT` ([#93](https://github.com/Miragon/bpmn-to-code/issues/93))
 
 ### Bug Fixes
 
-* close the directory walk when loading BPMN files ([#151](https://github.com/Miragon/bpmn-to-code/issues/151)) ([554e077](https://github.com/Miragon/bpmn-to-code/commit/554e0774917670ae1d8557fd7a4fcadba6f5386a))
-* **codegen:** keep string literals intact in Kotlin output and seal C# VariableName.ToString ([#115](https://github.com/Miragon/bpmn-to-code/issues/115)) ([9d7ad37](https://github.com/Miragon/bpmn-to-code/commit/9d7ad374dd1a1f58b20d536d82c65b207477bb2c))
-* **engine:** extract variables only from plain call-activity source expressions ([#178](https://github.com/Miragon/bpmn-to-code/issues/178)) ([212137d](https://github.com/Miragon/bpmn-to-code/commit/212137d8bbc62d2f8f54bc483809e73976ab2ffc))
-* **engine:** support catch-all error boundary events ([#110](https://github.com/Miragon/bpmn-to-code/issues/110)) ([da87b0f](https://github.com/Miragon/bpmn-to-code/commit/da87b0fe61ce1010ece61fbf867ab57564d0830e))
-* **maven:** fail clearly on a missing or unknown processEngine ([#155](https://github.com/Miragon/bpmn-to-code/issues/155)) ([061cf79](https://github.com/Miragon/bpmn-to-code/commit/061cf79961d776d75fac05ab2279b2c3e03083c0))
-* **samples:** rename C8 receive task id from userTask_ to receiveTask_confirmRegistration ([a205b0f](https://github.com/Miragon/bpmn-to-code/commit/a205b0f051b117fb34b4b56334ea527fa2037eb2))
-* **samples:** rename C8 receive task id to receiveTask_confirmRegistration ([#106](https://github.com/Miragon/bpmn-to-code/issues/106)) ([a205b0f](https://github.com/Miragon/bpmn-to-code/commit/a205b0f051b117fb34b4b56334ea527fa2037eb2))
-* skip non-executable processes when generating the api in memory ([#161](https://github.com/Miragon/bpmn-to-code/issues/161)) ([ad4da2d](https://github.com/Miragon/bpmn-to-code/commit/ad4da2d63a57f052f0f3a537b19389a1b8d05e72))
-* speed up BPMN reading and the web app ([#180](https://github.com/Miragon/bpmn-to-code/issues/180)) ([4f3cbeb](https://github.com/Miragon/bpmn-to-code/commit/4f3cbeb938ae227df2ff2c15519ef0312e193df5))
-* **validation:** reserve the member names of generated C# nodes ([#152](https://github.com/Miragon/bpmn-to-code/issues/152)) ([831edb2](https://github.com/Miragon/bpmn-to-code/commit/831edb2b4e7f913dc45a2681930c436caa2ff6a3))
-* **web:** rebake version.properties when projectVersion changes ([#99](https://github.com/Miragon/bpmn-to-code/issues/99)) ([ad0cdb3](https://github.com/Miragon/bpmn-to-code/commit/ad0cdb3cecb39fded1c60096a3cf5351a4a1cce5))
-
-
-### Code Refactoring
-
-* **codegen:** drop redundant Flows and Compensations API sections ([#85](https://github.com/Miragon/bpmn-to-code/issues/85)) ([2f90f6f](https://github.com/Miragon/bpmn-to-code/commit/2f90f6f6c6a554c8a9b7591f9a921673c79257b1))
-* **codegen:** model Java and C# successors as SequenceFlows ([#171](https://github.com/Miragon/bpmn-to-code/issues/171)) ([a048856](https://github.com/Miragon/bpmn-to-code/commit/a048856e9a4ca89b3c4bf006a0e349ec22fe4900))
-* **codegen:** reshape Relations into a leaner Flow navigation api ([#97](https://github.com/Miragon/bpmn-to-code/issues/97)) ([017b70f](https://github.com/Miragon/bpmn-to-code/commit/017b70f8b6753a78cb4d2897f3633ae0ab3ec345))
-* **codegen:** resolve misleading and clashing generated names ([#132](https://github.com/Miragon/bpmn-to-code/issues/132)) ([658b98b](https://github.com/Miragon/bpmn-to-code/commit/658b98b88009ad81230fa019ae4dc19a3b79974c))
-* **domain:** keep VariableMapping only on generated constants ([#143](https://github.com/Miragon/bpmn-to-code/issues/143)) ([f7c14d9](https://github.com/Miragon/bpmn-to-code/commit/f7c14d9cab35877d68ba2d635c7238ee2da49f91))
-* **domain:** merge process models as domain behaviour ([#146](https://github.com/Miragon/bpmn-to-code/issues/146)) ([7ccfeda](https://github.com/Miragon/bpmn-to-code/commit/7ccfeda228ca88df174661302b5f1b1efec3154a))
-* **gradle:** make task properties lazy ([#176](https://github.com/Miragon/bpmn-to-code/issues/176)) ([ab34f77](https://github.com/Miragon/bpmn-to-code/commit/ab34f7729e5356c450b09295d59cf4e6bb855bf1))
-* **json:** drop redundant variables facet and modeler metadata ([#94](https://github.com/Miragon/bpmn-to-code/issues/94)) ([33850e3](https://github.com/Miragon/bpmn-to-code/commit/33850e3f7dc3a2fb74a8561d6edd696a09c0a11c))
+* **engine:** support catch-all error boundary events and extract variables only from plain call-activity source expressions ([#110](https://github.com/Miragon/bpmn-to-code/issues/110), [#178](https://github.com/Miragon/bpmn-to-code/issues/178))
+* **codegen:** keep Kotlin string literals intact, seal C# `VariableName.ToString` and reserve the member names of generated C# nodes ([#115](https://github.com/Miragon/bpmn-to-code/issues/115), [#152](https://github.com/Miragon/bpmn-to-code/issues/152))
+* **core:** skip non-executable processes in memory, close the directory walk, speed up BPMN reading and the web app ([#151](https://github.com/Miragon/bpmn-to-code/issues/151), [#161](https://github.com/Miragon/bpmn-to-code/issues/161), [#180](https://github.com/Miragon/bpmn-to-code/issues/180))
+* **maven:** fail clearly on a missing or unknown `processEngine` ([#155](https://github.com/Miragon/bpmn-to-code/issues/155))
+* **web, samples:** rebake `version.properties` on version change, rename the C8 receive task id ([#99](https://github.com/Miragon/bpmn-to-code/issues/99), [#106](https://github.com/Miragon/bpmn-to-code/issues/106))
 
 ## [5.2.0](https://github.com/Miragon/bpmn-to-code/compare/v5.1.0...v5.2.0) (2026-08-03)
 
