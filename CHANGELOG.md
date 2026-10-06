@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.1.0](https://github.com/Miragon/bpmn-to-code/compare/v6.0.0...v6.1.0) (2026-10-06)
+
+
+### Features
+
+* **codegen:** reach compensation handlers through the FlowNodes navigation ([#189](https://github.com/Miragon/bpmn-to-code/issues/189)) ([1296928](https://github.com/Miragon/bpmn-to-code/commit/129692808f7f5d107f8aeff64a7cf0a0e70253e2))
+
 ## [6.0.0](https://github.com/Miragon/bpmn-to-code/compare/v5.2.0...v6.0.0) (2026-10-02)
 
 See the [v6 migration guide](https://miragon.github.io/bpmn-to-code/changelog/v6.html) for before/after examples.
