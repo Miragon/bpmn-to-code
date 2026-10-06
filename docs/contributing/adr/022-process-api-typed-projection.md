@@ -45,8 +45,8 @@ The generated code becomes the typed projection of the JSON v2 model: **everythi
    volatile part of a model.
 
    > **Update (2026-10):** `Next` has a third kind of entry. A compensation boundary event lists the handler it is
-   > associated with as an `AssociatedCompensationHandler<Target>`, and the `throwingCompensation` step records both
-   > without leaving the node that threw the compensation ([#188](https://github.com/Miragon/bpmn-to-code/issues/188)).
+   > associated with as an `AssociatedCompensationHandler<Target>`, and the `throwingCompensation` step records that
+   > handler without leaving the node that threw the compensation ([#188](https://github.com/Miragon/bpmn-to-code/issues/188)).
 4. **Registries stay shared** where BPMN itself models a shared identity: root elements (`Messages`, `Errors`,
    `Signals`, `Escalations`) and job types (`ServiceTasks`, one `const` per distinct type, the canonical
    argument for `@JobWorker`) are the shared definition files of [ADR 021](021-shared-definition-apis.md).
