@@ -75,18 +75,18 @@ fun <START, M : FlowNode> ProcessPath<*>.enter(scope: FlowScope<START>, pick: (S
 fun <NEXT, M : FlowNode> ProcessPath<*>.interruptedBy(carrier: HasSuccessors<NEXT>, pick: (NEXT) -> Successor<M>): ProcessPath<M> = traverse(pick(carrier.next))
 
 /**
- * Record a compensation the current event throws: the compensation [boundaryEvent] of the compensated activity
- * and the handler it is associated with, picked from the boundary event's `Next`. Only callable on a
+ * Record a compensation the current event throws: the handler associated with the compensation [boundaryEvent] of
+ * the compensated activity, picked from the boundary event's `Next`. Only callable on a
  * [CompensationThrowEvent], and only a compensation boundary event offers a handler, so nothing else compiles.
  * The walk **stays on the current node**, as the token continues from the event that threw the compensation,
  * not from the handler.
  *
- * Zeebe reports the boundary event as a passed element, Camunda 7 and Operaton do not: there, pass
- * `includeBoundaryEvent = false` to record the handler alone.
+ * The boundary event itself is left out, as only Zeebe reports it as a passed element and Camunda 7 and Operaton
+ * do not: pass `includeBoundaryEvent = true` to record it as well.
  */
 fun <N : CompensationThrowEvent, NEXT, H : FlowNode> ProcessPath<N>.throwingCompensation(
     boundaryEvent: HasSuccessors<NEXT>,
-    includeBoundaryEvent: Boolean = true,
+    includeBoundaryEvent: Boolean = false,
     pick: (NEXT) -> AssociatedCompensationHandler<H>,
 ): ProcessPath<N> = recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick(boundaryEvent.next))
 

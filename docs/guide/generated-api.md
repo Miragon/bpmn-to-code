@@ -556,7 +556,7 @@ needed to get hold of the start event.
   *early* via the boundary (interrupting timers, error and escalation boundaries), which is why it's a re-anchor and can't be
   expressed with `inside`.
 - **Compensation** — `throwingCompensation(FlowNodes.BoundaryCompensateContract) { it.serviceTaskCancelContract }` records
-  a compensation boundary event and its handler and stays on the current node, so the walk continues from the event
+  the handler of a compensation boundary event and stays on the current node, so the walk continues from the event
   that threw the compensation. See [Walking a compensated path](#walking-a-compensated-path).
 - **Escape hatch** — `jumpTo(node)` re-anchors to any node without checking adjacency and without recording it
   (e.g. stepping back to a parallel fork). It is gated behind `@RiskyNavigation` (`@OptIn` required), so it
@@ -599,8 +599,8 @@ assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "f
 
 ### Walking a compensated path
 
-Record the event that throws the compensation, then each compensation it triggers with `throwingCompensation`: the
-compensation boundary event of the compensated activity, and the handler picked from its `Next`. The step is only
+Record the event that throws the compensation, then each compensation it triggers with `throwingCompensation`: name
+the compensation boundary event of the compensated activity and pick the handler from its `Next`. The step is only
 callable on a `CompensationThrowEvent`, and only a compensation boundary event offers a handler, so nothing else
 compiles. The walk stays on the throwing event and continues with its own successors:
 
@@ -617,12 +617,16 @@ The throwing event comes first because an engine starts it before the handler it
 assertion compares by start time. The handler is not a token-flow successor of the boundary event, but it is structurally adjacent to it, which
 is all the navigation guarantees.
 
-Whether the boundary event itself belongs into the path depends on the engine:
+The boundary event itself is not recorded, because only some engines report it as a passed element. A path without
+it holds on every engine, as `hasPassed` and `hasPassedInOrder` accept further elements in between:
 
-| Engine | Reports the compensation boundary event | Step |
-|--------|------------------------------------------|------|
-| Zeebe (checked on 8.9) | yes | `throwingCompensation(boundary) { … }` |
-| Camunda 7 (checked on 7.24), Operaton (checked on 1.0) | no | `throwingCompensation(boundary, includeBoundaryEvent = false) { … }` |
+| Engine | Reports the compensation boundary event |
+|--------|------------------------------------------|
+| Zeebe (checked on 8.9) | yes |
+| Camunda 7 (checked on 7.24), Operaton (checked on 1.0) | no |
+
+To assert the boundary event on Zeebe as well, record it with
+`throwingCompensation(boundary, includeBoundaryEvent = true) { … }`.
 
 A compensation throw event without an `activityRef` triggers every handler in its scope, and their relative order
 is not defined. Chain several `throwingCompensation` steps when you assert an unordered set (`hasPassed`), or walk each
@@ -663,8 +667,8 @@ var ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
     .getIds();
 ```
 
-On Camunda 7 and Operaton pass `false` as the second argument, so the boundary event is left out:
-`throwingCompensation(FlowNodes.boundaryCompensateContract(), false, n -> n.serviceTaskCancelContract())`.
+To record the boundary event as well, pass `true` as the second argument:
+`throwingCompensation(FlowNodes.boundaryCompensateContract(), true, n -> n.serviceTaskCancelContract())`.
 
 ## Variables with Direction
 

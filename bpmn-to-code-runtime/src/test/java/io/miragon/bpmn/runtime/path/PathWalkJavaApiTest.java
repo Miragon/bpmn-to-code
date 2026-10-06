@@ -139,11 +139,11 @@ class PathWalkJavaApiTest {
     }
 
     @Test
-    void compensatedPathRecordsEachCompensationAfterTheEventThatThrowsItAndContinuesFromThatEvent() {
+    void compensatedPathRecordsEachCompensationWithItsBoundaryEventAfterTheEventThatThrowsItAndContinuesFromThatEvent() {
         var trail = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
             .then(n -> n.eventReverseApplication())
-            .throwingCompensation(FlowNodes.boundaryCompensateContract(), n -> n.serviceTaskCancelContract())
-            .throwingCompensation(FlowNodes.boundaryCompensateOrder(), n -> n.callActivityCancelBikeOrder())
+            .throwingCompensation(FlowNodes.boundaryCompensateContract(), true, n -> n.serviceTaskCancelContract())
+            .throwingCompensation(FlowNodes.boundaryCompensateOrder(), true, n -> n.callActivityCancelBikeOrder())
             .then(n -> n.serviceTaskSendCancellationConfirmation())
             .end(n -> n.endEventApplicationCancelled());
 
@@ -165,10 +165,10 @@ class PathWalkJavaApiTest {
     }
 
     @Test
-    void compensationHandlerIsRecordedAloneForAnEngineThatDoesNotReportTheBoundaryEvent() {
+    void compensationHandlerIsRecordedWithoutItsBoundaryEventByDefault() {
         var ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
             .then(n -> n.eventReverseApplication())
-            .throwingCompensation(FlowNodes.boundaryCompensateInsurance(), false, n -> n.serviceTaskCancelPolicy())
+            .throwingCompensation(FlowNodes.boundaryCompensateInsurance(), n -> n.serviceTaskCancelPolicy())
             .getIds();
 
         assertThat(ids).containsExactly("startEvent_applicationWithdrawn", "event_reverseApplication", "serviceTask_cancelPolicy");
@@ -178,8 +178,8 @@ class PathWalkJavaApiTest {
     void trailRecordsACompensationAfterItsTerminalNode() {
         var trail = PathWalk.from(FlowNodes.serviceTaskSendCancellationConfirmation())
             .end(n -> n.endEventApplicationCancelled())
-            .throwingCompensation(FlowNodes.boundaryCompensateContract(), n -> n.serviceTaskCancelContract())
-            .throwingCompensation(FlowNodes.boundaryCompensateOrder(), false, n -> n.callActivityCancelBikeOrder());
+            .throwingCompensation(FlowNodes.boundaryCompensateContract(), true, n -> n.serviceTaskCancelContract())
+            .throwingCompensation(FlowNodes.boundaryCompensateOrder(), n -> n.callActivityCancelBikeOrder());
 
         assertThat(trail.getIds()).containsExactly(
             "serviceTask_sendCancellationConfirmation",

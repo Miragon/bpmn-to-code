@@ -146,16 +146,16 @@ class ProcessPathTest {
     }
 
     @Test
-    fun `throwingCompensation records the boundary event and its handler and stays on the current node`() {
-        val path = ProcessPath.from(Throw).throwingCompensation(Boundary) { it.handler }.then { it.end }
+    fun `throwingCompensation records the boundary event and its handler when asked to and stays on the current node`() {
+        val path = ProcessPath.from(Throw).throwingCompensation(Boundary, includeBoundaryEvent = true) { it.handler }.then { it.end }
 
         assertThat(path.ids).containsExactly("Throw", "Boundary", "Handler", "End")
         assertThat(path.flowIds).containsExactly("flow_throwToEnd")
     }
 
     @Test
-    fun `throwingCompensation records the handler alone for an engine that does not report the boundary event`() {
-        val path = ProcessPath.from(Throw).throwingCompensation(Boundary, includeBoundaryEvent = false) { it.handler }
+    fun `throwingCompensation records the handler without its boundary event by default`() {
+        val path = ProcessPath.from(Throw).throwingCompensation(Boundary) { it.handler }
 
         assertThat(path.ids).containsExactly("Throw", "Handler")
         assertThat(path.current).isEqualTo(Throw)

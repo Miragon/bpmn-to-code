@@ -71,15 +71,15 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
     ): PathWalk<M, MNEXT> = PathWalk(path.traverse(pick.apply(carrier.next)))
 
     /**
-     * Records a compensation the current event throws — the compensation [boundaryEvent] and its picked handler —
-     * and stays on the current node. Pass `includeBoundaryEvent = false` where the engine does not report the
-     * boundary event (Camunda 7, Operaton). Unlike the Kotlin step, this does not check that the current node is a
+     * Records a compensation the current event throws — the handler picked from the compensation [boundaryEvent] —
+     * and stays on the current node. Pass `includeBoundaryEvent = true` to record the boundary event as well, which
+     * only Zeebe reports as passed. Unlike the Kotlin step, this does not check that the current node is a
      * compensation throw event: a method cannot narrow the node type of its [PathWalk].
      */
     @JvmOverloads
     fun <C, H : FlowNode> throwingCompensation(
         boundaryEvent: HasSuccessors<C>,
-        includeBoundaryEvent: Boolean = true,
+        includeBoundaryEvent: Boolean = false,
         pick: Function<C, out AssociatedCompensationHandler<H>>,
     ): PathWalk<N, NEXT> = PathWalk(path.recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick.apply(boundaryEvent.next)))
 
@@ -123,7 +123,7 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
         @JvmOverloads
         fun <C, H : FlowNode> throwingCompensation(
             boundaryEvent: HasSuccessors<C>,
-            includeBoundaryEvent: Boolean = true,
+            includeBoundaryEvent: Boolean = false,
             pick: Function<C, out AssociatedCompensationHandler<H>>,
         ): Trail = Trail(path.recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick.apply(boundaryEvent.next)))
 

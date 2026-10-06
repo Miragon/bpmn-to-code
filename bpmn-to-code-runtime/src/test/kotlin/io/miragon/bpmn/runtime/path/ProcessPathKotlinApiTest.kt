@@ -247,12 +247,12 @@ class ProcessPathKotlinApiTest {
     // --- Compensation -------------------------------------------------------------------------------------
 
     @Test
-    fun `compensated path records each compensation after the event that throws it and continues from that event`() {
+    fun `compensated path records each compensation with its boundary event after the event that throws it and continues from that event`() {
         // The throw event comes first: an engine starts it before the boundary events and handlers it triggers.
         val path = ProcessPath.from(BikeLeasing.StartEventApplicationWithdrawn)
             .then { it.eventReverseApplication }
-            .throwingCompensation(BikeLeasing.BoundaryCompensateContract) { it.serviceTaskCancelContract }
-            .throwingCompensation(BikeLeasing.BoundaryCompensateOrder) { it.callActivityCancelBikeOrder }
+            .throwingCompensation(BikeLeasing.BoundaryCompensateContract, includeBoundaryEvent = true) { it.serviceTaskCancelContract }
+            .throwingCompensation(BikeLeasing.BoundaryCompensateOrder, includeBoundaryEvent = true) { it.callActivityCancelBikeOrder }
             .then { it.serviceTaskSendCancellationConfirmation }
             .then { it.endEventApplicationCancelled }
 
@@ -274,10 +274,10 @@ class ProcessPathKotlinApiTest {
     }
 
     @Test
-    fun `compensation handler is recorded alone for an engine that does not report the boundary event`() {
+    fun `compensation handler is recorded without its boundary event by default`() {
         val path = ProcessPath.from(BikeLeasing.StartEventApplicationWithdrawn)
             .then { it.eventReverseApplication }
-            .throwingCompensation(BikeLeasing.BoundaryCompensateInsurance, includeBoundaryEvent = false) { it.serviceTaskCancelPolicy }
+            .throwingCompensation(BikeLeasing.BoundaryCompensateInsurance) { it.serviceTaskCancelPolicy }
             .then { it.serviceTaskSendCancellationConfirmation }
 
         assertThat(path.ids).containsExactly(
