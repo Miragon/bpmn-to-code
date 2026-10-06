@@ -3,6 +3,36 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.0.0](https://github.com/Miragon/bpmn-to-code/compare/v5.2.0...v6.0.0) (2026-10-02)
+
+See the [v6 migration guide](https://miragon.github.io/bpmn-to-code/changelog/v6.html) for before/after examples.
+
+### ⚠ BREAKING CHANGES
+
+* **Process API:** node-centric `FlowNodes` tree with typed sequence flows replaces the `Elements`, `Relations`, `Flows` and `Compensations` sections ([#55](https://github.com/Miragon/bpmn-to-code/issues/55), [#85](https://github.com/Miragon/bpmn-to-code/issues/85), [#97](https://github.com/Miragon/bpmn-to-code/issues/97), [#107](https://github.com/Miragon/bpmn-to-code/issues/107), [#171](https://github.com/Miragon/bpmn-to-code/issues/171))
+* **Process API:** consistent member names, enums for element, event and timer type, and node facets as filterable runtime interfaces such as `HasVariables` ([#128](https://github.com/Miragon/bpmn-to-code/issues/128), [#130](https://github.com/Miragon/bpmn-to-code/issues/130), [#132](https://github.com/Miragon/bpmn-to-code/issues/132), [#165](https://github.com/Miragon/bpmn-to-code/issues/165), [#184](https://github.com/Miragon/bpmn-to-code/issues/184))
+* **Shared definitions:** job types, messages, signals, errors, escalations and process variable names are generated once per run instead of per process ([#105](https://github.com/Miragon/bpmn-to-code/issues/105), [#169](https://github.com/Miragon/bpmn-to-code/issues/169))
+* **JSON:** BPMN-aligned process JSON v2 without the redundant variables facet and modeler metadata ([#81](https://github.com/Miragon/bpmn-to-code/issues/81), [#94](https://github.com/Miragon/bpmn-to-code/issues/94))
+* **Domain model:** one sealed, BPMN-aligned model, which affects custom validation rules ([#81](https://github.com/Miragon/bpmn-to-code/issues/81), [#143](https://github.com/Miragon/bpmn-to-code/issues/143), [#146](https://github.com/Miragon/bpmn-to-code/issues/146))
+* **Gradle:** task properties are lazy and generation is skipped while BPMN files are unchanged ([#176](https://github.com/Miragon/bpmn-to-code/issues/176), [#183](https://github.com/Miragon/bpmn-to-code/issues/183))
+* **Variants:** merging process variants is opt-in via `enableVariants` ([#123](https://github.com/Miragon/bpmn-to-code/issues/123))
+
+### Features
+
+* **C#:** generate the Process API including the typed flow, with inlined runtime types (beta) ([#90](https://github.com/Miragon/bpmn-to-code/issues/90), [#108](https://github.com/Miragon/bpmn-to-code/issues/108))
+* **codegen:** enumerable flow nodes and shared definitions, documented timer, error, escalation and signal sections, named arguments in Kotlin errors and escalations ([#102](https://github.com/Miragon/bpmn-to-code/issues/102), [#125](https://github.com/Miragon/bpmn-to-code/issues/125), [#127](https://github.com/Miragon/bpmn-to-code/issues/127))
+* **json:** `isDefault` on sequence flows, `interrupting` on boundary and event sub-process start events, Zeebe `correlationKey` on message events ([#78](https://github.com/Miragon/bpmn-to-code/issues/78), [#80](https://github.com/Miragon/bpmn-to-code/issues/80), [#100](https://github.com/Miragon/bpmn-to-code/issues/100))
+* **core:** bundle the process-model JSON schema in the jar and remove stale generated files ([#86](https://github.com/Miragon/bpmn-to-code/issues/86), [#174](https://github.com/Miragon/bpmn-to-code/issues/174), [#177](https://github.com/Miragon/bpmn-to-code/issues/177))
+* **web:** configurable server port via `PORT` ([#93](https://github.com/Miragon/bpmn-to-code/issues/93))
+
+### Bug Fixes
+
+* **engine:** support catch-all error boundary events and extract variables only from plain call-activity source expressions ([#110](https://github.com/Miragon/bpmn-to-code/issues/110), [#178](https://github.com/Miragon/bpmn-to-code/issues/178))
+* **codegen:** keep Kotlin string literals intact, seal C# `VariableName.ToString` and reserve the member names of generated C# nodes ([#115](https://github.com/Miragon/bpmn-to-code/issues/115), [#152](https://github.com/Miragon/bpmn-to-code/issues/152))
+* **core:** skip non-executable processes in memory, close the directory walk, speed up BPMN reading and the web app ([#151](https://github.com/Miragon/bpmn-to-code/issues/151), [#161](https://github.com/Miragon/bpmn-to-code/issues/161), [#180](https://github.com/Miragon/bpmn-to-code/issues/180))
+* **maven:** fail clearly on a missing or unknown `processEngine` ([#155](https://github.com/Miragon/bpmn-to-code/issues/155))
+* **web, samples:** rebake `version.properties` on version change, rename the C8 receive task id ([#99](https://github.com/Miragon/bpmn-to-code/issues/99), [#106](https://github.com/Miragon/bpmn-to-code/issues/106))
+
 ## [5.2.0](https://github.com/Miragon/bpmn-to-code/compare/v5.1.0...v5.2.0) (2026-08-03)
 
 
