@@ -25,7 +25,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import java.io.File
 
 /**
- * Camunda 7 and Operaton share one dialect that differs only in its XML namespace (ADR 010), so every
+ * Camunda 7 and Operaton share one dialect that differs only in its XML namespace, so every
  * fixture-based test runs against both engines' variant of the same model.
  */
 class CamundaDialectExtractionTest {

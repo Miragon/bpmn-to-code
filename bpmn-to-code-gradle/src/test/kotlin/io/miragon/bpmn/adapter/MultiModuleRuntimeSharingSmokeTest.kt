@@ -10,7 +10,7 @@ import java.io.File
 /**
  * Verifies the multi-module promise: a `common` module can expose typed wrappers over the runtime's
  * `ProcessId` / `MessageName` / `SequenceFlow` and both service modules can hand it their own generated identifiers
- * without duplicate-class or type-mismatch errors. This is the regression guard for ADR 016.
+ * without duplicate-class or type-mismatch errors. This is the regression guard for the shared runtime artifact.
  */
 class MultiModuleRuntimeSharingSmokeTest {
 

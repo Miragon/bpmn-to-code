@@ -34,7 +34,7 @@ import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from 
       <div class="problem-intro">
         <span class="pillar-badge generate"><span class="num">1</span>Generate <span class="eyebrow">&middot; compile-time safety</span></span>
         <h2>BPMN strings break silently. <span class="grad">Until runtime.</span></h2>
-        <p>Your Zeebe and Camunda code is full of references to BPMN elements &mdash; process IDs, message names, task types. Rename one in the modeler and nothing warns you until it fails in production. bpmn-to-code generates a type-safe Process API from your <code>.bpmn</code> files via <strong>Gradle</strong>, <strong>Maven</strong>, or the <strong>in-browser</strong> tool.</p>
+        <p>Your Zeebe and Camunda code is full of references to BPMN elements &mdash; process IDs, message names, task types. Rename one in the modeler and nothing warns you until it fails in production. bpmn-to-code generates a type-safe Process API in Kotlin, Java or C# (experimental) from your <code>.bpmn</code> files via <strong>Gradle</strong>, <strong>Maven</strong>, or the <strong>in-browser</strong> tool.</p>
         <a class="pillar-link" :href="withBase('/guide/generated-api')">Learn how the generated API works <span class="arrow">&rarr;</span></a>
       </div>
       <CompareCards
@@ -52,7 +52,7 @@ import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from 
       <div class="problem-intro">
         <span class="pillar-badge validate"><span class="num">2</span>Validate <span class="eyebrow">&middot; architecture rules &middot; in beta</span></span>
         <h2>Process rules <span class="grad-p">erode between deploys.</span></h2>
-        <p>Missing implementations, undefined timers, inconsistent naming &mdash; without architectural tests, BPMN quality drifts silently. The testing module ships as a JUnit-friendly rule set you drop into any project. Catch violations in your test suite, not in staging.</p>
+        <p>Missing implementations, undefined timers, unnamed messages &mdash; without architecture tests, BPMN quality drifts silently. The testing module is a JUnit-friendly rule set you add to any project, and you can write rules of your own for team conventions. Catch violations in your test suite, not in staging.</p>
         <a class="pillar-link" :href="withBase('/validate/')">See the validation rules <span class="arrow">&rarr;</span></a>
       </div>
       <RunnerPair
@@ -71,8 +71,8 @@ import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from 
       <div class="problem-intro">
         <span class="pillar-badge context"><span class="num">3</span>Surface <span class="eyebrow">&middot; context for your AI &middot; in beta</span></span>
         <h2>Agents can&rsquo;t read your <span class="grad-ctx">.bpmn file.</span></h2>
-        <p>Raw BPMN is 80% rendering metadata &mdash; shapes, bounds, waypoints. Agents waste context on pixels instead of process logic. bpmn-to-code emits a semantic JSON model built for AI context, not for diagrams, that your agent can read directly.</p>
-        <a class="pillar-link" :href="withBase('/surface/')">Read the JSON surface spec <span class="arrow">&rarr;</span></a>
+        <p>Raw BPMN is 80% rendering metadata &mdash; shapes, bounds, waypoints. Agents waste context on pixels instead of process logic. bpmn-to-code exports a JSON model in BPMN vocabulary, without the diagram, that your agent can read directly.</p>
+        <a class="pillar-link" :href="withBase('/surface/json')">Read the JSON format reference <span class="arrow">&rarr;</span></a>
       </div>
       <CompareCards
         before-pill="⚠ raw BPMN"
@@ -91,7 +91,7 @@ import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from 
       <div class="offering-intro">
         <span class="pillar-badge skills"><span class="num">4</span>Ship <span class="eyebrow">&middot; with Agent Skills &middot; in beta</span></span>
         <h2>Build processes <em>with</em> agents, not around them.</h2>
-        <p>Drop-in agent skills, built on everything bpmn-to-code offers. Integrate the plugin into your project in one prompt, migrate hardcoded BPMN strings to the generated Process API, and get architectural tests written for you &mdash; while you focus on modeling the business logic. Works with Claude Code and any other agent supporting the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
+        <p>Drop-in agent skills, built on everything bpmn-to-code offers. Set up the plugin in one prompt, migrate hardcoded BPMN strings to the generated Process API, and turn your BPMN style guide into validation rules &mdash; while you focus on modeling the business logic. Works with Claude Code and any other agent supporting the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
         <a class="pillar-link" :href="withBase('/skills/')">See all skills <span class="arrow">&rarr;</span></a>
       </div>
       <div class="skills-grid">

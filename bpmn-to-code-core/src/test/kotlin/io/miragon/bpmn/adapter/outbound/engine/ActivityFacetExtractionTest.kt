@@ -100,7 +100,7 @@ class ActivityFacetExtractionTest {
         // given
         val model = extract(ProcessModelReader(CamundaDialect(OPERATON_NAMESPACE)), "operaton/bike-leasing")
 
-        // then: the operaton namespace carries the identical vocabulary (ADR 010)
+        // then: the operaton namespace carries the identical vocabulary
         assertThat(model.multiInstanceOf("serviceTask_orderBike")).isEqualTo(
             MultiInstanceDefinition(sequential = false, inputCollection = $$"${bikeIds}", inputElement = "bikeId"),
         )

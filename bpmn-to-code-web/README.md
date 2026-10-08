@@ -1,84 +1,42 @@
-# 🚀 bpmn-to-code-web
+# bpmn-to-code-web
 
-bpmn-to-code-web is a web application that provides browser-based access to bpmn-to-code's code generation capabilities.
-It offers the same powerful Process API generation without requiring Gradle or Maven installation,
-making it ideal for quick experiments, non-Java projects, or teams who prefer a graphical interface.
+The web app of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code): upload BPMN files in the browser and get the generated Process API or the process JSON, without a build tool. It uses the same generator as the Gradle and Maven plugins and keeps nothing on disk.
 
-## 🌐 Why bpmn-to-code-web?
+- Output languages: Kotlin, Java, C# (experimental)
+- Engines: Camunda 8 / Zeebe, Camunda 7, Operaton
+- Up to three BPMN files per request; the generated code uses the package `com.example.process`
 
-**No Installation Required**
-- Access bpmn-to-code directly from your browser
-- No build tool setup or project configuration needed
-- Perfect for quick prototyping and exploration
+Hosted version: https://bpmn-to-code.miragon.io/static/index.html
 
-**Self-Hostable**
-- Deploy as a Docker container in your own infrastructure
-- Full control over your BPMN files and generated code
-- No data leaves your environment
-
-**Same Powerful Core**
-- 100% reuses the battle-tested `bpmn-to-code-core` logic
-- Identical output to Gradle and Maven plugins
-- Supports both Kotlin and Java generation
-- Works with Camunda 7 and Zeebe engines
-
-## ✨ Features
-
-- Upload BPMN files via drag-and-drop or file picker
-- Configure generation options (language, engine, package path)
-- Generate type-safe Process API code instantly
-- Preview generated code with syntax highlighting
-- Download individual files or all files as ZIP
-- Fully stateless in-memory processing (no filesystem persistence)
-- **OpenAPI/Swagger documentation** - Interactive API documentation available at `/swagger` and `/openapi`
-
-## 🚀 Quick Start
-
-### Using the Hosted Version (Preview)
-
-The web application is currently available as a preview at:
-**https://bpmn-to-code.miragon.io/static/index.html**
-
-Simply visit the URL, upload your BPMN files, configure your settings, and generate your Process API code.
-
-### Running Locally
-
-**Prerequisites:**
-- JDK 21+
-- Gradle 8+
-
-**Start the server:**
-```bash
-./gradlew :bpmn-to-code-web:run
-```
-
-**Access the web interface:**
-```
-http://localhost:8080
-```
-
-**Access the API documentation:**
-```
-http://localhost:8080/swagger    # Swagger UI
-http://localhost:8080/openapi    # OpenAPI/ReDoc viewer
-```
-
-Then:
-1. Upload your BPMN file(s)
-2. Configure generation settings
-3. Click "Generate"
-4. Download your Process API files
-
-### Self-Hosting with Docker
-
-The application is available as a Docker image for easy self-hosting:
+## Run
 
 ```bash
-# Pull the image
-docker pull miragon/bpmn-to-code-web:latest
-
-# Run the container
 docker run -p 8080:8080 miragon/bpmn-to-code-web:latest
 ```
 
-The Docker image is hosted on Docker Hub: **https://hub.docker.com/r/miragon/bpmn-to-code-web**
+Then open http://localhost:8080. The image is built for `linux/amd64`.
+
+## Configuration
+
+| Environment variable | Default | Meaning |
+|---|---|---|
+| `PORT` | `8080` | Port the server listens on |
+| `ALLOWED_CORS_ORIGINS` | empty | Comma-separated origins allowed to call the API. Empty or `*` allows all. |
+| `IMPRINT_URL` | empty | Shows a "Legal Notice" link in the footer when set |
+| `PRIVACY_URL` | empty | Shows a "Privacy Policy" link in the footer when set |
+
+## Routes
+
+| Route | Purpose |
+|---|---|
+| `GET /` | Redirects to the UI at `/static/index.html` |
+| `POST /api/generate` | Generates the Process API |
+| `POST /api/generate-json` | Generates the process JSON |
+| `GET /api/config` | Version and legal links |
+| `GET /health` | Health check, answers `{"status": "UP"}` |
+| `GET /swagger` | Swagger UI for the API |
+| `GET /examples/<engine>-bike-leasing.bpmn` | Bundled example model (`zeebe`, `c7`, `operaton`) |
+
+The image has no shell, so configure health checks in your orchestrator against `/health`.
+
+Documentation: https://miragon.github.io/bpmn-to-code/web/

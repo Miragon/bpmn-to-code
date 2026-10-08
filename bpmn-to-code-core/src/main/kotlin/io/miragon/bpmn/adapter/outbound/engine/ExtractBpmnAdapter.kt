@@ -38,11 +38,11 @@ internal class ExtractBpmnAdapter(
         private val logger = KotlinLogging.logger {}
 
         /**
-         * The engine registry (ADR 004). Reading a BPMN file is the same work for every engine apart from
+         * The engine registry. Reading a BPMN file is the same work for every engine apart from
          * its own namespace, so a new engine contributes a dialect here rather than its own reader.
          *
          * Camunda 7 and Operaton share the identical element and attribute vocabulary and differ only in
-         * that namespace, so both use the same dialect with their own value (see ADR 010).
+         * that namespace, so both use the same dialect with their own value.
          */
         val dialects = mapOf(
             ProcessEngine.ZEEBE to ZeebeDialect(),

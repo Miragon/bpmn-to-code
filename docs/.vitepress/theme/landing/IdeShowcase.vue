@@ -90,7 +90,7 @@ onBeforeUnmount(() => {
       <div class="ide-titlebar">
         <span class="dots"><i></i><i></i><i></i></span>
         <div class="breadcrumb">
-          subscription-service<span class="sep">/</span>src<span class="sep">/</span>main<span class="sep">/</span>resources<span class="sep">/</span><span class="bc-file">{{ breadcrumbFile }}</span>
+          miravelo-leasing<span class="sep">/</span>src<span class="sep">/</span>main<span class="sep">/</span>resources<span class="sep">/</span><span class="bc-file">{{ breadcrumbFile }}</span>
         </div>
         <span class="ide-hint">
           <span class="pulse"></span>

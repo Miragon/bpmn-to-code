@@ -209,6 +209,8 @@
 .landing-root .compat-card .lang-badge { width:18px; height:18px; border-radius:4px; font-size:10px; font-weight:800; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:'JetBrains Mono Variable', ui-monospace, monospace; }
 .landing-root .compat-card .lang-badge.kt { background:#7F52FF; }
 .landing-root .compat-card .lang-badge.java { background:#E76F00; }
+.landing-root .compat-card .lang-badge.cs { background:#68217A; }
+.landing-root .compat-card .compat-note { font-weight:500; color:var(--fg-muted); }
 .landing-root .compat-card .lang-badge.gradle { background:#02303A; }
 .landing-root .compat-card .lang-badge.maven { background:#C71A36; }
 

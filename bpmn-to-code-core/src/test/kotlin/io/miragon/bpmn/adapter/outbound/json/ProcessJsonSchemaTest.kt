@@ -12,7 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 
 /**
- * Guards the published process-JSON contract (ADR 018).
+ * Guards the published process-JSON contract.
  *
  * Every generated file points at `docs/public/schema/process-model/2.0.json` via `$schema`, so the schema
  * and the emitted output have to stay in step. The schema is validated from the classpath rather than the

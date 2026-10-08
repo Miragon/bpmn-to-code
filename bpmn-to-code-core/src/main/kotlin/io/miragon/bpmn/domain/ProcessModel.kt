@@ -26,7 +26,7 @@ import io.miragon.bpmn.domain.shared.VariableDefinition
  * from the node tree, so it can never drift from it.
  *
  * [variantName] is what lets several files declare the same process id and still each get an API of their own.
- * See [ADR 017](../../../../../../../docs/contributing/adr/017-bpmn-aligned-domain-model.md).
+ * See [ADR 004](../../../../../../../docs/contributing/adr/004-bpmn-aligned-domain-model.md).
  */
 @Suppress("TooManyFunctions")
 data class ProcessModel(

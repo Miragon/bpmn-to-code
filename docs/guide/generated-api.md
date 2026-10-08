@@ -1,67 +1,48 @@
 # 📦 Generated API
 
-One file per BPMN process — a typed, compile-checked projection of the process model — plus one file per
-kind of [shared definition](#shared-definitions): job types, messages, signals, errors and escalations,
-generated once for all processes of a run.
+One file per BPMN process — a typed projection of the process model — plus one file per kind of [shared definition](#shared-definitions), generated once for all processes of a run. The examples show the MiraVelo bike-leasing process ([`shared/bpmn/zeebe/bike-leasing.bpmn`](https://github.com/Miragon/bpmn-to-code/blob/main/shared/bpmn/zeebe/bike-leasing.bpmn)) generated for Zeebe.
 
 ## Structure
 
-The generated Process API is an `object` (Kotlin), `class` (Java) or `static class` (C#) with nested
-sections. It is the code-side twin of the [JSON export](/surface/json): everything JSON hangs on a
-`flowNode` hangs on a node of `FlowNodes`; everything under `definitions` is a [shared definition](#shared-definitions).
+The Process API is an `object` (Kotlin), `final class` (Java) or `static class` (C#), named after the process id: `bikeLeasing` becomes `BikeLeasingProcessApi`.
 
-| Section | Contents |
-|---------|----------|
-| `PROCESS_ID` | The process identifier from the BPMN model (`ProcessId`) |
-| `PROCESS_ENGINE` | The engine the API was generated for, as a typed `BpmnEngine` enum (`ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
-| `FlowNodes` | One node per element, flat, carrying the element's own data (job type, variables, timer, …), and its successors behind `next`, named after the elements they lead to and carrying the sequence flow(s) that lead there |
+| Member | Contents |
+|--------|----------|
+| `PROCESS_ID` | The process id (`ProcessId`) |
+| `PROCESS_ENGINE` | The engine the API was generated for (`BpmnEngine`: `ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
+| `FlowNodes` | One node per element, carrying the element's own data and its successors |
 
-Element ids, variables, timers and call-activity mappings have no section of their own: they live on
-the node that declares them.
+Element ids, variables, timers and call-activity mappings have no section of their own: they live on the node that declares them. The API is the code-side twin of the [JSON export](/surface/json), which holds the same facts as data.
 
 ## Shared definitions
 
-Job types, message names, signal names, errors and escalations identify something the engine resolves
-across process boundaries: two processes subscribing to the same message or served by the same worker
-use the same value. Variable names are shared the same way — several order processes all carry an `orderId`. They are therefore not nested in a Process API but generated once per run, each
-kind in its own file next to the Process APIs:
+Job types, message and signal names, errors, escalations and variable names identify something across process boundaries: two processes subscribing to the same message use the same value. They are generated once per run, each kind in its own file next to the Process APIs.
 
 | File | Contents |
 |------|----------|
-| `ServiceTasks` | One `const` per distinct worker type / topic / delegate expression — **the constant to use in `@JobWorker(type = …)`** |
-| `Messages` | Message names from message events and receive tasks (`MessageName`) |
-| `Signals` | Signal names from signal events (`SignalName`) |
+| `ServiceTasks` | One `String` constant per distinct [job type](/engines/#what-is-extracted) — **the constant for `@JobWorker(type = …)`** |
+| `Messages` | Message names (`MessageName`) |
+| `Signals` | Signal names (`SignalName`) |
 | `Errors` | Error definitions with name and code (`BpmnErrorDefinition`) |
 | `Escalations` | Escalation definitions with name and code (`BpmnEscalationDefinition`) |
-| `ProcessVariables` | One `const` per distinct variable name — **the constant to use in `@Variable(name = …)`**; each node's typed `Variables` refer to it |
+| `ProcessVariables` | One `String` constant per distinct variable name — **the constant for `@Variable(name = …)`** |
 
-Each value appears once, no matter how many processes use it, and a file is only generated when at least
-one process contains a matching element. Errors and escalations are named `NAME_CODE`
-(`MIRAVELO_APPLICATION_INVALID`) because the engine matches them by code — the same name with another code is a
-different error. Without a code the constant is named after the name alone.
-
-Every file also lists its values: Kotlin `ServiceTasks.all`, Java `ServiceTasks.all()`, C#
-`ServiceTasks.All`. That turns "every job type has a registered worker" or "every message is correlated
-somewhere" into a plain loop in a test, instead of reading the constants back via reflection. When the model gains
-a job type, the list grows with it, and the test fails until the worker exists.
+- A file is only generated when at least one process contains a matching element.
+- Each value appears once, however many processes use it.
+- **Constants are named after the name**, not the id: the message `miravelo.contractSigned` is `MIRAVELO_CONTRACT_SIGNED`. This holds for errors and escalations too; the code is a value of the definition, not part of its name. Two different definitions that lead to the same constant fail generation with the `shared-definition-collision` [rule](/validate/).
+- Every file lists its values: Kotlin `ServiceTasks.all`, Java `ServiceTasks.all()`, C# `ServiceTasks.All`. That turns "every job type has a registered worker" into a loop in a test.
 
 ::: warning One `packagePath` per generation run
-The shared files are named after their kind, not after a process. Two generation runs (Gradle tasks or
-Maven executions) writing into the same package overwrite each other's `ServiceTasks`, `Messages`, … and
-remove each other's Process APIs as stale — give each run its own `packagePath`, or generate all related
-BPMN files in one run.
+The shared files are named after their kind, not after a process. Two runs (Gradle tasks or Maven executions) writing into the same package overwrite each other's `ServiceTasks`, `Messages`, … and remove each other's Process APIs as stale. Give each run its own `packagePath`, or generate all related BPMN files in one run.
 :::
 
 ::: info Stale files are removed
-Before writing, the generator deletes the files it owns but no longer produces — for example the API of a
-renamed or removed process, or `Signals` after the last signal is gone. It owns the files directly in
-`packagePath` that carry the `// Generated by bpmn-to-code` header. Hand-written files are never touched,
-so don't keep that header on a file you maintain yourself.
+Before writing, the generator deletes the files it owns but no longer produces, such as the API of a renamed process. It owns the files directly in the `packagePath` directory that carry the `// Generated by bpmn-to-code` header. Hand-written files are never touched, so don't keep that header on a file you maintain yourself.
 :::
 
 ## Full Example
 
-Given the MiraVelo bike-leasing process ([`shared/bpmn/zeebe/bike-leasing.bpmn`](https://github.com/Miragon/bpmn-to-code/blob/main/shared/bpmn/zeebe/bike-leasing.bpmn)), bpmn-to-code generates (abridged):
+Abridged; blank lines and KDoc removed.
 
 ::: code-group
 
@@ -69,54 +50,34 @@ Given the MiraVelo bike-leasing process ([`shared/bpmn/zeebe/bike-leasing.bpmn`]
 // Generated by bpmn-to-code
 @file:Suppress("unused")
 
-package de.emaarco.example
+package com.example.process
 
 import io.miragon.bpmn.runtime.AbstractFlowNode
-import io.miragon.bpmn.runtime.BoundaryEvent
 import io.miragon.bpmn.runtime.BpmnElementType
-import io.miragon.bpmn.runtime.BpmnEngine
-import io.miragon.bpmn.runtime.BpmnEventType
-import io.miragon.bpmn.runtime.BpmnTimer
-import io.miragon.bpmn.runtime.ElementId
-import io.miragon.bpmn.runtime.Event
-import io.miragon.bpmn.runtime.FlowScope
-import io.miragon.bpmn.runtime.HasSuccessors
-import io.miragon.bpmn.runtime.MessageName
-import io.miragon.bpmn.runtime.ProcessId
-import io.miragon.bpmn.runtime.TimerType
-import io.miragon.bpmn.runtime.SequenceFlows
-import io.miragon.bpmn.runtime.VariableName
+// … one import per runtime type used
 
 object BikeLeasingProcessApi {
   val PROCESS_ID: ProcessId = ProcessId("bikeLeasing")
   val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
 
   object FlowNodes {
-    object StartEventLeasingRequestReceived : AbstractFlowNode(ElementId("startEvent_leasingRequestReceived"), BpmnElementType.START_EVENT, "Leasing request received"),
-        HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage, HasVariables {
-      override val eventType = BpmnEventType.MESSAGE
-      override val message: MessageName = Messages.MIRAVELO_LEASING_REQUEST_RECEIVED
-      override val variables: Variables = Variables
-      override val next: Next = Next
-      object Variables : RegisteredVariableDefinitions() { val APPLICATION_ID: VariableName.Output = output(ProcessVariables.APPLICATION_ID) }
-      object Next {
-        val serviceTaskValidateApplication: SequenceFlows<ServiceTaskValidateApplication>
-          get() = SequenceFlows.single(
-            flowId = ElementId("flow_leasingRequestReceivedToValidateApplication"),
-            target = ServiceTaskValidateApplication,
-          )
-      }
-    }
+    val all: List<FlowNode> = listOf(BoundaryApplicationInvalid, /* … */ UserTaskUpdateDeliveryAddress)
 
-    object ServiceTaskSendContract : AbstractFlowNode(ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract"),
-        HasSuccessors<ServiceTaskSendContract.Next>, HasJobType, HasVariables {
+    object ServiceTaskSendContract : AbstractFlowNode(
+      id = ElementId(ServiceTaskSendContract.ELEMENT_ID),
+      elementType = BpmnElementType.SERVICE_TASK,
+      name = "Send contract",
+    ), HasSuccessors<ServiceTaskSendContract.Next>, HasJobType, HasVariables {
+      const val ELEMENT_ID: String = "serviceTask_sendContract"
       override val jobType: String = ServiceTasks.MIRAVELO_SEND_CONTRACT
       override val variables: Variables = Variables
       override val next: Next = Next
+
       object Variables : RegisteredVariableDefinitions() {
         val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
         val CONTRACT_ID: VariableName.Output = output(ProcessVariables.CONTRACT_ID)
       }
+
       object Next {
         val gatewayAwaitSignature: SequenceFlows<GatewayAwaitSignature>
           get() = SequenceFlows.single(
@@ -126,37 +87,42 @@ object BikeLeasingProcessApi {
       }
     }
 
-    object TimerSignatureReminder : AbstractFlowNode(ElementId("timer_signatureReminder"), BpmnElementType.BOUNDARY_EVENT, "7 days passed"),
-        HasSuccessors<TimerSignatureReminder.Next>, BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
-      override val eventType = BpmnEventType.TIMER
+    object TimerSignatureReminder : AbstractFlowNode(
+      id = ElementId(TimerSignatureReminder.ELEMENT_ID),
+      elementType = BpmnElementType.BOUNDARY_EVENT,
+      name = "7 days passed",
+    ), HasSuccessors<TimerSignatureReminder.Next>, BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
+      override val eventType: BpmnEventType = BpmnEventType.TIMER
+      const val ELEMENT_ID: String = "timer_signatureReminder"
       override val timer: BpmnTimer = BpmnTimer(type = TimerType.DURATION, timerValue = "P7D")
       override val attachedTo: SubProcessConcludeContract get() = SubProcessConcludeContract
       override val isInterrupting: Boolean = false
-      // …
+      // next …
     }
 
-    object SubProcessConcludeContract : AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
-        HasSuccessors<SubProcessConcludeContract.Next>, FlowScope<SubProcessConcludeContract.Start> {
-      override val startEvents: Start = Start
-      object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
-      // …
+    object EndEventLeasingActive : AbstractFlowNode(
+      id = ElementId(EndEventLeasingActive.ELEMENT_ID),
+      elementType = BpmnElementType.END_EVENT,
+      name = "Leasing active",
+    ), Event {
+      override val eventType: BpmnEventType = BpmnEventType.NONE
+      const val ELEMENT_ID: String = "endEvent_leasingActive"
     }
-
-    object EndEventLeasingActive : AbstractFlowNode(ElementId("endEvent_leasingActive"), BpmnElementType.END_EVENT, "Leasing active")
-    // … one nested object per element, including those inside subprocesses
+    // … one object per element, including those inside subprocesses
   }
 }
 
-// ServiceTasks.kt — shared by all processes of the run
+// ServiceTasks.kt
 object ServiceTasks {
   const val MIRAVELO_SEND_CONTRACT: String = "miravelo.sendContract"
-  const val MIRAVELO_VALIDATE_APPLICATION: String = "miravelo.validateApplication"
   // …
+  val all: List<String> = listOf(/* … */)
 }
 
 // Messages.kt
 object Messages {
-  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName = MessageName("miravelo.leasingRequestReceived")
+  val MIRAVELO_CONTRACT_SIGNED: MessageName = MessageName("miravelo.contractSigned")
+  // …
 }
 
 // Errors.kt
@@ -173,67 +139,56 @@ object ProcessVariables {
   const val CONTRACT_ID: String = "contractId"
   // …
 }
-
-// Escalations.kt
-object Escalations {
-  val MIRAVELO_CONTRACT_NOT_SIGNED: BpmnEscalationDefinition = BpmnEscalationDefinition(
-    name = "miravelo.contractNotSigned",
-    code = "contractNotSigned",
-  )
-}
 ```
 
 ```java [Java]
 // Generated by bpmn-to-code
-package de.emaarco.example;
+package com.example.process;
 
-import io.miragon.bpmn.runtime.*;
+import io.miragon.bpmn.runtime.AbstractFlowNode;
+// … one import per runtime type used
+import java.util.List;
 
 public final class BikeLeasingProcessApi {
-    public static final ProcessId PROCESS_ID = new ProcessId("bikeLeasing");
-    public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
+  public static final ProcessId PROCESS_ID = new ProcessId("bikeLeasing");
+  public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE;
 
-    public static final class FlowNodes {
-        public static StartEventLeasingRequestReceived startEventLeasingRequestReceived() { return StartEventLeasingRequestReceived.INSTANCE; }
-        public static ServiceTaskSendContract serviceTaskSendContract() { return ServiceTaskSendContract.INSTANCE; }
-        // … one static accessor per element
+  public static final class FlowNodes {
+    public static ServiceTaskSendContract serviceTaskSendContract() { return ServiceTaskSendContract.INSTANCE; }
+    // … one static accessor per element
+    public static List<FlowNode> all() { /* … */ }
 
-        public static final class ServiceTaskSendContract extends AbstractFlowNode
-                implements HasSuccessors<ServiceTaskSendContract.Next>, HasJobType {
-            public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
+    public static final class ServiceTaskSendContract extends AbstractFlowNode
+        implements HasSuccessors<ServiceTaskSendContract.Next>, HasJobType, HasVariables {
+      public static final String ELEMENT_ID = "serviceTask_sendContract";
+      public static final ServiceTaskSendContract INSTANCE = new ServiceTaskSendContract();
 
-            private ServiceTaskSendContract() {
-                super(new ElementId("serviceTask_sendContract"), BpmnElementType.SERVICE_TASK, "Send contract");
-            }
+      @Override public String getJobType() { return ServiceTasks.MIRAVELO_SEND_CONTRACT; }
+      @Override public Variables getVariables() { return VARIABLES; }
+      @Override public Next getNext() { return new Next(); }
 
-            @Override public String getJobType() { return ServiceTasks.MIRAVELO_SEND_CONTRACT; }
+      public static final class Variables extends VariableDefinitions {
+        public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
+        public static final VariableName.Output CONTRACT_ID = new VariableName.Output(ProcessVariables.CONTRACT_ID);
 
-            @Override public Variables getVariables() { return VARIABLES; }
+        @Override public List<VariableName> getAll() { return List.of(APPLICATION_ID, CONTRACT_ID); }
+      }
 
-            @Override public Next getNext() { return new Next(); }
-
-            public static final class Variables extends VariableDefinitions {
-                public static final VariableName.Input APPLICATION_ID = new VariableName.Input(ProcessVariables.APPLICATION_ID);
-                public static final VariableName.Output CONTRACT_ID = new VariableName.Output(ProcessVariables.CONTRACT_ID);
-
-                @Override public List<VariableName> getAll() { return List.of(APPLICATION_ID, CONTRACT_ID); }
-            }
-            public static final class Next {
-                public SequenceFlows<GatewayAwaitSignature> gatewayAwaitSignature() {
-                    return SequenceFlows.single(new ElementId("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.INSTANCE);
-                }
-            }
+      public static final class Next {
+        public SequenceFlows<GatewayAwaitSignature> gatewayAwaitSignature() {
+          return SequenceFlows.single(new ElementId("flow_sendContractToAwaitSignature"), GatewayAwaitSignature.INSTANCE);
         }
-        // …
+      }
     }
+  }
 }
 
-// Messages.java — shared by all processes of the run
-public final class Messages {
-    public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = new MessageName("miravelo.leasingRequestReceived");
-}
+// Errors.java
+public final class Errors {
+  public static final BpmnErrorDefinition MIRAVELO_APPLICATION_INVALID = new BpmnErrorDefinition("miravelo.applicationInvalid", "applicationInvalid");
 
-// ... same structure for ServiceTasks, Signals, Errors, Escalations, ProcessVariables
+  public static List<BpmnErrorDefinition> all() { return List.of(MIRAVELO_APPLICATION_INVALID); }
+}
 ```
 
 ```csharp [C#]
@@ -241,34 +196,33 @@ public final class Messages {
 // Generated by bpmn-to-code
 #nullable enable
 #pragma warning disable CS1591
-namespace de.emaarco.example;
+namespace MiraVelo.Process;
 
 public static class BikeLeasingProcessApi
 {
     public const string ProcessId = "bikeLeasing";
     public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
-    public static class Runtime { /* IFlowNode, IEvent, ISuccessor<T>, SequenceFlows<T>, AttachedBoundaryEvent<T>, AssociatedCompensationHandler<T>, ElementId, VariableName, BpmnTimer, the enums, … inlined */ }
+    public static class Runtime { /* IFlowNode, SequenceFlows<T>, ElementId, VariableName, … inlined */ }
 
     public static class FlowNodes
     {
-        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
         {
             public static readonly ServiceTaskSendContract Instance = new();
-            private ServiceTaskSendContract() { }
-
-            public Runtime.ElementId Id { get; } = new("serviceTask_sendContract");
+            // …
+            public const string ElementId = "serviceTask_sendContract";
+            public Runtime.ElementId Id { get; } = new(ElementId);
             public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send contract";
             public string JobType { get; } = ServiceTasks.MiraveloSendContract;
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
             public sealed class NodeVariables : Runtime.VariableDefinitions
             {
                 public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
                 public Runtime.VariableName.Output ContractId { get; } = new(ProcessVariables.ContractId);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { ApplicationId, ContractId };
+                // All …
             }
 
             public Successors Next => new();
@@ -277,54 +231,47 @@ public static class BikeLeasingProcessApi
                 public Runtime.SequenceFlows<GatewayAwaitSignature> GatewayAwaitSignature => Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), FlowNodes.GatewayAwaitSignature.Instance);
             }
         }
-        // …
     }
 }
 
-// ServiceTasks.cs — shared by all processes of the run
-public static class ServiceTasks
+// Errors.cs
+public static class Errors
 {
-    public const string MiraveloSendContract = "miravelo.sendContract";
+    public static class MiraveloApplicationInvalid
+    {
+        public const string Reference = "miravelo.applicationInvalid";
+        public const string Code = "applicationInvalid";
+    }
 }
-
-// ... same structure for Messages, Signals, Errors (MiraveloApplicationInvalid.Reference / .Code), Escalations, ProcessVariables
 ```
 
 :::
 
-## FlowNodes — the process as typed nodes
+## FlowNodes — the process as typed nodes {#flownodes}
 
-`FlowNodes` holds **one node per element**, and every node is a direct child of `FlowNodes` whatever its subprocess
-depth — so `FlowNodes.StartEventCustomerEligible` is addressed by its own name even though it sits inside
-`subProcess_concludeContract`. Element names are derived from ids (`serviceTask_sendContract` → `ServiceTaskSendContract`),
-and the mandatory `collision-detection` and `reserved-element-name` rules guarantee they are unique and do
-not shadow the API itself.
+`FlowNodes` holds **one node per element**, and every node is a direct child of `FlowNodes` whatever its subprocess depth: `FlowNodes.StartEventCustomerEligible` is addressed by its own name although it sits inside `subProcess_concludeContract`. Node names derive from element ids (`serviceTask_sendContract` → `ServiceTaskSendContract`); see [Modeling](/guide/modeling#naming).
 
-Each node extends **`AbstractFlowNode`** and exposes:
+Each node extends `AbstractFlowNode` and implements one runtime interface per facet it has:
 
-| Member | Present on | Type | Mirrors in JSON |
+| Member, interface | Present on | Type | In the JSON |
 |---|---|---|---|
 | `id`, `elementType`, `name` | every node | `ElementId`, `BpmnElementType`, `String?` | `id`, `type`, `name` |
-| `eventType`, marker `Event` | events | `BpmnEventType` (`NONE`, `TIMER`, …, `TERMINATE`, `MULTIPLE`) | `eventDefinitions[]` |
-| `jobType`, `HasJobType` | tasks and events with an implementation | `String`, referring to `ServiceTasks` | `implementation.jobType` |
-| `variables`, `HasVariables`; `Variables` | nodes declaring variables | `VariableDefinitions` listing `all` / `inputs` / `outputs`; each a `VariableName.Input` / `.Output` / `.InOut`, wrapping a `ProcessVariables` constant | `variables[]` |
-| `calledProcess`, `CallActivity`; `Inputs`, `Outputs` | call activities | `ProcessId`, `InputOutputMapping` | `calledElement`, `ioMapping` |
-| `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `TimerType` — `DATE`, `DURATION`, `CYCLE`) | `eventDefinitions[timer]` |
-| `message` / `signal` / `error` / `escalation`, `HasMessage` / `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition, send / receive tasks | `MessageName` / `SignalName` / `BpmnErrorDefinition` / `BpmnEscalationDefinition`, referring to the shared definition | `eventDefinitions[*]` |
-| `CompensationThrowEvent` | intermediate throw and end events that throw a compensation | marker without members | `eventDefinitions[compensation]` |
+| `eventType`, `Event` | events | `BpmnEventType` (`NONE`, `TIMER`, `MESSAGE`, …, `MULTIPLE`) | `eventDefinitions[]` |
+| `jobType`, `HasJobType` | tasks and events with an [implementation](/engines/#what-is-extracted) | `String`, the `ServiceTasks` constant | `implementation` |
+| `variables`, `HasVariables` | nodes declaring variables | the node's `Variables` | `ioMapping`, `multiInstance` |
+| `calledProcess`, `CallActivity`; `Inputs`, `Outputs` | call activities | `ProcessId`; `InputOutputMapping` | `calledElement`, `ioMapping` |
+| `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `DATE`, `DURATION`, `CYCLE`; `timerValue`) | `eventDefinitions[]` |
+| `message`, `HasMessage` | message events, send and receive tasks | `MessageName`, the `Messages` constant | `eventDefinitions[]`, `messageRef` |
+| `signal` / `error` / `escalation`; `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition | the `Signals` / `Errors` / `Escalations` constant | `eventDefinitions[]` |
+| `CompensationThrowEvent` | intermediate throw and end events throwing a compensation | marker without members | `eventDefinitions[]` |
 | `attachedTo`, `BoundaryEvent<Host>` | boundary events | the host node | `attachedToRef` |
 | `isInterrupting` | boundary events, event-subprocess start events | `Boolean` | `cancelActivity` / `isInterrupting` |
-| `next` → `Next` | nodes with successors | one successor per reachable element: `SequenceFlows<Target>` (the sequence flow(s) leading there), `AttachedBoundaryEvent<Target>` or `AssociatedCompensationHandler<Target>` | `outgoing`, `sequenceFlows[]`, `boundaryEventRefs`, `compensationHandlerRef` |
-| `startEvents` → `Start` | subprocesses | the interior's start event(s) | `flowNodes[]` of the subprocess |
+| `next`, `HasSuccessors<Next>` | nodes with successors | see [Navigation](#navigation) | `outgoing`, `boundaryEventRefs`, `compensationHandlerRef` |
+| `startEvents`, `FlowScope<Start>` | subprocesses | the interior's start events | `flowNodes[]` of the subprocess |
 
-Java mirrors the shape with getters: `FlowNodes.serviceTaskSendContract().getNext()`,
-`getStartEvents()`, `getAttachedTo()` and `isInterrupting()`, and the facets `getJobType()`, `getCalledProcess()`,
-`getTimer()`, `getMessage()`, … (`FlowNodes.timerSignatureReminder().getTimer()`). C# reaches a node through its
-singleton, `FlowNodes.ServiceTaskSendContract.Instance`, and implements `Runtime.ITimerEvent` etc. with the
-properties `JobType`, `CalledProcess`, `Timer`, `Message`, ….
+Kotlin reaches a node as `FlowNodes.ServiceTaskSendContract`, Java through an accessor and getters (`FlowNodes.serviceTaskSendContract().getJobType()`), C# through its singleton (`FlowNodes.ServiceTaskSendContract.Instance.JobType`; the interfaces are `Runtime.IHasJobType`, `Runtime.ITimerEvent`, …).
 
-Every facet comes with its runtime interface, so generic code can pick the nodes that carry it without knowing
-their types:
+Because every facet is an interface, generic code can pick the nodes that carry it:
 
 ```kotlin
 val timers: List<TimerEvent> = FlowNodes.all.filterIsInstance<TimerEvent>()
@@ -333,56 +280,39 @@ timers.forEach { println("${it.id}: ${it.timer.timerValue}") }
 
 #### Naming rule
 
-Kotlin follows the [Kotlin coding conventions](https://kotlinlang.org/docs/coding-conventions.html#property-names):
-fixed values — `const val`s and object `val`s holding immutable data that implement no interface — are
-UPPER_SNAKE (`ELEMENT_ID`, `Variables.APPLICATION_ID`); members of the runtime interfaces are camelCase
-(`jobType`, `timer`, `calledProcess`, `message`, `next`, `startEvents`, `attachedTo`,
-`isInterrupting`). Java exposes per-node constants (`ELEMENT_ID`, `INSTANCE`) as `static final` fields and
-everything else through the getters of the runtime interfaces.
+Kotlin follows its [coding conventions](https://kotlinlang.org/docs/coding-conventions.html#property-names): constants are UPPER_SNAKE (`ELEMENT_ID`, `Variables.APPLICATION_ID`), members of the runtime interfaces camelCase (`jobType`, `timer`, `next`). Java exposes the per-node constants `ELEMENT_ID` and `INSTANCE` as `static final` fields and everything else through getters.
 
 #### Raw names for annotations and `when` / `switch`
 
-The typed wrappers for variables and element ids are no compile-time constants, so each has a raw
-`String` constant — `const val` in Kotlin, `static final String` in Java, `const string` in C#. An element id sits
-on its node; a variable name sits once per run in the shared `ProcessVariables`, which every node's typed
-`Variables` refer to:
+The typed wrappers are no compile-time constants, so each has a raw `String` constant:
 
-| Typed wrapper | Raw constant (Kotlin / Java) | C# |
+| Typed | Raw constant (Kotlin / Java) | C# |
 |---|---|---|
-| `FlowNodes.X.Variables.APPLICATION_ID` | `ProcessVariables.APPLICATION_ID` | `ProcessVariables.ApplicationId` |
 | `FlowNodes.X.id` | `FlowNodes.X.ELEMENT_ID` | `FlowNodes.X.ElementId` |
+| `FlowNodes.X.variables.APPLICATION_ID` | `ProcessVariables.APPLICATION_ID` | `ProcessVariables.ApplicationId` |
+| `FlowNodes.X.jobType` | `ServiceTasks.MIRAVELO_SEND_CONTRACT` | `ServiceTasks.MiraveloSendContract` |
 
 ```kotlin
 @JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
 fun sendContract(@Variable(name = ProcessVariables.APPLICATION_ID) applicationId: String) { … }
 ```
 
-::: tip Annotate workers with `ServiceTasks.X`
-`ServiceTasks` has **one constant per distinct job type** across all processes of the run, and a job type can
-be shared by several processes — so `@JobWorker(type = ServiceTasks.X)` is the reference whose find-usages
-leads to every element it serves. A node's `jobType` refers to that same constant and tells you which job type
-**this element** uses — handy in tests that go from an element to its worker. Messages, signals, errors and
-escalations work the same way: `FlowNodes.X.message` is the `Messages` constant. Only a value that no root
-element of the model declares is written on the node itself.
-:::
+Annotate workers with `ServiceTasks.X` rather than a node's `jobType`: several elements, also of different processes, can share one job type, and find-usages on the constant leads to all of them. A node's `jobType`, `message`, `signal`, `error` and `escalation` refer to these same constants and answer the opposite question: what does **this element** use.
 
 ### Sequence flows
 
-Every successor in `Next` is **named after the element it leads to**, so a condition is found by where it goes —
-not by a flow id that the modeler usually leaves as `Flow_1csfyyz`. A successor reached by sequence flows is a
-`SequenceFlows<Target>`: its `flow` (Java `getFlow()`, C# `Flow`) is a `SequenceFlow<Target>` carrying the flow's
-`id`, label, raw `conditionExpression` (`${…}` on Camunda 7 / Operaton, `=…` FEEL on Zeebe), `isDefault` marker and
-typed `target`.
+Every entry of a node's `Next` is **named after the element it leads to**, so a condition is found by where it goes, not by a flow id. An entry reached by sequence flows is a `SequenceFlows<Target>`. Its `flow` is a `SequenceFlow<Target>` with the flow's `id`, `name`, raw `conditionExpression`, `isDefault` and typed `target`.
 
 ```kotlin
 object GatewayIsSolvent : /* … */ HasSuccessors<GatewayIsSolvent.Next> {
   override val next: Next = Next
+
   object Next {
     val gatewayCollectRejections: SequenceFlows<GatewayCollectRejections>
       get() = SequenceFlows.single(
         flowId = ElementId("flow_isSolventToCollectRejections"),
         name = "No",
-        conditionExpression = $$"""${!solvent}""",
+        conditionExpression = "=not(solvent)",
         target = GatewayCollectRejections,
       )
     val subProcessConcludeContract: SequenceFlows<SubProcessConcludeContract>
@@ -396,92 +326,72 @@ object GatewayIsSolvent : /* … */ HasSuccessors<GatewayIsSolvent.Next> {
 }
 ```
 
-```kotlin
+::: code-group
+
+```kotlin [Kotlin]
 val next = FlowNodes.GatewayIsSolvent.next
 
-assertThat(next.gatewayCollectRejections.flow.conditionExpression).isEqualTo("\${!solvent}")
+assertThat(next.gatewayCollectRejections.flow.conditionExpression).isEqualTo("=not(solvent)")
 assertThat(next.gatewayCollectRejections.target).isEqualTo(FlowNodes.GatewayCollectRejections)
 assertThat(next.subProcessConcludeContract.flow.isDefault).isTrue()
 ```
 
-```java
+```java [Java]
 var next = FlowNodes.gatewayIsSolvent().getNext();
-assertThat(next.gatewayCollectRejections().getFlow().getConditionExpression()).isEqualTo("${!solvent}");
+
+assertThat(next.gatewayCollectRejections().getFlow().getConditionExpression()).isEqualTo("=not(solvent)");
 assertThat(next.subProcessConcludeContract().getFlow().isDefault()).isTrue();
 ```
 
-When **several sequence flows lead to the same element**, the successor keeps its name and holds all of them in
-`flows` (C# `Flows`) — no flow is lost and no other entry is renamed; `flow` then fails and asks you to pick one:
+:::
 
-```kotlin
-val toApprove: SequenceFlows<TaskApprove> = FlowNodes.GatewayAmount.next.taskApprove
-assertThat(toApprove.flows.map { it.conditionExpression }).containsExactly("=amount < 100", "=customer.isVip")
-```
+The expression is the one in the model: FEEL (`=…`) on Zeebe, `${…}` on Camunda 7 and Operaton.
 
-Boundary events are **not** sequence flows: they appear in the host's `Next` as an `AttachedBoundaryEvent<Target>`
-(so a walk can leave through them), point back at their host via `attachedTo` and implement `BoundaryEvent<Host>`
-(C#: `Runtime.IBoundaryEvent`).
-
-A **compensation handler** is not reached by a sequence flow either: BPMN connects it to its compensation boundary
-event with an association. It appears in that boundary event's `Next` as an
-`AssociatedCompensationHandler<Target>`:
-
-```kotlin
-object BoundaryCompensateContract : AbstractFlowNode(…),
-    HasSuccessors<BoundaryCompensateContract.Next>, BoundaryEvent<SubProcessConcludeContract> {
-  override val next: Next = Next
-  object Next {
-    val serviceTaskCancelContract: AssociatedCompensationHandler<ServiceTaskCancelContract>
-      get() = AssociatedCompensationHandler(target = ServiceTaskCancelContract)
-  }
-}
-```
-
-`isInterrupting` carries no meaning on a compensation boundary event: BPMN does not define `cancelActivity` for it.
+When **several sequence flows lead to the same element**, the entry keeps its name and holds all of them in `flows`. `flow` then fails and asks you to pick one.
 
 ### Navigation
 
-`next` returns the node's `Next`, whose properties are the reachable elements — continuations, boundary
-events and compensation handlers alike — each a `Successor` whose `target` is the next node (C# `ISuccessor<T>` / `Target`). The target type is
-fixed per step, so **a path that doesn't exist in the model
-doesn't compile**: regenerate after a model change and the affected step breaks the build at that exact edge.
-A subprocess additionally implements `FlowScope` and opens its interior via `startEvents`.
+`next` returns the node's `Next`. Its entries are everything reachable from the node, each a `Successor<Target>`:
+
+| Successor | Leads to |
+|-----------|----------|
+| `SequenceFlows<Target>` | an element reached by one or more sequence flows |
+| `AttachedBoundaryEvent<Target>` | a boundary event attached to this node |
+| `AssociatedCompensationHandler<Target>` | the handler of a compensation boundary event, which BPMN connects by an association |
 
 ```kotlin
-object SubProcessConcludeContract :
-    AbstractFlowNode(ElementId("subProcess_concludeContract"), BpmnElementType.SUB_PROCESS, "Conclude contract"),
+object SubProcessConcludeContract : /* … */
     HasSuccessors<SubProcessConcludeContract.Next>, FlowScope<SubProcessConcludeContract.Start> {
-  override val next: Next = Next                          // what follows the subprocess (+ its boundary events)
-  override val startEvents: Start = Start                  // the interior's start event(s)
+  override val next: Next = Next
+  override val startEvents: Start = Start
+
   object Next {
     val gatewayFork: SequenceFlows<GatewayFork>
-      get() = SequenceFlows.single(
-        flowId = ElementId("flow_concludeContractToFork"),
-        target = GatewayFork,
-      )
+      get() = SequenceFlows.single(flowId = ElementId("flow_concludeContractToFork"), target = GatewayFork)
     val timerSignatureReminder: AttachedBoundaryEvent<TimerSignatureReminder>
       get() = AttachedBoundaryEvent(target = TimerSignatureReminder)
+    val boundaryCompensateContract: AttachedBoundaryEvent<BoundaryCompensateContract>
+      get() = AttachedBoundaryEvent(target = BoundaryCompensateContract)
     // …
   }
-  object Start { val startEventCustomerEligible get() = StartEventCustomerEligible }
+
+  object Start {
+    val startEventCustomerEligible: StartEventCustomerEligible get() = StartEventCustomerEligible
+  }
 }
 ```
 
-Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `name`), **`HasSuccessors<Next>`**,
-**`Successor<Target>`** (`SequenceFlows`, `AttachedBoundaryEvent`, `AssociatedCompensationHandler`),
-**`FlowScope<Start>`**, **`Event`** (`eventType`) and **`BoundaryEvent<Host>`** (an `Event` with `attachedTo`, `isInterrupting`).
+The target type is fixed per entry, so code that follows an edge the model no longer has stops compiling. A subprocess additionally implements `FlowScope` and opens its interior through `startEvents`. On a compensation boundary event, `isInterrupting` carries no meaning: BPMN does not define `cancelActivity` for it.
 
-> `AssociatedCompensationHandler` joined the sealed `Successor` in 6.1.0. Code with an exhaustive `when` over
-> `Successor` needs a branch for it. The generated code needs a runtime of at least the generator's version, so
-> raise the plugin and `bpmn-to-code-runtime` together.
+`Successor` is a sealed interface; an exhaustive `when` over it needs a branch for each of the three kinds and for a single `SequenceFlow`.
+
+### Asserting flow in process tests — `ProcessPath`
+
+The runtime's path builder walks this graph and returns the element ids for your engine's flow assertions. It has a page of its own: [ProcessPath](/guide/process-path).
 
 ### Enumerating elements
 
-Some tests are not about one path but about **every element** of a process: every job type has a registered
-worker, every node id exists in the deployed model, every user task has a form. For these, each `FlowNodes`
-lists its nodes: Kotlin `FlowNodes.all`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
-The test becomes a plain loop, with no reflection over nested classes that would also pick up holders like
-`Next` or `Variables`.
+For tests about **every element** of a process — every node id exists in the deployed model, every user task has a form — `FlowNodes` lists its nodes: Kotlin `FlowNodes.all`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
 
 ```kotlin
 @Test
@@ -491,219 +401,18 @@ fun `every node of the model is deployed`() {
 }
 ```
 
-```java
-List<FlowNode> nodes = FlowNodes.all();
-```
-
-### Asserting flow in process tests — `ProcessPath`
-
-`bpmn-to-code-runtime` ships `ProcessPath`, a compile-checked path builder over the graph — so it is available
-to any process test (Zeebe, Camunda 7, cib, …) that already depends on the runtime, not only when using the
-`bpmn-to-code-testing` module. Walk a route, then feed its `ids` to your engine's existing string-based flow
-assertion — the expected path is verified against the model instead of a hand-maintained id list.
-
-**Entry point per language:** in **Kotlin**, use `ProcessPath` with the extension steps (`then`, `onto`,
-`enter`, …) — shown next. In **Java**, use `PathWalk`, the fluent facade — see [From Java](#from-java). Both
-read natively in their language and stay compile-checked; pick the one for your language rather than mixing
-them (`PathWalk` also works from Kotlin, but the extension DSL is the idiomatic Kotlin form).
-
-```kotlin
-import io.miragon.bpmn.runtime.path.ProcessPath
-import io.miragon.bpmn.runtime.path.then
-import io.miragon.bpmn.runtime.path.onto
-import io.miragon.bpmn.runtime.path.enter
-import io.miragon.bpmn.runtime.path.inside
-import de.myapp.BikeLeasingProcessApi.FlowNodes
-
-val path = ProcessPath.from(FlowNodes.StartEventLeasingRequestReceived)
-    .then { it.serviceTaskValidateApplication }
-    .then { it.businessRuleTaskCheckCreditRating }
-    .then { it.gatewayIsSolvent }
-    .onto { it.subProcessConcludeContract }                 // step onto the subprocess (checked, not recorded)
-    .inside {                                               // walk its interior, resume on the subprocess node
-        enter { it.startEventCustomerEligible }
-            .then { it.serviceTaskSendContract }
-            .then { it.gatewayAwaitSignature }
-            .then { it.eventContractSigned }
-            .then { it.endEventContractConcluded }
-    }
-    .then { it.gatewayFork }                                // checked — continues after the subprocess
-    .then { it.serviceTaskOrderBike }
-    .then { it.gatewayJoin }
-    .then { it.receiveTaskHandoverReported }
-    .then { it.timerWithdrawalPeriodElapsed }
-    .then { it.endEventLeasingActive }
-
-assertThat(instance).isEnded.hasPassedInOrder(*path.ids)
-```
-
-Start with `ProcessPath.from(FlowNodes.<Node>)` — every node is a direct child of `FlowNodes`, so no accessor is
-needed to get hold of the start event.
-
-- **Edge steps** — `then { it.successor }` — the lambda's `it` is the current node's `Next`, so `it.`
-  autocompletes exactly the reachable successors and only a **real successor** compiles. `thenMultipleTimes(n)`
-  records the same node `n` times in a row — for a sequential multi-instance activity or a consecutive
-  self-repeat. Gateways *are* passed at runtime, so record them with `then` too.
-- **Enter a subprocess** — two single-lambda steps for good autocomplete: `onto { it.sub }` steps onto the
-  subprocess node (compile-checked edge, marker *not* recorded — a subprocess is a scope bracket, assert it via
-  `hasPassed`), then `enter { it.start }` descends into its interior. From a position where the subprocess
-  isn't the current node, descend explicitly with `enter(FlowNodes.SubProcess) { it.start }`.
-- **Leave a subprocess** — a **normal** full walk uses `inside { enter { it.start } … }`: it walks the interior
-  and resumes on the subprocess node, so the following `then { it.continuation }` is checked and needs no
-  subprocess name (it nests — each inner subprocess is its own `onto { … }.inside { … }`). A **boundary**
-  interruption uses `interruptedBy(FlowNodes.SubProcessConcludeContract) { it.boundaryContractNotSigned }` — the token leaves the interior
-  *early* via the boundary (interrupting timers, error and escalation boundaries), which is why it's a re-anchor and can't be
-  expressed with `inside`.
-- **Compensation** — `throwingCompensation(FlowNodes.BoundaryCompensateContract) { it.serviceTaskCancelContract }` records
-  the handler of a compensation boundary event and stays on the current node, so the walk continues from the event
-  that threw the compensation. See [Walking a compensated path](#walking-a-compensated-path).
-- **Escape hatch** — `jumpTo(node)` re-anchors to any node without checking adjacency and without recording it
-  (e.g. stepping back to a parallel fork). It is gated behind `@RiskyNavigation` (`@OptIn` required), so it
-  stands out in code and review; prefer the checked steps above.
-- **Parallel (AND) branches**: `hasPassedInOrder` is only meaningful **within one sequential branch**. For
-  concurrent branches, walk each branch separately and assert the **unordered set** with `nodesOf(...)` +
-  `hasPassed`:
-
-```kotlin
-val orderBranch = ProcessPath.from(FlowNodes.GatewayFork)
-    .then { it.serviceTaskOrderBike }
-    .then { it.gatewayJoin }
-    .nodes
-val insuranceBranch = ProcessPath.from(FlowNodes.GatewayFork)
-    .then { it.serviceTaskIssueInsurancePolicy }
-    .then { it.gatewayJoin }
-    .nodes
-assertThat(pi).hasPassed(*nodesOf(orderBranch, insuranceBranch).map { it.id.value }.toTypedArray())
-```
-
-> The guarantee is **structural single-step adjacency**, not token-accurate reachability (a valid path is one
-> the model allows, not necessarily one the engine executes at runtime — XOR picks one branch, AND runs all).
-> `ids` is an array of element ids only, which is what engine assertions consume; the branch a gateway takes is
-> expressed by the successor you pick, and its condition is readable on the successor's `flow`.
-
-Each step also records **which sequence flow** it takes in `flowIds`, ready to compare against the engine's taken
-sequence flows — whenever the successor is unambiguous (a single flow, or one you picked from `flows`). Boundary
-events, compensation handlers and subprocess brackets record no flow:
-
-```kotlin
-val path = ProcessPath.from(FlowNodes.BusinessRuleTaskCheckCreditRating)
-    .then { it.gatewayIsSolvent }
-    .then { it.subProcessConcludeContract }
-
-assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "flow_isSolventToConcludeContract")
-
-// several flows to the same element: pick one
-.then { next -> next.taskApprove.flows.single { it.conditionExpression == "=customer.isVip" } }
-```
-
-### Walking a compensated path
-
-Record the event that throws the compensation, then each compensation it triggers with `throwingCompensation`: name
-the compensation boundary event of the compensated activity and pick the handler from its `Next`. The step is only
-callable on a `CompensationThrowEvent`, and only a compensation boundary event offers a handler, so nothing else
-compiles. The walk stays on the throwing event and continues with its own successors:
-
-```kotlin
-val path = ProcessPath.from(FlowNodes.StartEventApplicationWithdrawn)
-    .then { it.eventReverseApplication }
-    .throwingCompensation(FlowNodes.BoundaryCompensateContract) { it.serviceTaskCancelContract }
-    .then { it.serviceTaskSendCancellationConfirmation }
-
-assertThat(pi).hasPassedInOrder(*path.ids)
-```
-
-The throwing event comes first because an engine starts it before the handler it triggers; Zeebe's in-order
-assertion compares by start time. The handler is not a token-flow successor of the boundary event, but it is structurally adjacent to it, which
-is all the navigation guarantees.
-
-The boundary event itself is not recorded, because only some engines report it as a passed element. A path without
-it holds on every engine, as `hasPassed` and `hasPassedInOrder` accept further elements in between:
-
-| Engine | Reports the compensation boundary event |
-|--------|------------------------------------------|
-| Zeebe (checked on 8.9) | yes |
-| Camunda 7 (checked on 7.24), Operaton (checked on 1.0) | no |
-
-To assert the boundary event on Zeebe as well, record it with
-`throwingCompensation(boundary, includeBoundaryEvent = true) { … }`.
-
-A compensation throw event without an `activityRef` triggers every handler in its scope, and their relative order
-is not defined. Chain several `throwingCompensation` steps when you assert an unordered set (`hasPassed`), or walk each
-handler separately and unite them with `nodesOf`, as for parallel branches.
-
-### From Java
-
-Java's entry point is **`PathWalk`** — a fluent, chained, compile-checked facade over the same engine (each
-step's `n` is the current node's `Next`, so only a real successor compiles):
-
-```java
-var ids = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
-    .then(n -> n.serviceTaskValidateApplication())
-    .then(n -> n.boundaryApplicationInvalid())
-    .then(n -> n.gatewayCollectRejections())
-    .then(n -> n.serviceTaskSendRejection())
-    .end(n -> n.endEventApplicationRejected())
-    .getIds();
-```
-
-`getIds()` returns a `String[]`, so it goes straight into a string-vararg assertion:
-`assertThat(instance).hasPassedInOrder(ids)`. `getFlowIds()` returns the sequence flows walked, as in Kotlin.
-
-Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end` (an end event can't continue
-a chain) and subprocess descent names the subprocess explicitly (`enter(FlowNodes.subProcessConcludeContract(), …)` /
-`inside(FlowNodes.subProcessConcludeContract(), …)`). The raw extension steps are also reachable from Java as static calls
-(`ProcessPathStepsKt.then(path, n -> n.x())`) — checked but not fluent; prefer `PathWalk`.
-
-`throwingCompensation` works the same way and keeps the walk on the current node. It is also available on the `Trail` that
-`end` returns, for an end event that throws a compensation. Unlike in Kotlin, the compiler does not check that the
-current node is a compensation throw event:
-
-```java
-var ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
-    .then(n -> n.eventReverseApplication())
-    .throwingCompensation(FlowNodes.boundaryCompensateContract(), n -> n.serviceTaskCancelContract())
-    .then(n -> n.serviceTaskSendCancellationConfirmation())
-    .end(n -> n.endEventApplicationCancelled())
-    .getIds();
-```
-
-To record the boundary event as well, pass `true` as the second argument:
-`throwingCompensation(FlowNodes.boundaryCompensateContract(), true, n -> n.serviceTaskCancelContract())`.
-
 ## Variables with Direction
 
-Every variable sits on the node that declares it, and its direction is encoded in the wrapper type:
-`VariableName.Input` when the element reads it, `VariableName.Output` when it writes it, `VariableName.InOut`
-when it does both. Consumer APIs that take a specific subtype (`fun setOutput(v: VariableName.Output)`) get
-compile-time direction enforcement.
+Every variable sits on the node that declares it, and its direction is its type: `VariableName.Input` when the element reads it, `VariableName.Output` when it writes it, `VariableName.InOut` when it does both. An API taking `VariableName.Output` therefore rejects an input at compile time. Which model elements declare a variable, and in which direction, depends on the [engine](/engines/#what-is-extracted).
 
 ```kotlin
-object FlowNodes {
-  object ServiceTaskSendContract : /* … */ {
-    override val variables: Variables = Variables
-
-    object Variables : RegisteredVariableDefinitions() {
-      val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
-      val CONTRACT_ID: VariableName.Output = output(ProcessVariables.CONTRACT_ID)
-    }
-  }
-
-  object StartEventLeasingRequestReceived : /* … */ {
-    override val variables: Variables = Variables
-
-    object Variables : RegisteredVariableDefinitions() {
-      val APPLICATION_ID: VariableName.Output = output(ProcessVariables.APPLICATION_ID)
-    }
-  }
+object Variables : RegisteredVariableDefinitions() {
+  val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
+  val CONTRACT_ID: VariableName.Output = output(ProcessVariables.CONTRACT_ID)
 }
 ```
 
-`Variables` is only emitted on nodes that declare at least one variable. C# emits the same subtypes
-(`Runtime.VariableName.Input` and friends) as properties of a `NodeVariables` holder.
-
-A node also lists its variables: `all` of them, those it reads (`inputs`) and those it writes (`outputs`). A
-`VariableName.InOut` is in both. Such a node implements `HasVariables`, so generic code reaches the variables
-of any node — for example to fetch only what a job worker reads:
+`Variables` is only generated on nodes that declare at least one variable. Such a node implements `HasVariables` and lists `all` its variables, those it reads (`inputs`) and those it writes (`outputs`); an `InOut` is in both.
 
 | | Kotlin | Java | C# |
 |---|---|---|---|
@@ -720,148 +429,47 @@ workers.forEach { task ->
 val variablesOfTheProcess: List<String> = HasVariables.distinctVariablesOf(FlowNodes.all)
 ```
 
-In C#, a variable named `all`, `inputs` or `outputs` gets a trailing underscore (`Inputs_`), because the
-holder inherits members of those names.
-
 ## Call-Activity Variable Mappings
 
-A call activity node carries the called process plus the **full mapping** between the parent process and the
-called child: `Inputs` (variables passed **into** the child) and `Outputs` (variables returned **to** the
-parent), each entry an `InputOutputMapping` holding the `target` (the name the variable gets in the receiving
-scope) together with its `source` / `sourceExpression` (the origin). Constant names derive from the `target`.
+A call activity node carries the called process and the mapping between parent and child: `Inputs` (passed into the child) and `Outputs` (returned to the parent). Each entry is an `InputOutputMapping` with the `target` — the name the variable gets in the receiving scope — and its origin. Constants are named after the `target`.
 
 ```kotlin
-object FlowNodes {
-  object CallActivityCancelBikeOrder : /* … */ {
-    override val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
+object CallActivityCancelBikeOrder : /* … */ CallActivity, HasVariables {
+  override val calledProcess: ProcessId = ProcessId("cancelBikeOrder")
 
-    object Variables : RegisteredVariableDefinitions() {
-      val ORDER_IDS: VariableName.Input = input(ProcessVariables.ORDER_IDS)   // the parent-scope view
-      // …
-    }
+  object Inputs {
+    val APPLICATION_ID: InputOutputMapping = InputOutputMapping(target = "applicationId", source = "=applicationId")
+    val ORDER_IDS: InputOutputMapping = InputOutputMapping(target = "orderIds", source = "=orderIds")
+  }
 
-    object Inputs {
-      val ORDER_IDS: InputOutputMapping = InputOutputMapping(target = "orderIds", source = "orderIds")
-      val APPLICATION_ID: InputOutputMapping = InputOutputMapping(target = "applicationId", sourceExpression = "\${applicationId}")
-    }
-
-    object Outputs {
-      val CANCELLATION_COSTS: InputOutputMapping = InputOutputMapping(target = "cancellationCosts", source = "cancellationCosts")
-    }
+  object Outputs {
+    val CANCELLATION_COSTS: InputOutputMapping = InputOutputMapping(target = "cancellationCosts", source = "=cancellationCosts")
   }
 }
 ```
 
-```kotlin
-data class InputOutputMapping(
-    val target: String,            // destination variable name (always present)
-    val source: String? = null,    // origin variable (plain name, or a FEEL expression on Zeebe)
-    val sourceExpression: String? = null, // origin expression — Camunda 7 / Operaton only
-)
-```
+| Engine | `source` | `sourceExpression` |
+|--------|----------|--------------------|
+| Zeebe | the FEEL expression of `zeebe:input` / `zeebe:output` | always `null` |
+| Camunda 7, Operaton | the `source` variable of `camunda:in` / `camunda:out` | its `sourceExpression`, e.g. `${applicationId}` |
 
-::: tip Engine differences
-The `target` is populated the same way for every engine. The origin differs:
+The same model for Camunda 7 yields `InputOutputMapping(target = "applicationId", sourceExpression = "\${applicationId}")`. The "pass all variables" modes (`variables="all"`, `propagateAllParentVariables` / `propagateAllChildVariables`) produce no constants; the [JSON export](/surface/json) reports them.
 
-- **Camunda 7 / Operaton** (`camunda:in` / `camunda:out`): `source` holds a plain variable name, `sourceExpression` a `${...}` expression. A `sourceExpression` only adds a variable to `Variables` when it is a plain variable reference such as `${applicationId}`; literals (`Berlin`, `${true}`, `${42}`) and complex expressions (`${order.id}`) appear in `Inputs` only.
-- **Zeebe** (`zeebe:input` / `zeebe:output`): `source` holds a FEEL expression (e.g. `=orderId`) and `sourceExpression` is always `null`.
+## Several files, one process id
 
-The "pass all variables" mode (`variables="all"` / `propagateAll{Parent,Child}Variables`) is not surfaced as constants.
-:::
+Two files declaring the same process id would be generated under one name, so generation fails. A `variantName` extension property on the process tells them apart: `corporate` turns `BikeLeasingProcessApi` into `CorporateBikeLeasingProcessApi`, while `PROCESS_ID` stays `bikeLeasing`. Nothing is merged between the files. See [Modeling](/guide/modeling#several-files-one-process-id) for the XML and the rules.
 
 ## C# specifics
 
 ::: warning Experimental
-C# support is experimental. It may change in any release and may be reworked or removed if it doesn't work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
+C# output is experimental. It may change in a minor release and may be reworked or removed if it does not work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
 :::
 
-C# generates the same shape without a package dependency: the handful of runtime types the nodes need
-(`IFlowNode`, `SequenceFlow<T>`, `ElementId`, `VariableName`, `BpmnTimer`, …) is inlined into every
-generated file as a nested `Runtime` class. Two generated files in one assembly therefore never clash, and
-consumers reference `MyProcessApi.Runtime.ElementId`. The flip side: `AProcessApi.Runtime.IFlowNode` and
-`BProcessApi.Runtime.IFlowNode` are unrelated types, so tooling that spans several processes needs its own
-abstraction. The [shared definition](#shared-definitions) files need no runtime types: they hold plain
-`const string`s (errors and escalations as a nested class with `Reference` and `Code`; their `All` lists
-`(Reference, Code)` tuples).
+- **No package dependency.** The runtime types the nodes need are inlined into every Process API file as a nested `Runtime` class, so a `.cs` file drops into any project and two generated files never clash. The flip side: `AProcessApi.Runtime.IFlowNode` and `BProcessApi.Runtime.IFlowNode` are unrelated types, so tooling that spans several processes needs its own abstraction.
+- **Shared definitions are plain `const string`s.** Errors and escalations are a nested class with `Reference` and `Code`; their `All` lists `(Reference, Code)` tuples.
+- **Nodes are sealed singletons**: `FlowNodes.<Node>.Instance`, navigated through `Instance.Next.X.Target`, `Instance.Next.X.Flow.ConditionExpression` and `Instance.Start.X`.
+- **Constants versus properties.** `ServiceTasks.X`, `ProcessVariables.X` and a node's `ElementId` are `const string` and usable in attributes and `switch` labels. `Id`, `Name`, `JobType` and the other facets are instance properties and are not.
+- A variable named `all`, `inputs` or `outputs` gets a trailing underscore (`Inputs_`), because the holder inherits members of those names.
+- Each file is marked `<auto-generated/>`, enables nullable annotations itself and suppresses CS1591, so it compiles under any consumer settings.
 
-Nodes are sealed singletons reached via `FlowNodes.<Node>.Instance` and navigated through instance properties
-(`Instance.Next.X.Target`, `Instance.Next.X.Flow.ConditionExpression`, `Instance.Start.X`). `ServiceTasks.X` is a
-`const string` and therefore usable in attributes and `switch` labels; `Id`, `Name`, `JobType` and the other
-facets are instance properties and are not. The file is marked `<auto-generated/>`, enables
-nullable annotations itself and suppresses CS1591, so it compiles under any consumer settings.
-
-## Variable Extraction
-
-Variables are extracted from direction-aware BPMN sources. See the engine-specific pages for details:
-
-- [Zeebe](/engines/zeebe) — `zeebe:input`/`zeebe:output` inside `zeebe:ioMapping`, plus `inputElement`/`inputCollection`/`outputElement`/`outputCollection` on `zeebe:loopCharacteristics`
-- [Camunda 7](/engines/camunda7) — `camunda:inputParameter`/`camunda:outputParameter`, `camunda:in`/`camunda:out`, multi-instance `camunda:collection`/`camunda:elementVariable`, and the `additionalInputVariables` / `additionalOutputVariables` extension properties
-- [Operaton](/engines/operaton) — same patterns as Camunda 7, using the `operaton:` namespace
-
-::: info
-bpmn-to-code **only extracts variables from explicit BPMN definitions**. Variables only referenced in expressions (sequence flows, gateway conditions, script tasks) are intentionally ignored. This is by design — the BPMN model should be the single source of truth for its variable contract. The expressions themselves remain readable on the sequence flows in each node's `Next`.
-:::
-
-## Several files, one process id
-
-Every BPMN file gets a Process API of its own, named after its `processId`. Two files that declare the same
-`processId` would be generated under one name, so generation fails and names the API, the process id and the
-files.
-
-To keep such files side by side — the same process modelled per location, per customer group or per
-environment — give them a `variantName`, an extension property on the process. The variant name leads the
-name of what is generated from that file; the process id itself stays untouched.
-
-::: code-group
-
-```xml [Zeebe]
-<bpmn:process id="bikeLeasing" isExecutable="true">
-  <bpmn:extensionElements>
-    <zeebe:properties>
-      <zeebe:property name="variantName" value="corporate" />
-    </zeebe:properties>
-  </bpmn:extensionElements>
-  <!-- ... -->
-</bpmn:process>
-```
-
-```xml [Camunda 7]
-<bpmn:process id="bikeLeasing" isExecutable="true">
-  <bpmn:extensionElements>
-    <camunda:properties>
-      <camunda:property name="variantName" value="corporate" />
-    </camunda:properties>
-  </bpmn:extensionElements>
-  <!-- ... -->
-</bpmn:process>
-```
-
-```xml [Operaton]
-<bpmn:process id="bikeLeasing" isExecutable="true">
-  <bpmn:extensionElements>
-    <operaton:properties>
-      <operaton:property name="variantName" value="corporate" />
-    </operaton:properties>
-  </bpmn:extensionElements>
-  <!-- ... -->
-</bpmn:process>
-```
-
-:::
-
-| File | `variantName` | Generated API | `PROCESS_ID` |
-|------|-----------------|---------------|--------------|
-| `default/bike-leasing.bpmn` | — | `BikeLeasingProcessApi` | `bikeLeasing` |
-| `corporate/bike-leasing.bpmn` | `corporate` | `CorporateBikeLeasingProcessApi` | `bikeLeasing` |
-
-- **A file without a `variantName` keeps the plain name**, so one file per process id can do without — typically
-  the default one.
-- **A file with a `variantName` always carries it in its API name**, whether or not another file shares its
-  process id. Adding a second file later therefore never renames an existing API.
-- **The variant name starts with a letter** and may contain letters, digits, `_` and `-`. As in a process id, `_`
-  and `-` separate words: `corporate-fleet` leads to `CorporateFleetBikeLeasingProcessApi`.
-- **Each API carries exactly what its file declares.** Nothing is merged between the files. The
-  [shared definitions](#shared-definitions) are where their job types, messages and variables meet, as for any
-  two processes.
-- **The [JSON export](/surface/json) follows the same rule**: `corporate_bikeLeasing.json` next to
-  `bikeLeasing.json`.
+The web app is the primary surface for C#, since a pure .NET project has no JVM build to hook into. The Gradle and Maven plugins accept `CSHARP` as well.

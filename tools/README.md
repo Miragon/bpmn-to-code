@@ -8,9 +8,9 @@ npm --prefix tools install
 
 ## Full linting
 
-This runs the full `bpmnlint:recommended` rule set from `.bpmnlintrc`,
-over the models we ship in production.
-Those are the models under `shared/bpmn`, which the web module also bundles as its examples.
+This runs the full `bpmnlint:recommended` rule set from `.bpmnlintrc`
+over the models under `shared/bpmn`.
+All modules test against them, and the web module bundles the bike-leasing models as its examples.
 
 ```bash
 npm --prefix tools run lint:bpmn
@@ -20,7 +20,7 @@ npm --prefix tools run lint:bpmn
 
 This runs only the diagram interchange rules from `.bpmnlintrc-di`,
 namely `no-bpmndi` and `no-overlapping-elements`,
-over the fixtures of `bpmn-to-code-testing`.
+over the fixtures of `bpmn-to-code-testing` and `bpmn-to-code-core`.
 Those fixtures are intentionally invalid in places,
 so the full rule set does not fit.
 The reduced check only makes sure they are valid in a visual manner,

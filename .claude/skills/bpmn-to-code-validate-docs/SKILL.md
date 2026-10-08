@@ -1,73 +1,70 @@
-# validate-docs
+---
+name: bpmn-to-code-validate-docs
+description: "Check that docs, READMEs, CLAUDE.md, repo skills and context7.json still match the code. Use before a release, after changing plugin parameters, validation rules, engines, output languages, web routes, modules or workflows, and whenever docs were moved or deleted."
+---
 
-Validate that the documentation website pages accurately reflect the current codebase. Compares what the docs claim against what the code actually does, and flags mismatches.
+# Validate docs against the code
 
-## When to use
+The code is the source of truth. Report every mismatch; fix the docs when the code is clearly intended, and ask when it could just as well be a bug in the code.
 
-- After changing engine extractors, code generators, or plugin parameters
-- Before a release, to ensure docs are up to date
-- When adding new features that should be documented
+Scope: `docs/**/*.md` (not `node_modules`), `README.md`, `*/README.md`, `CLAUDE.md`, `.claude/rules/**`, `.claude/skills/**`, `bpmn-to-code-skills/**/*.md`, `context7.json`. Never edit `CHANGELOG.md`.
 
-## Validation checklist
+## 1. Mechanical checks
 
-### 1. Engine pages vs extractors
+Run these first; they need no judgement.
 
-For each engine (Zeebe, Camunda 7, Operaton), compare the doc page against its extractor:
+1. **Docs build.** `cd docs && npm ci && npm run build` must pass. VitePress fails on dead links inside `docs/`.
+2. **Links outside the site.** For every relative markdown link in the READMEs, `CLAUDE.md` and the skills: the target file exists. For every `https://miragon.github.io/bpmn-to-code/<path>` link anywhere: `docs/<path>.md` or `docs/<path>/index.md` exists.
+3. **Repo paths.** Every backticked token in scope that looks like a repo path (contains `/` and starts with a top-level folder or dot-folder of this repo) exists:
 
-| Engine | Doc page | Extractor |
-|--------|----------|-----------|
-| Zeebe | `docs/engines/zeebe.md` | `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/outbound/engine/zeebe/ZeebeModelExtractor.kt` |
-| Camunda 7 | `docs/engines/camunda7.md` | `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/outbound/engine/camunda7/Camunda7ModelExtractor.kt` |
-| Operaton | `docs/engines/operaton.md` | `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/outbound/engine/operaton/OperatonModelExtractor.kt` |
+   ```bash
+   tops=$(ls -A | paste -sd'|' -)
+   grep -rnoE "\`($tops)/[A-Za-z0-9_./{},*<>-]+\`" README.md CLAUDE.md */README.md .claude docs --include='*.md' --exclude-dir=node_modules \
+     | while IFS= read -r hit; do
+         target=$(printf '%s' "$hit" | sed -E 's/^[^`]*`//; s/`$//')
+         case "$target" in *[\*\<\{]*) continue ;; esac
+         [ -e "$target" ] || echo "MISSING $hit"
+       done
+   ```
 
-For each engine, verify:
-- **Service task detection**: Which attributes/elements are parsed? Does the doc match?
-- **Variable extraction**: Which sources (I/O mappings, multi-instance, call activity mappings, extension properties/additionalVariables)? Are all documented? Are any documented that don't exist?
-- **Call activities**: How is the called element resolved? Does the doc match?
-- **Any other sections**: Does the doc claim features that aren't implemented?
-- **Missing documentation**: Are there implemented features the docs don't mention? Would they be relevant enough to document?
+   Paths with `*`, `<…>` or `{…}` are skipped by the script; check them by eye. Hits below `build/` are build outputs and fine.
+4. **Class and function names.** Every backticked `CamelCase` type or `function()` named in `CLAUDE.md`, `docs/contributing/**` and `.claude/skills/**` is found by `grep -rn` in the sources.
+5. **Sidebar.** Every `link:` in `docs/.vitepress/config.mts` resolves to a file, and every page under `docs/` except the ADRs is reachable from the sidebar or linked from another page.
+6. **Versions.** `grep -rn "$(grep projectVersion= gradle.properties | cut -d= -f2)"` over the scope: every hit is in a file listed under `extra-files` in `release-please-config.json` and sits between release-please markers. Every `extra-files` entry exists. Older version literals outside `docs/changelog/` and the benchmark page are suspicious.
+7. **Deleted pages.** No link or sidebar entry points at a page that `git status` or `git log --diff-filter=D -- docs` shows as removed.
 
-Also check the shared extractors in `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/outbound/engine/shared/` — these handle flow nodes, messages, errors, signals, and timers for all engines.
+## 2. Fact tables
 
-### 2. Configuration page vs plugin parameters
+Read the source, then compare every place in scope that states the fact. Search for the values, not only on the page you expect them.
 
-Compare `docs/guide/configuration.md` against:
-- `bpmn-to-code-gradle/src/main/kotlin/io/miragon/bpmn/adapter/GenerateBpmnModelsTask.kt`
-- `bpmn-to-code-maven/src/main/kotlin/io/miragon/bpmn/adapter/BpmnModelMojo.java`
+| Fact | Source of truth | What to compare |
+|---|---|---|
+| Process engines | `ProcessEngine` in core's `domain/shared` | names and count; CIB seven is documented as `CAMUNDA_7` |
+| Output languages | `OutputLanguage` in core's `domain/shared` | names; C# is "experimental", never "beta" |
+| Gradle tasks | `bpmn-to-code-gradle/src/main/kotlin` | task names, parameters, conventions, experimental markers, no lifecycle wiring, automatic runtime dependency |
+| Maven goals | `bpmn-to-code-maven/src/main/java` | goal names, parameters, `defaultValue`s, `defaultPhase` (snippets must bind a phase when it is `NONE`), manual runtime dependency |
+| Validation rules | `BpmnRules` in `bpmn-to-code-testing`, rule classes in core's `domain/validation/rules`, built-in list in `BpmnValidationService` | ids, severities, `mandatory`, default versus opt-in, build-time set versus `BpmnRules.all()`, any stated rule count |
+| Web app | routing and `System.getenv` calls in `bpmn-to-code-web/src/main/kotlin`, the `Dockerfile` | routes, environment variables really read, file limit, fixed package; `bpmn-to-code-web/README.md` is the Docker Hub description and must stand alone |
+| Shipped skills | `bpmn-to-code-skills/skills` and `bpmn-to-code-skills/agents` | lists in `bpmn-to-code-skills/README.md`, `docs/skills/`, `context7.json` |
+| Modules | `settings.gradle.kts`, top-level folders, `publish-*.yml` | module lists and publication targets in `CLAUDE.md` and `docs/contributing/architecture.md` |
+| ADRs | files in `docs/contributing/adr` | the ADR index; every ADR reference in docs and KDoc (`grep -rn "ADR [0-9]" --include='*.kt'`) |
+| Quality gates | root and module build files, `lefthook.yml`, `.github/workflows` | coverage and PIT thresholds, hook versus CI, PR title types in `docs/contributing/index.md` |
+| Release flow | `release-please.yml`, `publish-*.yml`, `update-ops-deployment.yml` | `docs/contributing/releasing.md` |
+| Generated API | golden files in `bpmn-to-code-core/src/test/resources/api` | samples and section names in `docs/guide/` and the README (the node tree is `FlowNodes`) |
+| Process JSON | `docs/public/schema`, goldens in `bpmn-to-code-core/src/test/resources/json` | `formatVersion`, schema URL and samples in `docs/surface/json.md` |
+| Engine extraction | dialects in core's `adapter/outbound/engine/dialect` | what `docs/engines/` says each engine reads |
+| Test helpers | `bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/domain` | builder names in docs and `.claude/skills/create-unit-test` |
 
-Verify:
-- All parameters listed in the docs exist in the code
-- All parameters in the code are listed in the docs
-- Types, defaults, and descriptions are accurate
-- `ProcessEngine` enum values match (check `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/shared/ProcessEngine.kt`)
-- `OutputLanguage` enum values match
+Examples must use the MiraVelo models from `shared/bpmn`; flag any other domain or a customer name.
 
-### 3. Generated API page vs code generators
+## 3. Report
 
-Compare `docs/guide/generated-api.md` against:
-- `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/outbound/codegen/`
-
-Verify:
-- All sections listed (Messages, ServiceTasks, Errors, Escalations, Signals, Flow) actually get generated, and the per-node members of Flow (jobType, Variables, calledProcess/Inputs/Outputs, timer, message/signal/error/escalation with their facet interfaces, attachedTo/isInterrupting, next/Next with its successors (SequenceFlows / AttachedBoundaryEvent / AssociatedCompensationHandler, flow/flows), startEvents/Start) match the generators
-- The example code matches what the generators would produce
-- No generated sections are missing from the docs
-
-### 4. Getting started pages vs actual plugin versions
-
-Check that version numbers in `docs/getting-started/gradle.md` and `maven.md` match the latest published versions (check `gradle.properties` or the latest release tag).
-
-## How to run
-
-1. Read each extractor file listed above
-2. Read each doc page listed above
-3. Compare feature-by-feature using the checklist
-4. Report findings as a table:
+One table, mismatches only, then the fixes you made:
 
 ```
-| Page | Section | Status | Issue |
-|------|---------|--------|-------|
-| zeebe.md | Service Tasks | ✅ | — |
-| zeebe.md | Headers | ❌ | Documented but not implemented |
+| File:line | States | Code says (source) | Action |
+|---|---|---|---|
+| README.md:46 | 12 built-in rules | 13 in BpmnRules.all() | fixed |
 ```
 
-5. Fix any issues found, or flag them for the user if the fix is ambiguous (could be missing code OR wrong docs)
+Finish with the mechanical checks that passed, so it is clear they ran.
