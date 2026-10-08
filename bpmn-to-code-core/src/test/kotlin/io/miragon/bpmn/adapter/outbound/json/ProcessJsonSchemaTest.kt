@@ -48,10 +48,10 @@ class ProcessJsonSchemaTest {
 
     @Test
     fun `golden json fixtures conform to the published schema`() {
-        // given: the committed fixtures, which also cover the merged multi-variant shape
+        // given: the committed fixtures
         val goldenFiles = listOf(
             "/json/BikeLeasingProcess.json",
-            "/json/MultiVariantCancelBikeOrderProcess.json",
+            "/json/CancelBikeOrderProcess.json",
             "/json/e2e/zeebe/bike-leasing.json",
             "/json/e2e/c7/bike-leasing.json",
             "/json/e2e/operaton/bike-leasing.json",
@@ -129,12 +129,9 @@ class ProcessJsonSchemaTest {
     }
 
     /**
-     * The process scope plus every variant and every nested sub-process scope.
+     * The process scope plus every nested sub-process scope.
      */
-    private fun JsonNode.scopes(): List<JsonNode> {
-        val roots = listOf(this["process"]) + (this["variants"]?.toList() ?: emptyList())
-        return roots.flatMap { it.withNestedScopes() }
-    }
+    private fun JsonNode.scopes(): List<JsonNode> = this["process"].withNestedScopes()
 
     private fun JsonNode.withNestedScopes(): List<JsonNode> {
         val children = this["flowNodes"]?.filter { it.has("flowNodes") } ?: emptyList()

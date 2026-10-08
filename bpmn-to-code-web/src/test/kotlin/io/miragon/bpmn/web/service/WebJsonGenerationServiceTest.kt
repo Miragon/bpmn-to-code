@@ -59,44 +59,46 @@ class WebJsonGenerationServiceTest {
     }
 
     @Test
-    fun `should reject files sharing a process id unless variants are enabled`() {
-        // given: two variants of the same process without enabling variants
-        val request = variantRequest(enableVariants = false)
+    fun `should reject files sharing a process id that nothing tells apart`() {
+        // given: the same process uploaded twice
+        val privateXml = String(Base64.getDecoder().decode(loadSampleBase64("examples/zeebe-bike-leasing.bpmn")))
+        val request = requestOfPrivateAnd(corporateXml = privateXml)
 
         // when: generating JSON
         val response = underTest.generate(request)
 
-        // then: a bad request names both files and the opt-in flag
+        // then: a bad request names both files and the way to tell them apart
         assertThat(response.success).isFalse()
         assertThat(response.statusCode).isEqualTo(HttpStatusCode.BadRequest)
-        assertThat(response.error).contains("corporate, private", "enableVariants")
+        assertThat(response.error).contains("'bikeLeasing.json'", "corporate (process id 'bikeLeasing'), private (process id 'bikeLeasing')", "variantName")
     }
 
     @Test
-    fun `should merge files sharing a process id into one JSON when variants are enabled`() {
-        // given: two variants of the same process with variants enabled
-        val request = variantRequest(enableVariants = true)
+    fun `should generate a JSON per file once a variant name tells files sharing a process id apart`() {
+        // given: the same process uploaded twice, one of the files declaring a variant name
+        val privateXml = String(Base64.getDecoder().decode(loadSampleBase64("examples/zeebe-bike-leasing.bpmn")))
+        val variantProperty = """<zeebe:properties><zeebe:property name="variantName" value="corporate" /></zeebe:properties>"""
+        val corporateXml = privateXml.replace(Regex("<bpmn:process [^>]*>")) { "${it.value}<bpmn:extensionElements>$variantProperty</bpmn:extensionElements>" }
+        val request = requestOfPrivateAnd(corporateXml = corporateXml)
 
         // when: generating JSON
         val response = underTest.generate(request)
 
-        // then: one JSON file for the merged process
+        // then: each file is a JSON of its own for the same process id
         assertThat(response.success).describedAs("Generation should succeed but got: ${response.error}").isTrue()
-        assertThat(response.files).hasSize(1)
+        assertThat(response.files.map { it.fileName }).containsExactly("bikeLeasing.json", "corporate_bikeLeasing.json")
+        assertThat(response.files.map { it.processId }).containsExactly("bikeLeasing", "bikeLeasing")
     }
 
-    private fun variantRequest(enableVariants: Boolean): GenerateJsonRequest {
-        val corporateXml = String(Base64.getDecoder().decode(loadSampleBase64("examples/zeebe-bike-leasing.bpmn")))
-        val privateXml = corporateXml.replace("name=\"variantName\" value=\"corporate\"", "name=\"variantName\" value=\"private\"")
+    private fun requestOfPrivateAnd(corporateXml: String): GenerateJsonRequest {
+        val privateBase64 = loadSampleBase64("examples/zeebe-bike-leasing.bpmn")
+        val corporateBase64 = Base64.getEncoder().encodeToString(corporateXml.encodeToByteArray())
         return GenerateJsonRequest(
             files = listOf(
-                BpmnFileData(fileName = "corporate.bpmn", content = Base64.getEncoder().encodeToString(corporateXml.encodeToByteArray())),
-                BpmnFileData(fileName = "private.bpmn", content = Base64.getEncoder().encodeToString(privateXml.encodeToByteArray())),
+                BpmnFileData(fileName = "corporate.bpmn", content = corporateBase64),
+                BpmnFileData(fileName = "private.bpmn", content = privateBase64),
             ),
-            config = GenerateJsonRequest.JsonGenerationConfig(
-                processEngine = ProcessEngine.ZEEBE,
-                enableVariants = enableVariants,
-            ),
+            config = GenerateJsonRequest.JsonGenerationConfig(processEngine = ProcessEngine.ZEEBE),
         )
     }
 

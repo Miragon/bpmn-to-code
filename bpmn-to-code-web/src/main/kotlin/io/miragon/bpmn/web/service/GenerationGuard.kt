@@ -2,7 +2,7 @@ package io.miragon.bpmn.web.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.miragon.bpmn.domain.DuplicateProcessIdException
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.web.model.BpmnFileData
 
@@ -30,7 +30,7 @@ internal object GenerationGuard {
         } catch (e: BpmnValidationException) {
             logger.error(e) { "BPMN validation failed during generation" }
             failure(HttpStatusCode.BadRequest, e.message)
-        } catch (e: DuplicateProcessIdException) {
+        } catch (e: ProcessApiNamingException) {
             logger.warn { e.message }
             failure(HttpStatusCode.BadRequest, e.message)
         } catch (e: IllegalStateException) {

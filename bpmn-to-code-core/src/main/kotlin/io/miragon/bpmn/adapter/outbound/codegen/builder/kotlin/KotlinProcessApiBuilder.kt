@@ -11,7 +11,6 @@ import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.ProcessGraph
 import io.miragon.bpmn.domain.shared.RootElements
-import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 
 /**
  * Generates the type-safe API contract for a single BPMN process as a Kotlin object file.
@@ -27,7 +26,6 @@ internal class KotlinProcessApiBuilder : ProcessApiBuilder {
         ApiObjectType.PROCESS_ID to ProcessIdWriter(),
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
         ApiObjectType.FLOW to FlowWriter(),
-        ApiObjectType.FLOW_VARIANTS to FlowVariantsWriter(),
     )
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
@@ -70,27 +68,14 @@ internal class KotlinProcessApiBuilder : ProcessApiBuilder {
         }
     }
 
-    private inner class FlowVariantsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val model = modelApi.model
-            val variantsBuilder = TypeSpec.objectBuilder("FlowVariants")
-                .addKdoc("The `FlowNodes` of each merged BPMN file, keyed by its `variantName`.")
-            model.variants.forEach { variant ->
-                variantsBuilder.addType(buildFlowObject(graph = variant.graph, definitions = model.definitions, objectName = variant.variantName.toCamelCase()))
-            }
-            builder.addType(variantsBuilder.build())
-        }
-    }
-
     /**
      * Renders the process as a typed navigation graph: one nested object per element exposing its `id`,
      * `elementType` and display `name`, plus its reachable successors behind `next`. Boundary events and
      * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
      * opens its interior via `startEvents`.
      */
-    private fun buildFlowObject(graph: ProcessGraph, definitions: RootElements, objectName: String = "FlowNodes"): TypeSpec {
-        val flowBuilder = TypeSpec.objectBuilder(objectName).addKdoc("Typed navigation over the process flow: one nested object per BPMN element.")
+    private fun buildFlowObject(graph: ProcessGraph, definitions: RootElements): TypeSpec {
+        val flowBuilder = TypeSpec.objectBuilder("FlowNodes").addKdoc("Typed navigation over the process flow: one nested object per BPMN element.")
         KotlinFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }

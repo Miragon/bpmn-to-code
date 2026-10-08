@@ -5,7 +5,7 @@ package io.miragon.bpmn.domain.shared
  *
  * BPMN calls this a `bpmn:FlowElementsContainer`: a process and a sub-process are containers in exactly
  * the same sense, each owning its children *and* the flows between them. Naming it once is what lets the
- * process model, its variants and [FlowNodeDefinition.Activity.SubProcess] share the concept instead of
+ * process model and [FlowNodeDefinition.Activity.SubProcess] share the concept instead of
  * each carrying the two lists apart — and what lets a reader hand back one value rather than a pair.
  *
  * This is the store. [ProcessGraph] is the flattened projection over it.
@@ -16,20 +16,15 @@ data class FlowScope(
 ) {
 
     /**
-     * Merges this scope with the same scope of [others] by element id, unioning additive list fields like
-     * `variables` and `boundaryEventRefs` so that variant-specific extension data (e.g. additionalInputVariables)
-     * is preserved instead of being dropped by simple deduplication. Sub-process scopes are merged recursively,
-     * so nesting survives the merge.
-     *
-     * A merged node's base attributes come from the first scope in the given order, this one first; a compensation
-     * boundary event's handler comes from the first scope that declares one.
+     * Keeps the first node and the first sequence flow of each id, in this scope and in every scope nested inside it.
+     * A node without an id cannot be referenced and is dropped; what a node lists twice is listed once.
      */
-    fun merge(others: List<FlowScope>): FlowScope {
-        val scopes = listOf(this) + others
-        val nodesById = scopes.flatMap { it.flowNodes }.filter { !it.id.isNullOrEmpty() }.groupBy { it.id }
-        val mergedNodes = nodesById.map { (_, duplicates) -> mergeNodes(duplicates) }
-        val mergedFlows = scopes.flatMap { it.sequenceFlows }.distinctBy { it.id.orEmpty() }
-        return FlowScope(mergedNodes, mergedFlows)
+    fun deduplicated(): FlowScope {
+        val identifiableNodes = flowNodes.filter { !it.id.isNullOrEmpty() }
+        val distinctNodes = identifiableNodes.distinctBy { it.id }
+            .map { node -> if (node is FlowNodeDefinition.Activity.SubProcess) node.withScope(node.scope().deduplicated()) else node }
+            .map { it.withoutRepeatedEntries() }
+        return FlowScope(distinctNodes, sequenceFlows.distinctBy { it.id.orEmpty() })
     }
 
     /**
@@ -43,12 +38,19 @@ data class FlowScope(
         return FlowScope(sortedNodes, sequenceFlows.sortedBy { it.id.orEmpty() })
     }
 
-    private fun mergeNodes(duplicates: List<FlowNodeDefinition>): FlowNodeDefinition {
-        val merged = duplicates.first().mergedWith(duplicates.drop(1))
-        if (merged !is FlowNodeDefinition.Activity.SubProcess) return merged
-        val childScopes = duplicates.filterIsInstance<FlowNodeDefinition.Activity.SubProcess>().map { it.scope() }
-        return merged.withScope(childScopes.first().merge(childScopes.drop(1)))
+    private fun FlowNodeDefinition.withoutRepeatedEntries(): FlowNodeDefinition {
+        val distinctVariables = variables.distinct()
+        return when (this) {
+            is FlowNodeDefinition.Gateway -> copy(variables = distinctVariables)
+            is FlowNodeDefinition.Event -> copy(variables = distinctVariables)
+            is FlowNodeDefinition.Unknown -> copy(variables = distinctVariables)
+            is FlowNodeDefinition.Activity.Task -> copy(variables = distinctVariables, boundaryEventRefs = distinctBoundaryEventRefs())
+            is FlowNodeDefinition.Activity.SubProcess -> copy(variables = distinctVariables, boundaryEventRefs = distinctBoundaryEventRefs())
+            is FlowNodeDefinition.Activity.CallActivity -> copy(variables = distinctVariables, boundaryEventRefs = distinctBoundaryEventRefs())
+        }
     }
+
+    private fun FlowNodeDefinition.Activity.distinctBoundaryEventRefs(): List<String> = boundaryEventRefs.distinct().sorted()
 
     private fun FlowNodeDefinition.Activity.SubProcess.scope() = FlowScope(flowNodes, sequenceFlows)
 

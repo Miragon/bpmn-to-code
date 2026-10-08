@@ -6,7 +6,6 @@ import io.miragon.bpmn.application.port.outbound.LocateBpmnFilesPort
 import io.miragon.bpmn.domain.BpmnResource
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.name
 import kotlin.io.path.readBytes
 import kotlin.streams.toList
 
@@ -25,12 +24,12 @@ internal class BpmnFileLoader :
         val matchingFiles = Files.walk(searchDir).use { paths ->
             paths.filter { Files.isRegularFile(it) }.filter { pattern.matches(it) }.toList()
         }
-        val files = matchingFiles.sortedBy { relativeSortKey(searchDir, it) }
+        val files = matchingFiles.sortedBy { relativePathOf(searchDir, it) }
 
         logger.info { "Found ${files.size} files matching pattern ${pattern.glob} in directory $searchDir" }
 
         return files.map { file ->
-            BpmnResource(fileName = file.name, content = file.readBytes())
+            BpmnResource(fileName = relativePathOf(searchDir, file), content = file.readBytes())
         }
     }
 
@@ -61,14 +60,15 @@ internal class BpmnFileLoader :
     }
 
     /**
-     * Builds a deterministic sort key from a file's path relative to [searchDir].
+     * A file's path relative to [searchDir], which is both what the files are sorted by and what names a file in
+     * a message.
      *
      * `Files.walk` returns entries in filesystem-dependent order (APFS vs ext4/overlayfs differ),
-     * which would leak into the generated code. We sort by the **relative path** rather than the
-     * file name because variant files legitimately share a file name across directories
-     * (e.g. `default/qualitaetssicherung.bpmn`, `karlsruhe/qualitaetssicherung.bpmn`), so file-name
-     * sorting is not a total order. Segments are joined with `/` so the key is identical across
-     * operating systems, and plain [String] ordering keeps it locale-independent.
+     * which would leak into the generated code. We use the **relative path** rather than the
+     * file name because files legitimately share a file name across directories
+     * (e.g. `default/bike-leasing.bpmn`, `corporate/bike-leasing.bpmn`), so the file name
+     * neither is a total order nor tells such files apart. Segments are joined with `/` so the path is identical
+     * across operating systems, and plain [String] ordering keeps it locale-independent.
      */
-    private fun relativeSortKey(searchDir: Path, file: Path): String = searchDir.relativize(file).joinToString("/") { it.toString() }
+    private fun relativePathOf(searchDir: Path, file: Path): String = searchDir.relativize(file).joinToString("/") { it.toString() }
 }

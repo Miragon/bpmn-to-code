@@ -11,7 +11,6 @@ import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.ProcessGraph
 import io.miragon.bpmn.domain.shared.RootElements
-import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
@@ -30,7 +29,6 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
         ApiObjectType.PROCESS_ID to ProcessIdWriter(),
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
         ApiObjectType.FLOW to FlowWriter(),
-        ApiObjectType.FLOW_VARIANTS to FlowVariantsWriter(),
     )
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
@@ -72,27 +70,14 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
         }
     }
 
-    private inner class FlowVariantsWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val model = modelApi.model
-            val variantsBuilder = JavaConstantHolder("FlowVariants").builder(STATIC)
-                .addJavadoc("The {@code FlowNodes} of each merged BPMN file, keyed by its {@code variantName}.\n")
-            model.variants.forEach { variant ->
-                variantsBuilder.addType(buildFlowClass(graph = variant.graph, definitions = model.definitions, className = variant.variantName.toCamelCase()))
-            }
-            builder.addType(variantsBuilder.build())
-        }
-    }
-
     /**
      * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
      * `elementType` and display `name`, plus its reachable successors behind `getNext()`. Boundary events and
      * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
      * opens its interior via `getStartEvents()`.
      */
-    private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements, className: String = "FlowNodes"): TypeSpec {
-        val flowBuilder = JavaConstantHolder(className).builder(STATIC).addJavadoc("Typed navigation over the process flow: one nested class per BPMN element.\n")
+    private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements): TypeSpec {
+        val flowBuilder = JavaConstantHolder("FlowNodes").builder(STATIC).addJavadoc("Typed navigation over the process flow: one nested class per BPMN element.\n")
         JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
         return flowBuilder.build()
     }

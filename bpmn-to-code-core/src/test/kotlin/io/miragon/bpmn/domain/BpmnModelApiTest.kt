@@ -19,4 +19,22 @@ class BpmnModelApiTest {
             assertThat(api.fileName()).isEqualTo(expectedFileName)
         }
     }
+
+    @Test
+    fun `fileName leads the class name with the variant name`() {
+        // given
+        val model = testProcessModel(processId = "newsletter-subscription", variantName = "corporate")
+
+        // when / then
+        assertThat(testProcessModelApi(model = model).fileName()).isEqualTo("CorporateNewsletterSubscriptionProcessApi")
+    }
+
+    @Test
+    fun `fileName reads the separators of a variant name like those of the process id`() {
+        // given
+        val model = testProcessModel(processId = "newsletterSubscription", variantName = "corporate-fleet")
+
+        // when / then
+        assertThat(testProcessModelApi(model = model).fileName()).isEqualTo("CorporateFleetNewsletterSubscriptionProcessApi")
+    }
 }

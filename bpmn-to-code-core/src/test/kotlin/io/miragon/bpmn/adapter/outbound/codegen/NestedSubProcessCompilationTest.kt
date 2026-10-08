@@ -41,6 +41,28 @@ class NestedSubProcessCompilationTest {
         assertCompiles(generated)
     }
 
+    @Test
+    fun `generated java of two files sharing a process id compiles into an API of its own each`() {
+        // given: the bike-leasing process, and a copy that declares a variant name and models one task differently
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn")).readText()
+        val variantProperty = """<zeebe:properties><zeebe:property name="variantName" value="corporate" /></zeebe:properties>"""
+        val corporateXml = bpmnXml
+            .replace(Regex("<bpmn:process [^>]*>")) { "${it.value}<bpmn:extensionElements>$variantProperty</bpmn:extensionElements>" }
+            .replace("serviceTask_validateApplication", "serviceTask_validateCorporateApplication")
+
+        // when
+        val generated = generate(listOf(bpmnXml, corporateXml))
+
+        // then: each file is an API of its own with its own content, for the same process id
+        val defaultApi = generated.single { it.fileName == "BikeLeasingProcessApi.java" }
+        val corporateApi = generated.single { it.fileName == "CorporateBikeLeasingProcessApi.java" }
+        assertThat(defaultApi.content).contains("class ServiceTaskValidateApplication").doesNotContain("ServiceTaskValidateCorporateApplication")
+        assertThat(corporateApi.content).contains("class ServiceTaskValidateCorporateApplication").doesNotContain("class ServiceTaskValidateApplication")
+        assertThat(listOf(defaultApi, corporateApi)).allSatisfy { assertThat(it.content).contains("new ProcessId(\"bikeLeasing\")") }
+        assertThat(generated.filter { it.fileName == "ServiceTasks.java" }).hasSize(1)
+        assertCompiles(generated)
+    }
+
     private fun assertCompiles(generated: List<GeneratedApiFile>) {
         val errors = compileJava(generated)
         assertThat(errors).withFailMessage { "Generated Java did not compile:\n${errors.joinToString("\n")}" }.isEmpty()

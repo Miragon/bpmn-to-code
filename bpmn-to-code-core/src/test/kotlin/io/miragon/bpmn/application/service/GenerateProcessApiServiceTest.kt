@@ -7,8 +7,8 @@ import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnResource
-import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -154,33 +154,44 @@ class GenerateProcessApiServiceTest {
     }
 
     @Test
-    fun `generateProcessApi rejects files sharing a process id unless variants are enabled`() {
+    fun `generateProcessApi rejects files sharing a process id that nothing tells apart`() {
         // given: two files defining the same process id
-        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(variantResource("v1.bpmn"), variantResource("v2.bpmn"))
+        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(resource("default/order.bpmn"), resource("corporate/order.bpmn"))
         every { bpmnService.extract(any(), any()) } returns dummyModel
 
-        // when / then: it fails naming both files and neither deletes nor writes anything
+        // when / then: it fails naming the API and both files, and neither generates, deletes nor writes anything
         assertThatThrownBy { underTest.generateProcessApi(command()) }
-            .isInstanceOf(DuplicateProcessIdException::class.java).hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(ProcessApiNamingException::class.java)
+            .hasMessageContaining("'NewsletterSubscriptionProcessApi'")
+            .hasMessageContaining("corporate/order.bpmn (process id 'newsletterSubscription'), default/order.bpmn (process id 'newsletterSubscription')")
+        verify(exactly = 0) { codeGenerator.generateCode(any()) }
         verify(exactly = 0) { fileSystemOutput.deleteStaleFiles(generatedFiles = any(), outputFolderPath = any(), packagePath = any()) }
         verify(exactly = 0) { fileSystemOutput.writeFiles(any(), any()) }
     }
 
     @Test
-    fun `generateProcessApi merges files sharing a process id into variants when enabled`() {
-        // given: two variants of the same process and variants enabled
-        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(variantResource("v1.bpmn"), variantResource("v2.bpmn"))
-        every { bpmnService.extract(match { it.fileName == "v1.bpmn" }, any()) } returns dummyModel.copy(variantName = "v1")
-        every { bpmnService.extract(match { it.fileName == "v2.bpmn" }, any()) } returns dummyModel.copy(variantName = "v2")
+    fun `generateProcessApi generates an API per file once a variant name tells files sharing a process id apart`() {
+        // given: two files of the same process, one of them with a variant name
+        val corporateModel = dummyModel.copy(variantName = "corporate")
+        every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(resource("default/order.bpmn"), resource("corporate/order.bpmn"))
+        every { bpmnService.extract(match { it.fileName == "default/order.bpmn" }, any()) } returns dummyModel
+        every { bpmnService.extract(match { it.fileName == "corporate/order.bpmn" }, any()) } returns corporateModel
 
         // when: generateProcessApi is invoked
-        val results = underTest.generateProcessApi(command().copy(enableVariants = true))
+        val results = underTest.generateProcessApi(command())
 
-        // then: one merged process backed by both files
-        assertThat(results).containsExactly(BpmnFileResult(dummyModel.processId, listOf("v1.bpmn", "v2.bpmn")))
+        // then: each file is generated on its own, in the order of the names they are generated under
+        verifyOrder {
+            codeGenerator.generateCode(getExpectedModelApi(corporateModel))
+            codeGenerator.generateCode(getExpectedModelApi(dummyModel))
+        }
+        assertThat(results).containsExactly(
+            BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("corporate/order.bpmn")),
+            BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("default/order.bpmn")),
+        )
     }
 
-    private fun variantResource(fileName: String) = BpmnResource(fileName = fileName, content = "<bpmn></bpmn>".encodeToByteArray())
+    private fun resource(fileName: String) = BpmnResource(fileName = fileName, content = "<bpmn></bpmn>".encodeToByteArray())
 
     private val dummyModel = ProcessModel(processId = "newsletterSubscription", flowNodes = emptyList())
 
@@ -199,8 +210,8 @@ class GenerateProcessApiServiceTest {
         packagePath = "de.emaarco.example",
     )
 
-    private fun getExpectedModelApi() = testProcessModelApi(
-        model = dummyModel,
+    private fun getExpectedModelApi(model: ProcessModel = dummyModel) = testProcessModelApi(
+        model = model,
         packagePath = "de.emaarco.example",
         language = OutputLanguage.KOTLIN,
     )

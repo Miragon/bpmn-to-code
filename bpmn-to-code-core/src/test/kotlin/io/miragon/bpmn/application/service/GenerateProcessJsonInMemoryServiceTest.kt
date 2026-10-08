@@ -4,8 +4,8 @@ import io.miragon.bpmn.application.port.inbound.GenerateProcessJsonInMemoryUseCa
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
 import io.miragon.bpmn.domain.BpmnResource
-import io.miragon.bpmn.domain.DuplicateProcessIdException
 import io.miragon.bpmn.domain.GeneratedJsonFile
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.testProcessModel
 import io.mockk.confirmVerified
@@ -30,7 +30,7 @@ class GenerateProcessJsonInMemoryServiceTest {
     fun `generateProcessJson generates JSON files from BPMN content`() {
         // given: BPMN content and a mock extractor
         val bpmnInput = BpmnResource(fileName = "test.bpmn", content = "<bpmn>test</bpmn>".encodeToByteArray())
-        val expectedJsonFile = GeneratedJsonFile(fileName = "order.json", content = "{}")
+        val expectedJsonFile = GeneratedJsonFile(fileName = "order.json", content = "{}", processId = "order")
         every { bpmnExtractor.extract(any(), any()) } returns dummyModel
         every { jsonGenerator.generateJson(any()) } returns expectedJsonFile
         val command = GenerateProcessJsonInMemoryUseCase.Command(
@@ -50,7 +50,7 @@ class GenerateProcessJsonInMemoryServiceTest {
     }
 
     @Test
-    fun `generateProcessJson rejects files sharing a process id unless variants are enabled`() {
+    fun `generateProcessJson rejects files sharing a process id that nothing tells apart`() {
         // given: two files defining the same process id
         every { bpmnExtractor.extract(any(), any()) } returns dummyModel
         val command = GenerateProcessJsonInMemoryUseCase.Command(
@@ -63,7 +63,7 @@ class GenerateProcessJsonInMemoryServiceTest {
 
         // when / then: it fails naming both files
         assertThatThrownBy { underTest.generateProcessJson(command) }
-            .isInstanceOf(DuplicateProcessIdException::class.java).hasMessageContaining("v1.bpmn, v2.bpmn")
+            .isInstanceOf(ProcessApiNamingException::class.java).hasMessageContaining("v1.bpmn").hasMessageContaining("v2.bpmn")
     }
 
     private val dummyModel = testProcessModel()

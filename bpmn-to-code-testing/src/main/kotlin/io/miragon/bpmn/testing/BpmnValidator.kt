@@ -10,7 +10,6 @@ import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.ValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import java.nio.file.Path
 
@@ -106,15 +105,14 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
         activeRules: List<ValidationRule>,
     ): ValidationResult {
         val validationService = BpmnValidationService(rules = activeRules)
-        val preMergeFindings = validationService.collectViolations(models = models, engine = engine, phase = ValidationPhase.PRE_MERGE)
-        val preMergeViolations = applyPolicy(preMergeFindings)
-        if (preMergeViolations.any { it.severity == Severity.ERROR }) {
-            return ValidationResult(preMergeViolations)
+        val singleModelFindings = validationService.collectSingleModelViolations(models = models, engine = engine)
+        val singleModelViolations = applyPolicy(singleModelFindings)
+        if (singleModelViolations.any { it.severity == Severity.ERROR }) {
+            return ValidationResult(singleModelViolations)
         }
-        val mergedModels = ProcessModel.mergeByProcessId(models)
-        val postMergeFindings = validationService.collectViolations(models = mergedModels, engine = engine, phase = ValidationPhase.POST_MERGE)
-        val postMergeViolations = applyPolicy(postMergeFindings)
-        return ValidationResult(preMergeViolations + postMergeViolations)
+        val crossModelFindings = validationService.collectCrossModelViolations(models = models, engine = engine)
+        val crossModelViolations = applyPolicy(crossModelFindings)
+        return ValidationResult(singleModelViolations + crossModelViolations)
     }
 
     companion object {

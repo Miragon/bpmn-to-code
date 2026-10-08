@@ -55,7 +55,7 @@ class CollisionDetectionServiceTest {
 
     @Test
     fun `findCollisions detects the same element id declared at the root and inside a subprocess`() {
-        // given: merging keeps a root node and a subprocess-interior node with the same id as two nodes
+        // given: a root node and a subprocess-interior node with the same id stay two nodes
         val model = testProcessModel(
             processId = "TestProcess",
             flowNodes = listOf(

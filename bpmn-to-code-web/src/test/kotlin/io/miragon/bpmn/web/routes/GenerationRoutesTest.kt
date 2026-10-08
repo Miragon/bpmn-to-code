@@ -99,7 +99,27 @@ class GenerationRoutesTest {
             val body = jsonOf(response.bodyAsText())
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
             assertThat(body.keys).containsExactlyInAnyOrder("success", "files", "error")
-            assertThat(body.getValue("error").jsonPrimitive.content).contains("enableVariants")
+            assertThat(body.getValue("error").jsonPrimitive.content).contains("variantName")
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
+    fun `ignores the enableVariants setting of clients written against earlier versions`(endpoint: String) {
+        testApplication {
+            application { configureApp(appConfig()) }
+            val request = buildJsonObject {
+                put("files", JsonArray(listOf(bikeLeasing())))
+                putJsonObject("config") {
+                    put("outputLanguage", "KOTLIN")
+                    put("processEngine", "ZEEBE")
+                    put("enableVariants", false)
+                }
+            }
+
+            val response = client.post(endpoint) { jsonBody(request) }
+
+            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
         }
     }
 

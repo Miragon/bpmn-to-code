@@ -39,7 +39,6 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
         packagePath = "com.example.process",
         outputLanguage = config.outputLanguage,
         engine = config.processEngine,
-        enableVariants = config.enableVariants,
     )
 
     private fun buildCommand(file: BpmnFileData) = CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())

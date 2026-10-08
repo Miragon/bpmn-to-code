@@ -11,7 +11,6 @@ import io.miragon.bpmn.adapter.outbound.json.model.MultiInstanceJson
 import io.miragon.bpmn.adapter.outbound.json.model.ProcessJson
 import io.miragon.bpmn.adapter.outbound.json.model.ProcessModelJson
 import io.miragon.bpmn.adapter.outbound.json.model.SequenceFlowJson
-import io.miragon.bpmn.adapter.outbound.json.model.VariantJson
 import io.miragon.bpmn.adapter.outbound.shared.BpmnTypeName
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.EngineExtension
@@ -48,13 +47,6 @@ internal class BpmnJsonMapper {
             sequenceFlows = model.sequenceFlows.map { it.toJson() },
         ),
         definitions = model.definitions.toJson(),
-        variants = model.variants.map { it.toJson() }.takeIf { it.isNotEmpty() },
-    )
-
-    private fun ProcessModel.Variant.toJson(): VariantJson = VariantJson(
-        name = variantName,
-        flowNodes = flowNodes.toJson(sequenceFlows),
-        sequenceFlows = sequenceFlows.map { it.toJson() },
     )
 
     private fun RootElements.toJson(): DefinitionsJson = DefinitionsJson(

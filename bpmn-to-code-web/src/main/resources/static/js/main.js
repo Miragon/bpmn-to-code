@@ -265,10 +265,7 @@ async function handleGenerate(e) {
             }))
         );
 
-        const config = {
-            processEngine: document.getElementById('process-engine').value,
-            enableVariants: document.getElementById('enable-variants-checkbox').checked
-        };
+        const config = { processEngine: document.getElementById('process-engine').value };
         if (cfg.showLanguage) {
             config.outputLanguage = document.getElementById('output-language').value;
         }

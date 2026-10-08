@@ -6,9 +6,8 @@ import io.miragon.bpmn.domain.BpmnModelApi
  * Decides which sections a generated Process API contains.
  *
  * Today the only question is whether a section would have anything to say about the model — a process
- * whose models are merged gets `FlowVariants` rather than `FlowNodes`. That is a mapping from the
- * codegen vocabulary onto the domain, so it lives here, once, rather than in each language's builder or
- * on [ApiObjectType] itself.
+ * without flow nodes gets no `FlowNodes`. That is a mapping from the codegen vocabulary onto the domain,
+ * so it lives here, once, rather than in each language's builder or on [ApiObjectType] itself.
  *
  * Letting the caller choose the sections is a second, independent question. It is not implemented, but
  * this is where it goes: [selectFrom] gains the requested set and nothing else has to move.
@@ -24,8 +23,7 @@ internal object ApiObjectSelection {
         val model = modelApi.model
         return when (this) {
             ApiObjectType.PROCESS_ID, ApiObjectType.PROCESS_ENGINE -> true
-            ApiObjectType.FLOW -> !model.isMerged && model.allFlowNodes.isNotEmpty()
-            ApiObjectType.FLOW_VARIANTS -> model.isMerged
+            ApiObjectType.FLOW -> model.allFlowNodes.isNotEmpty()
         }
     }
 }

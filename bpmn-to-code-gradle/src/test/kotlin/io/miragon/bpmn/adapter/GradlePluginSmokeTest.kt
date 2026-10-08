@@ -103,12 +103,67 @@ class GradlePluginSmokeTest {
         assertThat(File(packageDir, "BikeLeasingProcessApi.java")).exists()
     }
 
+    @Test
+    fun `generateBpmnModelApi generates an API per file once a variantName tells files sharing a process id apart`(@TempDir projectDir: File) {
+        // given: the same process in two directories, one of the files declaring a variant name
+        writeProjectWithTwoBikeLeasingFiles(projectDir = projectDir, corporateVariantName = "corporate")
+
+        // when: generating and compiling
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments(Target.JAVA.compileTask).build()
+
+        // then: each file is an API of its own, and they compile side by side
+        assertThat(result.task(":${Target.JAVA.compileTask}")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        val generated = assertGeneratedFiles(projectDir, ".java")
+        assertThat(generated.map { it.name }).contains("BikeLeasingProcessApi.java", "CorporateBikeLeasingProcessApi.java")
+    }
+
+    @Test
+    fun `generateBpmnModelApi fails for files sharing a process id that nothing tells apart`(@TempDir projectDir: File) {
+        // given: the same process in two directories
+        writeProjectWithTwoBikeLeasingFiles(projectDir = projectDir, corporateVariantName = null)
+
+        // when: generating
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments("generateBpmnModelApi").buildAndFail()
+
+        // then: the failure names the API, both files and the way to tell them apart
+        assertThat(result.output).contains(
+            "'BikeLeasingProcessApi' would be generated from several BPMN files",
+            "corporate/bike-leasing.bpmn (process id 'bikeLeasing'), default/bike-leasing.bpmn (process id 'bikeLeasing')",
+            "variantName",
+        )
+    }
+
+    private fun writeProjectWithTwoBikeLeasingFiles(projectDir: File, corporateVariantName: String?) {
+        writeProject(
+            projectDir = projectDir,
+            engine = "ZEEBE",
+            target = Target.JAVA,
+            bpmnFile = "zeebe/bike-leasing.bpmn",
+            filePattern = "src/main/resources/**/*.bpmn",
+        )
+        val resourcesDir = File(projectDir, "src/main/resources")
+        val singleFile = File(resourcesDir, "bike-leasing.bpmn")
+        val bpmn = singleFile.readText()
+        val variantProperty = """<zeebe:properties><zeebe:property name="variantName" value="$corporateVariantName" /></zeebe:properties>"""
+        val corporateBpmn = if (corporateVariantName == null) {
+            bpmn
+        } else {
+            bpmn.replace(Regex("<bpmn:process [^>]*>")) { "${it.value}<bpmn:extensionElements>$variantProperty</bpmn:extensionElements>" }
+        }
+        singleFile.delete()
+        File(resourcesDir, "default").apply { mkdirs() }.resolve("bike-leasing.bpmn").writeText(bpmn)
+        File(resourcesDir, "corporate").apply { mkdirs() }.resolve("bike-leasing.bpmn").writeText(corporateBpmn)
+    }
+
     private fun writeProject(
         projectDir: File,
         engine: String,
         target: Target,
         bpmnFile: String,
         outputFolder: String = "build/generated",
+        filePattern: String = "src/main/resources/*.bpmn",
     ) {
         val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
         val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/$bpmnFile"))
@@ -139,7 +194,7 @@ class GradlePluginSmokeTest {
             }
             tasks.named('generateBpmnModelApi') {
                 baseDir = projectDir.toString()
-                filePattern = 'src/main/resources/*.bpmn'
+                filePattern = '$filePattern'
                 outputFolderPath = "${'$'}{projectDir}/$outputFolder"
                 packagePath = 'io.miragon.smoketest'
                 outputLanguage = io.miragon.bpmn.domain.shared.OutputLanguage.${target.name}

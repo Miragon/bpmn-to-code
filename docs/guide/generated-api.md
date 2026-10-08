@@ -15,7 +15,6 @@ sections. It is the code-side twin of the [JSON export](/surface/json): everythi
 | `PROCESS_ID` | The process identifier from the BPMN model (`ProcessId`) |
 | `PROCESS_ENGINE` | The engine the API was generated for, as a typed `BpmnEngine` enum (`ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
 | `FlowNodes` | One node per element, flat, carrying the element's own data (job type, variables, timer, …), and its successors behind `next`, named after the elements they lead to and carrying the sequence flow(s) that lead there |
-| `FlowVariants` | For merged models only: one `FlowNodes` per BPMN file, named after its `variantName` (`FlowVariants.<Variant>.<Node>`) |
 
 Element ids, variables, timers and call-activity mappings have no section of their own: they live on
 the node that declares them.
@@ -479,8 +478,8 @@ Shared supertypes for generic tooling: **`FlowNode`** (`id`, `elementType`, `nam
 ### Enumerating elements
 
 Some tests are not about one path but about **every element** of a process: every job type has a registered
-worker, every node id exists in the deployed model, every user task has a form. For these, each `FlowNodes` (and
-each variant under `FlowVariants`) lists its nodes: Kotlin `FlowNodes.all`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
+worker, every node id exists in the deployed model, every user task has a form. For these, each `FlowNodes`
+lists its nodes: Kotlin `FlowNodes.all`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
 The test becomes a plain loop, with no reflection over nested classes that would also pick up holders like
 `Next` or `Variables`.
 
@@ -803,14 +802,66 @@ Variables are extracted from direction-aware BPMN sources. See the engine-specif
 bpmn-to-code **only extracts variables from explicit BPMN definitions**. Variables only referenced in expressions (sequence flows, gateway conditions, script tasks) are intentionally ignored. This is by design — the BPMN model should be the single source of truth for its variable contract. The expressions themselves remain readable on the sequence flows in each node's `Next`.
 :::
 
-## Model Merging
+## Several files, one process id
 
-When multiple BPMN files share the same `processId` and `enableVariants` is set, bpmn-to-code **merges
-them into a single API**. Without `enableVariants`, generation fails and names the conflicting files. The
-registries at the root hold the superset across all files; the navigation is emitted **per variant** under
-`FlowVariants.<VariantName>`, which takes the place of `FlowNodes` — so each file's nodes, facets and sequence
-flows stay exactly as that file declares them (`FlowVariants.Augsburg.ServiceTaskX.Variables.ORDER_ID`).
-A variant name must not be reserved by the API nor name an element of its own variant; the
-`reserved-element-name` rule rejects both.
+Every BPMN file gets a Process API of its own, named after its `processId`. Two files that declare the same
+`processId` would be generated under one name, so generation fails and names the API, the process id and the
+files.
 
-This is useful for process variants (e.g. dev vs prod configurations) that share the same process identifier. If multiple files define the same `processId`, use the `variantName` BPMN extension property to distinguish them and prevent silent overwrites in the JSON output.
+To keep such files side by side — the same process modelled per location, per customer group or per
+environment — give them a `variantName`, an extension property on the process. The variant name leads the
+name of what is generated from that file; the process id itself stays untouched.
+
+::: code-group
+
+```xml [Zeebe]
+<bpmn:process id="bikeLeasing" isExecutable="true">
+  <bpmn:extensionElements>
+    <zeebe:properties>
+      <zeebe:property name="variantName" value="corporate" />
+    </zeebe:properties>
+  </bpmn:extensionElements>
+  <!-- ... -->
+</bpmn:process>
+```
+
+```xml [Camunda 7]
+<bpmn:process id="bikeLeasing" isExecutable="true">
+  <bpmn:extensionElements>
+    <camunda:properties>
+      <camunda:property name="variantName" value="corporate" />
+    </camunda:properties>
+  </bpmn:extensionElements>
+  <!-- ... -->
+</bpmn:process>
+```
+
+```xml [Operaton]
+<bpmn:process id="bikeLeasing" isExecutable="true">
+  <bpmn:extensionElements>
+    <operaton:properties>
+      <operaton:property name="variantName" value="corporate" />
+    </operaton:properties>
+  </bpmn:extensionElements>
+  <!-- ... -->
+</bpmn:process>
+```
+
+:::
+
+| File | `variantName` | Generated API | `PROCESS_ID` |
+|------|-----------------|---------------|--------------|
+| `default/bike-leasing.bpmn` | — | `BikeLeasingProcessApi` | `bikeLeasing` |
+| `corporate/bike-leasing.bpmn` | `corporate` | `CorporateBikeLeasingProcessApi` | `bikeLeasing` |
+
+- **A file without a `variantName` keeps the plain name**, so one file per process id can do without — typically
+  the default one.
+- **A file with a `variantName` always carries it in its API name**, whether or not another file shares its
+  process id. Adding a second file later therefore never renames an existing API.
+- **The variant name starts with a letter** and may contain letters, digits, `_` and `-`. As in a process id, `_`
+  and `-` separate words: `corporate-fleet` leads to `CorporateFleetBikeLeasingProcessApi`.
+- **Each API carries exactly what its file declares.** Nothing is merged between the files. The
+  [shared definitions](#shared-definitions) are where their job types, messages and variables meet, as for any
+  two processes.
+- **The [JSON export](/surface/json) follows the same rule**: `corporate_bikeLeasing.json` next to
+  `bikeLeasing.json`.

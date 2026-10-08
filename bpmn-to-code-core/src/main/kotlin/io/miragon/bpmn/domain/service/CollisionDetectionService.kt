@@ -87,8 +87,8 @@ class CollisionDetectionService {
     )
 
     /**
-     * The same element id declared in two scopes (e.g. at the root and inside a subprocess) survives merging as
-     * two nodes, which the flat `FlowNodes` object would emit twice under one name.
+     * The same element id declared in two scopes (e.g. at the root and inside a subprocess) stays two nodes,
+     * which the flat `FlowNodes` object would emit twice under one name.
      */
     private fun findRepeatedIds(processId: String, flowNodes: List<FlowNodeDefinition>): List<CollisionDetail> = flowNodes
         .map { it.id.orEmpty() }

@@ -12,7 +12,7 @@
         "definitions": { "$ref": "#/$defs/definitions" },
         "variants": {
             "type": "array",
-            "description": "Per-variant subsets of a merged model. Additive: process.flowNodes holds the union.",
+            "description": "Per-variant subsets of a merged model, emitted up to 6.1. No longer generated: every BPMN file gets a JSON of its own.",
             "items": { "$ref": "#/$defs/variant" }
         }
     },

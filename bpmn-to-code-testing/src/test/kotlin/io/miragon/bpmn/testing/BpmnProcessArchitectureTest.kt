@@ -4,7 +4,6 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,7 +20,6 @@ class BpmnProcessArchitectureTest {
     private class ServiceTaskNamingRule : SingleModelValidationRule {
         override val id = "service-task-naming"
         override val severity = Severity.WARN
-        override val phase = ValidationPhase.PRE_MERGE
 
         override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = context.model.serviceTasks
             .filterNot { task -> task.id.orEmpty().startsWith("serviceTask_") }.map { task ->

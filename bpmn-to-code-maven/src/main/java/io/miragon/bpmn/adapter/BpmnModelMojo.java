@@ -44,13 +44,6 @@ public class BpmnModelMojo extends AbstractBpmnMojo {
 	private String outputLanguage;
 	
 	/**
-	 * Merges BPMN files sharing a process id into one API with variants.
-	 * Without it, a process id defined in several files fails the build. Defaults to false.
-	 */
-	@Parameter(property = "enableVariants", defaultValue = "false")
-	private boolean enableVariants;
-	
-	/**
 	 * Default constructor for maven purposes
 	 */
 	@SuppressWarnings("unused")
@@ -65,7 +58,7 @@ public class BpmnModelMojo extends AbstractBpmnMojo {
 		CreateProcessApiFilesystemPlugin plugin = new CreateProcessApiFilesystemPlugin();
 		OutputLanguage language = EnumParameter.parse("outputLanguage", outputLanguage, OutputLanguage.class);
 		ProcessEngine engine = processEngine();
-		List<BpmnFileResult> results = plugin.execute(baseDir, filePattern, outputFolderPath, packagePath, language, engine, new ValidationConfig(), enableVariants);
+		List<BpmnFileResult> results = plugin.execute(baseDir, filePattern, outputFolderPath, packagePath, language, engine, new ValidationConfig());
 		if (results.isEmpty()) {
 			getLog().info("No BPMN models found");
 			return;

@@ -10,13 +10,13 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
  */
 data class CrossModelValidationContext(val models: List<ProcessModel>, val engine: ProcessEngine) {
 
-    // Process ids are unique after merging (ProcessModel.mergeByProcessId returns one model per id).
-    private val byProcessId = models.associateBy { it.processId }
+    private val firstByProcessId = models.groupBy { it.processId }.mapValues { (_, sameId) -> sameId.first() }
 
     /**
-     * Returns the model with the given process id, or `null` if no such model was loaded.
+     * Returns the model with the given process id — the first one where several files declare it —
+     * or `null` if no such model was loaded.
      */
-    fun findProcess(processId: String): ProcessModel? = byProcessId[processId]
+    fun findProcess(processId: String): ProcessModel? = firstByProcessId[processId]
 
     /**
      * Resolves a call activity's called element to the model of the called process,

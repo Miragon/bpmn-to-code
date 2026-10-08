@@ -13,8 +13,8 @@ class ProcessJsonFileSaverTest {
     @Test
     fun `writeFiles writes multiple files to output folder`(@TempDir tempDir: File) {
         // given: multiple generated JSON files
-        val firstFile = GeneratedJsonFile(fileName = "order.json", content = """{"process":"order"}""")
-        val secondFile = GeneratedJsonFile(fileName = "payment.json", content = """{"process":"payment"}""")
+        val firstFile = GeneratedJsonFile(fileName = "order.json", content = """{"process":"order"}""", processId = "order")
+        val secondFile = GeneratedJsonFile(fileName = "payment.json", content = """{"process":"payment"}""", processId = "payment")
 
         // when: writeFiles is called
         underTest.writeFiles(listOf(firstFile, secondFile), tempDir.absolutePath)
@@ -33,7 +33,7 @@ class ProcessJsonFileSaverTest {
     fun `writeFiles creates output folder if it does not exist`(@TempDir tempDir: File) {
         // given: a non-existent output subfolder
         val newFolder = File(tempDir, "generated/json")
-        val file = GeneratedJsonFile(fileName = "order.json", content = "{}")
+        val file = GeneratedJsonFile(fileName = "order.json", content = "{}", processId = "order")
 
         // when: writeFiles is called with the new folder path
         underTest.writeFiles(listOf(file), newFolder.absolutePath)

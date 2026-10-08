@@ -31,7 +31,6 @@ Additive changes raise the minor `formatVersion` and stay in the same schema doc
 ```
 process           the bpmn:Process scope — metadata, flow nodes, sequence flows
 definitions       bpmn:Definitions root elements: messages, signals, errors, escalations
-variants          per-variant node sets, only for merged multi-variant models
 ```
 
 ## Example
@@ -284,18 +283,16 @@ What is already normalised is **not** repeated here. `zeebe:taskDefinition`, `ze
 
 `engineAttributes` follows the same rule. The attribute behind `implementation` — `camunda:topic`, `camunda:delegateExpression`, `camunda:class` or `camunda:expression`, whichever the engine's precedence picked — is left out; `camunda:asyncBefore`, `camunda:exclusive` and `camunda:type` have no typed counterpart and stay. If a task declares two implementation attributes, only the one that won is dropped, so the other is still reachable.
 
-## Multi-variant processes
+## Several files, one process id
 
-When several BPMN files declare the same process ID with different `variantName` values, `process.flowNodes` holds the union and `variants` carries each variant's own node set:
+Every BPMN file is exported as a JSON file of its own, named `<processId>.json`. Files that declare the same process ID need a [`variantName`](/guide/generated-api#several-files-one-process-id) to tell them apart, which leads the file name too:
 
-```json
-"variants": [
-    { "name": "withApproval", "flowNodes": [ /* … */ ], "sequenceFlows": [ /* … */ ] },
-    { "name": "express",      "flowNodes": [ /* … */ ], "sequenceFlows": [ /* … */ ] }
-]
+```
+default/bike-leasing.bpmn                             -> bikeLeasing.json
+corporate/bike-leasing.bpmn  (variantName=corporate)  -> corporate_bikeLeasing.json
 ```
 
-`variants` is absent for single-file processes, so consumers can always read `process` and treat variants as additive.
+Both files carry the same `process.id`. Up to 6.1 such files were merged into one JSON with a top-level `variants` array; the schema still describes it, but it is no longer generated.
 
 ## Configuring the JSON Task
 

@@ -12,11 +12,7 @@ abstract class GenerateBpmnJsonTask : AbstractBpmnTask() {
     @get:Input
     abstract val outputFolderPath: Property<String>
 
-    @get:Input
-    abstract val enableVariants: Property<Boolean>
-
     init {
-        enableVariants.convention(false)
         GenerationCaching(this).enable(generatedDirectory = outputFolderPath)
     }
 
@@ -28,7 +24,6 @@ abstract class GenerateBpmnJsonTask : AbstractBpmnTask() {
             filePattern = filePattern.get(),
             outputFolderPath = absolutePathOf(outputFolderPath),
             engine = processEngine.get(),
-            enableVariants = enableVariants.get(),
         )
         logger.lifecycle("BPMN JSON files generated successfully")
     }

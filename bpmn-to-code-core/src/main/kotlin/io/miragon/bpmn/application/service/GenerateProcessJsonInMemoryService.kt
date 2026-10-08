@@ -15,12 +15,12 @@ class GenerateProcessJsonInMemoryService(
 ) : GenerateProcessJsonInMemoryUseCase {
 
     override fun generateProcessJson(command: GenerateProcessJsonInMemoryUseCase.Command): List<GeneratedJsonFile> {
-        val sources = command.resources.map { SourcedProcessModel(it.fileName, bpmnExtractor.extract(it, command.engine)) }
-        val mergedModels = BpmnValidationService(command.validationConfig).validateAndMerge(
-            sources = sources,
+        val extractedModels = command.resources.map { SourcedProcessModel(it.fileName, bpmnExtractor.extract(it, command.engine)) }
+        val sources = BpmnValidationService(command.validationConfig).validateAndNormalize(
+            sources = extractedModels,
             engine = command.engine,
-            enableVariants = command.enableVariants,
+            artifactNameOf = GeneratedJsonFile::nameOf,
         )
-        return mergedModels.map { jsonGenerator.generateJson(it) }
+        return sources.map { jsonGenerator.generateJson(it.model) }
     }
 }

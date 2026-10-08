@@ -11,22 +11,22 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 /**
- * Covers how the validator orchestrates the validation phases: pre-merge single-model rules run
- * first and short-circuit on errors, and single- and cross-model rules compose in one chain.
+ * Covers the order the validator runs its rules in: single-model rules run first and short-circuit on
+ * errors, and single- and cross-model rules compose in one chain.
  */
-class ValidationPhaseTest {
+class ValidationOrderTest {
 
     @Test
-    fun `a pre-merge error short-circuits before the cross-model phase runs`() {
+    fun `a single-model error short-circuits before the cross-model rules run`() {
         val crossModelRule = RecordingCrossModelRule()
 
         BpmnValidator
             .fromClasspath("bpmn/c7/bike-leasing.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
-            .withRules(AlwaysFailingPreMergeRule(), crossModelRule)
+            .withRules(AlwaysFailingSingleModelRule(), crossModelRule)
             .validate().assertViolationCount(1).assertViolation(ruleId = "always-failing")
 
-        // the cross-model phase never ran, so its rule was never invoked
+        // the cross-model rules never ran, so the rule was never invoked
         assertThat(crossModelRule.invoked).isFalse()
     }
 
@@ -41,7 +41,7 @@ class ValidationPhaseTest {
             .assertViolation(ruleId = BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id)
     }
 
-    private class AlwaysFailingPreMergeRule : SingleModelValidationRule {
+    private class AlwaysFailingSingleModelRule : SingleModelValidationRule {
         override val id = "always-failing"
         override val severity = Severity.ERROR
 

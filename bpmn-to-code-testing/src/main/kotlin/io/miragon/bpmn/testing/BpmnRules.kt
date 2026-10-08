@@ -101,9 +101,8 @@ object BpmnRules {
     val MISSING_PROCESS_ID: SingleModelValidationRule = MissingProcessIdRule()
 
     /**
-     * When multiple BPMN files declare the same process ID (e.g., engine variants), conflicting
-     * element definitions are silently overwritten during merge — this rule surfaces those
-     * conflicts before code generation.
+     * Distinct element ids that would be generated under one name within a Process API (`task_ship` and
+     * `task-ship`) would clash there — this rule surfaces those conflicts before code generation.
      */
     @JvmField
     val COLLISION_DETECTION: SingleModelValidationRule = CollisionDetectionRule()

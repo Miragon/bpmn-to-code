@@ -77,23 +77,54 @@ class MavenMojoSmokeTest {
     }
 
     @Test
-    fun `mojo rejects files sharing a process id unless variants are enabled`(@TempDir projectDir: File) {
-        // given: the same process copied into two files
-        val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
-        val bpmnBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes()
-        File(resourcesDir, "bike-leasing-a.bpmn").writeBytes(bpmnBytes)
-        File(resourcesDir, "bike-leasing-b.bpmn").writeBytes(bpmnBytes)
+    fun `mojo rejects files sharing a process id that nothing tells apart`(@TempDir projectDir: File) {
+        // given: the same process in two directories
+        val bpmn = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes().decodeToString()
+        writeBpmn(projectDir = projectDir, path = "default/bike-leasing.bpmn", bpmn = bpmn)
+        writeBpmn(projectDir = projectDir, path = "corporate/bike-leasing.bpmn", bpmn = bpmn)
+        val mojo = modelMojo(projectDir)
+
+        // when / then: the mojo fails naming the API, both files and the way to tell them apart
+        assertThatThrownBy { mojo.execute() }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("'BikeLeasingProcessApi'")
+            .hasMessageContaining("corporate/bike-leasing.bpmn (process id 'bikeLeasing'), default/bike-leasing.bpmn (process id 'bikeLeasing')")
+            .hasMessageContaining("variantName")
+    }
+
+    @Test
+    fun `mojo generates an API per file once a variant name tells files sharing a process id apart`(@TempDir projectDir: File) {
+        // given: the same process in two directories, one of the files declaring a variant name
+        val bpmn = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes().decodeToString()
+        val variantProperty = """<zeebe:properties><zeebe:property name="variantName" value="corporate" /></zeebe:properties>"""
+        val corporateBpmn = bpmn.replace(Regex("<bpmn:process [^>]*>")) { "${it.value}<bpmn:extensionElements>$variantProperty</bpmn:extensionElements>" }
+        writeBpmn(projectDir = projectDir, path = "default/bike-leasing.bpmn", bpmn = bpmn)
+        writeBpmn(projectDir = projectDir, path = "corporate/bike-leasing.bpmn", bpmn = corporateBpmn)
+        val mojo = modelMojo(projectDir)
+
+        // when: executing the mojo
+        mojo.execute()
+
+        // then: each file is generated as an API of its own
+        val packageDir = File(projectDir, "build/generated/io/miragon/smoketest")
+        assertThat(File(packageDir, "BikeLeasingProcessApi.kt")).exists()
+        assertThat(File(packageDir, "CorporateBikeLeasingProcessApi.kt")).exists()
+    }
+
+    private fun writeBpmn(projectDir: File, path: String, bpmn: String) {
+        val file = File(projectDir, "src/main/resources/$path")
+        file.parentFile.mkdirs()
+        file.writeText(bpmn)
+    }
+
+    private fun modelMojo(projectDir: File): BpmnModelMojo {
         val mojo = BpmnModelMojo()
         setField(obj = mojo, name = "baseDir", value = projectDir.absolutePath)
-        setField(obj = mojo, name = "filePattern", value = "src/main/resources/*.bpmn")
+        setField(obj = mojo, name = "filePattern", value = "src/main/resources/**/*.bpmn")
         setField(obj = mojo, name = "outputFolderPath", value = File(projectDir, "build/generated").absolutePath)
         setField(obj = mojo, name = "packagePath", value = "io.miragon.smoketest")
         setField(obj = mojo, name = "outputLanguage", value = "KOTLIN")
         setField(obj = mojo, name = "processEngine", value = "ZEEBE")
-
-        // when / then: the mojo fails naming both files
-        assertThatThrownBy { mojo.execute() }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("bike-leasing-a.bpmn, bike-leasing-b.bpmn").hasMessageContaining("enableVariants")
+        return mojo
     }
 }

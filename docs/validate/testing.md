@@ -316,7 +316,7 @@ class CallActivityTargetExistsRule : CrossModelValidationRule {
 ```
 
 Cross-model rules go through the same `.withRules(...)` flow and can be mixed freely with single-model
-rules in one run — the validator routes each to the right execution phase. Here the built-in
+rules in one run — the validator runs the single-model rules first. Here the built-in
 `CALL_ACTIVITY_TARGET_EXISTS` is added on top of the default rule set (swap it for your own rule to use
 a custom one):
 
@@ -332,9 +332,8 @@ BpmnValidator
 ::: tip Load the whole set
 Cross-process rules only pay off when **all** related files are loaded together — point
 `fromClasspath` / `fromDirectory` at the folder holding both the parent and the called processes so
-`resolveCalledModel` can find them. Cross-model rules run after models are merged; if a **pre-merge**
-single-model rule reports an `ERROR`, validation stops before the merge and the cross-model phase never
-runs (post-merge rules like `COLLISION_DETECTION` do not short-circuit it).
+`resolveCalledModel` can find them. Cross-model rules run once every model is sound on its own: if a
+single-model rule reports an `ERROR`, validation stops there and the cross-model rules never run.
 :::
 
 Message and signal correlation across processes already ship built-in as the opt-in

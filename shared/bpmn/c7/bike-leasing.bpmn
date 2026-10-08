@@ -8,11 +8,6 @@
   <bpmn:error id="error_applicationInvalid" name="miravelo.applicationInvalid" errorCode="applicationInvalid" />
   <bpmn:escalation id="escalation_contractNotSigned" name="miravelo.contractNotSigned" escalationCode="contractNotSigned" />
   <bpmn:process id="bikeLeasing" name="MiraVelo Bike Leasing" isExecutable="true" camunda:historyTimeToLive="180">
-    <bpmn:extensionElements>
-      <camunda:properties>
-        <camunda:property name="variantName" value="corporate" />
-      </camunda:properties>
-    </bpmn:extensionElements>
     <bpmn:startEvent id="startEvent_leasingRequestReceived" name="Leasing request received" camunda:asyncAfter="true">
       <bpmn:extensionElements>
         <camunda:properties>

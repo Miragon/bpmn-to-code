@@ -1,0 +1,204 @@
+{
+    "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
+    "formatVersion": "2.1",
+    "process": {
+        "id": "cancelBikeOrder",
+        "flowNodes": [
+            {
+                "id": "startEvent_cancellationRequired",
+                "type": "startEvent",
+                "name": "Cancellation required",
+                "outgoing": [
+                    "flow_cancellationRequiredToRequestCancellation"
+                ]
+            },
+            {
+                "id": "serviceTask_requestCancellation",
+                "type": "serviceTask",
+                "name": "Request cancellation",
+                "incoming": [
+                    "flow_cancellationRequiredToRequestCancellation"
+                ],
+                "outgoing": [
+                    "flow_requestCancellationToCancellationPossible"
+                ],
+                "boundaryEventRefs": [
+                    "boundary_cancellationFailed"
+                ],
+                "implementation": {
+                    "type": "externalTask",
+                    "topic": "miravelo.requestCancellation"
+                },
+                "ioMapping": {
+                    "outputs": [
+                        {
+                            "target": "cancellationPossible",
+                            "source": "${cancellationPossible}"
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "boundary_cancellationFailed",
+                "type": "boundaryEvent",
+                "name": "Cancellation failed",
+                "outgoing": [
+                    "flow_cancellationFailedToCollectClarifications"
+                ],
+                "attachedToRef": "serviceTask_requestCancellation",
+                "cancelActivity": true,
+                "eventDefinitions": [
+                    {
+                        "type": "error"
+                    }
+                ]
+            },
+            {
+                "id": "gateway_collectClarifications",
+                "type": "exclusiveGateway",
+                "incoming": [
+                    "flow_cancellationNotPossibleToCollectClarifications",
+                    "flow_cancellationFailedToCollectClarifications"
+                ],
+                "outgoing": [
+                    "flow_collectClarificationsToClarifyReturn"
+                ]
+            },
+            {
+                "id": "userTask_clarifyReturn",
+                "type": "userTask",
+                "name": "Clarify return",
+                "incoming": [
+                    "flow_collectClarificationsToClarifyReturn"
+                ],
+                "outgoing": [
+                    "flow_clarifyReturnToMergeReturn"
+                ]
+            },
+            {
+                "id": "gateway_mergeReturn",
+                "type": "exclusiveGateway",
+                "incoming": [
+                    "flow_cancellationPossibleToMergeReturn",
+                    "flow_clarifyReturnToMergeReturn"
+                ],
+                "outgoing": [
+                    "flow_mergeReturnToBookCancellationCosts"
+                ]
+            },
+            {
+                "id": "serviceTask_bookCancellationCosts",
+                "type": "serviceTask",
+                "name": "Book cancellation costs",
+                "incoming": [
+                    "flow_mergeReturnToBookCancellationCosts"
+                ],
+                "outgoing": [
+                    "flow_bookCancellationCostsToBikeOrderCancelled"
+                ],
+                "implementation": {
+                    "type": "delegateExpression",
+                    "expression": "${bookCancellationCostsDelegate}"
+                },
+                "ioMapping": {
+                    "outputs": [
+                        {
+                            "target": "cancellationCosts",
+                            "source": "${cancellationCosts}"
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "endEvent_bikeOrderCancelled",
+                "type": "endEvent",
+                "name": "Bike order cancelled",
+                "incoming": [
+                    "flow_bookCancellationCostsToBikeOrderCancelled"
+                ],
+                "eventDefinitions": [
+                    {
+                        "type": "message",
+                        "messageRef": "message_bikeOrderCancelled"
+                    }
+                ],
+                "implementation": {
+                    "type": "externalTask",
+                    "topic": "miravelo.bikeOrderCancelled"
+                }
+            },
+            {
+                "id": "gateway_cancellationPossible",
+                "type": "exclusiveGateway",
+                "name": "Cancellation possible?",
+                "incoming": [
+                    "flow_requestCancellationToCancellationPossible"
+                ],
+                "outgoing": [
+                    "flow_cancellationPossibleToMergeReturn",
+                    "flow_cancellationNotPossibleToCollectClarifications"
+                ],
+                "default": "flow_cancellationPossibleToMergeReturn"
+            }
+        ],
+        "sequenceFlows": [
+            {
+                "id": "flow_cancellationRequiredToRequestCancellation",
+                "sourceRef": "startEvent_cancellationRequired",
+                "targetRef": "serviceTask_requestCancellation"
+            },
+            {
+                "id": "flow_requestCancellationToCancellationPossible",
+                "sourceRef": "serviceTask_requestCancellation",
+                "targetRef": "gateway_cancellationPossible"
+            },
+            {
+                "id": "flow_cancellationPossibleToMergeReturn",
+                "sourceRef": "gateway_cancellationPossible",
+                "targetRef": "gateway_mergeReturn",
+                "name": "Yes",
+                "isDefault": true
+            },
+            {
+                "id": "flow_cancellationNotPossibleToCollectClarifications",
+                "sourceRef": "gateway_cancellationPossible",
+                "targetRef": "gateway_collectClarifications",
+                "name": "No",
+                "conditionExpression": "${!cancellationPossible}"
+            },
+            {
+                "id": "flow_cancellationFailedToCollectClarifications",
+                "sourceRef": "boundary_cancellationFailed",
+                "targetRef": "gateway_collectClarifications"
+            },
+            {
+                "id": "flow_collectClarificationsToClarifyReturn",
+                "sourceRef": "gateway_collectClarifications",
+                "targetRef": "userTask_clarifyReturn"
+            },
+            {
+                "id": "flow_clarifyReturnToMergeReturn",
+                "sourceRef": "userTask_clarifyReturn",
+                "targetRef": "gateway_mergeReturn"
+            },
+            {
+                "id": "flow_mergeReturnToBookCancellationCosts",
+                "sourceRef": "gateway_mergeReturn",
+                "targetRef": "serviceTask_bookCancellationCosts"
+            },
+            {
+                "id": "flow_bookCancellationCostsToBikeOrderCancelled",
+                "sourceRef": "serviceTask_bookCancellationCosts",
+                "targetRef": "endEvent_bikeOrderCancelled"
+            }
+        ]
+    },
+    "definitions": {
+        "messages": [
+            {
+                "id": "message_bikeOrderCancelled",
+                "name": "miravelo.bikeOrderCancelled"
+            }
+        ]
+    }
+}

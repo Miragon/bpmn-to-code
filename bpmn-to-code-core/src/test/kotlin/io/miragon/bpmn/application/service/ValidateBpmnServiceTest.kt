@@ -45,8 +45,8 @@ class ValidateBpmnServiceTest {
     }
 
     @Test
-    fun `pre-merge error stops execution and returns early`() {
-        // given: a model with a service task missing implementation (pre-merge ERROR)
+    fun `an error of a single model stops execution and returns early`() {
+        // given: a model with a service task missing implementation (an ERROR of a single-model rule)
         val invalidModel = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Activity.Task(
@@ -62,7 +62,7 @@ class ValidateBpmnServiceTest {
         // when: validateBpmn is called
         val result = underTest.validateBpmn(command)
 
-        // then: result contains only pre-merge errors, no post-merge violations added
+        // then: result contains only the errors of the single-model rules, no cross-model violations added
         assertThat(result.hasErrors).isTrue()
         assertThat(result.errors).anyMatch { it.severity == Severity.ERROR }
     }

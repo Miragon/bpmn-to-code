@@ -1,6 +1,6 @@
 package io.miragon.bpmn.domain.service
 
-import io.miragon.bpmn.domain.DuplicateProcessIdException
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
@@ -9,13 +9,13 @@ import io.miragon.bpmn.domain.shared.TaskImplementation
 import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.BpmnValidationException
-import io.miragon.bpmn.domain.validation.SingleModelValidationRule
+import io.miragon.bpmn.domain.validation.CrossModelValidationRule
+import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
+import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -32,13 +32,13 @@ class BpmnValidationServiceTest {
     )
 
     @Test
-    fun `valid model passes all pre-merge rules`() {
+    fun `valid model passes all rules`() {
         // given: a valid BPMN model whose detected engine matches the selected one
         val model = testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
         // when / then: no exception is thrown
         assertDoesNotThrow {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
     }
 
@@ -47,9 +47,9 @@ class BpmnValidationServiceTest {
         // given: a model with a service task that has no implementation
         val model = testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))
 
-        // when: validating pre-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the missing-implementation rule fires
@@ -66,7 +66,7 @@ class BpmnValidationServiceTest {
 
         // when / then: no exception is thrown because the rule is disabled
         assertDoesNotThrow {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
     }
 
@@ -77,7 +77,7 @@ class BpmnValidationServiceTest {
 
         // when / then: no exception is thrown
         assertDoesNotThrow {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
     }
 
@@ -87,9 +87,9 @@ class BpmnValidationServiceTest {
         val underTest = BpmnValidationService(ValidationConfig(failOnWarning = true))
         val model = testProcessModel(flowNodes = emptyList())
 
-        // when: validating pre-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the empty-process warning is treated as a failure
@@ -101,9 +101,9 @@ class BpmnValidationServiceTest {
         // given: a model containing a flow node without an ID
         val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
 
-        // when: validating pre-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the missing-element-id rule fires with ERROR severity
@@ -113,7 +113,7 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `post-merge collision detection detects collisions`() {
+    fun `collision detection detects collisions`() {
         // given: a model with two flow nodes that produce the same constant name
         val model = testProcessModel(
             flowNodes = listOf(
@@ -122,9 +122,9 @@ class BpmnValidationServiceTest {
             ),
         )
 
-        // when: validating post-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.POST_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the collision-detection rule fires
@@ -132,16 +132,16 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `post-merge collision detection detects folding collisions`() {
+    fun `collision detection detects folding collisions`() {
         // given: two flow nodes whose ids keep distinct constants but fold to the same
         // PascalCase object name — previously emitted non-compiling generated code
         val model = testProcessModel(
             flowNodes = listOf(FlowNodeDefinition.Unknown(id = "foo"), FlowNodeDefinition.Unknown(id = "-foo")),
         )
 
-        // when: validating post-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.POST_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the collision-detection rule fires
@@ -149,18 +149,14 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `post-merge validation detects shared definition collisions across processes`() {
+    fun `validation detects shared definition collisions across processes`() {
         // given: two processes whose job types normalize to the same constant
         val first = testProcessModel(processId = "first", flowNodes = listOf(jobWorkerTask(id = "task1", jobType = "newsletter.sendMail")))
         val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")))
 
-        // when: validating post-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(
-                models = listOf(first, second),
-                engine = ProcessEngine.ZEEBE,
-                phase = ValidationPhase.POST_MERGE,
-            )
+            underTest.validate(models = listOf(first, second), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the shared-definition-collision rule fires
@@ -174,13 +170,9 @@ class BpmnValidationServiceTest {
         val first = testProcessModel(processId = "first", flowNodes = listOf(jobWorkerTask(id = "task1", jobType = "newsletter.sendMail")))
         val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")))
 
-        // when: validating post-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(
-                models = listOf(first, second),
-                engine = ProcessEngine.ZEEBE,
-                phase = ValidationPhase.POST_MERGE,
-            )
+            underTest.validate(models = listOf(first, second), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the rule still fires despite being disabled
@@ -198,9 +190,9 @@ class BpmnValidationServiceTest {
             ),
         )
 
-        // when: validating post-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.POST_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the collision-detection rule still fires despite being disabled
@@ -213,9 +205,9 @@ class BpmnValidationServiceTest {
         val underTest = BpmnValidationService(ValidationConfig(disabledRules = setOf("missing-element-id")))
         val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
 
-        // when: validating pre-merge
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE, phase = ValidationPhase.PRE_MERGE)
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
         }
 
         // then: the missing-element-id rule still fires despite being disabled
@@ -233,87 +225,103 @@ class BpmnValidationServiceTest {
         )
 
         // when
-        val violations = underTest.collectViolations(
-            models = listOf(emptyModel, unimplementedModel),
-            engine = ProcessEngine.ZEEBE,
-            phase = ValidationPhase.PRE_MERGE,
-        )
+        val violations = underTest.collectSingleModelViolations(models = listOf(emptyModel, unimplementedModel), engine = ProcessEngine.ZEEBE)
 
         // then: only the given rule reports, the built-in service-task check does not run
         assertThat(violations.map { it.ruleId to it.processId }).containsExactly("empty-process" to "empty")
     }
 
     @Test
-    fun `validateAndMerge merges files sharing a process id into variants when enabled`() {
-        // given: two variants of one process
-        val sources = listOf(
-            SourcedProcessModel("v1.bpmn", testProcessModel(variantName = "v1")),
-            SourcedProcessModel("v2.bpmn", testProcessModel(variantName = "v2")),
-        )
+    fun `skips the cross-model rules while a model is unsound on its own`() {
+        // given: a rule across models, and a model with a service task lacking an implementation
+        val underTest = BpmnValidationService(rules = listOf(MissingServiceTaskImplementationRule(), RejectsEveryModelSetRule()))
+        val model = testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))
 
-        // when: validating and merging with variants enabled
-        val mergedModels = underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = true)
+        // when
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
+        }
 
-        // then: one model carries both variants
-        assertThat(mergedModels).hasSize(1)
-        assertThat(mergedModels.single().variants.map { it.variantName }).containsExactly("v1", "v2")
+        // then: only the single-model rule reports
+        assertThat(exception.violations).extracting("ruleId").containsExactly("missing-service-task-implementation")
     }
 
     @Test
-    fun `validateAndMerge rejects a process id declared in several files unless variants are enabled`() {
+    fun `runs the cross-model rules once every model is sound on its own`() {
+        // given
+        val underTest = BpmnValidationService(rules = listOf(MissingServiceTaskImplementationRule(), RejectsEveryModelSetRule()))
+
+        // when
+        val exception = assertThrows<BpmnValidationException> {
+            underTest.validate(models = listOf(testProcessModel()), engine = ProcessEngine.ZEEBE)
+        }
+
+        // then
+        assertThat(exception.violations).extracting("ruleId").containsExactly("rejects-every-model-set")
+    }
+
+    @Test
+    fun `validateAndNormalize keeps files sharing a process id apart once their variant names differ`() {
+        // given: two files of one process, one of them with a variant name
         val sources = listOf(
-            SourcedProcessModel("v1.bpmn", testProcessModel(variantName = "v1")),
-            SourcedProcessModel("v2.bpmn", testProcessModel(variantName = "v2")),
+            SourcedProcessModel("corporate/order.bpmn", testProcessModel(variantName = "corporate")),
+            SourcedProcessModel("default/order.bpmn", testProcessModel()),
         )
 
-        assertThrows<DuplicateProcessIdException> {
-            underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = false)
+        // when
+        val normalizedSources = underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
+
+        // then: each file stays a model of its own, in the order of the names they are generated under
+        assertThat(normalizedSources.map { it.fileName }).containsExactly("corporate/order.bpmn", "default/order.bpmn")
+        assertThat(normalizedSources.map { it.model.apiName }).containsExactly("corporate_order", "order")
+    }
+
+    @Test
+    fun `validateAndNormalize rejects a process id declared in several files without telling them apart`() {
+        val sources = listOf(
+            SourcedProcessModel("v1.bpmn", testProcessModel()),
+            SourcedProcessModel("v2.bpmn", testProcessModel()),
+        )
+
+        assertThrows<ProcessApiNamingException> {
+            underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
         }
     }
 
     @Test
-    fun `validateAndMerge validates each file before rejecting a shared process id`() {
+    fun `validateAndNormalize validates each file before rejecting a shared process id`() {
         // given: two files of one process, one of them with a service task lacking an implementation
         val sources = listOf(
             SourcedProcessModel("v1.bpmn", testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))),
             SourcedProcessModel("v2.bpmn", testProcessModel()),
         )
 
-        // when: validating and merging with variants disabled
+        // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = false)
+            underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
         }
 
-        // then: the pre-merge violation is reported, not the shared process id
+        // then: the violation is reported, not the shared process id
         assertThat(exception.violations).anyMatch { it.ruleId == "missing-service-task-implementation" }
     }
 
     @Test
-    fun `validateAndMerge runs the post-merge rules on the merged models`() {
-        // given: a post-merge rule that only a merged model with variants violates
-        val underTest = BpmnValidationService(rules = listOf(RejectsVariantsRule()))
-        val sources = listOf(
-            SourcedProcessModel("v1.bpmn", testProcessModel(variantName = "v1")),
-            SourcedProcessModel("v2.bpmn", testProcessModel(variantName = "v2")),
-        )
+    fun `validateAndNormalize normalizes the models it returns`() {
+        // given: a model whose flow nodes are unsorted
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = "z-node"), FlowNodeDefinition.Unknown(id = "a-node")))
+        val sources = listOf(SourcedProcessModel("order.bpmn", model))
 
-        // when: validating and merging with variants enabled
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validateAndMerge(sources = sources, engine = ProcessEngine.ZEEBE, enableVariants = true)
-        }
+        // when
+        val normalizedSources = underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
 
-        // then: the rule saw the merged model
-        assertThat(exception.violations).extracting("ruleId").containsExactly("rejects-variants")
+        // then
+        assertThat(normalizedSources.single().model.flowNodes.map { it.id }).containsExactly("a-node", "z-node")
     }
 
-    private class RejectsVariantsRule : SingleModelValidationRule {
-        override val id = "rejects-variants"
+    private class RejectsEveryModelSetRule : CrossModelValidationRule {
+        override val id = "rejects-every-model-set"
         override val severity = Severity.ERROR
-        override val phase = ValidationPhase.POST_MERGE
 
-        override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-            if (context.model.variants.isEmpty()) return emptyList()
-            return listOf(violation(processId = context.model.processId, message = "Variants are not allowed."))
-        }
+        override fun validate(context: CrossModelValidationContext): List<ValidationViolation> = listOf(violation(processId = "any", message = "No set of models is allowed."))
     }
 }

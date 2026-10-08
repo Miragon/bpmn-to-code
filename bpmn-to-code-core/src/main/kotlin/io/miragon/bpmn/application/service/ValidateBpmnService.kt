@@ -5,11 +5,9 @@ import io.miragon.bpmn.adapter.outbound.filesystem.BpmnFileLoader
 import io.miragon.bpmn.application.port.inbound.ValidateBpmnFromFilesystemUseCase
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
-import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 
 class ValidateBpmnService(
     private val bpmnFileLoader: LoadBpmnFilesPort = BpmnFileLoader(),
@@ -20,12 +18,11 @@ class ValidateBpmnService(
         val validationService = BpmnValidationService(command.validationConfig)
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val models = inputFiles.map { bpmnService.extract(it, command.engine) }
-        val preMergeViolations = validationService.collectViolations(models = models, engine = command.engine, phase = ValidationPhase.PRE_MERGE)
-        if (preMergeViolations.any { it.severity == Severity.ERROR }) {
-            return ValidationResult(preMergeViolations)
+        val singleModelViolations = validationService.collectSingleModelViolations(models = models, engine = command.engine)
+        if (singleModelViolations.any { it.severity == Severity.ERROR }) {
+            return ValidationResult(singleModelViolations)
         }
-        val mergedModels = ProcessModel.mergeByProcessId(models)
-        val postMergeViolations = validationService.collectViolations(models = mergedModels, engine = command.engine, phase = ValidationPhase.POST_MERGE)
-        return ValidationResult(preMergeViolations + postMergeViolations)
+        val crossModelViolations = validationService.collectCrossModelViolations(models = models, engine = command.engine)
+        return ValidationResult(singleModelViolations + crossModelViolations)
     }
 }

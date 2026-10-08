@@ -92,24 +92,27 @@ Each comma-separated value becomes a variable in the generated API under the cor
 See the engine pages for full details: [Camunda 7](/engines/camunda7#additional-input-output-variables-extension-properties) · [Operaton](/engines/operaton#additional-input-output-variables-extension-properties)
 :::
 
-## Multi-Environment Modeling
+## One Process, Several Models
 
-bpmn-to-code automatically merges BPMN models with identical process IDs into a single API.
+The same process sometimes exists in several models — per location, per customer group, per environment — that
+share one `processId`. Every BPMN file gets a Process API of its own, so the files need names that tell them
+apart: give all but one a `variantName` extension property on the process.
 
 ```
-dev-order-process.bpmn    -> processId="orderProcess"
-prod-order-process.bpmn   -> processId="orderProcess"
-                           |
-                           v
-OrderProcessApi (merged elements from both)
+default/order-process.bpmn     -> processId="orderProcess"
+                               -> OrderProcessApi
+
+corporate/order-process.bpmn   -> processId="orderProcess", variantName="corporate"
+                               -> CorporateOrderProcessApi
 ```
 
 **Guidelines:**
-- Use the same `processId` for all variants of the same process
-- Keep core process structure consistent across variants
-- The generated API contains the **superset** of all elements across variants
+- Leave the `variantName` off the model the others deviate from, so it keeps the plain name
+- Each API holds exactly what its file declares; nothing is merged between the files
+- Both APIs carry the same `PROCESS_ID`, since the engine knows one process
 
 ::: warning
-If variants define the same element ID with different semantics, behavior is non-deterministic (last-seen wins). Use different process IDs for substantially different process flows.
+Without a `variantName`, generation fails as soon as two files declare the same `processId` and names both files.
+See [Several files, one process id](/guide/generated-api#several-files-one-process-id) for the XML.
 :::
 

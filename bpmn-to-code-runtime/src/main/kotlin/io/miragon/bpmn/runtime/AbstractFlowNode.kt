@@ -6,8 +6,9 @@ package io.miragon.bpmn.runtime
  * [HasSuccessors] (their per-node `next`, whose `Next` type differs per node, stays on the node itself).
  *
  * Identity is the element [id]: two nodes for the same element are equal, whatever their [name]. Generated
- * nodes are singletons, but merged variants each generate their own node for a shared element, so id-based
- * [equals]/[hashCode] keeps set operations (e.g. `nodesOf` de-duplication) treating them as one.
+ * nodes are singletons, but BPMN files sharing a process id each generate their own node for an element they
+ * have in common, so id-based [equals]/[hashCode] keeps set operations (e.g. `nodesOf` de-duplication) treating
+ * them as one.
  */
 abstract class AbstractFlowNode @JvmOverloads constructor(
     override val id: ElementId,

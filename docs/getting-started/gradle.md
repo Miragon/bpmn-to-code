@@ -93,8 +93,8 @@ The generated Process API file(s) will appear in your configured output folder.
 ## 4. Generate as part of the build
 
 Gradle skips the generation tasks as `UP-TO-DATE` when nothing they depend on changed since the last run: the
-task configuration (`baseDir`, `filePattern`, `outputFolderPath`, `packagePath`, `outputLanguage`, `processEngine`,
-`enableVariants`), the plugin version, and the relative path and content of every BPMN file matching `filePattern`. File
+task configuration (`baseDir`, `filePattern`, `outputFolderPath`, `packagePath`, `outputLanguage`, `processEngine`),
+the plugin version, and the relative path and content of every BPMN file matching `filePattern`. File
 timestamps do not matter. Force a run with `./gradlew generateBpmnModelApi --rerun`.
 
 To keep generated code out of version control, generate into the build directory and hand the task to the

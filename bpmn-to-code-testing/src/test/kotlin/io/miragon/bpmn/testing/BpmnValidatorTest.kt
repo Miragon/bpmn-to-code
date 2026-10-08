@@ -4,7 +4,6 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -97,33 +96,35 @@ class BpmnValidatorTest {
     }
 
     @Test
-    fun `warnings in the pre-merge phase do not short-circuit post-merge rules`() {
+    fun `an error of one single-model rule does not keep the other single-model rules from reporting`() {
         val result = BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn").engine(ProcessEngine.CAMUNDA_7).withRules(
-                AlwaysViolatingRule(id = "pre-warn", severity = Severity.WARN, phase = ValidationPhase.PRE_MERGE),
-                AlwaysViolatingRule(id = "post-warn", severity = Severity.WARN, phase = ValidationPhase.POST_MERGE),
+                AlwaysViolatingRule(id = "first-error", severity = Severity.ERROR),
+                AlwaysViolatingRule(id = "second-warn", severity = Severity.WARN),
             ).validate().result()
 
-        assertThat(result.violations.map { it.ruleId }).contains("pre-warn", "post-warn")
+        assertThat(result.violations.map { it.ruleId }).contains("first-error", "second-warn")
     }
 
     @Test
-    fun `an error in the pre-merge phase short-circuits post-merge rules`() {
-        val result = BpmnValidator
-            .fromClasspath("bpmn/c7/cancel-bike-order.bpmn").engine(ProcessEngine.CAMUNDA_7).withRules(
-                AlwaysViolatingRule(id = "pre-error", severity = Severity.ERROR, phase = ValidationPhase.PRE_MERGE),
-                AlwaysViolatingRule(id = "post-warn", severity = Severity.WARN, phase = ValidationPhase.POST_MERGE),
-            ).validate().result()
+    fun `validates files sharing a process id each on its own`(@TempDir tempDir: Path) {
+        // given: the same process in two directories
+        listOf("default", "corporate").forEach { directory ->
+            val bpmnContent = javaClass.classLoader.getResourceAsStream("bpmn/c7/cancel-bike-order.bpmn")!!
+            Files.copy(bpmnContent, Files.createDirectory(tempDir.resolve(directory)).resolve("cancel-bike-order.bpmn"))
+        }
 
-        assertThat(result.violations.map { it.ruleId }).contains("pre-error")
-        assertThat(result.violations.map { it.ruleId }).doesNotContain("post-warn")
+        // when: validating with the built-in rules and one that reports every model it sees
+        val result = BpmnValidator
+            .fromDirectory(tempDir).engine(ProcessEngine.CAMUNDA_7)
+            .withRules(BpmnRules.all() + AlwaysViolatingRule(id = "seen", severity = Severity.WARN)).validate().result()
+
+        // then: both files are validated, and sharing a process id is no violation
+        assertThat(result.errors).isEmpty()
+        assertThat(result.violations.filter { it.ruleId == "seen" }.map { it.processId }).containsExactly("cancelBikeOrder", "cancelBikeOrder")
     }
 
-    private class AlwaysViolatingRule(
-        override val id: String,
-        override val severity: Severity,
-        override val phase: ValidationPhase = ValidationPhase.PRE_MERGE,
-    ) : SingleModelValidationRule {
+    private class AlwaysViolatingRule(override val id: String, override val severity: Severity) : SingleModelValidationRule {
         override fun validate(context: SingleModelValidationContext): List<ValidationViolation> = listOf(
             ValidationViolation(
                 ruleId = id,

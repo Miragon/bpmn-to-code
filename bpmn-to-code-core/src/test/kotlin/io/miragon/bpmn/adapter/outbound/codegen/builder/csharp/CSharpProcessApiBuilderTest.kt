@@ -3,16 +3,13 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
-import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.ProcessModel
-import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.TimerType
@@ -55,30 +52,21 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped FlowNodes for merged model`() {
-        // given: a merged model with a single variant
-        val retail = testCancelBikeOrderModel(variantName = "retail")
-        val merged = ProcessModel(
-            processId = retail.processId,
-            flowNodes = retail.flowNodes,
-            definitions = retail.definitions,
-            variants = listOf(
-                Variant(variantName = "retail", flowNodes = retail.flowNodes, sequenceFlows = retail.sequenceFlows),
-            ),
-        )
-        val modelApi = BpmnModelApi(
-            model = merged,
-            outputLanguage = OutputLanguage.CSHARP,
+    fun `buildApiFile leads the API name with the variant name of the model`() {
+        // given: a model that declares a variant name
+        val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
-            targetEngine = ProcessEngine.ZEEBE,
+            language = OutputLanguage.CSHARP,
+            model = testCancelBikeOrderModel(variantName = "retail"),
         )
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: the navigation sits under FlowVariants.Retail, with the gateway's conditional and default flows named after their targets
-        assertMatchesGolden(result.content, "/api/MultiVariantProcessApiCsharp.txt")
-        assertThat(result.content).contains("public static class FlowVariants", "public static class Retail")
+        // then: the API carries the prefix, with the gateway's conditional and default flows named after their targets
+        assertThat(result.fileName).isEqualTo("RetailCancelBikeOrderProcessApi.cs")
+        assertMatchesGolden(result.content, "/api/PrefixedCancelBikeOrderProcessApiCsharp.txt")
+        assertThat(result.content).contains("public static class RetailCancelBikeOrderProcessApi", "public const string ProcessId = \"cancelBikeOrder\";")
         assertThat(result.content).contains(
             $$"public Runtime.SequenceFlows<GatewayCollectClarifications> GatewayCollectClarifications => Runtime.SequenceFlows.Single(new(\"flow_cancellationNotPossibleToCollectClarifications\"), FlowNodes.GatewayCollectClarifications.Instance, name: \"No\", conditionExpression: \"${!cancellationPossible}\");",
         )

@@ -18,9 +18,9 @@ data class BpmnModelApi(
 ) {
 
     fun fileName(): String {
-        val separatedProcessId = model.processId.split("_", "-")
-        val processId = separatedProcessId.joinToString("") { it.camelCase() }
-        return "${processId}ProcessApi"
+        val separatedApiName = model.apiName.split("_", "-")
+        val apiName = separatedApiName.joinToString("") { it.camelCase() }
+        return "${apiName}ProcessApi"
     }
 
     private fun String.camelCase() = replaceFirstChar { it.uppercase() }
