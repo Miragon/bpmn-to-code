@@ -98,17 +98,17 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
     /**
      * The recorded nodes' ids, in walk order.
      */
-    val ids: List<String> get() = path.ids
+    val ids: Array<String> get() = path.ids
 
     /**
      * The recorded nodes' ids, deduplicated.
      */
-    val distinctIds: List<String> get() = path.distinctIds
+    val distinctIds: Array<String> get() = path.distinctIds
 
     /**
      * The ids of the sequence flows walked, in walk order.
      */
-    val flowIds: List<String> get() = path.flowIds
+    val flowIds: Array<String> get() = path.flowIds
 
     /**
      * The terminal result of a [PathWalk] (produced by [end] or a subprocess [inside] block) — no further
@@ -133,19 +133,19 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
         val nodes: List<FlowNode> get() = path.nodes
 
         /**
-         * The recorded nodes' ids, in walk order — ready for `hasPassedInOrder(*ids.toTypedArray())`.
+         * The recorded nodes' ids, in walk order — ready for `hasPassedInOrder(*ids)`.
          */
-        val ids: List<String> get() = path.ids
+        val ids: Array<String> get() = path.ids
 
         /**
          * The recorded nodes' ids, deduplicated.
          */
-        val distinctIds: List<String> get() = path.distinctIds
+        val distinctIds: Array<String> get() = path.distinctIds
 
         /**
          * The ids of the sequence flows walked, in walk order.
          */
-        val flowIds: List<String> get() = path.flowIds
+        val flowIds: Array<String> get() = path.flowIds
 
         internal val flows: List<SequenceFlow<*>> get() = path.flows
     }

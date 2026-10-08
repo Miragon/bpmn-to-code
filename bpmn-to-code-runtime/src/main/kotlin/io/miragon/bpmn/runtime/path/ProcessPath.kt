@@ -8,7 +8,7 @@ import io.miragon.bpmn.runtime.SequenceFlow
  *
  * Start with [from] at a named node (e.g. `ProcessPath.from(FlowNodes.StartEventSubmitRegistrationForm)`),
  * chain steps, then feed [ids] to your engine's existing string-based flow assertion — e.g.
- * `assertThat(instance).hasPassedInOrder(*path.ids.toTypedArray())`. The **edge steps** ([then] / [onto]) and
+ * `assertThat(instance).hasPassedInOrder(*path.ids)`. The **edge steps** ([then] / [onto]) and
  * the **subprocess steps** ([enter] / [inside]) are checked against the model at compile time, so a model
  * change breaks the build at the exact edge that moved. [interruptedBy] and [throwingCompensation] check the picked
  * successor but name its carrier freely; [jumpTo] is the single fully-unchecked opt-out and is marked [RiskyNavigation].
@@ -28,14 +28,15 @@ class ProcessPath<N : FlowNode> internal constructor(
     val nodes: List<FlowNode> get() = recorded
 
     /**
-     * The recorded nodes' raw element ids, in walk order — ready for `hasPassedInOrder(*ids.toTypedArray())`.
+     * The recorded nodes' raw element ids, in walk order — an array, as engine assertions take a string vararg:
+     * `hasPassedInOrder(*ids)`.
      */
-    val ids: List<String> get() = recorded.map { it.id.value }
+    val ids: Array<String> get() = recorded.map { it.id.value }.toTypedArray()
 
     /**
-     * The recorded nodes' ids as a distinct list
+     * The recorded nodes' ids, deduplicated.
      */
-    val distinctIds: List<String> get() = ids.distinct()
+    val distinctIds: Array<String> get() = ids.distinct().toTypedArray()
 
     /**
      * The sequence flows recorded so far, in walk order.
@@ -47,7 +48,7 @@ class ProcessPath<N : FlowNode> internal constructor(
      * flows. [then] and [onto] record the flow they walk when it is unambiguous; boundary events, compensation
      * handlers, [enter] and several flows to the same element record none.
      */
-    val flowIds: List<String> get() = takenFlows.map { it.id.value }
+    val flowIds: Array<String> get() = takenFlows.map { it.id.value }.toTypedArray()
 
     /**
      * The one way every step moves on: to [node], recording [nodesToRecord] and [flowsToRecord] after what is

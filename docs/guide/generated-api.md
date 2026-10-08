@@ -535,7 +535,7 @@ val path = ProcessPath.from(FlowNodes.StartEventLeasingRequestReceived)
     .then { it.timerWithdrawalPeriodElapsed }
     .then { it.endEventLeasingActive }
 
-assertThat(instance).isEnded.hasPassedInOrder(*path.ids.toTypedArray())
+assertThat(instance).isEnded.hasPassedInOrder(*path.ids)
 ```
 
 Start with `ProcessPath.from(FlowNodes.<Node>)` — every node is a direct child of `FlowNodes`, so no accessor is
@@ -579,7 +579,7 @@ assertThat(pi).hasPassed(*nodesOf(orderBranch, insuranceBranch).map { it.id.valu
 
 > The guarantee is **structural single-step adjacency**, not token-accurate reachability (a valid path is one
 > the model allows, not necessarily one the engine executes at runtime — XOR picks one branch, AND runs all).
-> `ids` holds element ids only, which is what engine assertions consume; the branch a gateway takes is
+> `ids` is an array of element ids only, which is what engine assertions consume; the branch a gateway takes is
 > expressed by the successor you pick, and its condition is readable on the successor's `flow`.
 
 Each step also records **which sequence flow** it takes in `flowIds`, ready to compare against the engine's taken
@@ -610,7 +610,7 @@ val path = ProcessPath.from(FlowNodes.StartEventApplicationWithdrawn)
     .throwingCompensation(FlowNodes.BoundaryCompensateContract) { it.serviceTaskCancelContract }
     .then { it.serviceTaskSendCancellationConfirmation }
 
-assertThat(pi).hasPassedInOrder(*path.ids.toTypedArray())
+assertThat(pi).hasPassedInOrder(*path.ids)
 ```
 
 The throwing event comes first because an engine starts it before the handler it triggers; Zeebe's in-order
@@ -647,7 +647,8 @@ var ids = PathWalk.from(FlowNodes.startEventLeasingRequestReceived())
     .getIds();
 ```
 
-`getFlowIds()` returns the sequence flows walked, as in Kotlin.
+`getIds()` returns a `String[]`, so it goes straight into a string-vararg assertion:
+`assertThat(instance).hasPassedInOrder(ids)`. `getFlowIds()` returns the sequence flows walked, as in Kotlin.
 
 Two Java-imposed shape differences vs. the Kotlin DSL: the terminal step is `end` (an end event can't continue
 a chain) and subprocess descent names the subprocess explicitly (`enter(FlowNodes.subProcessConcludeContract(), …)` /
