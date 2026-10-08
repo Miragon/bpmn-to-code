@@ -31,6 +31,15 @@ class ProcessPathTest {
     }
 
     @Test
+    fun `ids, distinctIds and flowIds spread straight into a string vararg`() {
+        val path = ProcessPath.from(Start).then { it.mid }.then { it.end }
+
+        assertThat(listOf("Start", "Mid", "End")).containsExactly(*path.ids)
+        assertThat(listOf("Start", "Mid", "End")).containsExactly(*path.distinctIds)
+        assertThat(listOf("flow_startToMid")).containsExactly(*path.flowIds)
+    }
+
+    @Test
     fun `then along a transition with one flow records the flow`() {
         val path = ProcessPath.from(Start).then { it.mid }
 

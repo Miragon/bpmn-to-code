@@ -266,4 +266,17 @@ class PathWalkJavaApiTest {
         assertThat(walk.getNodes().stream().map(n -> n.getId().getValue()).toList())
             .containsExactly("gateway_fork", "serviceTask_orderBike", "serviceTask_orderBike");
     }
+
+    @Test
+    void idsPassStraightIntoAStringVararg() {
+        var walk = PathWalk.from(FlowNodes.businessRuleTaskCheckCreditRating())
+            .then(n -> n.gatewayIsSolvent());
+        var trail = walk.end(n -> n.subProcessConcludeContract());
+
+        assertThat(List.of("businessRuleTask_checkCreditRating", "gateway_isSolvent")).containsExactly(walk.getIds());
+        assertThat(List.of("businessRuleTask_checkCreditRating", "gateway_isSolvent")).containsExactly(walk.getDistinctIds());
+        assertThat(List.of("flow_checkCreditRatingToIsSolvent")).containsExactly(walk.getFlowIds());
+        assertThat(List.of("businessRuleTask_checkCreditRating", "gateway_isSolvent", "subProcess_concludeContract"))
+            .containsExactly(trail.getIds());
+    }
 }
