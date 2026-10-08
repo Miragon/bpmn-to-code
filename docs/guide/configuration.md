@@ -1,88 +1,71 @@
 # ⚙️ Configuration
 
-All plugin parameters, available for both the Gradle and Maven plugins.
+Every parameter of the three Gradle tasks and Maven goals. Setup snippets are on the [Gradle](/getting-started/gradle) and [Maven](/getting-started/maven) pages.
 
-## Parameters
+| | Gradle task | Maven goal |
+|---|---|---|
+| [Process API](/guide/generated-api) | `generateBpmnModelApi` (`GenerateBpmnModelsTask`) | `generate-bpmn-api` |
+| [JSON export](/surface/json) | `generateBpmnModelJson` (`GenerateBpmnJsonTask`) | `generate-bpmn-json` |
+| [Validation](/validate/) (experimental) | `validateBpmnModels` (`ValidateBpmnModelsTask`) | `validate-bpmn` |
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `baseDir` | `String` | yes | — | Base directory for resolving relative paths |
-| `filePattern` | `String` | yes | — | Glob pattern to locate BPMN files (e.g. `src/main/resources/**/*.bpmn`) |
-| `outputFolderPath` | `String` | yes | — | Directory where generated code is written |
-| `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`). Use one package per generation run — two runs in the same package overwrite each other's [shared definition files](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
-| `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (experimental) |
-| `processEngine` | `ProcessEngine` | yes | — | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
+The Gradle task classes live in `io.miragon.bpmn.adapter`. A Gradle property without a default has to be set, or the build fails naming it. The Maven goals are bound to no lifecycle phase; each parameter is also a user property of the same name (`-DprocessEngine=ZEEBE`).
+
+## Common parameters
+
+All three tasks and goals take these.
+
+| Parameter | Gradle default | Maven default | Description |
+|-----------|----------------|---------------|-------------|
+| `baseDir` | — | `.` | Directory `filePattern` is resolved against |
+| `filePattern` | — | `src/main/resources/*.bpmn` | Glob selecting the BPMN files, relative to `baseDir` |
+| `processEngine` | — | — | `ZEEBE`, `CAMUNDA_7` or `OPERATON`; see [Engines](/engines/) |
+
+**Paths.** In Gradle, a relative `baseDir` or `outputFolderPath` resolves against the project directory. In Maven it resolves against the directory Maven is started in, so use `${project.basedir}`.
+
+**File pattern.** `*` matches within one directory, `**/` any number of directories, including none: `src/main/resources/**/*.bpmn` also finds files directly in `src/main/resources`. Files behind a symlinked directory are not read. There is no exclude; see filtering files for [Gradle](/getting-started/gradle#filtering-files) and [Maven](/getting-started/maven#filtering-files).
+
+## Process API
+
+| Parameter | Gradle default | Maven default | Description |
+|-----------|----------------|---------------|-------------|
+| `outputFolderPath` | — | `src/main/kotlin` | Source root the code is written to; the package directories are created below it |
+| `packagePath` | — | `de.emaarco.generated` | Package (C#: namespace) of the generated code. One package per task or execution: two runs sharing a package overwrite each other's [shared definitions](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
+| `outputLanguage` | — | `KOTLIN` | `KOTLIN`, `JAVA` or `CSHARP` (experimental) |
+
+## JSON export
+
+| Parameter | Gradle default | Maven default | Description |
+|-----------|----------------|---------------|-------------|
+| `outputFolderPath` | — | `src/main/resources/bpmn-json` | Directory the `.json` files are written to |
+
+## Validation
+
+| Parameter | Gradle default | Maven default | Description |
+|-----------|----------------|---------------|-------------|
+| `failOnWarning` | `false` | `false` | Treat warnings as failures |
+| `disabledRules` | empty | empty | Ids of [rules](/validate/) to skip |
+
+Both generating tasks run the built-in rules as well and fail on an error. They have neither parameter.
 
 ## Settings in the BPMN model
 
-One setting lives in the model instead of the build, as an extension property on the process, so it works the same
-in every plugin and in the web UI.
+| Extension property | On | Description |
+|--------------------|----|-------------|
+| `variantName` | the process | Leads the name of what is generated from the file, which lets [several files declare the same process id](/guide/modeling#several-files-one-process-id) |
+| `additionalInputVariables`, `additionalOutputVariables` | any flow node (Camunda 7, Operaton) | Declares [variables](/guide/modeling#variables) an element cannot express otherwise |
 
-| Property | Description |
-|----------|-------------|
-| `variantName` | Leads the name of the API generated from this file: `corporate` turns `OrderProcessApi` into `CorporateOrderProcessApi`. This is what lets several files declare the same `processId` (see [Several files, one process id](/guide/generated-api#several-files-one-process-id)). Without it, a `processId` declared in several files fails generation |
-
-## Process Engines
-
-| Engine | Value | Description |
-|--------|-------|-------------|
-| Camunda 8 / Zeebe | `ZEEBE` | Uses `zeebe:` namespace extensions |
-| Camunda 7 | `CAMUNDA_7` | Uses `camunda:` namespace extensions |
-| Operaton | `OPERATON` | Uses `operaton:` namespace (Operaton's own XML namespace) |
-
-::: tip Operaton
-Operaton is an open-source fork of Camunda 7. It uses the same patterns for I/O mappings and call activities, but with its own XML namespace (`http://operaton.org/schema/1.0/bpmn`). If your Operaton models still use `camunda:` namespace attributes, use `CAMUNDA_7` instead.
-:::
+They live in the model, so they apply the same way in Gradle, Maven and the [web app](/web/).
 
 ## Output Languages
 
-| Language | Value | Generated Output |
-|----------|-------|-----------------|
-| Kotlin | `KOTLIN` | `object` with nested objects; depends on `bpmn-to-code-runtime` |
-| Java | `JAVA` | `class` with nested static classes; depends on `bpmn-to-code-runtime` |
-| C# | `CSHARP` | `static class` with the same registries and `FlowNodes`; runtime types inlined, no dependency |
+| Value | Generated | Runtime |
+|-------|-----------|---------|
+| `KOTLIN` | `object` with nested objects | `io.miragon:bpmn-to-code-runtime` |
+| `JAVA` | `final class` with nested static classes | `io.miragon:bpmn-to-code-runtime` |
+| `CSHARP` | `static class` with the same content | none, the types are inlined into each file |
+
+The Gradle plugin adds the runtime [when the `java` plugin is applied](/getting-started/gradle#runtime-dependency); with Maven you [declare it yourself](/getting-started/maven#runtime-dependency).
 
 ::: warning Experimental
-C# support is experimental. It may change in any release and may be reworked or removed if it doesn't work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
-:::
-
-::: info C# has no package dependency
-The C# output carries the same API surface as Kotlin and Java, including the typed `FlowNodes`
-navigation. The runtime types its nodes need (`IFlowNode`, `SequenceFlow<T>`, `ElementId`, `VariableName`,
-…) are emitted into every generated file as a nested `Runtime` class, so a `.cs` file drops into any project
-and builds. See [C# specifics](/guide/generated-api#c-specifics).
-:::
-
-::: info
-The Web app is the primary surface for C#. The Gradle and Maven plugins accept `CSHARP` as well — useful
-in a polyglot monorepo where the JVM build also generates the constants for a sibling .NET worker — but a
-pure .NET project has no JVM build to hook into.
-:::
-
-## Examples
-
-::: code-group
-
-```kotlin [Gradle (Kotlin DSL)]
-tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
-    baseDir = projectDir.toString()
-    filePattern = "src/main/resources/**/*.bpmn"
-    outputFolderPath = "$projectDir/src/main/kotlin"
-    packagePath = "com.example.process"
-    outputLanguage = OutputLanguage.KOTLIN
-    processEngine = ProcessEngine.ZEEBE
-}
-```
-
-```xml [Maven]
-<configuration>
-    <baseDir>${project.basedir}</baseDir>
-    <filePattern>src/main/resources/*.bpmn</filePattern>
-    <outputFolderPath>${project.basedir}/src/main/java</outputFolderPath>
-    <packagePath>com.example.process</packagePath>
-    <outputLanguage>KOTLIN</outputLanguage>
-    <processEngine>ZEEBE</processEngine>
-</configuration>
-```
-
+C# output is experimental and may change in a minor release. See [C# specifics](/guide/generated-api#c-specifics).
 :::

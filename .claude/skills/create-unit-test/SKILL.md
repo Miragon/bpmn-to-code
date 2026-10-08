@@ -74,7 +74,7 @@ class FooServiceTest {
 - Prefer fluent assertion chains over multiple individual asserts
 
 ### Builders
-- If a builder / helper already exists (e.g. `testBpmnModel()`, `testBpmnModelApi()`, `node()`), use it
+- If a builder / helper already exists, use it. In core's test sources (`io.miragon.bpmn.domain`): `testProcessModel()`, `testProcessModelApi()`, `jobWorkerTask()`, and the in-memory mirrors of the shared MiraVelo models `testBikeLeasingModel()` and `testCancelBikeOrderModel()`
 - If none exists and the class is small, use its constructor directly with named parameters
 - If none exists and the class is large/complex, use `AskUserQuestion` to decide whether to create a builder
 
@@ -97,26 +97,27 @@ builder are **integration-style** tests, not mock-based unit tests. The `underTe
   and `assertViolation(ruleId, elementId?, messageContains?)` / `assertViolationCount(n)` for positive
   checks. `.result()` is an escape hatch reserved for assertions the fluent API genuinely cannot express.
 - **Custom rules are named `private class`** declared *below* the tests, with members ordered
-  `id → severity → phase → validate`. Never an anonymous `object : Rule val`.
-- **Reusable rules go in `TestRules`** — a rule used by more than one suite is defined once there and
-  exposed via a factory (`TestRules.callActivityTargetExists()`) plus an id constant
-  (`TestRules.CALL_ACTIVITY_TARGET_EXISTS`). One-off, behaviour-specific rules stay local to their class.
+  `id → severity → validate`. Never an anonymous `object : Rule val`.
+- **Built-in rules come from `BpmnRules`** (e.g. `BpmnRules.CALL_ACTIVITY_TARGET_EXISTS`). A custom rule
+  exists only to test the rule mechanism itself and stays local to its test class.
+- **Models come from the shared MiraVelo set** on the test classpath (`bpmn/c7/`, `bpmn/zeebe/`,
+  `bpmn/operaton/`). Deliberately broken fixtures live in the module's own `src/test/resources/bpmn`.
 - **No given/when/then comments** for these short fluent chains — the chain already reads as when/then.
   Never leave an empty `// given:` / `// when:` section, and no leading blank line after `@Test`.
 - Prefer a rule's `.id` constant (e.g. `BpmnRules.TIMER_CRON_SYNTAX.id`) over a magic string.
 
 ```kotlin
 @Test
-fun `flags a call activity whose called process is absent`() {
+fun `flags a call activity whose called process is absent from the loaded models`() {
     BpmnValidator
-        .fromClasspath("bpmn/order-fulfillment/order-fulfillment.bpmn")
+        .fromClasspath("bpmn/c7/bike-leasing.bpmn")
         .engine(ProcessEngine.CAMUNDA_7)
-        .withRules(TestRules.callActivityTargetExists())
+        .withRules(BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
         .validate()
         .assertViolation(
-            ruleId = TestRules.CALL_ACTIVITY_TARGET_EXISTS,
-            elementId = "CallActivity_ProcessPayment",
-            messageContains = "paymentProcessing",
+            ruleId = BpmnRules.CALL_ACTIVITY_TARGET_EXISTS.id,
+            elementId = "callActivity_cancelBikeOrder",
+            messageContains = "cancelBikeOrder",
         )
 }
 ```

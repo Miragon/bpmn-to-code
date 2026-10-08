@@ -1,126 +1,51 @@
 # Agent Instructions
 
-This file provides guidance to AI coding agents when working with code in this repository.
+bpmn-to-code generates type-safe APIs from BPMN process models and validates those models. It ships as a Gradle plugin, a Maven plugin, a web app, a testing library and a runtime library.
 
-## Project Overview
+## Modules
 
-bpmn-to-code is a Gradle and Maven plugin that generates type-safe API definitions from BPMN process models. The project consists of:
+- `bpmn-to-code-core`: reads BPMN, validates, generates code and process JSON (hexagonal, not published on its own)
+- `bpmn-to-code-gradle`: Gradle plugin
+- `bpmn-to-code-maven`: Maven plugin (mojos in Java)
+- `bpmn-to-code-web`: Ktor web app, shipped as Docker image
+- `bpmn-to-code-runtime`: types the generated Kotlin and Java code refers to
+- `bpmn-to-code-testing`: test library for BPMN validation rules
+- `bpmn-to-code-architecture-tests`: Konsist tests for layers, imports and naming
+- `bpmn-to-code-benchmark`: hand-run generator benchmark
+- `bpmn-to-code-skills`: Claude Code plugin shipped to users (not a Gradle module)
+- `shared/bpmn`: MiraVelo BPMN models all modules test against
+- `tools`: bpmnlint for those models
+- `docs`: VitePress site
 
-- **bpmn-to-code-core**: Core logic for parsing BPMN files and generating API code (Kotlin)
-- **bpmn-to-code-gradle**: Gradle plugin wrapper
-- **bpmn-to-code-maven**: Maven plugin wrapper
-- **bpmn-to-code-web**: Web plugin wrapper
-- **bpmn-to-code-testing**: Arch-Unit like feature that allows us to test bpmnModels for specific rules
-- **bpmn-to-code-benchmark**: Hand-run benchmark comparing the generator with a released version; see [`docs/contributing/benchmark.md`](docs/contributing/benchmark.md)
+Read before changing structure: [`docs/contributing/architecture.md`](docs/contributing/architecture.md) (modules, layers). Quality gates, test layers and PR rules: [`docs/contributing/index.md`](docs/contributing/index.md). Why things are the way they are: `docs/contributing/adr/`. How BPMN models are named and structured: [`docs/guide/modeling.md`](docs/guide/modeling.md). Kotlin style: `.claude/rules/`.
 
-## Architecture
+## Verify
 
-The core follows hexagonal architecture with clear separation of concerns:
-
-### Domain Layer (`bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/`)
-- `BpmnModel.kt`, `BpmnFile.kt`, `BpmnModelApi.kt`: Core domain entities
-- `shared/`: Common types like `OutputLanguage`, `ProcessEngine`, `ServiceTaskDefinition`
-- `ProcessModel.apiName`: names what is generated from a BPMN file; a `variantName` tells files sharing a process id apart
-
-### Application Layer (`bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/application/`)
-- `port/inbound/GenerateProcessApiUseCase.kt`: Main use case interface
-- `port/outbound/`: Adapter interfaces for external dependencies
-- `service/GenerateProcessApiService.kt`: Use case implementation
-
-### Adapter Layer (`bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/adapter/`)
-- `inbound/CreateProcessApiPlugin.kt`: Entry point for plugins
-- `outbound/codegen/`: Code generation adapters with Java/Kotlin builders
-- `outbound/engine/`: BPMN parsing adapters for Camunda 7 and Zeebe
-- `outbound/filesystem/BpmnFileLoader.kt`: File system operations
-
-## Common Commands
-
-### One-time setup
-Install [Lefthook](https://github.com/evilmartians/lefthook) and register the git hooks (runs coverage check before push):
 ```bash
-brew install lefthook  # or see docs/development/contributing.md for other platforms
-lefthook install
+./gradlew :bpmn-to-code-core:test                 # tests of the module you changed
+./gradlew :bpmn-to-code-architecture-tests:test   # after moving code between packages or modules
+./gradlew formatKotlin lintKotlin                 # ktlint fix, then check
+./gradlew detektMain detektTest                   # detekt with type resolution
+./gradlew :bpmn-to-code-core:test -Dgolden.update=true   # rewrite golden files after an intended output change
 ```
 
-### Build and Test
-```bash
-# Build entire project
-./gradlew build
+- Lines target 120 characters. ktlint wraps longer lines but never joins shorter ones, so collapse by hand whatever fits on one line.
+- No baseline and no suppressions: fix the finding, or add a scoped, commented exception to the config.
+- The C# compilation test is skipped without a `dotnet` command, so a green local build proves nothing about generated C#. See the architecture page for how to run it.
 
-# Run tests for specific module
-./gradlew :bpmn-to-code-core:test
+## How to work
 
-# Run all tests
-./gradlew test
-```
+- **TDD.** Update the domain model first if needed, then write or update tests that express the expected behaviour (red), then implement until they pass (green).
+- **Verify after each task.** After every discrete step (a plan phase, a refactor step, a bug fix) run the tests of the affected modules. Prefer targeted module runs over a full build.
+- **Consider the testing impact.** New behaviour needs new tests, changed behaviour needs updated tests. When generator output changes, update the golden files with the flag above, review the diff, and check the other output languages.
+- **Uniform behaviour.** A feature works the same in Gradle, Maven, web and core. Prefer data in the BPMN model over a setting on one entry point.
+- **MiraVelo only.** Examples in code, tests, docs, commits and PRs use the models in `shared/bpmn`. No customer names, locations or process names.
+- **Test models.** Build models with the test builders in core's test sources or load the shared models; do not hand-build domain objects or add new BPMN fixtures without need. Use the `create-unit-test` skill for test conventions.
 
-### Code Generation Testing
-```bash
-# Test Gradle plugin
-./gradlew :bpmn-to-code-gradle:test
+## GitHub
 
-# Test Maven plugin
-./gradlew :bpmn-to-code-maven:test
-```
-
-### Code Quality (ktlint + detekt)
-Kotlin quality is enforced by ktlint (formatting/imports) and detekt (semantic/structural). Both are
-wired into `check`/`build` and gate CI + the pre-push hook.
-```bash
-./gradlew lintKotlin    # ktlint check
-./gradlew formatKotlin  # ktlint auto-fix
-./gradlew detektMain detektTest  # detekt (with type resolution)
-```
-Lines target 120 chars: anything that fits on one line within that limit stays on one line (ktlint wraps
-longer lines but never joins shorter ones, so collapse them by hand).
-No baseline and no silent suppressions — fix findings or add a scoped exception in the relevant
-config. ktlint config lives in `.editorconfig`, detekt config in `config/detekt/detekt.yml`.
-
-### Plugin Development
-The plugins generate code from BPMN files. Key configuration parameters:
-- `filePattern`: BPMN file location pattern
-- `outputFolderPath`: Where to generate code
-- `packagePath`: Generated code package
-- `outputLanguage`: KOTLIN, JAVA, or CSHARP (C# inlines its runtime types per file)
-- `processEngine`: CAMUNDA_7 or ZEEBE
-
-
-## Testing Strategy
-
-Tests are organized by layer:
-- Unit tests for domain services and builders
-- Integration tests for adapters and extractors
-- Test resources include sample BPMN files and expected API outputs
-- Shared BPMN test models live in `shared/bpmn/{c7,zeebe,operaton}/` (MiraVelo domain) and follow the modeling guideline in [`docs/contributing/best-practices.md`](docs/contributing/best-practices.md#naming-conventions)
-
-The project uses JUnit 5, AssertJ, and MockK for testing. Use [`testBpmnModel()`](bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/domain/TestBpmnModel.kt) or the in-memory mirrors of the shared models like [`testBikeLeasingModel()`](bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/domain/TestMiraVeloModels.kt) to programmatically construct test models instead of parsing BPMN files or hand-building domain objects.
-
-## Best Practices
-
-### Test-Driven Development
-
-Follow **TDD** when planning and implementing changes: update the domain model first (if applicable), then write/update tests to express the expected behavior (RED phase), then implement the production code to make them pass (GREEN phase).
-
-### Verify After Each Task
-
-After completing each discrete task (e.g., a phase in a plan, a refactor step, a bug fix), run a Gradle build on the affected modules to confirm compilation and tests still pass. Use targeted module builds (e.g., `./gradlew :bpmn-to-code-core:test`) rather than a full project build when only specific modules were changed.
-
-### Always Consider Testing Impact
-
-When making code changes, always think about the testing implications:
-
-- **Write new tests** for new functionality or behavior changes
-- **Update existing tests** when modifying expected outputs or behavior
-- **Run affected tests** to verify changes work correctly before committing
-- **Update test fixtures** (like expected output files) when generation logic changes
-
-Example: When modifying code generators (e.g., `KotlinApiBuilder`), remember to:
-1. Update the corresponding expected output files in `src/test/resources/`
-2. Run the specific test suite to verify the changes
-3. Check if other builders or tests are affected
-
-### GitHub
 - Use the `gh` CLI for GitHub operations.
+- PR titles are Conventional Commits (`feat`, `fix`, `chore`, `docs`, `refactor`, `ci`, `build`, `test`, `revert`); CI enforces it and the changelog is built from them.
 - Keep commit messages and PR descriptions short. Focus on what changed and why.
 - For issues: write a summary, current state, and desired state. Give a high-level overview of technical impact (breaking or not). Focus on behavior, not implementation details.
 
@@ -128,7 +53,6 @@ Example: When modifying code generators (e.g., `KotlinApiBuilder`), remember to:
 
 You are a knowledgeable colleague, not someone who passively takes orders. If something proposed doesn't look right, suggest corrections, ask critical questions, and push back where needed. Challenge ideas that could benefit from further improvement or iterative refinement rather than just accepting them at face value.
 
-## AI Skills
+## Skills
 
-Reusable skill definitions live in `.claude/skills/`. New skills should be created under `.claude/skills/<skill-name>/SKILL.md`. See [docs/development/ai-skills.md](docs/development/ai-skills.md) for details.
-
+Skills for working on this repository live in `.claude/skills/<skill-name>/SKILL.md`. The skills shipped to users live in `bpmn-to-code-skills/` and are a product surface.

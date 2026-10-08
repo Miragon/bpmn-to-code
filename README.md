@@ -1,7 +1,3 @@
-> **bpmn-to-code is early-stage and actively developing.**
-> The four pillars — Generate, Validate, Surface, Ship — are taking shape, but expect rough edges.
-> Feedback and contributions are very welcome.
-
 [![Documentation](https://img.shields.io/badge/docs-bpmn--to--code-blue?style=flat-square)](https://miragon.github.io/bpmn-to-code/)
 [![Web App](https://img.shields.io/badge/web--app-try%20in%20browser-brightgreen?style=flat-square)](https://bpmn-to-code.miragon.io/static/index.html)
 [![Maven Central](https://img.shields.io/maven-central/v/io.miragon/bpmn-to-code-maven?style=flat-square&label=maven)](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven)
@@ -9,84 +5,37 @@
 
 # bpmn-to-code
 
-Type-safe constants from your BPMN model — for your compiler, your tests, and your AI agents.
-
-**Generate · Validate · Surface · Ship** — a type-safe BPMN toolkit for JVM projects.
+Type-safe constants from your BPMN model, for your compiler, your tests and your AI agents.
 
 ![bpmn-to-code preview](docs/public/preview.gif)
 
-## What It Does
-
-### Generate — Type-Safe APIs
-
-bpmn-to-code reads your BPMN files and generates typed constants from them. Every element ID, message name, and service task type becomes a compiled constant. Rename a task in the modeler → compiler error. No more silent runtime failures from hardcoded strings.
+bpmn-to-code reads your BPMN files and generates a typed API from them. Element ids, message names and job types become constants, so renaming a task in the modeler is a compiler error instead of a silent runtime failure.
 
 ```kotlin
-// Before
-@JobWorker(type = "miravelo.sendContract")  // copied from modeler, no safety net
+// Before: copied from the modeler, no safety net
+@JobWorker(type = "miravelo.sendContract")
 fun send() { ... }
 
-// After — generated from the BPMN model
+// After: generated from the BPMN model
 @JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
 fun send() { ... }
 ```
 
-### Validate — Architecture Rules for BPMN _(beta)_
+Around the generator:
 
-Like ArchUnit for Java, `bpmn-to-code-testing` lets you write architecture tests for your BPMN models. The standalone `validateBpmnModels` Gradle task and `validate-bpmn` Maven goal run the same checks in CI.
+- **[Validation](https://miragon.github.io/bpmn-to-code/validate/)**: built-in rules run before every generation, as a build task, or as tests with `bpmn-to-code-testing`, where you can add your own rules.
+- **[Process JSON](https://miragon.github.io/bpmn-to-code/surface/json)**: a compact JSON view of each process for reviews, CI and AI agents.
+- **[Agent skills](https://miragon.github.io/bpmn-to-code/skills/)**: a Claude Code plugin that sets up the build plugin and migrates hardcoded strings.
+- **[Web app](https://bpmn-to-code.miragon.io/static/index.html)**: try it in the browser, or self-host the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
 
-```kotlin
-BpmnValidator
-    .fromClasspath("bpmn/")
-    .engine(ProcessEngine.ZEEBE)
-    .validate()
-    .assertNoViolations()
-```
-
-12 built-in rules cover missing implementations, undefined timers, empty processes, naming violations, leftover root elements, and variable collisions. Add custom rules by implementing `SingleModelValidationRule` (per-process) or `CrossModelValidationRule` (across all loaded models).
-
-### Surface — Process Structure in Code _(beta)_
-
-Generates a structured JSON alongside the API. Your process is readable by AI agents, code reviewers, and CI — without opening Camunda Modeler.
-
-```json
-{
-  "$schema": "https://miragon.github.io/bpmn-to-code/schema/process-model/2.0.json",
-  "formatVersion": "2.1",
-  "process": {
-    "id": "bikeLeasing",
-    "flowNodes": [
-      { "id": "startEvent_leasingRequestReceived", "type": "startEvent", "name": "Leasing request received" },
-      { "id": "serviceTask_validateApplication", "type": "serviceTask", "name": "Validate application" }
-    ]
-  }
-}
-```
-
-BPMN files are XML — technically readable, but full of visual layout data, namespace declarations, and rendering hints that make them noisy for AI tools. The generated JSON strips all of that away:
-
-- **Smaller** — no diagram coordinates, waypoints, or SVG-style metadata
-- **Focused** — only the elements and relationships that matter for logic and implementation
-- **Structured** — flow nodes, sequence flows, messages, and errors in predictable, typed fields
-- **Standard** — element names, containment and references follow OMG BPMN 2.0, validated against a published JSON Schema
-
-The result is a compact, deterministic representation that AI agents can reason about accurately — with no hallucinated element IDs, because the JSON is derived directly from the BPMN model by rule.
-
-### Ship — Agent Skills _(beta)_
-
-Drop-in agent skills that automate the entire setup workflow. Integrate the plugin into your project in one prompt, scaffold a complete process service from a BPMN file, and migrate hardcoded strings to the generated API — without touching any config manually.
-
-```bash
-/plugin marketplace add Miragon/bpmn-to-code
-/plugin install bpmn-to-code@bpmn-to-code
-```
-
-Works with Claude Code out of the box.
-
-## Gradle Setup
+## Gradle
 
 <!-- x-release-please-start-version -->
 ```kotlin
+import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
+import io.miragon.bpmn.domain.shared.OutputLanguage
+import io.miragon.bpmn.domain.shared.ProcessEngine
+
 plugins {
     id("io.miragon.bpmn-to-code-gradle") version "6.2.0"
 }
@@ -102,80 +51,73 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 ```
 <!-- x-release-please-end -->
 
-## Maven Setup
+Run it with `./gradlew generateBpmnModelApi`. The plugin adds the `bpmn-to-code-runtime` dependency by itself. Details: [Gradle guide](https://miragon.github.io/bpmn-to-code/getting-started/gradle).
+
+## Maven
+
+The goals are not bound to a lifecycle phase by default, so bind the goal yourself, and add the runtime library the generated code refers to:
 
 <!-- x-release-please-start-version -->
 ```xml
-<plugin>
-    <groupId>io.miragon</groupId>
-    <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.2.0</version>
-    <executions>
-        <execution>
-            <goals><goal>generate-bpmn-api</goal></goals>
-        </execution>
-    </executions>
-    <configuration>
-        <baseDir>${project.basedir}</baseDir>
-        <filePattern>src/main/resources/*.bpmn</filePattern>
-        <outputFolderPath>${project.basedir}/src/main/java</outputFolderPath>
-        <packagePath>com.example.process</packagePath>
-        <outputLanguage>KOTLIN</outputLanguage>
-        <processEngine>ZEEBE</processEngine>
-    </configuration>
-</plugin>
+<dependencies>
+    <dependency>
+        <groupId>io.miragon</groupId>
+        <artifactId>bpmn-to-code-runtime</artifactId>
+        <version>6.2.0</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>io.miragon</groupId>
+            <artifactId>bpmn-to-code-maven</artifactId>
+            <version>6.2.0</version>
+            <executions>
+                <execution>
+                    <phase>generate-sources</phase>
+                    <goals><goal>generate-bpmn-api</goal></goals>
+                </execution>
+            </executions>
+            <configuration>
+                <baseDir>${project.basedir}</baseDir>
+                <filePattern>src/main/resources/*.bpmn</filePattern>
+                <outputFolderPath>${project.basedir}/src/main/java</outputFolderPath>
+                <packagePath>com.example.process</packagePath>
+                <outputLanguage>JAVA</outputLanguage>
+                <processEngine>ZEEBE</processEngine>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
 ```
 <!-- x-release-please-end -->
 
-## Testing Module
+Details: [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/maven). All parameters of both plugins: [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration).
 
-<!-- x-release-please-start-version -->
-```kotlin
-dependencies {
-    testImplementation("io.miragon:bpmn-to-code-testing:6.2.0")
-}
-```
-<!-- x-release-please-end -->
+## Supported engines
 
-## Supported Languages
-
-| Module | Java | Kotlin | C# _(experimental)_ |
-|--------|:---:|:---:|:---:|
-| Gradle plugin | ✅ | ✅ | ✅ |
-| Maven plugin | ✅ | ✅ | ✅ |
-| Web app | ✅ | ✅ | ✅ |
-
-> [!WARNING]
-> **C# support is experimental.** It may change in any release and may be reworked or removed if it doesn't work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
->
-> The C# output carries the same API as Kotlin and Java, including the typed `FlowNodes` navigation; the runtime
-> types it needs are inlined into each generated `.cs` file, so it has no dependencies. The Web app is the
-> primary surface for it; the build plugins accept `CSHARP` too, which is useful in a polyglot monorepo but
-> not for a pure .NET project. See [Output Languages](https://miragon.github.io/bpmn-to-code/guide/configuration.html#output-languages).
-
-## Supported Engines
-
-| Engine | Value |
-|--------|-------|
+| Engine | `processEngine` |
+|---|---|
 | Camunda 8 / Zeebe | `ZEEBE` |
-| Camunda 7 / CIB7 | `CAMUNDA_7` |
+| Camunda 7, CIB seven | `CAMUNDA_7` |
 | Operaton | `OPERATON` |
 
-## Get It
+## Supported output languages
 
-- 📦 [Maven Central](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven) — Maven Plugin
-- 📦 [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle) — Gradle Plugin
-- 🌐 [Web App](https://bpmn-to-code.miragon.io/static/index.html) — Try in browser, no installation
-- 🐳 [Docker Hub](https://hub.docker.com/r/miragon/bpmn-to-code-web) — Self-hostable container
+| Language | `outputLanguage` | Runtime types |
+|---|---|---|
+| Kotlin | `KOTLIN` | `io.miragon:bpmn-to-code-runtime` |
+| Java | `JAVA` | `io.miragon:bpmn-to-code-runtime` |
+| C# (experimental) | `CSHARP` | inlined into each generated file |
 
-## Project Structure
+C# output is experimental and may change in a minor release. It is available in the Gradle plugin, the Maven plugin and the web app.
 
-- **bpmn-to-code-core** — core parsing and generation logic
-- **bpmn-to-code-gradle** — Gradle plugin
-- **bpmn-to-code-maven** — Maven plugin
-- **bpmn-to-code-testing** — BPMN architecture testing library
-- **bpmn-to-code-web** — browser-based web app
+## Links
 
-## Contributing
+- [Documentation](https://miragon.github.io/bpmn-to-code/)
+- [Why bpmn-to-code](https://miragon.github.io/bpmn-to-code/overview/why)
+- [Changelog and migration guides](https://miragon.github.io/bpmn-to-code/changelog/)
+- [Contributing](https://miragon.github.io/bpmn-to-code/contributing/)
 
-Community contributions are welcome. Submit issues, open pull requests, or start a discussion on [GitHub](https://github.com/Miragon/bpmn-to-code).
+Issues, pull requests and discussions are welcome on [GitHub](https://github.com/Miragon/bpmn-to-code).

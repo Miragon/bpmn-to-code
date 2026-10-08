@@ -1,12 +1,28 @@
 # 📡 JSON Export
 
-bpmn-to-code generates a structured JSON file alongside the Kotlin/Java API. It contains the full process structure — every flow node, sequence flow, message, signal, error and escalation — in a format that both AI agents and developers can read directly.
+::: warning Beta
+The JSON export is in beta. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you use it.
+:::
 
-Since **6.0.0** the format follows the OMG BPMN 2.0 metamodel and the vocabulary of [`bpmn-moddle`](https://github.com/bpmn-io/bpmn-moddle): element names are the BPMN ones, a scope owns the elements it contains, and relations point at sequence flows. See [ADR 018](https://github.com/Miragon/bpmn-to-code/blob/main/docs/contributing/adr/018-process-json-v2.md) for the rationale, and the [v6 migration guide](/changelog/v6) if you consume the old format.
+bpmn-to-code exports the structure of a process as JSON: every flow node, sequence flow, message, signal, error and escalation, without the diagram. AI agents, reviewers and scripts can read it directly.
 
-## What Gets Generated
+The format follows the OMG BPMN 2.0 metamodel and the vocabulary of [`bpmn-moddle`](https://github.com/bpmn-io/bpmn-moddle): element names are the BPMN ones, a scope owns the elements it contains, and relations point at sequence flows. [ADR 009](/contributing/adr/009-process-json-contract) has the rationale; the [v6 migration guide](/changelog/v6#detecting-the-version) covers the format used before 6.0.
 
-For each process, a `.json` file is produced, named after the process ID. The format is stable and deterministic — same BPMN in, same JSON out, on every run.
+## Generating
+
+The export is a task of its own, separate from the Process API:
+
+| | Run | Default output folder |
+|---|---|---|
+| Gradle | `./gradlew generateBpmnModelJson` | none — set `outputFolderPath` |
+| Maven | goal `generate-bpmn-json` | `src/main/resources/bpmn-json` |
+| Web app | `POST /api/generate-json` | — |
+
+It takes `baseDir`, `filePattern`, `outputFolderPath` and `processEngine`; see [Configuration](/guide/configuration) for the details and the [Gradle](/getting-started/gradle) and [Maven](/getting-started/maven) pages for the setup. Like every generation it [validates the models first](/validate/).
+
+Each BPMN file becomes one `<processId>.json`. Processes marked `isExecutable="false"` are exported too and carry `"isExecutable": false`. The output is deterministic: same BPMN in, same JSON out. Files of earlier runs are not removed, so delete the JSON of a BPMN file you deleted or renamed.
+
+## Schema and versions
 
 Every file declares the schema it conforms to:
 
@@ -228,7 +244,7 @@ The `…Ref` fields resolve into `definitions`, where the name and code live. A 
 | `delegateExpression` | Camunda 7 / Operaton | `expression` |
 | `expression` | Camunda 7 / Operaton | `expression` |
 
-A service task with nothing configured omits the field entirely — that is what the `missing-service-task-implementation` validation rule flags.
+A service task with nothing configured never reaches the JSON: generation fails with `missing-service-task-implementation`.
 
 ## Multi-instance and I/O mappings
 
@@ -285,7 +301,7 @@ What is already normalised is **not** repeated here. `zeebe:taskDefinition`, `ze
 
 ## Several files, one process id
 
-Every BPMN file is exported as a JSON file of its own, named `<processId>.json`. Files that declare the same process ID need a [`variantName`](/guide/generated-api#several-files-one-process-id) to tell them apart, which leads the file name too:
+Every BPMN file is exported as a JSON file of its own, named `<processId>.json`. Files that declare the same process ID need a [`variantName`](/guide/modeling#several-files-one-process-id) to tell them apart, which leads the file name too:
 
 ```
 default/bike-leasing.bpmn                             -> bikeLeasing.json
@@ -293,58 +309,6 @@ corporate/bike-leasing.bpmn  (variantName=corporate)  -> corporate_bikeLeasing.j
 ```
 
 Both files carry the same `process.id`. Up to 6.1 such files were merged into one JSON with a top-level `variants` array; the schema still describes it, but it is no longer generated.
-
-## Configuring the JSON Task
-
-### Gradle
-
-```kotlin
-tasks.named("generateBpmnModelJson", GenerateBpmnJsonTask::class) {
-    baseDir = projectDir.toString()
-    filePattern = "src/main/resources/**/*.bpmn"
-    outputFolderPath = "$projectDir/src/main/resources/bpmn-json"
-    processEngine = ProcessEngine.ZEEBE
-}
-```
-
-Run:
-
-```bash
-./gradlew generateBpmnModelJson
-```
-
-### Maven
-
-<!-- x-release-please-start-version -->
-```xml
-<plugin>
-    <groupId>io.miragon</groupId>
-    <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.2.0</version>
-    <executions>
-        <execution>
-            <id>generate-bpmn-json</id>
-            <goals><goal>generate-bpmn-json</goal></goals>
-            <configuration>
-                <baseDir>${project.basedir}</baseDir>
-                <filePattern>src/main/resources/**/*.bpmn</filePattern>
-                <outputFolderPath>${project.basedir}/src/main/resources/bpmn-json</outputFolderPath>
-                <processEngine>ZEEBE</processEngine>
-            </configuration>
-        </execution>
-    </executions>
-</plugin>
-```
-<!-- x-release-please-end -->
-
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `baseDir` | `String` | required | Base directory for resolving relative paths |
-| `filePattern` | `String` | required | Glob pattern to locate BPMN files |
-| `outputFolderPath` | `String` | required | Directory where JSON files are written |
-| `processEngine` | `ProcessEngine` | required | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
 
 ## Using the JSON with AI
 

@@ -6,8 +6,8 @@
       <span class="row-items">
         <span class="compat-item"><span class="dot zeebe"></span>Zeebe</span>
         <span class="compat-item"><span class="dot camunda7"></span>Camunda 7</span>
-        <span class="compat-item"><span class="dot cib7"></span>CIB7</span>
         <span class="compat-item"><span class="dot operaton"></span>Operaton</span>
+        <span class="compat-item"><span class="dot cib7"></span>CIB seven <span class="compat-note">via Camunda 7</span></span>
       </span>
     </div>
     <div class="compat-row">
@@ -15,6 +15,7 @@
       <span class="row-items">
         <span class="compat-item"><span class="lang-badge kt">Kt</span>Kotlin</span>
         <span class="compat-item"><span class="lang-badge java">Jv</span>Java</span>
+        <span class="compat-item"><span class="lang-badge cs">C#</span>C# <span class="compat-note">experimental</span></span>
       </span>
     </div>
     <div class="compat-row">

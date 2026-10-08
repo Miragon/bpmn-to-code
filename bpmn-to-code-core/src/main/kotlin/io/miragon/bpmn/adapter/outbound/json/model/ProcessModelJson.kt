@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  *
  * The shape is aligned with OMG BPMN 2.0 / `bpmn-moddle`: a scope owns its flow nodes **and** its sequence
  * flows, a node references flows by id, and `bpmn:Definitions` root elements live in a shared registry.
- * See [ADR 018](../../../../../../../../../docs/contributing/adr/018-process-json-v2.md).
+ * See [ADR 009](../../../../../../../../../docs/contributing/adr/009-process-json-contract.md).
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable

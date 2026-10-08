@@ -56,7 +56,7 @@ fun `BPMN models should have no violations`() {
 
 ## Selecting Rules
 
-By default, `validate()` runs all 13 built-in rules. You can override the rule set:
+By default, `validate()` runs `BpmnRules.all()`. You can override the rule set:
 
 ```kotlin
 BpmnValidator
@@ -84,7 +84,7 @@ BpmnValidator
     .assertNoViolations()
 ```
 
-Any rule can be disabled here, including integrity-critical ones like `collision-detection`. The testing module generates no code, so the mandatory-rule protection that applies to [build-time validation](/validate/) does not restrict test authoring.
+Any rule can be disabled here, including the ones that are [mandatory](/validate/#built-in-rules) during generation: the testing module generates no code.
 
 ## Treating Warnings as Failures
 
@@ -106,6 +106,8 @@ BpmnValidator
 | `.assertNoViolations()` | No violations at all (neither errors nor warnings) |
 | `.assertNoViolations("rule-id")` | No violations for the given rule |
 | `.assertHasViolations()` | At least one violation |
+| `.assertViolation("rule-id", elementId, messageContains)` | Exactly one violation of the rule; `elementId` and `messageContains` are optional and narrow the match |
+| `.assertViolationCount(n)` | Exactly `n` violations in total |
 | `.assertNoErrors()` | No ERROR-severity violations |
 | `.assertNoWarnings()` | No WARN-severity violations |
 | `.result()` | Returns the raw `ValidationResult` for custom assertions |
@@ -117,41 +119,30 @@ val result = BpmnValidator
     .validate()
 
 result.assertNoErrors()
-result.assertNoViolations("empty-process")  // custom: assert a specific rule produced no violations
+result.assertNoViolations("empty-process")
 ```
 
-## Built-in Rules Reference
+## Built-in Rules
 
-| Rule | `BpmnRules` constant | Severity | Trigger |
-|------|---------------------|----------|---------|
-| Service task has no implementation | `MISSING_SERVICE_TASK_IMPLEMENTATION` | ERROR | Service task without jobType / delegate |
-| Message event has no name | `MISSING_MESSAGE_NAME` | ERROR | Message start/catch/throw without a message name |
-| Error event has no definition | `MISSING_ERROR_DEFINITION` | ERROR | Error boundary/end event without error definition |
-| Signal event has no name | `MISSING_SIGNAL_NAME` | ERROR | Signal start/intermediate/end without signal name |
-| Root element referenced by nothing | `UNREFERENCED_ROOT_ELEMENT` | WARN | Message/signal/error/escalation left over from an earlier model version |
-| Timer event has no definition | `MISSING_TIMER_DEFINITION` | ERROR | Timer event without type or value |
-| Call activity has no calledElement | `MISSING_CALLED_ELEMENT` | ERROR | Call activity without `calledElement` attribute |
-| Flow node has no ID | `MISSING_ELEMENT_ID` | ERROR | Any flow node missing an `id` attribute |
-| Process has no ID | `MISSING_PROCESS_ID` | ERROR | Process element missing the `id` attribute |
-| Process is empty | `EMPTY_PROCESS` | WARN | Process with no flow nodes |
-| Variable name collision | `COLLISION_DETECTION` | ERROR | Two different IDs normalize to the same constant name |
-| Reserved element name | `RESERVED_ELEMENT_NAME` | ERROR | Element ID that would be generated as a name the Process API reserves (`FlowNodes`, `Next`, `Instance`, …) |
-| Shared definition collision | `SHARED_DEFINITION_COLLISION` | ERROR | Two different job types, messages, signals, errors or escalations — across all loaded processes — normalize to the same constant name |
+`BpmnRules.all()` holds the rules described in the [rule table](/validate/#built-in-rules), each as a constant named after its ID (`missing-message-name` is `BpmnRules.MISSING_MESSAGE_NAME`). Two differences to generation and the validate task:
+
+- `UNREFERENCED_ROOT_ELEMENT` (WARN) is included: a message, signal, error or escalation that no element references, usually left over from an earlier version of the model.
+- `engine-mismatch` is not available.
 
 ## Optional Rules (opt-in)
 
-These rules are **not** part of `BpmnRules.all()` — they are off by default. Enable them explicitly via `withRules(...)` when you want to enforce the corresponding convention. Each rule's severity is listed below.
+These rules are not part of `BpmnRules.all()`. Enable them via `withRules(...)`.
 
 | Rule | `BpmnRules` constant | Severity | Trigger |
 |------|---------------------|----------|---------|
 | Timer cycle is not valid cron | `TIMER_CRON_SYNTAX` | ERROR | A `timeCycle` timer whose value is not a valid cron expression |
 | Timer value is not valid ISO-8601 | `TIMER_ISO8601_SYNTAX` | ERROR | A timer value that is not valid ISO-8601 for its type (Date → date/time, Duration → duration, Cycle → repeating interval) |
 | Call activity target is missing | `CALL_ACTIVITY_TARGET_EXISTS` | ERROR | A call activity references a process that is not among the loaded models (a dangling call activity) |
-| Thrown message has no catcher | `UNCAUGHT_MESSAGE_THROW` | WARN | A message is thrown (message end / intermediate throw event) but no catching event exists among the loaded models |
+| Thrown message has no catcher | `UNCAUGHT_MESSAGE_THROW` | WARN | A message is thrown (message end / intermediate throw event, send task) but no message start, intermediate catch or boundary event and no receive task catches it among the loaded models |
 | Thrown signal has no subscriber | `UNCAUGHT_SIGNAL_THROW` | WARN | A signal is thrown (signal end / intermediate throw event) but no catching event subscribes to it among the loaded models |
 | Caught signal is never thrown | `UNPUBLISHED_SIGNAL_CATCH` | WARN | A signal is caught (signal start / intermediate catch / boundary event) but no throwing event publishes it among the loaded models |
 
-`CALL_ACTIVITY_TARGET_EXISTS`, `UNCAUGHT_MESSAGE_THROW`, and `UNCAUGHT_SIGNAL_THROW` are [cross-model rules](#cross-process-multi-model-rules): they only hold when the **whole** related fileset is loaded together, which is exactly why they are opt-in rather than part of `all()` — see the tip on loading the whole set below. `UNCAUGHT_MESSAGE_THROW` reports as **WARN** rather than ERROR because a legitimate consumer may live outside the loaded fileset; a catcher is any message start / intermediate-catch / boundary event or receive task, in any loaded model. `UNCAUGHT_SIGNAL_THROW` is likewise **WARN**: signals are broadcast, so a subscriber may live outside the loaded fileset; a subscriber is any signal start / intermediate-catch / boundary event, in any loaded model. `UNPUBLISHED_SIGNAL_CATCH` is the mirror of `UNCAUGHT_SIGNAL_THROW` — it flags an orphaned subscriber (a caught signal that no loaded model throws) and is **WARN** for the same reason: a publisher may live outside the loaded fileset.
+The last four compare processes with each other, so they only hold when all related files are loaded together — point `fromClasspath` / `fromDirectory` at the folder that holds them. That is why they are opt-in. The three WARN rules are warnings because the counterpart may live outside the loaded files. They run only when no single-model rule reports an `ERROR`.
 
 ```kotlin
 BpmnValidator
@@ -164,187 +155,6 @@ BpmnValidator
 
 Cron and ISO-8601 are mutually exclusive for `timeCycle` timers, so enable **one** of the two depending on your scheduling convention. Dynamic timer expressions (Camunda `${...}`, Zeebe FEEL `=...`) are skipped, since their value is only known at runtime.
 
-## Writing Custom Rules
+## Custom Rules
 
-Implement the `SingleModelValidationRule` interface to add project-specific checks. Each rule is
-invoked once per process model and sees a single model through its `SingleModelValidationContext`:
-
-::: warning Renamed
-`BpmnValidationRule` → `SingleModelValidationRule` and `ValidationContext` → `SingleModelValidationContext`
-(renamed in 4.1.0 to contrast with the new [`CrossModelValidationRule`](#cross-process-multi-model-rules) /
-`CrossModelValidationContext`). The old names were kept as deprecated typealiases in 4.1.x and **removed in
-5.0.0** — use the new names. See the [v5 migration guide](/changelog/v5).
-:::
-
-```kotlin
-class RequireElementPrefixRule : SingleModelValidationRule {
-
-    override val id = "require-element-prefix"
-    override val severity = Severity.WARN
-
-    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        return context.model.flowNodes
-            .filter { !it.id.contains("_") }
-            .map { node ->
-                violation(
-                    processId = context.model.processId,
-                    elementId = node.id,
-                    message = "Element '${node.id}' has no type prefix (e.g. 'Activity_', 'Task_').",
-                )
-            }
-    }
-}
-```
-
-`violation(...)` fills in the rule's `id` and `severity`; leave out `elementId` for a finding about the whole process.
-
-Use it in tests:
-
-```kotlin
-BpmnValidator
-    .fromClasspath("bpmn/")
-    .engine(ProcessEngine.ZEEBE)
-    .withRules(*BpmnRules.all().toTypedArray(), RequireElementPrefixRule())
-    .validate()
-    .assertNoViolations()
-```
-
-## Asserting Call-Activity Variable Mappings
-
-Call activities expose their input/output variable mappings via `CallActivityDefinition.mappings`,
-with `inputMappings` / `outputMappings` helpers. Each `CallActivityMapping` keeps **both** sides of
-the mapping — the `source` (or `sourceExpression`) and the `target` — so you can assert on the name a
-variable gets inside the called process. For example, requiring every call activity to pass a
-`businessKey` and `correlationKey`:
-
-```kotlin
-class RequireCallActivityInputsRule(private val required: Set<String>) : SingleModelValidationRule {
-
-    override val id = "call-activity-required-inputs"
-    override val severity = Severity.ERROR
-
-    override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
-        return context.model.callActivities.flatMap { callActivity ->
-            val declaredTargets = callActivity.inputMappings.mapNotNull { it.target }.toSet()
-            (required - declaredTargets).map { missing ->
-                violation(
-                    processId = context.model.processId,
-                    elementId = callActivity.id,
-                    message = "Call activity '${callActivity.id}' must pass '$missing' to the called process.",
-                )
-            }
-        }
-    }
-}
-```
-
-```kotlin
-BpmnValidator
-    .fromClasspath("bpmn/")
-    .engine(ProcessEngine.CAMUNDA_7)
-    .withRules(RequireCallActivityInputsRule(setOf("businessKey", "correlationKey")))
-    .validate()
-    .assertNoViolations()
-```
-
-::: tip Engine differences
-For **Camunda 7 / Operaton** (`camunda:in` / `camunda:out`), `source` is a plain variable name and
-`sourceExpression` holds a `${...}` expression. For **Zeebe** (`zeebe:input` / `zeebe:output`),
-`source` is a FEEL expression (e.g. `=orderId`) and `sourceExpression` is always `null`. The `target`
-— the name inside the called process — is populated the same way for all engines.
-
-The "pass all variables" mode (`variables="all"` / `propagateAll{Parent,Child}Variables`) is exposed
-separately via `propagateAllInputVariables` / `propagateAllOutputVariables`, which are tri-state:
-
-| Value | Meaning |
-|-------|---------|
-| `true` | The model explicitly enables pass-all (Camunda 7 / Operaton `variables="all"`; Zeebe `propagateAll…="true"`). |
-| `false` | The model explicitly disables it. **Zeebe only** — Camunda 7 / Operaton have no attribute to express this, so they never report `false`. |
-| `null` | Not declared in the model. |
-
-For a rule that should behave the same across engines, test `!= true` to mean "does not pass all
-variables" (this treats Camunda's "not declared" and Zeebe's explicit `false` alike).
-:::
-
-::: tip Also available in the generated API
-The same mappings are surfaced in the [generated Process API](/guide/generated-api#call-activity-variable-mappings) on the call activity's `FlowNodes` node as `FlowNodes.<CallActivity>.Inputs` / `.Outputs` (`InputOutputMapping` constants), so production code can reference them type-safely too — not just validation rules.
-:::
-
-## Cross-Process (Multi-Model) Rules
-
-A [`SingleModelValidationRule`](#writing-custom-rules) sees one process at a time — it can never reason
-about the relationship *between* two processes. For checks that span files — for example whether a call
-activity's called process actually exists among your models — implement `CrossModelValidationRule`
-instead. It is invoked **once** with a `CrossModelValidationContext` that carries *all* loaded models
-and can resolve cross-process references:
-
-- `context.models` — every loaded process model.
-- `context.findProcess(processId)` — look up a model by its process id.
-- `context.resolveCalledModel(callActivity)` — resolve a call activity's called element to the model of
-  the called process, or `null` if it has none or references an unknown process.
-
-::: tip Already built-in
-The dangling-call-activity check below **ships built-in** as the opt-in rule
-`BpmnRules.CALL_ACTIVITY_TARGET_EXISTS` (see [Optional Rules](#optional-rules-opt-in)) — you don't have to
-write it yourself. It is reproduced here as a template for your own cross-model rules.
-:::
-
-The example flags any call activity that references a process not present among the loaded models
-(a dangling call activity — a runtime failure that no single-model rule can catch, because the parent
-and called process have different ids and never appear together):
-
-```kotlin
-class CallActivityTargetExistsRule : CrossModelValidationRule {
-
-    override val id = "call-activity-target-exists"
-    override val severity = Severity.ERROR
-
-    override fun validate(context: CrossModelValidationContext): List<ValidationViolation> {
-        return context.models.flatMap { model ->
-            model.callActivities
-                .filter { it.hasCalledElement() && context.resolveCalledModel(it) == null }
-                .map { callActivity ->
-                    violation(
-                        processId = model.processId,
-                        elementId = callActivity.id,
-                        message = "Call activity '${callActivity.id}' references unknown process '${callActivity.calledElement}'.",
-                    )
-                }
-        }
-    }
-}
-```
-
-Cross-model rules go through the same `.withRules(...)` flow and can be mixed freely with single-model
-rules in one run — the validator runs the single-model rules first. Here the built-in
-`CALL_ACTIVITY_TARGET_EXISTS` is added on top of the default rule set (swap it for your own rule to use
-a custom one):
-
-```kotlin
-BpmnValidator
-    .fromClasspath("bpmn/")
-    .engine(ProcessEngine.CAMUNDA_7)
-    .withRules(*BpmnRules.all().toTypedArray(), BpmnRules.CALL_ACTIVITY_TARGET_EXISTS)
-    .validate()
-    .assertNoViolations()
-```
-
-::: tip Load the whole set
-Cross-process rules only pay off when **all** related files are loaded together — point
-`fromClasspath` / `fromDirectory` at the folder holding both the parent and the called processes so
-`resolveCalledModel` can find them. Cross-model rules run once every model is sound on its own: if a
-single-model rule reports an `ERROR`, validation stops there and the cross-model rules never run.
-:::
-
-Message and signal correlation across processes already ship built-in as the opt-in
-`UNCAUGHT_MESSAGE_THROW` and `UNCAUGHT_SIGNAL_THROW` rules (see [Optional Rules](#optional-rules-opt-in))
-— each collects every thrown message/signal name across all loaded models and warns when one has no
-catching event anywhere in the set.
-
-Other cross-process checks you can write with the same building blocks: input-coverage ("does every
-caller pass the variables the called process reads?"), output-consumption, and process-id uniqueness
-across the whole fileset.
-
-::: tip SingleModelValidationContext
-`context.model` gives you the full `BpmnModel` — flow nodes, service tasks, call activities, messages, signals, errors, timers, and variables. `context.engine` tells you which engine was selected, so you can write engine-specific rules.
-:::
+For conventions of your own, implement a rule and pass it to `withRules(...)`. See [Custom Rules](/validate/custom-rules).

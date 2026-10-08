@@ -1,71 +1,23 @@
-# 🚀 bpmn-to-code Maven Plugin
+# bpmn-to-code-maven
 
-bpmn-to-code is a plugin designed to simplify process automation.
-Its vision is to foster clean & robust solutions for BPMN-based process automation.
-Therefore, it aims to provide a range of features —
-such as generating API definition files from BPMN process models —
-to reduce manual effort, simplify testing,
-promote the creation of clean process models,
-and ensure consistency between your BPMN model and your code.
-
-## ✨ How to Use
-
-Add the `bpmn-to-code-runtime` dependency (it ships the shared types — `ProcessId`, `ElementId`, `MessageName`,
-`SignalName`, `VariableName`, and the BPMN metadata records — that the generated code references):
+Maven plugin of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code), published to [Maven Central](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven).
 
 <!-- x-release-please-start-version -->
 ```xml
-<dependencies>
-    <dependency>
-        <groupId>io.miragon</groupId>
-        <artifactId>bpmn-to-code-runtime</artifactId>
-        <version>6.2.0</version>
-    </dependency>
-</dependencies>
+<plugin>
+    <groupId>io.miragon</groupId>
+    <artifactId>bpmn-to-code-maven</artifactId>
+    <version>6.2.0</version>
+</plugin>
 ```
 <!-- x-release-please-end -->
 
-Keep the runtime on the same version as the plugin: generated code may use runtime types that an older runtime
-does not have yet.
+| Goal | Does |
+|---|---|
+| `generate-bpmn-api` | Generates the Process API from BPMN files |
+| `generate-bpmn-json` | Generates the process JSON |
+| `validate-bpmn` | Validates BPMN files without generating code (experimental) |
 
-Then add the plugin configuration within the `<build>` section. It tells the plugin where to locate your
-BPMN files, where to output the generated API files, and how to format the output (language, package, engine).
+No goal is bound to a lifecycle phase by default; bind it in an `<execution>` or call it directly, for example `mvn io.miragon:bpmn-to-code-maven:generate-bpmn-api`. Generated Kotlin and Java code needs `io.miragon:bpmn-to-code-runtime` in the same version as a dependency; unlike the Gradle plugin, the Maven plugin does not add it.
 
-<!-- x-release-please-start-version -->
-```xml
-
-<build>
-    <plugins>
-        <plugin>
-            <groupId>io.miragon</groupId>
-            <artifactId>bpmn-to-code-maven</artifactId>
-            <version>6.2.0</version>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>generate-bpmn-api</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <configuration>
-                <baseDir>${project.basedir}</baseDir>
-                <filePattern>src/main/resources/*.bpmn</filePattern>
-                <outputFolderPath>${project.basedir}/src/main/java</outputFolderPath>
-                <packagePath>org.example</packagePath>
-                <outputLanguage>KOTLIN</outputLanguage>
-                <processEngine>ZEEBE</processEngine>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-```
-<!-- x-release-please-end -->
-
-Once configured, bpmn-to-code-maven processes your BPMN files and generates type-safe API references that
-you can seamlessly integrate into your application—whether for testing, messaging, or managing worker tasks.
-
-To execute the plugin, run the following command:
-
-```shell
-mvn io.miragon:bpmn-to-code-maven:generate-bpmn-api
-```
+Setup and all parameters: [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/maven) and [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration).

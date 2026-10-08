@@ -18,8 +18,8 @@ export default defineConfig({
     nav: [
       { text: 'Generate', link: '/getting-started/gradle' },
       { text: 'Validate', link: '/validate/' },
-      { text: 'Surface', link: '/surface/' },
-      { text: 'Ship', link: '/skills/' },
+      { text: 'JSON Export', link: '/surface/json' },
+      { text: 'AI Skills', link: '/skills/' },
       {
         text: 'Links',
         items: [
@@ -32,7 +32,7 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Overview',
+        text: 'Start',
         items: [
           { text: 'Why bpmn-to-code', link: '/overview/why' },
         ],
@@ -40,24 +40,12 @@ export default defineConfig({
       {
         text: 'Generate',
         items: [
-          {
-            text: 'Gradle',
-            collapsed: true,
-            items: [
-              { text: 'Setup', link: '/getting-started/gradle' },
-              { text: 'Advanced', link: '/getting-started/gradle-advanced' },
-            ],
-          },
-          {
-            text: 'Maven',
-            collapsed: true,
-            items: [
-              { text: 'Setup', link: '/getting-started/maven' },
-              { text: 'Advanced', link: '/getting-started/maven-advanced' },
-            ],
-          },
+          { text: 'Gradle', link: '/getting-started/gradle' },
+          { text: 'Maven', link: '/getting-started/maven' },
+          { text: 'Web App', link: '/web/' },
           { text: 'Generated API', link: '/guide/generated-api' },
-          { text: 'Configuration', link: '/guide/configuration' },
+          { text: 'Process Paths', link: '/guide/process-path' },
+          { text: 'Modeling Guide', link: '/guide/modeling' },
           { text: 'Verify in CI', link: '/guide/verify-in-ci' },
         ],
       },
@@ -66,17 +54,17 @@ export default defineConfig({
         items: [
           { text: 'Build-time Validation', link: '/validate/' },
           { text: 'Testing Module', link: '/validate/testing' },
+          { text: 'Custom Rules', link: '/validate/custom-rules' },
         ],
       },
       {
-        text: 'Surface',
+        text: 'JSON Export',
         items: [
-          { text: 'Overview', link: '/surface/' },
-          { text: 'JSON Export', link: '/surface/json' },
+          { text: 'Process JSON', link: '/surface/json' },
         ],
       },
       {
-        text: 'Ship',
+        text: 'AI Skills',
         items: [
           { text: 'Agent Skills', link: '/skills/' },
         ],
@@ -84,28 +72,15 @@ export default defineConfig({
       {
         text: 'Reference',
         items: [
-          {
-            text: 'Engines',
-            collapsed: true,
-            items: [
-              { text: 'Zeebe', link: '/engines/zeebe' },
-              { text: 'Camunda 7', link: '/engines/camunda7' },
-              { text: 'Operaton', link: '/engines/operaton' },
-            ],
-          },
-          { text: 'Web App', link: '/web/' },
-          { text: 'Examples', link: '/recipes/examples' },
-          { text: 'Common Patterns', link: '/recipes/common-patterns' },
+          { text: 'Configuration', link: '/guide/configuration' },
+          { text: 'Engines', link: '/engines/' },
           {
             text: 'Changelog',
             collapsed: true,
             items: [
               { text: 'Release Notes', link: '/changelog/' },
               { text: 'v6 Migration Guide', link: '/changelog/v6' },
-              { text: 'v5 Migration Guide', link: '/changelog/v5' },
-              { text: 'v4 Migration Guide', link: '/changelog/v4' },
-              { text: 'v3 Migration Guide', link: '/changelog/v3' },
-              { text: 'v2 Migration Guide', link: '/changelog/v2' },
+              { text: 'Older Versions', link: '/changelog/older' },
             ],
           },
         ],
@@ -115,10 +90,8 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: 'Contributing Guide', link: '/contributing/' },
-          { text: 'AI Skills Architecture', link: '/contributing/ai-skills' },
-          { text: 'Docker Deployment', link: '/contributing/docker-hub-deployment' },
-          { text: 'Best Practices', link: '/contributing/best-practices' },
-          { text: 'Publishing Snapshots', link: '/contributing/publishing-snapshots' },
+          { text: 'Architecture', link: '/contributing/architecture' },
+          { text: 'Releasing', link: '/contributing/releasing' },
           { text: 'Benchmarking the Generator', link: '/contributing/benchmark' },
           { text: 'Architecture Decisions', link: '/contributing/adr/' },
         ],

@@ -1,16 +1,6 @@
-# 🚀 bpmn-to-code-gradle
+# bpmn-to-code-gradle
 
-bpmn-to-code is a plugin designed to simplify process automation.
-Its vision is to foster clean & robust solutions for BPMN-based process automation.
-Therefore, it aims to provide a range of features —
-such as generating API definition files from BPMN process models —
-to reduce manual effort, simplify testing,
-promote the creation of clean process models,
-and ensure consistency between your BPMN model and your code.
-
-## ✨ How to Use
-
-To get started, apply the plugin in your build.gradle.kts file:
+Gradle plugin of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code), published to the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle).
 
 <!-- x-release-please-start-version -->
 ```kotlin
@@ -20,34 +10,12 @@ plugins {
 ```
 <!-- x-release-please-end -->
 
-If the plugin can not be found yet, please make sure,
-that you've also added the gradle plugin repository to your settings.gradle.kts file:
+| Task | Does |
+|---|---|
+| `generateBpmnModelApi` | Generates the Process API from BPMN files |
+| `generateBpmnModelJson` | Generates the process JSON |
+| `validateBpmnModels` | Validates BPMN files without generating code (experimental) |
 
-```kotlin
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-```
+No task is wired into the build lifecycle; run or wire them yourself. The plugin adds `io.miragon:bpmn-to-code-runtime` in its own version to projects that apply the `java` plugin.
 
-Next, configure the generation task by setting its parameters.
-This configuration directs the plugin on where to locate your BPMN files,
-where to generate the API code, and which settings to apply (language, package, and process engine).
-Once configured, bpmn-to-code-gradle processes your BPMN models
-and creates convenient, type-safe references for your application.
-
-```kotlin
-import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
-import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.shared.ProcessEngine
-
-tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
-    baseDir = projectDir.toString()
-    filePattern = "src/main/resources/**/*.bpmn"
-    outputFolderPath = "$projectDir/src/main/kotlin"
-    packagePath = "de.emaarco.example"
-    outputLanguage = OutputLanguage.KOTLIN
-    processEngine = ProcessEngine.ZEEBE
-}
-```
+Setup and all parameters: [Gradle guide](https://miragon.github.io/bpmn-to-code/getting-started/gradle) and [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration).

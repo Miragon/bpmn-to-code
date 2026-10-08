@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
  * The `bpmn:Definitions` root elements referenced by the process, de-duplicated by their own id.
  *
  * Nodes point here through their `…Ref` members, so a message used by three events is one entry — the
- * reason these are entities rather than copies on the node tree (ADR 018).
+ * reason these are entities rather than copies on the node tree.
  */
 @Serializable
 internal data class DefinitionsJson(

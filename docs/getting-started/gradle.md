@@ -1,6 +1,8 @@
 # 🚀 Gradle Setup
 
-The bpmn-to-code Gradle plugin generates type-safe Process API files from your BPMN models as part of your Gradle build. It's available on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle) and takes just a few minutes to set up.
+The Gradle plugin generates the Process API from your BPMN models as part of the build. It is published on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle).
+
+**Requirements:** the build runs on JDK 21 or newer. The plugin and `bpmn-to-code-runtime` are compiled for Java 21.
 
 ## 1. Apply the plugin
 
@@ -22,27 +24,7 @@ plugins {
 :::
 <!-- x-release-please-end -->
 
-Make sure the Gradle Plugin Portal is in your `settings.gradle.kts`:
-
-::: code-group
-
-```kotlin [settings.gradle.kts]
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-```
-
-```groovy [settings.gradle]
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-```
-
-:::
+The plugin is resolved from the Gradle Plugin Portal, which is Gradle's default plugin repository. If your `settings.gradle.kts` declares `pluginManagement.repositories`, make sure `gradlePluginPortal()` is among them.
 
 ## 2. Configure the generation task
 
@@ -80,31 +62,50 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask) {
 
 :::
 
-See [Configuration](/guide/configuration) for all available parameters.
+All six properties are required. `baseDir` and `outputFolderPath` resolve against the project directory, so keep them relative: the task hashes them as plain strings, and an absolute path ties the up-to-date check and every build cache entry to one checkout location. See [Configuration](/guide/configuration) for every parameter, including the `generateBpmnModelJson` and `validateBpmnModels` tasks the plugin also registers.
 
-## 3. Generate the API
+## 3. The runtime dependency {#runtime-dependency}
+
+Generated Kotlin and Java code imports types from `io.miragon:bpmn-to-code-runtime`. When the project applies the `java` plugin — which `java-library`, `application` and the Kotlin JVM plugin do — the plugin adds the runtime in its own version to `implementation`. Nothing to declare.
+
+It adds nothing when the `java` plugin is absent. Declare the dependency yourself where the generated code is compiled without it, or in another project than the one that generates:
+
+<!-- x-release-please-start-version -->
+```kotlin
+dependencies {
+    implementation("io.miragon:bpmn-to-code-runtime:6.2.0")
+}
+```
+<!-- x-release-please-end -->
+
+C# output needs no runtime; its types are [inlined](/guide/generated-api#c-specifics).
+
+## 4. Generate the API
 
 ```bash
 ./gradlew generateBpmnModelApi
 ```
 
-The generated Process API file(s) will appear in your configured output folder.
+The [generated files](/guide/generated-api) appear below `outputFolderPath`, in the directory of `packagePath`. Generation first runs the [built-in validation rules](/validate/) and fails on any error.
 
-## 4. Generate as part of the build
+## 5. Generate as part of the build {#generate-as-part-of-the-build}
 
-Gradle skips the generation tasks as `UP-TO-DATE` when nothing they depend on changed since the last run: the
-task configuration (`baseDir`, `filePattern`, `outputFolderPath`, `packagePath`, `outputLanguage`, `processEngine`),
-the plugin version, and the relative path and content of every BPMN file matching `filePattern`. File
-timestamps do not matter. Force a run with `./gradlew generateBpmnModelApi --rerun`.
+Gradle skips the task as `UP-TO-DATE` while nothing it depends on changed: the six properties, the plugin version, and the relative path and content of every BPMN file matching `filePattern`. Timestamps do not matter. Force a run with `./gradlew generateBpmnModelApi --rerun`.
 
-To keep generated code out of version control, generate into the build directory and hand the task to the
-source set — Gradle then runs it before everything that reads the sources, without a `dependsOn`:
+Where the output goes decides what else Gradle tracks:
+
+| `outputFolderPath` | Gradle additionally tracks | Effect |
+|--------------------|----------------------------|--------|
+| below the build directory | the generated directory as output | deleted or edited generated files are regenerated; [build cache](https://docs.gradle.org/current/userguide/build_cache.html); task dependency via `srcDir` |
+| anywhere else, e.g. `src/main/kotlin` | nothing | deleted or edited generated files stay as they are until a BPMN file changes or you pass `--rerun`; no build cache |
+
+A source folder is not declared as output: Gradle would fail every task reading it (sources jar, linters, documentation) unless each one depends on the generation.
+
+To keep generated code out of version control, generate into the build directory and hand the task to the source set. Gradle then runs it before everything that reads the sources, without a `dependsOn`:
 
 ::: code-group
 
 ```kotlin [build.gradle.kts]
-import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
-
 val generateBpmnModelApi = tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
     outputFolderPath = "build/generated/bpmn"
     // ...
@@ -116,8 +117,6 @@ kotlin.sourceSets.main {
 ```
 
 ```groovy [build.gradle]
-import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
-
 def generateBpmnModelApi = tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask) {
     outputFolderPath = "build/generated/bpmn"
     // ...
@@ -128,36 +127,60 @@ sourceSets.main.kotlin.srcDir(generateBpmnModelApi.map { it.outputFolderPath.get
 
 :::
 
-`srcDir(generateBpmnModelApi)` also works, but makes the `packagePath` directory the source root: a sources jar
-then contains `OrderProcessApi.kt` at its top level instead of under `com/example/...`.
+`srcDir(generateBpmnModelApi)` also works, but makes the `packagePath` directory the source root: a sources jar then contains `BikeLeasingProcessApi.kt` at its top level instead of under `com/example/...`.
 
-Where the output goes decides what else Gradle tracks:
+If you commit the generated code instead, [verify it in CI](/guide/verify-in-ci).
 
-| `outputFolderPath` | Gradle additionally tracks | Effect |
-|--------------------|----------------------------|--------|
-| below the build directory | the generated directory as output | deleted or edited generated files are regenerated; [build cache](https://docs.gradle.org/current/userguide/build_cache.html); task dependency via `srcDir` |
-| anywhere else, e.g. `src/main/kotlin` | nothing | deleted or edited generated files stay as they are until a BPMN file changes or you pass `--rerun`; no build cache |
+## Several tasks
 
-A source folder is not declared as output: Gradle would fail every task reading it (sources jar, linters,
-documentation) unless each one depends on the generation.
+One task reads one set of files for one engine, one language and one package. Register a task per group when a project mixes engines, languages or packages:
 
-Keep `baseDir` and `outputFolderPath` relative (they resolve against the project directory): a relative value
-stays out of the build cache key, so a cache shared across machines or across checkouts at different paths (such
-as Git worktrees) still matches. An absolute value ties each entry to its location.
+```kotlin
+tasks.register<GenerateBpmnModelsTask>("generateC7Api") {
+    baseDir = "."
+    filePattern = "src/main/resources/c7/*.bpmn"
+    outputFolderPath = "src/main/kotlin"
+    packagePath = "com.example.c7"
+    outputLanguage = OutputLanguage.KOTLIN
+    processEngine = ProcessEngine.CAMUNDA_7
+}
 
-## 5. Automated setup with AI Skills
-
-Using [Claude Code](https://docs.anthropic.com/en/docs/claude-code)? The `setup-bpmn-to-code-gradle` skill can configure the plugin for you automatically — it detects your project structure, finds your BPMN files, and adds the right configuration.
-
-After setup, use the `migrate-to-bpmn-to-code-apis` skill to replace hardcoded BPMN strings across your codebase with references to the generated Process API.
-
-```bash
-npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/setup-bpmn-to-code-gradle
-npx skills add https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-skills/skills/migrate-to-bpmn-to-code-apis
+tasks.register<GenerateBpmnModelsTask>("generateZeebeApi") {
+    baseDir = "."
+    filePattern = "src/main/resources/c8/*.bpmn"
+    outputFolderPath = "src/main/kotlin"
+    packagePath = "com.example.c8"
+    outputLanguage = OutputLanguage.KOTLIN
+    processEngine = ProcessEngine.ZEEBE
+}
 ```
 
-See [AI Skills](/skills/) for all available skills.
+Give each task its own package: tasks generating into the same package [delete each other's files](/guide/generated-api#shared-definitions). When generating into the build directory, also avoid a package nested in another task's package (`com.example` and `com.example.c8`), which stops Gradle from caching the outer task.
 
-## 6. Advanced configuration
+## Filtering files
 
-Need multiple engines, separate packages per domain, or file filtering? See [Gradle Advanced Configuration](/getting-started/gradle-advanced).
+A task reads every file matching `filePattern`; there is no exclude. To leave files out, collect the ones you want with a [`Copy`](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Copy.html) task and generate from that directory:
+
+```kotlin
+val collectBpmnFiles = tasks.register<Copy>("collectBpmnFiles") {
+    from("src/main/resources") {
+        include("**/*.bpmn")
+        exclude("**/draft-*.bpmn")
+    }
+    into(layout.buildDirectory.dir("bpmn-staging"))
+}
+
+tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
+    dependsOn(collectBpmnFiles)
+    baseDir = "build/bpmn-staging"
+    filePattern = "**/*.bpmn"
+    // ...
+}
+```
+
+## Next steps
+
+- [Generated API](/guide/generated-api): what the files contain and how to use them.
+- [Modeling](/guide/modeling): how ids and variable declarations in the model shape the API.
+- [AI Skills](/skills/): `setup-bpmn-to-code-gradle` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.
+- Example project: [easy-zeebe](https://github.com/emaarco/easy-zeebe), a Zeebe service built on the Gradle plugin.

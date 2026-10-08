@@ -24,7 +24,7 @@ import org.camunda.bpm.model.xml.instance.ModelElementInstance
 /**
  * Reads the Camunda-7-style half of a BPMN model. Camunda 7 and Operaton share the identical element and
  * attribute vocabulary and differ only in their XML namespace, so both engines use this reader with their
- * own [namespace] (see ADR 010).
+ * own [namespace].
  */
 @Suppress("TooManyFunctions")
 internal class CamundaDialect(override val namespace: String) : EngineDialect {

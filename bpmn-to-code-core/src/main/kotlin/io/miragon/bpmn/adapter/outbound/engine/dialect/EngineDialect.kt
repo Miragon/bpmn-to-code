@@ -16,7 +16,7 @@ import org.camunda.bpm.model.bpmn.instance.MultiInstanceLoopCharacteristics
  * `BpmnStructureReader` walks the standard BPMN structure — containment, sequence flows, event
  * definitions, boundary attachments — which is identical for every engine. Everything that lives in an
  * engine's own namespace (`zeebe:*`, `camunda:*`, `operaton:*`) is normalised here, so a new engine only
- * has to implement this interface. See ADR 004 and ADR 017.
+ * has to implement this interface.
  */
 internal interface EngineDialect {
 
@@ -29,7 +29,7 @@ internal interface EngineDialect {
      * Names of the `bpmn:extensionElements` children in [namespace] that this dialect reads **in full**.
      *
      * These are left out of a node's raw `extensions`, which exists to carry what is *not* normalised
-     * (ADR 018, layer 3) — emitting both would state the same fact twice and let the two drift apart.
+     * (the process JSON's raw layer) — emitting both would state the same fact twice and let the two drift apart.
      *
      * Membership is a claim about coverage, so an element belongs here only if every attribute and child
      * it can carry ends up in a typed field. Partially read elements stay out and keep being reported raw.
@@ -65,7 +65,7 @@ internal interface EngineDialect {
     ): MultiInstanceDefinition
 
     /**
-     * Variables declared by [node], each tagged with its direction (see ADR 015).
+     * Variables declared by [node], each tagged with its direction.
      */
     fun variablesOf(node: FlowNode): List<VariableDefinition>
 

@@ -1,82 +1,20 @@
-# Architecture Decision Records
+# Architecture decisions
 
-## Project Purpose
+These records describe the architecture of bpmn-to-code as it is today, as a set of decisions: what was decided, what follows from it, and which alternatives were turned down and why. They are not a history. When a decision changes, its record is edited in place so that it stays true; what it said before is in git, and what changed for users is in the [changelog](/changelog/).
 
-**bpmn-to-code** is a tool that generates type-safe API definitions from BPMN process models. Available as Gradle/Maven plugins and a web application, its vision is to foster clean and robust solutions for BPMN-based process automation by:
+Change a record in the same pull request that changes what it describes. Write a new one when a change introduces a decision that a contributor would otherwise have to rediscover: a new product surface, a new public contract, a constraint that is not visible from the code, or an alternative that was seriously considered and rejected. Conventions, commands and thresholds belong in the [contributing guide](/contributing/) and in [Architecture](/contributing/architecture), not here.
 
-- **Keeping models and code in sync**: Automatically extract process elements and generate code that references them
-- **Reducing manual effort**: Eliminate tedious manual referencing of BPMN element IDs, messages, and task types
-- **Enabling extensibility**: Support multiple process engines (Camunda 7, Zeebe, Operaton) and output languages (Kotlin, Java, C#)
-- **Promoting clean design**: Future styleguide validation will ensure BPMN models follow naming conventions and patterns
+Every record has the same sections: Context, Decision, Consequences, Rejected alternatives.
 
-The plugin transforms BPMN files into lightweight "Process API" code that integrates seamlessly with testing frameworks, messaging systems, and automation logic.
-
-## Quality Attributes
-
-The architecture prioritizes:
-
-- **Extensibility**: Adding new engines or languages requires minimal changes to existing code
-- **Testability**: Hexagonal architecture enables isolated testing of business logic
-- **Maintainability**: Clear separation between domain logic and technical adapters
-- **Standard compliance**: Generated code follows language-specific naming conventions
-
-## Architecture Decision Records
-
-Architecture Decision Records document significant architectural choices made in this project. Each ADR captures:
-
-- **Context**: The situation requiring a decision
-- **Decision**: What was decided and why
-- **Consequences**: Trade-offs, benefits, and future implications
-- **Alternatives**: Other options considered and why they were rejected
-
-### When to Create an ADR
-
-Document decisions that:
-- Impact system structure or component interactions
-- Affect extensibility, performance, or maintainability
-- Introduce new patterns or architectural styles
-- Have non-obvious trade-offs worth recording
-
-### ADR Lifecycle
-
-- **Proposed**: Decision under discussion
-- **Accepted**: Decision approved and implemented
-- **Deprecated**: Decision no longer recommended
-- **Superseded**: Replaced by newer ADR
-
-## Records
-
-### Core Architecture
-- [ADR 001: Hexagonal Architecture](001-hexagonal-architecture.md) - Clean architecture with ports and adapters
-- [ADR 002: Model Merging](002-model-merging.md) - Combining multiple BPMN files into single API (superseded by ADR 023)
-- [ADR 017: BPMN-Aligned Domain Model](017-bpmn-aligned-domain-model.md) - Sealed flow-node hierarchy mirroring the BPMN class tree
-- [ADR 023: One Process API per BPMN File](023-one-process-api-per-bpmn-file.md) - No merging; files sharing a process id are told apart by `variantName`
-
-### Code Generation
-- [ADR 003: Generated API Structure](003-generated-api-structure.md) - Naming of generated Process APIs (section layout amended by ADR 021, superseded by ADR 022)
-- [ADR 005: Strategy Pattern for Code Generation](005-strategy-pattern-code-generation.md) - Language-specific builders (Java/Kotlin)
-- [ADR 020: C# Output — Templated Emission, Constants Only](020-csharp-constants-only-output.md) - Beta C# target without the JVM runtime (superseded by ADR 022)
-- [ADR 021: Shared Definition APIs](021-shared-definition-apis.md) - Job types, messages, signals, errors and escalations generated once per run
-- [ADR 022: Process API as a Typed Projection of the Process Model](022-process-api-typed-projection.md) - Flat `Flow` with node facets and typed sequence-flow edges; C# parity with inlined runtime types
-
-### Multi-Engine Support
-- [ADR 004: Strategy Pattern for Multi-Engine](004-strategy-pattern-multi-engine.md) - Supporting Camunda 7 and Zeebe
-- [ADR 010: Operaton Namespace-Only Extractor](010-operaton-namespace-only-extractor.md) - Dedicated extractor for Operaton engine
-
-### Features
-- [ADR 006: File-Based Versioning](006-file-based-versioning.md) - API versioning strategy (deprecated — feature removed)
-- [ADR 007: Variable Extraction Scope](007-variable-extraction-scope.md) - Explicit variable definitions only
-- [ADR 011: Variable Name Collision Detection](011-variable-name-collision-detection.md) - Handling duplicate variable names
-- [ADR 012: JSON Export](012-json-export.md) - Structured JSON representation of process models (superseded by ADR 018)
-- [ADR 018: Process JSON v2](018-process-json-v2.md) - BPMN-standard-aligned, schema-versioned public JSON contract
-- [ADR 014: Shared BPMN Types](014-shared-bpmn-types.md) - Published `bpmn-to-code-runtime` artifact for shared types across modules
-- [ADR 015: Directional Variable Extraction](015-directional-variable-extraction.md) - Split `Variables.<Element>` into `Inputs` / `Outputs`
-- [ADR 016: Migration to the `io.miragon` Namespace](016-miragon-namespace-migration.md) - Rename to `io.miragon` with a deprecated backward-compat layer
-
-### Web Module
-- [ADR 008: Web Module for Browser-Based Access](008-web-module-for-browser-access.md) - Strategic decision for web application
-- [ADR 009: Ktor with Static Frontend (Single Module)](009-ktor-static-frontend-single-module.md) - Technology choices for web module
-
-### Testing
-- [ADR 013: Testing Module](013-testing-module.md) - Arch-Unit style BPMN model validation framework
-- [ADR 019: Mutation Testing with PIT](019-mutation-testing-with-pit.md) - PIT mutation testing with a hard per-module score gate
+1. [Product surfaces, distribution and uniform entry points](001-product-surfaces-and-distribution.md): what is published, why core is not, and why every entry point behaves the same.
+2. [Hexagonal core with a plugin facade](002-hexagonal-core.md): layers, wiring without a DI framework, and the rules Konsist enforces.
+3. [BPMN reading stack, engine dialects and variable extraction](003-bpmn-reading-and-engine-dialects.md): one parser for all engines, a dialect per namespace, explicit and directional variables.
+4. [BPMN-aligned domain model](004-bpmn-aligned-domain-model.md): a sealed flow-node hierarchy with structural containment.
+5. [One API per file, deterministic whole-run generation, generated-file ownership](005-one-api-per-file-deterministic-generation.md): naming by `variantName`, byte-identical output, and which files the generator may delete.
+6. [Generated API shape](006-generated-api-shape.md): `FlowNodes`, `Next`, shared definition files and naming.
+7. [Output languages](007-output-languages.md): the language-neutral `FlowGraph`, poet builders for Kotlin and Java, a text writer for C#.
+8. [Runtime library and process paths](008-runtime-library-and-process-paths.md): the published support types and the compile-checked `ProcessPath`.
+9. [Process JSON contract](009-process-json-contract.md): a schema-versioned, BPMN-aligned public format.
+10. [Validation](010-validation.md): the rule model, mandatory rules, and the three places validation runs.
+11. [Compatibility and stability policy](011-compatibility-policy.md): the public contracts, what may break when, and the JDK floor.
+12. [Web application](012-web-application.md): a stateless entry point with a static frontend, and its operating constraints.

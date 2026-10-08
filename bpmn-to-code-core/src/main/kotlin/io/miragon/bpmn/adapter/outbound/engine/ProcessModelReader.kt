@@ -17,7 +17,7 @@ import io.miragon.bpmn.domain.ProcessModel
  * `bpmn:Process` scope tree, walked by [BpmnStructureReader], and the surrounding `bpmn:Definitions`
  * metadata and root elements, read by `BpmnDefinitionsReader`. Both are pure BPMN and identical for every
  * engine; everything living in an engine's own namespace comes from the [EngineDialect]. Supporting
- * another engine therefore means passing a different dialect, not writing another reader (see ADR 004).
+ * another engine therefore means passing a different dialect, not writing another reader.
  */
 internal class ProcessModelReader(private val dialect: EngineDialect) {
 

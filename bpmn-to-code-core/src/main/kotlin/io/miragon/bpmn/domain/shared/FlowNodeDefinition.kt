@@ -6,7 +6,7 @@ package io.miragon.bpmn.domain.shared
  *
  * Every subtype carries exactly the facets BPMN permits on it, so invalid combinations — a multi-instance
  * gateway, a `calledElement` on an event, a `cancelActivity` flag on a task — are unrepresentable. See
- * [ADR 017](../../../../../../../../docs/contributing/adr/017-bpmn-aligned-domain-model.md).
+ * [ADR 004](../../../../../../../../docs/contributing/adr/004-bpmn-aligned-domain-model.md).
  *
  * [incoming] and [outgoing] hold **sequence-flow ids**, matching `bpmn:FlowNode.incoming` / `.outgoing`.
  * Node-to-node adjacency is derived from the flows themselves — see `ProcessGraph`.
