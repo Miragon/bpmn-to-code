@@ -15,7 +15,7 @@ To get started, apply the plugin in your build.gradle.kts file:
 <!-- x-release-please-start-version -->
 ```kotlin
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "6.1.1"
+    id("io.miragon.bpmn-to-code-gradle") version "6.2.0"
 }
 ```
 <!-- x-release-please-end -->
