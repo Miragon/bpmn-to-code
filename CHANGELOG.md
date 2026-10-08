@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.2.0](https://github.com/Miragon/bpmn-to-code/compare/v6.1.1...v6.2.0) (2026-10-08)
+
+
+### Features
+
+* **codegen:** generate one process api per bpmn file instead of merging variants ([#196](https://github.com/Miragon/bpmn-to-code/issues/196)) ([a003f6c](https://github.com/Miragon/bpmn-to-code/commit/a003f6c9f59f54bf9c8c646425f47b210283749a))
+* **runtime:** return the path ids as arrays for vararg assertions ([#194](https://github.com/Miragon/bpmn-to-code/issues/194)) ([50eee92](https://github.com/Miragon/bpmn-to-code/commit/50eee92ac844f159044e8840e73cb06155c8f7ef))
+
 ## [6.1.1](https://github.com/Miragon/bpmn-to-code/compare/v6.1.0...v6.1.1) (2026-10-06)
 
 

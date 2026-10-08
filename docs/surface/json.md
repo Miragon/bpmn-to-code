@@ -320,7 +320,7 @@ Run:
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.1.1</version>
+    <version>6.2.0</version>
     <executions>
         <execution>
             <id>generate-bpmn-json</id>
