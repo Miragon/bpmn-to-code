@@ -1,13 +1,9 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
-import io.miragon.bpmn.domain.BpmnModelApi
-import io.miragon.bpmn.domain.ProcessModel
-import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
@@ -100,29 +96,20 @@ class KotlinProcessApiBuilderTest {
     }
 
     @Test
-    fun `buildApiFile generates variant-scoped FlowNodes for merged model`() {
-        // given: a merged model with a single variant
-        val retail = testCancelBikeOrderModel(variantName = "retail")
-        val merged = ProcessModel(
-            processId = retail.processId,
-            flowNodes = retail.flowNodes,
-            definitions = retail.definitions,
-            variants = listOf(
-                Variant(variantName = "retail", flowNodes = retail.flowNodes, sequenceFlows = retail.sequenceFlows),
-            ),
-        )
-        val modelApi = BpmnModelApi(
-            model = merged,
-            outputLanguage = OutputLanguage.KOTLIN,
+    fun `buildApiFile leads the API name with the variant name of the model`() {
+        // given: a model that declares a variant name
+        val modelApi = testProcessModelApi(
             packagePath = "de.emaarco.example",
-            targetEngine = ProcessEngine.ZEEBE,
+            language = OutputLanguage.KOTLIN,
+            model = testCancelBikeOrderModel(variantName = "retail"),
         )
 
         // when: we build the process API file
         val result = underTest.buildApiFile(modelApi)
 
-        // then: output contains FlowVariants section instead of a flat FlowNodes
-        assertMatchesGolden(result.content, "/api/MultiVariantProcessApiKotlin.txt")
+        // then: the variant name leads the API name, while the process id stays the one of the model
+        assertThat(result.fileName).isEqualTo("RetailCancelBikeOrderProcessApi.kt")
+        assertMatchesGolden(result.content, "/api/PrefixedCancelBikeOrderProcessApiKotlin.txt")
         assertKotlinSyntaxValid(result.content)
     }
 

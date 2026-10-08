@@ -1,8 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.json
 
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
-import io.miragon.bpmn.domain.ProcessModel
-import io.miragon.bpmn.domain.ProcessModel.Variant
 import io.miragon.bpmn.domain.testBikeLeasingModel
 import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import kotlinx.serialization.json.Json
@@ -28,23 +26,15 @@ class BpmnJsonGeneratorTest {
     }
 
     @Test
-    fun `generates JSON with variants for merged model`() {
-        // given: a merged model with a single variant
-        val retail = testCancelBikeOrderModel(variantName = "retail")
-        val merged = ProcessModel(
-            processId = retail.processId,
-            flowNodes = retail.flowNodes,
-            definitions = retail.definitions,
-            variants = listOf(
-                Variant(variantName = "retail", flowNodes = retail.flowNodes, sequenceFlows = retail.sequenceFlows),
-            ),
-        )
+    fun `generates JSON for a process with conditional and default flows`() {
+        // given: a model whose gateway routes over a conditional and a default flow
+        val model = testCancelBikeOrderModel()
 
         // when: generating JSON
-        val result = underTest.generate(merged)
+        val result = underTest.generate(model)
 
         // then: expect the generated JSON to match the expected snapshot
-        assertMatchesGolden(result, "/json/MultiVariantCancelBikeOrderProcess.json")
+        assertMatchesGolden(result, "/json/CancelBikeOrderProcess.json")
         assertJsonSyntaxValid(result)
     }
 

@@ -136,43 +136,47 @@ Some elements don't support I/O mappings — for example, **message start events
 
 Values become `VariableName.Input` / `VariableName.Output` entries in the element's `Variables` holder on its `FlowNodes` node. Works on any BPMN element. See [Camunda 7](/engines/camunda7#additional-input-output-variables-extension-properties) and [Operaton](/engines/operaton#additional-input-output-variables-extension-properties) engine pages for full details.
 
-## Multi-Environment Modeling
+## One Process, Several Models
 
-### Process Variants Across Environments
+### Models Sharing a Process ID
 
-bpmn-to-code automatically **merges BPMN models with identical process IDs** into a single unified API.
+Every BPMN file gets a **Process API of its own**. Two files declaring the same `processId` would be generated
+under one name, so generation fails and names both files — unless a `variantName` tells them apart.
 
-**Use case:** The same process exists in different variants (dev vs prod, location A vs location B) but shares the same `processId`.
+**Use case:** The same process exists in several models (location A vs location B, dev vs prod) but shares the same `processId`.
 
 **How it works:**
 ```
-dev-order-process.bpmn    → processId="orderProcess"
-prod-order-process.bpmn   → processId="orderProcess"
-                          ↓
-OrderProcessApi (merged elements from both variants)
+default/order-process.bpmn     → processId="orderProcess"
+                               → OrderProcessApi
+
+corporate/order-process.bpmn   → processId="orderProcess", variantName="corporate"
+                               → CorporateOrderProcessApi
 ```
 
-### Best Practices for Variants
+`variantName` is an extension property on the process; see
+[Several files, one process id](/guide/generated-api#several-files-one-process-id) for the XML.
+
+### Best Practices for Models Sharing a Process ID
 
 **Do:**
-- Use the same `processId` for all variants of the same process
-- Keep core process structure consistent across variants
-- Use variants for environment-specific configurations (different timers, different service endpoints)
+- Leave the `variantName` off the model the others deviate from, so it keeps the plain `OrderProcessApi`
+- Name the variant after what sets the model apart (`corporate`, `express`), not after a version
+- Reference the API of the model your code actually runs against
 
 **Be aware:**
-- Generated API contains the **superset** of all elements across variants
-- API may include elements not used in all environments
-- If variants define the same element ID differently, the merged base attributes come from the variant whose `variantName` sorts first alphabetically — a deterministic choice, but still ambiguous by design, so avoid it
+- Each API holds exactly what its own file declares; nothing is merged between the files
+- All of them carry the same `PROCESS_ID`, since the engine knows one process
+- Job types, messages and variables of all files still meet in the shared definitions (`ServiceTasks`, `Messages`, …)
 
 **Avoid:**
-- Defining the same element ID with different semantics across variants
-- Creating substantially different process flows with the same `processId`
+- Giving two files of one `processId` the same `variantName`, or none: generation fails
+- Using a `variantName` to tell apart what really are two processes
 
 ### Alternative Approach
 
-If process variants are significantly different, consider:
-- Using **different process IDs** for each variant
-- Generating separate APIs for each variant
+If the models are different processes rather than variations of one, consider:
+- Using **different process IDs** for each of them
 - Using version suffixes in process IDs: `orderProcess_v1`, `orderProcess_v2`
 
 ## Summary
@@ -180,7 +184,7 @@ If process variants are significantly different, consider:
 **Key Takeaways:**
 1. Name elements descriptively and consistently using prefix patterns
 2. Define all process variables explicitly using I/O mappings, call activity mappings, or `additionalInputVariables` / `additionalOutputVariables` where needed
-3. Keep process variants aligned when using the same process ID
+3. Give models that share a process ID a `variantName`, so each gets an API of its own
 5. Let your BPMN model be the single source of truth
 
 Following these practices ensures clean generated APIs, maintainable process models, and seamless integration with bpmn-to-code.

@@ -5,18 +5,12 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class CollisionDetectionRuleTest {
 
     private val underTest = CollisionDetectionRule()
-
-    @Test
-    fun `phase is POST_MERGE`() {
-        assertThat(underTest.phase).isEqualTo(ValidationPhase.POST_MERGE)
-    }
 
     @Test
     fun `reports collision when different IDs normalize to same constant`() {

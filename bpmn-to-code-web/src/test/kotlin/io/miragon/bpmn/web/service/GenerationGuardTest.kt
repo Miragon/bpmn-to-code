@@ -1,7 +1,7 @@
 package io.miragon.bpmn.web.service
 
 import io.ktor.http.HttpStatusCode
-import io.miragon.bpmn.domain.DuplicateProcessIdException
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
@@ -45,7 +45,7 @@ class GenerationGuardTest {
 
     @Test
     fun `answers files sharing a process id with the conflict`() {
-        val exception = DuplicateProcessIdException(processId = "order", fileNames = listOf("a.bpmn", "b.bpmn"))
+        val exception = ProcessApiNamingException("'OrderProcessApi' would be generated from several BPMN files: a.bpmn, b.bpmn.")
 
         val answer = GenerationGuard.run(files = files(count = 2), failure = ::Answer) { throw exception }
 

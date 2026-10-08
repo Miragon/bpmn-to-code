@@ -29,7 +29,6 @@ fun testProcessModel(
     errors: List<RootElementDefinition.Error> = listOf(RootElementDefinition.Error(id = "errorId", name = "errorName", code = "errorCode")),
     escalations: List<RootElementDefinition.Escalation> = emptyList(),
     detectedEngine: ProcessEngine? = null,
-    variants: List<ProcessModel.Variant> = emptyList(),
 ) = ProcessModel(
     processId = processId,
     processName = processName,
@@ -38,7 +37,6 @@ fun testProcessModel(
     sequenceFlows = sequenceFlows,
     definitions = RootElements(messages, signals, errors, escalations),
     detectedEngine = detectedEngine,
-    variants = variants,
 )
 
 fun testProcessModelApi(

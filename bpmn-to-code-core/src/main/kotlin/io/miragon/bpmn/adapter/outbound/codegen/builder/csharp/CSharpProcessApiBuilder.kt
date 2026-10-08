@@ -11,13 +11,12 @@ import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.ProcessGraph
 import io.miragon.bpmn.domain.shared.RootElements
-import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 
 /**
  * Generates the process API for a single BPMN process as a C# file.
  *
- * The shape matches the Kotlin and Java builders: constant registries plus the typed `FlowNodes` / `FlowVariants`
- * navigation. There is no C# runtime package; the handful of runtime types every node references
+ * The shape matches the Kotlin and Java builders: constant registries plus the typed `FlowNodes` navigation.
+ * There is no C# runtime package; the handful of runtime types every node references
  * ([CSharpRuntimeTypes]) is emitted into the file itself as a nested `Runtime` class, so the generated file
  * still has no dependencies at all.
  */
@@ -27,7 +26,6 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
         ApiObjectType.PROCESS_ID to ProcessIdWriter(),
         ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
         ApiObjectType.FLOW to FlowWriter(),
-        ApiObjectType.FLOW_VARIANTS to FlowVariantsWriter(),
     )
 
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
@@ -76,27 +74,14 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
         }
     }
 
-    private inner class FlowVariantsWriter : ObjectWriter<CSharpWriter> {
-
-        override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            val model = modelApi.model
-            builder.docComment("The FlowNodes of each merged BPMN file, keyed by its variantName.")
-            builder.staticClass("FlowVariants") {
-                builder.forEachSeparated(model.variants) { variant ->
-                    writeFlow(builder = builder, graph = variant.graph, definitions = model.definitions, className = variant.variantName.toCamelCase())
-                }
-            }
-        }
-    }
-
     /**
      * Renders the process as a typed navigation graph: one nested singleton class per element exposing its
      * `Id`, `ElementType` and `Name`, its facets and its successors behind `Next`; every node is a direct child of
      * `FlowNodes`, and a subprocess opens its interior via `Start`.
      */
-    private fun writeFlow(builder: CSharpWriter, graph: ProcessGraph, definitions: RootElements, className: String = "FlowNodes") {
+    private fun writeFlow(builder: CSharpWriter, graph: ProcessGraph, definitions: RootElements) {
         builder.docComment("Typed navigation over the process flow: one nested singleton class per BPMN element, reached as FlowNodes.Element.Instance.")
-        builder.staticClass(className) {
+        builder.staticClass("FlowNodes") {
             CSharpFlowWriter(builder).write(FlowGraphFactory.build(graph, definitions))
         }
     }

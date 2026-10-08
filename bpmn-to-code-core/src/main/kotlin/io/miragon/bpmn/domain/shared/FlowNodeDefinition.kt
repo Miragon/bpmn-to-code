@@ -21,13 +21,6 @@ sealed interface FlowNodeDefinition {
     val extensions: List<EngineExtension>
     val engineAttributes: Map<String, Any?>
 
-    /**
-     * Unions the additive list fields of [others] into this node, used when merging process variants that
-     * declare the same element with variant-specific extension data. Base attributes stay this node's; an event
-     * without a compensation handler takes the first one another variant declares.
-     */
-    fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition
-
     data class Gateway(
         override val id: String?,
         val kind: GatewayKind,
@@ -38,9 +31,7 @@ sealed interface FlowNodeDefinition {
         override val variables: List<VariableDefinition> = emptyList(),
         override val extensions: List<EngineExtension> = emptyList(),
         override val engineAttributes: Map<String, Any?> = emptyMap(),
-    ) : FlowNodeDefinition {
-        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(variables = mergeVariables(this, others))
-    }
+    ) : FlowNodeDefinition
 
     /**
      * A BPMN event. [shape] is the structural kind (start / end / intermediate / boundary),
@@ -71,11 +62,6 @@ sealed interface FlowNodeDefinition {
             val compensates = eventDefinitions.any { it is EventDefinitionInstance.Compensation }
             return compensates && shape.direction == EventDirection.THROW
         }
-
-        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
-            variables = mergeVariables(this, others),
-            compensationHandlerRef = mergeCompensationHandlerRef(this, others),
-        )
     }
 
     /**
@@ -110,12 +96,7 @@ sealed interface FlowNodeDefinition {
             override val variables: List<VariableDefinition> = emptyList(),
             override val extensions: List<EngineExtension> = emptyList(),
             override val engineAttributes: Map<String, Any?> = emptyMap(),
-        ) : Activity {
-            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
-                variables = mergeVariables(this, others),
-                boundaryEventRefs = mergeBoundaryEventRefs(this, others),
-            )
-        }
+        ) : Activity
 
         /**
          * A sub-process, transaction or event sub-process. Owns its children **and its own sequence
@@ -137,12 +118,7 @@ sealed interface FlowNodeDefinition {
             override val variables: List<VariableDefinition> = emptyList(),
             override val extensions: List<EngineExtension> = emptyList(),
             override val engineAttributes: Map<String, Any?> = emptyMap(),
-        ) : Activity {
-            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
-                variables = mergeVariables(this, others),
-                boundaryEventRefs = mergeBoundaryEventRefs(this, others),
-            )
-        }
+        ) : Activity
 
         data class CallActivity(
             override val id: String?,
@@ -158,12 +134,7 @@ sealed interface FlowNodeDefinition {
             override val variables: List<VariableDefinition> = emptyList(),
             override val extensions: List<EngineExtension> = emptyList(),
             override val engineAttributes: Map<String, Any?> = emptyMap(),
-        ) : Activity {
-            override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(
-                variables = mergeVariables(this, others),
-                boundaryEventRefs = mergeBoundaryEventRefs(this, others),
-            )
-        }
+        ) : Activity
     }
 
     /**
@@ -177,25 +148,5 @@ sealed interface FlowNodeDefinition {
         override val variables: List<VariableDefinition> = emptyList(),
         override val extensions: List<EngineExtension> = emptyList(),
         override val engineAttributes: Map<String, Any?> = emptyMap(),
-    ) : FlowNodeDefinition {
-        override fun mergedWith(others: List<FlowNodeDefinition>): FlowNodeDefinition = copy(variables = mergeVariables(this, others))
-    }
-
-    companion object {
-
-        private fun mergeVariables(
-            node: FlowNodeDefinition,
-            others: List<FlowNodeDefinition>,
-        ): List<VariableDefinition> = (node.variables + others.flatMap { it.variables }).distinct()
-
-        private fun mergeCompensationHandlerRef(event: Event, others: List<FlowNodeDefinition>): String? {
-            val fromOthers = others.filterIsInstance<Event>().firstNotNullOfOrNull { it.compensationHandlerRef }
-            return event.compensationHandlerRef ?: fromOthers
-        }
-
-        private fun mergeBoundaryEventRefs(node: Activity, others: List<FlowNodeDefinition>): List<String> {
-            val fromOthers = others.filterIsInstance<Activity>().flatMap { it.boundaryEventRefs }
-            return (node.boundaryEventRefs + fromOthers).distinct().sorted()
-        }
-    }
+    ) : FlowNodeDefinition
 }

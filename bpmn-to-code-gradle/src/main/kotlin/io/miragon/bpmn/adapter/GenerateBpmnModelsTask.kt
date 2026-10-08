@@ -21,11 +21,7 @@ abstract class GenerateBpmnModelsTask : AbstractBpmnTask() {
     @get:Input
     abstract val outputLanguage: Property<OutputLanguage>
 
-    @get:Input
-    abstract val enableVariants: Property<Boolean>
-
     init {
-        enableVariants.convention(false)
         GenerationCaching(this).enable(generatedDirectory = packageDirectory())
     }
 
@@ -39,7 +35,6 @@ abstract class GenerateBpmnModelsTask : AbstractBpmnTask() {
             packagePath = packagePath.get(),
             outputLanguage = outputLanguage.get(),
             engine = processEngine.get(),
-            enableVariants = enableVariants.get(),
         )
         if (results.isEmpty()) {
             logger.lifecycle("No BPMN models found")

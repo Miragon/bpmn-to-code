@@ -10,6 +10,6 @@ internal class BpmnJsonGenerationAdapter(
 
     override fun generateJson(model: ProcessModel): GeneratedJsonFile {
         val json = jsonGenerator.generate(model)
-        return GeneratedJsonFile(fileName = "${model.processId}.json", content = json)
+        return GeneratedJsonFile(fileName = GeneratedJsonFile.nameOf(model), content = json, processId = model.processId)
     }
 }

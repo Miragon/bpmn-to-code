@@ -43,9 +43,9 @@ class BpmnFileLoaderTest {
         // when: we call loadFrom with pattern "**/*.bpmn"
         val result = underTest.loadFrom(tempDir.toString(), "**/*.bpmn")
 
-        // then: expect the list to contain the matching subdirectory files
+        // then: expect the list to contain the matching subdirectory files, named by their path below the base directory
         assertThat(result).hasSize(2)
-        assertThat(result.map { it.fileName }).containsExactlyInAnyOrder("diagram.bpmn", "process.bpmn")
+        assertThat(result.map { it.fileName }).containsExactlyInAnyOrder("subDir/diagram.bpmn", "subDir/subSubDir/process.bpmn")
     }
 
     @Test
@@ -87,9 +87,9 @@ class BpmnFileLoaderTest {
         assertThat(result).hasSize(4)
         assertThat(result.map { it.fileName }).containsExactlyInAnyOrder(
             "root-process.bpmn",
-            "sub1-process.bpmn",
-            "sub2-process.bpmn",
-            "deep-process.bpmn",
+            "subdir1/sub1-process.bpmn",
+            "subdir2/sub2-process.bpmn",
+            "subdir1/deep/deep-process.bpmn",
         )
     }
 
@@ -111,7 +111,7 @@ class BpmnFileLoaderTest {
 
         // then: expect the list to contain all BPMN files from the deep external path
         assertThat(result).hasSize(2)
-        assertThat(result.map { it.fileName }).containsExactlyInAnyOrder("shared-process.bpmn", "resource-process.bpmn")
+        assertThat(result.map { it.fileName }).containsExactlyInAnyOrder("resources/bpmn/shared-process.bpmn", "resources/resource-process.bpmn")
     }
 
     @Test
@@ -135,7 +135,7 @@ class BpmnFileLoaderTest {
 
     @Test
     fun `loadFrom returns files ordered by relative path independent of filesystem order`(@TempDir tempDir: Path) {
-        // given: variant files that share a file name across sibling directories, plus siblings whose
+        // given: files that share a file name across sibling directories, plus siblings whose
         // relative-path order differs from their file-name order
         val folders = listOf("staging", "dev", "test", "prod")
         folders.forEach { folder ->
@@ -147,13 +147,15 @@ class BpmnFileLoaderTest {
         val result = underTest.loadFrom(tempDir.toString(), "**/*.bpmn")
 
         // then: they come back sorted by their relative path (readdir order cannot be forced, so we
-        // assert the invariant, not a specific shuffle)
-        assertThat(result.map { String(it.content) }).containsExactly(
+        // assert the invariant, not a specific shuffle), which is also the name that tells them apart
+        val expectedPaths = listOf(
             "dev/order-process.bpmn",
             "prod/order-process.bpmn",
             "staging/order-process.bpmn",
             "test/order-process.bpmn",
         )
+        assertThat(result.map { String(it.content) }).isEqualTo(expectedPaths)
+        assertThat(result.map { it.fileName }).isEqualTo(expectedPaths)
     }
 
     @Test
@@ -185,6 +187,6 @@ class BpmnFileLoaderTest {
         // then: both agree, and the file behind the symlinked directory is left out
         assertThat(underTest.resolveSearchDirectory(baseDirectory, filePattern)).isEqualTo(resources)
         assertThat(accepted).containsExactly("order.bpmn", "nested/payment.bpmn")
-        assertThat(loaded.map { it.fileName }).containsExactlyInAnyOrder("order.bpmn", "payment.bpmn")
+        assertThat(loaded.map { it.fileName }).containsExactlyInAnyOrder("order.bpmn", "nested/payment.bpmn")
     }
 }

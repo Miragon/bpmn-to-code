@@ -42,7 +42,6 @@ class CamundaDialectExtractionTest {
 
         // --- process-level metadata ---
         assertThat(bpmnModel.processId).isEqualTo("bikeLeasing")
-        assertThat(bpmnModel.variantName).isEqualTo("corporate")
         assertThat(bpmnModel.detectedEngine).isEqualTo(engine)
         assertThat(bpmnModel.isExecutable).isTrue()
 
@@ -257,13 +256,19 @@ class CamundaDialectExtractionTest {
     @ParameterizedTest
     @EnumSource(ProcessEngine::class, names = ["CAMUNDA_7", "OPERATON"])
     fun `extract returns variantName from process-level extension properties`(engine: ProcessEngine) {
-        assertThat(extract(engine, "bike-leasing").variantName).isEqualTo("corporate")
+        assertThat(extractWithProcessProperty(engine, name = "variantName", value = " corporate ").variantName).isEqualTo("corporate")
     }
 
     @ParameterizedTest
     @EnumSource(ProcessEngine::class, names = ["CAMUNDA_7", "OPERATON"])
     fun `extract returns null variantName when not specified`(engine: ProcessEngine) {
-        assertThat(extract(engine, "membership").variantName).isNull()
+        assertThat(extract(engine, "bike-leasing").variantName).isNull()
+    }
+
+    @ParameterizedTest
+    @EnumSource(ProcessEngine::class, names = ["CAMUNDA_7", "OPERATON"])
+    fun `extract returns null variantName for a blank property`(engine: ProcessEngine) {
+        assertThat(extractWithProcessProperty(engine, name = "variantName", value = " ").variantName).isNull()
     }
 
     @ParameterizedTest
@@ -546,6 +551,20 @@ class CamundaDialectExtractionTest {
         }
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/$folder/$fixture.bpmn"))
         return ProcessModelReader(CamundaDialect(namespace)).read(File(resourceUrl.toURI()).readBytes())
+    }
+
+    private fun extractWithProcessProperty(engine: ProcessEngine, name: String, value: String): ProcessModel {
+        val (folder, prefix, namespace) = when (engine) {
+            ProcessEngine.CAMUNDA_7 -> Triple(first = "c7", second = "camunda", third = CAMUNDA_7_NAMESPACE)
+            ProcessEngine.OPERATON -> Triple(first = "operaton", second = "operaton", third = OPERATON_NAMESPACE)
+            ProcessEngine.ZEEBE -> error("Zeebe is read by ZeebeDialect")
+        }
+        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/$folder/bike-leasing.bpmn"))
+        val property = """<$prefix:properties><$prefix:property name="$name" value="$value" /></$prefix:properties>"""
+        val bpmn = File(resourceUrl.toURI()).readText().replace(Regex("<bpmn:process [^>]*>")) { processTag ->
+            "${processTag.value}<bpmn:extensionElements>$property</bpmn:extensionElements>"
+        }
+        return ProcessModelReader(CamundaDialect(namespace)).read(bpmn.encodeToByteArray())
     }
 
     private companion object {

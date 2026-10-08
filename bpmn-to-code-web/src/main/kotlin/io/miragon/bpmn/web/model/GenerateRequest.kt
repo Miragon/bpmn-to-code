@@ -8,9 +8,5 @@ import kotlinx.serialization.Serializable
 data class GenerateRequest(val files: List<BpmnFileData>, val config: GenerationConfig) {
 
     @Serializable
-    data class GenerationConfig(
-        val outputLanguage: OutputLanguage,
-        val processEngine: ProcessEngine,
-        val enableVariants: Boolean = false,
-    )
+    data class GenerationConfig(val outputLanguage: OutputLanguage, val processEngine: ProcessEngine)
 }

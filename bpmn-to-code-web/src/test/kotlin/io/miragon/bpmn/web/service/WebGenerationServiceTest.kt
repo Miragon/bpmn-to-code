@@ -207,8 +207,8 @@ class WebGenerationServiceTest {
     }
 
     @Test
-    fun `should reject files sharing a process id unless variants are enabled`() {
-        // given: the same process uploaded twice without enabling variants
+    fun `should reject files sharing a process id that nothing tells apart`() {
+        // given: the same process uploaded twice
         val c8Base64 = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn")
         val request = GenerateRequest(
             files = listOf(
@@ -224,10 +224,10 @@ class WebGenerationServiceTest {
         // when: generating the API
         val response = underTest.generate(request)
 
-        // then: a bad request names both files and the opt-in flag
+        // then: a bad request names the API, both files and the way to tell them apart
         assertThat(response.success).isFalse()
         assertThat(response.statusCode).isEqualTo(HttpStatusCode.BadRequest)
-        assertThat(response.error).contains("bike-leasing-a, bike-leasing-b", "enableVariants")
+        assertThat(response.error).contains("'BikeLeasingProcessApi'", "bike-leasing-a (process id 'bikeLeasing'), bike-leasing-b (process id 'bikeLeasing')", "variantName")
     }
 
     private fun loadBpmnBase64(resourcePath: String): String {

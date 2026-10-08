@@ -15,12 +15,10 @@ class CreateProcessJsonInMemoryPlugin(
         bpmnContents: List<BpmnInput>,
         engine: ProcessEngine,
         validationConfig: ValidationConfig = ValidationConfig(),
-        enableVariants: Boolean = false,
     ): List<GeneratedJsonFile> = useCase.generateProcessJson(
         GenerateProcessJsonInMemoryUseCase.Command(
             engine = engine,
             validationConfig = validationConfig,
-            enableVariants = enableVariants,
             resources = bpmnContents.map { BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray()) },
         ),
     )

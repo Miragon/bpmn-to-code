@@ -18,11 +18,7 @@ class WebJsonGenerationService {
         logger.info { "Generating JSON for ${request.files.size} file(s) [${config.processEngine}]" }
         return GenerationGuard.run(files = request.files, failure = GenerateJsonResponse::failure) {
             val bpmnInputs = request.files.map { buildInput(it) }
-            val jsonFiles = plugin.execute(
-                bpmnContents = bpmnInputs,
-                engine = config.processEngine,
-                enableVariants = config.enableVariants,
-            )
+            val jsonFiles = plugin.execute(bpmnContents = bpmnInputs, engine = config.processEngine)
             val responseFiles = jsonFiles.map { mapToResponse(it) }
             GenerateJsonResponse(success = true, files = responseFiles)
         }
@@ -33,6 +29,6 @@ class WebJsonGenerationService {
     private fun mapToResponse(jsonFile: GeneratedJsonFile) = GenerateJsonResponse.GeneratedJsonFileResponse(
         fileName = jsonFile.fileName,
         content = jsonFile.content,
-        processId = jsonFile.fileName.removeSuffix(".json"),
+        processId = jsonFile.processId,
     )
 }

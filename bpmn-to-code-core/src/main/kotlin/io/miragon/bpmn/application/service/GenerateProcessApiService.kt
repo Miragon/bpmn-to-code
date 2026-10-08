@@ -27,25 +27,23 @@ class GenerateProcessApiService(
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val extractedModels = inputFiles.map { SourcedProcessModel(it.fileName, bpmnService.extract(it, command.engine)) }
-        val sources = SourcedProcessModel.executableOnly(extractedModels)
-        val mergedModels = BpmnValidationService(command.validationConfig).validateAndMerge(
-            sources = sources,
+        val executableSources = SourcedProcessModel.executableOnly(extractedModels)
+        val sources = BpmnValidationService(command.validationConfig).validateAndNormalize(
+            sources = executableSources,
             engine = command.engine,
-            enableVariants = command.enableVariants,
+            artifactNameOf = { toBpmnModelApi(it, command).fileName() },
         )
-        val processFiles = mergedModels.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
-        val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(mergedModels, command))
-        val generatedFiles = (processFiles + sharedFiles).distinctBy { it.packagePath to it.fileName }
+        val models = sources.map { it.model }
+        val processFiles = models.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
+        val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(models, command))
+        val generatedFiles = processFiles + sharedFiles
         fileSystemOutput.deleteStaleFiles(
             generatedFiles = generatedFiles,
             outputFolderPath = command.outputFolderPath,
             packagePath = command.packagePath,
         )
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
-        val filesByProcessId = sources.groupBy({ it.model.processId }, { it.fileName })
-        return mergedModels.map { model ->
-            BpmnFileResult(processId = model.processId, sourceFiles = filesByProcessId[model.processId] ?: emptyList())
-        }
+        return sources.map { BpmnFileResult(processId = it.model.processId, sourceFiles = listOf(it.fileName)) }
     }
 
     private fun toBpmnModelApi(

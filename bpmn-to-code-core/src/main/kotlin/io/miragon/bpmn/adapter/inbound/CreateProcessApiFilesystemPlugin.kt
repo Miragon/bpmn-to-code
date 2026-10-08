@@ -19,7 +19,6 @@ class CreateProcessApiFilesystemPlugin(
         outputLanguage: OutputLanguage,
         engine: ProcessEngine,
         validationConfig: ValidationConfig = ValidationConfig(),
-        enableVariants: Boolean = false,
     ): List<BpmnFileResult> = useCase.generateProcessApi(
         GenerateProcessApiFromFilesystemUseCase.Command(
             baseDir = baseDir,
@@ -29,7 +28,6 @@ class CreateProcessApiFilesystemPlugin(
             outputLanguage = outputLanguage,
             engine = engine,
             validationConfig = validationConfig,
-            enableVariants = enableVariants,
         ),
     )
 }

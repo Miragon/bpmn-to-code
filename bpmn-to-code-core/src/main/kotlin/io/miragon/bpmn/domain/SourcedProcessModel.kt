@@ -12,6 +12,8 @@ data class SourcedProcessModel(val fileName: String, val model: ProcessModel) {
 
         private val logger = KotlinLogging.logger {}
 
+        private val wellFormedVariantName = Regex("""\p{L}[\p{L}\p{Nd}_-]*""")
+
         /**
          * Drops the processes marked non-executable: they get no generated API.
          */
@@ -22,12 +24,42 @@ data class SourcedProcessModel(val fileName: String, val model: ProcessModel) {
         }
 
         /**
-         * Rejects a process id that several files declare. Merging them into variants has to be enabled explicitly.
+         * Rejects a variant name that could not become part of a name, and files that [artifactNameOf] would
+         * generate under one name. Every file gets artifacts of its own, so files declaring the same process id
+         * need a distinct variant name each.
          */
-        fun requireUniqueProcessIds(sources: List<SourcedProcessModel>) {
-            val fileNamesByProcessId = sources.groupBy({ it.model.processId }, { it.fileName })
-            val duplicate = fileNamesByProcessId.entries.firstOrNull { it.value.size > 1 } ?: return
-            throw DuplicateProcessIdException(duplicate.key, duplicate.value)
+        fun requireDistinctArtifactNames(sources: List<SourcedProcessModel>, artifactNameOf: (ProcessModel) -> String) {
+            val sourcesWithMalformedVariantName = sources.filter { it.hasMalformedVariantName() }
+            if (sourcesWithMalformedVariantName.isNotEmpty()) {
+                throw ProcessApiNamingException(sourcesWithMalformedVariantName.joinToString("\n") { it.describeMalformedVariantName() })
+            }
+            val sourcesByArtifactName = sources.groupBy { artifactNameOf(it.model) }
+            val collisions = sourcesByArtifactName.filterValues { it.size > 1 }
+            if (collisions.isNotEmpty()) {
+                throw ProcessApiNamingException(collisions.entries.joinToString("\n") { describeCollision(it.key, it.value) })
+            }
+        }
+
+        private fun SourcedProcessModel.hasMalformedVariantName(): Boolean {
+            val variantName = model.variantName ?: return false
+            return !wellFormedVariantName.matches(variantName)
+        }
+
+        private fun SourcedProcessModel.describeMalformedVariantName(): String {
+            val rejection = "The variantName '${model.variantName}' of $fileName cannot become part of a name."
+            return "$rejection It has to start with a letter and may contain letters, digits, '_' and '-'."
+        }
+
+        private fun describeCollision(artifactName: String, sources: List<SourcedProcessModel>): String {
+            val files = sources.map { it.describe() }.sorted().joinToString()
+            return "'$artifactName' would be generated from several BPMN files: $files. " +
+                "Every BPMN file gets a Process API of its own: give each a distinct process id, " +
+                "or a distinct 'variantName' extension property."
+        }
+
+        private fun SourcedProcessModel.describe(): String {
+            val variant = model.variantName?.let { ", variantName '$it'" }.orEmpty()
+            return "$fileName (process id '${model.processId}'$variant)"
         }
     }
 }

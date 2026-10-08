@@ -19,7 +19,6 @@ internal data class ProcessModelJson(
     @EncodeDefault(EncodeDefault.Mode.ALWAYS) val formatVersion: String = FORMAT_VERSION,
     val process: ProcessJson,
     val definitions: DefinitionsJson = DefinitionsJson(),
-    val variants: List<VariantJson>? = null,
 ) {
     companion object {
         const val FORMAT_VERSION = "2.1"

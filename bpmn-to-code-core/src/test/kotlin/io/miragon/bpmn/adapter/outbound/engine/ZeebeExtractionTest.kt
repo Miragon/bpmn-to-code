@@ -34,7 +34,6 @@ class ZeebeExtractionTest {
 
         // process-level metadata
         assertThat(bpmnModel.processId).isEqualTo("bikeLeasing")
-        assertThat(bpmnModel.variantName).isEqualTo("corporate")
         assertThat(bpmnModel.detectedEngine).isEqualTo(ProcessEngine.ZEEBE)
         assertThat(bpmnModel.isExecutable).isTrue()
 
@@ -185,12 +184,17 @@ class ZeebeExtractionTest {
 
     @Test
     fun `extract returns variantName from process-level extension properties`() {
-        assertThat(extract("zeebe/bike-leasing").variantName).isEqualTo("corporate")
+        assertThat(extractWithProcessProperty(name = "variantName", value = " corporate ").variantName).isEqualTo("corporate")
     }
 
     @Test
     fun `extract returns null variantName when not specified`() {
-        assertThat(extract("zeebe/membership").variantName).isNull()
+        assertThat(extract("zeebe/bike-leasing").variantName).isNull()
+    }
+
+    @Test
+    fun `extract returns null variantName for a blank property`() {
+        assertThat(extractWithProcessProperty(name = "variantName", value = " ").variantName).isNull()
     }
 
     @Test
@@ -325,5 +329,14 @@ class ZeebeExtractionTest {
     private fun extract(fixture: String): ProcessModel {
         val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/$fixture.bpmn"))
         return underTest.read(File(resourceUrl.toURI()).readBytes())
+    }
+
+    private fun extractWithProcessProperty(name: String, value: String): ProcessModel {
+        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn"))
+        val property = """<zeebe:properties><zeebe:property name="$name" value="$value" /></zeebe:properties>"""
+        val bpmn = File(resourceUrl.toURI()).readText().replace(Regex("<bpmn:process [^>]*>")) { processTag ->
+            "${processTag.value}<bpmn:extensionElements>$property</bpmn:extensionElements>"
+        }
+        return underTest.read(bpmn.encodeToByteArray())
     }
 }

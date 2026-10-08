@@ -1,7 +1,7 @@
 # ADR 002: Model Merging for Environment Variants
 
 ## Status
-Accepted
+Superseded by [ADR 023](023-one-process-api-per-bpmn-file.md) — models are no longer merged.
 
 ## Context
 The same process may exist in different variants across environments (dev vs prod) or organizational units (location A vs location B). While these variants share the same `processId` and core structure, they differ in specific modeling details or execution behavior. Generating separate APIs for each variant would create substantial code duplication since they share the same kernel.

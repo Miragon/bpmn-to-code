@@ -46,7 +46,7 @@ internal object BpmnDefinitionsReader {
         val variantProperty = allProperties
             .filter { it.localName == "property" }
             .firstOrNull { it.getAttribute("name") == BpmnExtensionConstants.VARIANT_NAME_PROPERTY_NAME }
-        return variantProperty?.getAttribute("value")?.takeIf { it.isNotBlank() }
+        return variantProperty?.getAttribute("value")?.trim()?.takeIf { it.isNotEmpty() }
     }
 
     /**

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 /**
  * Guards the property the CI drift-check relies on: generated code is a deterministic function of the
  * `.bpmn` inputs, independent of the order in which the filesystem hands them to us. The loader test
- * covers input ordering; this one covers the merger, feeding the same multi-variant model set through
+ * covers input ordering; this one covers the generation, feeding several files of one process through
  * the service in several fixed (non-random) input orders and asserting byte-identical output.
  */
 class GenerateProcessApiDeterministicOrderTest {
@@ -29,8 +29,8 @@ class GenerateProcessApiDeterministicOrderTest {
         bpmnService = bpmnService,
     )
 
-    // Three variants of one process. Same shape, distinct variant names + a distinct node label so the
-    // emitted variant blocks and the merged base node differ — a reorder would change bytes if unfixed.
+    // Three files of one process. Same shape, distinct variant names + a distinct node label and job type,
+    // so the emitted APIs and the shared definitions differ — a reorder would change bytes if unfixed.
     private val variantNames = listOf("staging", "dev", "prod")
 
     private val modelsByName: Map<String, ProcessModel> = variantNames.associateWith { name ->
@@ -58,7 +58,11 @@ class GenerateProcessApiDeterministicOrderTest {
 
         // then: all runs produce the exact same files with the exact same content
         val reference = outputs.first()
-        assertThat(reference).isNotEmpty()
+        assertThat(reference.map { it.fileName }).startsWith(
+            "DevCancelBikeOrderProcessApi.kt",
+            "ProdCancelBikeOrderProcessApi.kt",
+            "StagingCancelBikeOrderProcessApi.kt",
+        )
         outputs.forEach { output ->
             assertThat(output).isEqualTo(reference)
         }
@@ -73,7 +77,6 @@ class GenerateProcessApiDeterministicOrderTest {
             packagePath = "com.example",
             outputLanguage = OutputLanguage.KOTLIN,
             engine = ProcessEngine.ZEEBE,
-            enableVariants = true,
         )
         return underTest.generateProcessApi(command)
     }

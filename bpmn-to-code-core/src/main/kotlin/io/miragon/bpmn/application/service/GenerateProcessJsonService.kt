@@ -9,6 +9,7 @@ import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateJsonPort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.application.port.outbound.SaveProcessJsonPort
+import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 
@@ -21,13 +22,13 @@ class GenerateProcessJsonService(
 
     override fun generateProcessJson(command: GenerateProcessJsonFromFilesystemUseCase.Command) {
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
-        val sources = inputFiles.map { SourcedProcessModel(it.fileName, bpmnExtractor.extract(it, command.engine)) }
-        val mergedModels = BpmnValidationService(command.validationConfig).validateAndMerge(
-            sources = sources,
+        val extractedModels = inputFiles.map { SourcedProcessModel(it.fileName, bpmnExtractor.extract(it, command.engine)) }
+        val sources = BpmnValidationService(command.validationConfig).validateAndNormalize(
+            sources = extractedModels,
             engine = command.engine,
-            enableVariants = command.enableVariants,
+            artifactNameOf = GeneratedJsonFile::nameOf,
         )
-        val generatedFiles = mergedModels.map { jsonGenerator.generateJson(it) }
+        val generatedFiles = sources.map { jsonGenerator.generateJson(it.model) }
         fileSaver.writeFiles(generatedFiles, command.outputFolderPath)
     }
 }

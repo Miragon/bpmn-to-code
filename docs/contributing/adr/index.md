@@ -48,8 +48,9 @@ Document decisions that:
 
 ### Core Architecture
 - [ADR 001: Hexagonal Architecture](001-hexagonal-architecture.md) - Clean architecture with ports and adapters
-- [ADR 002: Model Merging](002-model-merging.md) - Combining multiple BPMN files into single API
+- [ADR 002: Model Merging](002-model-merging.md) - Combining multiple BPMN files into single API (superseded by ADR 023)
 - [ADR 017: BPMN-Aligned Domain Model](017-bpmn-aligned-domain-model.md) - Sealed flow-node hierarchy mirroring the BPMN class tree
+- [ADR 023: One Process API per BPMN File](023-one-process-api-per-bpmn-file.md) - No merging; files sharing a process id are told apart by `variantName`
 
 ### Code Generation
 - [ADR 003: Generated API Structure](003-generated-api-structure.md) - Naming of generated Process APIs (section layout amended by ADR 021, superseded by ADR 022)

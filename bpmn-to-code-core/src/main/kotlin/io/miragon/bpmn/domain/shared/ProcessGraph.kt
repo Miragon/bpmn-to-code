@@ -3,7 +3,7 @@ package io.miragon.bpmn.domain.shared
 /**
  * Derived views over a scope tree of [FlowNodeDefinition]s.
  *
- * The tree is the store — a sub-process owns its children and its own sequence flows — while merging,
+ * The tree is the store — a sub-process owns its children and its own sequence flows — while
  * validation, collision detection and code generation all reason over a flat node set. This class
  * provides that projection, plus the node-to-node adjacency that [FlowNodeDefinition.incoming] /
  * [FlowNodeDefinition.outgoing] express as sequence-flow references.

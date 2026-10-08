@@ -12,7 +12,15 @@ All plugin parameters, available for both the Gradle and Maven plugins.
 | `packagePath` | `String` | yes | — | Package name for generated classes (e.g. `com.example.process`). Use one package per generation run — two runs in the same package overwrite each other's [shared definition files](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
 | `outputLanguage` | `OutputLanguage` | yes | — | `KOTLIN`, `JAVA`, or `CSHARP` (experimental) |
 | `processEngine` | `ProcessEngine` | yes | — | `ZEEBE`, `CAMUNDA_7`, or `OPERATON` |
-| `enableVariants` | `Boolean` | no | `false` | Merge BPMN files sharing a `processId` into one API with `FlowVariants` (see [Model Merging](/guide/generated-api#model-merging)). When `false`, a `processId` defined in several files fails generation |
+
+## Settings in the BPMN model
+
+One setting lives in the model instead of the build, as an extension property on the process, so it works the same
+in every plugin and in the web UI.
+
+| Property | Description |
+|----------|-------------|
+| `variantName` | Leads the name of the API generated from this file: `corporate` turns `OrderProcessApi` into `CorporateOrderProcessApi`. This is what lets several files declare the same `processId` (see [Several files, one process id](/guide/generated-api#several-files-one-process-id)). Without it, a `processId` declared in several files fails generation |
 
 ## Process Engines
 
@@ -39,7 +47,7 @@ C# support is experimental. It may change in any release and may be reworked or 
 :::
 
 ::: info C# has no package dependency
-The C# output carries the same API surface as Kotlin and Java, including the typed `FlowNodes` / `FlowVariants`
+The C# output carries the same API surface as Kotlin and Java, including the typed `FlowNodes`
 navigation. The runtime types its nodes need (`IFlowNode`, `SequenceFlow<T>`, `ElementId`, `VariableName`,
 …) are emitted into every generated file as a nested `Runtime` class, so a `.cs` file drops into any project
 and builds. See [C# specifics](/guide/generated-api#c-specifics).

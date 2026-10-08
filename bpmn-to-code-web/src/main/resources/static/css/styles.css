@@ -667,19 +667,6 @@ main { display: flex; flex-direction: column; gap: 20px; padding-bottom: 56px; }
     padding: 8px 16px;
     font-size: 13px;
 }
-.enable-variants-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--fg-muted);
-    margin-bottom: 12px;
-}
-.enable-variants-toggle input,
-.enable-variants-toggle label {
-    cursor: pointer;
-}
-
 .include-sources-toggle {
     display: inline-flex;
     align-items: center;

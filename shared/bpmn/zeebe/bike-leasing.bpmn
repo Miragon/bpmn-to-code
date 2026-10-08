@@ -24,11 +24,6 @@
   <bpmn:error id="error_applicationInvalid" name="miravelo.applicationInvalid" errorCode="applicationInvalid" />
   <bpmn:escalation id="escalation_contractNotSigned" name="miravelo.contractNotSigned" escalationCode="contractNotSigned" />
   <bpmn:process id="bikeLeasing" name="MiraVelo Bike Leasing" isExecutable="true">
-    <bpmn:extensionElements>
-      <zeebe:properties>
-        <zeebe:property name="variantName" value="corporate" />
-      </zeebe:properties>
-    </bpmn:extensionElements>
     <bpmn:startEvent id="startEvent_leasingRequestReceived" name="Leasing request received">
       <bpmn:extensionElements>
         <zeebe:ioMapping>

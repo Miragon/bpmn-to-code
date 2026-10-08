@@ -12,7 +12,6 @@ import io.miragon.bpmn.domain.validation.ValidationRule
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
-import io.miragon.bpmn.domain.validation.model.ValidationPhase
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 import io.miragon.bpmn.domain.validation.rules.CollisionDetectionRule
 import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
@@ -42,45 +41,49 @@ class BpmnValidationService(
         warnOnDisabledMandatoryRules()
     }
 
-    fun collectViolations(models: List<ProcessModel>, engine: ProcessEngine, phase: ValidationPhase): List<ValidationViolation> {
-        val activeSingleModelRules = singleModelRules
-            .filter { it.phase == phase }.filterNot { it.id in config.disabledRules && !it.mandatory }
-
-        val singleModelViolations = models.flatMap { model ->
+    fun collectSingleModelViolations(models: List<ProcessModel>, engine: ProcessEngine): List<ValidationViolation> {
+        val activeRules = singleModelRules.filterNot { it.id in config.disabledRules && !it.mandatory }
+        return models.flatMap { model ->
             val ctx = SingleModelValidationContext(model, engine)
-            activeSingleModelRules.flatMap { it.validate(ctx) }
+            activeRules.flatMap { it.validate(ctx) }
         }
-        return singleModelViolations + collectCrossModelViolations(models, engine, phase)
     }
 
-    private fun collectCrossModelViolations(models: List<ProcessModel>, engine: ProcessEngine, phase: ValidationPhase): List<ValidationViolation> {
-        if (phase != ValidationPhase.POST_MERGE) return emptyList()
+    fun collectCrossModelViolations(models: List<ProcessModel>, engine: ProcessEngine): List<ValidationViolation> {
         val ctx = CrossModelValidationContext(models, engine)
         return crossModelRules.filterNot { it.id in config.disabledRules && !it.mandatory }.flatMap { it.validate(ctx) }
     }
 
-    fun validate(models: List<ProcessModel>, engine: ProcessEngine, phase: ValidationPhase) {
-        val result = ValidationResult(collectViolations(models, engine, phase))
+    /**
+     * Validates each model on its own, and the models against each other once every one of them is sound.
+     */
+    fun validate(models: List<ProcessModel>, engine: ProcessEngine) {
+        failOn(collectSingleModelViolations(models, engine))
+        failOn(collectCrossModelViolations(models, engine))
+    }
+
+    /**
+     * The checks every generation runs before it writes anything: the models are validated, no two files may be
+     * generated under one name, and what passes is normalized and put into the order it is generated in.
+     */
+    fun validateAndNormalize(
+        sources: List<SourcedProcessModel>,
+        engine: ProcessEngine,
+        artifactNameOf: (ProcessModel) -> String,
+    ): List<SourcedProcessModel> {
+        validate(models = sources.map { it.model }, engine = engine)
+        SourcedProcessModel.requireDistinctArtifactNames(sources, artifactNameOf)
+        val normalizedSources = sources.map { it.copy(model = it.model.normalized()) }
+        return normalizedSources.sortedBy { it.model.apiName }
+    }
+
+    private fun failOn(violations: List<ValidationViolation>) {
+        val result = ValidationResult(violations)
         result.warnings.forEach { logger.warn { it.describe() } }
         val failures = result.failures(config.failOnWarning)
         if (failures.isNotEmpty()) {
             throw BpmnValidationException(failures)
         }
-    }
-
-    /**
-     * The checks every generation runs around merging: each file is validated on its own, a process id declared in
-     * several files is rejected unless [enableVariants] is set, and the merged models are validated again.
-     */
-    fun validateAndMerge(sources: List<SourcedProcessModel>, engine: ProcessEngine, enableVariants: Boolean): List<ProcessModel> {
-        val models = sources.map { it.model }
-        validate(models = models, engine = engine, phase = ValidationPhase.PRE_MERGE)
-        if (!enableVariants) {
-            SourcedProcessModel.requireUniqueProcessIds(sources)
-        }
-        val mergedModels = ProcessModel.mergeByProcessId(models)
-        validate(models = mergedModels, engine = engine, phase = ValidationPhase.POST_MERGE)
-        return mergedModels
     }
 
     /**
