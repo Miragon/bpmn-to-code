@@ -28,6 +28,26 @@ Around the generator:
 - **[Agent skills](https://miragon.github.io/bpmn-to-code/skills/)**: a Claude Code plugin that sets up the build plugin and migrates hardcoded strings.
 - **[Web app](https://bpmn-to-code.miragon.io/static/index.html)**: try it in the browser, or self-host the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
 
+## What it helps with
+
+A BPMN model and the code around it drift apart quietly: someone changes a name in the modeler and nothing tells the code. With the generated API, that change shows up in your build after you regenerate.
+
+### In production code
+
+A worker that carries its topic as a string keeps compiling when the topic changes in the model, and the instance just waits. With the generated constant, the build points at the worker.
+
+<img src="docs/public/drift-in-worker.gif" width="600" alt="A topic string in a worker drifts from the model and the instance waits; with the generated constant the build points at the worker">
+
+### In process tests
+
+A test with hand-typed element ids only fails when it runs. Built from the generated flow nodes with [`ProcessPath`](https://miragon.github.io/bpmn-to-code/guide/process-path), it stops compiling instead.
+
+<img src="docs/public/process-path.gif" width="600" alt="A process test with hand-typed element ids only fails when it runs; built from the generated flow nodes, it stops compiling instead">
+
+### With any engine and any test framework
+
+The clips show Camunda 8 and Kotlin, but nothing depends on that. The generated API is plain constants and objects, without a dependency on an engine, a worker library or a test framework. A `ProcessPath` hands you plain element ids, so it fits whatever flow assertion your test library offers. It works the same for every [supported engine](#supported-engines) and [output language](#supported-output-languages).
+
 ## Gradle
 
 <!-- x-release-please-start-version -->

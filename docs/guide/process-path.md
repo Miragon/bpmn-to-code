@@ -2,6 +2,8 @@
 
 `bpmn-to-code-runtime` ships `ProcessPath`, a path builder over the [generated `FlowNodes`](/guide/generated-api#flownodes). You walk a route through the process, then hand its `ids` to the flow assertion of your engine's test library. Because every step is typed by the model, **a path the model does not contain does not compile**: regenerate after a model change and the build breaks at the edge that moved.
 
+![A process test with hand-typed element ids only fails when it runs after an id changed in the model; built from the generated flow nodes, it stops compiling instead](../public/process-path.gif)
+
 It works in any process test that has the runtime on its classpath. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java).
 
 ```kotlin
