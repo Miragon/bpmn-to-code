@@ -3,7 +3,7 @@
   "url": "https://context7.com/Miragon/bpmn-to-code",
   "public_key": "pk_hIxIXlgdj7yE9z5h1Xv0C",
   "projectTitle": "bpmn-to-code",
-  "description": "Generates a type-safe API from BPMN models, validates them and exports process JSON. Gradle plugin, Maven plugin and web app for Camunda 7, Zeebe and Operaton, with Kotlin, Java and experimental C# output.",
+  "description": "Generates a type-safe API from BPMN models, and validates them. Gradle plugin, Maven plugin and web app for Camunda 7, Zeebe and Operaton, with Kotlin, Java and experimental C# output.",
   "folders": [
     "docs/overview",
     "docs/getting-started",

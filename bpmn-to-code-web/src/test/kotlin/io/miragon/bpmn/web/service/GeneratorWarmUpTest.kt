@@ -2,7 +2,6 @@ package io.miragon.bpmn.web.service
 
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.web.model.GenerateJsonRequest
 import io.miragon.bpmn.web.model.GenerateRequest
 import io.mockk.confirmVerified
 import io.mockk.mockk
@@ -14,27 +13,20 @@ import java.util.Base64
 class GeneratorWarmUpTest {
 
     private val generationService = mockk<WebGenerationService>(relaxed = true)
-    private val jsonGenerationService = mockk<WebJsonGenerationService>(relaxed = true)
 
-    private val underTest = GeneratorWarmUp(
-        generationService = generationService,
-        jsonGenerationService = jsonGenerationService,
-        rounds = 2,
-    )
+    private val underTest = GeneratorWarmUp(generationService = generationService, rounds = 2)
 
     @Test
     fun `generates every bundled example with its own engine in every output language, once per round`() {
         // given
         val apiRequests = mutableListOf<GenerateRequest>()
-        val jsonRequests = mutableListOf<GenerateJsonRequest>()
 
         // when
         underTest.run()
 
         // then
         verify { generationService.generate(capture(apiRequests)) }
-        verify { jsonGenerationService.generate(capture(jsonRequests)) }
-        confirmVerified(generationService, jsonGenerationService)
+        confirmVerified(generationService)
         val apiGenerations = apiRequests.map { request ->
             Generation(
                 fileName = request.files.single().fileName,
@@ -44,8 +36,6 @@ class GeneratorWarmUpTest {
         }
         val twoRounds = everyExampleInEveryLanguage + everyExampleInEveryLanguage
         assertThat(apiGenerations).containsExactlyInAnyOrderElementsOf(twoRounds)
-        val jsonGenerations = jsonRequests.map { it.files.single().fileName to it.config.processEngine }
-        assertThat(jsonGenerations).containsExactlyElementsOf(examples + examples)
     }
 
     @Test

@@ -6,11 +6,11 @@ A generation run reads a set of BPMN files and writes source files into a packag
 
 ## Decision
 
-**Every BPMN file yields one Process API, and one JSON document in the JSON export. Nothing is merged.** The name of both is derived in one place, `ProcessModel.apiName`: the process id, led by the optional process extension property `variantName`. Files that share a process id are told apart by giving each a `variantName`. There is no setting for this in any entry point; declaring the property is the opt-in. A variant name has to start with a letter and may contain letters, digits, `_` and `-`, because it becomes part of a type name and a file name.
+**Every BPMN file yields one Process API. Nothing is merged.** Its name is derived in one place, `ProcessModel.apiName`: the process id, led by the optional process extension property `variantName`. Files that share a process id are told apart by giving each a `variantName`. There is no setting for this in any entry point; declaring the property is the opt-in. A variant name has to start with a letter and may contain letters, digits, `_` and `-`, because it becomes part of a type name and a file name.
 
 **Names must be distinct.** Before anything is written, files that would be generated under the same name are rejected, and the error names the files. This covers a process id declared twice as well as two ids that only collide once normalised.
 
-**A run is whole.** All matched files are processed together, because the shared definition files ([record 6](006-generated-api-shape.md)) are computed across them. A process marked non-executable gets no Process API and is skipped with a log line; the JSON export still emits it.
+**A run is whole.** All matched files are processed together, because the shared definition files ([record 6](006-generated-api-shape.md)) are computed across them. A process marked non-executable gets no Process API and is skipped with a log line.
 
 **Output is a function of the inputs.** Every model is normalised before generation: duplicates are dropped and every scope and registry is sorted, and the models are ordered by their API name. The same files produce byte-identical output on every machine and file system.
 
@@ -36,4 +36,4 @@ How to use `variantName` is described in [Modeling](/guide/modeling), the regene
 - **A switch that enables the `variantName` prefix.** It would keep a stray `variantName` from renaming an API, at the price of a setting to plumb through every entry point ([record 1](001-product-surfaces-and-distribution.md)).
 - **A new property key for the prefix.** A second name for what users already know as the variant.
 - **A mapping table from variant to prefix.** It states the list of variants a second time and takes a different shape in each entry point.
-- **Version the generated API by file** (a suffix `V<n>` and a counter file). See [record 11](011-compatibility-policy.md).
+- **Version the generated API by file** (a suffix `V<n>` and a counter file). See [record 10](010-compatibility-policy.md).

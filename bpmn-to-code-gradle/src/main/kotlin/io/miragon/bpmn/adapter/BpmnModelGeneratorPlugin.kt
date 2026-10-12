@@ -19,10 +19,6 @@ class BpmnModelGeneratorPlugin : Plugin<Project> {
             it.group = "BPMN"
             it.description = "Generates API-files from BPMN files to interact with a process-engine."
         }
-        project.tasks.register("generateBpmnModelJson", GenerateBpmnJsonTask::class.java) {
-            it.group = "BPMN"
-            it.description = "[Deprecated] Generates JSON representations of BPMN process models. Will be removed in 7.0."
-        }
         project.tasks.register("validateBpmnModels", ValidateBpmnModelsTask::class.java) {
             it.group = "BPMN"
             it.description = "[Experimental] Validates BPMN models against built-in rules without generating code."

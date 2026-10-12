@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 /**
- * `extensions` is the lossless escape hatch for engine XML we do **not** normalise (the raw layer of the process JSON).
+ * `extensions` is the lossless escape hatch for engine XML we do **not** normalise.
  * Re-emitting what a dialect already read into a typed field would state the same fact twice, so each
  * dialect declares the elements it reads in full and those are left out.
  */

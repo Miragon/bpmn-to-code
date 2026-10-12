@@ -8,7 +8,7 @@ Generate from BPMN models in the browser, no Gradle or Maven setup needed. The w
 
 ## Use the hosted version
 
-Upload up to three BPMN files, pick the output language and engine, and download the generated Process API or the [Process JSON](/surface/json). Nothing to install.
+Upload up to three BPMN files, pick the output language and engine, and download the generated Process API. Nothing to install.
 
 <a href="https://bpmn-to-code.miragon.io/static/index.html" target="_blank" class="web-app-button">
   Open Web App
@@ -42,12 +42,11 @@ Then open `http://localhost:8080`. The image is on [Docker Hub](https://hub.dock
 | `GET /health` | Health check, answers `{"status": "UP"}` |
 | `GET /api/config` | Legal links and version the UI displays |
 | `POST /api/generate` | Generates the Process API |
-| `POST /api/generate-json` | Generates the [Process JSON](/surface/json) (deprecated, answers with a `Deprecation` header) |
 | `GET /swagger` | Swagger UI for the routes above |
 
 ## Call the REST API
 
-Both generation endpoints take one to three BPMN files, each Base64-encoded.
+The generation endpoint takes one to three BPMN files, each Base64-encoded.
 
 ```bash
 curl -X POST https://bpmn-to-code.miragon.io/api/generate \
@@ -64,9 +63,9 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
   }'
 ```
 
-`outputLanguage` is `KOTLIN`, `JAVA` or `CSHARP`; `processEngine` is `ZEEBE`, `CAMUNDA_7` or `OPERATON`. `POST /api/generate-json` takes the same body with only `processEngine` in `config`.
+`outputLanguage` is `KOTLIN`, `JAVA` or `CSHARP`; `processEngine` is `ZEEBE`, `CAMUNDA_7` or `OPERATON`.
 
-### Response of `/api/generate`
+### Response
 
 ```json
 {
@@ -88,7 +87,6 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
 
 - `files` holds one Process API per BPMN file plus the [shared definition files](/guide/generated-api#shared-definitions), which have `processId: null`.
 - `libraryFiles` holds the sources of `bpmn-to-code-runtime` and `runtimeDependency` its coordinates. Both are left out for C#, which needs no runtime.
-- `/api/generate-json` answers with `success` and `files` only, one `<processId>.json` per BPMN file.
 
 ### Errors
 

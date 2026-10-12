@@ -2,7 +2,7 @@
 
 ## Context
 
-The domain model is what the readers produce and what validation, code generation and the JSON export consume. BPMN allows different things on different elements: a multi-instance marker on an activity but not on a gateway, a `calledElement` only on a call activity, several event definitions on one event. A model that offers every field on every node lets invalid combinations be built and moves the check to runtime. BPMN also nests: a sub-process owns flow nodes and sequence flows of its own, and a model that only records a parent id cannot say which scope a sequence flow belongs to.
+The domain model is what the readers produce and what validation and code generation consume. BPMN allows different things on different elements: a multi-instance marker on an activity but not on a gateway, a `calledElement` only on a call activity, several event definitions on one event. A model that offers every field on every node lets invalid combinations be built and moves the check to runtime. BPMN also nests: a sub-process owns flow nodes and sequence flows of its own, and a model that only records a parent id cannot say which scope a sequence flow belongs to.
 
 ## Decision
 
@@ -22,13 +22,13 @@ The types and their KDoc are in [`domain/shared`](https://github.com/Miragon/bpm
 
 - An invalid combination cannot be constructed, so neither rules nor builders have to defend against it.
 - Code that reads a node matches on the subtype instead of reading nullable fields. That is more ceremony for a simple traversal, which the flat view softens.
-- Tree and flat view are two shapes of the same data, and a reader has to know which one a consumer needs: the JSON export needs the tree, validation and code generation mostly the flat view.
-- A new engine feature that nobody normalises still reaches the JSON export through the raw extensions, without a model change.
-- The domain is the model that custom validation rules are written against ([record 1](001-product-surfaces-and-distribution.md)), so its shape is a compatibility concern ([record 11](011-compatibility-policy.md)).
+- Tree and flat view are two shapes of the same data, and a reader has to know which one a consumer needs: scope-aware validation rules need the tree, code generation mostly the flat view.
+- A new engine feature that nobody normalises still reaches custom validation rules through the raw extensions, without a model change.
+- The domain is the model that custom validation rules are written against ([record 1](001-product-surfaces-and-distribution.md)), so its shape is a compatibility concern ([record 10](010-compatibility-policy.md)).
 - Two known impurities remain. The definition types implement `VariableMapping`, which answers with the constant name the generated code will use, so a code-generation concern sits in the domain. And an event definition carries a copy of the name of the root element it references, next to the reference.
 
 ## Rejected alternatives
 
 - **Nullable `multiInstance` and `ioMapping` fields on one flat node type.** The smallest model, but it makes a multi-instance gateway constructible and pushes validity to runtime.
 - **One node type with a one-of for its properties, plus an activity variant.** I/O mappings are legal on events as well, which an activity grouping cannot express, and a one-of cannot hold a task that has both an implementation and an I/O mapping, or an event with two triggers.
-- **Nest only in the JSON adapter and keep the domain flat.** The domain could still not answer which scope a sequence flow belongs to, and every validation rule that cares about scopes would rebuild the tree itself.
+- **Keep the domain flat and nest only where an output needs it.** The domain could still not answer which scope a sequence flow belongs to, and every validation rule that cares about scopes would rebuild the tree itself.

@@ -10,9 +10,9 @@ bpmn-to-code reaches its users in several ways: as a build plugin, in the browse
 
 - the Gradle plugin `io.miragon.bpmn-to-code-gradle` (Gradle Plugin Portal),
 - the Maven plugin `io.miragon:bpmn-to-code-maven`,
-- the testing library `io.miragon:bpmn-to-code-testing` ([record 10](010-validation.md)),
+- the testing library `io.miragon:bpmn-to-code-testing` ([record 9](009-validation.md)),
 - the runtime library `io.miragon:bpmn-to-code-runtime` ([record 8](008-runtime-library-and-process-paths.md)),
-- the web application as the Docker image `miragon/bpmn-to-code-web` ([record 12](012-web-application.md)),
+- the web application as the Docker image `miragon/bpmn-to-code-web` ([record 11](011-web-application.md)),
 - the agent skills in `bpmn-to-code-skills/`, a Claude Code plugin installed through the marketplace manifest in the repository root.
 
 **Core is not published.** `bpmn-to-code-core` has no coordinates. The Gradle plugin, the Maven plugin and the testing library declare it `compileOnly` and copy its compiled classes into their own jar; core's third-party dependencies are declared again in each of them. Nothing is relocated. Only the web module uses core as an ordinary project dependency.
@@ -35,7 +35,7 @@ Parameters and defaults are listed in [Configuration](/guide/configuration).
 ## Consequences
 
 - Users add one plugin or one test dependency and get a working generator; there is no core version to align.
-- The classes of `io.miragon.bpmn.domain` exist in three published jars. Changing a domain type is a change to the testing library's API ([record 11](011-compatibility-policy.md)).
+- The classes of `io.miragon.bpmn.domain` exist in three published jars. Changing a domain type is a change to the testing library's API ([record 10](010-compatibility-policy.md)).
 - KotlinPoet, JavaPoet and `camunda-bpmn-model` reach the user's build classpath, `camunda-bpmn-model` and AssertJ the test classpath, all under their original package names.
 - Core's dependency list is maintained in every wrapper by hand. A dependency a wrapper forgets fails only when the published plugin runs, which is why the Gradle module resolves its own published plugin in a smoke test.
 - Because skills do not move with releases, a skill can describe an API of an older or newer library version.

@@ -71,7 +71,6 @@ The [generated files](/guide/generated-api) appear below `outputFolderPath`, in 
 | Goal | Purpose |
 |------|---------|
 | `generate-bpmn-api` | Generates the [Process API](/guide/generated-api) |
-| `generate-bpmn-json` | Generates the [Process JSON](/surface/json) (deprecated) |
 | `validate-bpmn` | [Validates](/validate/) the models without generating (experimental) |
 
 The prefix `bpmn-to-code` resolves in a project whose POM declares the plugin. Anywhere else, use the full coordinates. No goal needs a POM, and every parameter is also a user property:

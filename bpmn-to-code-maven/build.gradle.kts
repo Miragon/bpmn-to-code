@@ -25,7 +25,6 @@ dependencies {
     api(kotlin("stdlib"))
     api(libs.bpmnmodel)
     api(libs.bundles.codegen)
-    api(libs.kotlinxSerializationJson)
     api(libs.slf4jApi)
     api(libs.kotlinLogging)
     compileOnly(project(":bpmn-to-code-core"))
@@ -59,7 +58,7 @@ mavenPublishing {
     // Configure the POM details.
     pom {
         name.set("bpmn-to-code-maven")
-        description.set("Maven plugin that generates a type-safe API from BPMN models, validates them and exports process JSON")
+        description.set("Maven plugin that generates a type-safe API from BPMN models, and validates them")
         inceptionYear.set("2025")
         url.set("https://github.com/Miragon/bpmn-to-code")
         licenses {

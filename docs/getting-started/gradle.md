@@ -62,7 +62,7 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask) {
 
 :::
 
-All six properties are required. `baseDir` and `outputFolderPath` resolve against the project directory, so keep them relative: the task hashes them as plain strings, and an absolute path ties the up-to-date check and every build cache entry to one checkout location. See [Configuration](/guide/configuration) for every parameter, including the `generateBpmnModelJson` and `validateBpmnModels` tasks the plugin also registers.
+All six properties are required. `baseDir` and `outputFolderPath` resolve against the project directory, so keep them relative: the task hashes them as plain strings, and an absolute path ties the up-to-date check and every build cache entry to one checkout location. See [Configuration](/guide/configuration) for every parameter, including the `validateBpmnModels` task the plugin also registers.
 
 ## 3. The runtime dependency {#runtime-dependency}
 

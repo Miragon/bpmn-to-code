@@ -1,24 +1,3 @@
-const TAB_CONFIG = {
-    code: {
-        configHeading: 'Configure Generation',
-        generateLabel: 'Generate Process API',
-        resultsHeading: 'Generated Code',
-        loadingText: 'Generating code...',
-        showLanguage: true,
-        apiEndpoint: '/api/generate',
-        downloadMime: 'text/plain',
-    },
-    json: {
-        configHeading: 'Select Process Engine',
-        generateLabel: 'Generate JSON',
-        resultsHeading: 'Generated JSON',
-        loadingText: 'Generating JSON...',
-        showLanguage: false,
-        apiEndpoint: '/api/generate-json',
-        downloadMime: 'application/json',
-    }
-};
-
 // Application State
 const state = {
     files: [],
@@ -28,8 +7,7 @@ const state = {
     depSnippetTab: 'gradle',
     bpmnViewer: null,
     currentBpmnXml: null,
-    selectedFileIndex: 0,
-    activeTab: 'code'
+    selectedFileIndex: 0
 };
 
 // Initialize
@@ -37,36 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadConfiguration();
 
-    document.getElementById('tab-code').addEventListener('click', () => switchTab('code'));
-    document.getElementById('tab-json').addEventListener('click', () => switchTab('json'));
-
-    const params = new URLSearchParams(window.location.search);
-    switchTab(params.get('tab') === 'json' ? 'json' : 'code');
 });
-
-function switchTab(tab) {
-    state.activeTab = tab;
-    const cfg = TAB_CONFIG[tab];
-
-    document.querySelectorAll('.tab-btn').forEach(btn =>
-        btn.classList.toggle('tab-btn-active', btn.dataset.tab === tab));
-
-    document.getElementById('config-heading').textContent = cfg.configHeading;
-    document.getElementById('generate-btn').textContent = cfg.generateLabel;
-    document.getElementById('results-heading').textContent = cfg.resultsHeading;
-    document.getElementById('loading-text').textContent = cfg.loadingText;
-
-    const languageGroup = document.getElementById('language-group');
-    languageGroup.style.display = cfg.showLanguage ? '' : 'none';
-    document.getElementById('form-row').classList.toggle('form-row-single', !cfg.showLanguage);
-
-    document.getElementById('results-section').style.display = 'none';
-    document.getElementById('error-message').style.display = 'none';
-    document.getElementById('results-content').innerHTML = '';
-    state.generatedFiles = [];
-
-    updateIncludeSourcesVisibility();
-}
 
 /**
  * The library sources are the JVM `bpmn-to-code-runtime`; the C# output inlines its own runtime types,
@@ -74,8 +23,7 @@ function switchTab(tab) {
  */
 function updateIncludeSourcesVisibility() {
     const jvmTarget = document.getElementById('output-language').value !== 'CSHARP';
-    const visible = state.activeTab !== 'json' && jvmTarget;
-    document.querySelector('.include-sources-toggle').style.display = visible ? '' : 'none';
+    document.querySelector('.include-sources-toggle').style.display = jvmTarget ? '' : 'none';
 }
 
 function setupEventListeners() {
@@ -245,7 +193,6 @@ async function loadSample(button) {
 
 async function handleGenerate(e) {
     e.preventDefault();
-    const cfg = TAB_CONFIG[state.activeTab];
 
     const resultsSection = document.getElementById('results-section');
     const errorMessage = document.getElementById('error-message');
@@ -265,12 +212,12 @@ async function handleGenerate(e) {
             }))
         );
 
-        const config = { processEngine: document.getElementById('process-engine').value };
-        if (cfg.showLanguage) {
-            config.outputLanguage = document.getElementById('output-language').value;
-        }
+        const config = {
+            processEngine: document.getElementById('process-engine').value,
+            outputLanguage: document.getElementById('output-language').value
+        };
 
-        const response = await fetch(cfg.apiEndpoint, {
+        const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ files: filesData, config })
@@ -303,9 +250,7 @@ async function handleGenerate(e) {
 const HIGHLIGHT_CLASSES = { KOTLIN: 'kotlin', JAVA: 'java', CSHARP: 'csharp' };
 
 function renderResults(files) {
-    const languageClass = state.activeTab === 'json'
-        ? 'json'
-        : HIGHLIGHT_CLASSES[document.getElementById('output-language').value] || 'kotlin';
+    const languageClass = HIGHLIGHT_CLASSES[document.getElementById('output-language').value] || 'kotlin';
 
     document.getElementById('results-content').innerHTML = files.map((file, index) => {
         return `
@@ -372,7 +317,7 @@ function copyToClipboard(index) {
 
 function downloadFile(fileName, index) {
     const file = state.generatedFiles[index];
-    const blob = new Blob([file.content], { type: TAB_CONFIG[state.activeTab].downloadMime });
+    const blob = new Blob([file.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement('a');

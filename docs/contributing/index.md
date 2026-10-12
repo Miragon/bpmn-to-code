@@ -60,7 +60,7 @@ PIT is too slow for a pull request. It runs every night and on demand (`gh workf
 
 **In-memory models.** Tests that do not exercise BPMN reading build their model in code, with the builders in core's test sources under `io.miragon.bpmn.domain`: `testProcessModel()` and `testProcessModelApi()` for a small model with defaults, `testBikeLeasingModel()` and `testCancelBikeOrderModel()` as mirrors of the shared models, `jobWorkerTask()` for a single node.
 
-**Golden files.** Builder and JSON tests compare the generated text byte for byte with files under `bpmn-to-code-core/src/test/resources/{api,json}`. After an intended change, rewrite them and review the diff:
+**Golden files.** Builder tests compare the generated text byte for byte with files under `bpmn-to-code-core/src/test/resources/api`. After an intended change, rewrite them and review the diff:
 
 ```bash
 ./gradlew :bpmn-to-code-core:test -Dgolden.update=true
@@ -82,7 +82,7 @@ PATH=/path/to/wrapper-dir:$PATH ./gradlew :bpmn-to-code-core:test --tests '*CSha
 
 CI installs .NET 8, so the test gates every pull request.
 
-**Other layers.** The Gradle module runs smoke tests with Gradle TestKit, the Maven module executes its mojos directly, the web module tests its routes with the Ktor test host, and `ProcessJsonSchemaTest` validates the emitted JSON against the schema in `docs/public/schema`. Unit test conventions are in the `create-unit-test` skill under `.claude/skills/`.
+**Other layers.** The Gradle module runs smoke tests with Gradle TestKit, the Maven module executes its mojos directly, and the web module tests its routes with the Ktor test host. Unit test conventions are in the `create-unit-test` skill under `.claude/skills/`.
 
 ## Pull requests
 
@@ -112,7 +112,7 @@ The docs site and the web app follow the Miragon corporate design:
 - Colours, spacing and radii come from `cd-tokens.generated.css`, in `docs/.vitepress/theme/` and in the web app's `static/css/`. The file is generated from the Miragon design tokens. Replace it as a whole when the tokens change and never edit it by hand. Stylesheets use the `--cd-*` variables instead of raw colour values.
 - The typefaces are Geist and Geist Mono, shipped with the site and the app.
 - Text stays English, because bpmn-to-code is used internationally. Apart from that the Miragon writing rules apply: no dash as a connector between clauses, no emoji as decoration, concrete statements instead of adjectives.
-- One name per thing: "Agent Skills", "Process JSON", "CIB seven", "Camunda 7", "Camunda 8".
+- One name per thing: "Agent Skills", "CIB seven", "Camunda 7", "Camunda 8".
 
 Maintainers with the `miragon-brand` Claude Code plugin get these rules checked on every edit through `.miragon/brand.json`.
 

@@ -27,7 +27,7 @@ The per-engine matrix is on the [Engines](/engines/) page, the modelling side in
 - The project depends on a Camunda 7 library, and `BpmnDocumentParser` on classes of its `impl` package. A library upgrade can break the parser, and the dependency has to be revisited when the library stops being maintained.
 - Because the two Camunda-style engines share a dialect, a feature added for one works for the other without code. If Operaton's vocabulary diverges, it needs a dialect of its own.
 - A model with `camunda:` attributes that should run on Operaton has to be generated with `CAMUNDA_7`.
-- `engine-mismatch` is an ordinary rule: it can be disabled in the validation task, and it is not part of the testing library's default set ([record 10](010-validation.md)).
+- `engine-mismatch` is an ordinary rule: it can be disabled in the validation task, and it is not part of the testing library's default set ([record 9](009-validation.md)).
 
 ## Rejected alternatives
 

@@ -14,8 +14,6 @@ Every record has the same sections: Context, Decision, Consequences, Rejected al
 6. [Generated API shape](006-generated-api-shape.md): `FlowNodes`, `Next`, shared definition files and naming.
 7. [Output languages](007-output-languages.md): the language-neutral `FlowGraph`, poet builders for Kotlin and Java, a text writer for C#.
 8. [Runtime library and process paths](008-runtime-library-and-process-paths.md): the published support types and the compile-checked `ProcessPath`.
-9. [Process JSON contract](009-process-json-contract.md): a schema-versioned, BPMN-aligned public format. Superseded by record 13.
-10. [Validation](010-validation.md): the rule model, mandatory rules, and the three places validation runs.
-11. [Compatibility and stability policy](011-compatibility-policy.md): the public contracts, what may break when, and the JDK floor.
-12. [Web application](012-web-application.md): a stateless entry point with a static frontend, and its operating constraints.
-13. [Process JSON deprecation](013-process-json-deprecation.md): why the JSON output is deprecated in 6.x and removed in 7.0.
+9. [Validation](009-validation.md): the rule model, mandatory rules, and the three places validation runs.
+10. [Compatibility and stability policy](010-compatibility-policy.md): the public contracts, what may break when, and the JDK floor.
+11. [Web application](011-web-application.md): a stateless entry point with a static frontend, and its operating constraints.

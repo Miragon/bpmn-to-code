@@ -1,4 +1,4 @@
-# 10. Validation: rule model, mandatory rules and the three places it runs
+# 9. Validation: rule model, mandatory rules and the three places it runs
 
 ## Context
 
@@ -8,7 +8,7 @@ Turning BPMN ids into identifiers of a programming language is lossy: `task-ship
 
 **Rules are domain code in core.** A `ValidationRule` has an id, a severity (error or warning) and a `mandatory` flag. It is either a `SingleModelValidationRule`, which sees one process model, or a `CrossModelValidationRule`, which sees all models of a run. Cross-model rules run only when no single-model rule reported an error. All findings are collected and reported together.
 
-**Validation is part of generation.** Every generation run, for code and for JSON, on every entry point, validates the models before it writes anything. Errors fail the run, warnings are logged. Generation takes no validation settings ([record 1](001-product-surfaces-and-distribution.md)).
+**Validation is part of generation.** Every generation run, on every entry point, validates the models before it writes anything. Errors fail the run, warnings are logged. Generation takes no validation settings ([record 1](001-product-surfaces-and-distribution.md)).
 
 **Mandatory rules cannot be disabled.** The rules without which the output would not compile or would silently lose an element are marked mandatory: missing process and element ids, colliding names within a Process API, colliding names of shared definitions, and reserved names. Core keeps them active whatever the configuration says and logs a warning when a caller tries to disable one.
 
@@ -17,7 +17,7 @@ Turning BPMN ids into identifiers of a programming language is lossy: `task-ship
 **Validation runs in three places.**
 
 - *Generation*: the built-in rule set, no settings, non-executable processes left out before validation.
-- *The build task* (`validateBpmnModels`, `validate-bpmn`): the same rule set without generating. Rules can be disabled by id and warnings can fail the build. It is experimental ([record 11](011-compatibility-policy.md)).
+- *The build task* (`validateBpmnModels`, `validate-bpmn`): the same rule set without generating. Rules can be disabled by id and warnings can fail the build. It is experimental ([record 10](010-compatibility-policy.md)).
 - *The testing library* (`bpmn-to-code-testing`): a fluent test API with AssertJ assertions. It has a default rule set of its own, further opt-in rules, and is the only place where custom rules can be added.
 
 **The testing library is a separate artifact.** It exposes AssertJ, which must not reach the classpath of the build plugins. It carries core's classes itself ([record 1](001-product-surfaces-and-distribution.md)).
@@ -29,7 +29,7 @@ The rule table is in [Validate](/validate/), the test API in [Testing](/validate
 - A model an engine accepts can be rejected by the generator until ids are renamed.
 - The build plugins have no extension point for rules. A custom rule runs in tests only.
 - The three places do not behave identically. The build task validates non-executable processes, generation does not. The testing library's default set contains `unreferenced-root-element` and lacks `engine-mismatch`; the built-in set of generation and the build task is the other way round. The testing library selects rules before core sees them, so there a mandatory rule can be disabled or left out.
-- A custom rule is written against core's `domain` package, which makes that package public API ([record 11](011-compatibility-policy.md)).
+- A custom rule is written against core's `domain` package, which makes that package public API ([record 10](010-compatibility-policy.md)).
 
 ## Open questions
 

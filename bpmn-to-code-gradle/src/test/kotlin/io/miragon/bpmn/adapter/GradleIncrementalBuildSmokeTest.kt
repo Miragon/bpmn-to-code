@@ -36,54 +36,19 @@ class GradleIncrementalBuildSmokeTest {
     }
 
     @Test
-    fun `generateBpmnModelJson is up to date until a BPMN file changes`(@TempDir projectDir: File) {
-        // given: a project that has generated its JSON files once
-        writeProject(projectDir)
-        copyBpmn(projectDir = projectDir, model = "bike-leasing.bpmn", target = "src/main/resources/bike-leasing.bpmn")
-        val firstRun = run(projectDir, JSON_TASK)
-
-        // when: running again unchanged, then after adding a BPMN file
-        val unchangedRun = run(projectDir, JSON_TASK)
-        copyBpmn(projectDir = projectDir, model = "membership.bpmn", target = "src/main/resources/membership.bpmn")
-        val addedRun = run(projectDir, JSON_TASK)
-
-        // then: only the runs with changed BPMN files execute the task
-        assertThat(firstRun.task(":$JSON_TASK")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(unchangedRun.task(":$JSON_TASK")?.outcome).isEqualTo(TaskOutcome.UP_TO_DATE)
-        assertThat(addedRun.task(":$JSON_TASK")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(requireNotNull(File(projectDir, "build/json").listFiles())).hasSize(2)
-    }
-
-    @Test
-    fun `generateBpmnModelJson warns that it is deprecated`(@TempDir projectDir: File) {
-        // given: a project with a BPMN file
-        writeProject(projectDir)
-        copyBpmn(projectDir = projectDir, model = "bike-leasing.bpmn", target = "src/main/resources/bike-leasing.bpmn")
-
-        // when: generating the JSON files
-        val result = run(projectDir, JSON_TASK)
-
-        // then: the warning names the removal version and the issue that collects feedback
-        assertThat(result.output).contains("The 'generateBpmnModelJson' task is deprecated and will be removed in 7.0")
-        assertThat(result.output).contains("https://github.com/Miragon/bpmn-to-code/issues/206")
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @ValueSource(strings = [API_TASK, JSON_TASK])
-    fun `a generation into the build directory is restored from the build cache`(task: String, @TempDir projectDir: File) {
+    fun `a generation into the build directory is restored from the build cache`(@TempDir projectDir: File) {
         // given: a project whose generated files were stored in the build cache and then deleted
         writeProject(projectDir)
         copyBpmn(projectDir = projectDir, model = "bike-leasing.bpmn", target = "src/main/resources/bike-leasing.bpmn")
-        run(projectDir, task, "--build-cache")
+        run(projectDir, API_TASK, "--build-cache")
         val generatedFilesBefore = generatedFileNames(projectDir)
         File(projectDir, "build/generated").deleteRecursively()
-        File(projectDir, "build/json").deleteRecursively()
 
         // when: running the task again
-        val result = run(projectDir, task, "--build-cache")
+        val result = run(projectDir, API_TASK, "--build-cache")
 
         // then: the generated files come back from the cache
-        assertThat(result.task(":$task")?.outcome).isEqualTo(TaskOutcome.FROM_CACHE)
+        assertThat(result.task(":$API_TASK")?.outcome).isEqualTo(TaskOutcome.FROM_CACHE)
         assertThat(generatedFilesBefore).isNotEmpty()
         assertThat(generatedFileNames(projectDir)).isEqualTo(generatedFilesBefore)
     }
@@ -267,8 +232,7 @@ class GradleIncrementalBuildSmokeTest {
         // given: a project that leaves one property unset
         writeProject(projectDir)
         val buildFile = File(projectDir, "build.gradle")
-        val apiTaskConfiguration = buildFile.readText().substringBefore("tasks.named('$JSON_TASK')")
-        val withoutProperty = apiTaskConfiguration.lines().filterNot { it.trim().startsWith("$property =") }
+        val withoutProperty = buildFile.readLines().filterNot { it.trim().startsWith("$property =") }
         buildFile.writeText(withoutProperty.joinToString("\n"))
 
         // when: running the task
@@ -293,9 +257,8 @@ class GradleIncrementalBuildSmokeTest {
     }
 
     private fun generatedFileNames(projectDir: File): List<String> {
-        val outputFolders = listOf(File(projectDir, "build/generated"), File(projectDir, "build/json"))
-        val generatedFiles = outputFolders.flatMap { folder -> folder.walkTopDown().filter { it.isFile } }
-        return generatedFiles.map { it.name }.sorted()
+        val generatedFiles = File(projectDir, "build/generated").walkTopDown().filter { it.isFile }
+        return generatedFiles.map { it.name }.sorted().toList()
     }
 
     private fun run(projectDir: File, vararg arguments: String): BuildResult {
@@ -337,19 +300,12 @@ class GradleIncrementalBuildSmokeTest {
                 outputLanguage = io.miragon.bpmn.domain.shared.OutputLanguage.KOTLIN
                 processEngine = io.miragon.bpmn.domain.shared.ProcessEngine.ZEEBE
             }
-            tasks.named('$JSON_TASK') {
-                baseDir = $baseDir
-                filePattern = '$filePattern'
-                outputFolderPath = "${'$'}{projectDir}/build/json"
-                processEngine = io.miragon.bpmn.domain.shared.ProcessEngine.ZEEBE
-            }
             """.trimIndent(),
         )
     }
 
     private companion object {
         const val API_TASK = "generateBpmnModelApi"
-        const val JSON_TASK = "generateBpmnModelJson"
         const val PACKAGE_DIRECTORY = "io/miragon/smoketest"
         const val HAND_WRITTEN = "// hand-written"
         const val BPMN_EDIT = "<!-- edited -->"

@@ -13,9 +13,8 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
  *
  * Modelers leave these behind: deleting the event that used a message does not delete the message
  * itself. The declaration is still valid BPMN, so this is a warning rather than an error, but it does
- * have consequences. The generated Process API gets a constant nothing correlates to, and the JSON
- * registry gets an entry no `…Ref` points at — both of which read as "this process handles that
- * message" when it does not.
+ * have a consequence. The generated Process API gets a constant nothing correlates to, which reads as
+ * "this process handles that message" when it does not.
  */
 class UnreferencedRootElementRule : SingleModelValidationRule {
 
