@@ -11,8 +11,8 @@
     "vue": "3.5.35"
   },
   "dependencies": {
-    "@fontsource-variable/jetbrains-mono": "5.2.8",
-    "@fontsource-variable/manrope": "5.2.8",
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
     "oxc-minify": "0.135.0"
   },
   "overrides": {

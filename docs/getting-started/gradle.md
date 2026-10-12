@@ -1,4 +1,4 @@
-# 🚀 Gradle Setup
+# Gradle Setup
 
 The Gradle plugin generates the Process API from your BPMN models as part of the build. It is published on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle).
 
@@ -66,7 +66,7 @@ All six properties are required. `baseDir` and `outputFolderPath` resolve agains
 
 ## 3. The runtime dependency {#runtime-dependency}
 
-Generated Kotlin and Java code imports types from `io.miragon:bpmn-to-code-runtime`. When the project applies the `java` plugin — which `java-library`, `application` and the Kotlin JVM plugin do — the plugin adds the runtime in its own version to `implementation`. Nothing to declare.
+Generated Kotlin and Java code imports types from `io.miragon:bpmn-to-code-runtime`. When the project applies the `java` plugin (which `java-library`, `application` and the Kotlin JVM plugin do), the plugin adds the runtime in its own version to `implementation`. Nothing to declare.
 
 It adds nothing when the `java` plugin is absent. Declare the dependency yourself where the generated code is compiled without it, or in another project than the one that generates:
 
@@ -182,5 +182,5 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 
 - [Generated API](/guide/generated-api): what the files contain and how to use them.
 - [Modeling](/guide/modeling): how ids and variable declarations in the model shape the API.
-- [AI Skills](/skills/): `setup-bpmn-to-code-gradle` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.
+- [Agent Skills](/skills/): `setup-bpmn-to-code-gradle` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.
 - Example project: [easy-zeebe](https://github.com/emaarco/easy-zeebe), a Zeebe service built on the Gradle plugin.

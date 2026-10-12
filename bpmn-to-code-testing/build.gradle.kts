@@ -50,7 +50,7 @@ mavenPublishing {
 
     pom {
         name.set("bpmn-to-code-testing")
-        description.set("Test utilities for validating BPMN process models — like ArchUnit but for BPMN")
+        description.set("Test library for architecture rules on BPMN process models, in the style of ArchUnit")
         inceptionYear.set("2026")
         url.set("https://github.com/Miragon/bpmn-to-code")
         licenses {

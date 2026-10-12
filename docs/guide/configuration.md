@@ -1,11 +1,11 @@
-# ⚙️ Configuration
+# Configuration
 
 Every parameter of the three Gradle tasks and Maven goals. Setup snippets are on the [Gradle](/getting-started/gradle) and [Maven](/getting-started/maven) pages.
 
 | | Gradle task | Maven goal |
 |---|---|---|
 | [Process API](/guide/generated-api) | `generateBpmnModelApi` (`GenerateBpmnModelsTask`) | `generate-bpmn-api` |
-| [JSON export](/surface/json) | `generateBpmnModelJson` (`GenerateBpmnJsonTask`) | `generate-bpmn-json` |
+| [Process JSON](/surface/json) | `generateBpmnModelJson` (`GenerateBpmnJsonTask`) | `generate-bpmn-json` |
 | [Validation](/validate/) (experimental) | `validateBpmnModels` (`ValidateBpmnModelsTask`) | `validate-bpmn` |
 
 The Gradle task classes live in `io.miragon.bpmn.adapter`. A Gradle property without a default has to be set, or the build fails naming it. The Maven goals are bound to no lifecycle phase; each parameter is also a user property of the same name (`-DprocessEngine=ZEEBE`).
@@ -32,7 +32,7 @@ All three tasks and goals take these.
 | `packagePath` | — | `de.emaarco.generated` | Package (C#: namespace) of the generated code. One package per task or execution: two runs sharing a package overwrite each other's [shared definitions](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
 | `outputLanguage` | — | `KOTLIN` | `KOTLIN`, `JAVA` or `CSHARP` (experimental) |
 
-## JSON export
+## Process JSON
 
 | Parameter | Gradle default | Maven default | Description |
 |-----------|----------------|---------------|-------------|

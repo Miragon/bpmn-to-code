@@ -59,7 +59,7 @@ mavenPublishing {
     // Configure the POM details.
     pom {
         name.set("bpmn-to-code-maven")
-        description.set("Maven plugin that bridges gaps between BPMN and code - fostering the creation of clean process-automation solutions")
+        description.set("Maven plugin that generates a type-safe API from BPMN models, validates them and exports process JSON")
         inceptionYear.set("2025")
         url.set("https://github.com/Miragon/bpmn-to-code")
         licenses {

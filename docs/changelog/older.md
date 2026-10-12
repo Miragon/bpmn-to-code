@@ -2,7 +2,7 @@
 
 The breaking changes of the majors before 6.0, newest first. Coming from an old version, work through the sections from your version upwards, then continue with the [v6 Migration Guide](./v6). Much of what 2.0 introduced was reshaped again in 6.0, so regenerate once on the target version and fix what the compiler reports rather than migrating step by step.
 
-## 5.0 — deprecated rule aliases removed
+## 5.0: deprecated rule aliases removed
 
 Affects you only if you wrote custom validation rules. The names deprecated in 4.1.0 are gone:
 
@@ -25,7 +25,7 @@ class RequireElementPrefixRule : SingleModelValidationRule {
 
 The rename made room for [cross-model rules](/validate/custom-rules#a-cross-model-rule). Built-in rules, `BpmnValidator` and the assertions are unchanged.
 
-## 4.0 — `io.github.emaarco` runtime types removed
+## 4.0: `io.github.emaarco` runtime types removed
 
 The `io.miragon` runtime jar of 3.x still shipped the runtime types under `io.github.emaarco.bpmn.runtime.*` as deprecated aliases. 4.0 removes them.
 
@@ -34,7 +34,7 @@ Affects you only if your generated code still imports `io.github.emaarco.bpmn.ru
 1. Regenerate the Process API so its imports point at `io.miragon.bpmn.runtime.*`.
 2. Change your own imports of `io.github.emaarco.bpmn.runtime.*` to `io.miragon.bpmn.runtime.*`. The types are otherwise identical.
 
-## 3.0 — `io.miragon` namespace
+## 3.0: `io.miragon` namespace
 
 Only coordinates and package names changed:
 
@@ -49,7 +49,7 @@ Only coordinates and package names changed:
 
 The last `io.github.emaarco` release, 3.0.0, is published from the former [`emaarco/bpmn-to-code`](https://github.com/emaarco/bpmn-to-code) repository.
 
-## 2.0 — typed constants and the runtime artifact
+## 2.0: typed constants and the runtime artifact
 
 | Change | Migration |
 |--------|-----------|

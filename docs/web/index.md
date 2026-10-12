@@ -1,14 +1,14 @@
-# 🌐 Web App
+# Web App
 
-Generate from BPMN models in the browser — no Gradle or Maven setup needed. The web app runs the same generator as the build plugins, so the output is identical. Three ways to use it:
+Generate from BPMN models in the browser, no Gradle or Maven setup needed. The web app runs the same generator as the build plugins, so the output is identical. Three ways to use it:
 
-1. **[Use the hosted version](#use-the-hosted-version)** — upload BPMN, download code
-2. **[Self-host with Docker](#self-host-with-docker)** — run it on your own infrastructure
-3. **[Call the REST API](#call-the-rest-api)** — from CI, scripts or any HTTP client
+1. **[Use the hosted version](#use-the-hosted-version)**: upload BPMN, download code
+2. **[Self-host with Docker](#self-host-with-docker)**: run it on your own infrastructure
+3. **[Call the REST API](#call-the-rest-api)**: from CI, scripts or any HTTP client
 
 ## Use the hosted version
 
-Upload up to three BPMN files, pick the output language and engine, and download the generated Process API or the [JSON export](/surface/json). Nothing to install.
+Upload up to three BPMN files, pick the output language and engine, and download the generated Process API or the [Process JSON](/surface/json). Nothing to install.
 
 <a href="https://bpmn-to-code.miragon.io/static/index.html" target="_blank" class="web-app-button">
   Open Web App
@@ -42,7 +42,7 @@ Then open `http://localhost:8080`. The image is on [Docker Hub](https://hub.dock
 | `GET /health` | Health check, answers `{"status": "UP"}` |
 | `GET /api/config` | Legal links and version the UI displays |
 | `POST /api/generate` | Generates the Process API |
-| `POST /api/generate-json` | Generates the [JSON export](/surface/json) |
+| `POST /api/generate-json` | Generates the [Process JSON](/surface/json) |
 | `GET /swagger` | Swagger UI for the routes above |
 
 ## Call the REST API

@@ -1,6 +1,6 @@
 # bpmn-to-code Skills Plugin
 
-Claude Code plugin with AI skills for setting up and using the [bpmn-to-code](https://github.com/Miragon/bpmn-to-code) Gradle/Maven plugin.
+Claude Code plugin with Agent Skills for setting up and using the [bpmn-to-code](https://github.com/Miragon/bpmn-to-code) Gradle/Maven plugin.
 
 ## Installation
 
@@ -22,7 +22,7 @@ Claude Code plugin with AI skills for setting up and using the [bpmn-to-code](ht
 | `build-bpmn-styleguide` | Interactively create a `BPMN_STYLE_GUIDE.md` with team conventions for naming, IDs, and layout. |
 | `validate-bpmn-style` | Check BPMN files against a `BPMN_STYLE_GUIDE.md` and report violations with explanations. |
 | `generate-rules-to-enforce-bpmn-styleguide` | Generate Kotlin `SingleModelValidationRule` implementations for all automatable style guide rules. |
-| `generate-rule-to-enforce-bpmn-styleguide` | Generate a Kotlin `SingleModelValidationRule` for a single rule — useful while drafting or iterating. |
+| `generate-rule-to-enforce-bpmn-styleguide` | Generate a Kotlin `SingleModelValidationRule` for a single rule, useful while drafting or iterating. |
 
 ## Usage
 

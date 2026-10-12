@@ -105,6 +105,17 @@ npx vitepress dev             # local preview with hot reload
 
 `npm run dev` is the maintainer's shortcut and needs the `portless` CLI and macOS. The site is deployed to GitHub Pages as part of a release, see [Releasing](./releasing#documentation).
 
+## Design and wording
+
+The docs site and the web app follow the Miragon corporate design:
+
+- Colours, spacing and radii come from `cd-tokens.generated.css`, in `docs/.vitepress/theme/` and in the web app's `static/css/`. The file is generated from the Miragon design tokens. Replace it as a whole when the tokens change and never edit it by hand. Stylesheets use the `--cd-*` variables instead of raw colour values.
+- The typefaces are Geist and Geist Mono, shipped with the site and the app.
+- Text stays English, because bpmn-to-code is used internationally. Apart from that the Miragon writing rules apply: no dash as a connector between clauses, no emoji as decoration, concrete statements instead of adjectives.
+- One name per thing: "Agent Skills", "Process JSON", "CIB seven", "Camunda 7", "Camunda 8".
+
+Maintainers with the `miragon-brand` Claude Code plugin get these rules checked on every edit through `.miragon/brand.json`.
+
 ## Agent tooling
 
 - `CLAUDE.md` (`AGENTS.md` is a symlink to it) holds the instructions for coding agents; `.claude/rules/` holds the Kotlin style rules.

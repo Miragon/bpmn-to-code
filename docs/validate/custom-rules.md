@@ -1,10 +1,10 @@
-# 🧩 Custom Rules
+# Custom Rules
 
 ::: warning Beta
 Custom rules are part of the [testing module](/validate/testing), which is in beta.
 :::
 
-A custom rule checks a convention of your own — a naming scheme, a variable every call activity must pass — and runs in your tests next to the built-in rules. There are two kinds:
+A custom rule checks a convention of your own (a naming scheme, a variable every call activity must pass) and runs in your tests next to the built-in rules. There are two kinds:
 
 | Interface | Invoked | Sees |
 |-----------|---------|------|
@@ -62,7 +62,7 @@ BpmnValidator
 
 ## Example: required call-activity inputs
 
-`model.callActivities` exposes each call activity's variable mappings as `inputMappings` and `outputMappings`. A mapping keeps both sides — `source` (or `sourceExpression`) and `target`, the name inside the called process. This rule requires every call activity to pass a set of variables:
+`model.callActivities` exposes each call activity's variable mappings as `inputMappings` and `outputMappings`. A mapping keeps both sides: `source` (or `sourceExpression`) and `target`, the name inside the called process. This rule requires every call activity to pass a set of variables:
 
 ```kotlin
 class RequireCallActivityInputsRule(private val requiredInputs: Set<String>) : SingleModelValidationRule {
@@ -108,9 +108,9 @@ The same mappings are in the [generated API](/guide/generated-api#call-activity-
 
 A single-model rule cannot see the relationship between two processes. `CrossModelValidationRule` is invoked once with a `CrossModelValidationContext`:
 
-- `context.models` — every loaded process model.
-- `context.findProcess(processId)` — the model with that process ID, or `null`. Where several files declare it, the first one.
-- `context.resolveCalledModel(callActivity)` — the model a call activity calls, or `null` if it names no process or an unknown one.
+- `context.models`: every loaded process model.
+- `context.findProcess(processId)`: the model with that process ID, or `null`. Where several files declare it, the first one.
+- `context.resolveCalledModel(callActivity)`: the model a call activity calls, or `null` if it names no process or an unknown one.
 
 This rule reports call activities whose called process is not among the loaded models. It ships built-in as the opt-in `BpmnRules.CALL_ACTIVITY_TARGET_EXISTS` and is shown here as a template:
 

@@ -1,7 +1,7 @@
-# 🧠 AI Agent Skills
+# Agent Skills
 
 ::: warning Beta
-Agent skills are in beta. Skill names and instructions may change. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you use them.
+Agent Skills are in beta. Skill names and instructions may change. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you use them.
 :::
 
 bpmn-to-code ships a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin with seven skills and one subagent. They are optional; the build plugins work without them.
@@ -16,7 +16,7 @@ bpmn-to-code ships a [Claude Code](https://docs.anthropic.com/en/docs/claude-cod
 | `build-bpmn-styleguide` | Creates a `BPMN_STYLE_GUIDE.md` with your team's conventions for naming, IDs and allowed elements in an interactive session. |
 | `validate-bpmn-style` | Checks BPMN files against the `BPMN_STYLE_GUIDE.md` and reports violations with explanations. |
 | `generate-rules-to-enforce-bpmn-styleguide` | Generates Kotlin `SingleModelValidationRule` implementations for every style guide rule that can be checked automatically, for use with the [testing module](/validate/testing). |
-| `generate-rule-to-enforce-bpmn-styleguide` | The same for a single rule — useful while drafting one. |
+| `generate-rule-to-enforce-bpmn-styleguide` | The same for a single rule, useful while drafting one. |
 
 ## Subagent
 

@@ -1,20 +1,20 @@
-# ✅ Validation
+# Validation
 
 bpmn-to-code checks your BPMN models against a set of rules. The same rules run in three places:
 
 | Where | Rules | Fails on | Can be tuned |
 |-------|-------|----------|--------------|
-| **Generation** — `generateBpmnModelApi`, `generateBpmnModelJson`, the Maven goals `generate-bpmn-api` and `generate-bpmn-json`, the [web app](/web/) | all [built-in rules](#built-in-rules) | any `ERROR` | no |
-| **Validate task** — `validateBpmnModels` / `validate-bpmn` _(experimental)_ | the same rules | any `ERROR`, with `failOnWarning` also any `WARN` | `failOnWarning`, `disabledRules` |
-| **[Testing library](/validate/testing)** — `bpmn-to-code-testing` | the built-in rules, opt-in rules and [your own](/validate/custom-rules) | whatever your test asserts | any rule can be selected or disabled |
+| **Generation**: `generateBpmnModelApi`, `generateBpmnModelJson`, the Maven goals `generate-bpmn-api` and `generate-bpmn-json`, the [web app](/web/) | all [built-in rules](#built-in-rules) | any `ERROR` | no |
+| **Validate task**: `validateBpmnModels` / `validate-bpmn` _(experimental)_ | the same rules | any `ERROR`, with `failOnWarning` also any `WARN` | `failOnWarning`, `disabledRules` |
+| **[Testing library](/validate/testing)**: `bpmn-to-code-testing` | the built-in rules, opt-in rules and [your own](/validate/custom-rules) | whatever your test asserts | any rule can be selected or disabled |
 
-Generation always validates first and writes nothing when a rule reports an `ERROR`: a service task without implementation, a timer without definition or a model built for another engine stops the run. Warnings are logged. There is no setting to relax this during generation — fix the model.
+Generation always validates first and writes nothing when a rule reports an `ERROR`: a service task without implementation, a timer without definition or a model built for another engine stops the run. Warnings are logged. There is no setting to relax this during generation: fix the model.
 
 The validate task reports the same findings without generating anything, so you can run it earlier in the build or with stricter settings.
 
 Two details:
 
-- A process marked `isExecutable="false"` gets no Process API and is not validated when the API is generated. The JSON export and the validate task include it.
+- A process marked `isExecutable="false"` gets no Process API and is not validated when the API is generated. The Process JSON and the validate task include it.
 - Rules that compare processes with each other run only once every process is free of errors on its own.
 
 ## Built-in rules
@@ -37,7 +37,7 @@ Two details:
 
 **Mandatory** rules guarantee that the generated code compiles under unique names. `disabledRules` cannot turn them off; listing one logs a warning and keeps it active.
 
-The testing library differs in two rules: it adds `unreferenced-root-element` (WARN — a message, signal, error or escalation that no element references) and has no `engine-mismatch`. Its opt-in rules are listed on the [Testing Module](/validate/testing#optional-rules-opt-in) page.
+The testing library differs in two rules: it adds `unreferenced-root-element` (WARN: a message, signal, error or escalation that no element references) and has no `engine-mismatch`. Its opt-in rules are listed on the [Testing Module](/validate/testing#optional-rules-opt-in) page.
 
 ## Validate task
 
@@ -92,13 +92,13 @@ tasks.named("validateBpmnModels", ValidateBpmnModelsTask::class) {
 Run it:
 
 ```bash
-# Gradle — the task is registered by the plugin
+# Gradle: the task is registered by the plugin
 ./gradlew validateBpmnModels
 
-# Maven — through the phase the execution is bound to
+# Maven: through the phase the execution is bound to
 mvn verify
 
-# Maven — the execution alone
+# Maven: the execution alone
 mvn bpmn-to-code:validate-bpmn@validate-bpmn
 ```
 

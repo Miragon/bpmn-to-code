@@ -1,6 +1,6 @@
-# 📦 Generated API
+# Generated API
 
-One file per BPMN process — a typed projection of the process model — plus one file per kind of [shared definition](#shared-definitions), generated once for all processes of a run. The examples show the MiraVelo bike-leasing process ([`shared/bpmn/zeebe/bike-leasing.bpmn`](https://github.com/Miragon/bpmn-to-code/blob/main/shared/bpmn/zeebe/bike-leasing.bpmn)) generated for Zeebe.
+One file per BPMN process, a typed projection of the process model, plus one file per kind of [shared definition](#shared-definitions), generated once for all processes of a run. The examples show the MiraVelo bike-leasing process ([`shared/bpmn/zeebe/bike-leasing.bpmn`](https://github.com/Miragon/bpmn-to-code/blob/main/shared/bpmn/zeebe/bike-leasing.bpmn)) generated for Zeebe.
 
 ## Structure
 
@@ -12,7 +12,7 @@ The Process API is an `object` (Kotlin), `final class` (Java) or `static class` 
 | `PROCESS_ENGINE` | The engine the API was generated for (`BpmnEngine`: `ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
 | `FlowNodes` | One node per element, carrying the element's own data and its successors |
 
-Element ids, variables, timers and call-activity mappings have no section of their own: they live on the node that declares them. The API is the code-side twin of the [JSON export](/surface/json), which holds the same facts as data.
+Element ids, variables, timers and call-activity mappings have no section of their own: they live on the node that declares them. The API is the code-side twin of the [Process JSON](/surface/json), which holds the same facts as data.
 
 ## Shared definitions
 
@@ -20,12 +20,12 @@ Job types, message and signal names, errors, escalations and variable names iden
 
 | File | Contents |
 |------|----------|
-| `ServiceTasks` | One `String` constant per distinct [job type](/engines/#what-is-extracted) — **the constant for `@JobWorker(type = …)`** |
+| `ServiceTasks` | One `String` constant per distinct [job type](/engines/#what-is-extracted): **the constant for `@JobWorker(type = …)`** |
 | `Messages` | Message names (`MessageName`) |
 | `Signals` | Signal names (`SignalName`) |
 | `Errors` | Error definitions with name and code (`BpmnErrorDefinition`) |
 | `Escalations` | Escalation definitions with name and code (`BpmnEscalationDefinition`) |
-| `ProcessVariables` | One `String` constant per distinct variable name — **the constant for `@Variable(name = …)`** |
+| `ProcessVariables` | One `String` constant per distinct variable name: **the constant for `@Variable(name = …)`** |
 
 - A file is only generated when at least one process contains a matching element.
 - Each value appears once, however many processes use it.
@@ -247,7 +247,7 @@ public static class Errors
 
 :::
 
-## FlowNodes — the process as typed nodes {#flownodes}
+## FlowNodes: the process as typed nodes {#flownodes}
 
 `FlowNodes` holds **one node per element**, and every node is a direct child of `FlowNodes` whatever its subprocess depth: `FlowNodes.StartEventCustomerEligible` is addressed by its own name although it sits inside `subProcess_concludeContract`. Node names derive from element ids (`serviceTask_sendContract` → `ServiceTaskSendContract`); see [Modeling](/guide/modeling#naming).
 
@@ -385,13 +385,13 @@ The target type is fixed per entry, so code that follows an edge the model no lo
 
 `Successor` is a sealed interface; an exhaustive `when` over it needs a branch for each of the three kinds and for a single `SequenceFlow`.
 
-### Asserting flow in process tests — `ProcessPath`
+### Asserting flow in process tests: `ProcessPath`
 
 The runtime's path builder walks this graph and returns the element ids for your engine's flow assertions. It has a page of its own: [ProcessPath](/guide/process-path).
 
 ### Enumerating elements
 
-For tests about **every element** of a process — every node id exists in the deployed model, every user task has a form — `FlowNodes` lists its nodes: Kotlin `FlowNodes.all`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
+For tests about **every element** of a process (every node id exists in the deployed model, every user task has a form), `FlowNodes` lists its nodes: Kotlin `FlowNodes.all`, Java `FlowNodes.all()`, C# `FlowNodes.All`.
 
 ```kotlin
 @Test
@@ -431,7 +431,7 @@ val variablesOfTheProcess: List<String> = HasVariables.distinctVariablesOf(FlowN
 
 ## Call-Activity Variable Mappings
 
-A call activity node carries the called process and the mapping between parent and child: `Inputs` (passed into the child) and `Outputs` (returned to the parent). Each entry is an `InputOutputMapping` with the `target` — the name the variable gets in the receiving scope — and its origin. Constants are named after the `target`.
+A call activity node carries the called process and the mapping between parent and child: `Inputs` (passed into the child) and `Outputs` (returned to the parent). Each entry is an `InputOutputMapping` with the `target` (the name the variable gets in the receiving scope) and its origin. Constants are named after the `target`.
 
 ```kotlin
 object CallActivityCancelBikeOrder : /* … */ CallActivity, HasVariables {
@@ -453,7 +453,7 @@ object CallActivityCancelBikeOrder : /* … */ CallActivity, HasVariables {
 | Zeebe | the FEEL expression of `zeebe:input` / `zeebe:output` | always `null` |
 | Camunda 7, Operaton | the `source` variable of `camunda:in` / `camunda:out` | its `sourceExpression`, e.g. `${applicationId}` |
 
-The same model for Camunda 7 yields `InputOutputMapping(target = "applicationId", sourceExpression = "\${applicationId}")`. The "pass all variables" modes (`variables="all"`, `propagateAllParentVariables` / `propagateAllChildVariables`) produce no constants; the [JSON export](/surface/json) reports them.
+The same model for Camunda 7 yields `InputOutputMapping(target = "applicationId", sourceExpression = "\${applicationId}")`. The "pass all variables" modes (`variables="all"`, `propagateAllParentVariables` / `propagateAllChildVariables`) produce no constants; the [Process JSON](/surface/json) reports them.
 
 ## Several files, one process id
 

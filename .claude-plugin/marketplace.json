@@ -7,7 +7,7 @@
     {
       "name": "bpmn-to-code",
       "source": "./bpmn-to-code-skills",
-      "description": "AI-assisted setup and migration for the bpmn-to-code Gradle/Maven plugin"
+      "description": "Agent skills for setting up and using the bpmn-to-code Gradle and Maven plugins"
     }
   ]
 }
