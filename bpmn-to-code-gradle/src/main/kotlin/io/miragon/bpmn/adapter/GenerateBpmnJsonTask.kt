@@ -18,6 +18,10 @@ abstract class GenerateBpmnJsonTask : AbstractBpmnTask() {
 
     @TaskAction
     fun execute() {
+        logger.warn(
+            "[DEPRECATED] The 'generateBpmnModelJson' task is deprecated and will be removed in 7.0. " +
+                "If you use the Process JSON, describe your use case in $FEEDBACK_ISSUE.",
+        )
         val plugin = CreateProcessJsonFilesystemPlugin()
         plugin.execute(
             baseDir = absolutePathOf(baseDir),
@@ -26,5 +30,9 @@ abstract class GenerateBpmnJsonTask : AbstractBpmnTask() {
             engine = processEngine.get(),
         )
         logger.lifecycle("BPMN JSON files generated successfully")
+    }
+
+    private companion object {
+        const val FEEDBACK_ISSUE = "https://github.com/Miragon/bpmn-to-code/issues/206"
     }
 }

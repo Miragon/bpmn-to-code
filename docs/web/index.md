@@ -42,7 +42,7 @@ Then open `http://localhost:8080`. The image is on [Docker Hub](https://hub.dock
 | `GET /health` | Health check, answers `{"status": "UP"}` |
 | `GET /api/config` | Legal links and version the UI displays |
 | `POST /api/generate` | Generates the Process API |
-| `POST /api/generate-json` | Generates the [Process JSON](/surface/json) |
+| `POST /api/generate-json` | Generates the [Process JSON](/surface/json) (deprecated, answers with a `Deprecation` header) |
 | `GET /swagger` | Swagger UI for the routes above |
 
 ## Call the REST API

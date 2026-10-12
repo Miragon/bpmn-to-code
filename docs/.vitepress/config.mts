@@ -23,7 +23,6 @@ export default defineConfig({
     nav: [
       { text: 'Generate', link: '/getting-started/gradle' },
       { text: 'Validate', link: '/validate/' },
-      { text: 'Process JSON', link: '/surface/json' },
       { text: 'Agent Skills', link: '/skills/' },
       {
         text: 'Links',
@@ -63,7 +62,7 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Process JSON',
+        text: 'Process JSON (deprecated)',
         items: [
           { text: 'Format Reference', link: '/surface/json' },
         ],

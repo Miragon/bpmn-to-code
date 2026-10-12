@@ -15,7 +15,7 @@ Maven plugin of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code), publish
 | Goal | Does |
 |---|---|
 | `generate-bpmn-api` | Generates the Process API from BPMN files |
-| `generate-bpmn-json` | Generates the process JSON |
+| `generate-bpmn-json` | Generates the process JSON (deprecated, removed in 7.0) |
 | `validate-bpmn` | Validates BPMN files without generating code (experimental) |
 
 No goal is bound to a lifecycle phase by default; bind it in an `<execution>` or call it directly, for example `mvn io.miragon:bpmn-to-code-maven:generate-bpmn-api`. Generated Kotlin and Java code needs `io.miragon:bpmn-to-code-runtime` in the same version as a dependency; unlike the Gradle plugin, the Maven plugin does not add it.

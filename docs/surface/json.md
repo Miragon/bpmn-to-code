@@ -1,7 +1,7 @@
 # Process JSON
 
-::: warning Beta
-Process JSON is in beta. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you use it.
+::: warning Deprecated
+The Process JSON is deprecated and will be removed in 7.0. The generated [Process API](/guide/generated-api) carries almost the same facts, and the BPMN XML holds everything else. If you use the Process JSON, describe your use case in [issue #206](https://github.com/Miragon/bpmn-to-code/issues/206) before the removal.
 :::
 
 bpmn-to-code exports the structure of a process as JSON: every flow node, sequence flow, message, signal, error and escalation, without the diagram. AI agents, reviewers and scripts can read it directly.

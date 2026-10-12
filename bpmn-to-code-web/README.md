@@ -31,7 +31,7 @@ Then open http://localhost:8080. The image is built for `linux/amd64`.
 |---|---|
 | `GET /` | Redirects to the UI at `/static/index.html` |
 | `POST /api/generate` | Generates the Process API |
-| `POST /api/generate-json` | Generates the process JSON |
+| `POST /api/generate-json` | Generates the process JSON (deprecated, removed in 7.0) |
 | `GET /api/config` | Version and legal links |
 | `GET /health` | Health check, answers `{"status": "UP"}` |
 | `GET /swagger` | Swagger UI for the API |

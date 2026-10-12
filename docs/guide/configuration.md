@@ -5,7 +5,7 @@ Every parameter of the three Gradle tasks and Maven goals. Setup snippets are on
 | | Gradle task | Maven goal |
 |---|---|---|
 | [Process API](/guide/generated-api) | `generateBpmnModelApi` (`GenerateBpmnModelsTask`) | `generate-bpmn-api` |
-| [Process JSON](/surface/json) | `generateBpmnModelJson` (`GenerateBpmnJsonTask`) | `generate-bpmn-json` |
+| [Process JSON](/surface/json) (deprecated) | `generateBpmnModelJson` (`GenerateBpmnJsonTask`) | `generate-bpmn-json` |
 | [Validation](/validate/) (experimental) | `validateBpmnModels` (`ValidateBpmnModelsTask`) | `validate-bpmn` |
 
 The Gradle task classes live in `io.miragon.bpmn.adapter`. A Gradle property without a default has to be set, or the build fails naming it. The Maven goals are bound to no lifecycle phase; each parameter is also a user property of the same name (`-DprocessEngine=ZEEBE`).
@@ -33,6 +33,8 @@ All three tasks and goals take these.
 | `outputLanguage` | — | `KOTLIN` | `KOTLIN`, `JAVA` or `CSHARP` (experimental) |
 
 ## Process JSON
+
+Deprecated, will be removed in 7.0. The task and the goal log a warning on every run.
 
 | Parameter | Gradle default | Maven default | Description |
 |-----------|----------------|---------------|-------------|

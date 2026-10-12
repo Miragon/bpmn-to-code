@@ -60,6 +60,18 @@ class GenerationRoutesTest {
         }
     }
 
+    @Test
+    fun `marks the process json endpoint as deprecated`() {
+        testApplication {
+            application { configureApp(appConfig()) }
+
+            val response = client.post("/api/generate-json") { jsonBody(requestOf(bikeLeasing())) }
+
+            assertThat(response.headers["Deprecation"]).isEqualTo("true")
+            assertThat(response.headers["Link"]).isEqualTo("<https://github.com/Miragon/bpmn-to-code/issues/206>; rel=\"deprecation\"")
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["/api/generate", "/api/generate-json"])
     fun `rejects a request without files`(endpoint: String) {
