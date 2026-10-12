@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 8 1034 214" width="1034" height="214" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#335DE5"/></marker></defs>
+<rect x="40" y="20" width="1010" height="190" rx="10" fill="#F9F7F7" stroke="#335DE5" stroke-width="1"/>
+<text x="56" y="44.0" font-size="14" text-anchor="start" fill="#1D1D1D" font-weight="600">One language package: the same five parts for every target language</text>
+<rect x="60" y="70" width="180" height="120" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="150.0" y="107.5" font-size="15" text-anchor="middle" fill="#1D1D1D" font-weight="600">1  Writer</text>
+<text x="150.0" y="126.25" font-size="15" text-anchor="middle" fill="#1D1D1D"></text>
+<text x="150.0" y="145.0" font-size="15" text-anchor="middle" fill="#1D1D1D">flow graph in,</text>
+<text x="150.0" y="163.75" font-size="15" text-anchor="middle" fill="#1D1D1D">source files out</text>
+<rect x="256" y="70" width="180" height="120" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="346.0" y="107.5" font-size="15" text-anchor="middle" fill="#1D1D1D" font-weight="600">2  Tier</text>
+<text x="346.0" y="126.25" font-size="15" text-anchor="middle" fill="#1D1D1D"></text>
+<text x="346.0" y="145.0" font-size="15" text-anchor="middle" fill="#1D1D1D">constants,</text>
+<text x="346.0" y="163.75" font-size="15" text-anchor="middle" fill="#1D1D1D">navigation, paths</text>
+<rect x="452" y="70" width="180" height="120" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="542.0" y="107.5" font-size="15" text-anchor="middle" fill="#1D1D1D" font-weight="600">3  Delivery channel</text>
+<text x="542.0" y="126.25" font-size="15" text-anchor="middle" fill="#1D1D1D"></text>
+<text x="542.0" y="145.0" font-size="15" text-anchor="middle" fill="#1D1D1D">npm, NuGet,</text>
+<text x="542.0" y="163.75" font-size="15" text-anchor="middle" fill="#1D1D1D">PyPI ...</text>
+<rect x="648" y="70" width="180" height="120" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="1" stroke-dasharray="6 5"/>
+<text x="738.0" y="107.5" font-size="15" text-anchor="middle" fill="#1D1D1D" font-weight="600">4  Runtime library</text>
+<text x="738.0" y="126.25" font-size="15" text-anchor="middle" fill="#1D1D1D"></text>
+<text x="738.0" y="145.0" font-size="15" text-anchor="middle" fill="#1D1D1D">optional, only</text>
+<text x="738.0" y="163.75" font-size="15" text-anchor="middle" fill="#1D1D1D">from tier 2 on</text>
+<rect x="844" y="70" width="180" height="120" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="934.0" y="107.5" font-size="15" text-anchor="middle" fill="#1D1D1D" font-weight="600">5  Compile check</text>
+<text x="934.0" y="126.25" font-size="15" text-anchor="middle" fill="#1D1D1D"></text>
+<text x="934.0" y="145.0" font-size="15" text-anchor="middle" fill="#1D1D1D">type-checked</text>
+<text x="934.0" y="163.75" font-size="15" text-anchor="middle" fill="#1D1D1D">in CI</text>
+</svg>
