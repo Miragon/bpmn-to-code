@@ -15,6 +15,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.plugins.swagger.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
@@ -29,6 +30,8 @@ import io.miragon.bpmn.web.service.WebGenerationService
 import io.miragon.bpmn.web.service.WebJsonGenerationService
 import kotlinx.serialization.json.Json
 import kotlin.concurrent.thread
+
+private const val HEALTH_PATH = "/health"
 
 private val logger = KotlinLogging.logger {}
 
@@ -47,9 +50,15 @@ fun main() {
 fun Application.configureApp(appConfig: AppConfig) {
     configureSerialization()
     configureCors(appConfig.cors)
-    install(CallLogging)
+    configureCallLogging()
     configureStatusPages()
     configureRouting(appConfig)
+}
+
+private fun Application.configureCallLogging() {
+    install(CallLogging) {
+        filter { call -> call.request.path() != HEALTH_PATH }
+    }
 }
 
 private fun Application.configureSerialization() {
@@ -106,7 +115,7 @@ private fun Application.configureRouting(appConfig: AppConfig) {
             call.respondRedirect("/static/index.html")
         }.hide()
 
-        get("/health") {
+        get(HEALTH_PATH) {
             call.respond(HttpStatusCode.OK, mapOf("status" to "UP"))
         }.describe {
             summary = "Health check"

@@ -1,5 +1,8 @@
 package io.miragon.bpmn.web
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -15,6 +18,7 @@ import io.miragon.bpmn.web.config.CorsConfig
 import io.miragon.bpmn.web.config.LegalLinksConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 
 class ApplicationTest {
 
@@ -28,6 +32,26 @@ class ApplicationTest {
             assertThat(response.status).isEqualTo(HttpStatusCode.OK)
             assertThat(response.bodyAsText()).contains("\"status\": \"UP\"")
         }
+    }
+
+    @Test
+    fun `keeps health probes out of the request log`() {
+        val requestLog = ListAppender<ILoggingEvent>()
+        requestLog.start()
+        val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+        rootLogger.addAppender(requestLog)
+
+        testApplication {
+            application { configureApp(appConfig()) }
+
+            client.get("/health")
+            client.get("/api/config")
+        }
+        rootLogger.detachAppender(requestLog)
+
+        val loggedMessages = requestLog.list.map { it.formattedMessage }
+        assertThat(loggedMessages).anyMatch { it.contains("/api/config") }
+        assertThat(loggedMessages).noneMatch { it.contains("/health") }
     }
 
     @Test
