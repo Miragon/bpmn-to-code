@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.2.1](https://github.com/Miragon/bpmn-to-code/compare/v6.2.0...v6.2.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **web:** keep health probes out of the request log ([#199](https://github.com/Miragon/bpmn-to-code/issues/199)) ([f30db9e](https://github.com/Miragon/bpmn-to-code/commit/f30db9e4d47de195cea5b500cf384601792b3426))
+
 ## [6.2.0](https://github.com/Miragon/bpmn-to-code/compare/v6.1.1...v6.2.0) (2026-10-08)
 
 
