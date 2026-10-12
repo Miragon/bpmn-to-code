@@ -1,6 +1,6 @@
-# 🔧 Engines
+# Engines
 
-`processEngine` selects which engine namespace bpmn-to-code reads. The BPMN structure itself — elements, sequence flows, event definitions, messages, signals, errors, escalations, timers — is read the same way for every engine.
+`processEngine` selects which engine namespace bpmn-to-code reads. The BPMN structure itself (elements, sequence flows, event definitions, messages, signals, errors, escalations, timers) is read the same way for every engine.
 
 | Value | Engine | Namespace read |
 |-------|--------|----------------|
@@ -22,11 +22,11 @@ Camunda 7 and Operaton are read by the same code and differ only in the namespac
 | **Call-activity variables** | the mapping `target`s, as for any I/O mapping | `source` of `camunda:in` (input), a `sourceExpression` that is a plain variable reference (input), `target` of `camunda:out` (output) |
 | **`additionalInputVariables` / `additionalOutputVariables`** | not read | `camunda:property` in `camunda:properties`, on any flow node |
 | **`variantName`** on the process | `zeebe:property` | `camunda:property` |
-| **[JSON export](/surface/json) only** | `retries` of the task definition, the connector template (`zeebe:modelerTemplate`), the `correlationKey` of a message's `zeebe:subscription`, `propagateAllParentVariables` / `propagateAllChildVariables` | `variables="all"` on `camunda:in` / `camunda:out` |
+| **[Process JSON](/surface/json) only** | `retries` of the task definition, the connector template (`zeebe:modelerTemplate`), the `correlationKey` of a message's `zeebe:subscription`, `propagateAllParentVariables` / `propagateAllChildVariables` | `variables="all"` on `camunda:in` / `camunda:out` |
 
-Multi-instance values lose their expression syntax: `=bikeIds` and `${bikeIds}` both become the variable `bikeIds`. A variable that is only used inside an expression — a gateway condition, a script — is not extracted; see [Modeling](/guide/modeling#variables).
+Multi-instance values lose their expression syntax: `=bikeIds` and `${bikeIds}` both become the variable `bikeIds`. A variable that is only used inside an expression (a gateway condition, a script) is not extracted; see [Modeling](/guide/modeling#variables).
 
-Extension elements and engine attributes that are not listed here are not lost: the JSON export carries them [unparsed](/surface/json#engine-specific-data).
+Extension elements and engine attributes that are not listed here are not lost: the Process JSON carries them [unparsed](/surface/json#engine-specific-data).
 
 ## Zeebe
 

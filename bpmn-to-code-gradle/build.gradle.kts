@@ -105,7 +105,7 @@ gradlePlugin {
             id = "io.miragon.bpmn-to-code-gradle"
             displayName = "bpmn-to-code"
             description =
-                "Gradle plugin that bridges gaps between BPMN and code - fostering the creation of clean process-automation solutions"
+                "Gradle plugin that generates a type-safe API from BPMN models, validates them and exports process JSON"
             implementationClass = "io.miragon.bpmn.adapter.BpmnModelGeneratorPlugin"
             tags = setOf("bpmn", "codegen")
         }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, useTemplateRef } from 'vue'
 import { withBase } from 'vitepress'
+import LucideIcon from './LucideIcon.vue'
 import type { IdeTab } from './data'
 
 const props = defineProps<{
@@ -76,6 +77,12 @@ function onTabClick(i: number) {
 }
 
 onMounted(() => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    sticky.value = true
+    paused.value = true
+    hintText.value = 'paused'
+    return
+  }
   startTimer()
 })
 
@@ -105,7 +112,7 @@ onBeforeUnmount(() => {
           :class="{ active: i === activeIdx }"
           @click="onTabClick(i)"
         >
-          <span class="tab-ico" :class="tab.iconClass">{{ tab.iconText }}</span>{{ tab.label }}<span v-if="tab.beta" class="tab-beta">beta</span>
+          <LucideIcon :name="tab.icon" />{{ tab.label }}<span v-if="tab.beta" class="tag">beta</span>
         </button>
       </div>
       <div class="ide-body">

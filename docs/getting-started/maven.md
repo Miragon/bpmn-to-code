@@ -1,4 +1,4 @@
-# 🚀 Maven Setup
+# Maven Setup
 
 The Maven plugin generates the Process API from your BPMN models. It is published on [Maven Central](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven).
 
@@ -71,7 +71,7 @@ The [generated files](/guide/generated-api) appear below `outputFolderPath`, in 
 | Goal | Purpose |
 |------|---------|
 | `generate-bpmn-api` | Generates the [Process API](/guide/generated-api) |
-| `generate-bpmn-json` | Generates the [JSON export](/surface/json) |
+| `generate-bpmn-json` | Generates the [Process JSON](/surface/json) |
 | `validate-bpmn` | [Validates](/validate/) the models without generating (experimental) |
 
 The prefix `bpmn-to-code` resolves in a project whose POM declares the plugin. Anywhere else, use the full coordinates. No goal needs a POM, and every parameter is also a user property:
@@ -153,4 +153,4 @@ Then point bpmn-to-code at it with `<baseDir>${project.build.directory}/bpmn-sta
 
 - [Generated API](/guide/generated-api): what the files contain and how to use them.
 - [Modeling](/guide/modeling): how ids and variable declarations in the model shape the API.
-- [AI Skills](/skills/): `setup-bpmn-to-code-maven` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.
+- [Agent Skills](/skills/): `setup-bpmn-to-code-maven` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.

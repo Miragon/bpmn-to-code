@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LucideIcon from './LucideIcon.vue'
 import type { RunnerRule } from './data'
 
 defineProps<{
@@ -14,39 +15,39 @@ defineProps<{
 
 <template>
   <div class="runner-wrap">
-    <div class="runner fail">
+    <div class="runner bad">
       <div class="runner-titlebar">
         <span class="cmd">{{ command }}</span>
-        <span class="status fail"><span class="dot"></span>FAILED</span>
+        <span class="status-badge bad"><LucideIcon name="x" />FAILED</span>
       </div>
       <div class="runner-body">
         <template v-for="rule in fail" :key="rule.name">
-          <span class="rline err">✗ {{ rule.name }}</span>
+          <span class="rline err"><LucideIcon name="x" />{{ rule.name }}</span>
           <span class="rline hint" v-html="rule.hint"></span>
         </template>
       </div>
       <div class="runner-summary">
-        <span class="metric"><span class="tag fail">{{ failSummary }}</span></span>
-        <span class="metric">{{ failNote }}</span>
+        <span>{{ failSummary }}</span>
+        <span>{{ failNote }}</span>
       </div>
     </div>
 
-    <div class="runner-arrow">→</div>
+    <span class="between"><LucideIcon name="arrow-right" /></span>
 
-    <div class="runner pass">
+    <div class="runner good">
       <div class="runner-titlebar">
         <span class="cmd">{{ command }}</span>
-        <span class="status pass"><span class="dot"></span>PASSED</span>
+        <span class="status-badge good"><LucideIcon name="check" />PASSED</span>
       </div>
       <div class="runner-body">
         <template v-for="rule in pass" :key="rule.name">
-          <span class="rline ok">✓ {{ rule.name }}</span>
+          <span class="rline ok"><LucideIcon name="check" />{{ rule.name }}</span>
           <span class="rline hint" v-html="rule.hint"></span>
         </template>
       </div>
       <div class="runner-summary">
-        <span class="metric"><span class="tag pass">{{ passSummary }}</span></span>
-        <span class="metric">{{ passNote }}</span>
+        <span>{{ passSummary }}</span>
+        <span>{{ passNote }}</span>
       </div>
     </div>
   </div>

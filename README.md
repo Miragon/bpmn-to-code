@@ -1,7 +1,7 @@
-[![Documentation](https://img.shields.io/badge/docs-bpmn--to--code-blue?style=flat-square)](https://miragon.github.io/bpmn-to-code/)
-[![Web App](https://img.shields.io/badge/web--app-try%20in%20browser-brightgreen?style=flat-square)](https://bpmn-to-code.miragon.io/static/index.html)
-[![Maven Central](https://img.shields.io/maven-central/v/io.miragon/bpmn-to-code-maven?style=flat-square&label=maven)](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven)
-[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.miragon.bpmn-to-code-gradle?style=flat-square&label=gradle)](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle)
+[![Documentation](https://img.shields.io/badge/docs-bpmn--to--code-335DE5?style=flat-square)](https://miragon.github.io/bpmn-to-code/)
+[![Web App](https://img.shields.io/badge/web--app-try%20in%20browser-335DE5?style=flat-square)](https://bpmn-to-code.miragon.io/static/index.html)
+[![Maven Central](https://img.shields.io/maven-central/v/io.miragon/bpmn-to-code-maven?style=flat-square&label=maven&color=335DE5)](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven)
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.miragon.bpmn-to-code-gradle?style=flat-square&label=gradle&color=335DE5)](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle)
 
 # bpmn-to-code
 
@@ -25,7 +25,7 @@ Around the generator:
 
 - **[Validation](https://miragon.github.io/bpmn-to-code/validate/)**: built-in rules run before every generation, as a build task, or as tests with `bpmn-to-code-testing`, where you can add your own rules.
 - **[Process JSON](https://miragon.github.io/bpmn-to-code/surface/json)**: a compact JSON view of each process for reviews, CI and AI agents.
-- **[Agent skills](https://miragon.github.io/bpmn-to-code/skills/)**: a Claude Code plugin that sets up the build plugin and migrates hardcoded strings.
+- **[Agent Skills](https://miragon.github.io/bpmn-to-code/skills/)**: a Claude Code plugin that sets up the build plugin and migrates hardcoded strings.
 - **[Web app](https://bpmn-to-code.miragon.io/static/index.html)**: try it in the browser, or self-host the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
 
 ## What it helps with
@@ -141,3 +141,5 @@ C# output is experimental and may change in a minor release. It is available in 
 - [Contributing](https://miragon.github.io/bpmn-to-code/contributing/)
 
 Issues, pull requests and discussions are welcome on [GitHub](https://github.com/Miragon/bpmn-to-code).
+
+bpmn-to-code is built and maintained by [Miragon](https://miragon.io).

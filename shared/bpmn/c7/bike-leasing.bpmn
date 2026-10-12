@@ -260,7 +260,7 @@
       <bpmndi:BPMNShape id="businessRuleTask_checkCreditRating_di" bpmnElement="businessRuleTask_checkCreditRating">
         <dc:Bounds x="400" y="210" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gateway_isSolvent_di" bpmnElement="gateway_isSolvent">
+      <bpmndi:BPMNShape id="gateway_isSolvent_di" bpmnElement="gateway_isSolvent" isMarkerVisible="true">
         <dc:Bounds x="555" y="225" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="530" y="193" width="100" height="27" />
@@ -317,7 +317,7 @@
       <bpmndi:BPMNShape id="serviceTask_cancelContract_di" bpmnElement="serviceTask_cancelContract">
         <dc:Bounds x="710" y="0" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gateway_collectRejections_di" bpmnElement="gateway_collectRejections">
+      <bpmndi:BPMNShape id="gateway_collectRejections_di" bpmnElement="gateway_collectRejections" isMarkerVisible="true">
         <dc:Bounds x="555" y="495" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="serviceTask_sendRejection_di" bpmnElement="serviceTask_sendRejection">

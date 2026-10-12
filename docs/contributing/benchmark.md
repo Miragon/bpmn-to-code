@@ -10,7 +10,7 @@ plugin jar, which bundles `bpmn-to-code-core`.
 ## Running it
 
 ```bash
-# compare this build with 5.2.0 — prints JMH's result table per generator and a comparison table
+# compare this build with 5.2.0 and print JMH's result table per generator and a comparison table
 ./gradlew :bpmn-to-code-benchmark:benchmark
 
 # a single generator
@@ -44,7 +44,7 @@ Run it on an otherwise idle machine. `warm` over all scenarios takes about 16 mi
 | Scenario | Input |
 |---|---|
 | `bike-leasing`, `bike-leasing-c7` | the web example (42 nodes), for Zeebe and Camunda 7 |
-| `3-files` | bike-leasing, membership and welcome-package — the most the web accepts |
+| `3-files` | bike-leasing, membership and welcome-package, the most the web accepts |
 | `100-files` | 100 renamed copies of those three, for projects with many models |
 | `synthetic-250/1000/2000` | generated Zeebe processes of that many nodes, diagram included, for big models |
 
@@ -56,7 +56,7 @@ Every cell reads `baseline → current (ratio)`, where the ratio is `current / b
 is faster or smaller.
 
 Times carry JMH's error margin, e.g. `4.77 ±0.19 → 5.51 ±0.13 (1.16×)`. Only trust a difference whose margins do not
-overlap. A margin that is large compared with its value means the run was disturbed — repeat it.
+overlap. A margin that is large compared with its value means the run was disturbed: repeat it.
 
 JMH's own result table lists the counters (`files`, `lines`, `class files`, `CPU ms`) summed over all iterations; the
 comparison table shows them per generation.

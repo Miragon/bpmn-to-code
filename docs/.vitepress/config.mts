@@ -3,23 +3,28 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'bpmn-to-code',
   titleTemplate: false,
-  description: 'Type-safe BPMN toolkit — generate APIs, validate models, surface process structure to your toolchain.',
+  description: 'Generates a type-safe API from BPMN models, validates them and exports process JSON. Gradle plugin, Maven plugin and web app for Camunda 7, Zeebe and Operaton.',
   base: '/bpmn-to-code/',
   appearance: false,
   ignoreDeadLinks: [/\/\.claude\//],
 
   head: [
-    ['link', { rel: 'icon', type: 'image/png', href: '/bpmn-to-code/favicon.png' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/bpmn-to-code/favicon.svg' }],
+    ['meta', { name: 'theme-color', content: '#335DE5' }],
   ],
 
+  markdown: {
+    theme: 'github-light-high-contrast',
+  },
+
   themeConfig: {
-    logo: '/favicon.png',
+    logo: '/favicon.svg',
 
     nav: [
       { text: 'Generate', link: '/getting-started/gradle' },
       { text: 'Validate', link: '/validate/' },
-      { text: 'JSON Export', link: '/surface/json' },
-      { text: 'AI Skills', link: '/skills/' },
+      { text: 'Process JSON', link: '/surface/json' },
+      { text: 'Agent Skills', link: '/skills/' },
       {
         text: 'Links',
         items: [
@@ -58,15 +63,15 @@ export default defineConfig({
         ],
       },
       {
-        text: 'JSON Export',
+        text: 'Process JSON',
         items: [
-          { text: 'Process JSON', link: '/surface/json' },
+          { text: 'Format Reference', link: '/surface/json' },
         ],
       },
       {
-        text: 'AI Skills',
+        text: 'Agent Skills',
         items: [
-          { text: 'Agent Skills', link: '/skills/' },
+          { text: 'Available Skills', link: '/skills/' },
         ],
       },
       {
@@ -111,8 +116,8 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'Open source under the <a href="https://github.com/Miragon/bpmn-to-code?tab=MIT-1-ov-file#readme" target="_blank">MIT License</a>. Contributions welcome!',
-      copyright: 'Created with ♥ by <a href="https://www.linkedin.com/in/schaeckm" target="_blank">Marco Schäck</a> at <a href="https://miragon.io" target="_blank">Miragon</a> · <a href="https://www.linkedin.com/in/schaeckm" target="_blank">LinkedIn</a> · <a href="https://medium.com/@emaarco" target="_blank">Medium</a>',
+      message: 'Open source under the <a href="https://github.com/Miragon/bpmn-to-code?tab=MIT-1-ov-file#readme" target="_blank">MIT License</a>.',
+      copyright: 'Built by <a href="https://www.linkedin.com/in/schaeckm" target="_blank">Marco Schäck</a> at <a href="https://miragon.io" target="_blank">Miragon</a>',
     },
   },
 })

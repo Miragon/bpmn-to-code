@@ -1,4 +1,4 @@
-# ✏️ Modeling for bpmn-to-code
+# Modeling for bpmn-to-code
 
 The generated API is only as readable as the model it comes from: element ids become class names, message and job type names become constants, and only variables the model declares exist in code. This page collects what to pay attention to in the modeler. The example models in [`shared/bpmn/`](https://github.com/Miragon/bpmn-to-code/tree/main/shared/bpmn) follow it.
 
@@ -101,7 +101,7 @@ Each comma-separated name becomes a `VariableName.Input` on the node; `additiona
 
 Every BPMN file gets a Process API of its own, named after its process id. Two files declaring the same process id would be generated under one name, so generation fails and names both files.
 
-To keep such files side by side — the same process modelled per location or per customer group — give them a `variantName`, an extension property on the process. It leads the name of what is generated from that file; the process id stays untouched.
+To keep such files side by side (the same process modelled per location or per customer group), give them a `variantName`, an extension property on the process. It leads the name of what is generated from that file; the process id stays untouched.
 
 ::: code-group
 
@@ -153,7 +153,7 @@ To keep such files side by side — the same process modelled per location or pe
 
 ## Non-executable processes
 
-A process with `isExecutable="false"` gets no Process API: generation skips it. The [JSON export](/surface/json) still writes its file, and the [validate task](/validate/) still checks it. A process without the attribute is treated as executable.
+A process with `isExecutable="false"` gets no Process API: generation skips it. The [Process JSON](/surface/json) still writes its file, and the [validate task](/validate/) still checks it. A process without the attribute is treated as executable.
 
 ## One process per file
 

@@ -26,7 +26,7 @@ body:
       placeholder: |
         1. Add the bpmn-to-code Gradle plugin to your build
         2. Place a BPMN file with multiple pools under `src/main/resources`
-        3. Run `./gradlew generateProcessApi`
+        3. Run `./gradlew generateBpmnModelApi`
         4. Observe the following error in the build output...
     validations:
       required: true
@@ -72,8 +72,9 @@ body:
     attributes:
       label: Process Engine
       options:
+        - Camunda 8 / Zeebe
         - Camunda 7
-        - Zeebe
+        - CIB seven
         - Operaton
         - Not applicable
     validations:
@@ -86,6 +87,7 @@ body:
       options:
         - Kotlin
         - Java
+        - C# (experimental)
         - Not applicable
     validations:
       required: false

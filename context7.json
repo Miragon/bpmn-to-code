@@ -3,7 +3,7 @@
   "url": "https://context7.com/Miragon/bpmn-to-code",
   "public_key": "pk_hIxIXlgdj7yE9z5h1Xv0C",
   "projectTitle": "bpmn-to-code",
-  "description": "Gradle and Maven plugin that generates type-safe API definitions from BPMN process models. Supports Camunda 7, Zeebe, and Operaton engines with Kotlin, Java and experimental C# output.",
+  "description": "Generates a type-safe API from BPMN models, validates them and exports process JSON. Gradle plugin, Maven plugin and web app for Camunda 7, Zeebe and Operaton, with Kotlin, Java and experimental C# output.",
   "folders": [
     "docs/overview",
     "docs/getting-started",
@@ -43,11 +43,11 @@
     "gradle.properties"
   ],
   "rules": [
-    "bpmn-to-code generates type-safe API constants from BPMN files — always use the generated constants instead of hardcoding BPMN element IDs or message names as strings.",
+    "bpmn-to-code generates type-safe API constants from BPMN files. Always use the generated constants instead of hardcoding BPMN element IDs or message names as strings.",
     "Choose the correct plugin for your build tool: use bpmn-to-code-gradle for Gradle projects and bpmn-to-code-maven for Maven projects. Configuration differs between the two.",
-    "Set the processEngine to match your runtime: CAMUNDA_7 for Camunda Platform 7, ZEEBE for Camunda Platform 8 / Zeebe, or OPERATON for Operaton.",
+    "Set the processEngine to match your runtime: CAMUNDA_7 for Camunda 7 and CIB seven, ZEEBE for Camunda 8 / Zeebe, or OPERATON for Operaton.",
     "Set outputLanguage to KOTLIN, JAVA, or CSHARP to match your project. CSHARP generates the same FlowNodes navigation as Kotlin and Java, with its runtime types inlined into each file. The generated code package path (packagePath) must align with your source directory structure.",
     "Run the generation task (generateBpmnModelApi for Gradle, the generate-bpmn-api goal for Maven) after modifying BPMN files to regenerate the API definitions. Neither is bound to the build lifecycle by default. Maven projects also need the io.miragon:bpmn-to-code-runtime dependency; the Gradle plugin adds it automatically.",
-    "bpmn-to-code ships AI agent skills for automated setup and migration. Install them via 'npx skills add https://github.com/Miragon/bpmn-to-code'. Available skills: setup-bpmn-to-code-gradle, setup-bpmn-to-code-maven, migrate-to-bpmn-to-code-apis (replace hardcoded BPMN strings with the generated API), build-bpmn-styleguide, validate-bpmn-style, generate-rules-to-enforce-bpmn-styleguide, generate-rule-to-enforce-bpmn-styleguide."
+    "bpmn-to-code ships agent skills for automated setup and migration. Install them via 'npx skills add https://github.com/Miragon/bpmn-to-code'. Available skills: setup-bpmn-to-code-gradle, setup-bpmn-to-code-maven, migrate-to-bpmn-to-code-apis (replace hardcoded BPMN strings with the generated API), build-bpmn-styleguide, validate-bpmn-style, generate-rules-to-enforce-bpmn-styleguide, generate-rule-to-enforce-bpmn-styleguide."
   ]
 }

@@ -1,29 +1,32 @@
+<script setup lang="ts">
+import LucideIcon from './LucideIcon.vue'
+</script>
+
 <template>
-  <div class="compat-card">
-    <div class="compat-eyebrow">compatibility</div>
-    <div class="compat-row">
-      <span class="row-label">engines</span>
-      <span class="row-items">
-        <span class="compat-item"><span class="dot zeebe"></span>Zeebe</span>
-        <span class="compat-item"><span class="dot camunda7"></span>Camunda 7</span>
-        <span class="compat-item"><span class="dot operaton"></span>Operaton</span>
-        <span class="compat-item"><span class="dot cib7"></span>CIB seven <span class="compat-note">via Camunda 7</span></span>
-      </span>
+  <dl class="spec">
+    <div class="spec-row">
+      <dt>Engines</dt>
+      <dd>
+        <span>Zeebe <span class="note">camunda 8</span></span>
+        <span>Camunda 7</span>
+        <span>Operaton</span>
+        <span>CIB seven <span class="note">via camunda 7</span></span>
+      </dd>
     </div>
-    <div class="compat-row">
-      <span class="row-label">languages</span>
-      <span class="row-items">
-        <span class="compat-item"><span class="lang-badge kt">Kt</span>Kotlin</span>
-        <span class="compat-item"><span class="lang-badge java">Jv</span>Java</span>
-        <span class="compat-item"><span class="lang-badge cs">C#</span>C# <span class="compat-note">experimental</span></span>
-      </span>
+    <div class="spec-row">
+      <dt>Languages</dt>
+      <dd>
+        <span>Kotlin</span>
+        <span>Java</span>
+        <span>C# <span class="tag">experimental</span></span>
+      </dd>
     </div>
-    <div class="compat-row">
-      <span class="row-label">build</span>
-      <span class="row-items">
-        <a class="compat-item" href="https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle" target="_blank"><span class="lang-badge gradle">Gr</span><span class="link-label">Gradle</span></a>
-        <a class="compat-item" href="https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven" target="_blank"><span class="lang-badge maven">Mv</span><span class="link-label">Maven</span></a>
-      </span>
+    <div class="spec-row">
+      <dt>Build</dt>
+      <dd>
+        <a href="https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle" target="_blank" rel="noopener">Gradle<LucideIcon name="arrow-up-right" /></a>
+        <a href="https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven" target="_blank" rel="noopener">Maven<LucideIcon name="arrow-up-right" /></a>
+      </dd>
     </div>
-  </div>
+  </dl>
 </template>

@@ -1,7 +1,7 @@
-# 📡 JSON Export
+# Process JSON
 
 ::: warning Beta
-The JSON export is in beta. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you use it.
+Process JSON is in beta. [Leave feedback](https://github.com/Miragon/bpmn-to-code/issues) if you use it.
 :::
 
 bpmn-to-code exports the structure of a process as JSON: every flow node, sequence flow, message, signal, error and escalation, without the diagram. AI agents, reviewers and scripts can read it directly.
@@ -14,7 +14,7 @@ The export is a task of its own, separate from the Process API:
 
 | | Run | Default output folder |
 |---|---|---|
-| Gradle | `./gradlew generateBpmnModelJson` | none — set `outputFolderPath` |
+| Gradle | `./gradlew generateBpmnModelJson` | none, set `outputFolderPath` |
 | Maven | goal `generate-bpmn-json` | `src/main/resources/bpmn-json` |
 | Web app | `POST /api/generate-json` | — |
 
@@ -33,7 +33,7 @@ Every file declares the schema it conforms to:
 }
 ```
 
-The schema is published as [JSON Schema 2020-12](https://json-schema.org/), so consumers can validate the output and pin a version. It is closed (`additionalProperties: false`) — an unknown field means the file was produced by a newer bpmn-to-code than your schema.
+The schema is published as [JSON Schema 2020-12](https://json-schema.org/), so consumers can validate the output and pin a version. It is closed (`additionalProperties: false`): an unknown field means the file was produced by a newer bpmn-to-code than your schema.
 
 Additive changes raise the minor `formatVersion` and stay in the same schema document, so a consumer should accept every `2.x` and validate against the schema that ships with its generator version (bundled in the plugin jar under `META-INF/bpmn-to-code/schema/`).
 
@@ -45,7 +45,7 @@ Additive changes raise the minor `formatVersion` and stay in the same schema doc
 ## Document Structure
 
 ```
-process           the bpmn:Process scope — metadata, flow nodes, sequence flows
+process           the bpmn:Process scope: metadata, flow nodes, sequence flows
 definitions       bpmn:Definitions root elements: messages, signals, errors, escalations
 ```
 
@@ -142,13 +142,13 @@ Every flow node mixes three kinds of information, and knowing which is which tel
 |-------|-----------|-----------|
 | **BPMN standard** | `id`, `name`, `type`, containment, `incoming` / `outgoing`, `eventDefinitions`, `attachedToRef`, `cancelActivity`, … | Defined by the OMG spec. Same for every engine. |
 | **Normalised facets** | `implementation`, `ioMapping`, `multiInstance`, `calledElement` | bpmn-to-code's own shape. Identical across engines; only the expressions inside stay engine-specific. |
-| **Raw engine data** | `extensions`, `engineAttributes` | Verbatim, namespaced. Carries what layer 2 does not — an element read in full is left out. |
+| **Raw engine data** | `extensions`, `engineAttributes` | Verbatim, namespaced. Carries what layer 2 does not: an element read in full is left out. |
 
 ## Containment and relations
 
 A sub-process owns its children **and its own sequence flows**, mirroring `bpmn:FlowElementsContainer`. A flow always knows which scope it belongs to, and there is no `parentId` to reconstruct nesting from.
 
-`incoming` and `outgoing` hold **sequence-flow IDs**, not node IDs — the same semantics as `bpmn:FlowNode.incoming` / `.outgoing`. To find the next node, resolve the flow:
+`incoming` and `outgoing` hold **sequence-flow IDs**, not node IDs, the same semantics as `bpmn:FlowNode.incoming` / `.outgoing`. To find the next node, resolve the flow:
 
 ```js
 const nextNodeIds = node.outgoing
@@ -158,11 +158,11 @@ const nextNodeIds = node.outgoing
 
 The extra hop is what makes conditions and default flows attributable: the flow object carries `conditionExpression` and `isDefault`, and the gateway carries `default`. The generated Process API mirrors the flow object as a `SequenceFlow` in `FlowNodes.<Source>.Next`, named after its target.
 
-A compensation handler has no sequence flow at all: BPMN connects it to its compensation boundary event through a `bpmn:association`. The boundary event names it in `compensationHandlerRef` — a field derived from that association, not a `bpmn-moddle` property. The generated Process API mirrors it as an `AssociatedCompensationHandler` in the boundary event's `Next`.
+A compensation handler has no sequence flow at all: BPMN connects it to its compensation boundary event through a `bpmn:association`. The boundary event names it in `compensationHandlerRef`, a field derived from that association, not a `bpmn-moddle` property. The generated Process API mirrors it as an `AssociatedCompensationHandler` in the boundary event's `Next`.
 
 ## Node Ordering
 
-Flow nodes are sorted in **process-flow order** — a depth-first traversal from the start event(s), per scope. This means the JSON reads top-to-bottom in execution order, without tracing sequence flows manually.
+Flow nodes are sorted in **process-flow order**: a depth-first traversal from the start event(s), per scope. This means the JSON reads top-to-bottom in execution order, without tracing sequence flows manually.
 
 Boundary events appear immediately after the element they are attached to. Compensation handlers have no incoming sequence flow, so they follow at the end of their scope in alphabetical order.
 
@@ -171,11 +171,11 @@ Boundary events appear immediately after the element they are attached to. Compe
 | Field | Always present | Description |
 |-------|---------------|-------------|
 | `id` | yes | The BPMN element ID |
-| `type` | yes | The BPMN element name — `serviceTask`, `userTask`, `startEvent`, `boundaryEvent`, `subProcess`, `callActivity`, `exclusiveGateway`, … Prefix with `bpmn:` to get the `bpmn-moddle` `$type` |
+| `type` | yes | The BPMN element name: `serviceTask`, `userTask`, `startEvent`, `boundaryEvent`, `subProcess`, `callActivity`, `exclusiveGateway`, … Prefix with `bpmn:` to get the `bpmn-moddle` `$type` |
 | `name` | no | The element's label from the modeler |
 | `incoming` / `outgoing` | no | IDs of the **sequence flows** entering and leaving this node |
 | `default` | no | ID of the default sequence flow (on the gateway or activity that owns it) |
-| `eventDefinitions` | no | Triggers and results of an event — a list, because BPMN allows several |
+| `eventDefinitions` | no | Triggers and results of an event: a list, because BPMN allows several |
 | `attachedToRef` | no | Host activity of a boundary event |
 | `compensationHandlerRef` | no | Compensation boundary events: the compensation handler the event is associated with |
 | `cancelActivity` | no | Boundary events: whether the event interrupts its host |
@@ -184,7 +184,7 @@ Boundary events appear immediately after the element they are attached to. Compe
 | `boundaryEventRefs` | no | Boundary events attached to this activity |
 | `isForCompensation` | no | Marks an activity as a compensation handler |
 | `messageRef` | no | Send and receive tasks reference their message directly |
-| `implementation` | no | How the engine runs this node — see below |
+| `implementation` | no | How the engine runs this node, see below |
 | `calledElement` | no | Call activity target plus variable-propagation flags |
 | `multiInstance` | no | `bpmn:multiInstanceLoopCharacteristics`, normalised |
 | `ioMapping` | no | Input/output parameter mapping, normalised |
@@ -262,7 +262,7 @@ Both are activity facets, present only where BPMN allows them.
 }
 ```
 
-`zeebe:loopCharacteristics` and `camunda:collection` / `camunda:elementVariable` both map onto these fields, so the same logical loop reads identically for every engine. The expressions themselves are preserved verbatim — FEEL `=bikeIds` for Zeebe, JUEL `${bikeIds}` for Camunda 7 — because rewriting them would lose information.
+`zeebe:loopCharacteristics` and `camunda:collection` / `camunda:elementVariable` both map onto these fields, so the same logical loop reads identically for every engine. The expressions themselves are preserved verbatim (FEEL `=bikeIds` for Zeebe, JUEL `${bikeIds}` for Camunda 7) because rewriting them would lose information.
 
 ```json
 "ioMapping": {
@@ -295,9 +295,9 @@ Anything bpmn-to-code does not normalise is preserved verbatim, with its namespa
 
 `extensions` mirrors `bpmn:extensionElements` and nests arbitrarily; `engineAttributes` holds foreign-namespace attributes on the element itself. A new engine feature shows up here without a schema change.
 
-What is already normalised is **not** repeated here. `zeebe:taskDefinition`, `zeebe:ioMapping`, `zeebe:loopCharacteristics` and `zeebe:calledElement` have typed fields (`implementation`, `ioMapping`, `multiInstance`, `calledElement`), so they are left out rather than stated twice. Camunda 7 and Operaton keep theirs: `camunda:inputParameter` can nest a `camunda:script`, `camunda:in`/`out` carry `businessKey` and `local`, and `camunda:properties` is read for two property names only — for those the raw element is the only complete source.
+What is already normalised is **not** repeated here. `zeebe:taskDefinition`, `zeebe:ioMapping`, `zeebe:loopCharacteristics` and `zeebe:calledElement` have typed fields (`implementation`, `ioMapping`, `multiInstance`, `calledElement`), so they are left out rather than stated twice. Camunda 7 and Operaton keep theirs: `camunda:inputParameter` can nest a `camunda:script`, `camunda:in`/`out` carry `businessKey` and `local`, and `camunda:properties` is read for two property names only. For those, the raw element is the only complete source.
 
-`engineAttributes` follows the same rule. The attribute behind `implementation` — `camunda:topic`, `camunda:delegateExpression`, `camunda:class` or `camunda:expression`, whichever the engine's precedence picked — is left out; `camunda:asyncBefore`, `camunda:exclusive` and `camunda:type` have no typed counterpart and stay. If a task declares two implementation attributes, only the one that won is dropped, so the other is still reachable.
+`engineAttributes` follows the same rule. The attribute behind `implementation` (`camunda:topic`, `camunda:delegateExpression`, `camunda:class` or `camunda:expression`, whichever the engine's precedence picked) is left out; `camunda:asyncBefore`, `camunda:exclusive` and `camunda:type` have no typed counterpart and stay. If a task declares two implementation attributes, only the one that won is dropped, so the other is still reachable.
 
 ## Several files, one process id
 
@@ -318,7 +318,7 @@ The JSON is designed for use with AI coding assistants. Paste it into your assis
 - "What inputs does the `serviceTask_sendContract` task receive, from its `ioMapping`?"
 - "List all boundary events and what they are attached to."
 
-Because the JSON is produced by deterministic rules — not generated by an LLM — the assistant gets reliable process context with no hallucinated element IDs. Aligning the vocabulary with the BPMN standard helps here too: a model that knows BPMN already knows what `boundaryEvent` and `cancelActivity` mean.
+Because the JSON is produced by deterministic rules, not generated by an LLM, the assistant gets reliable process context with no hallucinated element IDs. Aligning the vocabulary with the BPMN standard helps here too: a model that knows BPMN already knows what `boundaryEvent` and `cancelActivity` mean.
 
 ::: tip Keep the JSON in version control
 Commit the JSON alongside your BPMN files. This makes process structure changes visible in pull request diffs, without requiring reviewers to open Camunda Modeler.

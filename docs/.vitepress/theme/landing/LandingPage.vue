@@ -3,105 +3,120 @@ import { withBase } from 'vitepress'
 import IdeShowcase from './IdeShowcase.vue'
 import CompareCards from './CompareCards.vue'
 import RunnerPair from './RunnerPair.vue'
-import SkillCard from './SkillCard.vue'
 import CompatCard from './CompatCard.vue'
 import LandingFooter from './LandingFooter.vue'
+import LucideIcon from './LucideIcon.vue'
 import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from './data'
 </script>
 
 <template>
   <div class="landing-root">
-    <section class="hero">
-      <h1>
-        Your BPMN. <span class="grad">In&nbsp;Code.</span><br />
-        <span class="grad-p">Validated.</span> <span class="grad-g">AI&#8209;ready.</span>
-      </h1>
-      <p class="subtitle">
-        Generate type-safe APIs, validate architecture rules, and make your BPMN models AI-ready &mdash; straight from your build.
-      </p>
-      <div class="actions">
-        <a class="btn btn-primary" href="https://bpmn-to-code.miragon.io/static/index.html" target="_blank" rel="noopener"><span>&rarr;</span> Try in browser</a>
-        <a class="btn btn-secondary" :href="withBase('/overview/why')">Learn more</a>
+    <section class="band hero white">
+      <div class="inner">
+        <h1>Your BPMN. <span class="accent">In&nbsp;Code.</span><br />Validated. AI&#8209;ready.</h1>
+        <p class="lead">
+          Generate type-safe APIs, validate architecture rules, and make your BPMN models AI-ready, straight from your build.
+        </p>
+        <div class="actions">
+          <a class="btn-primary" href="https://bpmn-to-code.miragon.io/static/index.html" target="_blank" rel="noopener">Try it in the browser</a>
+          <a class="text-link" :href="withBase('/overview/why')">Why bpmn-to-code <LucideIcon name="arrow-right" /></a>
+        </div>
+        <div class="hero-stage">
+          <IdeShowcase :tabs="ideTabs" />
+        </div>
+        <CompatCard />
       </div>
-
-      <IdeShowcase :tabs="ideTabs" />
-
-      <CompatCard />
     </section>
 
-    <!-- P1 — Generate -->
-    <section class="problem">
-      <div class="problem-intro">
-        <span class="pillar-badge generate"><span class="num">1</span>Generate <span class="eyebrow">&middot; compile-time safety</span></span>
-        <h2>BPMN strings break silently. <span class="grad">Until runtime.</span></h2>
-        <p>Your Zeebe and Camunda code is full of references to BPMN elements &mdash; process IDs, message names, task types. Rename one in the modeler and nothing warns you until it fails in production. bpmn-to-code generates a type-safe Process API in Kotlin, Java or C# (experimental) from your <code>.bpmn</code> files via <strong>Gradle</strong>, <strong>Maven</strong>, or the <strong>in-browser</strong> tool.</p>
-        <a class="pillar-link" :href="withBase('/guide/generated-api')">Learn how the generated API works <span class="arrow">&rarr;</span></a>
-      </div>
-      <CompareCards
-        before-pill="✗ Before"
-        before-title="hardcoded strings"
-        :before-code="generateCompare.before"
-        after-pill="✓ After"
-        after-title="generated Process API"
-        :after-code="generateCompare.after"
-      />
-    </section>
-
-    <!-- P2 — Validate -->
-    <section class="problem">
-      <div class="problem-intro">
-        <span class="pillar-badge validate"><span class="num">2</span>Validate <span class="eyebrow">&middot; architecture rules &middot; in beta</span></span>
-        <h2>Process rules <span class="grad-p">erode between deploys.</span></h2>
-        <p>Missing implementations, undefined timers, unnamed messages &mdash; without architecture tests, BPMN quality drifts silently. The testing module is a JUnit-friendly rule set you add to any project, and you can write rules of your own for team conventions. Catch violations in your test suite, not in staging.</p>
-        <a class="pillar-link" :href="withBase('/validate/')">See the validation rules <span class="arrow">&rarr;</span></a>
-      </div>
-      <RunnerPair
-        :command="validateRules.command"
-        :fail="validateRules.fail"
-        fail-summary="4 violations"
-        fail-note="build blocked"
-        :pass="validateRules.pass"
-        pass-summary="4 rules validated"
-        pass-note="ready to ship"
-      />
-    </section>
-
-    <!-- P3 — Surface -->
-    <section class="problem">
-      <div class="problem-intro">
-        <span class="pillar-badge context"><span class="num">3</span>Surface <span class="eyebrow">&middot; context for your AI &middot; in beta</span></span>
-        <h2>Agents can&rsquo;t read your <span class="grad-ctx">.bpmn file.</span></h2>
-        <p>Raw BPMN is 80% rendering metadata &mdash; shapes, bounds, waypoints. Agents waste context on pixels instead of process logic. bpmn-to-code exports a JSON model in BPMN vocabulary, without the diagram, that your agent can read directly.</p>
-        <a class="pillar-link" :href="withBase('/surface/json')">Read the JSON format reference <span class="arrow">&rarr;</span></a>
-      </div>
-      <CompareCards
-        before-pill="⚠ raw BPMN"
-        before-title="rendering metadata noise"
-        :before-code="surfaceCompare.before"
-        before-variant="warn"
-        :scroll-before="true"
-        after-pill="✓ bpmn-to-code JSON"
-        after-title="semantic model"
-        :after-code="surfaceCompare.after"
-      />
-    </section>
-
-    <!-- P4 — Agent Skills (offering) -->
-    <section class="offering">
-      <div class="offering-intro">
-        <span class="pillar-badge skills"><span class="num">4</span>Ship <span class="eyebrow">&middot; with Agent Skills &middot; in beta</span></span>
-        <h2>Build processes <em>with</em> agents, not around them.</h2>
-        <p>Drop-in agent skills, built on everything bpmn-to-code offers. Set up the plugin in one prompt, migrate hardcoded BPMN strings to the generated Process API, and turn your BPMN style guide into validation rules &mdash; while you focus on modeling the business logic. Works with Claude Code and any other agent supporting the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
-        <a class="pillar-link" :href="withBase('/skills/')">See all skills <span class="arrow">&rarr;</span></a>
-      </div>
-      <div class="skills-grid">
-        <SkillCard
-          v-for="skill in skills"
-          :key="skill.name"
-          :icon="skill.icon"
-          :name="skill.name"
-          :description="skill.description"
+    <section class="band gray">
+      <div class="inner">
+        <div class="intro">
+          <p class="eyebrow"><span class="num">01</span><span class="name">Generate</span><span class="sub">compile-time safety</span></p>
+          <h2>BPMN strings break silently. <span class="accent">Until runtime.</span></h2>
+          <p>Your Zeebe and Camunda code is full of references to BPMN elements: process IDs, message names, task types. Rename one in the modeler and nothing warns you until it fails in production. bpmn-to-code generates a type-safe Process API in Kotlin, Java or C# (experimental) from your <code>.bpmn</code> files, via Gradle, Maven or the web app.</p>
+          <a class="text-link" :href="withBase('/guide/generated-api')">Learn how the generated API works <LucideIcon name="arrow-right" /></a>
+        </div>
+        <CompareCards
+          before-pill="Before"
+          before-title="hardcoded strings"
+          :before-code="generateCompare.before"
+          after-pill="After"
+          after-title="generated Process API"
+          :after-code="generateCompare.after"
         />
+      </div>
+    </section>
+
+    <section class="band white">
+      <div class="inner">
+        <div class="intro">
+          <p class="eyebrow"><span class="num">02</span><span class="name">Validate</span><span class="sub">architecture rules</span><span class="tag">beta</span></p>
+          <h2>Process rules erode <span class="accent">between deploys.</span></h2>
+          <p>Missing implementations, undefined timers, unnamed messages: without architecture tests, BPMN quality drifts. The testing module is a JUnit-friendly rule set you add to any project, and you can write your own rules for team conventions. Violations show up in your test suite before they reach staging.</p>
+          <a class="text-link" :href="withBase('/validate/')">See the validation rules <LucideIcon name="arrow-right" /></a>
+        </div>
+        <RunnerPair
+          :command="validateRules.command"
+          :fail="validateRules.fail"
+          fail-summary="4 violations"
+          fail-note="build blocked"
+          :pass="validateRules.pass"
+          pass-summary="4 rules validated"
+          pass-note="ready to ship"
+        />
+      </div>
+    </section>
+
+    <section class="band gray">
+      <div class="inner">
+        <div class="intro">
+          <p class="eyebrow"><span class="num">03</span><span class="name">Process JSON</span><span class="sub">context for your agents</span><span class="tag">beta</span></p>
+          <h2>Agents can&rsquo;t read your <span class="accent">.bpmn file.</span></h2>
+          <p>Most of a raw BPMN file is rendering metadata: shapes, bounds, waypoints. An agent spends its context on coordinates instead of process logic. bpmn-to-code exports a JSON model in BPMN vocabulary, without the diagram, that your agent can read directly.</p>
+          <a class="text-link" :href="withBase('/surface/json')">Read the JSON format reference <LucideIcon name="arrow-right" /></a>
+        </div>
+        <CompareCards
+          before-pill="Raw BPMN"
+          before-title="rendering metadata"
+          :before-code="surfaceCompare.before"
+          before-variant="warn"
+          :scroll-before="true"
+          after-pill="Process JSON"
+          after-title="semantic model"
+          :after-code="surfaceCompare.after"
+        />
+      </div>
+    </section>
+
+    <section class="band white">
+      <div class="inner">
+        <div class="intro">
+          <p class="eyebrow"><span class="num">04</span><span class="name">Agent Skills</span><span class="tag">beta</span></p>
+          <h2>Build processes with agents, <span class="accent">not around them.</span></h2>
+          <p>Agent skills built on bpmn-to-code. Set up the plugin in one prompt, migrate hardcoded BPMN strings to the generated Process API, and turn your BPMN style guide into validation rules. They work with Claude Code and any other agent that supports the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
+          <a class="text-link" :href="withBase('/skills/')">See all skills <LucideIcon name="arrow-right" /></a>
+        </div>
+        <ul class="skills">
+          <li v-for="skill in skills" :key="skill.name">
+            <a :href="withBase('/skills/')">
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-desc">{{ skill.description }}</span>
+              <LucideIcon name="arrow-right" />
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="band gray">
+      <div class="inner closing">
+        <h2>Try it on your own model.</h2>
+        <p class="lead">Upload a BPMN file in the browser, or wire the generator into your build.</p>
+        <div class="actions">
+          <a class="btn-primary" href="https://bpmn-to-code.miragon.io/static/index.html" target="_blank" rel="noopener">Open the web app</a>
+          <a class="text-link" :href="withBase('/getting-started/gradle')">Gradle setup <LucideIcon name="arrow-right" /></a>
+          <a class="text-link" :href="withBase('/getting-started/maven')">Maven setup <LucideIcon name="arrow-right" /></a>
+        </div>
       </div>
     </section>
 
