@@ -1,4 +1,4 @@
-# 12. Web application
+# 11. Web application
 
 ## Context
 
@@ -6,7 +6,7 @@ Not everyone who wants to see what bpmn-to-code produces has a build to add a pl
 
 ## Decision
 
-**The web application is one more thin entry point.** It calls core's in-memory plugins ([record 2](002-hexagonal-core.md)) and adds no generation logic, so its output equals that of the build plugins ([record 1](001-product-surfaces-and-distribution.md)). It serves code generation and the JSON export, each as a REST endpoint with an OpenAPI description, and the browser frontend on top of them.
+**The web application is one more thin entry point.** It calls core's in-memory plugins ([record 2](002-hexagonal-core.md)) and adds no generation logic, so its output equals that of the build plugins ([record 1](001-product-surfaces-and-distribution.md)). It serves code generation as a REST endpoint with an OpenAPI description, and the browser frontend on top of it.
 
 **It is stateless.** A request carries the BPMN files and the choice of engine and language; the response carries the generated files. Nothing is stored. The package name of generated code is fixed. For Kotlin and Java the response also offers the sources of the runtime library, so a download compiles without a dependency.
 
@@ -16,7 +16,7 @@ Not everyone who wants to see what bpmn-to-code produces has a build to add a pl
 
 **Requests are bounded.** A request may carry at most three files. A model the generator rejects is answered with status 400 and the reason, any other failure with 500 and no detail.
 
-**The generator is warmed up at start.** A daemon thread generates the bundled example models in every output language and as JSON several times before the first request arrives. The application serves too few requests for the JVM to compile the generator's code on its own, so without the warm-up every request would run slowly.
+**The generator is warmed up at start.** A daemon thread generates the bundled example models in every output language several times before the first request arrives. The application serves too few requests for the JVM to compile the generator's code on its own, so without the warm-up every request would run slowly.
 
 Usage, the REST API and the environment variables are documented in [Web app](/web/); building and publishing the image in [Releasing](/contributing/releasing).
 

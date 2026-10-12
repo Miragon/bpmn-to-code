@@ -7,13 +7,12 @@ import org.junit.jupiter.api.Test
 class BpmnModelGeneratorPluginTest {
 
     @Test
-    fun `plugin registers all three BPMN tasks`() {
+    fun `plugin registers both BPMN tasks`() {
         val project = ProjectBuilder.builder().build()
 
         project.pluginManager.apply(BpmnModelGeneratorPlugin::class.java)
 
         assertThat(project.tasks.findByName("generateBpmnModelApi")).isNotNull()
-        assertThat(project.tasks.findByName("generateBpmnModelJson")).isNotNull()
         assertThat(project.tasks.findByName("validateBpmnModels")).isNotNull()
     }
 

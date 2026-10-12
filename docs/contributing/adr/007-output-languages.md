@@ -14,7 +14,7 @@ The generator emits the same API in Kotlin, Java and C#. The three languages dif
 
 **C# is rendered by a small text writer.** No comparable library exists on the JVM, so `CSharpWriter` accumulates source text with block-aware indentation, and that is all the C# builders use. `packagePath` is taken verbatim as the namespace.
 
-**C# has no runtime package.** The types the JVM languages get from the runtime library ([record 8](008-runtime-library-and-process-paths.md)) are emitted as one fixed block into every generated C# file, nested in the Process API as `Runtime`. C# output is experimental ([record 11](011-compatibility-policy.md)).
+**C# has no runtime package.** The types the JVM languages get from the runtime library ([record 8](008-runtime-library-and-process-paths.md)) are emitted as one fixed block into every generated C# file, nested in the Process API as `Runtime`. C# output is experimental ([record 10](010-compatibility-policy.md)).
 
 **Parity is tested, not assumed.** Every language has expected-output fixtures that are compared byte for byte. Text comparison cannot tell valid code from plausible text, so generated Kotlin is compiled in the core tests, and generated C# is handed to the real compiler with warnings as errors. A drift test keeps the copy of the generated API that the runtime module tests against identical to the fixtures.
 

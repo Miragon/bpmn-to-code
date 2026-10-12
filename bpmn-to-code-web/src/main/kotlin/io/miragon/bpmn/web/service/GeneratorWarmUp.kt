@@ -4,14 +4,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.web.model.BpmnFileData
-import io.miragon.bpmn.web.model.GenerateJsonRequest
 import io.miragon.bpmn.web.model.GenerateRequest
 import java.util.Base64
 import kotlin.time.measureTime
 
 /**
- * Runs once at start-up, not periodically: generates the bundled examples in every output language and as JSON,
- * [rounds] times in a row, and discards the results.
+ * Runs once at start-up, not periodically: generates the bundled examples in every output language, [rounds] times in a row,
+ * and discards the results.
  *
  * The JVM runs new code slowly and compiles it to fast machine code only once it has run often enough. The web app
  * serves too few requests to get there by itself, so without this every request stays slow. The warm-up does the
@@ -19,7 +18,6 @@ import kotlin.time.measureTime
  */
 class GeneratorWarmUp(
     private val generationService: WebGenerationService = WebGenerationService(),
-    private val jsonGenerationService: WebJsonGenerationService = WebJsonGenerationService(),
     private val rounds: Int = 5,
 ) {
 
@@ -45,8 +43,6 @@ class GeneratorWarmUp(
             val config = GenerateRequest.GenerationConfig(outputLanguage = language, processEngine = example.engine)
             generationService.generate(GenerateRequest(files = listOf(example.file), config = config))
         }
-        val jsonConfig = GenerateJsonRequest.JsonGenerationConfig(processEngine = example.engine)
-        jsonGenerationService.generate(GenerateJsonRequest(files = listOf(example.file), config = jsonConfig))
     }
 
     private fun bundled(fileName: String): BpmnFileData {

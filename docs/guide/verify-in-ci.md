@@ -52,5 +52,3 @@ jobs:
 - **A changed API**: a model was edited and the committed code is stale.
 - **A missing API**: a new model was committed without its generated file. That file is untracked after regeneration, which is why the check uses `git status --porcelain` and not `git diff --exit-code`, which ignores untracked files.
 - **An orphaned API**: a model was deleted or renamed. Regeneration [removes the stale file](/guide/generated-api#shared-definitions), and `git status` reports the deletion.
-
-The same check works for the [Process JSON](/surface/json) with `generateBpmnModelJson --rerun`, with one gap: stale `.json` files are not removed, so an orphaned one goes unnoticed.

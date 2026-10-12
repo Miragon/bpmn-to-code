@@ -1,8 +1,8 @@
-# 11. Compatibility and stability policy
+# 10. Compatibility and stability policy
 
 ## Context
 
-Users compile against generated code, configure plugins in their build, parse the JSON export and write validation rules against the domain model. Each of these breaks when its counterpart changes. Without a written rule, every change starts the same discussion: is this breaking, and may it ship now?
+Users compile against generated code, configure plugins in their build and write validation rules against the domain model. Each of these breaks when its counterpart changes. Without a written rule, every change starts the same discussion: is this breaking, and may it ship now?
 
 ## Decision
 
@@ -17,8 +17,6 @@ Users compile against generated code, configure plugins in their build, parse th
 - core's `domain` package, for writing custom validation rules and for nothing else.
 
 Everything else in core, including the inbound adapters, is internal and may change in any release.
-
-**The process JSON is deprecated.** It keeps its format until 7.0 removes it ([record 13](013-process-json-deprecation.md)).
 
 **Stable surfaces break only in a major release.** A minor release adds; a patch release fixes.
 

@@ -16,7 +16,7 @@ The generated code is what users compile against, so its shape is the product. I
 
 **Names follow the target language, values are verbatim.** A flow node is a type named after its element id. A shared constant is named after its semantic identifier (the job type, the message name) in upper snake case, without a leading prefix that repeats its holder. Errors and escalations are named after their name only; the code is part of the value. Values that have to appear in annotations stay compile-time string constants; everything else is a typed wrapper, and a node additionally offers its element id as a plain constant.
 
-**Colliding and reserved names fail generation.** Nothing is renamed automatically ([record 10](010-validation.md)).
+**Colliding and reserved names fail generation.** Nothing is renamed automatically ([record 9](009-validation.md)).
 
 The API itself is documented in [Generated API](/guide/generated-api); the expected-output fixtures are in [`src/test/resources/api`](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-core/src/test/resources/api).
 

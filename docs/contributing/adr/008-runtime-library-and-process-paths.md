@@ -27,7 +27,7 @@ Usage is documented in [Process paths](/guide/process-path).
 ## Consequences
 
 - One `ProcessId` class exists on the classpath of all modules, and shared code compiles against it from Kotlin and Java.
-- The runtime's public types are a contract ([record 11](011-compatibility-policy.md)). Renaming one breaks every user's generated code at once.
+- The runtime's public types are a contract ([record 10](010-compatibility-policy.md)). Renaming one breaks every user's generated code at once.
 - Users must have the runtime on their classpath and, on Maven, keep its version in step with the plugin by hand.
 - A path asserts order only within one sequential branch. Parallel branches are walked separately and combined into an unordered set.
 - Path semantics follow what engines report, so a difference between engines ends up as a default and a flag here.

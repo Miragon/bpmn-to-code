@@ -10,13 +10,13 @@ One code base serves three process engines, three output languages and four call
 
 - **Domain** (`domain`): the process model, the validation rules and the naming logic. It imports nothing but the Kotlin and Java standard libraries, the kotlin-logging facade and itself.
 - **Application** (`application`): one inbound port per use case, the outbound ports, and one service per use case.
-- **Adapters** (`adapter`): outbound adapters for BPMN reading, code generation, JSON and the file system; inbound adapters named `*Plugin`.
+- **Adapters** (`adapter`): outbound adapters for BPMN reading, code generation and the file system; inbound adapters named `*Plugin`.
 
 **The inbound `*Plugin` classes are the facade.** Other modules may import core's `domain` and `adapter.inbound` packages and nothing else.
 
 **There is no dependency injection framework.** A service names its outbound adapters as default values of its constructor parameters, and a plugin does the same with its service. The application layer is therefore allowed to import outbound adapters. What stays strict is the type: a constructor parameter is always typed as the port, never as the adapter or service behind it, so tests and callers can pass another implementation.
 
-**Each use case exists for the file system and in memory.** Generating code and generating JSON each have a port, a service and a plugin that read and write files, and a second set that takes BPMN content and returns the generated text. Services do not call each other, so the two pipelines are written out twice rather than shared.
+**Each use case exists for the file system and in memory.** Generating code has a port, a service and a plugin that read and write files, and a second set that takes BPMN content and returns the generated text. Services do not call each other, so the pipeline is written out twice rather than shared.
 
 **The rules are tests.** The unpublished module `bpmn-to-code-architecture-tests` checks with Konsist: the layer dependencies above, the domain's import allow-list, that ports are interfaces, that a service implements exactly one inbound port and a plugin at most one, the constructor typing rule, the naming of each layer's classes, and the import restriction for the Gradle, Maven and web modules.
 

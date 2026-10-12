@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'bpmn-to-code',
   titleTemplate: false,
-  description: 'Generates a type-safe API from BPMN models, validates them and exports process JSON. Gradle plugin, Maven plugin and web app for Camunda 7, Zeebe and Operaton.',
+  description: 'Generates a type-safe API from BPMN models, and validates them. Gradle plugin, Maven plugin and web app for Camunda 7, Zeebe and Operaton.',
   base: '/bpmn-to-code/',
   appearance: false,
   ignoreDeadLinks: [/\/\.claude\//],
@@ -62,12 +62,6 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Process JSON (deprecated)',
-        items: [
-          { text: 'Format Reference', link: '/surface/json' },
-        ],
-      },
-      {
         text: 'Agent Skills',
         items: [
           { text: 'Available Skills', link: '/skills/' },
@@ -83,6 +77,7 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Release Notes', link: '/changelog/' },
+              { text: 'v7 Migration Guide', link: '/changelog/v7' },
               { text: 'v6 Migration Guide', link: '/changelog/v6' },
               { text: 'Older Versions', link: '/changelog/older' },
             ],

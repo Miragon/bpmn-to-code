@@ -1,6 +1,6 @@
 # bpmn-to-code-web
 
-The web app of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code): upload BPMN files in the browser and get the generated Process API or the process JSON, without a build tool. It uses the same generator as the Gradle and Maven plugins and keeps nothing on disk.
+The web app of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code): upload BPMN files in the browser and get the generated Process API, without a build tool. It uses the same generator as the Gradle and Maven plugins and keeps nothing on disk.
 
 - Output languages: Kotlin, Java, C# (experimental)
 - Engines: Camunda 8 / Zeebe, Camunda 7, Operaton
@@ -31,7 +31,6 @@ Then open http://localhost:8080. The image is built for `linux/amd64`.
 |---|---|
 | `GET /` | Redirects to the UI at `/static/index.html` |
 | `POST /api/generate` | Generates the Process API |
-| `POST /api/generate-json` | Generates the process JSON (deprecated, removed in 7.0) |
 | `GET /api/config` | Version and legal links |
 | `GET /health` | Health check, answers `{"status": "UP"}` |
 | `GET /swagger` | Swagger UI for the API |

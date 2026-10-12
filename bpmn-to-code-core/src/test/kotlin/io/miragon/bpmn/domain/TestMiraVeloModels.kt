@@ -19,7 +19,7 @@ import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 
 /**
- * In-memory mirror of `shared/bpmn/c7/bike-leasing.bpmn`, so codegen and JSON tests don't depend on the extractor.
+ * In-memory mirror of `shared/bpmn/c7/bike-leasing.bpmn`, so codegen tests don't depend on the extractor.
  */
 @Suppress("LongParameterList")
 fun testBikeLeasingModel(

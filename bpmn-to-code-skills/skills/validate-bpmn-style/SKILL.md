@@ -15,7 +15,7 @@ Check BPMN files against a project's `BPMN_STYLE_GUIDE.md` and report violations
 - Advisory only — never a CI gate. Present results as recommendations.
 - If `BPMN_STYLE_GUIDE.md` is missing, abort and suggest `/build-bpmn-styleguide`.
 - Process files one at a time to manage context.
-- **Always read the BPMN XML directly.** The JSON export is ignored — BPMN XML is the source of truth, covers every engine consistently, and carries everything needed (including the `name` attribute for display names and DI data for layout rules).
+- **Always read the BPMN XML directly.** BPMN XML is the source of truth, covers every engine consistently, and carries everything needed (including the `name` attribute for display names and DI data for layout rules).
 - When reporting a violation, quote the rule's prose so the user understands *why* — that's the value this skill adds over a regex linter.
 
 ## Instructions

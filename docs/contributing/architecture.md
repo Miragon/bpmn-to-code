@@ -8,7 +8,7 @@ Gradle modules (`settings.gradle.kts`):
 
 | Module | What it is | Published to |
 |---|---|---|
-| `bpmn-to-code-core` | Reads BPMN, validates, generates the Process API and the process JSON | Not published. Its classes are packed into the Gradle plugin, Maven plugin and testing jars; the web app depends on it directly. |
+| `bpmn-to-code-core` | Reads BPMN, validates and generates the Process API | Not published. Its classes are packed into the Gradle plugin, Maven plugin and testing jars; the web app depends on it directly. |
 | `bpmn-to-code-gradle` | Gradle plugin `io.miragon.bpmn-to-code-gradle` | Gradle Plugin Portal |
 | `bpmn-to-code-maven` | Maven plugin `io.miragon:bpmn-to-code-maven` (mojos written in Java) | Maven Central |
 | `bpmn-to-code-runtime` | Dependency-free types the generated Kotlin and Java code refers to, plus `ProcessPath` | Maven Central |
@@ -38,7 +38,7 @@ Core is a hexagon under `io.miragon.bpmn`. `HexagonalArchitectureTest` allows ex
 | `application.port.inbound` | Use cases (`…UseCase`, `…Query`) | `domain` |
 | `application.port.outbound` | Ports (`…Port`, `…Repository`) | `domain` |
 | `application.service` | One `…Service` per inbound port | `domain`, both port packages, `adapter.outbound` |
-| `adapter.outbound` | BPMN reading (`engine`), code generation (`codegen`), `json`, `filesystem` | `domain`, `application.port.outbound` |
+| `adapter.outbound` | BPMN reading (`engine`), code generation (`codegen`), `filesystem` | `domain`, `application.port.outbound` |
 | `adapter.inbound` | The `…Plugin` classes, one per use case | `domain`, `application.port.inbound`, `application.service` |
 
 There is no dependency-injection framework, hence these further rules:
@@ -47,7 +47,7 @@ There is no dependency-injection framework, hence these further rules:
 - A service implements exactly one inbound port and does not call another service. That is why the filesystem and the in-memory variant of a use case are two services.
 - All ports are interfaces.
 
-The other modules see core only through `domain` and `adapter.inbound`. `ExternalModuleImportTest` enforces that for the Gradle plugin, the Maven plugin and the web app. `domain` is also what users compile custom validation rules against, so changes there are public API changes ([ADR 011](./adr/011-compatibility-policy)).
+The other modules see core only through `domain` and `adapter.inbound`. `ExternalModuleImportTest` enforces that for the Gradle plugin, the Maven plugin and the web app. `domain` is also what users compile custom validation rules against, so changes there are public API changes ([ADR 010](./adr/010-compatibility-policy)).
 
 `CodingGuidelinesTest` adds two rules for every module: a file declares at most one top-level type, and a file that declares a type declares nothing else at top level.
 

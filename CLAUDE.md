@@ -4,7 +4,7 @@ bpmn-to-code generates type-safe APIs from BPMN process models and validates tho
 
 ## Modules
 
-- `bpmn-to-code-core`: reads BPMN, validates, generates code and process JSON (hexagonal, not published on its own)
+- `bpmn-to-code-core`: reads BPMN, validates and generates code (hexagonal, not published on its own)
 - `bpmn-to-code-gradle`: Gradle plugin
 - `bpmn-to-code-maven`: Maven plugin (mojos in Java)
 - `bpmn-to-code-web`: Ktor web app, shipped as Docker image
