@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
  * [AllowedSuffix], so the file doubles as living documentation of what each layer's types are called.
  *
  * Outbound-adapter naming is intentionally *not* constrained: `adapter.outbound` legitimately holds a
- * heterogeneous mix (adapters, mappers, loaders, generators, extractors, JSON models, utils, constants,
+ * heterogeneous mix (adapters, mappers, loaders, generators, extractors, utils, constants,
  * enums), so a suffix whitelist there would be noisy and high-maintenance rather than a useful guardrail.
  */
 class NamingConventionArchitectureTest {

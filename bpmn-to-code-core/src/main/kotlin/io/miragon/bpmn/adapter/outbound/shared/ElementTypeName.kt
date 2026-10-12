@@ -8,8 +8,7 @@ import io.miragon.bpmn.domain.shared.TaskKind
 /**
  * Renders a [FlowNodeDefinition] into the `BpmnElementType` / `BpmnEventType` constant names used by the
  * **generated Process API** navigation nodes. An event's shape and its definition are separate axes: a timer
- * boundary event is `BOUNDARY_EVENT` with event type `TIMER`. The JSON export uses the BPMN element names
- * instead — see `BpmnTypeName`.
+ * boundary event is `BOUNDARY_EVENT` with event type `TIMER`.
  */
 internal object ElementTypeName {
 

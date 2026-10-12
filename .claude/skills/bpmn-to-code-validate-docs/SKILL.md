@@ -52,7 +52,6 @@ Read the source, then compare every place in scope that states the fact. Search 
 | Quality gates | root and module build files, `lefthook.yml`, `.github/workflows` | coverage and PIT thresholds, hook versus CI, PR title types in `docs/contributing/index.md` |
 | Release flow | `release-please.yml`, `publish-*.yml`, `update-ops-deployment.yml` | `docs/contributing/releasing.md` |
 | Generated API | golden files in `bpmn-to-code-core/src/test/resources/api` | samples and section names in `docs/guide/` and the README (the node tree is `FlowNodes`) |
-| Process JSON | `docs/public/schema`, goldens in `bpmn-to-code-core/src/test/resources/json` | `formatVersion`, schema URL and samples in `docs/surface/json.md` |
 | Engine extraction | dialects in core's `adapter/outbound/engine/dialect` | what `docs/engines/` says each engine reads |
 | Test helpers | `bpmn-to-code-core/src/test/kotlin/io/miragon/bpmn/domain` | builder names in docs and `.claude/skills/create-unit-test` |
 

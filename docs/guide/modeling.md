@@ -153,7 +153,7 @@ To keep such files side by side (the same process modelled per location or per c
 
 ## Non-executable processes
 
-A process with `isExecutable="false"` gets no Process API: generation skips it. The [Process JSON](/surface/json) still writes its file, and the [validate task](/validate/) still checks it. A process without the attribute is treated as executable.
+A process with `isExecutable="false"` gets no Process API: generation skips it. The [validate task](/validate/) still checks it. A process without the attribute is treated as executable.
 
 ## One process per file
 

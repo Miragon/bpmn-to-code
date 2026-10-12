@@ -152,27 +152,4 @@ class MavenMojoSmokeTest {
         setField(obj = mojo, name = "processEngine", value = "ZEEBE")
         return mojo
     }
-
-    @Test
-    fun `json mojo warns that it is deprecated`(@TempDir projectDir: File) {
-        // given: a temp project directory with a BPMN resource and a configured mojo
-        val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
-        val bpmnBytes = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes()
-        File(resourcesDir, "bike-leasing.bpmn").writeBytes(bpmnBytes)
-        val log = mockk<Log>(relaxed = true)
-        val warning = slot<CharSequence>()
-        val mojo = BpmnJsonMojo().apply { setLog(log) }
-        setField(obj = mojo, name = "baseDir", value = projectDir.absolutePath)
-        setField(obj = mojo, name = "filePattern", value = "src/main/resources/*.bpmn")
-        setField(obj = mojo, name = "outputFolderPath", value = File(projectDir, "build/json").absolutePath)
-        setField(obj = mojo, name = "processEngine", value = "ZEEBE")
-
-        // when: executing the mojo
-        mojo.execute()
-
-        // then: the warning names the removal version and the issue that collects feedback
-        verify { log.warn(capture(warning)) }
-        assertThat(warning.captured).contains("The 'generate-bpmn-json' goal is deprecated and will be removed in 7.0")
-        assertThat(warning.captured).contains("https://github.com/Miragon/bpmn-to-code/issues/206")
-    }
 }

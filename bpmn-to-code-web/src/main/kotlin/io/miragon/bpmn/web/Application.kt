@@ -23,11 +23,9 @@ import io.ktor.utils.io.ExperimentalKtorApi
 import io.miragon.bpmn.web.config.AppConfig
 import io.miragon.bpmn.web.config.CorsConfig
 import io.miragon.bpmn.web.model.ConfigResponse
-import io.miragon.bpmn.web.routes.generateJsonRoutes
 import io.miragon.bpmn.web.routes.generateRoutes
 import io.miragon.bpmn.web.service.GeneratorWarmUp
 import io.miragon.bpmn.web.service.WebGenerationService
-import io.miragon.bpmn.web.service.WebJsonGenerationService
 import kotlinx.serialization.json.Json
 import kotlin.concurrent.thread
 
@@ -145,8 +143,5 @@ private fun Application.configureRouting(appConfig: AppConfig) {
         // API routes
         val generationService = WebGenerationService()
         generateRoutes(generationService)
-
-        val jsonService = WebJsonGenerationService()
-        generateJsonRoutes(jsonService)
     }
 }

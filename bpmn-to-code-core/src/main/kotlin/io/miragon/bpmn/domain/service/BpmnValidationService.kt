@@ -1,7 +1,6 @@
 package io.miragon.bpmn.domain.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.miragon.bpmn.domain.GeneratedJsonFile
 import io.miragon.bpmn.domain.ProcessApiNames
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SourcedProcessModel
@@ -68,14 +67,6 @@ class BpmnValidationService(
         val executableSources = SourcedProcessModel.executableOnly(sources)
         failOn(validateSources(sources = executableSources, engine = engine, artifactNameOf = ProcessApiNames::apiTypeName))
         return normalized(executableSources)
-    }
-
-    /**
-     * The processes a Process JSON is generated for: all of them, normalized and in the order they are generated in.
-     */
-    fun processJsonSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): List<SourcedProcessModel> {
-        failOn(validateSources(sources = sources, engine = engine, artifactNameOf = GeneratedJsonFile::nameOf))
-        return normalized(sources)
     }
 
     private fun validateSources(

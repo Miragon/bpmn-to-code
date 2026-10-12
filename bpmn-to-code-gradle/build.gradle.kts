@@ -43,7 +43,6 @@ dependencies {
     api(kotlin("stdlib"))
     api(libs.bpmnmodel)
     api(libs.bundles.codegen)
-    api(libs.kotlinxSerializationJson)
     api(libs.slf4jApi)
     api(libs.kotlinLogging)
     compileOnly(project(":bpmn-to-code-core"))
@@ -105,7 +104,7 @@ gradlePlugin {
             id = "io.miragon.bpmn-to-code-gradle"
             displayName = "bpmn-to-code"
             description =
-                "Gradle plugin that generates a type-safe API from BPMN models, validates them and exports process JSON"
+                "Gradle plugin that generates a type-safe API from BPMN models, and validates them"
             implementationClass = "io.miragon.bpmn.adapter.BpmnModelGeneratorPlugin"
             tags = setOf("bpmn", "codegen")
         }
