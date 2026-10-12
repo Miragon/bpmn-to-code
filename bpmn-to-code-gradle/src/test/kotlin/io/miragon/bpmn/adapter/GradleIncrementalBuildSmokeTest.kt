@@ -54,6 +54,20 @@ class GradleIncrementalBuildSmokeTest {
         assertThat(requireNotNull(File(projectDir, "build/json").listFiles())).hasSize(2)
     }
 
+    @Test
+    fun `generateBpmnModelJson warns that it is deprecated`(@TempDir projectDir: File) {
+        // given: a project with a BPMN file
+        writeProject(projectDir)
+        copyBpmn(projectDir = projectDir, model = "bike-leasing.bpmn", target = "src/main/resources/bike-leasing.bpmn")
+
+        // when: generating the JSON files
+        val result = run(projectDir, JSON_TASK)
+
+        // then: the warning names the removal version and the issue that collects feedback
+        assertThat(result.output).contains("The 'generateBpmnModelJson' task is deprecated and will be removed in 7.0")
+        assertThat(result.output).contains("https://github.com/Miragon/bpmn-to-code/issues/206")
+    }
+
     @ParameterizedTest(name = "{0}")
     @ValueSource(strings = [API_TASK, JSON_TASK])
     fun `a generation into the build directory is restored from the build cache`(task: String, @TempDir projectDir: File) {

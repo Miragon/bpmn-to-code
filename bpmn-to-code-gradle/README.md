@@ -13,7 +13,7 @@ plugins {
 | Task | Does |
 |---|---|
 | `generateBpmnModelApi` | Generates the Process API from BPMN files |
-| `generateBpmnModelJson` | Generates the process JSON |
+| `generateBpmnModelJson` | Generates the process JSON (deprecated, removed in 7.0) |
 | `validateBpmnModels` | Validates BPMN files without generating code (experimental) |
 
 No task is wired into the build lifecycle; run or wire them yourself. The plugin adds `io.miragon:bpmn-to-code-runtime` in its own version to projects that apply the `java` plugin.
