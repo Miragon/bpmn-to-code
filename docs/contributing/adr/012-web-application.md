@@ -12,7 +12,7 @@ Not everyone who wants to see what bpmn-to-code produces has a build to add a pl
 
 **Backend and frontend ship as one artifact.** Ktor serves the API and a static frontend from one fat jar. The frontend is plain HTML, CSS and JavaScript without a build step. The image is a distroless Java 21 image that runs as non-root and is configured through environment variables only.
 
-**Third-party browser libraries come from public CDNs.** The page loads the BPMN viewer (bpmn-js), syntax highlighting (highlight.js) and ZIP creation (JSZip) from unpkg and cdnjs, and its fonts from Google Fonts, at runtime in the user's browser.
+**Third-party browser libraries come from public CDNs.** The page loads the BPMN viewer (bpmn-js), syntax highlighting (highlight.js) and ZIP creation (JSZip) from unpkg and cdnjs at runtime in the user's browser. The fonts ship with the application.
 
 **Requests are bounded.** A request may carry at most three files. A model the generator rejects is answered with status 400 and the reason, any other failure with 500 and no detail.
 
@@ -23,7 +23,7 @@ Usage, the REST API and the environment variables are documented in [Web app](/w
 ## Consequences
 
 - There is one build, one artifact and one container, and no Node toolchain in the repository.
-- BPMN files stay inside a self-hosted installation, but its users' browsers still contact the CDN hosts. Where they cannot, at least the diagram preview, the highlighting and the ZIP download are unavailable; only the missing ZIP library is reported to the user. Loading fonts from Google is a data-protection topic an operator has to assess.
+- BPMN files stay inside a self-hosted installation, but its users' browsers still contact the CDN hosts. Where they cannot, at least the diagram preview, the highlighting and the ZIP download are unavailable; only the missing ZIP library is reported to the user.
 - CORS allows every origin unless the operator sets a list.
 - The published image is built for `linux/amd64` only.
 - The OpenAPI description relies on a Ktor API that is still marked experimental.

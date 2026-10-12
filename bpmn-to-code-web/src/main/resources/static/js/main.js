@@ -308,25 +308,23 @@ function renderResults(files) {
         : HIGHLIGHT_CLASSES[document.getElementById('output-language').value] || 'kotlin';
 
     document.getElementById('results-content').innerHTML = files.map((file, index) => {
-        const icon = fileIconFor(file.fileName);
         return `
         <div class="code-file">
             <div class="code-file-header">
-                <span class="code-file-icon ${icon.cls}">${icon.label}</span>
                 <div class="code-file-title-group">
                     <div class="code-file-title">${escapeHtml(file.fileName)}</div>
                     <div class="code-file-meta">${file.processId ? `Process: ${escapeHtml(file.processId)}` : 'Shared across processes'}</div>
                 </div>
                 <div class="code-file-actions">
                     <button type="button" class="btn-copy" onclick="copyToClipboard(${index})">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
                         Copy
                     </button>
                     <button type="button" class="btn-download" onclick="downloadFile('${escapeHtml(file.fileName)}', ${index})">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -347,15 +345,6 @@ function renderResults(files) {
     });
 }
 
-function fileIconFor(fileName) {
-    const name = (fileName || '').toLowerCase();
-    if (name.endsWith('.kt')) return { cls: 'ci-kt', label: 'Kt' };
-    if (name.endsWith('.java')) return { cls: 'ci-jv', label: 'Jv' };
-    if (name.endsWith('.cs')) return { cls: 'ci-cs', label: 'C#' };
-    if (name.endsWith('.json')) return { cls: 'ci-json', label: '{ }' };
-    return { cls: 'ci-kt', label: 'Kt' };
-}
-
 function copyToClipboard(index) {
     const file = state.generatedFiles[index];
 
@@ -366,7 +355,7 @@ function copyToClipboard(index) {
         const originalHTML = button.innerHTML;
 
         button.innerHTML = `
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
             Copied!
@@ -496,7 +485,7 @@ function renderRuntimeDependency() {
 function flashCopyButton(button) {
     const originalHTML = button.innerHTML;
     button.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
         Copied!
@@ -528,7 +517,6 @@ function renderLibrarySources() {
     content.innerHTML = state.libraryFiles.map(file => `
         <div class="code-file">
             <div class="code-file-header">
-                <span class="code-file-icon ci-kt">Kt</span>
                 <div class="code-file-title-group">
                     <div class="code-file-title">${escapeHtml(file.fileName)}</div>
                     <div class="code-file-meta">io.miragon.bpmn.runtime</div>
