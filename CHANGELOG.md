@@ -3,6 +3,19 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.3.0](https://github.com/Miragon/bpmn-to-code/compare/v6.2.1...v6.3.0) (2026-10-12)
+
+
+### Features
+
+* **docs:** align docs, readme and repo copy with the Miragon corporate identity ([#203](https://github.com/Miragon/bpmn-to-code/issues/203)) ([f69c3b4](https://github.com/Miragon/bpmn-to-code/commit/f69c3b400889415259ab86d2c238aa06de393ffc))
+* **web:** align the web app with the Miragon corporate design ([#204](https://github.com/Miragon/bpmn-to-code/issues/204)) ([4d85ae8](https://github.com/Miragon/bpmn-to-code/commit/4d85ae86ca69c4e850fc393a48c6f558e56492f6))
+
+
+### Bug Fixes
+
+* **web:** log only api requests ([#201](https://github.com/Miragon/bpmn-to-code/issues/201)) ([8bcfd7f](https://github.com/Miragon/bpmn-to-code/commit/8bcfd7f523fffac6cefa8a2dcd90fd3125348826))
+
 ## [6.2.1](https://github.com/Miragon/bpmn-to-code/compare/v6.2.0...v6.2.1) (2026-10-12)
 
 

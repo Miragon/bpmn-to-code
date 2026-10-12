@@ -14,7 +14,7 @@ Generated Kotlin and Java code imports types from `bpmn-to-code-runtime`. The Ma
     <dependency>
         <groupId>io.miragon</groupId>
         <artifactId>bpmn-to-code-runtime</artifactId>
-        <version>6.2.1</version>
+        <version>6.3.0</version>
     </dependency>
 </dependencies>
 
@@ -23,7 +23,7 @@ Generated Kotlin and Java code imports types from `bpmn-to-code-runtime`. The Ma
         <plugin>
             <groupId>io.miragon</groupId>
             <artifactId>bpmn-to-code-maven</artifactId>
-            <version>6.2.1</version>
+            <version>6.3.0</version>
             <executions>
                 <execution>
                     <phase>generate-sources</phase>
@@ -78,7 +78,7 @@ The prefix `bpmn-to-code` resolves in a project whose POM declares the plugin. A
 
 <!-- x-release-please-start-version -->
 ```bash
-mvn io.miragon:bpmn-to-code-maven:6.2.1:validate-bpmn \
+mvn io.miragon:bpmn-to-code-maven:6.3.0:validate-bpmn \
     -DbaseDir=. -DfilePattern="src/main/resources/*.bpmn" -DprocessEngine=ZEEBE
 ```
 <!-- x-release-please-end -->
