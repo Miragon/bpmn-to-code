@@ -97,6 +97,7 @@ export default defineConfig({
         items: [
           { text: 'Contributing Guide', link: '/contributing/' },
           { text: 'Architecture', link: '/contributing/architecture' },
+          { text: 'Languages and Ecosystems', link: '/contributing/languages' },
           { text: 'Releasing', link: '/contributing/releasing' },
           { text: 'Benchmarking the Generator', link: '/contributing/benchmark' },
           { text: 'Architecture Decisions', link: '/contributing/adr/' },

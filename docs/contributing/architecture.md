@@ -29,6 +29,8 @@ Outside the Gradle build:
 | `packages/npm` | The npm package `@miragon/bpmn-to-code` with its launcher, which starts the CLI jars on the installed Java, and the TypeScript runtime package `@miragon/bpmn-to-code-runtime` with tests that type-check and run generated TypeScript against it, staged by `publish-to-npm.yml` |
 | `docs` | This site |
 
+How the four output languages reach the JVM, .NET and Node: [Languages and Ecosystems](./languages).
+
 All published artifacts share one version, `projectVersion` in `gradle.properties`. Why core is embedded instead of published: [ADR 001](./adr/001-product-surfaces-and-distribution).
 
 ## Layers of core
