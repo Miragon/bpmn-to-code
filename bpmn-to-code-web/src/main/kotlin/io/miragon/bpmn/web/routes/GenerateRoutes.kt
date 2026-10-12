@@ -18,7 +18,7 @@ fun Route.generateRoutes(generationService: WebGenerationService) {
         call.respond(result.statusCode, result)
     }.describe {
         summary = "Generate process API code"
-        description = "Upload BPMN files and generate type-safe API code for Camunda 7 or Zeebe"
+        description = "Upload BPMN files and generate type-safe API code for Zeebe, Camunda 7 or Operaton"
         responses {
             HttpStatusCode.OK { description = "Code generated successfully" }
             HttpStatusCode.BadRequest { description = "No files provided, or more than 3 files" }

@@ -139,7 +139,7 @@ private fun Application.configureRouting(appConfig: AppConfig) {
 
         // Swagger UI (served from runtime-generated spec)
         swaggerUI("swagger") {
-            info = OpenApiInfo("BPMN to Code Web API", appConfig.version)
+            info = OpenApiInfo("bpmn-to-code Web API", appConfig.version)
             source = OpenApiDocSource.Routing(ContentType.Application.Json)
         }
 

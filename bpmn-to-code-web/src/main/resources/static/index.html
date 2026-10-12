@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>bpmn-to-code - Online Generator</title>
-    <link href="/static/favicon/miragon.png" rel="icon" type="image/png">
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>bpmn-to-code | Generate code from BPMN</title>
+    <meta content="Generate a type-safe Process API or process JSON from your BPMN models in the browser." name="description">
+    <meta content="#335DE5" name="theme-color">
+    <link href="/static/favicon/miragon.svg" rel="icon" type="image/svg+xml">
+    <link href="/static/css/cd-tokens.generated.css" rel="stylesheet">
     <link href="/static/css/styles.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" rel="stylesheet">
 </head>
@@ -15,7 +17,7 @@
 <nav class="navbar">
     <div class="navbar-inner">
         <a href="/" class="navbar-brand">
-            <span class="mark"><img src="/static/favicon/miragon.png" alt="" width="22" height="22"></span>
+            <span class="mark"><img src="/static/favicon/miragon.svg" alt="" width="24" height="24"></span>
             <span>bpmn-to-code</span>
         </a>
         <div class="navbar-links">
@@ -32,49 +34,29 @@
 
     <!-- Hero -->
     <header class="hero">
-        <h1 class="hero-name">bpmn-to-code</h1>
-        <p class="hero-text">Your BPMN model changes.<br>Your code doesn't break.</p>
-        <p class="hero-description">
-            Stop hardcoding element IDs, messages, and worker types.
-            Generate a type-safe Process API or structured JSON from your BPMN models.
+        <h1>Your BPMN model changes.<br>Your code <span class="accent">doesn't break.</span></h1>
+        <p class="lead">
+            Upload a BPMN model and get a type-safe Process API or the process JSON.
+            Nothing is stored on the server.
         </p>
-        <div class="hero-features">
-            <span class="feature-badge">Compile-Time Safety</span>
-            <span class="feature-badge">Zeebe / Camunda 7 / CIB7 / Operaton</span>
-            <span class="feature-badge">Java &amp; Kotlin</span>
-            <span class="feature-badge">JSON Export</span>
-        </div>
+        <p class="hero-meta">Zeebe (Camunda 8), Camunda 7, CIB seven and Operaton. Kotlin, Java and C# (experimental).</p>
+        <p class="hero-meta"><span class="tag">beta</span> If something breaks or is missing, <a href="https://github.com/Miragon/bpmn-to-code/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.</p>
     </header>
-
-    <!-- Preview Notice -->
-    <div class="preview-notice">
-        <svg class="preview-notice-icon" fill="none" height="18" width="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" x2="12" y1="16" y2="12"></line>
-            <line x1="12" x2="12.01" y1="8" y2="8"></line>
-        </svg>
-        <div class="preview-notice-content">
-            <strong>Early Version:</strong> This is an early version of the bpmn-to-code web generator.
-            If you encounter any issues or have suggestions for improvement, please
-            <a href="https://github.com/Miragon/bpmn-to-code/issues" target="_blank" rel="noopener">report them on GitHub</a>.
-            Your feedback helps make this tool better!
-        </div>
-    </div>
 
     <!-- Tab Switcher -->
     <div class="tab-switcher">
         <button class="tab-btn tab-btn-active" data-tab="code" id="tab-code" type="button">Code API</button>
-        <button class="tab-btn" data-tab="json" id="tab-json" type="button">JSON Export</button>
+        <button class="tab-btn" data-tab="json" id="tab-json" type="button">Process JSON</button>
     </div>
 
     <main>
         <!-- Step 1: Upload BPMN Files -->
         <section class="card upload-section" id="upload-section">
-            <h2 data-step="STEP 01">Upload BPMN Files</h2>
+            <h2 data-step="1">Upload BPMN Files</h2>
             <div class="upload-area" id="upload-area">
                 <input accept=".bpmn" hidden id="file-input" multiple type="file">
                 <label class="upload-label" for="file-input">
-                    <svg fill="none" height="40" width="40" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" x2="12" y1="3" y2="15"></line>
@@ -110,7 +92,7 @@
 
         <!-- Step 2: Configure Generation -->
         <section class="card config-section" id="config-section" style="display: none;">
-            <h2 data-step="STEP 02" id="config-heading">Configure Generation</h2>
+            <h2 data-step="2" id="config-heading">Configure Generation</h2>
             <form id="config-form">
                 <div class="form-row" id="form-row">
                     <div class="form-group" id="language-group">
@@ -138,11 +120,11 @@
 
         <!-- Step 3: Results -->
         <section class="card results-section" id="results-section" style="display: none;">
-            <h2 data-step="STEP 03" id="results-heading">Generated Code</h2>
+            <h2 data-step="3" id="results-heading">Generated Code</h2>
             <div class="runtime-dep-card" id="runtime-dep-card" style="display: none;">
                 <div class="runtime-dep-header">
                     <strong>Required dependency</strong>
-                    <span class="runtime-dep-hint">Generated code imports from <code>io.miragon.bpmn.runtime</code> — add the <em>bpmn-to-code-runtime</em> artifact to your build.</span>
+                    <span class="runtime-dep-hint">Generated code imports from <code>io.miragon.bpmn.runtime</code>. Add the <code>bpmn-to-code-runtime</code> artifact to your build.</span>
                 </div>
                 <div class="runtime-dep-tabs" role="tablist">
                     <button type="button" class="runtime-dep-tab runtime-dep-tab-active" data-dep-tab="gradle">Gradle</button>
@@ -151,7 +133,7 @@
                 <div class="runtime-dep-snippet-wrapper">
                     <pre class="runtime-dep-snippet" id="runtime-dep-snippet"></pre>
                     <button type="button" class="btn-copy" id="runtime-dep-copy-btn" title="Copy dependency">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
@@ -162,13 +144,13 @@
             <div id="results-content"></div>
             <details class="library-sources-panel" id="library-sources-panel" style="display: none;">
                 <summary>Library sources (bpmn-to-code-runtime)</summary>
-                <p class="library-sources-hint">Reference only — these files ship as part of the <code>bpmn-to-code-runtime</code> artifact.</p>
+                <p class="library-sources-hint">For reference. These files ship with the <code>bpmn-to-code-runtime</code> artifact.</p>
                 <div id="library-sources-content"></div>
             </details>
             <div class="results-actions">
                 <div class="include-sources-toggle">
                     <input type="checkbox" id="include-sources-checkbox">
-                    <label for="include-sources-checkbox">Include library sources in ZIP (self-contained — no dep needed)</label>
+                    <label for="include-sources-checkbox">Include library sources in the ZIP, so it compiles without the dependency</label>
                 </div>
                 <button class="btn btn-secondary" id="reset-btn" type="button">Reset</button>
                 <button class="btn btn-primary" id="download-all-btn" type="button">Download .zip</button>
@@ -184,73 +166,36 @@
         <!-- Error Display -->
         <div class="error-message" id="error-message" style="display: none;"></div>
 
-        <!-- CTA — install + keep exploring (always visible) -->
-        <section class="card cta-section" id="cta-section">
-            <h2>Ready for Production?</h2>
-            <p class="cta-sub">Wire bpmn-to-code into your build, then dig into what else it can do.</p>
-
-            <div class="install-grid">
-                <a href="https://miragon.github.io/bpmn-to-code/getting-started/gradle" target="_blank" rel="noopener" class="install-card">
-                    <span class="install-tag tag-gradle">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <rect x="3" y="5" width="15" height="2.4" rx="1.2" fill="currentColor"></rect>
-                            <rect x="5" y="10.8" width="15" height="2.4" rx="1.2" fill="currentColor" opacity=".78"></rect>
-                            <rect x="3" y="16.6" width="13" height="2.4" rx="1.2" fill="currentColor" opacity=".58"></rect>
-                        </svg>
-                        GRADLE
-                    </span>
-                    <div class="install-name">build.gradle.kts</div>
-                    <div class="install-sub">Apply the plugin and configure it to point at your .bpmn files.</div>
-                </a>
-                <a href="https://miragon.github.io/bpmn-to-code/getting-started/maven" target="_blank" rel="noopener" class="install-card">
-                    <span class="install-tag tag-maven">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M4 19V7l4 6 4-8 4 8 4-6v12"></path>
-                        </svg>
-                        MAVEN
-                    </span>
-                    <div class="install-name">pom.xml</div>
-                    <div class="install-sub">Add the plugin and configure it to point at your .bpmn files.</div>
-                </a>
-            </div>
-
-            <div class="learn-divider"><span>Keep exploring</span></div>
-
-            <div class="learn-grid">
-                <a href="https://miragon.github.io/bpmn-to-code/validate/testing" target="_blank" rel="noopener" class="learn-card">
-                    <span class="learn-tag tag-validate">VALIDATE</span>
-                    <div class="learn-name">bpmn-to-code-testing</div>
-                    <div class="learn-sub">ArchUnit-style rules that enforce BPMN conventions across your repo.</div>
-                </a>
-                <a href="https://miragon.github.io/bpmn-to-code/skills/" target="_blank" rel="noopener" class="learn-card">
-                    <span class="learn-tag tag-ship">SHIP</span>
-                    <div class="learn-name">Agent skills</div>
-                    <div class="learn-sub">Scaffold Spring process services from BPMN with Claude Code.</div>
-                </a>
-                <a href="https://miragon.github.io/bpmn-to-code/" target="_blank" rel="noopener" class="learn-card">
-                    <span class="learn-tag tag-reference">DOCS</span>
-                    <div class="learn-name">Full documentation</div>
-                    <div class="learn-sub">Guides, examples, compatibility matrix, and full API reference.</div>
-                </a>
-            </div>
+        <!-- Next steps (always visible) -->
+        <section class="card next-section" id="cta-section">
+            <h2>Use it in your build</h2>
+            <p class="next-sub">The web app runs the same generator as the build plugins.</p>
+            <ul class="next-list">
+                <li><a href="https://miragon.github.io/bpmn-to-code/getting-started/gradle" target="_blank" rel="noopener">Gradle plugin</a><span>Apply the plugin in <code>build.gradle.kts</code> and point it at your .bpmn files.</span></li>
+                <li><a href="https://miragon.github.io/bpmn-to-code/getting-started/maven" target="_blank" rel="noopener">Maven plugin</a><span>Add the plugin to <code>pom.xml</code> and point it at your .bpmn files.</span></li>
+                <li><a href="https://miragon.github.io/bpmn-to-code/validate/testing" target="_blank" rel="noopener">bpmn-to-code-testing</a><span>Architecture rules for your BPMN models, written as tests.</span></li>
+                <li><a href="https://miragon.github.io/bpmn-to-code/skills/" target="_blank" rel="noopener">Agent Skills</a><span>Set up the plugin and migrate hardcoded strings with Claude Code.</span></li>
+                <li><a href="https://miragon.github.io/bpmn-to-code/" target="_blank" rel="noopener">Documentation</a><span>Guides, configuration and the generated API.</span></li>
+            </ul>
         </section>
 
     </main>
 
 </div><!-- /.container -->
 
-<footer class="site-footer">
+<footer class="site-footer" data-cd-theme="dark">
     <div class="footer-inner">
         <div class="footer-brand">
-            <span class="mark-sm"><img src="/static/favicon/miragon.png" alt="" width="20" height="20"></span>
+            <a class="wordmark" href="https://miragon.io" target="_blank" rel="noopener"><img src="/static/favicon/miragon-logo-weiss.svg" alt="Miragon" width="128" height="20"></a>
             <div class="footer-text">
                 <div class="credit">
-                    Created with <span class="heart">♥</span> by
-                    <a href="https://www.linkedin.com/in/schaeckm" target="_blank" rel="noopener">Marco Schäck</a>
+                    bpmn-to-code is built by
+                    <a href="https://www.linkedin.com/in/schaeckm" target="_blank" rel="noopener">Marco Schäck</a> at
+                    <a href="https://miragon.io" target="_blank" rel="noopener">Miragon</a>.
                 </div>
                 <div class="legal">
-                    © 2026 · Open source under
-                    <a href="https://github.com/Miragon/bpmn-to-code?tab=MIT-1-ov-file#readme" target="_blank" rel="noopener">MIT Licence</a><a href="#" id="imprint-link" target="_blank" rel="noopener" style="display: none;">Legal Notice</a><a href="#" id="privacy-link" target="_blank" rel="noopener" style="display: none;">Privacy Policy</a>
+                    Open source under the
+                    <a href="https://github.com/Miragon/bpmn-to-code?tab=MIT-1-ov-file#readme" target="_blank" rel="noopener">MIT License</a><a href="#" id="imprint-link" target="_blank" rel="noopener" style="display: none;">Legal Notice</a><a href="#" id="privacy-link" target="_blank" rel="noopener" style="display: none;">Privacy Policy</a>
                 </div>
             </div>
         </div>
