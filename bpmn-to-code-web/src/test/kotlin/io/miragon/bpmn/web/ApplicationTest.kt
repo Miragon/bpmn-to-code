@@ -35,7 +35,7 @@ class ApplicationTest {
     }
 
     @Test
-    fun `keeps health probes out of the request log`() {
+    fun `logs only api requests`() {
         val requestLog = ListAppender<ILoggingEvent>()
         requestLog.start()
         val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
@@ -45,6 +45,8 @@ class ApplicationTest {
             application { configureApp(appConfig()) }
 
             client.get("/health")
+            client.get("/static/index.html")
+            client.get("/examples/zeebe-bike-leasing.bpmn")
             client.get("/api/config")
         }
         rootLogger.detachAppender(requestLog)
@@ -52,6 +54,8 @@ class ApplicationTest {
         val loggedMessages = requestLog.list.map { it.formattedMessage }
         assertThat(loggedMessages).anyMatch { it.contains("/api/config") }
         assertThat(loggedMessages).noneMatch { it.contains("/health") }
+        assertThat(loggedMessages).noneMatch { it.contains("/static") }
+        assertThat(loggedMessages).noneMatch { it.contains("/examples") }
     }
 
     @Test

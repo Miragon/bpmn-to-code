@@ -32,6 +32,7 @@ import kotlinx.serialization.json.Json
 import kotlin.concurrent.thread
 
 private const val HEALTH_PATH = "/health"
+private const val API_PATH_PREFIX = "/api"
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,7 +58,7 @@ fun Application.configureApp(appConfig: AppConfig) {
 
 private fun Application.configureCallLogging() {
     install(CallLogging) {
-        filter { call -> call.request.path() != HEALTH_PATH }
+        filter { call -> call.request.path().startsWith(API_PATH_PREFIX) }
     }
 }
 
