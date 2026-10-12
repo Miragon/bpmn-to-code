@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 8 944 604" width="944" height="604" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#335DE5"/></marker></defs>
+<rect x="40" y="20" width="920" height="150" rx="10" fill="#F9F7F7" stroke="#335DE5" stroke-width="1"/>
+<text x="56" y="44.0" font-size="14" text-anchor="start" fill="#1D1D1D" font-weight="600">A  Core writes every language (today)</text>
+<rect x="60" y="75" width="160" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="1"/>
+<text x="140.0" y="116.0" font-size="16" text-anchor="middle" fill="#1D1D1D">BPMN files</text>
+<rect x="290" y="75" width="380" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="480.0" y="106.0" font-size="16" text-anchor="middle" fill="#1D1D1D">core: read, validate, flow graph,</text>
+<text x="480.0" y="126.0" font-size="16" text-anchor="middle" fill="#1D1D1D">writers for every language</text>
+<rect x="740" y="75" width="200" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="1"/>
+<text x="840.0" y="116.0" font-size="16" text-anchor="middle" fill="#1D1D1D">.kt  .java  .cs  .ts</text>
+<line x1="224" y1="110.0" x2="286" y2="110.0" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
+<line x1="674" y1="110.0" x2="736" y2="110.0" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
+<rect x="40" y="210" width="920" height="390" rx="10" fill="#F9F7F7" stroke="#335DE5" stroke-width="1"/>
+<text x="56" y="234.0" font-size="14" text-anchor="start" fill="#1D1D1D" font-weight="600">B  Core hands out a model, each environment writes its own language</text>
+<rect x="60" y="265" width="160" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="1"/>
+<text x="140.0" y="306.0" font-size="16" text-anchor="middle" fill="#1D1D1D">BPMN files</text>
+<rect x="290" y="265" width="380" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="480.0" y="306.0" font-size="16" text-anchor="middle" fill="#1D1D1D">core: read, validate, flow graph</text>
+<line x1="224" y1="300.0" x2="286" y2="300.0" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
+<rect x="60" y="395" width="880" height="55" rx="10" fill="#F9F7F7" stroke="#335DE5" stroke-width="2"/>
+<text x="500.0" y="428.5" font-size="16" text-anchor="middle" fill="#1D1D1D">API model as JSON: names, facets, successors, shared definitions</text>
+<line x1="480" y1="339" x2="480" y2="391" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
+<rect x="60" y="505" width="270" height="80" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="195.0" y="541.25" font-size="15" text-anchor="middle" fill="#1D1D1D">writers in core (Kotlin)</text>
+<text x="195.0" y="560.0" font-size="15" text-anchor="middle" fill="#1D1D1D">.kt  .java</text>
+<line x1="195.0" y1="454" x2="195.0" y2="501" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
+<rect x="365" y="505" width="270" height="80" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="500.0" y="531.875" font-size="15" text-anchor="middle" fill="#1D1D1D" font-weight="600">npm package</text>
+<text x="500.0" y="550.625" font-size="15" text-anchor="middle" fill="#1D1D1D">generator written in TypeScript</text>
+<text x="500.0" y="569.375" font-size="15" text-anchor="middle" fill="#1D1D1D">.ts</text>
+<line x1="500.0" y1="454" x2="500.0" y2="501" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
+<rect x="670" y="505" width="270" height="80" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
+<text x="805.0" y="531.875" font-size="15" text-anchor="middle" fill="#1D1D1D" font-weight="600">NuGet package</text>
+<text x="805.0" y="550.625" font-size="15" text-anchor="middle" fill="#1D1D1D">generator written in C#</text>
+<text x="805.0" y="569.375" font-size="15" text-anchor="middle" fill="#1D1D1D">.cs</text>
+<line x1="805.0" y1="454" x2="805.0" y2="501" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
+</svg>
