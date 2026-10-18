@@ -3,11 +3,22 @@
   "owner": {
     "name": "emaarco"
   },
+  "description": "Agent skills for bpmn-to-code, the generator of type-safe Process APIs from BPMN models",
   "plugins": [
     {
       "name": "bpmn-to-code",
       "source": "./bpmn-to-code-skills",
-      "description": "Agent skills for setting up and using the bpmn-to-code Gradle and Maven plugins"
+      "description": "Agent skills for setting up bpmn-to-code and for writing and testing engine code against the generated Process API"
+    },
+    {
+      "name": "bpmn-cli",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/Miragon/bpmn-cli.git",
+        "path": "plugins/bpmn-cli",
+        "ref": "main"
+      },
+      "description": "BPMN 2.0 modeling with @miragon/bpmn-cli: read, change, format and validate .bpmn models by id instead of hand-written XML. Maintained in Miragon/bpmn-cli; required by bpmn-to-code."
     }
   ]
 }

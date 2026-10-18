@@ -1,0 +1,42 @@
+name: Validate agent skills
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'bpmn-to-code-skills/**'
+      - '.claude-plugin/marketplace.json'
+      - '.github/workflows/validate-skills.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-skills:
+    name: Validate agent skills
+    runs-on: ubuntu-24.04
+    env:
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      # Pinned so that a new Claude Code release cannot fail an unrelated pull request. Validation runs locally, without login.
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.301
+
+      - name: Validate plugin
+        run: claude plugin validate --strict bpmn-to-code-skills
+
+      - name: Validate marketplace
+        run: claude plugin validate --strict .claude-plugin/marketplace.json

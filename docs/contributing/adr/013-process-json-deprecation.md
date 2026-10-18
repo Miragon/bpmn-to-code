@@ -4,7 +4,7 @@
 
 The Process JSON ([record 9](009-process-json-contract.md)) was meant for consumers that want the structure of a process without parsing BPMN XML: AI assistants, reviewers reading a process change as a text diff, tools in languages the generator does not target.
 
-Since 6.0 the document follows the BPMN 2.0 vocabulary so closely that it is BPMN XML without the diagram, and the generated API carries almost the same facts. Nothing in the project consumes it; the `validate-bpmn-style` skill reads the BPMN XML directly. As input for generators in other languages it is not sufficient: variables, shared definitions and generated names are missing. Its status was contradictory: the documentation called it beta, [record 11](011-compatibility-policy.md) listed it as a stable contract. Every new BPMN facet still has to be added to the JSON mapping, the schema, the golden files and the documentation.
+Since 6.0 the document follows the BPMN 2.0 vocabulary so closely that it is BPMN XML without the diagram, and the generated API carries almost the same facts. Nothing in the project consumes it. As input for generators in other languages it is not sufficient: variables, shared definitions and generated names are missing. Its status was contradictory: the documentation called it beta, [record 11](011-compatibility-policy.md) listed it as a stable contract. Every new BPMN facet still has to be added to the JSON mapping, the schema, the golden files and the documentation.
 
 ## Decision
 

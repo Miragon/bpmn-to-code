@@ -72,7 +72,7 @@ import { ideTabs, generateCompare, validateRules, skills } from './data'
         <div class="intro">
           <p class="eyebrow"><span class="num">03</span><span class="name">Agent Skills</span><span class="tag">beta</span></p>
           <h2>Build processes with agents, <span class="accent">not around them.</span></h2>
-          <p>Agent skills built on bpmn-to-code. Set up the plugin in one prompt, migrate hardcoded BPMN strings to the generated Process API, and turn your BPMN style guide into validation rules. They work with Claude Code and any other agent that supports the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
+          <p>Agent skills built on bpmn-to-code. Set up the plugin in one prompt, write and test workers, engine calls and process tests against the generated Process API, and turn your BPMN style guide into validation rules. They work with Claude Code and any other agent that supports the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
           <a class="text-link" :href="withBase('/skills/')">See all skills <LucideIcon name="arrow-right" /></a>
         </div>
         <ul class="skills">

@@ -1,6 +1,7 @@
 {
   "name": "bpmn-to-code",
-  "description": "Agent skills for setting up and using the bpmn-to-code Gradle and Maven plugins",
-  "version": "2.0.1",
-  "author": { "name": "emaarco" }
+  "description": "Agent skills for bpmn-to-code: set up the Gradle plugin, Maven plugin or CLI, write and test workers, process adapters and process tests against the generated Process API, and enforce a BPMN style guide",
+  "version": "6.5.0",
+  "author": { "name": "emaarco" },
+  "dependencies": ["bpmn-cli"]
 }
