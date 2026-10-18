@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.4.0](https://github.com/Miragon/bpmn-to-code/compare/v6.3.0...v6.4.0) (2026-10-18)
+
+
+### Features
+
+* deprecate the process json ([#207](https://github.com/Miragon/bpmn-to-code/issues/207)) ([a2d5de4](https://github.com/Miragon/bpmn-to-code/commit/a2d5de4159fc99be63c10cd14560bfa86a1d47bd))
+
 ## [6.3.0](https://github.com/Miragon/bpmn-to-code/compare/v6.2.1...v6.3.0) (2026-10-12)
 
 
