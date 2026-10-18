@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.5.0](https://github.com/Miragon/bpmn-to-code/compare/v6.4.0...v6.5.0) (2026-10-18)
+
+
+### Features
+
+* **cli:** add bpmn-to-code command-line tool ([#212](https://github.com/Miragon/bpmn-to-code/issues/212)) ([650647d](https://github.com/Miragon/bpmn-to-code/commit/650647d56e4fcf23e11d299f8555ba26599f4923))
+
 ## [6.4.0](https://github.com/Miragon/bpmn-to-code/compare/v6.3.0...v6.4.0) (2026-10-18)
 
 
