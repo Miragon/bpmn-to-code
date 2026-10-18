@@ -1,5 +1,5 @@
 # Use distroless Java 21 image for smaller size and better security
-FROM gcr.io/distroless/java21-debian12:nonroot
+FROM gcr.io/distroless/java21-debian12:nonroot@sha256:7e37784d94dccbf5ccb195c73b295f5ad00cd266512dfbac12eb9c3c28f8077d
 
 WORKDIR /app
 
