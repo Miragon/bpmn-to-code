@@ -12,12 +12,13 @@ Users compile against generated code, configure plugins in their build, parse th
 
 - the shape and names of the generated API ([record 6](006-generated-api-shape.md)),
 - the public types of the runtime library ([record 8](008-runtime-library-and-process-paths.md)),
-- the process JSON, which has a format version and schema of its own ([record 9](009-process-json-contract.md)),
 - the names and parameters of the plugin tasks and goals,
 - the ids of the validation rules,
 - core's `domain` package, for writing custom validation rules and for nothing else.
 
 Everything else in core, including the inbound adapters, is internal and may change in any release.
+
+**The process JSON is deprecated.** It keeps its format until 7.0 removes it ([record 13](013-process-json-deprecation.md)).
 
 **Stable surfaces break only in a major release.** A minor release adds; a patch release fixes.
 

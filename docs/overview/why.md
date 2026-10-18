@@ -31,11 +31,10 @@ client.newPublishMessageCommand()
 
 Typos become compiler errors. Renamed elements break the build before they break production.
 
-The same model feeds three more things:
+The same model feeds two more things:
 
 - [Generated API](/guide/generated-api): every element as a typed node with its job type, message, timer, variables and sequence flows.
 - [Validation](/validate/): built-in rules during generation, a build task, and a testing library for your own architecture rules.
-- [Process JSON](/surface/json): the process structure without the diagram, for AI agents, pull request diffs and CI.
 
 ## Does AI Make This Obsolete?
 
@@ -71,7 +70,7 @@ This is where bpmn-to-code shines:
 | **CI/CD** | Offline, no API dependency | Requires network + API key |
 | **Hallucination risk** | None | Possible invented IDs or drift |
 
-The [Process JSON](/surface/json) is where these two worlds meet: bpmn-to-code produces the reliable, deterministic process context that makes AI assistance trustworthy. Use the toolkit for generation and validation; use AI to work with the output.
+The generated Process API is where these two worlds meet: bpmn-to-code produces the reliable, deterministic process context that makes AI assistance trustworthy. Use the toolkit for generation and validation; use AI to work with the output.
 
 ## What I Suggest
 
@@ -80,7 +79,7 @@ Use the toolkit for deterministic generation and validation. Use AI for everythi
 - **Setting up** the plugin in a new project: detecting BPMN files, configuring the build, choosing the right engine.
 - **Migrating** existing codebases from hardcoded strings to the generated type-safe API.
 - **Scaffolding** worker implementations, REST controllers, and test boilerplate from the generated Process API.
-- **Understanding** a process: feed the Process JSON to your coding assistant and ask questions about it.
+- **Understanding** a process: let your coding assistant read the BPMN file and the generated Process API and ask questions about it.
 
 Thus, bpmn-to-code ships with [Agent Skills](/skills/) that automate these workflows. They are optional: the build plugins work standalone.
 

@@ -6,7 +6,7 @@ import RunnerPair from './RunnerPair.vue'
 import CompatCard from './CompatCard.vue'
 import LandingFooter from './LandingFooter.vue'
 import LucideIcon from './LucideIcon.vue'
-import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from './data'
+import { ideTabs, generateCompare, validateRules, skills } from './data'
 </script>
 
 <template>
@@ -70,28 +70,7 @@ import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from 
     <section class="band gray">
       <div class="inner">
         <div class="intro">
-          <p class="eyebrow"><span class="num">03</span><span class="name">Process JSON</span><span class="sub">context for your agents</span><span class="tag">beta</span></p>
-          <h2>Agents can&rsquo;t read your <span class="accent">.bpmn file.</span></h2>
-          <p>Most of a raw BPMN file is rendering metadata: shapes, bounds, waypoints. An agent spends its context on coordinates instead of process logic. bpmn-to-code exports a JSON model in BPMN vocabulary, without the diagram, that your agent can read directly.</p>
-          <a class="text-link" :href="withBase('/surface/json')">Read the JSON format reference <LucideIcon name="arrow-right" /></a>
-        </div>
-        <CompareCards
-          before-pill="Raw BPMN"
-          before-title="rendering metadata"
-          :before-code="surfaceCompare.before"
-          before-variant="warn"
-          :scroll-before="true"
-          after-pill="Process JSON"
-          after-title="semantic model"
-          :after-code="surfaceCompare.after"
-        />
-      </div>
-    </section>
-
-    <section class="band white">
-      <div class="inner">
-        <div class="intro">
-          <p class="eyebrow"><span class="num">04</span><span class="name">Agent Skills</span><span class="tag">beta</span></p>
+          <p class="eyebrow"><span class="num">03</span><span class="name">Agent Skills</span><span class="tag">beta</span></p>
           <h2>Build processes with agents, <span class="accent">not around them.</span></h2>
           <p>Agent skills built on bpmn-to-code. Set up the plugin in one prompt, migrate hardcoded BPMN strings to the generated Process API, and turn your BPMN style guide into validation rules. They work with Claude Code and any other agent that supports the <a href="https://agentskills.io" target="_blank" rel="noopener">agentskills.io</a> standard.</p>
           <a class="text-link" :href="withBase('/skills/')">See all skills <LucideIcon name="arrow-right" /></a>
@@ -108,7 +87,7 @@ import { ideTabs, generateCompare, surfaceCompare, validateRules, skills } from 
       </div>
     </section>
 
-    <section class="band gray">
+    <section class="band white">
       <div class="inner closing">
         <h2>Try it on your own model.</h2>
         <p class="lead">Upload a BPMN file in the browser, or wire the generator into your build.</p>

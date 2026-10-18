@@ -1,5 +1,7 @@
 # 9. Process JSON contract
 
+> Superseded by [record 13](013-process-json-deprecation.md): the Process JSON is deprecated and will be removed in 7.0. This record describes the format as it is emitted until then.
+
 ## Context
 
 Some consumers want the structure of a process but cannot or should not parse BPMN XML: AI assistants that need process context, reviewers who want to read a process change as a text diff, tools written in languages the generator does not target. For them the generator emits a JSON document. Once other tools parse it, its shape is a contract, and they need to know which version they are reading and when it may change.

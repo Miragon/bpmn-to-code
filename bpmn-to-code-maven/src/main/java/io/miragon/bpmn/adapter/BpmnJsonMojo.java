@@ -10,7 +10,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Maven Mojo for generating JSON representations of BPMN process models
+ *
+ * @deprecated The Process JSON will be removed in 7.0.
  */
+@Deprecated
 @Mojo(
 		name = "generate-bpmn-json",
 		defaultPhase = LifecyclePhase.NONE,
@@ -30,6 +33,8 @@ public class BpmnJsonMojo extends AbstractBpmnMojo {
 
 	@Override
 	public void execute() throws MojoFailureException {
+		getLog().warn("[DEPRECATED] The 'generate-bpmn-json' goal is deprecated and will be removed in 7.0. "
+				+ "If you use the Process JSON, describe your use case in https://github.com/Miragon/bpmn-to-code/issues/206.");
 		CreateProcessJsonFilesystemPlugin plugin = new CreateProcessJsonFilesystemPlugin();
 		ProcessEngine engine = processEngine();
 		plugin.execute(baseDir, filePattern, outputFolderPath, engine, new ValidationConfig());
