@@ -1,15 +1,15 @@
 package io.miragon.bpmn.adapter.outbound.json
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.networknt.schema.JsonSchemaFactory
-import com.networknt.schema.SpecVersion
+import com.networknt.schema.SchemaRegistry
+import com.networknt.schema.SpecificationVersion
 import io.miragon.bpmn.adapter.inbound.CreateProcessJsonInMemoryPlugin
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
 
 /**
  * Guards the published process-JSON contract.
@@ -28,8 +28,8 @@ class ProcessJsonSchemaTest {
 
     private val mapper = ObjectMapper()
 
-    private val schema = JsonSchemaFactory
-        .getInstance(SpecVersion.VersionFlag.V202012)
+    private val schema = SchemaRegistry
+        .withDefaultDialect(SpecificationVersion.DRAFT_2020_12)
         .getSchema(requireNotNull(javaClass.getResourceAsStream("/META-INF/bpmn-to-code/schema/process-model/2.0.json")))
 
     @ParameterizedTest
@@ -152,7 +152,7 @@ class ProcessJsonSchemaTest {
 
     private fun Iterable<JsonNode>?.idsOf(): List<String> = this?.map { it["id"].asText() } ?: emptyList()
 
-    private fun JsonNode.stringsAt(field: String): List<String> = this[field]?.map { it.asText() } ?: emptyList()
+    private fun JsonNode.stringsAt(field: String): List<String> = this[field]?.values()?.map { it.asText() } ?: emptyList()
 
     private fun readResource(path: String): String = requireNotNull(javaClass.getResourceAsStream(path)) { "missing test resource $path" }
         .use { it.readBytes().decodeToString() }
