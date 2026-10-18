@@ -2,15 +2,27 @@
 
 The command-line tool of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code): generates the Process API from BPMN files and validates them, without Gradle or Maven. It calls the same generator as the Gradle and Maven plugins, so the output is identical.
 
-Not published yet. Its commands and flags may still change.
+Experimental: commands, flags and exit codes may still change in a minor release.
 
-## Build
+## Install
+
+Every [GitHub release](https://github.com/Miragon/bpmn-to-code/releases) carries one zip per platform: `linux-x64`, `linux-arm64`, `darwin-arm64` and `win32-x64`. Each contains its own Java runtime, so no Java installation is needed.
 
 ```bash
-./gradlew :bpmn-to-code-cli:installDist
+curl -fsSLO https://github.com/Miragon/bpmn-to-code/releases/download/v<version>/bpmn-to-code-<version>-linux-x64.zip
+unzip bpmn-to-code-<version>-linux-x64.zip
+bpmn-to-code-<version>-linux-x64/bin/bpmn-to-code --version
 ```
 
-This writes the tool to `bpmn-to-code-cli/build/install/bpmn-to-code`: start scripts in `bin/` (`bpmn-to-code` and `bpmn-to-code.bat`) and the jars in `lib/`. `./gradlew :bpmn-to-code-cli:distZip` packs the same into a zip. The scripts need Java 21 or newer, found through `JAVA_HOME` or the `PATH`.
+On Windows the command is `bin\bpmn-to-code.cmd`. The archives are not signed: macOS blocks a zip downloaded in a browser until you run `xattr -dr com.apple.quarantine bpmn-to-code-<version>-darwin-arm64`; `curl` does not set that flag. `gh attestation verify <zip> --repo Miragon/bpmn-to-code` checks that an archive was built by this repository's release workflow.
+
+## Build from source
+
+```bash
+./gradlew :bpmn-to-code-cli:cliArchive
+```
+
+This packs the tool with a runtime linked by `jlink` into `bpmn-to-code-cli/build/cli-archive/bpmn-to-code-<version>-<platform>.zip`, for the platform the build runs on. `./gradlew :bpmn-to-code-cli:installDist` builds it without a runtime into `build/install`; its scripts need Java 21 or newer.
 
 ## Usage
 

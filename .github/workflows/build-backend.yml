@@ -97,6 +97,17 @@ jobs:
       - name: Run Gradle Build
         run: ./gradlew build --warning-mode all -x lintKotlin -x detekt -x detektMain -x detektTest
 
+      # Starts the archive with its bundled runtime and no JDK on the PATH
+      - name: Smoke test the CLI archive
+        run: |
+          ./gradlew :bpmn-to-code-cli:cliArchive
+          mkdir -p cli-smoke
+          unzip -q bpmn-to-code-cli/build/cli-archive/*.zip -d cli-smoke
+          env -u JAVA_HOME PATH=/usr/bin:/bin cli-smoke/bpmn-to-code-*/bin/bpmn-to-code generate-api \
+            --baseDir shared/bpmn/zeebe --filePattern '*.bpmn' --processEngine ZEEBE \
+            --outputLanguage KOTLIN --outputFolderPath cli-smoke/out --packagePath io.miravelo.process
+          test -n "$(find cli-smoke/out -name '*.kt')"
+
       # ≥ 75% per class
       - name: Check Coverage
         run: ./gradlew :bpmn-to-code-core:jacocoTestCoverageVerification :bpmn-to-code-web:jacocoTestCoverageVerification :bpmn-to-code-testing:jacocoTestCoverageVerification :bpmn-to-code-runtime:jacocoTestCoverageVerification :bpmn-to-code-cli:jacocoTestCoverageVerification

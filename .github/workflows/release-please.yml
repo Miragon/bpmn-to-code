@@ -79,6 +79,19 @@ jobs:
     with:
       dry_run: ${{ inputs.dry_run == true }}
 
+  # Archives of the command-line tool with a bundled Java runtime, attached to the release
+  publish-cli:
+    name: Publish CLI archives
+    needs: [release-please, gate]
+    uses: ./.github/workflows/publish-cli.yml
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    with:
+      dry_run: ${{ inputs.dry_run == true }}
+      tag_name: ${{ needs.release-please.outputs.tag_name }}
+
   publish-docker:
     name: Publish to Docker Hub
     needs: gate

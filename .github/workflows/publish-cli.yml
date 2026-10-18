@@ -1,0 +1,122 @@
+name: Publish CLI archives
+
+# Builds the command-line tool with its own Java runtime on one runner per platform,
+# starts every archive once without a JDK and attaches the archives to the GitHub release.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no upload to the release)'
+        type: boolean
+        default: false
+      tag_name:
+        description: 'Release tag to attach the archives to'
+        type: string
+        required: false
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no upload to the release)'
+        type: boolean
+        default: false
+      tag_name:
+        description: 'Release tag to attach the archives to'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    name: Archive (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runner: ubuntu-latest
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+          - platform: darwin-arm64
+            runner: macos-latest
+          - platform: win32-x64
+            runner: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+
+      # Runs the CLI tests on every platform before packing
+      - name: Build archive
+        run: ./gradlew :bpmn-to-code-cli:build :bpmn-to-code-cli:cliArchive
+
+      - name: Smoke test (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p smoke
+          unzip -q bpmn-to-code-cli/build/cli-archive/*-${{ matrix.platform }}.zip -d smoke
+          env -u JAVA_HOME PATH=/usr/bin:/bin smoke/bpmn-to-code-*/bin/bpmn-to-code generate-api \
+            --baseDir shared/bpmn/zeebe --filePattern '*.bpmn' --processEngine ZEEBE \
+            --outputLanguage CSHARP --outputFolderPath smoke/out --packagePath MiraVelo.Process
+          test -n "$(find smoke/out -name '*.cs')"
+
+      - name: Smoke test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $archive = Get-ChildItem bpmn-to-code-cli/build/cli-archive/*-${{ matrix.platform }}.zip
+          Expand-Archive $archive.FullName -DestinationPath smoke
+          $env:JAVA_HOME = $null
+          $launcher = Get-ChildItem smoke/*/bin/bpmn-to-code.cmd
+          & $launcher.FullName generate-api --baseDir shared/bpmn/zeebe --filePattern '*.bpmn' --processEngine ZEEBE `
+            --outputLanguage CSHARP --outputFolderPath smoke/out --packagePath MiraVelo.Process
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Get-ChildItem smoke/out -Recurse -Filter *.cs)) { exit 1 }
+
+      - name: Upload archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cli-${{ matrix.platform }}
+          path: bpmn-to-code-cli/build/cli-archive/*.zip
+          if-no-files-found: error
+
+  release-assets:
+    name: Attach archives to the release
+    needs: archive
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Download archives
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: cli-*
+          merge-multiple: true
+          path: archives
+
+      # Lets users check an archive with `gh attestation verify <file> --repo Miragon/bpmn-to-code`
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: archives/*.zip
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: gh release upload "$TAG_NAME" archives/*.zip --clobber --repo "${{ github.repository }}"
