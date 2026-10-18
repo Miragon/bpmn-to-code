@@ -1,148 +1,67 @@
 ---
 name: generate-rule-to-enforce-bpmn-styleguide
 argument-hint: "[rule-slug]"
-description: "Generate a Kotlin SingleModelValidationRule implementation for ONE rule from BPMN_STYLE_GUIDE.md. Use when drafting / iterating on a single rule, or when the user asks to 'generate a rule for <slug>', 'create the element-id-format rule', or 'add just this one rule to the test module'. For all rules at once, use generate-rules-to-enforce-bpmn-styleguide."
-allowed-tools: Read, Write, Glob, Grep, Bash(./gradlew *)
+description: "Turns one rule of a BPMN_STYLE_GUIDE.md into a Kotlin validation rule for bpmn-to-code-testing and registers it in the model validation test. Use when a modeling convention should be enforced in the build."
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(javap *)
 ---
 
 # Skill: generate-rule-to-enforce-bpmn-styleguide
 
-Generate a single Kotlin `SingleModelValidationRule` implementation for one entry in `BPMN_STYLE_GUIDE.md`. Same template, conventions and output directory as the bulk variant — use this when you're drafting a rule or iterating on one without regenerating the full file.
+Turn one rule of `BPMN_STYLE_GUIDE.md` into a Kotlin rule for `bpmn-to-code-testing`. The class template and what a rule can read are in [resources/rule-template.md](resources/rule-template.md).
 
 ## IMPORTANT
 
-- Everything the bulk variant (`generate-rules-to-enforce-bpmn-styleguide`) says also applies here.
-- The rule must include a deterministic half (`validation: deterministic` or `validation: hybrid`). If the user asks for an `llm`-only rule, explain that it belongs to `/validate-bpmn-style` only and stop.
-- For `hybrid` rules, generate the deterministic half and note in a comment that the semantic half stays for `/validate-bpmn-style`.
-- Don't touch the aggregator (`BpmnStyleGuideRules.kt`) owned by the bulk variant. This skill writes its own per-rule file; the user can run the bulk skill later to regenerate the aggregator.
-- Use `requireNotNull()` instead of `!!`.
-- Use `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/validation/rules/MissingElementIdRule.kt` as the structural template.
+- **Only rules with a deterministic half:**
+  - `validation: deterministic` → generate the rule.
+  - `validation: hybrid` → generate the deterministic half only.
+  - `validation: llm` → nothing to generate, because the rule needs judgement and not a test. Say so and stop.
+- One rule per file and per call.
+- Rules are Kotlin. A Java project still needs `src/test/kotlin` with the Kotlin plugin. If it has none, say so and stop.
 
-## Domain Model
+## Step 1: Check the testing dependency
 
-For rule bodies, read the actual domain classes under `bpmn-to-code-core/src/main/kotlin/io/miragon/bpmn/domain/shared/` — don't trust static summaries.
-
-## Instructions
-
-### Step 0 — Verify `bpmn-to-code-testing` Setup
-
-Same check as the bulk variant — generated rules need the dependency.
-
-1. Glob for build files at repo root and one level below: `build.gradle`, `build.gradle.kts`, `pom.xml`, `*/build.gradle*`, `*/pom.xml`.
-2. Grep each for `bpmn-to-code-testing`.
-3. Missing → abort with the Gradle + Maven snippets (see the bulk skill). Tell the user to add it and re-run.
-4. Multiple module matches → ask which one hosts the rule.
-
-### Step 1 — Resolve the Rule Slug
-
-1. Locate `BPMN_STYLE_GUIDE.md` (current dir, then git root). Missing → suggest `/build-bpmn-styleguide`.
-2. Parse the file to enumerate rules:
-   - Find every `<!-- rule:<slug> -->` anchor.
-   - For each, capture the slug + the next ``` ```yaml``` fenced block + the preceding prose.
-3. If `$ARGUMENTS` is a rule slug, look it up.
-4. If no argument, list all slugs and ask which one to generate.
-5. If the slug doesn't exist, report and stop.
-
-### Step 2 — Classify and Confirm
-
-Decide based on the rule's `validation`:
-
-- `deterministic` → proceed.
-- `hybrid` → proceed (deterministic half); inform the user the semantic half stays for `/validate-bpmn-style`.
-- `llm` → stop. Explain that the rule is enforced only by `/validate-bpmn-style` and there's nothing to generate.
-
-Before generating, show the user:
-- Which domain-model property the rule inspects (from the rule's `applies-to` + the YAML schema).
-- The regex (or check) that will be applied.
-- The classification (deterministic / hybrid).
-
-Ask for confirmation.
-
-### Step 3 — Generate the Rule
-
-One Kotlin file, one class. Class name is PascalCase of the slug (e.g. `element-id-format` → `ElementIdFormatRule`).
-
-**File header:**
+Grep the build files (root and one level below) for `bpmn-to-code-testing`. If several modules have it, ask which one hosts the rule. If none has it, show this and stop:
 
 ```kotlin
-// Generated from BPMN_STYLE_GUIDE.md by /generate-rule-to-enforce-bpmn-styleguide.
-// Re-run the skill after editing the rule in the style guide.
+testImplementation("io.miragon:bpmn-to-code-testing:<version>")
 ```
 
-**Class for a `deterministic` rule** (follow `MissingElementIdRule.kt` for shape):
-
-```kotlin
-/**
- * element-id-format (deterministic)
- * Category: technical-configuration
- */
-class ElementIdFormatRule : SingleModelValidationRule {
-    override val id = "element-id-format"
-    override val severity = Severity.ERROR
-
-    override fun validate(context: ValidationContext): List<ValidationViolation> {
-        val pattern = Regex("^(serviceTask|userTask|...)_[A-Z][a-zA-Z0-9]*$")
-        return context.model.flowNodes
-            .filter { node ->
-                val nodeId = requireNotNull(node.id) { "FlowNode missing id" }
-                !pattern.matches(nodeId)
-            }
-            .map { node ->
-                ValidationViolation(
-                    ruleId = id,
-                    severity = severity,
-                    elementId = node.id,
-                    processId = context.model.processId,
-                    message = "Element ID '${node.id}' does not match format type_DescriptionInCamelCase",
-                )
-            }
-    }
-}
+```xml
+<dependency>
+    <groupId>io.miragon</groupId>
+    <artifactId>bpmn-to-code-testing</artifactId>
+    <version><version></version>
+    <scope>test</scope>
+</dependency>
 ```
 
-**Class for a `hybrid` rule** — same shape, but the doc comment calls out the split:
+Use the version of the other bpmn-to-code artifacts in the build.
 
-```kotlin
-/**
- * service-task-topic (hybrid — deterministic half only)
- * Category: technical-configuration
- *
- * This rule covers the deterministic shape check. The semantic half
- * is enforced by /validate-bpmn-style using the rule's prose as the brief.
- */
-class ServiceTaskTopicRule : SingleModelValidationRule { /* ... */ }
-```
+## Step 2: Resolve the rule
 
-### Step 4 — Scan for an Existing Version of This Rule
+1. Find `BPMN_STYLE_GUIDE.md` (current directory, then git root). If it is missing, say so and stop. The style guide skills of [Miragon/bpmnlint-rules](https://github.com/Miragon/bpmnlint-rules) create one.
+2. Find every `<!-- rule:<slug> -->` anchor. A rule is the anchor, the next fenced `yaml` block and the prose above it.
+3. Take the slug from `$ARGUMENTS`. If none is given, list the slugs with their `validation` and ask.
 
-Before asking where to write, see whether the project already has a rule for this slug:
+## Step 3: Confirm the check
 
-1. Glob `**/src/test/kotlin/**/architecture/bpmn/**/*.kt`, plus a broader `**/src/test/kotlin/**/*Rule.kt` to catch alternative layouts.
-2. Grep the matches for the slug as the `override val id = "<slug>"` literal, and for the expected class name.
-3. If found:
-   - Show the user the existing implementation.
-   - Ask whether to **replace** it (overwrite the file), **skip** generation (keep the existing file as-is), or **write alongside** under a different class name (user resolves the duplicate manually).
-4. If nothing matches, proceed directly to Step 5.
+Show:
+- the classification
+- which domain property the rule reads (see the cheat sheet)
+- the regex or structural check
 
-### Step 5 — Ask Output Location
+Wait for confirmation.
 
-Default to `src/test/kotlin/<package>/architecture/bpmn/<ClassName>.kt` in the module from Step 0 — same directory as the bulk skill uses. If Step 4 found an existing file, suggest that location by default. Confirm or let the user override.
+## Step 4: Write the rule
 
-### Step 6 — Write and Verify
+1. Class name: PascalCase of the slug plus `Rule` (`element-id-format` → `ElementIdFormatRule`).
+2. Search `src/test/kotlin` for `override val id = "<slug>"`. If it exists, ask whether to replace it, keep it, or write a new class next to it.
+3. Write the class from the template to `src/test/kotlin/<package>/architecture/bpmn/<ClassName>.kt`, or next to existing rules.
 
-1. Create `architecture/bpmn/` if needed.
-2. Write the file.
-3. Run `./gradlew compileKotlin` (or the module's test-compile task).
-4. Fix and retry if it fails.
-5. Show how to plug the rule in:
+## Step 5: Register and verify
 
-   ```kotlin
-   BpmnValidator
-       .fromClasspath("bpmn/")
-       .engine(ProcessEngine.CAMUNDA_7)
-       .withRules(BpmnRules.all() + listOf(ElementIdFormatRule()))
-       .validate()
-       .assertNoErrors()
-   ```
-
-6. Mention the bulk skill for when the user is ready to generate the full aggregator (`BpmnStyleGuideRules.kt`). If this is a `hybrid` rule, remind them that `/validate-bpmn-style` still needs to run for the semantic half.
+1. Add the rule to the existing model validation test (`*ModelValidationTest`) with `withRules(*BpmnRules.all().toTypedArray(), <ClassName>())`. If there is no such test, create it as shown in the template.
+2. Run the test: `./gradlew test --tests '*ModelValidationTest'` or `./mvnw test -Dtest='*ModelValidationTest'`.
+3. A compile error: fix the rule.
+4. Violations in the models: report them. They are findings, not a broken rule. Ask whether to fix the models or to start the rule as `Severity.WARN`.
+5. For a `hybrid` rule, remind the user that the semantic half still needs a review.

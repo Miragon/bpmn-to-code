@@ -1,7 +1,7 @@
 ---
 name: migrate-to-bpmn-to-code-apis
 argument-hint: "[path/to/scan] | [ProcessApiClassName] | --from-5x"
-description: "Replace hardcoded BPMN strings with references to the generated Process API, or rewrite 5.x Process API references (Elements, Variables, CallActivities, Timers, nested Flow interiors) to the 6.0 node-centric shape. Use when the user asks to 'migrate to the process API', 'replace hardcoded strings with API references', 'use the generated BPMN API', 'refactor to type-safe BPMN constants', 'upgrade to bpmn-to-code 6', or 'fix Elements/Variables after upgrading'."
+description: "Replaces hardcoded BPMN element ids, job types and message names with references to the generated Process API, or rewrites 5.x API references to 6.x with --from-5x. Use when moving code onto the Process API or upgrading to bpmn-to-code 6."
 allowed-tools: Read, Glob, Grep, Edit
 ---
 

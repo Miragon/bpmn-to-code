@@ -146,11 +146,11 @@ export interface Skill {
 
 export const skills: Skill[] = [
   {
-    name: 'migrate-to-bpmn-to-code-apis',
-    description: 'Replace hardcoded BPMN strings with references to the generated Process API, or rewrite 5.x references to the 6.x FlowNodes. Scans your source, shows a migration plan, and applies it after approval.',
+    name: 'create-worker',
+    description: 'Write the handler for one service task, a Zeebe job worker, JavaDelegate, external task or process-engine-api worker, with job type, variables and error codes from the generated API. test-worker writes its unit test.',
   },
   {
-    name: 'build-bpmn-styleguide',
-    description: 'Create a BPMN_STYLE_GUIDE.md with your team\'s conventions in an interactive wizard. validate-bpmn-style then checks your diagrams against it.',
+    name: 'migrate-to-bpmn-to-code-apis',
+    description: 'Replace hardcoded BPMN strings with references to the generated Process API, or rewrite 5.x references to the 6.x FlowNodes. Scans your source, shows a migration plan, and applies it after approval.',
   },
 ]

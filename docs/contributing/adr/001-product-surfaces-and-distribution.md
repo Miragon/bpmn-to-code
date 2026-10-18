@@ -29,7 +29,7 @@ An entry point may differ only in what its host requires:
 - Neither plugin binds itself to the build lifecycle: Gradle only registers tasks, the Maven goals have no default phase.
 - The web application fixes the package name and caps the number of files per request.
 
-**Agent skills are versioned on their own.** They are not a Gradle module and release-please does not touch their version.
+**Agent skills carry the library version.** They are not a Gradle module; release-please bumps the version in their `plugin.json` with every release ([record 15](015-agent-skills.md)).
 
 Parameters and defaults are listed in [Configuration](/guide/configuration).
 
@@ -39,7 +39,7 @@ Parameters and defaults are listed in [Configuration](/guide/configuration).
 - The classes of `io.miragon.bpmn.domain` exist in three published jars. Changing a domain type is a change to the testing library's API ([record 11](011-compatibility-policy.md)).
 - KotlinPoet, JavaPoet and `camunda-bpmn-model` reach the user's build classpath, `camunda-bpmn-model` and AssertJ the test classpath, all under their original package names.
 - Core's dependency list is maintained in every wrapper by hand. A dependency a wrapper forgets fails only when the published plugin runs, which is why the Gradle module resolves its own published plugin in a smoke test.
-- Because skills do not move with releases, a skill can describe an API of an older or newer library version.
+- A skill fix reaches users only with the next release.
 - A setting that exists in one entry point only is a defect, not a feature.
 
 ## Rejected alternatives

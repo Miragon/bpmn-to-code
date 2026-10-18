@@ -6,7 +6,7 @@ Users compile against generated code, configure plugins in their build, parse th
 
 ## Decision
 
-**One version for everything.** The Gradle plugin, the Maven plugin, the runtime library, the testing library, the web image and the CLI archives carry the same version. release-please manages a single version in `gradle.properties`, and every module reads it from there. The agent skills are the exception and are versioned on their own ([record 1](001-product-surfaces-and-distribution.md)).
+**One version for everything.** The Gradle plugin, the Maven plugin, the runtime library, the testing library, the web image and the CLI archives carry the same version. release-please manages a single version in `gradle.properties`, and every module reads it from there. The agent skills carry the same version in their `plugin.json` ([record 15](015-agent-skills.md)).
 
 **The public contracts are:**
 
@@ -41,7 +41,6 @@ Everything else in core, including the inbound adapters, is internal and may cha
 - Renaming a validation rule id breaks build scripts that disable it.
 - A user cannot take a fix for one artifact without moving all of them, and a release that changes only the web application still publishes every artifact.
 - A project on a JDK older than 21 cannot use any part of the library.
-- Because skills are versioned apart, nothing guarantees a skill matches the library version it is used with.
 
 ## Rejected alternatives
 

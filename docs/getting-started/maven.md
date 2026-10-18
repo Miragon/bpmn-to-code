@@ -153,4 +153,4 @@ Then point bpmn-to-code at it with `<baseDir>${project.build.directory}/bpmn-sta
 
 - [Generated API](/guide/generated-api): what the files contain and how to use them.
 - [Modeling](/guide/modeling): how ids and variable declarations in the model shape the API.
-- [Agent Skills](/skills/): `setup-bpmn-to-code-maven` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.
+- [Agent Skills](/skills/): `setup-bpmn-to-code` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.

@@ -20,3 +20,4 @@ Every record has the same sections: Context, Decision, Consequences, Rejected al
 12. [Web application](012-web-application.md): a stateless entry point with a static frontend, and its operating constraints.
 13. [Process JSON deprecation](013-process-json-deprecation.md): why the JSON output is deprecated in 6.x and removed in 7.0.
 14. [Command-line tool](014-command-line-tool.md): an entry point outside build tools, configured by flags only.
+15. [Agent skills](015-agent-skills.md): one skill per task, engine knowledge in resources per style and language, bpmn-cli as a plugin dependency.
