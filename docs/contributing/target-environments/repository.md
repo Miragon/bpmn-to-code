@@ -4,7 +4,6 @@ What the concept changes beyond the [folders a language package adds](./language
 
 | Area | Today | Then |
 |---|---|---|
-| Shared definitions | Every language reads the domain itself | One model for all languages, next to the flow graph |
 | Release | Maven Central, Gradle Plugin Portal, Docker Hub | plus one registry per delivery channel, each with its own credentials and publishing step |
 | Versions | One version for all artifacts | The same version for the packages in the other registries |
 

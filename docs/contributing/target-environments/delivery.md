@@ -51,7 +51,7 @@ The same idea carries over to the other ecosystems. A NuGet package can be a `do
 
 ## Carrying Java along
 
-Undecided. The command-line tool is a Java program, so each channel has to deal with the Java runtime. This only applies as long as [core stays Kotlin](./core-language).
+Decided: **B1, bundle a Java runtime.** The command-line tool is a Java program, so each channel has to deal with the Java runtime. This only applies as long as [core stays Kotlin](./core-language).
 
 | Option | What it means | Consequence |
 |---|---|---|

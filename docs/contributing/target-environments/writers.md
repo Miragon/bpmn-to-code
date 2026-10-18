@@ -1,6 +1,6 @@
 # Writers
 
-Undecided. Both ways work.
+Decided: **C1, writers in Kotlin.** Both ways work; C1 was chosen because the compiler checks every branch and no template engine reaches the users' build classpath. A fixed block such as the C# runtime types stays a text constant in Kotlin, as today.
 
 Kotlin and Java keep their poet libraries. The question is how every further language is written. The same TypeScript excerpt was built both ways in a spike; both produced the identical file.
 

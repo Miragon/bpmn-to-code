@@ -1,6 +1,6 @@
 # Ideas for Configuration
 
-Undecided. This page collects the ways the tool could be configured once it runs outside Gradle and Maven, each with tools that already work that way.
+Decided: **idea 1, flags only**, with idea 5 as it is today. A file of our own or a section in the ecosystem's file can be added later without breaking the flags. This page collects the ways the tool could be configured once it runs outside Gradle and Maven, each with tools that already work that way.
 
 Today the settings are Gradle task properties, Maven parameters and the body of a web request, with the same names everywhere. The settings themselves are few: where the BPMN files are, which engine, which output language, where the output goes, and for Kotlin, Java and C# the package or namespace. All of them are listed in the [configuration guide](/guide/configuration).
 

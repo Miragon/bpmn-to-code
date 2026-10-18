@@ -1,6 +1,6 @@
 # Where the Code Is Written
 
-Undecided. The rest of this concept assumes that core writes the code of every language, as it does today. This page sets that against the alternative: core hands out a model, and each environment writes its own language.
+Decided: **A, core writes every language.** This page sets that against the alternative it was chosen over: core hands out a model, and each environment writes its own language.
 
 ![Option A: core reads BPMN and writes Kotlin, Java, C# and TypeScript itself. Option B: core reads BPMN and hands out an API model as JSON; core writes Kotlin and Java from it, an npm package writes TypeScript with a generator written in TypeScript, a NuGet package writes C# with a generator written in C#](../images/target-environments-where-code-is-written.svg)
 
@@ -33,7 +33,7 @@ Undecided. The rest of this concept assumes that core writes the code of every l
 - **A decision on names.** Kotlin, Java and C# derive their identifiers in three different ways today, and the checks for collisions and reserved names rely on exactly those derivations.
 - **A rule for versions.** Core and generator are released together and only work in the same version, as generator and runtime library do today.
 
-The first point is worth doing in either option, see [further changes](./repository).
+With A, none of this is needed: every writer keeps reading the shared definitions from the domain.
 
 ## What B does not change
 

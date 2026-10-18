@@ -1,6 +1,6 @@
 # The Language of Core
 
-Undecided, with no need for a change seen today.
+Decided: **A1, core stays Kotlin**, behind a command-line tool.
 
 The question that started this: would a core in Go or Node make more languages easier, because those ecosystems have better code generation libraries?
 
