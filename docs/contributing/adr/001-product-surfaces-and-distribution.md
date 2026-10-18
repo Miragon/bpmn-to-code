@@ -19,7 +19,7 @@ bpmn-to-code reaches its users in several ways: as a build plugin, in the browse
 
 **What of core is public.** Core's `domain` package is a supported API for exactly one purpose: writing custom validation rules against `bpmn-to-code-testing`. Everything else in core is internal, including the inbound adapters the wrappers call.
 
-**Entry points are thin and uniform.** Gradle, Maven and web contain no generation logic. They translate their configuration into a call of one of core's inbound `*Plugin` classes ([record 2](002-hexagonal-core.md)), so a feature behaves identically everywhere. An option that shapes the output belongs into the BPMN model, not into a plugin setting: `variantName` is a process extension property ([record 5](005-one-api-per-file-deterministic-generation.md)), and generation accepts no validation settings from any entry point.
+**Entry points are thin and uniform.** Gradle, Maven, web and the command-line tool ([record 14](014-command-line-tool.md)) contain no generation logic. They translate their configuration into a call of one of core's inbound `*Plugin` classes ([record 2](002-hexagonal-core.md)), so a feature behaves identically everywhere. An option that shapes the output belongs into the BPMN model, not into a plugin setting: `variantName` is a process extension property ([record 5](005-one-api-per-file-deterministic-generation.md)), and generation accepts no validation settings from any entry point.
 
 An entry point may differ only in what its host requires:
 

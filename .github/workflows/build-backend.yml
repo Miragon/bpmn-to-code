@@ -31,6 +31,7 @@ jobs:
             'bpmn-to-code-maven/' \
             'bpmn-to-code-testing/' \
             'bpmn-to-code-web/' \
+            'bpmn-to-code-cli/' \
             'bpmn-to-code-architecture-tests/' \
             'build.gradle.kts' \
             'settings.gradle.kts' \
@@ -98,7 +99,7 @@ jobs:
 
       # ≥ 75% per class
       - name: Check Coverage
-        run: ./gradlew :bpmn-to-code-core:jacocoTestCoverageVerification :bpmn-to-code-web:jacocoTestCoverageVerification :bpmn-to-code-testing:jacocoTestCoverageVerification :bpmn-to-code-runtime:jacocoTestCoverageVerification
+        run: ./gradlew :bpmn-to-code-core:jacocoTestCoverageVerification :bpmn-to-code-web:jacocoTestCoverageVerification :bpmn-to-code-testing:jacocoTestCoverageVerification :bpmn-to-code-runtime:jacocoTestCoverageVerification :bpmn-to-code-cli:jacocoTestCoverageVerification
 
       - name: Post Coverage Comment
         if: always() && github.event_name == 'pull_request'
@@ -114,6 +115,7 @@ jobs:
               "bpmn-to-code-web",
               "bpmn-to-code-testing",
               "bpmn-to-code-runtime",
+              "bpmn-to-code-cli",
           ]
           rows = []
           for m in modules:

@@ -25,6 +25,7 @@ pitest = "1.19.0"
 pitestCore = "1.19.4"
 pitestJunit5 = "1.2.3"
 jmh = "1.37"
+clikt = "5.1.0"
 
 [libraries]
 # Plugin dependencies
@@ -50,6 +51,10 @@ kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serializati
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 kotlinLogging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
+
+# CLI module dependencies
+cliktCore = { module = "com.github.ajalt.clikt:clikt-core", version.ref = "clikt" }
+slf4jSimple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 # Testing dependencies
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
