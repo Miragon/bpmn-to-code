@@ -14,7 +14,7 @@ Gradle modules (`settings.gradle.kts`):
 | `bpmn-to-code-runtime` | Dependency-free types the generated Kotlin and Java code refers to, plus `ProcessPath` | Maven Central |
 | `bpmn-to-code-testing` | `BpmnValidator`, the test library for validation rules | Maven Central |
 | `bpmn-to-code-web` | Ktor server with a static frontend | Docker Hub (`miragon/bpmn-to-code-web`) |
-| `bpmn-to-code-cli` | Command-line tool `bpmn-to-code` with the commands `generate-api` and `validate`; `./gradlew :bpmn-to-code-cli:cliArchive` packs it with a jlink runtime for the current platform | GitHub release assets, one zip per platform (experimental) |
+| `bpmn-to-code-cli` | Command-line tool `bpmn-to-code` with the commands `generate-api` and `validate`; `./gradlew :bpmn-to-code-cli:cliArchive` packs it with a jlink runtime for the current platform | GitHub release assets, one zip per platform, and Homebrew `miragon/tap/bpmn-to-code` (experimental) |
 | `bpmn-to-code-architecture-tests` | Konsist tests that enforce the rules on this page | Not published |
 | `bpmn-to-code-benchmark` | Hand-run JMH comparison with a released version, see [Benchmarking](./benchmark) | Not published |
 

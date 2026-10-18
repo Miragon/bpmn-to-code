@@ -41,6 +41,8 @@ jobs:
             runner: ubuntu-24.04-arm
           - platform: darwin-arm64
             runner: macos-latest
+          - platform: darwin-x64
+            runner: macos-26-intel
           - platform: win32-x64
             runner: windows-latest
 
@@ -66,10 +68,7 @@ jobs:
         run: |
           mkdir -p smoke
           unzip -q bpmn-to-code-cli/build/cli-archive/*-${{ matrix.platform }}.zip -d smoke
-          env -u JAVA_HOME PATH=/usr/bin:/bin smoke/bpmn-to-code-*/bin/bpmn-to-code generate-api \
-            --baseDir shared/bpmn/zeebe --filePattern '*.bpmn' --processEngine ZEEBE \
-            --outputLanguage CSHARP --outputFolderPath smoke/out --packagePath MiraVelo.Process
-          test -n "$(find smoke/out -name '*.cs')"
+          env -u JAVA_HOME PATH=/usr/bin:/bin bpmn-to-code-cli/scripts/smoke-test.sh smoke/bpmn-to-code-*/bin/bpmn-to-code
 
       - name: Smoke test (Windows)
         if: runner.os == 'Windows'
@@ -109,14 +108,28 @@ jobs:
           merge-multiple: true
           path: archives
 
+      # The Homebrew formula takes its checksums from this file
+      - name: Write SHA256SUMS
+        working-directory: archives
+        run: |
+          shopt -s failglob
+          files=(bpmn-to-code-*.zip)
+          if [ "${#files[@]}" -ne 5 ]; then
+            echo "::error::Expected 5 archives, got ${#files[@]}: ${files[*]}"
+            exit 1
+          fi
+          sha256sum "${files[@]}" > SHA256SUMS
+          cat SHA256SUMS
+
       # Lets users check an archive with `gh attestation verify <file> --repo Miragon/bpmn-to-code`
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
-          subject-path: archives/*.zip
+          subject-checksums: archives/SHA256SUMS
 
       - name: Upload to release
+        working-directory: archives
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ inputs.tag_name }}
-        run: gh release upload "$TAG_NAME" archives/*.zip --clobber --repo "${{ github.repository }}"
+        run: gh release upload "$TAG_NAME" bpmn-to-code-*.zip SHA256SUMS --clobber --repo "${{ github.repository }}"

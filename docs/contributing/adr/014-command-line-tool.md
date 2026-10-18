@@ -19,7 +19,7 @@ The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets 
 
 **Exit codes are part of the interface.** `0` on success, `1` when the models fail validation or cannot be read or generated, `2` when the call itself is wrong: an unknown command, a missing flag, a value that does not exist. Findings and errors go to standard error.
 
-**It ships with its own Java runtime.** Each release carries one zip per platform (`linux-x64`, `linux-arm64`, `darwin-arm64`, `win32-x64`): the jars, a runtime trimmed by `jlink` to `java.base`, `java.xml`, `java.compiler` and `java.logging`, and a start script in `bin/` that uses only that runtime. Every archive is built and started once on a runner of its platform. The zip is what later ecosystem packages (npm, NuGet) start; they call `bin/bpmn-to-code` and need nothing else.
+**It ships with its own Java runtime.** Each release carries one zip per platform (`linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64`, `win32-x64`): the jars, a runtime trimmed by `jlink` to `java.base`, `java.xml`, `java.compiler` and `java.logging`, and a start script in `bin/` that uses only that runtime. Every archive is built and started once on a runner of its platform. The zip is what every package manager installs: the Homebrew formula `miragon/tap/bpmn-to-code` in `Miragon/homebrew-tap` today, npm and NuGet later. They call `bin/bpmn-to-code` and need nothing else.
 
 **It is experimental.** Commands, flags and exit codes may change in a minor release until the tool is declared stable ([record 11](011-compatibility-policy.md)).
 
@@ -29,8 +29,9 @@ The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets 
 
 - A setting added to the plugins needs a flag of the same name, or the entry points drift apart ([record 1](001-product-surfaces-and-distribution.md)).
 - Nobody installs Java to use the tool. An archive is about 30 MB, and a run over a handful of models takes about half a second, most of it the start of the JVM.
-- A further platform is a further runner in `publish-cli.yml`. Intel Macs are not built.
-- The archives are not signed. macOS blocks a zip downloaded in a browser until its quarantine flag is removed; `curl` and package managers do not set it.
+- A further platform is a further runner in `publish-cli.yml`, and for macOS and Linux a further line in the Homebrew formula.
+- The formula follows the newest stable release; it is written and checked by `publish-homebrew.yml` as in the other Miragon CLIs.
+- The archives are not signed. macOS blocks a zip downloaded in a browser until its quarantine flag is removed; Homebrew, `curl` and other package managers do not set it.
 
 ## Rejected alternatives
 

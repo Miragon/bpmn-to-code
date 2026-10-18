@@ -6,7 +6,13 @@ Experimental: commands, flags and exit codes may still change in a minor release
 
 ## Install
 
-Every [GitHub release](https://github.com/Miragon/bpmn-to-code/releases) carries one zip per platform: `linux-x64`, `linux-arm64`, `darwin-arm64` and `win32-x64`. Each contains its own Java runtime, so no Java installation is needed.
+On macOS and Linux with [Homebrew](https://brew.sh):
+
+```bash
+brew install miragon/tap/bpmn-to-code
+```
+
+Every [GitHub release](https://github.com/Miragon/bpmn-to-code/releases) also carries one zip per platform: `linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64` and `win32-x64`. Each contains its own Java runtime, so no Java installation is needed.
 
 ```bash
 curl -fsSLO https://github.com/Miragon/bpmn-to-code/releases/download/v<version>/bpmn-to-code-<version>-linux-x64.zip
@@ -14,7 +20,7 @@ unzip bpmn-to-code-<version>-linux-x64.zip
 bpmn-to-code-<version>-linux-x64/bin/bpmn-to-code --version
 ```
 
-On Windows the command is `bin\bpmn-to-code.cmd`. The archives are not signed: macOS blocks a zip downloaded in a browser until you run `xattr -dr com.apple.quarantine bpmn-to-code-<version>-darwin-arm64`; `curl` does not set that flag. `gh attestation verify <zip> --repo Miragon/bpmn-to-code` checks that an archive was built by this repository's release workflow.
+On Windows the command is `bin\bpmn-to-code.cmd`. The archives are not signed: macOS blocks a zip downloaded in a browser until you run `xattr -dr com.apple.quarantine bpmn-to-code-<version>-darwin-arm64`; Homebrew and `curl` do not set that flag. `gh attestation verify <zip> --repo Miragon/bpmn-to-code` checks that an archive was built by this repository's release workflow.
 
 ## Build from source
 
