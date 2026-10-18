@@ -8,6 +8,7 @@ bpmn-to-code generates type-safe APIs from BPMN process models and validates tho
 - `bpmn-to-code-gradle`: Gradle plugin
 - `bpmn-to-code-maven`: Maven plugin (mojos in Java)
 - `bpmn-to-code-web`: Ktor web app, shipped as Docker image
+- `bpmn-to-code-cli`: command-line tool over core, shipped as zip with a bundled Java runtime on the GitHub release and via Homebrew
 - `bpmn-to-code-runtime`: types the generated Kotlin and Java code refers to
 - `bpmn-to-code-testing`: test library for BPMN validation rules
 - `bpmn-to-code-architecture-tests`: Konsist tests for layers, imports and naming

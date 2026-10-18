@@ -1,0 +1,145 @@
+name: Publish Homebrew formula
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      RELEASE_PLEASE_APP_PRIVATE_KEY:
+        required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Released version without the v prefix (e.g. 6.5.0)
+        required: true
+        type: string
+      dry-run:
+        description: Build and test the formula without pushing it to the tap
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  formula:
+    name: formula ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - name: Write the formula
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/formula"
+          gh release download "v${VERSION}" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir "$RUNNER_TEMP"
+          bpmn-to-code-cli/scripts/homebrew-formula.sh "$VERSION" "$RUNNER_TEMP/SHA256SUMS" > "$RUNNER_TEMP/formula/bpmn-to-code.rb"
+          cat "$RUNNER_TEMP/formula/bpmn-to-code.rb"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: homebrew-formula
+          path: ${{ runner.temp }}/formula/bpmn-to-code.rb
+          if-no-files-found: error
+          retention-days: 7
+
+  # Installs the formula from a local tap on each platform with a preinstalled Homebrew and runs its
+  # test, the audit of homebrew/core and the smoke test against the installed command. Homebrew
+  # reads homebrew/core from its API: the Linux runner cannot clone it as a tap.
+  verify:
+    name: verify on ${{ matrix.runner }}
+    needs: formula
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-latest, macos-26-intel, ubuntu-latest]
+    env:
+      EXPECTED_VERSION: ${{ inputs.version }}
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: homebrew-formula
+          path: ${{ runner.temp }}/formula
+      - name: Put Homebrew on the PATH (Linux)
+        if: runner.os == 'Linux'
+        run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+      - name: Install, test and audit the formula
+        run: |
+          brew tap-new --no-git miragon/verify
+          cp "$RUNNER_TEMP/formula/bpmn-to-code.rb" "$(brew --repository miragon/verify)/Formula/bpmn-to-code.rb"
+          brew install miragon/verify/bpmn-to-code
+          brew test miragon/verify/bpmn-to-code
+          brew audit --strict --online miragon/verify/bpmn-to-code
+      - name: Smoke test the installed command
+        run: bpmn-to-code-cli/scripts/smoke-test.sh "$(brew --prefix)/bin/bpmn-to-code"
+
+  # Opens a pull request with the formula on Miragon/homebrew-tap and squash-merges it, with a token
+  # of the Miragon release-please app (vars.RELEASE_PLEASE_APP_CLIENT_ID +
+  # secrets.RELEASE_PLEASE_APP_PRIVATE_KEY), which is installed on every repository of the org.
+  publish:
+    name: publish ${{ inputs.version }} to Miragon/homebrew-tap
+    needs: verify
+    if: ${{ !inputs.dry-run }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}
+    concurrency:
+      group: homebrew-tap
+      cancel-in-progress: false
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: homebrew-formula
+          path: ${{ runner.temp }}/formula
+      - name: Create a GitHub App token
+        id: tap-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_PLEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+          owner: Miragon
+          repositories: homebrew-tap
+          permission-contents: write
+          permission-pull-requests: write
+      # The commit is made through the contents API, so GitHub signs it: the ruleset of the tap
+      # requires signed commits and an approval for unsigned ones. A re-run replaces the branch.
+      - name: Open and squash-merge the pull request
+        env:
+          GH_TOKEN: ${{ steps.tap-token.outputs.token }}
+          TAP: Miragon/homebrew-tap
+        run: |
+          formula="$RUNNER_TEMP/formula/bpmn-to-code.rb"
+          path=Formula/bpmn-to-code.rb
+          branch="bpmn-to-code-${VERSION}"
+          current="$(gh api "repos/${TAP}/contents/${path}?ref=main" --jq .sha)" || current=""
+          if [ "$current" = "$(git hash-object "$formula")" ]; then
+            echo "::notice::${path} of ${TAP} is already at ${VERSION}"
+            exit 0
+          fi
+          main="$(gh api "repos/${TAP}/git/ref/heads/main" --jq .object.sha)"
+          gh api -X DELETE "repos/${TAP}/git/refs/heads/${branch}" 2>/dev/null || true
+          gh api "repos/${TAP}/git/refs" -f ref="refs/heads/${branch}" -f sha="$main" > /dev/null
+          gh api -X PUT "repos/${TAP}/contents/${path}" -f branch="$branch" \
+            -f message="chore: update bpmn-to-code to ${VERSION}" -f content="$(base64 -w0 "$formula")" \
+            ${current:+-f sha="$current"} > /dev/null
+          gh pr create --repo "$TAP" --base main --head "$branch" \
+            --title "chore: update bpmn-to-code to ${VERSION}" \
+            --body "Automated formula update for [bpmn-to-code ${VERSION}](https://github.com/Miragon/bpmn-to-code/releases/tag/v${VERSION})."
+          gh pr merge "$branch" --repo "$TAP" --squash --delete-branch

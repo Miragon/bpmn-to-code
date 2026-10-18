@@ -10,7 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource
  * - `io.miragon.bpmn.domain.*` — domain objects
  * - `io.miragon.bpmn.adapter.inbound.*` — inbound adapters (the public API surface)
  *
- * Runs once per plugin module (Gradle, Maven, Web). `bpmn-to-code-testing` is intentionally
+ * Runs once per plugin module (Gradle, Maven, Web, CLI). `bpmn-to-code-testing` is intentionally
  * excluded — it is a BPMN parsing utility library that legitimately uses the BPMN extraction
  * out-adapter directly to implement its validation logic.
  */
@@ -27,6 +27,7 @@ class ExternalModuleImportTest {
             "bpmn-to-code-gradle",
             "bpmn-to-code-maven",
             "bpmn-to-code-web",
+            "bpmn-to-code-cli",
         ],
     )
     fun `plugin module only imports domain objects or inbound adapters from core`(modulePath: String) {

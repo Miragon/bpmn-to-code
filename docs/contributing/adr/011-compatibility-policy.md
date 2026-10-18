@@ -6,13 +6,13 @@ Users compile against generated code, configure plugins in their build, parse th
 
 ## Decision
 
-**One version for everything.** The Gradle plugin, the Maven plugin, the runtime library, the testing library and the web image carry the same version. release-please manages a single version in `gradle.properties`, and every module reads it from there. The agent skills are the exception and are versioned on their own ([record 1](001-product-surfaces-and-distribution.md)).
+**One version for everything.** The Gradle plugin, the Maven plugin, the runtime library, the testing library, the web image and the CLI archives carry the same version. release-please manages a single version in `gradle.properties`, and every module reads it from there. The agent skills are the exception and are versioned on their own ([record 1](001-product-surfaces-and-distribution.md)).
 
 **The public contracts are:**
 
 - the shape and names of the generated API ([record 6](006-generated-api-shape.md)),
 - the public types of the runtime library ([record 8](008-runtime-library-and-process-paths.md)),
-- the names and parameters of the plugin tasks and goals,
+- the names and parameters of the plugin tasks and goals, and the commands, flags and exit codes of the command-line tool ([record 14](014-command-line-tool.md)),
 - the ids of the validation rules,
 - core's `domain` package, for writing custom validation rules and for nothing else.
 
@@ -22,7 +22,7 @@ Everything else in core, including the inbound adapters, is internal and may cha
 
 **Stable surfaces break only in a major release.** A minor release adds; a patch release fixes.
 
-**Experimental surfaces may break in a minor release.** A surface is experimental when the documentation or the code says so. Today that is the C# output and the build-time validation task and goal. The word is "experimental" everywhere.
+**Experimental surfaces may break in a minor release.** A surface is experimental when the documentation or the code says so. Today that is the C# output, the build-time validation task and goal, and the command-line tool. The word is "experimental" everywhere.
 
 **Breaking changes ship without flags or compatibility layers.** A major release changes the output, and the migration guide in the [changelog](/changelog/) describes the way over. There is no option to keep the previous shape and no deprecated copy of a renamed type.
 

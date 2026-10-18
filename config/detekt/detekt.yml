@@ -39,6 +39,8 @@ exceptions:
   active: true
   TooGenericExceptionCaught:
     active: true
+    # the CLI turns every failure into a message and exit code 1 instead of a stack trace
+    excludes: ['**/test/**', '**/bpmn-to-code-cli/src/main/kotlin/io/miragon/bpmn/cli/BpmnToCodeCli.kt']
     exceptionNames:
       - Error
       - Exception
