@@ -34,7 +34,6 @@ cat <<FORMULA
 class BpmnToCode < Formula
   desc "Generates type-safe APIs from BPMN process models and validates them"
   homepage "https://github.com/Miragon/bpmn-to-code"
-  version "${version}"
   license "MIT"
 
   on_macos do
