@@ -12,6 +12,7 @@ import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
 import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.kotlin.CoreEnvironmentDeprecation
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.create
@@ -115,7 +116,7 @@ class KotlinProcessApiBuilderTest {
 
     companion object {
 
-        @OptIn(K1Deprecation::class)
+        @OptIn(K1Deprecation::class, CoreEnvironmentDeprecation::class)
         private val kotlinEnvironment by lazy {
             val config = CompilerConfiguration.create(messageCollector = MessageCollector.NONE)
             KotlinCoreEnvironment.createForProduction(
