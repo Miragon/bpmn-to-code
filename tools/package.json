@@ -8,6 +8,6 @@
     "lint:bpmn:di": "bpmnlint -c .bpmnlintrc-di \"../bpmn-to-code-testing/src/test/resources/bpmn/**/*.bpmn\" \"../bpmn-to-code-core/src/test/resources/bpmn/**/*.bpmn\""
   },
   "devDependencies": {
-    "bpmnlint": "11.12.1"
+    "bpmnlint": "11.15.0"
   }
 }
