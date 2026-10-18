@@ -1,47 +1,101 @@
 version: 2
 updates:
 
-  # Config for all gradle dependencies.
-  # This includes the plugin-core & the gradle-example(s)
+  # Gradle: core, plugins, web, cli, runtime, testing
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    rebase-strategy: "auto"
+    open-pull-requests-limit: 10
     groups:
-      backend-dependencies:
+      gradle-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      gradle-minor-patch:
         patterns:
           - "*"
         update-types:
-          - "patch"
           - "minor"
-          - "major"
+          - "patch"
 
-  # Config for docs website (npm)
+  # npm: docs website and bpmnlint tooling
   - package-ecosystem: "npm"
-    directory: "/docs"
+    directories:
+      - "/docs"
+      - "/tools"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    rebase-strategy: "auto"
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker base image of the web app
+  - package-ecosystem: "docker"
+    directory: "/bpmn-to-code-web"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    rebase-strategy: "auto"
     groups:
-      docs-dependencies:
+      docker-security:
+        applies-to: security-updates
         patterns:
           - "*"
-        update-types:
-          - "patch"
-          - "minor"
-          - "major"
+      docker-images:
+        patterns:
+          - "*"
 
-  # Config for GitHub Actions
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    rebase-strategy: "auto"
     groups:
+      actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
       github-actions:
         patterns:
           - "*"
-        update-types:
-          - "patch"
-          - "minor"
-          - "major"
