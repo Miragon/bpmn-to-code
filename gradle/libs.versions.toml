@@ -3,8 +3,7 @@
 
 [versions]
 kotlin = "2.4.21"
-kotlinpoet = "2.4.0"
-javapoet = "0.21.0"
+freemarker = "2.3.35"
 camunda = "7.24.0"
 jUnit = "6.1.3"
 assertJ = "4.0.0-M1"
@@ -32,8 +31,7 @@ clikt = "5.1.0"
 mavenPluginApi = { module = "org.apache.maven:maven-plugin-api", version = "3.10.0" }
 mavenPluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin-annotations", version = "3.16.0" }
 # Production dependencies
-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
-javapoet = { module = "com.palantir.javapoet:javapoet", version.ref = "javapoet" }
+freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
 bpmnmodel = { module = "org.camunda.bpm.model:camunda-bpmn-model", version.ref = "camunda" }
 
 # Web module dependencies
@@ -71,7 +69,7 @@ jmhCore = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmhAnnotationProcessor = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 
 [bundles]
-codegen = ["kotlinpoet", "javapoet"]
+codegen = ["freemarker"]
 testing = ["junit", "junitPlatformLauncher", "assertj", "mockk"]
 ktor = ["ktorServerCore", "ktorServerNetty", "ktorServerContentNegotiation", "ktorSerializationKotlinxJson", "ktorServerCors", "ktorServerCallLogging", "ktorServerStatusPages", "ktorServerSwagger", "ktorServerOpenapi"]
 

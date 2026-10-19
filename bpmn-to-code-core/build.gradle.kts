@@ -21,6 +21,7 @@ dependencies {
     api(libs.kotlinLogging)
     testImplementation(libs.bundles.testing)
     testImplementation(kotlin("compiler-embeddable"))
+    testImplementation(kotlin("reflect"))
     testImplementation(libs.jsonSchemaValidator)
     testImplementation(project(":bpmn-to-code-runtime"))
     testRuntimeOnly(libs.junitPlatformLauncher)
@@ -78,6 +79,7 @@ pitest {
         "io.miragon.bpmn.adapter.outbound.engine.*Constants*",
         "io.miragon.bpmn.adapter.outbound.json.model.*",
     )
+    excludedTestClasses.add("io.miragon.bpmn.adapter.outbound.codegen.surface.GeneratedApiSurfaceTest")
     mutationThreshold.set(80)
     jvmArgs.add("-Druntime.test.sources=${runtimeTestSources.absolutePath}")
 }
