@@ -183,4 +183,4 @@ tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
 - [Generated API](/guide/generated-api): what the files contain and how to use them.
 - [Modeling](/guide/modeling): how ids and variable declarations in the model shape the API.
 - [Agent Skills](/skills/): `setup-bpmn-to-code` configures the plugin for you, `migrate-to-bpmn-to-code-apis` replaces hardcoded strings with the generated API.
-- Example project: [easy-zeebe](https://github.com/emaarco/easy-zeebe), a Zeebe service built on the Gradle plugin.
+- Example project: [zeebe-example](https://github.com/miragon-blueprints/zeebe-example), a Zeebe service built on the Gradle plugin (`kotlin-gradle/`).
