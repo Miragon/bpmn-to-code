@@ -33,7 +33,7 @@ import { ideTabs, generateCompare, validateRules, skills } from './data'
         <div class="intro">
           <p class="eyebrow"><span class="num">01</span><span class="name">Generate</span><span class="sub">compile-time safety</span></p>
           <h2>BPMN strings break silently. <span class="accent">Until runtime.</span></h2>
-          <p>Your Zeebe and Camunda code is full of references to BPMN elements: process IDs, message names, task types. Rename one in the modeler and nothing warns you until it fails in production. bpmn-to-code generates a type-safe Process API in Kotlin, Java or C# (experimental) from your <code>.bpmn</code> files, via Gradle, Maven or the web app.</p>
+          <p>Your Zeebe and Camunda code is full of references to BPMN elements: process IDs, message names, task types. Rename one in the modeler and nothing warns you until it fails in production. bpmn-to-code generates a type-safe Process API in Kotlin, Java, C# or TypeScript (both experimental) from your <code>.bpmn</code> files, via Gradle, Maven, the command line, npm, NuGet or the web app.</p>
           <a class="text-link" :href="withBase('/guide/generated-api')">Learn how the generated API works <LucideIcon name="arrow-right" /></a>
         </div>
         <CompareCards

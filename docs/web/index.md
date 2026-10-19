@@ -64,7 +64,7 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
   }'
 ```
 
-`outputLanguage` is `KOTLIN`, `JAVA` or `CSHARP`; `processEngine` is `ZEEBE`, `CAMUNDA_7` or `OPERATON`. `POST /api/generate-json` takes the same body with only `processEngine` in `config`.
+`outputLanguage` is `KOTLIN`, `JAVA`, `CSHARP` or `TYPESCRIPT`; `processEngine` is `ZEEBE`, `CAMUNDA_7` or `OPERATON`. `POST /api/generate-json` takes the same body with only `processEngine` in `config`.
 
 ### Response of `/api/generate`
 
@@ -87,7 +87,7 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
 ```
 
 - `files` holds one Process API per BPMN file plus the [shared definition files](/guide/generated-api#shared-definitions), which have `processId: null`.
-- `libraryFiles` holds the sources of `bpmn-to-code-runtime` and `runtimeDependency` its coordinates. Both are left out for C#, which needs no runtime.
+- `libraryFiles` holds the sources of `bpmn-to-code-runtime` and `runtimeDependency` its coordinates. Both are left out for C# and TypeScript, which need no runtime.
 - `/api/generate-json` answers with `success` and `files` only, one `<processId>.json` per BPMN file.
 
 ### Errors

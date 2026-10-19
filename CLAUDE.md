@@ -17,6 +17,7 @@ bpmn-to-code generates type-safe APIs from BPMN process models and validates tho
 - `shared/bpmn`: MiraVelo BPMN models all modules test against
 - `tools`: bpmnlint for those models
 - `packages/nuget`: .NET tool that starts the CLI, the C# runtime package and the MSBuild integration (not a Gradle module)
+- `packages/npm`: npm package that starts the CLI and the TypeScript runtime package (not a Gradle module)
 - `docs`: VitePress site
 
 Read before changing structure: [`docs/contributing/architecture.md`](docs/contributing/architecture.md) (modules, layers). Quality gates, test layers and PR rules: [`docs/contributing/index.md`](docs/contributing/index.md). Why things are the way they are: `docs/contributing/adr/`. How BPMN models are named and structured: [`docs/guide/modeling.md`](docs/guide/modeling.md). Kotlin style: `.claude/rules/`.
@@ -34,6 +35,7 @@ Read before changing structure: [`docs/contributing/architecture.md`](docs/contr
 - Lines target 120 characters. ktlint wraps longer lines but never joins shorter ones, so collapse by hand whatever fits on one line.
 - No baseline and no suppressions: fix the finding, or add a scoped, commented exception to the config.
 - The C# compilation test is skipped without a `dotnet` command, so a green local build proves nothing about generated C#. See the architecture page for how to run it.
+- The TypeScript compilation test is skipped until `npm ci --prefix bpmn-to-code-core/src/test/typescript` has run.
 
 ## How to work
 
