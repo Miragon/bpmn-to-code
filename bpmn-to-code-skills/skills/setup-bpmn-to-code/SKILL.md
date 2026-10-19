@@ -24,7 +24,8 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    |---|---|
    | `build.gradle.kts` or `build.gradle` | [resources/gradle.md](resources/gradle.md) |
    | `pom.xml` | [resources/maven.md](resources/maven.md) |
-   | neither, or a `*.csproj` | [resources/cli.md](resources/cli.md) |
+   | a `*.csproj` | [resources/dotnet.md](resources/dotnet.md) |
+   | neither | [resources/cli.md](resources/cli.md) |
 
    In a multi-module build, ask which module holds the BPMN files and set it up there.
 

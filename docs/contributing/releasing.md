@@ -13,6 +13,7 @@ Everything shares one version, `projectVersion` in `gradle.properties`.
 | `miragon/bpmn-to-code-web:<version>` and `:latest` | Docker Hub | `publish-to-docker.yml` |
 | `bpmn-to-code-<version>-<platform>.zip`, the command-line tool with a Java runtime, for `linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64` and `win32-x64`, plus `SHA256SUMS` | Assets of the GitHub release, with a build provenance attestation | `publish-cli.yml` |
 | Homebrew formula `bpmn-to-code` | `Miragon/homebrew-tap`, pull request merged by the Miragon release-please app | `publish-homebrew.yml` |
+| .NET tool `Miragon.BpmnToCode`, one package per platform plus the package that points to them; `Miragon.BpmnToCode.Runtime`; `Miragon.BpmnToCode.MSBuild` | nuget.org | `publish-to-nuget.yml` |
 | Deployment of the hosted web app | Pull request in `Miragon/ops` | `update-ops-deployment.yml` |
 | This documentation site | GitHub Pages | `deploy-docs.yml` |
 
@@ -25,7 +26,7 @@ Everything runs in one workflow, `release-please.yml`, on every push to `main`:
 3. The run then waits at the `release` environment until a maintainer approves it. One approval unblocks all publish jobs.
 4. Maven Central is published first, then the Gradle Plugin Portal. The order matters: the Gradle plugin adds `bpmn-to-code-runtime` in its own version to consuming projects, so the runtime has to be resolvable before the plugin is.
 5. In parallel, the Docker image is built for `linux/amd64` and pushed as `<version>` and `latest`, and `bpmn-to-code-web/README.md` is uploaded as the Docker Hub description. Afterwards a pull request in `Miragon/ops` bumps the deployment to the new version; it is merged by hand.
-6. In parallel, one runner per platform builds the CLI archive, starts it once without a JDK and the archives are attached to the GitHub release. For a stable release the Homebrew formula is then written from `SHA256SUMS`, installed, tested and audited on macOS (arm64, Intel) and Linux, and merged into `Miragon/homebrew-tap`; `gh workflow run publish-homebrew.yml -f version=<version> -f dry-run=true` checks an existing release without publishing.
+6. In parallel, one runner per platform builds the CLI archive, starts it once without a JDK and the archives are attached to the GitHub release. For a stable release the Homebrew formula is then written from `SHA256SUMS`, installed, tested and audited on macOS (arm64, Intel) and Linux, and merged into `Miragon/homebrew-tap`; `gh workflow run publish-homebrew.yml -f version=<version> -f dry-run=true` checks an existing release without publishing. `publish-to-nuget.yml` takes the archives from the same run, packs them into the .NET tool and packs the runtime and MSBuild packages, runs the tool from the local folder, builds a new project on the MSBuild package from that folder, and pushes the packages to nuget.org. It logs in through trusted publishing: the repository variable `NUGET_USER` names the nuget.org account, and no API key is stored. The workflow can only be called from `release-please.yml`, because it needs the archives of the same run.
 7. The documentation is built and deployed.
 
 Each publish workflow runs `./gradlew build` before it publishes; the CLI workflow runs the build of the CLI module on every platform.
@@ -38,7 +39,7 @@ A file that carries the current version as a literal must be listed in `extra-fi
 gh workflow run release-please.yml -f dry_run=true
 ```
 
-This skips the Release PR and the GitHub release and runs every publish job in build-and-verify mode: Maven artifacts go to the local repository, the Gradle plugin is validated only, the image is built but not pushed, the ops change is shown as a diff, the docs are built but not deployed. The approval gate still applies. The publish workflows accept the same `dry_run` input when dispatched on their own.
+This skips the Release PR and the GitHub release and runs every publish job in build-and-verify mode: Maven artifacts go to the local repository, the Gradle plugin is validated only, the image is built but not pushed, the NuGet packages are packed and smoke-tested but not pushed, the ops change is shown as a diff, the docs are built but not deployed. The approval gate still applies. The publish workflows accept the same `dry_run` input when dispatched on their own.
 
 ### Documentation
 

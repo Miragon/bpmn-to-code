@@ -6,7 +6,7 @@ Users compile against generated code, configure plugins in their build, parse th
 
 ## Decision
 
-**One version for everything.** The Gradle plugin, the Maven plugin, the runtime library, the testing library, the web image and the CLI archives carry the same version. release-please manages a single version in `gradle.properties`, and every module reads it from there. The agent skills carry the same version in their `plugin.json` ([record 15](015-agent-skills.md)).
+**One version for everything.** The Gradle plugin, the Maven plugin, the runtime library, the testing library, the web image, the CLI archives and the NuGet packages carry the same version. release-please manages a single version in `gradle.properties`, and every module reads it from there. The agent skills carry the same version in their `plugin.json` ([record 15](015-agent-skills.md)).
 
 **The public contracts are:**
 
@@ -22,7 +22,7 @@ Everything else in core, including the inbound adapters, is internal and may cha
 
 **Stable surfaces break only in a major release.** A minor release adds; a patch release fixes.
 
-**Experimental surfaces may break in a minor release.** A surface is experimental when the documentation or the code says so. Today that is the C# output, the build-time validation task and goal, and the command-line tool. The word is "experimental" everywhere.
+**Experimental surfaces may break in a minor release.** A surface is experimental when the documentation or the code says so. Today that is the C# output with its packages, the build-time validation task and goal, and the command-line tool. The word is "experimental" everywhere.
 
 **Breaking changes ship without flags or compatibility layers.** A major release changes the output, and the migration guide in the [changelog](/changelog/) describes the way over. There is no option to keep the previous shape and no deprecated copy of a renamed type.
 

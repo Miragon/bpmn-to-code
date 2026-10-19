@@ -6,7 +6,7 @@ bpmn-to-code reaches its users in several ways: as a build plugin, in the browse
 
 ## Decision
 
-**Published surfaces.** Seven things are shipped:
+**Published surfaces.** Ten things are shipped:
 
 - the Gradle plugin `io.miragon.bpmn-to-code-gradle` (Gradle Plugin Portal),
 - the Maven plugin `io.miragon:bpmn-to-code-maven`,
@@ -14,6 +14,9 @@ bpmn-to-code reaches its users in several ways: as a build plugin, in the browse
 - the runtime library `io.miragon:bpmn-to-code-runtime` ([record 8](008-runtime-library-and-process-paths.md)),
 - the web application as the Docker image `miragon/bpmn-to-code-web` ([record 12](012-web-application.md)),
 - the command-line tool as one archive per platform on the GitHub release, with its own Java runtime, and as the Homebrew formula `miragon/tap/bpmn-to-code` ([record 14](014-command-line-tool.md)),
+- the same tool as the .NET tool `Miragon.BpmnToCode` on nuget.org ([record 14](014-command-line-tool.md)),
+- the C# runtime package `Miragon.BpmnToCode.Runtime` on nuget.org ([record 7](007-output-languages.md)),
+- the MSBuild integration `Miragon.BpmnToCode.MSBuild` on nuget.org, which generates during `dotnet build` through the .NET tool ([record 14](014-command-line-tool.md)),
 - the agent skills in `bpmn-to-code-skills/`, a Claude Code plugin installed through the marketplace manifest in the repository root.
 
 **Core is not published.** `bpmn-to-code-core` has no coordinates. The Gradle plugin, the Maven plugin and the testing library declare it `compileOnly` and copy its compiled classes into their own jar; core's third-party dependencies are declared again in each of them. Nothing is relocated. Only the web module and the command-line tool use core as an ordinary project dependency.

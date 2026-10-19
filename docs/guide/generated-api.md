@@ -203,13 +203,12 @@ public static class BikeLeasingProcessApi
     public const string ProcessId = "bikeLeasing";
     public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
 
-    public static class Runtime { /* IFlowNode, SequenceFlows<T>, ElementId, VariableName, … inlined */ }
-
     public static class FlowNodes
     {
-        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
+        public static ServiceTaskSendContractNode ServiceTaskSendContract => ServiceTaskSendContractNode.Instance;
+
+        public sealed class ServiceTaskSendContractNode : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
         {
-            public static readonly ServiceTaskSendContract Instance = new();
             // …
             public const string ElementId = "serviceTask_sendContract";
             public Runtime.ElementId Id { get; } = new(ElementId);
@@ -225,10 +224,11 @@ public static class BikeLeasingProcessApi
                 // All …
             }
 
-            public Successors Next => new();
+            public Successors Next => _next ??= new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<GatewayAwaitSignature> GatewayAwaitSignature => Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), FlowNodes.GatewayAwaitSignature.Instance);
+                public Runtime.SequenceFlows<GatewayAwaitSignatureNode> GatewayAwaitSignature => _gatewayAwaitSignature ??= Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), FlowNodes.GatewayAwaitSignature);
+                // …
             }
         }
     }
@@ -269,7 +269,7 @@ Each node extends `AbstractFlowNode` and implements one runtime interface per fa
 | `next`, `HasSuccessors<Next>` | nodes with successors | see [Navigation](#navigation) | `outgoing`, `boundaryEventRefs`, `compensationHandlerRef` |
 | `startEvents`, `FlowScope<Start>` | subprocesses | the interior's start events | `flowNodes[]` of the subprocess |
 
-Kotlin reaches a node as `FlowNodes.ServiceTaskSendContract`, Java through an accessor and getters (`FlowNodes.serviceTaskSendContract().getJobType()`), C# through its singleton (`FlowNodes.ServiceTaskSendContract.Instance.JobType`; the interfaces are `Runtime.IHasJobType`, `Runtime.ITimerEvent`, …).
+Kotlin reaches a node as `FlowNodes.ServiceTaskSendContract`, Java through an accessor and getters (`FlowNodes.serviceTaskSendContract().getJobType()`), C# through a property as well (`FlowNodes.ServiceTaskSendContract.JobType`, typed `FlowNodes.ServiceTaskSendContractNode`; the interfaces are `Runtime.IHasJobType`, `Runtime.ITimerEvent`, …).
 
 Because every facet is an interface, generic code can pick the nodes that carry it:
 
@@ -416,7 +416,7 @@ object Variables : RegisteredVariableDefinitions() {
 
 | | Kotlin | Java | C# |
 |---|---|---|---|
-| One variable | `ServiceTaskSendContract.variables.APPLICATION_ID` | `ServiceTaskSendContract.Variables.APPLICATION_ID` | `ServiceTaskSendContract.Instance.Variables.ApplicationId` |
+| One variable | `ServiceTaskSendContract.variables.APPLICATION_ID` | `ServiceTaskSendContract.Variables.APPLICATION_ID` | `ServiceTaskSendContract.Variables.ApplicationId` |
 | All / read / written | `variables.all` / `.inputs` / `.outputs` | `getVariables().getAll()` / `.getInputs()` / `.getOutputs()` | `Variables.All` / `.Inputs` / `.Outputs` |
 
 ```kotlin
@@ -465,11 +465,12 @@ Two files declaring the same process id would be generated under one name, so ge
 C# output is experimental. It may change in a minor release and may be reworked or removed if it does not work out. [Feedback welcome](https://github.com/Miragon/bpmn-to-code/issues).
 :::
 
-- **No package dependency.** The runtime types the nodes need are inlined into every Process API file as a nested `Runtime` class, so a `.cs` file drops into any project and two generated files never clash. The flip side: `AProcessApi.Runtime.IFlowNode` and `BProcessApi.Runtime.IFlowNode` are unrelated types, so tooling that spans several processes needs its own abstraction.
+- **The runtime types come from `Miragon.BpmnToCode.Runtime`**, the NuGet package of the generator's version; [`Miragon.BpmnToCode.MSBuild`](/getting-started/dotnet) adds it. The generated code names them as `global::Miragon.BpmnToCode.Runtime.IFlowNode` and so on, so no type or namespace of your own can shadow them. A library can type against `IFlowNode` or take a `ProcessPath` whatever Process API it is used with. `ElementId`, `ProcessId`, `MessageName`, `SignalName` and `VariableName` convert implicitly to `string`. The [process path](/guide/process-path#from-c-sharp) lives in the package too.
 - **Shared definitions are plain `const string`s.** Errors and escalations are a nested class with `Reference` and `Code`; their `All` lists `(Reference, Code)` tuples.
-- **Nodes are sealed singletons**: `FlowNodes.<Node>.Instance`, navigated through `Instance.Next.X.Target`, `Instance.Next.X.Flow.ConditionExpression` and `Instance.Start.X`.
-- **Constants versus properties.** `ServiceTasks.X`, `ProcessVariables.X` and a node's `ElementId` are `const string` and usable in attributes and `switch` labels. `Id`, `Name`, `JobType` and the other facets are instance properties and are not.
+- **Nodes are properties of `FlowNodes`**: `FlowNodes.ServiceTaskSendContract`, navigated through `Next.X.Target`, `Next.X.Flow.ConditionExpression` and `Start.X`. Their type carries a `Node` suffix (`FlowNodes.ServiceTaskSendContractNode`), so no member has to make way for the type's name. `Next`, `Start` and every successor are built on first read and kept.
+- **The namespace is the package path in PascalCase**: `io.miravelo.process` becomes `Io.Miravelo.Process`; the files still go to `io/miravelo/process`.
+- **Constants versus properties.** `ServiceTasks.X`, `ProcessVariables.X` and a node's `ElementId` (`FlowNodes.ServiceTaskSendContractNode.ElementId`) are `const string` and usable in attributes and `switch` labels. `Id`, `Name`, `JobType` and the other facets are instance properties and are not.
 - A variable named `all`, `inputs` or `outputs` gets a trailing underscore (`Inputs_`), because the holder inherits members of those names.
 - Each file is marked `<auto-generated/>`, enables nullable annotations itself and suppresses CS1591, so it compiles under any consumer settings.
 
-The web app is the primary surface for C#, since a pure .NET project has no JVM build to hook into. The Gradle and Maven plugins accept `CSHARP` as well.
+A .NET project generates C# during `dotnet build` with the [MSBuild package](/getting-started/dotnet); the web app, the command line and the Gradle and Maven plugins accept `CSHARP` as well.

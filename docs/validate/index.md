@@ -30,7 +30,7 @@ Two details:
 | `missing-element-id` | ERROR | Flow node without an `id` · **mandatory** |
 | `missing-process-id` | ERROR | Process without an `id` · **mandatory** |
 | `empty-process` | WARN | Process without flow nodes |
-| `collision-detection` | ERROR | Within one process: two element IDs that would be generated under the same name (`task_ship` and `task-ship`), the same ID declared in two scopes, or two mapping targets of one call activity that normalize to the same constant · **mandatory** |
+| `collision-detection` | ERROR | Within one process: two element IDs that would be generated under the same name (`task_ship` and `task-ship`), an element named like the C# node type of another (`task` and `taskNode`), the same ID declared in two scopes, or two mapping targets of one call activity that normalize to the same constant · **mandatory** |
 | `reserved-element-name` | ERROR | Element ID that would be generated as a name the Process API reserves (`FlowNodes`, `All`, `Next`, `Instance`, runtime types, shared definitions, C# node members like `Id` or `Message`, …) · **mandatory** |
 | `shared-definition-collision` | ERROR | Across all processes of the run: two different job types, messages, signals, errors, escalations or variables that normalize to the same constant name (`order.created` and `order-created`) · **mandatory** |
 | `engine-mismatch` | ERROR / WARN | ERROR when the engine detected from the model's namespaces differs from the selected one; WARN when no engine can be detected |

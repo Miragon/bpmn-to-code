@@ -78,7 +78,7 @@ dependencies {
 ```
 <!-- x-release-please-end -->
 
-C# output needs no runtime; its types are [inlined](/guide/generated-api#c-specifics).
+C# output takes its types from the NuGet package `Miragon.BpmnToCode.Runtime` instead ([C# specifics](/guide/generated-api#c-specifics)).
 
 ## 4. Generate the API
 

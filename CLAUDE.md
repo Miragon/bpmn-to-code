@@ -16,6 +16,7 @@ bpmn-to-code generates type-safe APIs from BPMN process models and validates tho
 - `bpmn-to-code-skills`: Claude Code plugin shipped to users (not a Gradle module)
 - `shared/bpmn`: MiraVelo BPMN models all modules test against
 - `tools`: bpmnlint for those models
+- `packages/nuget`: .NET tool that starts the CLI, the C# runtime package and the MSBuild integration (not a Gradle module)
 - `docs`: VitePress site
 
 Read before changing structure: [`docs/contributing/architecture.md`](docs/contributing/architecture.md) (modules, layers). Quality gates, test layers and PR rules: [`docs/contributing/index.md`](docs/contributing/index.md). Why things are the way they are: `docs/contributing/adr/`. How BPMN models are named and structured: [`docs/guide/modeling.md`](docs/guide/modeling.md). Kotlin style: `.claude/rules/`.
