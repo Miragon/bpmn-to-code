@@ -115,6 +115,16 @@ jobs:
     with:
       dry_run: ${{ inputs.dry_run == true }}
 
+  publish-npm:
+    name: Publish to npm
+    needs: gate
+    uses: ./.github/workflows/publish-to-npm.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      dry_run: ${{ inputs.dry_run == true }}
+
   publish-nuget:
     name: Publish to NuGet
     needs: gate

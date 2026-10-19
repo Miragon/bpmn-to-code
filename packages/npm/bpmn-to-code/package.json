@@ -1,0 +1,36 @@
+{
+  "name": "@miragon/bpmn-to-code",
+  "version": "0.0.0-development",
+  "description": "Generates type-safe TypeScript, Kotlin, Java and C# APIs from BPMN process models and validates them",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miragon/bpmn-to-code.git",
+    "directory": "packages/npm/bpmn-to-code"
+  },
+  "homepage": "https://miragon.github.io/bpmn-to-code/",
+  "keywords": [
+    "bpmn",
+    "camunda",
+    "zeebe",
+    "operaton",
+    "codegen",
+    "typescript"
+  ],
+  "bin": {
+    "bpmn-to-code": "bin/bpmn-to-code.cjs"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "@miragon/bpmn-to-code-darwin-arm64": "0.0.0-development",
+    "@miragon/bpmn-to-code-darwin-x64": "0.0.0-development",
+    "@miragon/bpmn-to-code-linux-arm64": "0.0.0-development",
+    "@miragon/bpmn-to-code-linux-x64": "0.0.0-development",
+    "@miragon/bpmn-to-code-win32-x64": "0.0.0-development"
+  }
+}

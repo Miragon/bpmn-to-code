@@ -24,12 +24,19 @@ enum class RuntimeLibrary(
         importedFrom = "Miragon.BpmnToCode.Runtime",
         sourcesDirectory = "Miragon.BpmnToCode.Runtime",
     ),
+    TYPESCRIPT(
+        resourceDirectory = "typescript",
+        packageName = "@miragon/bpmn-to-code-runtime",
+        importedFrom = "@miragon/bpmn-to-code-runtime",
+        sourcesDirectory = "bpmn-to-code-runtime",
+    ),
     ;
 
     companion object {
         fun of(language: OutputLanguage): RuntimeLibrary = when (language) {
             OutputLanguage.KOTLIN, OutputLanguage.JAVA -> JVM
             OutputLanguage.CSHARP -> CSHARP
+            OutputLanguage.TYPESCRIPT -> TYPESCRIPT
         }
     }
 }

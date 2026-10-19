@@ -28,11 +28,12 @@ updates:
           - "minor"
           - "patch"
 
-  # npm: docs website and bpmnlint tooling
+  # npm: docs website, bpmnlint and tsc tooling, TypeScript runtime package
   - package-ecosystem: "npm"
     directories:
       - "/docs"
       - "/tools"
+      - "/packages/npm/bpmn-to-code-runtime"
     schedule:
       interval: "monthly"
     cooldown:

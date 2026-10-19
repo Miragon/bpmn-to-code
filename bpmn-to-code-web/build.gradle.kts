@@ -64,6 +64,10 @@ val copyLibrarySources by tasks.registering(Sync::class) {
         exclude("bin/**", "obj/**")
         into("csharp")
     }
+    from(rootProject.layout.projectDirectory.dir("packages/npm/bpmn-to-code-runtime/src")) {
+        include("*.ts")
+        into("typescript")
+    }
 }
 
 // Bundle one engine-specific bike-leasing example per engine for the demo
@@ -79,7 +83,7 @@ val copyExampleModels by tasks.registering(Copy::class) {
 
 val generateLibrarySourcesManifest by tasks.registering {
     dependsOn(copyLibrarySources)
-    val languages = listOf("kotlin", "csharp")
+    val languages = listOf("kotlin", "csharp", "typescript")
     val sourcesDir = librarySourcesDir
     outputs.files(languages.map { language -> sourcesDir.map { it.file("$language/manifest.txt") } })
     doLast {

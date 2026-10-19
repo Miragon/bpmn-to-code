@@ -12,4 +12,10 @@ enum class OutputLanguage {
      * `Miragon.BpmnToCode.Runtime`.
      */
     CSHARP,
+
+    /**
+     * Same API surface as the other languages; the runtime types and `ProcessPath` come from the npm package
+     * `@miragon/bpmn-to-code-runtime`.
+     */
+    TYPESCRIPT,
 }

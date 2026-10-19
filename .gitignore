@@ -3,6 +3,7 @@ build
 .idea
 .kotlin
 bin
+!packages/npm/bpmn-to-code/bin
 .vscode
 .DS_Store
 target

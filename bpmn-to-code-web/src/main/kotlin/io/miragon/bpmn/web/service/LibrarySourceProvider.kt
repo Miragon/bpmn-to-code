@@ -47,6 +47,11 @@ class LibrarySourceProvider {
             Snippet(label = ".NET CLI", code = "dotnet add package ${library.packageName} --version $version"),
             Snippet(label = "PackageReference", code = "<PackageReference Include=\"${library.packageName}\" Version=\"$version\" />"),
         )
+
+        RuntimeLibrary.TYPESCRIPT -> listOf(
+            Snippet(label = "npm", code = "npm install ${library.packageName}@$version"),
+            Snippet(label = "pnpm", code = "pnpm add ${library.packageName}@$version"),
+        )
     }
 
     private fun loadLibraryFiles(library: RuntimeLibrary): List<GenerateResponse.GeneratedFile> {

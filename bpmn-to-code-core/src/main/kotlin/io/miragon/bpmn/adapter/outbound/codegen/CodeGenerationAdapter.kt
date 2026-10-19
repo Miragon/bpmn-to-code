@@ -6,6 +6,8 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaProcessApiBuild
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSharedDefinitionsBuilder
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -35,11 +37,13 @@ internal class CodeGenerationAdapter(
             OutputLanguage.KOTLIN to KotlinProcessApiBuilder(),
             OutputLanguage.JAVA to JavaProcessApiBuilder(),
             OutputLanguage.CSHARP to CSharpProcessApiBuilder(),
+            OutputLanguage.TYPESCRIPT to TypeScriptProcessApiBuilder(),
         )
         val sharedDefinitionsBuilders: Map<OutputLanguage, SharedDefinitionsBuilder> = mapOf(
             OutputLanguage.KOTLIN to KotlinSharedDefinitionsBuilder(),
             OutputLanguage.JAVA to JavaSharedDefinitionsBuilder(),
             OutputLanguage.CSHARP to CSharpSharedDefinitionsBuilder(),
+            OutputLanguage.TYPESCRIPT to TypeScriptSharedDefinitionsBuilder(),
         )
     }
 }

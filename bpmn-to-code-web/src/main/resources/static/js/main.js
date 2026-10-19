@@ -69,8 +69,8 @@ function switchTab(tab) {
 }
 
 /**
- * Only the Kotlin and Java output compile against runtime sources placed next to them; the C# output references its
- * runtime as a NuGet package, so the toggle has nothing to offer there.
+ * Only the Kotlin and Java output compile against runtime sources placed next to them; the C# and TypeScript output
+ * reference their runtime as a NuGet or npm package, so the toggle has nothing to offer there.
  */
 function updateIncludeSourcesVisibility() {
     const jvmTarget = ['KOTLIN', 'JAVA'].includes(document.getElementById('output-language').value);
@@ -300,8 +300,8 @@ async function handleGenerate(e) {
     }
 }
 
-const HIGHLIGHT_CLASSES = { KOTLIN: 'kotlin', JAVA: 'java', CSHARP: 'csharp' };
-const LIBRARY_HIGHLIGHT_CLASSES = { kt: 'kotlin', cs: 'csharp' };
+const HIGHLIGHT_CLASSES = { KOTLIN: 'kotlin', JAVA: 'java', CSHARP: 'csharp', TYPESCRIPT: 'typescript' };
+const LIBRARY_HIGHLIGHT_CLASSES = { kt: 'kotlin', cs: 'csharp', ts: 'typescript' };
 
 function renderResults(files) {
     const languageClass = state.activeTab === 'json'

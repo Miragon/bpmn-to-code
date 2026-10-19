@@ -1,0 +1,18 @@
+{
+  "name": "@miragon/bpmn-to-code-${platform}",
+  "version": "${version}",
+  "description": "The bpmn-to-code command-line tool with its Java runtime for ${platform}; installed by @miragon/bpmn-to-code",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miragon/bpmn-to-code.git",
+    "directory": "packages/npm/platform"
+  },
+  "os": [
+    "${os}"
+  ],
+  "cpu": [
+    "${cpu}"
+  ],
+  "preferUnplugged": true
+}

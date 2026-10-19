@@ -10,7 +10,7 @@ class LibrarySourceProviderTest {
     private val underTest = LibrarySourceProvider()
 
     @ParameterizedTest
-    @CsvSource("JVM, .kt", "CSHARP, .cs")
+    @CsvSource("JVM, .kt", "CSHARP, .cs", "TYPESCRIPT, .ts")
     fun `libraryFiles exposes the bundled sources of each runtime library`(library: RuntimeLibrary, extension: String) {
         val files = underTest.libraryFiles(library)
 
@@ -23,8 +23,9 @@ class LibrarySourceProviderTest {
     }
 
     @Test
-    fun `libraryFiles of the C# runtime include ProcessPath`() {
+    fun `libraryFiles of the C# and TypeScript runtimes include ProcessPath`() {
         assertThat(underTest.libraryFiles(RuntimeLibrary.CSHARP).map { it.fileName }).contains("Path/ProcessPath.cs")
+        assertThat(underTest.libraryFiles(RuntimeLibrary.TYPESCRIPT).map { it.fileName }).contains("process-path.ts")
     }
 
     @Test
@@ -46,10 +47,12 @@ class LibrarySourceProviderTest {
     }
 
     @Test
-    fun `runtimeDependency names the NuGet package in the same version`() {
+    fun `runtimeDependency names the NuGet and npm packages in the same version`() {
         val csharp = underTest.runtimeDependency(RuntimeLibrary.CSHARP)
+        val typescript = underTest.runtimeDependency(RuntimeLibrary.TYPESCRIPT)
 
         assertThat(csharp.snippets.map { it.code }).contains("dotnet add package Miragon.BpmnToCode.Runtime --version ${csharp.version}")
-        assertThat(csharp.importedFrom).isEqualTo("Miragon.BpmnToCode.Runtime")
+        assertThat(typescript.snippets.map { it.code }).contains("npm install @miragon/bpmn-to-code-runtime@${typescript.version}")
+        assertThat(typescript.importedFrom).isEqualTo("@miragon/bpmn-to-code-runtime")
     }
 }

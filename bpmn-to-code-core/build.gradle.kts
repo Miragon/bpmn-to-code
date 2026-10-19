@@ -43,10 +43,12 @@ tasks.processResources {
 private val runtimeTestSources = rootProject.file("bpmn-to-code-runtime/src/test")
 private val csharpRuntime = rootProject.file("packages/nuget/src/Miragon.BpmnToCode.Runtime")
 private val csharpRuntimeTests = rootProject.file("packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests")
+private val typescriptRuntime = rootProject.file("packages/npm/bpmn-to-code-runtime")
 private val runtimeLocations = mapOf(
     "runtime.test.sources" to runtimeTestSources,
     "csharp.runtime" to csharpRuntime,
     "csharp.runtime.tests" to csharpRuntimeTests,
+    "typescript.runtime" to typescriptRuntime,
 )
 
 tasks.named<Test>("test") {
@@ -59,6 +61,7 @@ tasks.named<Test>("test") {
     )
     inputs.files(fileTree(csharpRuntime) { include("**/*.cs") })
     inputs.files(fileTree(csharpRuntimeTests) { include("Example/*.cs") })
+    inputs.files(fileTree(typescriptRuntime) { include("src/**/*.ts", "test/example/*.ts") })
 }
 
 private val coverageExclusions = listOf(

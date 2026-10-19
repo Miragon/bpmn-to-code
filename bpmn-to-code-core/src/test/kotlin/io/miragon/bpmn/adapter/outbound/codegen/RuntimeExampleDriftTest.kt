@@ -8,8 +8,8 @@ import java.io.File
 /**
  * Keeps the runtime libraries' checked-in example APIs in lockstep with the codegen goldens.
  *
- * `bpmn-to-code-runtime/src/test` compiles a copy of the generated bike-leasing API in Kotlin and Java, the C#
- * runtime's tests one in C#, and they run the `ProcessPath` tests over it.
+ * `bpmn-to-code-runtime/src/test` compiles a copy of the generated bike-leasing API in Kotlin and Java, the C# and
+ * TypeScript runtimes' tests one in their language, and they run the `ProcessPath` tests over it.
  * The runtimes cannot depend on core, so this test lives here and compares the goldens to the copies,
  * ignoring only the `package` or `namespace` line.
  *
@@ -19,6 +19,7 @@ class RuntimeExampleDriftTest {
 
     private val runtimeTestSources = File(System.getProperty("runtime.test.sources"))
     private val csharpRuntimeTests = File(System.getProperty("csharp.runtime.tests"))
+    private val typescriptRuntime = File(System.getProperty("typescript.runtime"))
 
     @ParameterizedTest
     @CsvSource(
@@ -45,6 +46,20 @@ class RuntimeExampleDriftTest {
         val expected = readResource(golden).replaceFirst(Regex("^namespace .*;$", RegexOption.MULTILINE), "namespace $CSHARP_EXAMPLE_NAMESPACE;")
 
         assertExampleEquals(csharpRuntimeTests.resolve("Example/$example"), expected)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "/api/BikeLeasingProcessApiTypeScript.txt, BikeLeasingProcessApi.ts",
+        "/api/shared-definitions/typescript/Errors.txt, Errors.ts",
+        "/api/shared-definitions/typescript/Escalations.txt, Escalations.ts",
+        "/api/shared-definitions/typescript/Messages.txt, Messages.ts",
+        "/api/shared-definitions/typescript/ProcessVariables.txt, ProcessVariables.ts",
+        "/api/shared-definitions/typescript/ServiceTasks.txt, ServiceTasks.ts",
+        "/api/shared-definitions/typescript/Signals.txt, Signals.ts",
+    )
+    fun `typescript runtime example equals the golden`(golden: String, example: String) {
+        assertExampleEquals(typescriptRuntime.resolve("test/example/$example"), readResource(golden))
     }
 
     private fun assertExampleEquals(exampleFile: File, expected: String) {

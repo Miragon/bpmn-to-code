@@ -56,7 +56,7 @@ val runtimeImage by tasks.registering(Exec::class) {
     }
 }
 
-// The jars in lib/ and the Java runtime in runtime/: what the archive and the NuGet packages carry
+// The jars in lib/ and the Java runtime in runtime/: what the archive, the npm and the NuGet packages carry
 val toolDistribution by tasks.registering(Sync::class) {
     group = "distribution"
     description = "Assembles the CLI jars and its Java runtime for the platform the build runs on"
@@ -116,4 +116,33 @@ fun platformOf(osName: String, osArch: String): String {
     }
     val arch = if (osArch == "aarch64" || osArch == "arm64") "arm64" else "x64"
     return "$os-$arch"
+}
+
+// npm delivery: @miragon/bpmn-to-code-<platform> carries the tool with the same runtime image as the archive,
+// @miragon/bpmn-to-code starts it. Each platform is built on a machine of that platform.
+val npmVersion = version.toString()
+val npmDir = layout.buildDirectory.dir("npm")
+
+val npmPlatformPackage by tasks.registering(Sync::class) {
+    group = "distribution"
+    description = "Assembles the npm package with the tool and its Java runtime for the platform the build runs on"
+    val (os, cpu) = cliPlatform.split("-")
+    val properties = mapOf("platform" to cliPlatform, "os" to os, "cpu" to cpu, "version" to npmVersion)
+    inputs.properties(properties)
+    from(rootProject.file("packages/npm/platform/package.json.template")) {
+        rename { "package.json" }
+        expand(properties)
+    }
+    from(toolDistribution)
+    into(npmDir.map { it.dir("platform/$cliPlatform") })
+}
+
+val npmMainPackage by tasks.registering(Sync::class) {
+    group = "distribution"
+    description = "Assembles the npm package that starts the tool of the installed platform package"
+    val packageVersion = npmVersion
+    inputs.property("version", packageVersion)
+    from(rootProject.file("packages/npm/bpmn-to-code"))
+    filesMatching("package.json") { filter { line -> line.replace("0.0.0-development", packageVersion) } }
+    into(npmDir.map { it.dir("bpmn-to-code") })
 }

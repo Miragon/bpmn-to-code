@@ -1,0 +1,144 @@
+name: Publish to npm (@miragon/bpmn-to-code, @miragon/bpmn-to-code-runtime)
+
+# Builds the command-line tool with a Java runtime per platform, smoke-tests every package on
+# its own platform, and publishes the platform packages before the package that depends on them,
+# plus the runtime package the generated TypeScript imports.
+# Publishing uses npm trusted publishing (OIDC) with provenance; no npm token is stored.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no real publish)'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no real publish)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - platform: darwin-arm64
+            runner: macos-15
+          - platform: darwin-x64
+            runner: macos-15-intel
+          - platform: linux-x64
+            runner: ubuntu-24.04
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+          - platform: win32-x64
+            runner: windows-2025
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            tools/package-lock.json
+            packages/npm/bpmn-to-code-runtime/package-lock.json
+
+      - name: Install the pinned TypeScript compiler
+        run: npm ci --prefix tools
+
+      - name: Assemble the npm packages
+        run: ./gradlew :bpmn-to-code-cli:npmPlatformPackage :bpmn-to-code-cli:npmMainPackage
+
+      - name: Smoke-test the packages on this platform
+        run: packages/npm/smoke-test.sh
+
+      # Tarballs keep the executable bit of the Java runtime, which artifact uploads would lose
+      - name: Pack the platform package
+        run: |
+          mkdir -p dist
+          cd bpmn-to-code-cli/build/npm/platform/${{ matrix.platform }}
+          npm pack --pack-destination "$GITHUB_WORKSPACE/dist"
+
+      - name: Pack the main package
+        if: matrix.platform == 'linux-x64'
+        run: |
+          cd bpmn-to-code-cli/build/npm/bpmn-to-code
+          npm pack --pack-destination "$GITHUB_WORKSPACE/dist"
+
+      - name: Test and pack the runtime package
+        if: matrix.platform == 'linux-x64'
+        working-directory: packages/npm/bpmn-to-code-runtime
+        run: |
+          npm ci
+          npm test
+          npm version "$(grep '^projectVersion=' "$GITHUB_WORKSPACE/gradle.properties" | cut -d= -f2)" --no-git-tag-version
+          npm pack --pack-destination "$GITHUB_WORKSPACE/dist"
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-${{ matrix.platform }}
+          path: dist/*.tgz
+          if-no-files-found: error
+
+  publish:
+    name: Publish to npm
+    needs: build
+    if: inputs.dry_run != true
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download the packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: npm-*
+          path: dist
+          merge-multiple: true
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing needs npm 11.5.1 or newer
+      - name: Update npm
+        run: npm install --global npm@11
+
+      # The main package resolves its platform packages on install, so they go first
+      - name: Publish the platform packages
+        run: |
+          for tarball in dist/miragon-bpmn-to-code-{darwin,linux,win32}-*.tgz; do
+            npm publish "$tarball" --access public --provenance
+          done
+
+      - name: Publish the main package
+        run: npm publish dist/miragon-bpmn-to-code-[0-9]*.tgz --access public --provenance
+
+      - name: Publish the runtime package
+        run: npm publish dist/miragon-bpmn-to-code-runtime-*.tgz --access public --provenance

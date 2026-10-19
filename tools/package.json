@@ -2,12 +2,13 @@
   "name": "bpmn-to-code-tooling",
   "version": "1.0.0",
   "private": true,
-  "description": "Dev tooling for bpmn-to-code: BPMN linting via bpmnlint.",
+  "description": "Dev tooling for bpmn-to-code: BPMN linting via bpmnlint, and tsc for the generated TypeScript.",
   "scripts": {
     "lint:bpmn": "bpmnlint \"../shared/bpmn/**/*.bpmn\"",
     "lint:bpmn:di": "bpmnlint -c .bpmnlintrc-di \"../bpmn-to-code-testing/src/test/resources/bpmn/**/*.bpmn\" \"../bpmn-to-code-core/src/test/resources/bpmn/**/*.bpmn\""
   },
   "devDependencies": {
-    "bpmnlint": "11.15.0"
+    "bpmnlint": "11.15.0",
+    "typescript": "7.0.2"
   }
 }

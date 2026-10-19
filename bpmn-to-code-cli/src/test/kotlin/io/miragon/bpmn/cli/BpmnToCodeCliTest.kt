@@ -143,6 +143,24 @@ class BpmnToCodeCliTest {
     }
 
     @Test
+    fun `generate-api writes TypeScript straight into the output folder without a package path`(@TempDir tempDir: File) {
+        val exitCode = underTest.execute(typeScriptArguments(outputFolderPath = tempDir.path))
+
+        assertThat(exitCode).isEqualTo(ExitCode.SUCCESS)
+        assertThat(tempDir.list()).contains("BikeLeasingProcessApi.ts", "ServiceTasks.ts").doesNotContain("Runtime.ts")
+    }
+
+    @Test
+    fun `generate-api needs a package path for every language but TypeScript`(@TempDir tempDir: File) {
+        val arguments = typeScriptArguments(outputFolderPath = tempDir.path).map { if (it == "TYPESCRIPT") "KOTLIN" else it }
+
+        val exitCode = underTest.execute(arguments.toTypedArray())
+
+        assertThat(exitCode).isEqualTo(ExitCode.USAGE_ERROR)
+        assertThat(tempDir.list()).isEmpty()
+    }
+
+    @Test
     fun `rejects a missing required option as a usage error`() {
         val exitCode = underTest.execute(arrayOf("validate", "--baseDir", zeebeModelsDir))
         assertThat(exitCode).isEqualTo(ExitCode.USAGE_ERROR)
@@ -178,6 +196,15 @@ class BpmnToCodeCliTest {
         "--outputLanguage", outputLanguage,
         "--outputFolderPath", outputFolderPath,
         "--packagePath", PACKAGE_PATH,
+    )
+
+    private fun typeScriptArguments(outputFolderPath: String): Array<String> = arrayOf(
+        "generate-api",
+        "--baseDir", zeebeModelsDir,
+        "--filePattern", ALL_MODELS,
+        "--processEngine", ProcessEngine.ZEEBE.name,
+        "--outputLanguage", OutputLanguage.TYPESCRIPT.name,
+        "--outputFolderPath", outputFolderPath,
     )
 
     private fun validateArguments(modelsDir: String, filePattern: String = BIKE_LEASING): Array<String> = arrayOf(

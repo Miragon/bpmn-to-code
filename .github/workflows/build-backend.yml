@@ -37,6 +37,8 @@ jobs:
             'build.gradle.kts' \
             'settings.gradle.kts' \
             'gradle/libs.versions.toml' \
+            'tools/package.json' \
+            'tools/package-lock.json' \
             '.github/workflows/build-backend.yml')
           if [ -n "$CHANGED" ]; then
             echo "backend=true" >> "$GITHUB_OUTPUT"
@@ -94,9 +96,30 @@ jobs:
         with:
           dotnet-version: '10.0'
 
+      # Makes TypeScriptCompilationTest a PR gate (it skips without tsc)
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            tools/package-lock.json
+            packages/npm/bpmn-to-code-runtime/package-lock.json
+
+      - name: Install the pinned TypeScript compiler
+        run: |
+          npm ci --prefix tools
+          echo "$GITHUB_WORKSPACE/tools/node_modules/.bin" >> "$GITHUB_PATH"
+
       # ProcessPath and the runtime types, over the generated example core keeps equal to the goldens
       - name: Test the C# runtime package
         run: dotnet test packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests
+
+      - name: Test the TypeScript runtime package
+        working-directory: packages/npm/bpmn-to-code-runtime
+        run: |
+          npm ci
+          npm test
 
       # Linting runs in the quality job
       - name: Run Gradle Build
