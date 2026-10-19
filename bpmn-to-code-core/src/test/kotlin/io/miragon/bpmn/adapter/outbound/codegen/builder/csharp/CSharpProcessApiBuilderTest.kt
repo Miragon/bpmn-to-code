@@ -121,35 +121,12 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
-    fun `runtime types are inlined exactly once as a nested Runtime class`() {
-        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
-
-        assertThat(result.content.split("public static class Runtime")).hasSize(2)
-        CSharpRuntimeTypes.SOURCE.lines().filter { it.isNotBlank() }.forEach { line ->
-            assertThat(result.content).contains(line.trim())
-        }
-    }
-
-    @Test
     fun `inlined runtime enums mirror the Kotlin and Java runtime enums in PascalCase`() {
         val runtimeEnums = listOf(BpmnElementType.entries, BpmnEventType.entries, RuntimeTimerType.entries, BpmnEngine.entries)
 
         runtimeEnums.flatten().forEach { constant ->
             assertThat(CSharpRuntimeTypes.SOURCE).contains(" ${pascalCase(constant.name)},")
         }
-    }
-
-    @Test
-    fun `variable name records keep the raw name as string representation in derived records`() {
-        val result = underTest.buildApiFile(csharpApi(testBikeLeasingModel()))
-
-        assertThat(result.content).contains(
-            """
-            |        public abstract record VariableName(string Value)
-            |        {
-            |            public sealed override string ToString() => Value;
-            """.trimMargin(),
-        )
     }
 
     @Test

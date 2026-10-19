@@ -16,9 +16,7 @@ import io.miragon.bpmn.domain.shared.RootElements
  * Generates the process API for a single BPMN process as a C# file.
  *
  * The shape matches the Kotlin and Java builders: constant registries plus the typed `FlowNodes` navigation.
- * There is no C# runtime package; the handful of runtime types every node references
- * ([CSharpRuntimeTypes]) is emitted into the file itself as a nested `Runtime` class, so the generated file
- * still has no dependencies at all.
+ * The runtime types every node references ([CSharpRuntimeTypes]) are not part of the file.
  */
 internal class CSharpProcessApiBuilder : ProcessApiBuilder {
 
@@ -37,7 +35,7 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
             processId = modelApi.model.processId,
         ) { writer ->
             writer.staticClass(modelApi.fileName()) {
-                writer.forEachSeparated(constants + RuntimeTypesWriter() + nested) { section -> section.addTo(writer, modelApi) }
+                writer.forEachSeparated(constants + nested) { section -> section.addTo(writer, modelApi) }
             }
         }
     }
@@ -54,16 +52,6 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
         override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
             val engineType = CSharpRuntimeTypes.BPMN_ENGINE
             builder.constantExpression(name = "ProcessEngine", expression = CSharpRuntimeTypes.enumMember(engineType, modelApi.targetEngine.name), type = engineType)
-        }
-    }
-
-    private class RuntimeTypesWriter : ObjectWriter<CSharpWriter> {
-
-        override fun addTo(builder: CSharpWriter, modelApi: BpmnModelApi) {
-            builder.docComment("The runtime types this API's flow nodes are built from; inlined so the file needs no package.")
-            builder.staticClass(CSharpRuntimeTypes.CLASS_NAME) {
-                CSharpRuntimeTypes.SOURCE.lines().forEach { builder.line(it) }
-            }
         }
     }
 
