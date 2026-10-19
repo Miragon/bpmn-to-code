@@ -11,7 +11,7 @@ brew install lefthook   # macOS; other platforms: see the Lefthook installation 
 lefthook install
 ```
 
-Optional: a .NET 10 SDK (or a container that provides `dotnet`) to compile the generated C# and test the C# runtime locally, and Node 22 for the docs site and the BPMN linter.
+Optional: a .NET 10 SDK (or a container that provides `dotnet`) to compile the generated C# and test the C# runtime locally, and Node 22 for the docs site, the BPMN linter and the TypeScript runtime.
 
 ## Everyday commands
 
@@ -45,7 +45,7 @@ There is no baseline and no suppression list for ktlint or detekt: fix the findi
 | ktlint, detekt | yes | yes | |
 | All tests (incl. architecture tests) | | yes | |
 | C# compilation test | | yes (CI installs .NET 10) | |
-| C# runtime tests | | yes | |
+| C# and TypeScript runtime tests | | yes | |
 | Coverage rule | core only, see below | core, web, testing, runtime | |
 | PIT | | | core, runtime, web, testing |
 | Docs build | | when `docs/` changed | |
@@ -67,10 +67,11 @@ PIT is too slow for a pull request. It runs every night and on demand (`gh workf
 ./gradlew :bpmn-to-code-core:test -Dgolden.update=true
 ```
 
-The flag also updates the generated bike-leasing API checked in under `bpmn-to-code-runtime/src/test` and `packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests/Example`. The runtimes cannot depend on core, so their `ProcessPath` tests run against those copies, and `RuntimeExampleDriftTest` in core fails when a copy and its golden file differ. Run the runtime tests after an update:
+The flag also updates the generated bike-leasing API checked in under `bpmn-to-code-runtime/src/test`, `packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests/Example` and `packages/npm/bpmn-to-code-runtime/test/example`. The runtimes cannot depend on core, so their `ProcessPath` tests run against those copies, and `RuntimeExampleDriftTest` in core fails when a copy and its golden file differ. Run the runtime tests after an update:
 
 ```bash
 dotnet test packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests
+(cd packages/npm/bpmn-to-code-runtime && npm ci && npm test)
 ```
 
 **API surface.** `GeneratedApiSurfaceTest` compiles the generated Kotlin and Java for every shared model, reads the compiled types back by reflection and compares them with snapshots under `bpmn-to-code-core/src/test/resources/api-surface`: types, supertypes, members with their types, and the values they return. Formatting does not show there, so a snapshot only changes when what users compile against changes. The golden file flag rewrites the snapshots too.
@@ -88,6 +89,15 @@ PATH=/path/to/wrapper-dir:$PATH ./gradlew :bpmn-to-code-core:test --tests '*CSha
 ```
 
 CI installs .NET 10, so the test gates every pull request.
+
+`TypeScriptCompilationTest` runs `tsc` with strict settings, once as a Node and once as a bundler project, and is skipped when there is no `tsc` on the `PATH`. The pinned compiler lives in `tools`; CI puts it on the path the same way:
+
+```bash
+npm ci --prefix tools
+PATH=$PWD/tools/node_modules/.bin:$PATH ./gradlew :bpmn-to-code-core:test --tests '*TypeScriptCompilationTest' --rerun
+```
+
+A Gradle daemon started without that `PATH` keeps it: stop it with `./gradlew --stop` first.
 
 **Other layers.** The Gradle module runs smoke tests with Gradle TestKit, the Maven module executes its mojos directly, the web module tests its routes with the Ktor test host, and `ProcessJsonSchemaTest` validates the emitted JSON against the schema in `docs/public/schema`. Unit test conventions are in the `create-unit-test` skill under `.claude/skills/`.
 

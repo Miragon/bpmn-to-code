@@ -1,10 +1,10 @@
 # Asserting Flow with ProcessPath
 
-The runtime libraries ship `ProcessPath`, a path builder over the [generated `FlowNodes`](/guide/generated-api#flownodes): `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#. You walk a route through the process, then hand its `ids` to the flow assertion of your engine's test library. Because every step is typed by the model, **a path the model does not contain does not compile**: regenerate after a model change and the build breaks at the edge that moved.
+The runtime libraries ship `ProcessPath`, a path builder over the [generated `FlowNodes`](/guide/generated-api#flownodes): `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#, `@miragon/bpmn-to-code-runtime` for TypeScript. You walk a route through the process, then hand its `ids` to the flow assertion of your engine's test library. Because every step is typed by the model, **a path the model does not contain does not compile**: regenerate after a model change and the build breaks at the edge that moved.
 
 ![A process test with hand-typed element ids only fails when it runs after an id changed in the model; built from the generated flow nodes, it stops compiling instead](../public/process-path.gif)
 
-It works in any process test that has the runtime as a dependency. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java); [C#](#from-c) has the same steps as extension methods.
+It works in any process test that has the runtime as a dependency. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java); [C#](#from-c) and [TypeScript](#from-typescript) have the same steps as methods.
 
 ```kotlin
 import io.miragon.bpmn.runtime.path.ProcessPath
@@ -184,3 +184,26 @@ var path = ProcessPath.From(FlowNodes.StartEventLeasingRequestReceived.Instance)
 - `ThrowingCompensation(boundary, next => next.Handler, includeBoundaryEvent: true)` takes the flag last.
 - `JumpTo` reports the diagnostic `BPMN0001`; opt in with `#pragma warning disable BPMN0001` or `<NoWarn>BPMN0001</NoWarn>`.
 - `ProcessPath.NodesOf(…)` unites parallel branches.
+
+## From TypeScript {#from-typescript}
+
+`ProcessPath` of `@miragon/bpmn-to-code-runtime` offers the steps as methods:
+
+```ts
+import { ProcessPath, RiskyNavigation } from "@miragon/bpmn-to-code-runtime";
+import { BikeLeasingProcessApi } from "./process/BikeLeasingProcessApi.js";
+
+const FlowNodes = BikeLeasingProcessApi.FlowNodes;
+
+const path = ProcessPath.from(FlowNodes.StartEventApplicationWithdrawn)
+  .then((next) => next.eventReverseApplication)
+  .throwingCompensation(FlowNodes.BoundaryCompensateContract, (next) => next.serviceTaskCancelContract)
+  .then((next) => next.serviceTaskSendCancellationConfirmation);
+
+expect(passedElementIds).toEqual(path.ids);
+```
+
+- A step the model does not have does not compile: the methods are typed through their `this`, so `then` only exists on a node with successors, `enter` on a subprocess and `throwingCompensation` on a compensation throw event.
+- `throwingCompensation` takes `{ includeBoundaryEvent: true }` last.
+- `jumpTo(node, RiskyNavigation)` needs the `RiskyNavigation` symbol as its opt-in, so every use shows in review.
+- `ProcessPath.nodesOf(…)` unites parallel branches.

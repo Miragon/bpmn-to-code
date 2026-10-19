@@ -115,6 +115,17 @@ The goals are not bound to a lifecycle phase by default, so bind the goal yourse
 
 Details: [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/maven). All parameters of both plugins: [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration).
 
+## Command line (npm)
+
+For projects without Gradle or Maven, such as a TypeScript worker or frontend, the command-line tool comes from npm with its own Java runtime:
+
+```bash
+npm install --save-dev --save-exact @miragon/bpmn-to-code
+npx bpmn-to-code generate-api --baseDir bpmn --filePattern "*.bpmn" --processEngine ZEEBE --outputLanguage TYPESCRIPT --outputFolderPath src/process
+```
+
+The generated TypeScript imports its types and `ProcessPath` from `@miragon/bpmn-to-code-runtime`; install it in the same version. Details: [Command line guide](https://miragon.github.io/bpmn-to-code/getting-started/cli).
+
 ## .NET (NuGet)
 
 A .NET project generates its C# Process APIs during `dotnet build`:
@@ -148,8 +159,9 @@ The package adds `Miragon.BpmnToCode.Runtime` and runs the command-line tool `Mi
 | Kotlin | `KOTLIN` | `io.miragon:bpmn-to-code-runtime` |
 | Java | `JAVA` | `io.miragon:bpmn-to-code-runtime` |
 | C# (experimental) | `CSHARP` | NuGet `Miragon.BpmnToCode.Runtime` |
+| TypeScript (experimental) | `TYPESCRIPT` | npm `@miragon/bpmn-to-code-runtime` |
 
-C# output is experimental and may change in a minor release. It is available in every entry point: the plugins, the command-line tool, the MSBuild package and the web app. Every runtime library ships `ProcessPath`.
+C# and TypeScript output are experimental and may change in a minor release. They are available in every entry point: the plugins, the command-line tool, the MSBuild package and the web app. Every runtime library ships `ProcessPath`.
 
 ## Links
 

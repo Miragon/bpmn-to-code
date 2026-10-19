@@ -1,6 +1,6 @@
 # tools
 
-BPMN linting via [bpmnlint](https://github.com/bpmn-io/bpmnlint).
+BPMN linting via [bpmnlint](https://github.com/bpmn-io/bpmnlint), and the pinned TypeScript compiler that `TypeScriptCompilationTest` in core checks the generated TypeScript with.
 
 ```bash
 npm --prefix tools install

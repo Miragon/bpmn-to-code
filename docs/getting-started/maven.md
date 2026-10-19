@@ -48,7 +48,7 @@ Generated Kotlin and Java code imports types from `bpmn-to-code-runtime`. The Ma
 
 The goals are bound to **no lifecycle phase by default**. An `<execution>` without `<phase>` never runs during `mvn compile` or `mvn package`; bind it as above, or run the goal directly.
 
-Relative paths resolve against the directory Maven is started in, not against the module, so prefix `baseDir` and `outputFolderPath` with `${project.basedir}`. C# output needs `Miragon.BpmnToCode.Runtime` from NuGet instead, in the same version. See [Configuration](/guide/configuration) for every parameter and its default.
+Relative paths resolve against the directory Maven is started in, not against the module, so prefix `baseDir` and `outputFolderPath` with `${project.basedir}`. C# and TypeScript output need `Miragon.BpmnToCode.Runtime` from NuGet or `@miragon/bpmn-to-code-runtime` from npm instead, in the same version. See [Configuration](/guide/configuration) for every parameter and its default.
 
 ## 2. Generate the API
 

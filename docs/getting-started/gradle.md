@@ -78,7 +78,7 @@ dependencies {
 ```
 <!-- x-release-please-end -->
 
-C# output uses the NuGet package `Miragon.BpmnToCode.Runtime` instead; add it to the project that compiles the generated files, in the same version.
+C# and TypeScript output use the NuGet package `Miragon.BpmnToCode.Runtime` and the npm package `@miragon/bpmn-to-code-runtime` instead; add them to the project that compiles the generated files, in the same version.
 
 ## 4. Generate the API
 

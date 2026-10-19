@@ -46,6 +46,7 @@ export default defineConfig({
         items: [
           { text: 'Gradle', link: '/getting-started/gradle' },
           { text: 'Maven', link: '/getting-started/maven' },
+          { text: 'Command Line (npm)', link: '/getting-started/cli' },
           { text: '.NET (NuGet)', link: '/getting-started/dotnet' },
           { text: 'Web App', link: '/web/' },
           { text: 'Generated API', link: '/guide/generated-api' },

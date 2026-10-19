@@ -13,6 +13,7 @@ Everything shares one version, `projectVersion` in `gradle.properties`.
 | `miragon/bpmn-to-code-web:<version>` and `:latest` | Docker Hub | `publish-to-docker.yml` |
 | `bpmn-to-code-<version>-<platform>.zip`, the command-line tool with a Java runtime, for `linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64` and `win32-x64`, plus `SHA256SUMS` | Assets of the GitHub release, with a build provenance attestation | `publish-cli.yml` |
 | Homebrew formula `bpmn-to-code` | `Miragon/homebrew-tap`, pull request merged by the Miragon release-please app | `publish-homebrew.yml` |
+| `@miragon/bpmn-to-code`, `@miragon/bpmn-to-code-<os>-<cpu>` and `@miragon/bpmn-to-code-runtime` | npm | `publish-to-npm.yml` |
 | `Miragon.BpmnToCode.Runtime`, `Miragon.BpmnToCode.MSBuild`, `Miragon.BpmnToCode.Cli` and `Miragon.BpmnToCode.Cli.<rid>` | NuGet | `publish-to-nuget.yml` |
 | Deployment of the hosted web app | Pull request in `Miragon/ops` | `update-ops-deployment.yml` |
 | This documentation site | GitHub Pages | `deploy-docs.yml` |
@@ -27,8 +28,9 @@ Everything runs in one workflow, `release-please.yml`, on every push to `main`:
 4. Maven Central is published first, then the Gradle Plugin Portal. The order matters: the Gradle plugin adds `bpmn-to-code-runtime` in its own version to consuming projects, so the runtime has to be resolvable before the plugin is.
 5. In parallel, the Docker image is built for `linux/amd64` and pushed as `<version>` and `latest`, and `bpmn-to-code-web/README.md` is uploaded as the Docker Hub description. Afterwards a pull request in `Miragon/ops` bumps the deployment to the new version; it is merged by hand.
 6. In parallel, one runner per platform builds the CLI archive, starts it once without a JDK and the archives are attached to the GitHub release. For a stable release the Homebrew formula is then written from `SHA256SUMS`, installed, tested and audited on macOS (arm64, Intel) and Linux, and merged into `Miragon/homebrew-tap`; `gh workflow run publish-homebrew.yml -f version=<version> -f dry-run=true` checks an existing release without publishing.
-7. In parallel, the .NET tool is packed on one runner per platform (`dotnet pack -r <rid>`, Native AOT, with that platform's Java runtime), installed and smoke-tested there; on Linux and macOS `packages/nuget/smoke-test.sh` also builds a project through the MSBuild package. Then the platform packages are published, followed by the runtime, the tool package that points to them and the MSBuild package, with NuGet trusted publishing. The version is passed to `dotnet pack` from `projectVersion`.
-8. The documentation is built and deployed.
+7. In parallel, the npm packages are built on one runner per platform from the same runtime image. Every runner smoke-tests its packages with `packages/npm/smoke-test.sh` and packs them. The platform packages are published first, then `@miragon/bpmn-to-code` and `@miragon/bpmn-to-code-runtime`, all with npm trusted publishing and provenance. The version comes from `projectVersion` when the packages are assembled, so `packages/npm` needs no `extra-files` entry.
+8. In parallel, the .NET tool is packed on one runner per platform (`dotnet pack -r <rid>`, Native AOT, with that platform's Java runtime), installed and smoke-tested there; on Linux and macOS `packages/nuget/smoke-test.sh` also builds a project through the MSBuild package. Then the platform packages are published, followed by the runtime, the tool package that points to them and the MSBuild package, with NuGet trusted publishing. The version is passed to `dotnet pack` from `projectVersion`.
+9. The documentation is built and deployed.
 
 Each publish workflow runs `./gradlew build` before it publishes; the CLI workflow runs the build of the CLI module on every platform.
 
@@ -40,7 +42,7 @@ A file that carries the current version as a literal must be listed in `extra-fi
 gh workflow run release-please.yml -f dry_run=true
 ```
 
-This skips the Release PR and the GitHub release and runs every publish job in build-and-verify mode: Maven artifacts go to the local repository, the Gradle plugin is validated only, the image is built but not pushed, the NuGet packages are built and smoke-tested on every platform but not published, the ops change is shown as a diff, the docs are built but not deployed. The approval gate still applies. The publish workflows accept the same `dry_run` input when dispatched on their own.
+This skips the Release PR and the GitHub release and runs every publish job in build-and-verify mode: Maven artifacts go to the local repository, the Gradle plugin is validated only, the image is built but not pushed, the npm and NuGet packages are built and smoke-tested on every platform but not published, the ops change is shown as a diff, the docs are built but not deployed. The approval gate still applies. The publish workflows accept the same `dry_run` input when dispatched on their own.
 
 ### Documentation
 
@@ -49,6 +51,10 @@ The site is deployed only as part of a release, so a docs change on `main` is no
 ```bash
 gh workflow run deploy-docs.yml
 ```
+
+### npm trusted publishing
+
+`publish-to-npm.yml` holds no npm token. Each of the six packages trusts the workflow on npmjs.com (Settings, Trusted publisher: repository `Miragon/bpmn-to-code`, workflow `publish-to-npm.yml`). npm only offers that setting for a package that exists, so the very first version of each package has to be published once with a token of the `@miragon` organisation; afterwards the token is not needed. Snapshots are not published to npm.
 
 ### NuGet trusted publishing
 

@@ -1,6 +1,6 @@
 # Agent Instructions
 
-bpmn-to-code generates type-safe APIs from BPMN process models and validates those models. It ships as a Gradle plugin, a Maven plugin, a web app, a command-line tool (archives, Homebrew, NuGet), an MSBuild integration, a testing library and runtime libraries for the JVM and .NET.
+bpmn-to-code generates type-safe APIs from BPMN process models and validates those models. It ships as a Gradle plugin, a Maven plugin, a web app, a command-line tool (archives, Homebrew, npm, NuGet), an MSBuild integration, a testing library and runtime libraries for the JVM, .NET and TypeScript.
 
 ## Modules
 
@@ -8,14 +8,15 @@ bpmn-to-code generates type-safe APIs from BPMN process models and validates tho
 - `bpmn-to-code-gradle`: Gradle plugin
 - `bpmn-to-code-maven`: Maven plugin (mojos in Java)
 - `bpmn-to-code-web`: Ktor web app, shipped as Docker image
-- `bpmn-to-code-cli`: command-line tool over core, shipped with a bundled Java runtime as zip on the GitHub release, via Homebrew and NuGet
+- `bpmn-to-code-cli`: command-line tool over core, shipped with a bundled Java runtime as zip on the GitHub release, via Homebrew, npm and NuGet
 - `bpmn-to-code-runtime`: types the generated Kotlin and Java code refers to, plus `ProcessPath`
 - `bpmn-to-code-testing`: test library for BPMN validation rules
 - `bpmn-to-code-architecture-tests`: Konsist tests for layers, imports and naming
 - `bpmn-to-code-benchmark`: hand-run generator benchmark
 - `bpmn-to-code-skills`: Claude Code plugin shipped to users (not a Gradle module)
 - `shared/bpmn`: MiraVelo BPMN models all modules test against
-- `tools`: bpmnlint for those models
+- `tools`: bpmnlint for those models, and the pinned `tsc`
+- `packages/npm`: npm packages of the CLI, and `bpmn-to-code-runtime`, the TypeScript runtime (`npm test`)
 - `packages/nuget`: NuGet packages, built with .NET 10: the C# runtime (`dotnet test test/Miragon.BpmnToCode.Runtime.Tests`), the CLI as a .NET tool and the MSBuild integration
 - `docs`: VitePress site
 
@@ -33,8 +34,8 @@ Read before changing structure: [`docs/contributing/architecture.md`](docs/contr
 
 - Lines target 120 characters. ktlint wraps longer lines but never joins shorter ones, so collapse by hand whatever fits on one line.
 - No baseline and no suppressions: fix the finding, or add a scoped, commented exception to the config.
-- The C# compilation test is skipped without a `dotnet` command, so a green local build proves nothing about generated C#. See the contributing page for how to run it.
-- After a golden update, also run the C# runtime tests: they walk the generated example the drift test keeps equal to the goldens.
+- The C# compilation test is skipped without a `dotnet` command, the TypeScript one without `tsc`, so a green local build proves nothing about generated C# or TypeScript. See the contributing page for how to run them.
+- After a golden update, also run the C# and TypeScript runtime tests: they walk the generated example the drift test keeps equal to the goldens.
 
 ## How to work
 

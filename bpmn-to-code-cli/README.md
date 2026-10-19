@@ -63,9 +63,9 @@ The flags carry the names of the plugin parameters, see [Configuration](https://
 | `--baseDir` | both | Directory `--filePattern` is resolved against |
 | `--filePattern` | both | Glob of the BPMN files, relative to `--baseDir` |
 | `--processEngine` | both | `ZEEBE`, `CAMUNDA_7` or `OPERATON` |
-| `--outputLanguage` | `generate-api` | `KOTLIN`, `JAVA` or `CSHARP` |
+| `--outputLanguage` | `generate-api` | `KOTLIN`, `JAVA`, `CSHARP` or `TYPESCRIPT` |
 | `--outputFolderPath` | `generate-api` | Source root the code is written to |
-| `--packagePath` | `generate-api` | Package of the generated code, the namespace for C# |
+| `--packagePath` | `generate-api` | Package of the generated code, the namespace for C#; for TypeScript only an optional directory below `--outputFolderPath` |
 | `--failOnWarning` | `validate` | Treat warnings as failures |
 | `--disabledRules` | `validate` | Comma-separated ids of rules to skip |
 

@@ -11,10 +11,10 @@ Gradle modules (`settings.gradle.kts`):
 | `bpmn-to-code-core` | Reads BPMN, validates, generates the Process API and the process JSON | Not published. Its classes are packed into the Gradle plugin, Maven plugin and testing jars; the web app and the command-line tool depend on it directly. |
 | `bpmn-to-code-gradle` | Gradle plugin `io.miragon.bpmn-to-code-gradle` | Gradle Plugin Portal |
 | `bpmn-to-code-maven` | Maven plugin `io.miragon:bpmn-to-code-maven` (mojos written in Java) | Maven Central |
-| `bpmn-to-code-runtime` | Dependency-free types the generated Kotlin and Java code refers to, plus `ProcessPath`; the C# counterpart lives in `packages/nuget` | Maven Central |
+| `bpmn-to-code-runtime` | Dependency-free types the generated Kotlin and Java code refers to, plus `ProcessPath`; the C# and TypeScript counterparts live in `packages/` | Maven Central |
 | `bpmn-to-code-testing` | `BpmnValidator`, the test library for validation rules | Maven Central |
 | `bpmn-to-code-web` | Ktor server with a static frontend | Docker Hub (`miragon/bpmn-to-code-web`) |
-| `bpmn-to-code-cli` | Command-line tool `bpmn-to-code` with the commands `generate-api` and `validate`; `./gradlew :bpmn-to-code-cli:cliArchive` packs it with a jlink runtime for the current platform | GitHub release assets, one zip per platform, Homebrew `miragon/tap/bpmn-to-code` and NuGet `Miragon.BpmnToCode.Cli`, see `packages/nuget` (experimental); `toolDistribution` assembles the jars and the runtime the NuGet packages carry |
+| `bpmn-to-code-cli` | Command-line tool `bpmn-to-code` with the commands `generate-api` and `validate`; `./gradlew :bpmn-to-code-cli:cliArchive` packs it with a jlink runtime for the current platform | GitHub release assets, one zip per platform, Homebrew `miragon/tap/bpmn-to-code`, npm `@miragon/bpmn-to-code` and NuGet `Miragon.BpmnToCode.Cli`, see `packages/` (experimental); `toolDistribution` assembles the jars and the runtime the npm and NuGet packages carry |
 | `bpmn-to-code-architecture-tests` | Konsist tests that enforce the rules on this page | Not published |
 | `bpmn-to-code-benchmark` | Hand-run JMH comparison with a released version, see [Benchmarking](./benchmark) | Not published |
 
@@ -24,7 +24,8 @@ Outside the Gradle build:
 |---|---|
 | `bpmn-to-code-skills` | Claude Code plugin for users of bpmn-to-code, installed through the marketplace manifest in `.claude-plugin/` |
 | `shared/bpmn` | The MiraVelo BPMN models every module tests against, see [Tests](./#tests) |
-| `tools` | bpmnlint setup for those models |
+| `tools` | bpmnlint setup for those models, and the `tsc` the generated TypeScript is checked with |
+| `packages/npm` | The npm packages. `@miragon/bpmn-to-code` starts the command-line tool from `@miragon/bpmn-to-code-<os>-<cpu>`, which carries it with a Java runtime linked by `jlink`; `:bpmn-to-code-cli:npmPlatformPackage` and `:bpmn-to-code-cli:npmMainPackage` assemble them under `bpmn-to-code-cli/build/npm`, `smoke-test.sh` installs and runs them. `bpmn-to-code-runtime` is `@miragon/bpmn-to-code-runtime`, the TypeScript runtime with `ProcessPath`: `npm test` builds it and runs its tests |
 | `packages/nuget` | The NuGet packages, built with the .NET 10 SDK. `Miragon.BpmnToCode.Runtime` is the C# runtime with `ProcessPath` (`dotnet test test/Miragon.BpmnToCode.Runtime.Tests`), `Miragon.BpmnToCode.Cli` the .NET tool that starts the command-line tool, `Miragon.BpmnToCode.MSBuild` the integration into `dotnet build`. `smoke-test.sh` packs them into a local feed and builds a project with them |
 | `docs` | This site |
 

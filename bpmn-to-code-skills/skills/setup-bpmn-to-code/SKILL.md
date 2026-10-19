@@ -2,7 +2,7 @@
 name: setup-bpmn-to-code
 description: "Sets up bpmn-to-code in an existing project with the Gradle plugin, the Maven plugin, the MSBuild package or the CLI, so the build generates a type-safe Process API from the BPMN models. Use when adding bpmn-to-code or BPMN code generation to a project."
 argument-hint: "[gradle|maven|dotnet|cli]"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(dotnet build *), Bash(bpmn-to-code *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(dotnet build *), Bash(npx bpmn-to-code *), Bash(bpmn-to-code *)
 ---
 
 # Skill: setup-bpmn-to-code
@@ -25,7 +25,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    | `build.gradle.kts` or `build.gradle` | [resources/gradle.md](resources/gradle.md) |
    | `pom.xml` | [resources/maven.md](resources/maven.md) |
    | a `*.csproj` | [resources/dotnet.md](resources/dotnet.md) |
-   | none of these | [resources/cli.md](resources/cli.md) |
+   | none of these, for example a `package.json` | [resources/cli.md](resources/cli.md) |
 
    In a multi-module build, ask which module holds the BPMN files and set it up there.
 
@@ -39,7 +39,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    | `xmlns:operaton` | `OPERATON` | Operaton |
 
    If files use different namespaces, one task or execution per group is needed (see the resource).
-4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP` (experimental).
+4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP` (experimental), a `tsconfig.json` → `TYPESCRIPT` (experimental).
 5. **Package:** suggest `<base package>.adapter.process` (or `.process` if the project has no `adapter` package). Look up the base package from existing sources.
 
 ## Step 2: Ask what is left
@@ -54,7 +54,7 @@ Ask only for what Step 1 could not settle, with the detected value as the defaul
 
 ## Step 3: Look up the version
 
-Read `<release>` from `https://repo1.maven.org/maven2/io/miragon/bpmn-to-code-runtime/maven-metadata.xml`. All artifacts, the CLI and the NuGet packages share that version.
+Read `<release>` from `https://repo1.maven.org/maven2/io/miragon/bpmn-to-code-runtime/maven-metadata.xml`. All artifacts, the CLI and the npm and NuGet packages share that version.
 
 ## Step 4: Draft, confirm, apply
 
