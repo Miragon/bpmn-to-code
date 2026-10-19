@@ -15,11 +15,14 @@ Every entry point so far is a JVM build tool or an HTTP server. A team that buil
 
 The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets no command.
 
-**Flags only.** Every setting is a flag with the name of the plugin parameter, for example `--baseDir` or `--outputLanguage`. There is no configuration file. Every flag is required and has no default, as in Gradle; a call states everything it relies on. Only `validate` takes `--failOnWarning` and `--disabledRules` ([record 10](010-validation.md)). Relative paths resolve against the directory the tool is started in.
+**Flags only.** Every setting is a flag with the name of the plugin parameter, for example `--baseDir` or `--outputLanguage`. There is no configuration file. Every flag is required and has no default, as in Gradle; a call states everything it relies on. The one exception is `--packagePath` for TypeScript, which has no packages and only uses it as an optional directory. Only `validate` takes `--failOnWarning` and `--disabledRules` ([record 10](010-validation.md)). Relative paths resolve against the directory the tool is started in.
 
 **Exit codes are part of the interface.** `0` on success, `1` when the models fail validation or cannot be read or generated, `2` when the call itself is wrong: an unknown command, a missing flag, a value that does not exist. Findings and errors go to standard error.
 
-**It ships with its own Java runtime.** Each release carries one zip per platform (`linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64`, `win32-x64`): the jars, a runtime trimmed by `jlink` to `java.base`, `java.xml`, `java.compiler` and `java.logging`, and a start script in `bin/` that uses only that runtime. Every archive is built and started once on a runner of its platform. The zip is what every package manager installs: the Homebrew formula `miragon/tap/bpmn-to-code` in `Miragon/homebrew-tap` today, npm and NuGet later. They call `bin/bpmn-to-code` and need nothing else.
+**It ships with its own Java runtime.** Each release carries one zip per platform (`linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64`, `win32-x64`): the jars, a runtime trimmed by `jlink` to `java.base`, `java.xml`, `java.compiler`, `java.logging` and `java.desktop` (FreeMarker's bean introspection), and a start script in `bin/` that uses only that runtime. Every archive is built and started once on a runner of its platform. The zip is what the Homebrew formula `miragon/tap/bpmn-to-code` in `Miragon/homebrew-tap` installs; it calls `bin/bpmn-to-code` and needs nothing else. npm and NuGet carry the same jars and runtime, assembled by the `toolDistribution` task, in one package per platform and start them with a launcher of their own, because neither Node nor .NET can start the `.cmd` script on Windows without a shell:
+
+- npm: `@miragon/bpmn-to-code-<os>-<cpu>`, which `@miragon/bpmn-to-code` resolves through its optional dependencies and starts from JavaScript.
+- NuGet: the .NET tool `Miragon.BpmnToCode.Cli`, a package that points to `Miragon.BpmnToCode.Cli.<rid>` (.NET 10 RID-specific tool packages). The launcher is a Native AOT program of a few hundred kilobytes, so the tool needs no .NET runtime of its own; it restores the executable bit of the Java runtime, which NuGet packages do not keep, on its first start. `Miragon.BpmnToCode.MSBuild` runs this tool of its own version through `dotnet tool exec` before `CoreCompile`, as the .NET counterpart of the Gradle plugin.
 
 **It is experimental.** Commands, flags and exit codes may change in a minor release until the tool is declared stable ([record 11](011-compatibility-policy.md)).
 
@@ -28,8 +31,9 @@ The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets 
 ## Consequences
 
 - A setting added to the plugins needs a flag of the same name, or the entry points drift apart ([record 1](001-product-surfaces-and-distribution.md)).
-- Nobody installs Java to use the tool. An archive is about 30 MB, and a run over a handful of models takes about half a second, most of it the start of the JVM.
-- A further platform is a further runner in `publish-cli.yml`, and for macOS and Linux a further line in the Homebrew formula.
+- Nobody installs Java to use the tool. An archive is about 39 MB, and a run over a handful of models takes about half a second, most of it the start of the JVM.
+- A further platform is a further runner in `publish-cli.yml`, `publish-to-npm.yml` and `publish-to-nuget.yml`, and for macOS and Linux a further line in the Homebrew formula.
+- Every NuGet platform package is about 46 MB. The MSBuild integration needs the .NET 10 SDK, for `dotnet tool exec` and RID-specific tools, while the generated code targets .NET 8.
 - The formula follows the newest stable release; it is written and checked by `publish-homebrew.yml` as in the other Miragon CLIs.
 - The archives are not signed. macOS blocks a zip downloaded in a browser until its quarantine flag is removed; Homebrew, `curl` and other package managers do not set it.
 

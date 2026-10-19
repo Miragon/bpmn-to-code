@@ -68,6 +68,8 @@ PIT is too slow for a pull request. It runs every night and on demand (`gh workf
 
 The flag also updates the generated bike-leasing API checked in under `bpmn-to-code-runtime/src/test`. The runtime cannot depend on core, so its `ProcessPath` tests run against that copy, and `RuntimeExampleDriftTest` in core fails when copy and golden file differ.
 
+**API surface.** `GeneratedApiSurfaceTest` compiles the generated Kotlin and Java for every shared model, reads the compiled types back by reflection and compares them with snapshots under `bpmn-to-code-core/src/test/resources/api-surface`: types, supertypes, members with their types, and the values they return. Formatting does not show there, so a snapshot only changes when what users compile against changes. The golden file flag rewrites the snapshots too.
+
 **Compiled output.** Core's tests compile the generated Kotlin with the embedded Kotlin compiler and the generated Java with `javac`. `CSharpCompilationTest` runs `dotnet build` (target `net8.0`, warnings as errors) and is skipped when there is no `dotnet` on the `PATH`. A green local build therefore says nothing about C# unless you have a .NET 8 SDK or put a wrapper named `dotnet` on the `PATH` that runs the SDK image:
 
 ```sh
