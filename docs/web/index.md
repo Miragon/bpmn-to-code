@@ -77,17 +77,20 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
   ],
   "libraryFiles": [],
   "runtimeDependency": {
-    "group": "io.miragon",
-    "artifact": "bpmn-to-code-runtime",
+    "name": "io.miragon:bpmn-to-code-runtime",
     "version": "<version>",
-    "gradleSnippet": "implementation(\"io.miragon:bpmn-to-code-runtime:<version>\")",
-    "mavenSnippet": "<dependency>...</dependency>"
+    "importedFrom": "io.miragon.bpmn.runtime",
+    "sourcesDirectory": "io/miragon/bpmn/runtime",
+    "snippets": [
+      { "label": "Gradle", "code": "implementation(\"io.miragon:bpmn-to-code-runtime:<version>\")" },
+      { "label": "Maven", "code": "<dependency>...</dependency>" }
+    ]
   }
 }
 ```
 
 - `files` holds one Process API per BPMN file plus the [shared definition files](/guide/generated-api#shared-definitions), which have `processId: null`.
-- `libraryFiles` holds the sources of `bpmn-to-code-runtime` and `runtimeDependency` its coordinates. Both are left out for C#, which needs no runtime.
+- `libraryFiles` holds the sources of the runtime library of the output language and `runtimeDependency` how to add it: `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` from NuGet for C#.
 - `/api/generate-json` answers with `success` and `files` only, one `<processId>.json` per BPMN file.
 
 ### Errors

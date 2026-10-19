@@ -1,10 +1,10 @@
 # Asserting Flow with ProcessPath
 
-`bpmn-to-code-runtime` ships `ProcessPath`, a path builder over the [generated `FlowNodes`](/guide/generated-api#flownodes). You walk a route through the process, then hand its `ids` to the flow assertion of your engine's test library. Because every step is typed by the model, **a path the model does not contain does not compile**: regenerate after a model change and the build breaks at the edge that moved.
+The runtime libraries ship `ProcessPath`, a path builder over the [generated `FlowNodes`](/guide/generated-api#flownodes): `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#. You walk a route through the process, then hand its `ids` to the flow assertion of your engine's test library. Because every step is typed by the model, **a path the model does not contain does not compile**: regenerate after a model change and the build breaks at the edge that moved.
 
 ![A process test with hand-typed element ids only fails when it runs after an id changed in the model; built from the generated flow nodes, it stops compiling instead](../public/process-path.gif)
 
-It works in any process test that has the runtime on its classpath. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java).
+It works in any process test that has the runtime as a dependency. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java); [C#](#from-c) has the same steps as extension methods.
 
 ```kotlin
 import io.miragon.bpmn.runtime.path.ProcessPath
@@ -158,3 +158,29 @@ String[] ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
 ```
 
 `PathWalk.nodesOf(…)` unites branches as in Kotlin.
+
+## From C# {#from-c}
+
+`ProcessPath` of `Miragon.BpmnToCode.Runtime.Path` offers the steps as extension methods; each lambda receives the current node's `Next`:
+
+```csharp
+using Miragon.BpmnToCode.Runtime.Path;
+using static MiraVelo.Process.BikeLeasingProcessApi;
+
+var path = ProcessPath.From(FlowNodes.StartEventLeasingRequestReceived.Instance)
+    .Then(next => next.ServiceTaskValidateApplication)
+    .Then(next => next.BusinessRuleTaskCheckCreditRating)
+    .Then(next => next.GatewayIsSolvent)
+    .Onto(next => next.SubProcessConcludeContract)
+    .Inside(contract => contract
+        .Enter(start => start.StartEventCustomerEligible)
+        .Then(next => next.ServiceTaskSendContract))
+    .Then(next => next.BoundaryContractNotSigned);
+
+// path.Ids, path.DistinctIds and path.FlowIds are string arrays, path.Nodes the nodes
+```
+
+- The steps are typed through `IHasSuccessors<TNext>`, `IFlowScope<TStart>` and `ICompensationThrowEvent`, so a step the model does not have does not compile, as in Kotlin. `ThrowingCompensation` only exists on a compensation throw event.
+- `ThrowingCompensation(boundary, next => next.Handler, includeBoundaryEvent: true)` takes the flag last.
+- `JumpTo` reports the diagnostic `BPMN0001`; opt in with `#pragma warning disable BPMN0001` or `<NoWarn>BPMN0001</NoWarn>`.
+- `ProcessPath.NodesOf(…)` unites parallel branches.

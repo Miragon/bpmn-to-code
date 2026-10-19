@@ -1,6 +1,6 @@
 # Command-line tool
 
-For projects without Gradle or Maven, for example .NET with C# output. The tool is experimental. It calls the same generator as the plugins, so the output is identical.
+For projects without Gradle, Maven or MSBuild. The tool is experimental. It calls the same generator as the plugins, so the output is identical.
 
 ## Install
 
@@ -23,14 +23,14 @@ bpmn-to-code generate-api \
   --packagePath MiraVelo.Process
 ```
 
-- For C#, `--packagePath` is the namespace. C# output needs no runtime package, because its types are inlined.
+- For C#, `--packagePath` is the namespace. The generated code needs the NuGet package `Miragon.BpmnToCode.Runtime` in the same version.
 - Exit codes: `0` success, `1` models fail or cannot be read, `2` wrong call.
 
 ## Hook into the build
 
 There is no build plugin, so make generation reproducible:
 
-- **.NET:** a target in the `.csproj`, `<Target Name="GenerateProcessApi" BeforeTargets="BeforeBuild"><Exec Command="bpmn-to-code generate-api …" /></Target>`, or a script the README names.
+- **.NET:** use the MSBuild package instead, see [dotnet.md](dotnet.md).
 - **Elsewhere:** a script or task-runner entry, e.g. `scripts/generate-process-api.sh`.
 
 Show the user both options and let them choose.

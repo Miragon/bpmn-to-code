@@ -115,6 +115,24 @@ The goals are not bound to a lifecycle phase by default, so bind the goal yourse
 
 Details: [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/maven). All parameters of both plugins: [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration).
 
+## .NET (NuGet)
+
+A .NET project generates its C# Process APIs during `dotnet build`:
+
+<!-- x-release-please-start-version -->
+```xml
+<ItemGroup>
+  <PackageReference Include="Miragon.BpmnToCode.MSBuild" Version="6.5.0" />
+</ItemGroup>
+<PropertyGroup>
+  <BpmnToCodeProcessEngine>ZEEBE</BpmnToCodeProcessEngine>
+  <BpmnToCodeFilePattern>processes/*.bpmn</BpmnToCodeFilePattern>
+</PropertyGroup>
+```
+<!-- x-release-please-end -->
+
+The package adds `Miragon.BpmnToCode.Runtime` and runs the command-line tool `Miragon.BpmnToCode.Cli`, a .NET tool with its own Java runtime. Details: [.NET guide](https://miragon.github.io/bpmn-to-code/getting-started/dotnet).
+
 ## Supported engines
 
 | Engine | `processEngine` |
@@ -129,9 +147,9 @@ Details: [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/ma
 |---|---|---|
 | Kotlin | `KOTLIN` | `io.miragon:bpmn-to-code-runtime` |
 | Java | `JAVA` | `io.miragon:bpmn-to-code-runtime` |
-| C# (experimental) | `CSHARP` | inlined into each generated file |
+| C# (experimental) | `CSHARP` | NuGet `Miragon.BpmnToCode.Runtime` |
 
-C# output is experimental and may change in a minor release. It is available in the Gradle plugin, the Maven plugin and the web app.
+C# output is experimental and may change in a minor release. It is available in every entry point: the plugins, the command-line tool, the MSBuild package and the web app. Every runtime library ships `ProcessPath`.
 
 ## Links
 
