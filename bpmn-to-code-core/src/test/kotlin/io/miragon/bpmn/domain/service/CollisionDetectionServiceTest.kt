@@ -39,6 +39,28 @@ class CollisionDetectionServiceTest {
     }
 
     @Test
+    fun `findCollisions detects an element named like the node type of another`() {
+        // given: elements "task" and "taskNode", whose names are the C# property and node type TaskNode
+        val model = testProcessModel(
+            processId = "TestProcess",
+            flowNodes = listOf(
+                FlowNodeDefinition.Unknown(id = "task"),
+                FlowNodeDefinition.Unknown(id = "taskNode"),
+            ),
+        )
+
+        // when: collisions are searched
+        val collisions = underTest.findCollisions(model)
+
+        // then: the pair is reported under the clashing name
+        assertThat(collisions).singleElement().satisfies({ collision ->
+            assertThat(collision.variableType).isEqualTo("FlowNode")
+            assertThat(collision.constantName).isEqualTo("TaskNode")
+            assertThat(collision.conflictingIds).containsExactly("task", "taskNode")
+        })
+    }
+
+    @Test
     fun `findCollisions allows true duplicates with same original ID in definitions`() {
         // given: a model with exact duplicate root elements (same id)
         val model = testProcessModel(

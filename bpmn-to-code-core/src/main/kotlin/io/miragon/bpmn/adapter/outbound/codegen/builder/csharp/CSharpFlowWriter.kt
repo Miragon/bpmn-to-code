@@ -31,7 +31,7 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
     fun write(graph: FlowGraph) {
         writer.forEachSeparated(graph.nodes) { node -> writeNode(node) }
         writer.line()
-        writer.staticListProperty(name = "All", elementType = CSharpRuntimeTypes.FLOW_NODE, elements = graph.nodes.map { "${it.objectName}.Instance" })
+        writer.staticListProperty(name = "All", elementType = CSharpRuntimeTypes.FLOW_NODE, elements = graph.nodes.map { it.objectName })
     }
 
     private fun writeNode(node: FlowGraphNode) {
@@ -40,8 +40,11 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
             node.eventType != null -> CSharpRuntimeTypes.EVENT
             else -> CSharpRuntimeTypes.FLOW_NODE
         }
-        val interfaces = listOf(nodeInterface) + facetWriter.interfaces(node.facets)
-        writer.sealedClass(node.objectName, implements = interfaces.joinToString(", ")) {
+        val typeName = nodeTypeName(node.objectName)
+        val interfaces = listOf(nodeInterface) + navigationInterfaces(node, typeName) + facetWriter.interfaces(node.facets)
+        writer.line("public static $typeName ${node.objectName} => $typeName.Instance;")
+        writer.line()
+        writer.sealedClass(typeName, implements = interfaces.joinToString(", ")) {
             writer.singleton()
             writer.line()
             writer.constant("ElementId", node.id)
@@ -60,9 +63,26 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         }
     }
 
+    /**
+     * The interfaces a process path walks along: `IHasSuccessors` for `Next`, `IFlowScope` for `Start`, and
+     * `ISubProcess` for a subprocess that has both.
+     */
+    private fun navigationInterfaces(node: FlowGraphNode, typeName: String): List<String> {
+        val successors = "$typeName.Successors"
+        val interior = "$typeName.Interior"
+        val hasSuccessors = node.successors.isNotEmpty()
+        val hasInterior = node.interiorStarts.isNotEmpty()
+        return when {
+            hasSuccessors && hasInterior -> listOf("${CSharpRuntimeTypes.SUB_PROCESS}<$interior, $successors>")
+            hasSuccessors -> listOf("${CSharpRuntimeTypes.HAS_SUCCESSORS}<$successors>")
+            hasInterior -> listOf("${CSharpRuntimeTypes.FLOW_SCOPE}<$interior>")
+            else -> emptyList()
+        }
+    }
+
     private fun writeSuccessors(node: FlowGraphNode) {
         writer.line()
-        writer.expressionProperty(name = "Next", type = "Successors", expression = "new()")
+        writer.cachedProperty(name = "Next", type = "Successors", initializer = "new()")
         writer.sealedClass("Successors") {
             node.successors.forEach { successor -> writeSuccessor(successor) }
         }
@@ -81,14 +101,16 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
             is SuccessorEdge.AttachedBoundaryEvent -> CSharpRuntimeTypes.ATTACHED_BOUNDARY_EVENT to "new(${targetInstance(targetName)})"
             is SuccessorEdge.AssociatedCompensationHandler -> CSharpRuntimeTypes.ASSOCIATED_COMPENSATION_HANDLER to "new(${targetInstance(targetName)})"
         }
-        writer.expressionProperty(name = targetName, type = "$successorType<$targetName>", expression = expression)
+        writer.cachedProperty(name = targetName, type = "$successorType<${nodeTypeName(targetName)}>", initializer = expression)
     }
 
     private fun writeNodeHolder(propertyName: String, holderName: String, edges: List<FlowEdge>) {
         writer.line()
-        writer.expressionProperty(name = propertyName, type = holderName, expression = "new()")
+        writer.cachedProperty(name = propertyName, type = holderName, initializer = "new()")
         writer.sealedClass(holderName) {
-            edges.forEach { edge -> writer.expressionProperty(name = edge.objectName, type = edge.objectName, expression = "${edge.objectName}.Instance") }
+            edges.forEach { edge ->
+                writer.expressionProperty(name = edge.objectName, type = nodeTypeName(edge.objectName), expression = targetInstance(edge.objectName))
+            }
         }
     }
 
@@ -98,7 +120,7 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         if (singleFlow != null) {
             return "${CSharpRuntimeTypes.SEQUENCE_FLOWS}.Single(${singleFlowArguments(singleFlow, target)})"
         }
-        val flowType = "${CSharpRuntimeTypes.SEQUENCE_FLOW}<$targetObjectName>"
+        val flowType = "${CSharpRuntimeTypes.SEQUENCE_FLOW}<${nodeTypeName(targetObjectName)}>"
         val constructions = flows.map { flow -> "new(new(${stringLiteral(flow.id)}), ${nullableStringLiteral(flow.name)}, ${nullableStringLiteral(flow.conditionExpression)}, ${flow.isDefault}, $target)" }
         return "new($target, new $flowType[] { ${constructions.joinToString(", ")} })"
     }
@@ -112,5 +134,10 @@ internal class CSharpFlowWriter(private val writer: CSharpWriter) {
         return (listOf("new(${stringLiteral(flow.id)})", target) + metadata).joinToString(", ")
     }
 
-    private fun targetInstance(objectName: String): String = "FlowNodes.$objectName.Instance"
+    private fun targetInstance(objectName: String): String = "FlowNodes.$objectName"
+
+    companion object {
+
+        fun nodeTypeName(objectName: String): String = "${objectName}Node"
+    }
 }

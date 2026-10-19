@@ -22,7 +22,7 @@ internal object CSharpSourceFile {
         writer.line(GeneratedFileHeader.LINE)
         writer.line("#nullable enable")
         writer.line("#pragma warning disable CS1591")
-        writer.line("namespace $packagePath;")
+        writer.line("namespace ${CSharpCodeFormat.namespaceOf(packagePath)};")
         writer.line()
         writeTypes(writer)
         return GeneratedApiFile(

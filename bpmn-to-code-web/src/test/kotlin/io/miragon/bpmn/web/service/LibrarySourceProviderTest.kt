@@ -1,5 +1,6 @@
 package io.miragon.bpmn.web.service
 
+import io.miragon.bpmn.domain.shared.OutputLanguage
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -25,18 +26,28 @@ class LibrarySourceProviderTest {
     }
 
     @Test
-    fun `runtimeDependency describes the published runtime artifact with a resolved version`() {
-        val dependency = underTest.runtimeDependency()
+    fun `runtimeDependency names the JVM runtime artifact with a Gradle and a Maven snippet`() {
+        val dependency = underTest.runtimeDependency(OutputLanguage.KOTLIN)
 
-        assertThat(dependency.group).isEqualTo("io.miragon")
-        assertThat(dependency.artifact).isEqualTo("bpmn-to-code-runtime")
-        assertThat(dependency.version).isNotEqualTo("unknown")
-        assertThat(dependency.version).matches("\\d+\\..*")
-        assertThat(dependency.gradleSnippet)
-            .isEqualTo("implementation(\"io.miragon:bpmn-to-code-runtime:${dependency.version}\")")
-        assertThat(dependency.mavenSnippet)
-            .contains("<groupId>io.miragon</groupId>")
-            .contains("<artifactId>bpmn-to-code-runtime</artifactId>")
-            .contains("<version>${dependency.version}</version>")
+        assertThat(dependency.name).isEqualTo("io.miragon:bpmn-to-code-runtime")
+        assertThat(dependency.importedFrom).isEqualTo("io.miragon.bpmn.runtime")
+        assertThat(dependency.version).isNotEqualTo("unknown").matches("\\d+\\..*")
+        assertThat(dependency.snippets.map { it.label }).containsExactly("Gradle", "Maven")
+        assertThat(dependency.snippets.first().code).isEqualTo("implementation(\"io.miragon:bpmn-to-code-runtime:${dependency.version}\")")
+        assertThat(dependency.snippets.last().code)
+            .contains("<groupId>io.miragon</groupId>", "<artifactId>bpmn-to-code-runtime</artifactId>", "<version>${dependency.version}</version>")
+        assertThat(underTest.runtimeDependency(OutputLanguage.JAVA)).isEqualTo(dependency)
+    }
+
+    @Test
+    fun `runtimeDependency names the NuGet runtime package for C#`() {
+        val dependency = underTest.runtimeDependency(OutputLanguage.CSHARP)
+
+        assertThat(dependency.name).isEqualTo("Miragon.BpmnToCode.Runtime")
+        assertThat(dependency.importedFrom).isEqualTo("Miragon.BpmnToCode.Runtime")
+        assertThat(dependency.snippets.map { it.code }).containsExactly(
+            "<PackageReference Include=\"Miragon.BpmnToCode.Runtime\" Version=\"${dependency.version}\" />",
+            "dotnet add package Miragon.BpmnToCode.Runtime --version ${dependency.version}",
+        )
     }
 }

@@ -76,8 +76,8 @@ class GradlePluginSmokeTest {
         assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
         val generated = assertGeneratedFiles(projectDir, ".cs")
         val processApi = generated.single { it.name == "BikeLeasingProcessApi.cs" }
-        assertThat(processApi.readText()).contains("public static class FlowNodes", "public static class Runtime")
-        assertThat(generated.map { it.name }).contains("ServiceTasks.cs", "Messages.cs")
+        assertThat(processApi.readText()).contains("public static class FlowNodes")
+        assertThat(generated.map { it.name }).contains("ServiceTasks.cs", "Messages.cs").doesNotContain("Runtime.cs")
     }
 
     @Test

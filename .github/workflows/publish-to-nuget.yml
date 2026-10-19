@@ -1,0 +1,71 @@
+name: Publish to NuGet
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no real publish)'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Download CLI archives
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: cli-*
+          merge-multiple: true
+          path: archives
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '10.0'
+
+      - name: Pack
+        run: |
+          VERSION=$(grep '^projectVersion=' gradle.properties | cut -d= -f2)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          packages/nuget/stage-archives.sh archives
+          for project in BpmnToCode.Runtime BpmnToCode.MSBuild BpmnToCode.Tool; do
+            dotnet pack "packages/nuget/$project" -c Release -p:Version="$VERSION" -o nupkg
+          done
+
+      - name: Smoke test the tool
+        run: |
+          dotnet tool install Miragon.BpmnToCode --version "$VERSION" --add-source nupkg --tool-path smoke/tool
+          smoke/tool/bpmn-to-code validate --baseDir shared/bpmn/zeebe --filePattern '*.bpmn' --processEngine ZEEBE
+
+      - name: Smoke test the MSBuild integration
+        run: |
+          dotnet new classlib --output smoke/app --name MiraVelo.Process
+          mkdir smoke/app/bpmn && cp shared/bpmn/zeebe/*.bpmn smoke/app/bpmn/
+          dotnet new nugetconfig --output smoke/app
+          dotnet nuget add source "$PWD/nupkg" --name local --configfile smoke/app/nuget.config
+          dotnet add smoke/app package Miragon.BpmnToCode.MSBuild --version "$VERSION"
+          dotnet build smoke/app -warnaserror -p:BpmnToCodeProcessEngine=ZEEBE -p:BpmnToCodeFilePattern='bpmn/*.bpmn'
+          find smoke/app/obj -name BikeLeasingProcessApi.cs | grep .
+
+      - name: Log in to NuGet
+        if: inputs.dry_run != true
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Publish
+        if: inputs.dry_run != true
+        run: >-
+          dotnet nuget push "nupkg/*.nupkg"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate

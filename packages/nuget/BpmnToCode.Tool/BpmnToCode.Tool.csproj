@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>BpmnToCode.Tool</AssemblyName>
+    <RootNamespace>BpmnToCode.Tool</RootNamespace>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>bpmn-to-code</ToolCommandName>
+    <ToolPackageRuntimeIdentifiers>linux-x64;linux-arm64;osx-x64;osx-arm64;win-x64</ToolPackageRuntimeIdentifiers>
+    <RuntimeIdentifiers>$(ToolPackageRuntimeIdentifiers)</RuntimeIdentifiers>
+
+    <PackageId>Miragon.BpmnToCode</PackageId>
+    <Version>0.0.0-dev</Version>
+    <Authors>Miragon</Authors>
+    <Description>Generates type-safe APIs from BPMN process models and validates the models. Brings its own Java runtime.</Description>
+    <PackageTags>bpmn;camunda;zeebe;operaton;codegen</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://miragon.github.io/bpmn-to-code/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Miragon/bpmn-to-code</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <None Include="cli/$(RuntimeIdentifier)/**" Link="cli/%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -16,6 +16,13 @@ internal class CSharpWriter {
     private var indentLevel = 0
     private val enclosingTypes = ArrayDeque<String>()
 
+    /**
+     * C# rejects a member that shares its name with the type enclosing it (CS0542), which a BPMN element
+     * called `Elements` or a timer event called `Timer` would otherwise produce. The JVM builders never hit
+     * this because their members are UPPER_SNAKE_CASE or camelCase and so can never equal a PascalCase type name.
+     */
+    private val enclosingType: String? get() = enclosingTypes.lastOrNull()
+
     fun line(text: String = "") {
         if (text.isEmpty()) {
             content.append('\n')
@@ -24,10 +31,10 @@ internal class CSharpWriter {
         }
     }
 
-    fun staticClass(name: String, body: () -> Unit) = typeBlock(keyword = "public static class", header = disambiguate(name), body = body)
+    fun staticClass(name: String, body: () -> Unit) = typeBlock(keyword = "public static class", header = disambiguated(name, enclosingType), body = body)
 
     fun sealedClass(name: String, implements: String? = null, body: () -> Unit) {
-        val typeName = disambiguate(name)
+        val typeName = disambiguated(name, enclosingType)
         val header = implements?.let { "$typeName : $it" } ?: typeName
         typeBlock(keyword = "public sealed class", header = header, body = body, typeName = typeName)
     }
@@ -45,22 +52,33 @@ internal class CSharpWriter {
 
     fun constant(name: String, value: String) = constantExpression(name, stringLiteral(value))
 
-    fun constantExpression(name: String, expression: String, type: String = "string") = line("public const $type ${disambiguate(name)} = $expression;")
+    fun constantExpression(name: String, expression: String, type: String = "string") = line("public const $type ${disambiguated(name, enclosingType)} = $expression;")
 
     /**
-     * The singleton of the enclosing node class: a private constructor plus a static `Instance` field. The
-     * initializer only ever runs the node's own initializers, never another node's, so static
-     * initialisation cannot cycle.
+     * The singleton of the enclosing node class: a private constructor plus a static `Instance` field, reached
+     * from outside through the node's property on `FlowNodes`. The initializer only ever runs the node's own
+     * initializers, never another node's, so static initialisation cannot cycle.
      */
     fun singleton() {
         val typeName = enclosingTypes.last()
-        line("public static readonly $typeName Instance = new();")
+        line("internal static readonly $typeName Instance = new();")
         line("private $typeName() { }")
     }
 
-    fun readonlyProperty(name: String, type: String, initializer: String) = line("public $type ${disambiguate(name)} { get; } = $initializer;")
+    /**
+     * A property built on first read and kept, so reading it again neither allocates nor runs into another
+     * node's initialisation.
+     */
+    fun cachedProperty(name: String, type: String, initializer: String) {
+        val member = disambiguated(name, enclosingType)
+        val field = "_" + member.replaceFirstChar { it.lowercaseChar() }
+        line("public $type $member => $field ??= $initializer;")
+        line("private $type? $field;")
+    }
 
-    fun expressionProperty(name: String, type: String, expression: String) = line("public $type ${disambiguate(name)} => $expression;")
+    fun readonlyProperty(name: String, type: String, initializer: String) = line("public $type ${disambiguated(name, enclosingType)} { get; } = $initializer;")
+
+    fun expressionProperty(name: String, type: String, expression: String) = line("public $type ${disambiguated(name, enclosingType)} => $expression;")
 
     /**
      * A static read-only list with one element per line. Expression-bodied, so it never takes part in static
@@ -72,13 +90,6 @@ internal class CSharpWriter {
         elements.forEach { line("    $it,") }
         line("};")
     }
-
-    /**
-     * C# rejects a member that shares its name with the type enclosing it (CS0542), which a BPMN element
-     * called `Elements` or a timer event called `Timer` would otherwise produce. The JVM builders never hit
-     * this because their members are UPPER_SNAKE_CASE or camelCase and so can never equal a PascalCase type name.
-     */
-    private fun disambiguate(name: String) = disambiguated(name, enclosingTypes.lastOrNull())
 
     /**
      * Emits an XML documentation comment. Multi-line text becomes one `<para>` per line so the

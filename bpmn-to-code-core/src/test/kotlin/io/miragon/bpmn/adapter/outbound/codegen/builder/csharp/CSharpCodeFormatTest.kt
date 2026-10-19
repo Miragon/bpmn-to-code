@@ -46,4 +46,10 @@ class CSharpCodeFormatTest {
     fun `disambiguated keeps any other member name`() {
         assertThat(underTest.disambiguated(name = "MiraveloOrderBike", enclosingType = "Messages")).isEqualTo("MiraveloOrderBike")
     }
+
+    @Test
+    fun `namespaceOf writes every segment of a package path in PascalCase`() {
+        assertThat(underTest.namespaceOf(packagePath = "io.miravelo.process")).isEqualTo("Io.Miravelo.Process")
+        assertThat(underTest.namespaceOf(packagePath = "MiraVelo.Process")).isEqualTo("MiraVelo.Process")
+    }
 }

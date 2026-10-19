@@ -16,7 +16,8 @@ import io.miragon.bpmn.domain.shared.RootElements
  * Generates the process API for a single BPMN process as a C# file.
  *
  * The shape matches the Kotlin and Java builders: constant registries plus the typed `FlowNodes` navigation.
- * The runtime types every node references ([CSharpRuntimeTypes]) are not part of the file.
+ * There is no C# runtime package; the runtime types every node references ([CSharpRuntimeTypes]) are written
+ * once per run next to the shared definitions.
  */
 internal class CSharpProcessApiBuilder : ProcessApiBuilder {
 
@@ -68,7 +69,7 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
      * `FlowNodes`, and a subprocess opens its interior via `Start`.
      */
     private fun writeFlow(builder: CSharpWriter, graph: ProcessGraph, definitions: RootElements) {
-        builder.docComment("Typed navigation over the process flow: one nested singleton class per BPMN element, reached as FlowNodes.Element.Instance.")
+        builder.docComment("Typed navigation over the process flow: one property per BPMN element, typed by a nested singleton class.")
         builder.staticClass("FlowNodes") {
             CSharpFlowWriter(builder).write(FlowGraphFactory.build(graph, definitions))
         }

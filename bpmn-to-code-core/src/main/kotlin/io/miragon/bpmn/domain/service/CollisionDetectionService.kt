@@ -35,6 +35,7 @@ class CollisionDetectionService {
             ),
         )
         collisions.addAll(findRepeatedIds(modelId, model.allFlowNodes))
+        collisions.addAll(findNodeTypeNameCollisions(modelId, model.allFlowNodes))
         model.allFlowNodes.forEach { node -> collisions.addAll(findCollisionsOn(modelId, node)) }
         return collisions.distinctBy { Triple(first = it.processId, second = it.variableType, third = it.conflictingIds) }
     }
@@ -100,6 +101,23 @@ class CollisionDetectionService {
                 conflictingIds = List(occurrences) { id },
             )
         }
+
+    /**
+     * C# reaches an element `x` through the property `X` and types it as `XNode`, so an element named `xNode`
+     * would give a property the same name as that type.
+     */
+    private fun findNodeTypeNameCollisions(processId: String, flowNodes: List<FlowNodeDefinition>): List<CollisionDetail> {
+        val idsByName = flowNodes.mapNotNull { it.id }.filter { it.isNotEmpty() }.distinct().associateBy { it.toCamelCase() }
+        return idsByName.mapNotNull { (name, id) ->
+            val clashingId = idsByName["${name}Node"] ?: return@mapNotNull null
+            CollisionDetail(
+                processId = processId,
+                variableType = "FlowNode",
+                constantName = "${name}Node",
+                conflictingIds = listOf(id, clashingId).sorted(),
+            )
+        }
+    }
 
     private fun <T> findCollisionsIn(
         processId: String,

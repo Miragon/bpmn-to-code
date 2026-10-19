@@ -48,4 +48,10 @@ internal object CSharpCodeFormat {
      * that has to reference the member.
      */
     fun disambiguated(name: String, enclosingType: String?): String = if (name == enclosingType) name + "_" else name
+
+    /**
+     * The .NET namespace of a package path: every segment in PascalCase, `io.miravelo.process` becomes
+     * `Io.Miravelo.Process`. The directory the files are written to keeps the package path as given.
+     */
+    fun namespaceOf(packagePath: String): String = packagePath.split('.').joinToString(".") { segment -> segment.replaceFirstChar { it.uppercaseChar() } }
 }

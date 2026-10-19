@@ -57,7 +57,7 @@ class CSharpCompilationTest {
     fun `generated csharp with several sequence flows to the same element compiles`() {
         val generated = generateFromXml(listOf(TWO_FLOWS_TO_ONE_TASK), ProcessEngine.ZEEBE)
         assertThat(generated.single { it.processId == "approval" }.content)
-            .contains("public Runtime.SequenceFlows<TaskApprove> TaskApprove => new(FlowNodes.TaskApprove.Instance, new Runtime.SequenceFlow<TaskApprove>[] {")
+            .contains("public global::Miragon.BpmnToCode.Runtime.SequenceFlows<TaskApproveNode> TaskApprove => _taskApprove ??= new(FlowNodes.TaskApprove, new global::Miragon.BpmnToCode.Runtime.SequenceFlow<TaskApproveNode>[] {")
 
         assertCompiles(project(csproj(), generated))
     }
@@ -82,7 +82,7 @@ class CSharpCompilationTest {
 
     @Test
     fun `two generated apis and consumer code compile together in one project`() {
-        // given: two APIs of one run in the same namespace, each inlining its own runtime types, plus code that uses them
+        // given: two APIs of one run in the same namespace on the runtime package, plus code that uses them
         val projectDir = project(
             csproj(),
             generate(listOf("/bpmn/zeebe/bike-leasing.bpmn", "/bpmn/nested-subprocess.bpmn"), ProcessEngine.ZEEBE),
@@ -90,6 +90,34 @@ class CSharpCompilationTest {
         File(projectDir, "Consumer.cs").writeText(CONSUMER)
 
         assertCompiles(projectDir)
+    }
+
+    @Test
+    fun `process paths walk the bike-leasing scenarios the JVM runtime is tested with`() {
+        // given: the generated API in a console project whose program walks the scenarios and checks their ids
+        val projectDir = project(csproj("<OutputType>Exe</OutputType>"), generate(listOf("/bpmn/zeebe/bike-leasing.bpmn"), ProcessEngine.ZEEBE))
+        File(projectDir, "Program.cs").writeText(PROCESS_PATH_SCENARIOS)
+
+        // when: the program runs
+        val result = runDotnet(projectDir, "run", "--nologo", "-v", "q")
+
+        // then: every scenario recorded the expected elements and sequence flows
+        assertThat(result.exitCode).withFailMessage { "Process path scenarios failed:\n${result.output}" }.isZero()
+        assertThat(result.output).contains("all process path scenarios passed")
+    }
+
+    @Test
+    fun `a process path the model does not contain does not compile`() {
+        // given: a walk from the solvency gateway straight to the fork, which no sequence flow connects
+        val projectDir = project(csproj(), generate(listOf("/bpmn/zeebe/bike-leasing.bpmn"), ProcessEngine.ZEEBE))
+        File(projectDir, "Walk.cs").writeText(IMPOSSIBLE_PATH)
+
+        // when: the project is built
+        val result = runDotnetBuild(projectDir)
+
+        // then: the compiler rejects the missing successor
+        assertThat(result.exitCode).isNotZero()
+        assertThat(result.output).contains("CS1061", "GatewayFork")
     }
 
     private fun generate(bpmnResources: List<String>, engine: ProcessEngine) = generateFromXml(
@@ -112,6 +140,8 @@ class CSharpCompilationTest {
         val projectDir = Files.createTempDirectory("csharp-compile").toFile()
         generated.forEach { File(projectDir, it.fileName).writeText(it.content) }
         File(projectDir, "generated.csproj").writeText(csproj)
+        val runtimeSources = runtimeProject().listFiles { file -> file.isFile }.orEmpty()
+        runtimeSources.forEach { it.copyTo(File(projectDir, "$RUNTIME_DIRECTORY/${it.name}")) }
         return projectDir
     }
 
@@ -120,8 +150,10 @@ class CSharpCompilationTest {
         assertThat(result.exitCode).withFailMessage { "Generated C# did not compile:\n${result.output}" }.isZero()
     }
 
-    private fun runDotnetBuild(projectDir: File): ProcessResult {
-        val process = ProcessBuilder("dotnet", "build", "--nologo", "-v", "q")
+    private fun runDotnetBuild(projectDir: File): ProcessResult = runDotnet(projectDir, "build", "--nologo", "-v", "q")
+
+    private fun runDotnet(projectDir: File, vararg arguments: String): ProcessResult {
+        val process = ProcessBuilder("dotnet", *arguments)
             .directory(projectDir).redirectErrorStream(true).start()
         val output = process.inputStream.bufferedReader().readText()
         if (!process.waitFor(BUILD_TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
@@ -136,6 +168,9 @@ class CSharpCompilationTest {
     companion object {
 
         private const val BUILD_TIMEOUT_MINUTES = 5L
+        private const val RUNTIME_DIRECTORY = "runtime"
+
+        private fun runtimeProject(): File = File(requireNotNull(System.getProperty("csharp.runtime.project")))
 
         private fun csproj(extraSetting: String = "") = """
             <Project Sdk="Microsoft.NET.Sdk">
@@ -145,6 +180,10 @@ class CSharpCompilationTest {
                 <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
                 $extraSetting
               </PropertyGroup>
+              <ItemGroup>
+                <Compile Remove="$RUNTIME_DIRECTORY/**" />
+                <ProjectReference Include="$RUNTIME_DIRECTORY/BpmnToCode.Runtime.csproj" />
+              </ItemGroup>
             </Project>
         """.trimIndent()
 
@@ -189,6 +228,7 @@ class CSharpCompilationTest {
         val CONSUMER = """
             using System;
             using De.Gen;
+            using Miragon.BpmnToCode.Runtime;
             using Api = De.Gen.BikeLeasingProcessApi;
 
             namespace De.Gen.Consumer;
@@ -216,39 +256,164 @@ class CSharpCompilationTest {
 
                 public static void Navigate()
                 {
-                    var start = Api.FlowNodes.StartEventLeasingRequestReceived.Instance;
+                    var start = Api.FlowNodes.StartEventLeasingRequestReceived;
                     var successor = start.Next.ServiceTaskValidateApplication;
                     var edge = successor.Flow;
                     string? condition = edge.ConditionExpression;
                     bool isDefault = edge.IsDefault;
-                    Api.FlowNodes.ServiceTaskValidateApplication target = edge.Target;
-                    Api.Runtime.ISequenceFlow generic = edge;
-                    Api.Runtime.IHasJobType jobTask = Api.FlowNodes.ServiceTaskSendContract.Instance;
+                    Api.FlowNodes.ServiceTaskValidateApplicationNode target = edge.Target;
+                    ISequenceFlow generic = edge;
+                    IHasJobType jobTask = Api.FlowNodes.ServiceTaskSendContract;
                     string jobType = jobTask.JobType;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
                     if (!edge.Equals(start.Next.ServiceTaskValidateApplication.Flow)) throw new InvalidOperationException();
-                    Api.Runtime.ISuccessor<Api.Runtime.IFlowNode> genericSuccessor = successor;
-                    Api.Runtime.IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder.Instance;
-                    Api.Runtime.AttachedBoundaryEvent<Api.FlowNodes.TimerSignatureReminder> attached = Api.FlowNodes.SubProcessConcludeContract.Instance.Next.TimerSignatureReminder;
-                    Api.Runtime.ICompensationThrowEvent thrower = Api.FlowNodes.EventReverseApplication.Instance;
-                    Api.Runtime.AssociatedCompensationHandler<Api.FlowNodes.ServiceTaskCancelContract> handler = Api.FlowNodes.BoundaryCompensateContract.Instance.Next.ServiceTaskCancelContract;
+                    ISuccessor<IFlowNode> genericSuccessor = successor;
+                    IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder;
+                    AttachedBoundaryEvent<Api.FlowNodes.TimerSignatureReminderNode> attached = Api.FlowNodes.SubProcessConcludeContract.Next.TimerSignatureReminder;
+                    ICompensationThrowEvent thrower = Api.FlowNodes.EventReverseApplication;
+                    AssociatedCompensationHandler<Api.FlowNodes.ServiceTaskCancelContractNode> handler = Api.FlowNodes.BoundaryCompensateContract.Next.ServiceTaskCancelContract;
 
                     var creditRating = successor.Target.Next.BusinessRuleTaskCheckCreditRating.Target;
                     var subProcess = creditRating.Next.GatewayIsSolvent.Target.Next.SubProcessConcludeContract.Target;
                     var innerStart = subProcess.Start.StartEventCustomerEligible;
                     string? innerName = innerStart.Name;
-                    string hostId = Api.FlowNodes.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
-                    bool interrupts = Api.FlowNodes.TimerSignatureReminder.Instance.IsInterrupting;
-                    Api.Runtime.VariableName.Input input = Api.FlowNodes.ServiceTaskSendContract.Instance.Variables.ApplicationId;
-                    Api.Runtime.IHasVariables withVariables = Api.FlowNodes.ServiceTaskSendContract.Instance;
+                    string hostId = Api.FlowNodes.TimerSignatureReminder.AttachedTo.Id.Value;
+                    bool interrupts = Api.FlowNodes.TimerSignatureReminder.IsInterrupting;
+                    VariableName.Input input = Api.FlowNodes.ServiceTaskSendContract.Variables.ApplicationId;
+                    IHasVariables withVariables = Api.FlowNodes.ServiceTaskSendContract;
                     int declared = withVariables.Variables.All.Count + withVariables.Variables.Inputs.Count + withVariables.Variables.Outputs.Count;
                     if (declared == 0) throw new InvalidOperationException();
-                    Api.Runtime.ProcessId called = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.CalledProcess;
-                    Api.Runtime.InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
+                    ProcessId called = Api.FlowNodes.CallActivityCancelBikeOrder.CalledProcess;
+                    InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Inputs.OrderIds;
 
-                    NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Instance.Id;
+                    ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Id;
+                    IFlowNode[] acrossProcesses = { Api.FlowNodes.ServiceTaskSendContract, NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot };
+                    string rawId = Api.FlowNodes.ServiceTaskSendContract.Id;
+                    string rawProcess = Api.FlowNodes.CallActivityCancelBikeOrder.CalledProcess;
+                    if (acrossProcesses.Length != 2 || rawId.Length == 0 || rawProcess.Length == 0) throw new InvalidOperationException();
+                    if (!ReferenceEquals(start.Next, start.Next)) throw new InvalidOperationException("Next allocates on every read");
+                    if (!ReferenceEquals(start.Next.ServiceTaskValidateApplication, start.Next.ServiceTaskValidateApplication)) throw new InvalidOperationException("a successor allocates on every read");
+                    if (!ReferenceEquals(Api.FlowNodes.SubProcessConcludeContract.Start, Api.FlowNodes.SubProcessConcludeContract.Start)) throw new InvalidOperationException("Start allocates on every read");
                     Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id} {genericSuccessor.Target.Id} {attached.Target.Id} {handler.Target.Id} {thrower.Id}");
                 }
+            }
+        """.trimIndent()
+
+        /**
+         * The bike-leasing scenarios of the JVM runtime's ProcessPathKotlinApiTest, walked with the C# process path.
+         */
+        val PROCESS_PATH_SCENARIOS = """
+            using System;
+            using System.Linq;
+            using Miragon.BpmnToCode.Runtime;
+            using Api = De.Gen.BikeLeasingProcessApi;
+
+            var nodes = Api.FlowNodes.All;
+
+            var happyPath = ProcessPath.From(Api.FlowNodes.StartEventLeasingRequestReceived)
+                .Then(n => n.ServiceTaskValidateApplication)
+                .Then(n => n.BusinessRuleTaskCheckCreditRating)
+                .Then(n => n.GatewayIsSolvent)
+                .Onto(n => n.SubProcessConcludeContract)
+                .Inside(contract => contract
+                    .Enter(start => start.StartEventCustomerEligible)
+                    .Then(n => n.ServiceTaskSendContract)
+                    .Then(n => n.GatewayAwaitSignature)
+                    .Then(n => n.EventContractSigned)
+                    .End(n => n.EndEventContractConcluded))
+                .Then(n => n.GatewayFork)
+                .Then(n => n.ServiceTaskOrderBike)
+                .Then(n => n.GatewayJoin)
+                .Then(n => n.ReceiveTaskHandoverReported)
+                .Then(n => n.TimerWithdrawalPeriodElapsed)
+                .End(n => n.EndEventLeasingActive);
+            Expect("happy path", happyPath.Ids, "startEvent_leasingRequestReceived", "serviceTask_validateApplication", "businessRuleTask_checkCreditRating", "gateway_isSolvent", "startEvent_customerEligible", "serviceTask_sendContract", "gateway_awaitSignature", "event_contractSigned", "endEvent_contractConcluded", "gateway_fork", "serviceTask_orderBike", "gateway_join", "receiveTask_handoverReported", "timer_withdrawalPeriodElapsed", "endEvent_leasingActive");
+
+            var escalation = ProcessPath.From(Api.FlowNodes.StartEventLeasingRequestReceived)
+                .Then(n => n.ServiceTaskValidateApplication)
+                .Then(n => n.BusinessRuleTaskCheckCreditRating)
+                .Enter(Api.FlowNodes.SubProcessConcludeContract, start => start.StartEventCustomerEligible)
+                .Then(n => n.ServiceTaskSendContract)
+                .Then(n => n.GatewayAwaitSignature)
+                .Then(n => n.TimerSignatureDeadline)
+                .End(n => n.EndEventContractNotSigned)
+                .InterruptedBy(Api.FlowNodes.SubProcessConcludeContract, n => n.BoundaryContractNotSigned)
+                .Then(n => n.GatewayCollectRejections)
+                .Then(n => n.ServiceTaskSendRejection)
+                .End(n => n.EndEventApplicationRejected);
+            Expect("escalation", escalation.Ids, "startEvent_leasingRequestReceived", "serviceTask_validateApplication", "businessRuleTask_checkCreditRating", "startEvent_customerEligible", "serviceTask_sendContract", "gateway_awaitSignature", "timer_signatureDeadline", "endEvent_contractNotSigned", "boundary_contractNotSigned", "gateway_collectRejections", "serviceTask_sendRejection", "endEvent_applicationRejected");
+
+            var errorBoundary = ProcessPath.From(Api.FlowNodes.StartEventLeasingRequestReceived)
+                .Then(n => n.ServiceTaskValidateApplication)
+                .Then(n => n.BoundaryApplicationInvalid)
+                .Then(n => n.GatewayCollectRejections)
+                .Then(n => n.ServiceTaskSendRejection)
+                .End(n => n.EndEventApplicationRejected);
+            Expect("error boundary", errorBoundary.Ids, "startEvent_leasingRequestReceived", "serviceTask_validateApplication", "boundary_applicationInvalid", "gateway_collectRejections", "serviceTask_sendRejection", "endEvent_applicationRejected");
+
+            var reminder = ProcessPath.From(Api.FlowNodes.GatewayIsSolvent)
+                .Onto(n => n.SubProcessConcludeContract)
+                .Then(n => n.TimerSignatureReminder)
+                .Then(n => n.ServiceTaskSendReminderMail)
+                .End(n => n.EndEventCustomerReminded);
+            Expect("reminder", reminder.Ids, "gateway_isSolvent", "timer_signatureReminder", "serviceTask_sendReminderMail", "endEvent_customerReminded");
+
+            var flows = ProcessPath.From(Api.FlowNodes.BusinessRuleTaskCheckCreditRating)
+                .Then(n => n.GatewayIsSolvent)
+                .Then(n => n.SubProcessConcludeContract);
+            Expect("flows ids", flows.Ids, "businessRuleTask_checkCreditRating", "gateway_isSolvent", "subProcess_concludeContract");
+            Expect("flows", flows.FlowIds, "flow_checkCreditRatingToIsSolvent", "flow_isSolventToConcludeContract");
+
+            var compensated = ProcessPath.From(Api.FlowNodes.StartEventApplicationWithdrawn)
+                .Then(n => n.EventReverseApplication)
+                .ThrowingCompensation(Api.FlowNodes.BoundaryCompensateContract, n => n.ServiceTaskCancelContract, includeBoundaryEvent: true)
+                .ThrowingCompensation(Api.FlowNodes.BoundaryCompensateOrder, n => n.CallActivityCancelBikeOrder, includeBoundaryEvent: true)
+                .Then(n => n.ServiceTaskSendCancellationConfirmation)
+                .End(n => n.EndEventApplicationCancelled);
+            Expect("compensation", compensated.Ids, "startEvent_applicationWithdrawn", "event_reverseApplication", "boundary_compensateContract", "serviceTask_cancelContract", "boundary_compensateOrder", "callActivity_cancelBikeOrder", "serviceTask_sendCancellationConfirmation", "endEvent_applicationCancelled");
+            Expect("compensation flows", compensated.FlowIds, "flow_applicationWithdrawnToReverseApplication", "flow_reverseApplicationToSendCancellationConfirmation", "flow_sendCancellationConfirmationToApplicationCancelled");
+
+            var withoutBoundary = ProcessPath.From(Api.FlowNodes.StartEventApplicationWithdrawn)
+                .Then(n => n.EventReverseApplication)
+                .ThrowingCompensation(Api.FlowNodes.BoundaryCompensateInsurance, n => n.ServiceTaskCancelPolicy)
+                .Then(n => n.ServiceTaskSendCancellationConfirmation);
+            Expect("compensation without boundary", withoutBoundary.Ids, "startEvent_applicationWithdrawn", "event_reverseApplication", "serviceTask_cancelPolicy", "serviceTask_sendCancellationConfirmation");
+
+            var orderBranch = ProcessPath.From(Api.FlowNodes.GatewayFork).Then(n => n.ServiceTaskOrderBike).Then(n => n.GatewayJoin).Then(n => n.ReceiveTaskHandoverReported).Nodes;
+            var insuranceBranch = ProcessPath.From(Api.FlowNodes.GatewayFork).Then(n => n.ServiceTaskIssueInsurancePolicy).Then(n => n.GatewayJoin).Then(n => n.ReceiveTaskHandoverReported).Nodes;
+            var parallel = ProcessPath.NodesOf(orderBranch, insuranceBranch).Select(node => node.Id.Value).ToArray();
+            if (parallel.Distinct().Count() != parallel.Length || !parallel.Contains("serviceTask_orderBike") || !parallel.Contains("serviceTask_issueInsurancePolicy")) throw new InvalidOperationException("parallel branches");
+
+            #pragma warning disable BPMNTOCODE001
+            var jumped = ProcessPath.From(Api.FlowNodes.GatewayFork)
+                .Then(n => n.ServiceTaskOrderBike)
+                .JumpTo(Api.FlowNodes.GatewayFork)
+                .Then(n => n.ServiceTaskIssueInsurancePolicy)
+                .Then(n => n.GatewayJoin)
+                .Then(n => n.ReceiveTaskHandoverReported);
+            #pragma warning restore BPMNTOCODE001
+            Expect("jump", jumped.Ids, "gateway_fork", "serviceTask_orderBike", "serviceTask_issueInsurancePolicy", "gateway_join", "receiveTask_handoverReported");
+
+            Console.WriteLine($"all process path scenarios passed over {nodes.Count} nodes");
+
+            static void Expect(string scenario, string[] actual, params string[] expected)
+            {
+                if (!actual.SequenceEqual(expected))
+                {
+                    throw new InvalidOperationException($"{scenario}: expected [{string.Join(", ", expected)}] but walked [{string.Join(", ", actual)}]");
+                }
+            }
+        """.trimIndent()
+
+        val IMPOSSIBLE_PATH = """
+            using Miragon.BpmnToCode.Runtime;
+            using Api = De.Gen.BikeLeasingProcessApi;
+
+            namespace De.Gen.Consumer;
+
+            public static class Walk
+            {
+                public static string[] Ids() => ProcessPath.From(Api.FlowNodes.GatewayIsSolvent).Then(n => n.GatewayFork).Ids;
             }
         """.trimIndent()
 

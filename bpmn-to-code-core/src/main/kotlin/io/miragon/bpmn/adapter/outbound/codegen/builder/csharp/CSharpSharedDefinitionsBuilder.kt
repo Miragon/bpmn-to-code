@@ -12,8 +12,6 @@ import io.miragon.bpmn.domain.SharedDefinitionsApi
 
 /**
  * Generates one C# static class per kind of engine-global identifier, shared by all Process APIs of a run.
- * Plain `const string`s need none of the runtime types [CSharpProcessApiBuilder] inlines per file, so the
- * classes are the same for every process.
  */
 internal class CSharpSharedDefinitionsBuilder : SharedDefinitionsBuilder {
 
@@ -26,11 +24,12 @@ internal class CSharpSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         CSharpProcessVariablesWriter,
     )
 
-    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers
-        .filter { it.shouldWrite(api.definitions) }
-        .map { sharedDefinitionWriter ->
+    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> {
+        val definitionFiles = writers.filter { it.shouldWrite(api.definitions) }.map { sharedDefinitionWriter ->
             CSharpSourceFile.render(typeName = sharedDefinitionWriter.type.typeName, packagePath = api.packagePath) { writer ->
                 sharedDefinitionWriter.write(writer, api.definitions)
             }
         }
+        return definitionFiles
+    }
 }

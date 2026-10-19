@@ -35,7 +35,9 @@ internal class CSharpFacetWriter(private val writer: CSharpWriter) {
         facets.signal?.let { writer.readonlyProperty(name = "Signal", type = CSharpRuntimeTypes.SIGNAL_NAME, initializer = "new(${CSharpSignalsWriter.nodeValue(it)})") }
         facets.error?.let { writer.readonlyProperty(name = "Error", type = CSharpRuntimeTypes.BPMN_ERROR_DEFINITION, initializer = "new(${CSharpErrorsWriter.nodeArguments(it)})") }
         facets.escalation?.let { writer.readonlyProperty(name = "Escalation", type = CSharpRuntimeTypes.BPMN_ESCALATION_DEFINITION, initializer = "new(${CSharpEscalationsWriter.nodeArguments(it)})") }
-        facets.attachedTo?.let { writer.expressionProperty(name = "AttachedTo", type = it.objectName, expression = "${it.objectName}.Instance") }
+        facets.attachedTo?.let {
+            writer.expressionProperty(name = "AttachedTo", type = CSharpFlowWriter.nodeTypeName(it.objectName), expression = "FlowNodes.${it.objectName}")
+        }
         facets.isInterrupting?.let { writer.expressionProperty(name = "IsInterrupting", type = "bool", expression = it.toString()) }
     }
 

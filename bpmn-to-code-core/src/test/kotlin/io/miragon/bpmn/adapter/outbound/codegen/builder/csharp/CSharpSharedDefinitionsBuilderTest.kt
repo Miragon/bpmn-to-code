@@ -37,7 +37,7 @@ class CSharpSharedDefinitionsBuilderTest {
         )
 
         // when: we build the shared definition files
-        val result = underTest.buildApiFiles(api).single()
+        val result = underTest.buildApiFiles(api).single { it.fileName == "Messages.cs" }
 
         // then: the constant is renamed, because C# rejects a member named like its enclosing type (CS0542)
         assertThat(result.content).contains("public const string Messages_ = \"Messages\";")
@@ -53,7 +53,10 @@ class CSharpSharedDefinitionsBuilderTest {
             packagePath = "de.emaarco.example",
         )
 
-        // when / then: no file is generated
-        assertThat(underTest.buildApiFiles(api)).isEmpty()
+        // when: we build the shared definition files
+        val result = underTest.buildApiFiles(api)
+
+        // then: nothing is written, as the runtime types come from the runtime package
+        assertThat(result).isEmpty()
     }
 }
