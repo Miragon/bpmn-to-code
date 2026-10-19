@@ -1,0 +1,872 @@
+object BikeLeasingProcessApi
+  val PROCESS_ENGINE: BpmnEngine = BpmnEngine.OPERATON
+  val PROCESS_ID: ProcessId = ProcessId(value="bikeLeasing")
+  object FlowNodes
+    val all: List<FlowNode> = [->BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid, ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract, ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance, ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder, ->BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned, ->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating, ->BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder, ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled, ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected, ->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded, ->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned, ->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded, ->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated, ->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive, ->BikeLeasingProcessApi.FlowNodes.EventContractSigned, ->BikeLeasingProcessApi.FlowNodes.EventReverseApplication, ->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature, ->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, ->BikeLeasingProcessApi.FlowNodes.GatewayFork, ->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent, ->BikeLeasingProcessApi.FlowNodes.GatewayJoin, ->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication, ->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged, ->BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn, ->BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible, ->BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived, ->BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged, ->BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn, ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract, ->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline, ->BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder, ->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed, ->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress]
+    object BoundaryApplicationInvalid : AbstractFlowNode, BoundaryEvent<BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication>, ErrorEvent, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid.Next>
+      const val ELEMENT_ID: String = "boundary_applicationInvalid"
+      val attachedTo: BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val error: BpmnErrorDefinition = BpmnErrorDefinition(code="applicationInvalid", name="miravelo.applicationInvalid")
+      val eventType: BpmnEventType = BpmnEventType.ERROR
+      val id: ElementId = ElementId(value="boundary_applicationInvalid")
+      val isInterrupting: Boolean = true
+      val name: String? = "Application invalid"
+      val next: BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid.Next = ->BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid.Next
+      object Next
+        val gatewayCollectRejections: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationInvalidToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationInvalidToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections)
+    object BoundaryCompensateContract : AbstractFlowNode, BoundaryEvent<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract.Next>
+      const val ELEMENT_ID: String = "boundary_compensateContract"
+      val attachedTo: BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.COMPENSATION
+      val id: ElementId = ElementId(value="boundary_compensateContract")
+      val isInterrupting: Boolean = true
+      val name: String? = "Contract to revoke"
+      val next: BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract.Next = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract.Next
+      object Next
+        val serviceTaskCancelContract: AssociatedCompensationHandler<BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract> = AssociatedCompensationHandler(target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract)
+    object BoundaryCompensateInsurance : AbstractFlowNode, BoundaryEvent<BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance.Next>
+      const val ELEMENT_ID: String = "boundary_compensateInsurance"
+      val attachedTo: BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.COMPENSATION
+      val id: ElementId = ElementId(value="boundary_compensateInsurance")
+      val isInterrupting: Boolean = true
+      val name: String? = "Policy to cancel"
+      val next: BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance.Next = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance.Next
+      object Next
+        val serviceTaskCancelPolicy: AssociatedCompensationHandler<BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy> = AssociatedCompensationHandler(target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy)
+    object BoundaryCompensateOrder : AbstractFlowNode, BoundaryEvent<BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder.Next>
+      const val ELEMENT_ID: String = "boundary_compensateOrder"
+      val attachedTo: BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.COMPENSATION
+      val id: ElementId = ElementId(value="boundary_compensateOrder")
+      val isInterrupting: Boolean = true
+      val name: String? = "Order to cancel"
+      val next: BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder.Next = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder.Next
+      object Next
+        val callActivityCancelBikeOrder: AssociatedCompensationHandler<BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder> = AssociatedCompensationHandler(target=->BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder)
+    object BoundaryContractNotSigned : AbstractFlowNode, BoundaryEvent<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract>, EscalationEvent, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned.Next>
+      const val ELEMENT_ID: String = "boundary_contractNotSigned"
+      val attachedTo: BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val escalation: BpmnEscalationDefinition = BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")
+      val eventType: BpmnEventType = BpmnEventType.ESCALATION
+      val id: ElementId = ElementId(value="boundary_contractNotSigned")
+      val isInterrupting: Boolean = true
+      val name: String? = "Contract not signed"
+      val next: BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned.Next = ->BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned.Next
+      object Next
+        val gatewayCollectRejections: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractNotSignedToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractNotSignedToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections)
+    object BusinessRuleTaskCheckCreditRating : AbstractFlowNode, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating.Next>
+      const val ELEMENT_ID: String = "businessRuleTask_checkCreditRating"
+      val elementType: BpmnElementType = BpmnElementType.BUSINESS_RULE_TASK
+      val id: ElementId = ElementId(value="businessRuleTask_checkCreditRating")
+      val name: String? = "Check credit rating"
+      val next: BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating.Next = ->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating.Next
+      object Next
+        val gatewayIsSolvent: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_checkCreditRatingToIsSolvent"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_checkCreditRatingToIsSolvent"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent)
+    object CallActivityCancelBikeOrder : AbstractFlowNode, CallActivity, HasVariables
+      const val ELEMENT_ID: String = "callActivity_cancelBikeOrder"
+      val calledProcess: ProcessId = ProcessId(value="cancelBikeOrder")
+      val elementType: BpmnElementType = BpmnElementType.CALL_ACTIVITY
+      val id: ElementId = ElementId(value="callActivity_cancelBikeOrder")
+      val name: String? = "Cancel bike order"
+      val variables: BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder.Variables = ->BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder.Variables
+      object Inputs
+        val APPLICATION_ID: InputOutputMapping = InputOutputMapping(source=null, sourceExpression="${applicationId}", target="applicationId")
+        val ORDER_IDS: InputOutputMapping = InputOutputMapping(source="orderIds", sourceExpression=null, target="orderIds")
+      object Outputs
+        val CANCELLATION_COSTS: InputOutputMapping = InputOutputMapping(source="cancellationCosts", sourceExpression=null, target="cancellationCosts")
+      object Variables : RegisteredVariableDefinitions
+        val APPLICATION_ID: VariableName.Input = VariableName.Input(value="applicationId")
+        val CANCELLATION_COSTS: VariableName.Output = VariableName.Output(value="cancellationCosts")
+        val ORDER_IDS: VariableName.Input = VariableName.Input(value="orderIds")
+        val all: List<VariableName> = [VariableName.Input(value="applicationId"), VariableName.Output(value="cancellationCosts"), VariableName.Input(value="orderIds")]
+        val inputs: List<VariableName> = [VariableName.Input(value="applicationId"), VariableName.Input(value="orderIds")]
+        val outputs: List<VariableName> = [VariableName.Output(value="cancellationCosts")]
+    object EndEventApplicationCancelled : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_applicationCancelled"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_applicationCancelled")
+      val name: String? = "Application cancelled"
+    object EndEventApplicationRejected : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_applicationRejected"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.TERMINATE
+      val id: ElementId = ElementId(value="endEvent_applicationRejected")
+      val name: String? = "Application rejected"
+    object EndEventContractConcluded : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_contractConcluded"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_contractConcluded")
+      val name: String? = "Contract concluded"
+    object EndEventContractNotSigned : AbstractFlowNode, EscalationEvent, Event
+      const val ELEMENT_ID: String = "endEvent_contractNotSigned"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val escalation: BpmnEscalationDefinition = BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")
+      val eventType: BpmnEventType = BpmnEventType.ESCALATION
+      val id: ElementId = ElementId(value="endEvent_contractNotSigned")
+      val name: String? = "Contract not signed"
+    object EndEventCustomerReminded : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_customerReminded"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_customerReminded")
+      val name: String? = "Customer reminded"
+    object EndEventDeliveryAddressUpdated : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_deliveryAddressUpdated"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_deliveryAddressUpdated")
+      val name: String? = "Delivery address updated"
+    object EndEventLeasingActive : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_leasingActive"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_leasingActive")
+      val name: String? = "Leasing active"
+    object EventContractSigned : AbstractFlowNode, Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.EventContractSigned.Next>
+      const val ELEMENT_ID: String = "event_contractSigned"
+      val elementType: BpmnElementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT
+      val eventType: BpmnEventType = BpmnEventType.MESSAGE
+      val id: ElementId = ElementId(value="event_contractSigned")
+      val message: MessageName = MessageName(value="miravelo.contractSigned")
+      val name: String? = "Contract signed"
+      val next: BikeLeasingProcessApi.FlowNodes.EventContractSigned.Next = ->BikeLeasingProcessApi.FlowNodes.EventContractSigned.Next
+      object Next
+        val endEventContractConcluded: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractSignedToContractConcluded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractSignedToContractConcluded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded)
+    object EventReverseApplication : AbstractFlowNode, CompensationThrowEvent, Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.EventReverseApplication.Next>
+      const val ELEMENT_ID: String = "event_reverseApplication"
+      val elementType: BpmnElementType = BpmnElementType.INTERMEDIATE_THROW_EVENT
+      val eventType: BpmnEventType = BpmnEventType.COMPENSATION
+      val id: ElementId = ElementId(value="event_reverseApplication")
+      val name: String? = "Application reversed"
+      val next: BikeLeasingProcessApi.FlowNodes.EventReverseApplication.Next = ->BikeLeasingProcessApi.FlowNodes.EventReverseApplication.Next
+      object Next
+        val serviceTaskSendCancellationConfirmation: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_reverseApplicationToSendCancellationConfirmation"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_reverseApplicationToSendCancellationConfirmation"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation)
+    object GatewayAwaitSignature : AbstractFlowNode, HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature.Next>
+      const val ELEMENT_ID: String = "gateway_awaitSignature"
+      val elementType: BpmnElementType = BpmnElementType.EVENT_BASED_GATEWAY
+      val id: ElementId = ElementId(value="gateway_awaitSignature")
+      val name: String? = "Await signature"
+      val next: BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature.Next = ->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature.Next
+      object Next
+        val eventContractSigned: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EventContractSigned> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToContractSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventContractSigned, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToContractSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventContractSigned, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EventContractSigned)
+        val timerSignatureDeadline: SequenceFlows<BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToSignatureDeadline"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToSignatureDeadline"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline)
+    object GatewayCollectRejections : AbstractFlowNode, HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections.Next>
+      const val ELEMENT_ID: String = "gateway_collectRejections"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_collectRejections")
+      val name: String? = null
+      val next: BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections.Next = ->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections.Next
+      object Next
+        val serviceTaskSendRejection: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectRejectionsToSendRejection"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectRejectionsToSendRejection"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection)
+    object GatewayFork : AbstractFlowNode, HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayFork.Next>
+      const val ELEMENT_ID: String = "gateway_fork"
+      val elementType: BpmnElementType = BpmnElementType.PARALLEL_GATEWAY
+      val id: ElementId = ElementId(value="gateway_fork")
+      val name: String? = null
+      val next: BikeLeasingProcessApi.FlowNodes.GatewayFork.Next = ->BikeLeasingProcessApi.FlowNodes.GatewayFork.Next
+      object Next
+        val serviceTaskIssueInsurancePolicy: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToIssueInsurancePolicy"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToIssueInsurancePolicy"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy)
+        val serviceTaskOrderBike: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToOrderBike"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToOrderBike"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike)
+    object GatewayIsSolvent : AbstractFlowNode, HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent.Next>
+      const val ELEMENT_ID: String = "gateway_isSolvent"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_isSolvent")
+      val name: String? = "Solvent?"
+      val next: BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent.Next = ->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent.Next
+      object Next
+        val gatewayCollectRejections: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections> = SequenceFlows(flow=SequenceFlow(conditionExpression="${!solvent}", id=ElementId(value="flow_isSolventToCollectRejections"), name="No", target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false), flows=[SequenceFlow(conditionExpression="${!solvent}", id=ElementId(value="flow_isSolventToCollectRejections"), name="No", target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections)
+        val subProcessConcludeContract: SequenceFlows<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_isSolventToConcludeContract"), name="Yes", target=->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_isSolventToConcludeContract"), name="Yes", target=->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract, isDefault=true)], target=->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract)
+    object GatewayJoin : AbstractFlowNode, HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayJoin.Next>
+      const val ELEMENT_ID: String = "gateway_join"
+      val elementType: BpmnElementType = BpmnElementType.PARALLEL_GATEWAY
+      val id: ElementId = ElementId(value="gateway_join")
+      val name: String? = null
+      val next: BikeLeasingProcessApi.FlowNodes.GatewayJoin.Next = ->BikeLeasingProcessApi.FlowNodes.GatewayJoin.Next
+      object Next
+        val receiveTaskHandoverReported: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_joinToHandoverReported"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_joinToHandoverReported"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported)
+    object ReceiveTaskHandoverReported : AbstractFlowNode, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported.Next>
+      const val ELEMENT_ID: String = "receiveTask_handoverReported"
+      val elementType: BpmnElementType = BpmnElementType.RECEIVE_TASK
+      val id: ElementId = ElementId(value="receiveTask_handoverReported")
+      val message: MessageName = MessageName(value="miravelo.handoverReported")
+      val name: String? = "Await bike handover"
+      val next: BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported.Next = ->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported.Next
+      object Next
+        val timerWithdrawalPeriodElapsed: SequenceFlows<BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_handoverReportedToWithdrawalPeriodElapsed"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_handoverReportedToWithdrawalPeriodElapsed"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed)
+    object ServiceTaskCancelContract : AbstractFlowNode, HasJobType
+      const val ELEMENT_ID: String = "serviceTask_cancelContract"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_cancelContract")
+      val jobType: String = "${cancelContractDelegate}"
+      val name: String? = "Cancel contract"
+    object ServiceTaskCancelPolicy : AbstractFlowNode, HasJobType
+      const val ELEMENT_ID: String = "serviceTask_cancelPolicy"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_cancelPolicy")
+      val jobType: String = "miravelo.cancelPolicy"
+      val name: String? = "Cancel policy"
+    object ServiceTaskIssueInsurancePolicy : AbstractFlowNode, HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Next>, HasVariables
+      const val ELEMENT_ID: String = "serviceTask_issueInsurancePolicy"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_issueInsurancePolicy")
+      val jobType: String = "io.miravelo.leasing.IssueInsurancePolicyDelegate"
+      val name: String? = "Issue insurance policy"
+      val next: BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Next = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Next
+      val variables: BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Variables = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Variables
+      object Next
+        val boundaryCompensateInsurance: AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance> = AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance)
+        val gatewayJoin: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayJoin> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_issueInsurancePolicyToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_issueInsurancePolicyToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin)
+      object Variables : RegisteredVariableDefinitions
+        val BIKE_ID: VariableName.Input = VariableName.Input(value="bikeId")
+        val BIKE_IDS: VariableName.Input = VariableName.Input(value="bikeIds")
+        val all: List<VariableName> = [VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")]
+        val inputs: List<VariableName> = [VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")]
+        val outputs: List<VariableName> = []
+    object ServiceTaskOrderBike : AbstractFlowNode, HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Next>, HasVariables
+      const val ELEMENT_ID: String = "serviceTask_orderBike"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_orderBike")
+      val jobType: String = "miravelo.orderBike"
+      val name: String? = "Order bike"
+      val next: BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Next = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Next
+      val variables: BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Variables = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Variables
+      object Next
+        val boundaryCompensateOrder: AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder> = AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder)
+        val gatewayJoin: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayJoin> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_orderBikeToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_orderBikeToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin)
+      object Variables : RegisteredVariableDefinitions
+        val BIKE_ID: VariableName.Input = VariableName.Input(value="bikeId")
+        val BIKE_IDS: VariableName.Input = VariableName.Input(value="bikeIds")
+        val all: List<VariableName> = [VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")]
+        val inputs: List<VariableName> = [VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")]
+        val outputs: List<VariableName> = []
+    object ServiceTaskSendCancellationConfirmation : AbstractFlowNode, HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation.Next>
+      const val ELEMENT_ID: String = "serviceTask_sendCancellationConfirmation"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_sendCancellationConfirmation")
+      val jobType: String = "miravelo.sendCancellationConfirmation"
+      val name: String? = "Send cancellation confirmation"
+      val next: BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation.Next = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation.Next
+      object Next
+        val endEventApplicationCancelled: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendCancellationConfirmationToApplicationCancelled"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendCancellationConfirmationToApplicationCancelled"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled)
+    object ServiceTaskSendContract : AbstractFlowNode, HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Next>, HasVariables
+      const val ELEMENT_ID: String = "serviceTask_sendContract"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_sendContract")
+      val jobType: String = "${sendContractDelegate}"
+      val name: String? = "Send contract"
+      val next: BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Next = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Next
+      val variables: BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Variables = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Variables
+      object Next
+        val gatewayAwaitSignature: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendContractToAwaitSignature"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendContractToAwaitSignature"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature)
+      object Variables : RegisteredVariableDefinitions
+        val APPLICATION_ID: VariableName.Input = VariableName.Input(value="applicationId")
+        val CONTRACT_ID: VariableName.Output = VariableName.Output(value="contractId")
+        val all: List<VariableName> = [VariableName.Input(value="applicationId"), VariableName.Output(value="contractId")]
+        val inputs: List<VariableName> = [VariableName.Input(value="applicationId")]
+        val outputs: List<VariableName> = [VariableName.Output(value="contractId")]
+    object ServiceTaskSendRejection : AbstractFlowNode, HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection.Next>
+      const val ELEMENT_ID: String = "serviceTask_sendRejection"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_sendRejection")
+      val jobType: String = "miravelo.sendRejection"
+      val name: String? = "Send rejection"
+      val next: BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection.Next = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection.Next
+      object Next
+        val endEventApplicationRejected: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionToApplicationRejected"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionToApplicationRejected"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected)
+    object ServiceTaskSendReminderMail : AbstractFlowNode, HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail.Next>
+      const val ELEMENT_ID: String = "serviceTask_sendReminderMail"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_sendReminderMail")
+      val jobType: String = "${mailService.sendReminder(applicationId)}"
+      val name: String? = "Send reminder mail"
+      val next: BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail.Next = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail.Next
+      object Next
+        val endEventCustomerReminded: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendReminderMailToCustomerReminded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendReminderMailToCustomerReminded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded)
+    object ServiceTaskValidateApplication : AbstractFlowNode, HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication.Next>
+      const val ELEMENT_ID: String = "serviceTask_validateApplication"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_validateApplication")
+      val jobType: String = "${validateApplicationDelegate}"
+      val name: String? = "Validate application"
+      val next: BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication.Next = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication.Next
+      object Next
+        val boundaryApplicationInvalid: AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid> = AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid)
+        val businessRuleTaskCheckCreditRating: SequenceFlows<BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_validateApplicationToCheckCreditRating"), name=null, target=->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_validateApplicationToCheckCreditRating"), name=null, target=->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating)
+    object StartEventAddressChanged : AbstractFlowNode, Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Next>, HasVariables
+      const val ELEMENT_ID: String = "startEvent_addressChanged"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.MESSAGE
+      val id: ElementId = ElementId(value="startEvent_addressChanged")
+      val isInterrupting: Boolean = false
+      val message: MessageName = MessageName(value="miravelo.addressChanged")
+      val name: String? = "Address changed"
+      val next: BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Next = ->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Next
+      val variables: BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Variables = ->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Variables
+      object Next
+        val userTaskUpdateDeliveryAddress: SequenceFlows<BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_addressChangedToUpdateDeliveryAddress"), name=null, target=->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_addressChangedToUpdateDeliveryAddress"), name=null, target=->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress)
+      object Variables : RegisteredVariableDefinitions
+        val CITY: VariableName.Input = VariableName.Input(value="city")
+        val STREET: VariableName.Input = VariableName.Input(value="street")
+        val all: List<VariableName> = [VariableName.Input(value="city"), VariableName.Input(value="street")]
+        val inputs: List<VariableName> = [VariableName.Input(value="city"), VariableName.Input(value="street")]
+        val outputs: List<VariableName> = []
+    object StartEventApplicationWithdrawn : AbstractFlowNode, Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn.Next>
+      const val ELEMENT_ID: String = "startEvent_applicationWithdrawn"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.MESSAGE
+      val id: ElementId = ElementId(value="startEvent_applicationWithdrawn")
+      val isInterrupting: Boolean = true
+      val message: MessageName = MessageName(value="miravelo.applicationWithdrawn")
+      val name: String? = "Application withdrawn"
+      val next: BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn.Next = ->BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn.Next
+      object Next
+        val eventReverseApplication: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EventReverseApplication> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationWithdrawnToReverseApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventReverseApplication, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationWithdrawnToReverseApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventReverseApplication, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EventReverseApplication)
+    object StartEventCustomerEligible : AbstractFlowNode, Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible.Next>
+      const val ELEMENT_ID: String = "startEvent_customerEligible"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="startEvent_customerEligible")
+      val name: String? = "Customer eligible"
+      val next: BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible.Next = ->BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible.Next
+      object Next
+        val serviceTaskSendContract: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_customerEligibleToSendContract"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_customerEligibleToSendContract"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract)
+    object StartEventLeasingRequestReceived : AbstractFlowNode, Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Next>, HasVariables
+      const val ELEMENT_ID: String = "startEvent_leasingRequestReceived"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.MESSAGE
+      val id: ElementId = ElementId(value="startEvent_leasingRequestReceived")
+      val message: MessageName = MessageName(value="miravelo.leasingRequestReceived")
+      val name: String? = "Leasing request received"
+      val next: BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Next = ->BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Next
+      val variables: BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Variables = ->BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Variables
+      object Next
+        val serviceTaskValidateApplication: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_leasingRequestReceivedToValidateApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_leasingRequestReceivedToValidateApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication)
+      object Variables : RegisteredVariableDefinitions
+        val AGE: VariableName.Input = VariableName.Input(value="age")
+        val APPLICATION_ID: VariableName.Input = VariableName.Input(value="applicationId")
+        val BIKE_IDS: VariableName.Input = VariableName.Input(value="bikeIds")
+        val MONTHLY_NET_INCOME: VariableName.Input = VariableName.Input(value="monthlyNetIncome")
+        val all: List<VariableName> = [VariableName.Input(value="age"), VariableName.Input(value="applicationId"), VariableName.Input(value="bikeIds"), VariableName.Input(value="monthlyNetIncome")]
+        val inputs: List<VariableName> = [VariableName.Input(value="age"), VariableName.Input(value="applicationId"), VariableName.Input(value="bikeIds"), VariableName.Input(value="monthlyNetIncome")]
+        val outputs: List<VariableName> = []
+    object SubProcessAddressChanged : AbstractFlowNode, FlowScope<BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged.Start>
+      const val ELEMENT_ID: String = "subProcess_addressChanged"
+      val elementType: BpmnElementType = BpmnElementType.EVENT_SUB_PROCESS
+      val id: ElementId = ElementId(value="subProcess_addressChanged")
+      val name: String? = "Delivery address changed"
+      val startEvents: BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged.Start = ->BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged.Start
+      object Start
+        val startEventAddressChanged: BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged = ->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged
+    object SubProcessApplicationWithdrawn : AbstractFlowNode, FlowScope<BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn.Start>
+      const val ELEMENT_ID: String = "subProcess_applicationWithdrawn"
+      val elementType: BpmnElementType = BpmnElementType.EVENT_SUB_PROCESS
+      val id: ElementId = ElementId(value="subProcess_applicationWithdrawn")
+      val name: String? = "Application withdrawn"
+      val startEvents: BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn.Start = ->BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn.Start
+      object Start
+        val startEventApplicationWithdrawn: BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn = ->BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn
+    object SubProcessConcludeContract : AbstractFlowNode, FlowScope<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Start>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Next>
+      const val ELEMENT_ID: String = "subProcess_concludeContract"
+      val elementType: BpmnElementType = BpmnElementType.SUB_PROCESS
+      val id: ElementId = ElementId(value="subProcess_concludeContract")
+      val name: String? = "Conclude contract"
+      val next: BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Next = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Next
+      val startEvents: BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Start = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Start
+      object Next
+        val boundaryCompensateContract: AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract> = AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract)
+        val boundaryContractNotSigned: AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned> = AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned)
+        val gatewayFork: SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayFork> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_concludeContractToFork"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayFork, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_concludeContractToFork"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayFork, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayFork)
+        val timerSignatureReminder: AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder> = AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder)
+      object Start
+        val startEventCustomerEligible: BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible = ->BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible
+    object TimerSignatureDeadline : AbstractFlowNode, Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline.Next>, TimerEvent
+      const val ELEMENT_ID: String = "timer_signatureDeadline"
+      val elementType: BpmnElementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT
+      val eventType: BpmnEventType = BpmnEventType.TIMER
+      val id: ElementId = ElementId(value="timer_signatureDeadline")
+      val name: String? = "14 days passed"
+      val next: BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline.Next = ->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline.Next
+      val timer: BpmnTimer = BpmnTimer(timerValue="P14D", type=TimerType.DURATION)
+      object Next
+        val endEventContractNotSigned: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureDeadlineToContractNotSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureDeadlineToContractNotSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned)
+    object TimerSignatureReminder : AbstractFlowNode, BoundaryEvent<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder.Next>, TimerEvent
+      const val ELEMENT_ID: String = "timer_signatureReminder"
+      val attachedTo: BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.TIMER
+      val id: ElementId = ElementId(value="timer_signatureReminder")
+      val isInterrupting: Boolean = false
+      val name: String? = "7 days passed"
+      val next: BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder.Next = ->BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder.Next
+      val timer: BpmnTimer = BpmnTimer(timerValue="P7D", type=TimerType.DURATION)
+      object Next
+        val serviceTaskSendReminderMail: SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureReminderToSendReminderMail"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureReminderToSendReminderMail"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail)
+    object TimerWithdrawalPeriodElapsed : AbstractFlowNode, Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed.Next>, TimerEvent
+      const val ELEMENT_ID: String = "timer_withdrawalPeriodElapsed"
+      val elementType: BpmnElementType = BpmnElementType.INTERMEDIATE_CATCH_EVENT
+      val eventType: BpmnEventType = BpmnEventType.TIMER
+      val id: ElementId = ElementId(value="timer_withdrawalPeriodElapsed")
+      val name: String? = "Withdrawal period elapsed"
+      val next: BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed.Next = ->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed.Next
+      val timer: BpmnTimer = BpmnTimer(timerValue="${withdrawalPeriod}", type=TimerType.DURATION)
+      object Next
+        val endEventLeasingActive: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_withdrawalPeriodElapsedToLeasingActive"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_withdrawalPeriodElapsedToLeasingActive"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive)
+    object UserTaskUpdateDeliveryAddress : AbstractFlowNode, HasSuccessors<BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Next>, HasVariables
+      const val ELEMENT_ID: String = "userTask_updateDeliveryAddress"
+      val elementType: BpmnElementType = BpmnElementType.USER_TASK
+      val id: ElementId = ElementId(value="userTask_updateDeliveryAddress")
+      val name: String? = "Update delivery address"
+      val next: BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Next = ->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Next
+      val variables: BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Variables = ->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Variables
+      object Next
+        val endEventDeliveryAddressUpdated: SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_updateDeliveryAddressToDeliveryAddressUpdated"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_updateDeliveryAddressToDeliveryAddressUpdated"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated)
+      object Variables : RegisteredVariableDefinitions
+        val DELIVERY_ADDRESS: VariableName.InOut = VariableName.InOut(value="deliveryAddress")
+        val all: List<VariableName> = [VariableName.InOut(value="deliveryAddress")]
+        val inputs: List<VariableName> = [VariableName.InOut(value="deliveryAddress")]
+        val outputs: List<VariableName> = [VariableName.InOut(value="deliveryAddress")]
+
+object CancelBikeOrderProcessApi
+  val PROCESS_ENGINE: BpmnEngine = BpmnEngine.OPERATON
+  val PROCESS_ID: ProcessId = ProcessId(value="cancelBikeOrder")
+  object FlowNodes
+    val all: List<FlowNode> = [->CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed, ->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled, ->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible, ->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, ->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts, ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation, ->CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired, ->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn]
+    object BoundaryCancellationFailed : AbstractFlowNode, BoundaryEvent<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation>, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed.Next>
+      const val ELEMENT_ID: String = "boundary_cancellationFailed"
+      val attachedTo: CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.ERROR
+      val id: ElementId = ElementId(value="boundary_cancellationFailed")
+      val isInterrupting: Boolean = true
+      val name: String? = "Cancellation failed"
+      val next: CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed.Next = ->CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed.Next
+      object Next
+        val gatewayCollectClarifications: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationFailedToCollectClarifications"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationFailedToCollectClarifications"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications)
+    object EndEventBikeOrderCancelled : AbstractFlowNode, Event, HasJobType, HasMessage
+      const val ELEMENT_ID: String = "endEvent_bikeOrderCancelled"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.MESSAGE
+      val id: ElementId = ElementId(value="endEvent_bikeOrderCancelled")
+      val jobType: String = "miravelo.bikeOrderCancelled"
+      val message: MessageName = MessageName(value="miravelo.bikeOrderCancelled")
+      val name: String? = "Bike order cancelled"
+    object GatewayCancellationPossible : AbstractFlowNode, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible.Next>
+      const val ELEMENT_ID: String = "gateway_cancellationPossible"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_cancellationPossible")
+      val name: String? = "Cancellation possible?"
+      val next: CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible.Next = ->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible.Next
+      object Next
+        val gatewayCollectClarifications: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications> = SequenceFlows(flow=SequenceFlow(conditionExpression="${!cancellationPossible}", id=ElementId(value="flow_cancellationNotPossibleToCollectClarifications"), name="No", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false), flows=[SequenceFlow(conditionExpression="${!cancellationPossible}", id=ElementId(value="flow_cancellationNotPossibleToCollectClarifications"), name="No", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications)
+        val gatewayMergeReturn: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationPossibleToMergeReturn"), name="Yes", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationPossibleToMergeReturn"), name="Yes", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=true)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn)
+    object GatewayCollectClarifications : AbstractFlowNode, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications.Next>
+      const val ELEMENT_ID: String = "gateway_collectClarifications"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_collectClarifications")
+      val name: String? = null
+      val next: CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications.Next = ->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications.Next
+      object Next
+        val userTaskClarifyReturn: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectClarificationsToClarifyReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectClarificationsToClarifyReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn)
+    object GatewayMergeReturn : AbstractFlowNode, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn.Next>
+      const val ELEMENT_ID: String = "gateway_mergeReturn"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_mergeReturn")
+      val name: String? = null
+      val next: CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn.Next = ->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn.Next
+      object Next
+        val serviceTaskBookCancellationCosts: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_mergeReturnToBookCancellationCosts"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_mergeReturnToBookCancellationCosts"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts)
+    object ServiceTaskBookCancellationCosts : AbstractFlowNode, HasJobType, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Next>, HasVariables
+      const val ELEMENT_ID: String = "serviceTask_bookCancellationCosts"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_bookCancellationCosts")
+      val jobType: String = "${bookCancellationCostsDelegate}"
+      val name: String? = "Book cancellation costs"
+      val next: CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Next = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Next
+      val variables: CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Variables = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Variables
+      object Next
+        val endEventBikeOrderCancelled: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_bookCancellationCostsToBikeOrderCancelled"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_bookCancellationCostsToBikeOrderCancelled"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled)
+      object Variables : RegisteredVariableDefinitions
+        val CANCELLATION_COSTS: VariableName.Output = VariableName.Output(value="cancellationCosts")
+        val all: List<VariableName> = [VariableName.Output(value="cancellationCosts")]
+        val inputs: List<VariableName> = []
+        val outputs: List<VariableName> = [VariableName.Output(value="cancellationCosts")]
+    object ServiceTaskRequestCancellation : AbstractFlowNode, HasJobType, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Next>, HasVariables
+      const val ELEMENT_ID: String = "serviceTask_requestCancellation"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_requestCancellation")
+      val jobType: String = "miravelo.requestCancellation"
+      val name: String? = "Request cancellation"
+      val next: CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Next = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Next
+      val variables: CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Variables = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Variables
+      object Next
+        val boundaryCancellationFailed: AttachedBoundaryEvent<CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed> = AttachedBoundaryEvent(target=->CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed)
+        val gatewayCancellationPossible: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_requestCancellationToCancellationPossible"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_requestCancellationToCancellationPossible"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible)
+      object Variables : RegisteredVariableDefinitions
+        val CANCELLATION_POSSIBLE: VariableName.Output = VariableName.Output(value="cancellationPossible")
+        val all: List<VariableName> = [VariableName.Output(value="cancellationPossible")]
+        val inputs: List<VariableName> = []
+        val outputs: List<VariableName> = [VariableName.Output(value="cancellationPossible")]
+    object StartEventCancellationRequired : AbstractFlowNode, Event, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Next>, HasVariables
+      const val ELEMENT_ID: String = "startEvent_cancellationRequired"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="startEvent_cancellationRequired")
+      val name: String? = "Cancellation required"
+      val next: CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Next = ->CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Next
+      val variables: CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Variables = ->CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Variables
+      object Next
+        val serviceTaskRequestCancellation: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationRequiredToRequestCancellation"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationRequiredToRequestCancellation"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation)
+      object Variables : RegisteredVariableDefinitions
+        val ORDER_IDS: VariableName.Input = VariableName.Input(value="orderIds")
+        val all: List<VariableName> = [VariableName.Input(value="orderIds")]
+        val inputs: List<VariableName> = [VariableName.Input(value="orderIds")]
+        val outputs: List<VariableName> = []
+    object UserTaskClarifyReturn : AbstractFlowNode, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn.Next>
+      const val ELEMENT_ID: String = "userTask_clarifyReturn"
+      val elementType: BpmnElementType = BpmnElementType.USER_TASK
+      val id: ElementId = ElementId(value="userTask_clarifyReturn")
+      val name: String? = "Clarify return"
+      val next: CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn.Next = ->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn.Next
+      object Next
+        val gatewayMergeReturn: SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_clarifyReturnToMergeReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_clarifyReturnToMergeReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn)
+
+object Errors
+  val MIRAVELO_APPLICATION_INVALID: BpmnErrorDefinition = BpmnErrorDefinition(code="applicationInvalid", name="miravelo.applicationInvalid")
+  val all: List<BpmnErrorDefinition> = [BpmnErrorDefinition(code="applicationInvalid", name="miravelo.applicationInvalid")]
+
+object Escalations
+  val MIRAVELO_CONTRACT_NOT_SIGNED: BpmnEscalationDefinition = BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")
+  val all: List<BpmnEscalationDefinition> = [BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")]
+
+object MembershipProcessApi
+  val PROCESS_ENGINE: BpmnEngine = BpmnEngine.OPERATON
+  val PROCESS_ID: ProcessId = ProcessId(value="membership")
+  object FlowNodes
+    val all: List<FlowNode> = [->MembershipProcessApi.FlowNodes.BoundaryCompensateClaim, ->MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected, ->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent, ->MembershipProcessApi.FlowNodes.EndEventMembershipActivated, ->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed, ->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined, ->MembershipProcessApi.FlowNodes.EndEventMembershipRejected, ->MembershipProcessApi.FlowNodes.GatewayActivationFork, ->MembershipProcessApi.FlowNodes.GatewayActivationJoin, ->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, ->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots, ->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail, ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership, ->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity, ->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail, ->MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim, ->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail, ->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail, ->MembershipProcessApi.FlowNodes.StartEventConfirmationRequired, ->MembershipProcessApi.FlowNodes.StartEventMembershipRequested, ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership, ->MembershipProcessApi.FlowNodes.TimerConfirmationExpired, ->MembershipProcessApi.FlowNodes.TimerResendDaily, ->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership]
+    object BoundaryCompensateClaim : AbstractFlowNode, BoundaryEvent<MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership>, HasSuccessors<MembershipProcessApi.FlowNodes.BoundaryCompensateClaim.Next>
+      const val ELEMENT_ID: String = "boundary_compensateClaim"
+      val attachedTo: MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership = ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.COMPENSATION
+      val id: ElementId = ElementId(value="boundary_compensateClaim")
+      val isInterrupting: Boolean = true
+      val name: String? = "Claim to revoke"
+      val next: MembershipProcessApi.FlowNodes.BoundaryCompensateClaim.Next = ->MembershipProcessApi.FlowNodes.BoundaryCompensateClaim.Next
+      object Next
+        val serviceTaskRevokeClaim: AssociatedCompensationHandler<MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim> = AssociatedCompensationHandler(target=->MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim)
+    object BoundaryConfirmationRejected : AbstractFlowNode, BoundaryEvent<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership>, HasMessage, HasSuccessors<MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected.Next>
+      const val ELEMENT_ID: String = "boundary_confirmationRejected"
+      val attachedTo: MembershipProcessApi.FlowNodes.SubProcessConfirmMembership = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.MESSAGE
+      val id: ElementId = ElementId(value="boundary_confirmationRejected")
+      val isInterrupting: Boolean = true
+      val message: MessageName = MessageName(value="miravelo.confirmationRejected")
+      val name: String? = "Confirmation rejected"
+      val next: MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected.Next = ->MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected.Next
+      object Next
+        val gatewayCollectDeclines: SequenceFlows<MembershipProcessApi.FlowNodes.GatewayCollectDeclines> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRejectedToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRejectedToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines)
+    object EndEventConfirmationMailResent : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_confirmationMailResent"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_confirmationMailResent")
+      val name: String? = "Confirmation mail resent"
+    object EndEventMembershipActivated : AbstractFlowNode, Event, SignalEvent
+      const val ELEMENT_ID: String = "endEvent_membershipActivated"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.SIGNAL
+      val id: ElementId = ElementId(value="endEvent_membershipActivated")
+      val name: String? = "Membership activated"
+      val signal: SignalName = SignalName(value="miravelo.memberActivated")
+    object EndEventMembershipConfirmed : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_membershipConfirmed"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_membershipConfirmed")
+      val name: String? = "Membership confirmed"
+    object EndEventMembershipDeclined : AbstractFlowNode, CompensationThrowEvent, Event
+      const val ELEMENT_ID: String = "endEvent_membershipDeclined"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.COMPENSATION
+      val id: ElementId = ElementId(value="endEvent_membershipDeclined")
+      val name: String? = "Membership declined"
+    object EndEventMembershipRejected : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_membershipRejected"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_membershipRejected")
+      val name: String? = "Membership rejected"
+    object GatewayActivationFork : AbstractFlowNode, HasSuccessors<MembershipProcessApi.FlowNodes.GatewayActivationFork.Next>
+      const val ELEMENT_ID: String = "gateway_activationFork"
+      val elementType: BpmnElementType = BpmnElementType.PARALLEL_GATEWAY
+      val id: ElementId = ElementId(value="gateway_activationFork")
+      val name: String? = null
+      val next: MembershipProcessApi.FlowNodes.GatewayActivationFork.Next = ->MembershipProcessApi.FlowNodes.GatewayActivationFork.Next
+      object Next
+        val serviceTaskNotifyCommunity: SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToNotifyCommunity"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToNotifyCommunity"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity)
+        val serviceTaskSendWelcomeMail: SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToSendWelcomeMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToSendWelcomeMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail)
+    object GatewayActivationJoin : AbstractFlowNode, HasSuccessors<MembershipProcessApi.FlowNodes.GatewayActivationJoin.Next>
+      const val ELEMENT_ID: String = "gateway_activationJoin"
+      val elementType: BpmnElementType = BpmnElementType.PARALLEL_GATEWAY
+      val id: ElementId = ElementId(value="gateway_activationJoin")
+      val name: String? = null
+      val next: MembershipProcessApi.FlowNodes.GatewayActivationJoin.Next = ->MembershipProcessApi.FlowNodes.GatewayActivationJoin.Next
+      object Next
+        val endEventMembershipActivated: SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipActivated> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationJoinToMembershipActivated"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipActivated, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationJoinToMembershipActivated"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipActivated, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipActivated)
+    object GatewayCollectDeclines : AbstractFlowNode, HasSuccessors<MembershipProcessApi.FlowNodes.GatewayCollectDeclines.Next>
+      const val ELEMENT_ID: String = "gateway_collectDeclines"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_collectDeclines")
+      val name: String? = null
+      val next: MembershipProcessApi.FlowNodes.GatewayCollectDeclines.Next = ->MembershipProcessApi.FlowNodes.GatewayCollectDeclines.Next
+      object Next
+        val endEventMembershipDeclined: SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipDeclined> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectDeclinesToMembershipDeclined"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectDeclinesToMembershipDeclined"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined)
+    object GatewayHasEmptySpots : AbstractFlowNode, HasSuccessors<MembershipProcessApi.FlowNodes.GatewayHasEmptySpots.Next>
+      const val ELEMENT_ID: String = "gateway_hasEmptySpots"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_hasEmptySpots")
+      val name: String? = "Empty spots left?"
+      val next: MembershipProcessApi.FlowNodes.GatewayHasEmptySpots.Next = ->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots.Next
+      object Next
+        val serviceTaskSendRejectionMail: SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail> = SequenceFlows(flow=SequenceFlow(conditionExpression="${!hasEmptySpots}", id=ElementId(value="flow_noEmptySpotsToSendRejectionMail"), name="No", target=->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail, isDefault=false), flows=[SequenceFlow(conditionExpression="${!hasEmptySpots}", id=ElementId(value="flow_noEmptySpotsToSendRejectionMail"), name="No", target=->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail)
+        val subProcessConfirmMembership: SequenceFlows<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_hasEmptySpotsToConfirmMembership"), name="Yes", target=->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_hasEmptySpotsToConfirmMembership"), name="Yes", target=->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership, isDefault=true)], target=->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership)
+    object SendTaskSendConfirmationMail : AbstractFlowNode, HasSuccessors<MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail.Next>
+      const val ELEMENT_ID: String = "sendTask_sendConfirmationMail"
+      val elementType: BpmnElementType = BpmnElementType.SEND_TASK
+      val id: ElementId = ElementId(value="sendTask_sendConfirmationMail")
+      val name: String? = "Send confirmation mail"
+      val next: MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail.Next = ->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail.Next
+      object Next
+        val userTaskConfirmMembership: SequenceFlows<MembershipProcessApi.FlowNodes.UserTaskConfirmMembership> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendConfirmationMailToConfirmMembership"), name=null, target=->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendConfirmationMailToConfirmMembership"), name=null, target=->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership, isDefault=false)], target=->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership)
+    object ServiceTaskClaimMembership : AbstractFlowNode, HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Next>, HasVariables
+      const val ELEMENT_ID: String = "serviceTask_claimMembership"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_claimMembership")
+      val jobType: String = "${claimMembershipDelegate}"
+      val name: String? = "Claim membership"
+      val next: MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Next = ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Next
+      val variables: MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Variables = ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Variables
+      object Next
+        val boundaryCompensateClaim: AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.BoundaryCompensateClaim> = AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.BoundaryCompensateClaim)
+        val gatewayHasEmptySpots: SequenceFlows<MembershipProcessApi.FlowNodes.GatewayHasEmptySpots> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_claimMembershipToHasEmptySpots"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_claimMembershipToHasEmptySpots"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots)
+      object Variables : RegisteredVariableDefinitions
+        val HAS_EMPTY_SPOTS: VariableName.Output = VariableName.Output(value="hasEmptySpots")
+        val MEMBERSHIP_ID: VariableName.Input = VariableName.Input(value="membershipId")
+        val all: List<VariableName> = [VariableName.Output(value="hasEmptySpots"), VariableName.Input(value="membershipId")]
+        val inputs: List<VariableName> = [VariableName.Input(value="membershipId")]
+        val outputs: List<VariableName> = [VariableName.Output(value="hasEmptySpots")]
+    object ServiceTaskNotifyCommunity : AbstractFlowNode, HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity.Next>
+      const val ELEMENT_ID: String = "serviceTask_notifyCommunity"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_notifyCommunity")
+      val jobType: String = "io.miravelo.membership.NotifyCommunityDelegate"
+      val name: String? = "Notify community"
+      val next: MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity.Next = ->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity.Next
+      object Next
+        val gatewayActivationJoin: SequenceFlows<MembershipProcessApi.FlowNodes.GatewayActivationJoin> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_notifyCommunityToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_notifyCommunityToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin)
+    object ServiceTaskResendConfirmationMail : AbstractFlowNode, HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail.Next>
+      const val ELEMENT_ID: String = "serviceTask_resendConfirmationMail"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_resendConfirmationMail")
+      val jobType: String = "miravelo.resendConfirmationMail"
+      val name: String? = "Resend confirmation mail"
+      val next: MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail.Next = ->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail.Next
+      object Next
+        val endEventConfirmationMailResent: SequenceFlows<MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendConfirmationMailToConfirmationMailResent"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendConfirmationMailToConfirmationMailResent"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent)
+    object ServiceTaskRevokeClaim : AbstractFlowNode, HasJobType
+      const val ELEMENT_ID: String = "serviceTask_revokeClaim"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_revokeClaim")
+      val jobType: String = "${revokeClaimDelegate}"
+      val name: String? = "Revoke claim"
+    object ServiceTaskSendRejectionMail : AbstractFlowNode, HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail.Next>
+      const val ELEMENT_ID: String = "serviceTask_sendRejectionMail"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_sendRejectionMail")
+      val jobType: String = "miravelo.sendRejectionMail"
+      val name: String? = "Send rejection mail"
+      val next: MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail.Next = ->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail.Next
+      object Next
+        val endEventMembershipRejected: SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipRejected> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionMailToMembershipRejected"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipRejected, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionMailToMembershipRejected"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipRejected, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipRejected)
+    object ServiceTaskSendWelcomeMail : AbstractFlowNode, HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail.Next>
+      const val ELEMENT_ID: String = "serviceTask_sendWelcomeMail"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_sendWelcomeMail")
+      val jobType: String = "${mailService.sendWelcomeMail(email)}"
+      val name: String? = "Send welcome mail"
+      val next: MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail.Next = ->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail.Next
+      object Next
+        val gatewayActivationJoin: SequenceFlows<MembershipProcessApi.FlowNodes.GatewayActivationJoin> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendWelcomeMailToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendWelcomeMailToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin)
+    object StartEventConfirmationRequired : AbstractFlowNode, Event, HasSuccessors<MembershipProcessApi.FlowNodes.StartEventConfirmationRequired.Next>
+      const val ELEMENT_ID: String = "startEvent_confirmationRequired"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="startEvent_confirmationRequired")
+      val name: String? = "Confirmation required"
+      val next: MembershipProcessApi.FlowNodes.StartEventConfirmationRequired.Next = ->MembershipProcessApi.FlowNodes.StartEventConfirmationRequired.Next
+      object Next
+        val sendTaskSendConfirmationMail: SequenceFlows<MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRequiredToSendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRequiredToSendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail)
+    object StartEventMembershipRequested : AbstractFlowNode, Event, HasMessage, HasSuccessors<MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Next>, HasVariables
+      const val ELEMENT_ID: String = "startEvent_membershipRequested"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.MESSAGE
+      val id: ElementId = ElementId(value="startEvent_membershipRequested")
+      val message: MessageName = MessageName(value="miravelo.membershipRequested")
+      val name: String? = "Membership requested"
+      val next: MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Next = ->MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Next
+      val variables: MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Variables = ->MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Variables
+      object Next
+        val serviceTaskClaimMembership: SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_membershipRequestedToClaimMembership"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_membershipRequestedToClaimMembership"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership)
+      object Variables : RegisteredVariableDefinitions
+        val EMAIL: VariableName.Input = VariableName.Input(value="email")
+        val MEMBERSHIP_ID: VariableName.Input = VariableName.Input(value="membershipId")
+        val all: List<VariableName> = [VariableName.Input(value="email"), VariableName.Input(value="membershipId")]
+        val inputs: List<VariableName> = [VariableName.Input(value="email"), VariableName.Input(value="membershipId")]
+        val outputs: List<VariableName> = []
+    object SubProcessConfirmMembership : AbstractFlowNode, FlowScope<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Start>, HasSuccessors<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Next>
+      const val ELEMENT_ID: String = "subProcess_confirmMembership"
+      val elementType: BpmnElementType = BpmnElementType.SUB_PROCESS
+      val id: ElementId = ElementId(value="subProcess_confirmMembership")
+      val name: String? = "Confirm membership"
+      val next: MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Next = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Next
+      val startEvents: MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Start = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Start
+      object Next
+        val boundaryConfirmationRejected: AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected> = AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected)
+        val gatewayActivationFork: SequenceFlows<MembershipProcessApi.FlowNodes.GatewayActivationFork> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToActivationFork"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationFork, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToActivationFork"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationFork, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayActivationFork)
+        val timerConfirmationExpired: AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.TimerConfirmationExpired> = AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.TimerConfirmationExpired)
+        val timerResendDaily: AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.TimerResendDaily> = AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.TimerResendDaily)
+      object Start
+        val startEventConfirmationRequired: MembershipProcessApi.FlowNodes.StartEventConfirmationRequired = ->MembershipProcessApi.FlowNodes.StartEventConfirmationRequired
+    object TimerConfirmationExpired : AbstractFlowNode, BoundaryEvent<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership>, HasSuccessors<MembershipProcessApi.FlowNodes.TimerConfirmationExpired.Next>, TimerEvent
+      const val ELEMENT_ID: String = "timer_confirmationExpired"
+      val attachedTo: MembershipProcessApi.FlowNodes.SubProcessConfirmMembership = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.TIMER
+      val id: ElementId = ElementId(value="timer_confirmationExpired")
+      val isInterrupting: Boolean = true
+      val name: String? = "3.5 days passed"
+      val next: MembershipProcessApi.FlowNodes.TimerConfirmationExpired.Next = ->MembershipProcessApi.FlowNodes.TimerConfirmationExpired.Next
+      val timer: BpmnTimer = BpmnTimer(timerValue="P3DT12H", type=TimerType.DURATION)
+      object Next
+        val gatewayCollectDeclines: SequenceFlows<MembershipProcessApi.FlowNodes.GatewayCollectDeclines> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationExpiredToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationExpiredToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines)
+    object TimerResendDaily : AbstractFlowNode, BoundaryEvent<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership>, HasSuccessors<MembershipProcessApi.FlowNodes.TimerResendDaily.Next>, TimerEvent
+      const val ELEMENT_ID: String = "timer_resendDaily"
+      val attachedTo: MembershipProcessApi.FlowNodes.SubProcessConfirmMembership = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+      val elementType: BpmnElementType = BpmnElementType.BOUNDARY_EVENT
+      val eventType: BpmnEventType = BpmnEventType.TIMER
+      val id: ElementId = ElementId(value="timer_resendDaily")
+      val isInterrupting: Boolean = false
+      val name: String? = "Every day"
+      val next: MembershipProcessApi.FlowNodes.TimerResendDaily.Next = ->MembershipProcessApi.FlowNodes.TimerResendDaily.Next
+      val timer: BpmnTimer = BpmnTimer(timerValue="R/P1D", type=TimerType.CYCLE)
+      object Next
+        val serviceTaskResendConfirmationMail: SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendDailyToResendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendDailyToResendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail)
+    object UserTaskConfirmMembership : AbstractFlowNode, HasSuccessors<MembershipProcessApi.FlowNodes.UserTaskConfirmMembership.Next>
+      const val ELEMENT_ID: String = "userTask_confirmMembership"
+      val elementType: BpmnElementType = BpmnElementType.USER_TASK
+      val id: ElementId = ElementId(value="userTask_confirmMembership")
+      val name: String? = "Confirm membership"
+      val next: MembershipProcessApi.FlowNodes.UserTaskConfirmMembership.Next = ->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership.Next
+      object Next
+        val endEventMembershipConfirmed: SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToMembershipConfirmed"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToMembershipConfirmed"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed)
+
+object Messages
+  val MIRAVELO_ADDRESS_CHANGED: MessageName = MessageName(value="miravelo.addressChanged")
+  val MIRAVELO_APPLICATION_WITHDRAWN: MessageName = MessageName(value="miravelo.applicationWithdrawn")
+  val MIRAVELO_BIKE_ORDER_CANCELLED: MessageName = MessageName(value="miravelo.bikeOrderCancelled")
+  val MIRAVELO_CONFIRMATION_REJECTED: MessageName = MessageName(value="miravelo.confirmationRejected")
+  val MIRAVELO_CONTRACT_SIGNED: MessageName = MessageName(value="miravelo.contractSigned")
+  val MIRAVELO_HANDOVER_REPORTED: MessageName = MessageName(value="miravelo.handoverReported")
+  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName = MessageName(value="miravelo.leasingRequestReceived")
+  val MIRAVELO_MEMBERSHIP_REQUESTED: MessageName = MessageName(value="miravelo.membershipRequested")
+  val all: List<MessageName> = [MessageName(value="miravelo.addressChanged"), MessageName(value="miravelo.applicationWithdrawn"), MessageName(value="miravelo.bikeOrderCancelled"), MessageName(value="miravelo.confirmationRejected"), MessageName(value="miravelo.contractSigned"), MessageName(value="miravelo.handoverReported"), MessageName(value="miravelo.leasingRequestReceived"), MessageName(value="miravelo.membershipRequested")]
+
+object ProcessVariables
+  const val AGE: String = "age"
+  const val APPLICATION_ID: String = "applicationId"
+  const val BIKE_ID: String = "bikeId"
+  const val BIKE_IDS: String = "bikeIds"
+  const val CANCELLATION_COSTS: String = "cancellationCosts"
+  const val CANCELLATION_POSSIBLE: String = "cancellationPossible"
+  const val CITY: String = "city"
+  const val CONTRACT_ID: String = "contractId"
+  const val DELIVERY_ADDRESS: String = "deliveryAddress"
+  const val EMAIL: String = "email"
+  const val HAS_EMPTY_SPOTS: String = "hasEmptySpots"
+  const val MEMBERSHIP_ID: String = "membershipId"
+  const val MONTHLY_NET_INCOME: String = "monthlyNetIncome"
+  const val ORDER_IDS: String = "orderIds"
+  const val STREET: String = "street"
+  val all: List<String> = ["age", "applicationId", "bikeId", "bikeIds", "cancellationCosts", "cancellationPossible", "city", "contractId", "deliveryAddress", "email", "hasEmptySpots", "membershipId", "monthlyNetIncome", "orderIds", "street"]
+
+object ServiceTasks
+  const val BOOK_CANCELLATION_COSTS_DELEGATE: String = "${bookCancellationCostsDelegate}"
+  const val CANCEL_CONTRACT_DELEGATE: String = "${cancelContractDelegate}"
+  const val CLAIM_MEMBERSHIP_DELEGATE: String = "${claimMembershipDelegate}"
+  const val IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE: String = "io.miravelo.leasing.IssueInsurancePolicyDelegate"
+  const val IO_MIRAVELO_MEMBERSHIP_NOTIFY_COMMUNITY_DELEGATE: String = "io.miravelo.membership.NotifyCommunityDelegate"
+  const val MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_: String = "${mailService.sendReminder(applicationId)}"
+  const val MAIL_SERVICE_SEND_WELCOME_MAIL_EMAIL_: String = "${mailService.sendWelcomeMail(email)}"
+  const val MIRAVELO_BIKE_ORDER_CANCELLED: String = "miravelo.bikeOrderCancelled"
+  const val MIRAVELO_CANCEL_POLICY: String = "miravelo.cancelPolicy"
+  const val MIRAVELO_ORDER_BIKE: String = "miravelo.orderBike"
+  const val MIRAVELO_REQUEST_CANCELLATION: String = "miravelo.requestCancellation"
+  const val MIRAVELO_RESEND_CONFIRMATION_MAIL: String = "miravelo.resendConfirmationMail"
+  const val MIRAVELO_SEND_CANCELLATION_CONFIRMATION: String = "miravelo.sendCancellationConfirmation"
+  const val MIRAVELO_SEND_REJECTION: String = "miravelo.sendRejection"
+  const val MIRAVELO_SEND_REJECTION_MAIL: String = "miravelo.sendRejectionMail"
+  const val MIRAVELO_SHIP_WELCOME_PACKAGE: String = "miravelo.shipWelcomePackage"
+  const val REVOKE_CLAIM_DELEGATE: String = "${revokeClaimDelegate}"
+  const val SEND_CONTRACT_DELEGATE: String = "${sendContractDelegate}"
+  const val VALIDATE_APPLICATION_DELEGATE: String = "${validateApplicationDelegate}"
+  val all: List<String> = ["${bookCancellationCostsDelegate}", "${cancelContractDelegate}", "${claimMembershipDelegate}", "${mailService.sendReminder(applicationId)}", "${mailService.sendWelcomeMail(email)}", "${revokeClaimDelegate}", "${sendContractDelegate}", "${validateApplicationDelegate}", "io.miravelo.leasing.IssueInsurancePolicyDelegate", "io.miravelo.membership.NotifyCommunityDelegate", "miravelo.bikeOrderCancelled", "miravelo.cancelPolicy", "miravelo.orderBike", "miravelo.requestCancellation", "miravelo.resendConfirmationMail", "miravelo.sendCancellationConfirmation", "miravelo.sendRejection", "miravelo.sendRejectionMail", "miravelo.shipWelcomePackage"]
+
+object Signals
+  val MIRAVELO_MEMBER_ACTIVATED: SignalName = SignalName(value="miravelo.memberActivated")
+  val all: List<SignalName> = [SignalName(value="miravelo.memberActivated")]
+
+object WelcomePackageProcessApi
+  val PROCESS_ENGINE: BpmnEngine = BpmnEngine.OPERATON
+  val PROCESS_ID: ProcessId = ProcessId(value="welcomePackage")
+  object FlowNodes
+    val all: List<FlowNode> = [->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped, ->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage, ->WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated]
+    object EndEventWelcomePackageShipped : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_welcomePackageShipped"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_welcomePackageShipped")
+      val name: String? = "Welcome package shipped"
+    object ServiceTaskShipWelcomePackage : AbstractFlowNode, HasJobType, HasSuccessors<WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage.Next>
+      const val ELEMENT_ID: String = "serviceTask_shipWelcomePackage"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="serviceTask_shipWelcomePackage")
+      val jobType: String = "miravelo.shipWelcomePackage"
+      val name: String? = "Ship welcome package"
+      val next: WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage.Next = ->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage.Next
+      object Next
+        val endEventWelcomePackageShipped: SequenceFlows<WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_shipWelcomePackageToWelcomePackageShipped"), name=null, target=->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_shipWelcomePackageToWelcomePackageShipped"), name=null, target=->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped, isDefault=false)], target=->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped)
+    object StartEventMemberActivated : AbstractFlowNode, Event, HasSuccessors<WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Next>, HasVariables, SignalEvent
+      const val ELEMENT_ID: String = "startEvent_memberActivated"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.SIGNAL
+      val id: ElementId = ElementId(value="startEvent_memberActivated")
+      val name: String? = "Member activated"
+      val next: WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Next = ->WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Next
+      val signal: SignalName = SignalName(value="miravelo.memberActivated")
+      val variables: WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Variables = ->WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Variables
+      object Next
+        val serviceTaskShipWelcomePackage: SequenceFlows<WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_memberActivatedToShipWelcomePackage"), name=null, target=->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_memberActivatedToShipWelcomePackage"), name=null, target=->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage, isDefault=false)], target=->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage)
+      object Variables : RegisteredVariableDefinitions
+        val MEMBERSHIP_ID: VariableName.Input = VariableName.Input(value="membershipId")
+        val all: List<VariableName> = [VariableName.Input(value="membershipId")]
+        val inputs: List<VariableName> = [VariableName.Input(value="membershipId")]
+        val outputs: List<VariableName> = []

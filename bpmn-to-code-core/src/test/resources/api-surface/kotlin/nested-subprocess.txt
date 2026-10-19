@@ -1,0 +1,80 @@
+object NestedSubprocessProcessProcessApi
+  val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
+  val PROCESS_ID: ProcessId = ProcessId(value="NestedSubprocessProcess")
+  object FlowNodes
+    val all: List<FlowNode> = [->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner, ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter, ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot, ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner, ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter, ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot, ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner, ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter, ->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner]
+    object EndEventInner : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "EndEvent_Inner"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="EndEvent_Inner")
+      val name: String? = null
+    object EndEventOuter : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "EndEvent_Outer"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="EndEvent_Outer")
+      val name: String? = null
+    object EndEventRoot : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "EndEvent_Root"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="EndEvent_Root")
+      val name: String? = null
+    object StartEventInner : AbstractFlowNode, Event, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner.Next>
+      const val ELEMENT_ID: String = "StartEvent_Inner"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="StartEvent_Inner")
+      val name: String? = null
+      val next: NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner.Next = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner.Next
+      object Next
+        val taskInner: SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.TaskInner> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner)
+    object StartEventOuter : AbstractFlowNode, Event, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter.Next>
+      const val ELEMENT_ID: String = "StartEvent_Outer"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="StartEvent_Outer")
+      val name: String? = null
+      val next: NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter.Next = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter.Next
+      object Next
+        val subProcessInner: SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner)
+    object StartEventRoot : AbstractFlowNode, Event, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Next>
+      const val ELEMENT_ID: String = "StartEvent_Root"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="StartEvent_Root")
+      val name: String? = null
+      val next: NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Next = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Next
+      object Next
+        val subProcessOuter: SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter)
+    object SubProcessInner : AbstractFlowNode, FlowScope<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Start>, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Next>
+      const val ELEMENT_ID: String = "SubProcess_Inner"
+      val elementType: BpmnElementType = BpmnElementType.SUB_PROCESS
+      val id: ElementId = ElementId(value="SubProcess_Inner")
+      val name: String? = null
+      val next: NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Next = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Next
+      val startEvents: NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Start = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Start
+      object Next
+        val endEventOuter: SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter)
+      object Start
+        val startEventInner: NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner
+    object SubProcessOuter : AbstractFlowNode, FlowScope<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Start>, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Next>
+      const val ELEMENT_ID: String = "SubProcess_Outer"
+      val elementType: BpmnElementType = BpmnElementType.SUB_PROCESS
+      val id: ElementId = ElementId(value="SubProcess_Outer")
+      val name: String? = null
+      val next: NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Next = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Next
+      val startEvents: NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Start = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Start
+      object Next
+        val endEventRoot: SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot)
+      object Start
+        val startEventOuter: NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter
+    object TaskInner : AbstractFlowNode, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.TaskInner.Next>
+      const val ELEMENT_ID: String = "Task_Inner"
+      val elementType: BpmnElementType = BpmnElementType.SERVICE_TASK
+      val id: ElementId = ElementId(value="Task_Inner")
+      val name: String? = null
+      val next: NestedSubprocessProcessProcessApi.FlowNodes.TaskInner.Next = ->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner.Next
+      object Next
+        val endEventInner: SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner)

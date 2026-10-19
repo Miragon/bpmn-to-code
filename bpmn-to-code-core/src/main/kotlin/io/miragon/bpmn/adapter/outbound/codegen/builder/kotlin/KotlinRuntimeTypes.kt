@@ -1,36 +1,60 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
-import com.squareup.kotlinpoet.ClassName
+import io.miragon.bpmn.adapter.outbound.codegen.template.TypeReferences
 
 /**
- * The `bpmn-to-code-runtime` types the generated Kotlin code refers to.
+ * The types generated Kotlin code refers to: the `bpmn-to-code-runtime` types, and the Kotlin types that are only
+ * written out when a generated type shadows them.
  */
 internal object KotlinRuntimeTypes {
 
-    const val PACKAGE = "io.miragon.bpmn.runtime"
+    private const val PACKAGE = "io.miragon.bpmn.runtime"
 
-    val ABSTRACT_FLOW_NODE = ClassName(PACKAGE, "AbstractFlowNode")
-    val ATTACHED_BOUNDARY_EVENT = ClassName(PACKAGE, "AttachedBoundaryEvent")
-    val ASSOCIATED_COMPENSATION_HANDLER = ClassName(PACKAGE, "AssociatedCompensationHandler")
-    val BOUNDARY_EVENT = ClassName(PACKAGE, "BoundaryEvent")
-    val BPMN_ELEMENT_TYPE = ClassName(PACKAGE, "BpmnElementType")
-    val BPMN_ENGINE = ClassName(PACKAGE, "BpmnEngine")
-    val BPMN_ERROR_DEFINITION = ClassName(PACKAGE, "BpmnErrorDefinition")
-    val BPMN_ESCALATION_DEFINITION = ClassName(PACKAGE, "BpmnEscalationDefinition")
-    val BPMN_EVENT_TYPE = ClassName(PACKAGE, "BpmnEventType")
-    val BPMN_TIMER = ClassName(PACKAGE, "BpmnTimer")
-    val ELEMENT_ID = ClassName(PACKAGE, "ElementId")
-    val EVENT = ClassName(PACKAGE, "Event")
-    val FLOW_NODE = ClassName(PACKAGE, "FlowNode")
-    val FLOW_SCOPE = ClassName(PACKAGE, "FlowScope")
-    val HAS_SUCCESSORS = ClassName(PACKAGE, "HasSuccessors")
-    val INPUT_OUTPUT_MAPPING = ClassName(PACKAGE, "InputOutputMapping")
-    val MESSAGE_NAME = ClassName(PACKAGE, "MessageName")
-    val PROCESS_ID = ClassName(PACKAGE, "ProcessId")
-    val REGISTERED_VARIABLE_DEFINITIONS = ClassName(PACKAGE, "RegisteredVariableDefinitions")
-    val SEQUENCE_FLOW = ClassName(PACKAGE, "SequenceFlow")
-    val SIGNAL_NAME = ClassName(PACKAGE, "SignalName")
-    val TIMER_TYPE = ClassName(PACKAGE, "TimerType")
-    val SEQUENCE_FLOWS = ClassName(PACKAGE, "SequenceFlows")
-    val VARIABLE_NAME = ClassName(PACKAGE, "VariableName")
+    private val RUNTIME_TYPES = listOf(
+        "AbstractFlowNode",
+        "AssociatedCompensationHandler",
+        "AttachedBoundaryEvent",
+        "BoundaryEvent",
+        "BpmnElementType",
+        "BpmnEngine",
+        "BpmnErrorDefinition",
+        "BpmnEscalationDefinition",
+        "BpmnEventType",
+        "BpmnTimer",
+        "CallActivity",
+        "CompensationThrowEvent",
+        "ElementId",
+        "ErrorEvent",
+        "EscalationEvent",
+        "Event",
+        "FlowNode",
+        "FlowScope",
+        "HasJobType",
+        "HasMessage",
+        "HasSuccessors",
+        "HasVariables",
+        "InputOutputMapping",
+        "MessageName",
+        "ProcessId",
+        "RegisteredVariableDefinitions",
+        "SequenceFlow",
+        "SequenceFlows",
+        "SignalEvent",
+        "SignalName",
+        "TimerEvent",
+        "TimerType",
+        "VariableName",
+    )
+
+    private val QUALIFIED_NAMES = RUNTIME_TYPES.associateWith { "$PACKAGE.$it" } + mapOf(
+        "Boolean" to "kotlin.Boolean",
+        "String" to "kotlin.String",
+        "List" to "kotlin.collections.List",
+    )
+
+    fun references(generatedTypeNames: Set<String>): TypeReferences = TypeReferences(
+        qualifiedNames = QUALIFIED_NAMES,
+        implicitPackages = setOf("kotlin", "kotlin.collections"),
+        shadowingNames = generatedTypeNames,
+    )
 }

@@ -4,8 +4,6 @@
 package de.emaarco.example
 
 import io.miragon.bpmn.runtime.MessageName
-import kotlin.Suppress
-import kotlin.collections.List
 
 /**
  * BPMN message names used to correlate messages to running process instances.
@@ -13,8 +11,7 @@ import kotlin.collections.List
 object Messages {
   val MIRAVELO_ADDRESS_CHANGED: MessageName = MessageName("miravelo.addressChanged")
 
-  val MIRAVELO_APPLICATION_WITHDRAWN: MessageName =
-      MessageName("miravelo.applicationWithdrawn")
+  val MIRAVELO_APPLICATION_WITHDRAWN: MessageName = MessageName("miravelo.applicationWithdrawn")
 
   val MIRAVELO_BIKE_ORDER_CANCELLED: MessageName = MessageName("miravelo.bikeOrderCancelled")
 
@@ -22,8 +19,7 @@ object Messages {
 
   val MIRAVELO_HANDOVER_REPORTED: MessageName = MessageName("miravelo.handoverReported")
 
-  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName =
-      MessageName("miravelo.leasingRequestReceived")
+  val MIRAVELO_LEASING_REQUEST_RECEIVED: MessageName = MessageName("miravelo.leasingRequestReceived")
 
   val all: List<MessageName> = listOf(
     MIRAVELO_ADDRESS_CHANGED,

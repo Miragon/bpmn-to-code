@@ -1,0 +1,43 @@
+object ApprovalProcessApi
+  val PROCESS_ENGINE: BpmnEngine = BpmnEngine.ZEEBE
+  val PROCESS_ID: ProcessId = ProcessId(value="approval")
+  object FlowNodes
+    val all: List<FlowNode> = [->ApprovalProcessApi.FlowNodes.EndEventApproved, ->ApprovalProcessApi.FlowNodes.EndEventManual, ->ApprovalProcessApi.FlowNodes.GatewayAmount, ->ApprovalProcessApi.FlowNodes.StartEvent, ->ApprovalProcessApi.FlowNodes.TaskApprove]
+    object EndEventApproved : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_approved"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_approved")
+      val name: String? = null
+    object EndEventManual : AbstractFlowNode, Event
+      const val ELEMENT_ID: String = "endEvent_manual"
+      val elementType: BpmnElementType = BpmnElementType.END_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="endEvent_manual")
+      val name: String? = null
+    object GatewayAmount : AbstractFlowNode, HasSuccessors<ApprovalProcessApi.FlowNodes.GatewayAmount.Next>
+      const val ELEMENT_ID: String = "gateway_amount"
+      val elementType: BpmnElementType = BpmnElementType.EXCLUSIVE_GATEWAY
+      val id: ElementId = ElementId(value="gateway_amount")
+      val name: String? = null
+      val next: ApprovalProcessApi.FlowNodes.GatewayAmount.Next = ->ApprovalProcessApi.FlowNodes.GatewayAmount.Next
+      object Next
+        val endEventManual: SequenceFlows<ApprovalProcessApi.FlowNodes.EndEventManual> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_else"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventManual, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_else"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventManual, isDefault=true)], target=->ApprovalProcessApi.FlowNodes.EndEventManual)
+        val taskApprove: SequenceFlows<ApprovalProcessApi.FlowNodes.TaskApprove> = SequenceFlows(flow=<throws IllegalStateException>, flows=[SequenceFlow(conditionExpression="=amount < 100", id=ElementId(value="flow_small"), name=null, target=->ApprovalProcessApi.FlowNodes.TaskApprove, isDefault=false), SequenceFlow(conditionExpression="=customer.isVip", id=ElementId(value="flow_vip"), name=null, target=->ApprovalProcessApi.FlowNodes.TaskApprove, isDefault=false)], target=->ApprovalProcessApi.FlowNodes.TaskApprove)
+    object StartEvent : AbstractFlowNode, Event, HasSuccessors<ApprovalProcessApi.FlowNodes.StartEvent.Next>
+      const val ELEMENT_ID: String = "startEvent"
+      val elementType: BpmnElementType = BpmnElementType.START_EVENT
+      val eventType: BpmnEventType = BpmnEventType.NONE
+      val id: ElementId = ElementId(value="startEvent")
+      val name: String? = null
+      val next: ApprovalProcessApi.FlowNodes.StartEvent.Next = ->ApprovalProcessApi.FlowNodes.StartEvent.Next
+      object Next
+        val gatewayAmount: SequenceFlows<ApprovalProcessApi.FlowNodes.GatewayAmount> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_start"), name=null, target=->ApprovalProcessApi.FlowNodes.GatewayAmount, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_start"), name=null, target=->ApprovalProcessApi.FlowNodes.GatewayAmount, isDefault=false)], target=->ApprovalProcessApi.FlowNodes.GatewayAmount)
+    object TaskApprove : AbstractFlowNode, HasSuccessors<ApprovalProcessApi.FlowNodes.TaskApprove.Next>
+      const val ELEMENT_ID: String = "task_approve"
+      val elementType: BpmnElementType = BpmnElementType.TASK
+      val id: ElementId = ElementId(value="task_approve")
+      val name: String? = null
+      val next: ApprovalProcessApi.FlowNodes.TaskApprove.Next = ->ApprovalProcessApi.FlowNodes.TaskApprove.Next
+      object Next
+        val endEventApproved: SequenceFlows<ApprovalProcessApi.FlowNodes.EndEventApproved> = SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_approved"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventApproved, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_approved"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventApproved, isDefault=false)], target=->ApprovalProcessApi.FlowNodes.EndEventApproved)
