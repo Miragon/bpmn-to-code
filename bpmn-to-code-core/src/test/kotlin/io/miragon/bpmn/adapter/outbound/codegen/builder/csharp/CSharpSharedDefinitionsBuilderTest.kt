@@ -40,8 +40,20 @@ class CSharpSharedDefinitionsBuilderTest {
         val result = underTest.buildApiFiles(api).single()
 
         // then: the constant is renamed, because C# rejects a member named like its enclosing type (CS0542)
-        assertThat(result.content).contains("public const string Messages_ = \"Messages\";")
-        assertThat(result.content).doesNotContain("public const string Messages =")
+        assertThat(result.content).contains("public static readonly global::Miragon.BpmnToCode.Runtime.MessageName Messages_ = new(\"Messages\");")
+        assertThat(result.content).doesNotContain(" Messages =")
+    }
+
+    @Test
+    fun `job types and variable names are constants, the other kinds the runtime types the nodes carry`() {
+        val result = underTest.buildApiFiles(miraVeloSharedDefinitionsApi(OutputLanguage.CSHARP)).associate { it.fileName to it.content }
+
+        assertThat(result.getValue("ServiceTasks.cs")).contains("public const string MiraveloOrderBike = \"miravelo.orderBike\";")
+        assertThat(result.getValue("ProcessVariables.cs")).contains("public const string ApplicationId = \"applicationId\";")
+        assertThat(result.getValue("Signals.cs")).contains("public static readonly global::Miragon.BpmnToCode.Runtime.SignalName ")
+        assertThat(result.getValue("Errors.cs")).contains(
+            "public static readonly global::Miragon.BpmnToCode.Runtime.BpmnErrorDefinition MiraveloApplicationInvalid = new(\"miravelo.applicationInvalid\", \"applicationInvalid\");",
+        )
     }
 
     @Test

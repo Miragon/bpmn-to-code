@@ -55,7 +55,7 @@ class WebGenerationServiceTest {
     }
 
     @Test
-    fun `should generate C# API without the jvm runtime attachments`() {
+    fun `should generate C# API with the C# runtime attachments`() {
         // given: a valid Zeebe BPMN file with C# output language
         val request = GenerateRequest(
             files = listOf(
@@ -78,11 +78,11 @@ class WebGenerationServiceTest {
         val generatedFile = response.files.first()
         assertThat(generatedFile.fileName).describedAs("Should generate C# file").endsWith(".cs")
         assertThat(generatedFile.content).contains("public static class", "bikeLeasing")
-        assertThat(generatedFile.content).describedAs("Should carry FlowNodes with inlined runtime types").contains("public static class FlowNodes", "public static class Runtime")
+        assertThat(generatedFile.content).describedAs("Should carry FlowNodes built from the runtime package").contains("public static class FlowNodes", "global::Miragon.BpmnToCode.Runtime.")
 
-        // and: no JVM runtime is offered, because the generated C# inlines its own runtime types
-        assertThat(response.libraryFiles).describedAs("Should not bundle jvm runtime sources").isEmpty()
-        assertThat(response.runtimeDependency).describedAs("Should not offer a jvm dependency").isNull()
+        // and: the C# runtime package is offered, with its sources
+        assertThat(response.libraryFiles).describedAs("Should bundle the C# runtime sources").isNotEmpty().allMatch { it.fileName.endsWith(".cs") }
+        assertThat(response.runtimeDependency?.name).isEqualTo("Miragon.BpmnToCode.Runtime")
     }
 
     @Test

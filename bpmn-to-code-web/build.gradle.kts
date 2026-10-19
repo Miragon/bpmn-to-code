@@ -49,11 +49,21 @@ sourceSets {
     }
 }
 
-val copyLibrarySources by tasks.registering(Copy::class) {
-    val runtimeProject = project(":bpmn-to-code-runtime")
-    from(runtimeProject.layout.projectDirectory.dir("src/main/kotlin/io/miragon/bpmn/runtime"))
-    into(layout.buildDirectory.dir("generated/resources/library-sources/library-sources"))
-    include("*.kt")
+// The sources of each runtime library, shown next to the generated code: one directory per output language
+val librarySourcesDir = layout.buildDirectory.dir("generated/resources/library-sources/library-sources")
+
+val copyLibrarySources by tasks.registering(Sync::class) {
+    into(librarySourcesDir)
+    preserve { include("*/manifest.txt") }
+    from(project(":bpmn-to-code-runtime").layout.projectDirectory.dir("src/main/kotlin/io/miragon/bpmn/runtime")) {
+        include("*.kt")
+        into("kotlin")
+    }
+    from(rootProject.layout.projectDirectory.dir("packages/nuget/src/Miragon.BpmnToCode.Runtime")) {
+        include("**/*.cs")
+        exclude("bin/**", "obj/**")
+        into("csharp")
+    }
 }
 
 // Bundle one engine-specific bike-leasing example per engine for the demo
@@ -69,13 +79,15 @@ val copyExampleModels by tasks.registering(Copy::class) {
 
 val generateLibrarySourcesManifest by tasks.registering {
     dependsOn(copyLibrarySources)
-    val outputDir = layout.buildDirectory.dir("generated/resources/library-sources/library-sources")
-    outputs.file(outputDir.map { it.file("manifest.txt") })
+    val languages = listOf("kotlin", "csharp")
+    val sourcesDir = librarySourcesDir
+    outputs.files(languages.map { language -> sourcesDir.map { it.file("$language/manifest.txt") } })
     doLast {
-        val dir = outputDir.get().asFile
-        val names = dir.listFiles { f -> f.isFile && f.name.endsWith(".kt") }?.map { it.name }?.sorted()
-            ?: emptyList()
-        dir.resolve("manifest.txt").writeText(names.joinToString("\n") + "\n")
+        languages.forEach { language ->
+            val dir = sourcesDir.get().dir(language).asFile
+            val names = dir.walkTopDown().filter { it.isFile && it.name != "manifest.txt" }.map { it.relativeTo(dir).invariantSeparatorsPath }.sorted()
+            dir.resolve("manifest.txt").writeText(names.joinToString("\n") + "\n")
+        }
     }
 }
 

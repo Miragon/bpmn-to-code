@@ -9,14 +9,14 @@ namespace de.emaarco.example;
 /// </summary>
 public static class Messages
 {
-    public const string MiraveloAddressChanged = "miravelo.addressChanged";
-    public const string MiraveloApplicationWithdrawn = "miravelo.applicationWithdrawn";
-    public const string MiraveloBikeOrderCancelled = "miravelo.bikeOrderCancelled";
-    public const string MiraveloContractSigned = "miravelo.contractSigned";
-    public const string MiraveloHandoverReported = "miravelo.handoverReported";
-    public const string MiraveloLeasingRequestReceived = "miravelo.leasingRequestReceived";
+    public static readonly global::Miragon.BpmnToCode.Runtime.MessageName MiraveloAddressChanged = new("miravelo.addressChanged");
+    public static readonly global::Miragon.BpmnToCode.Runtime.MessageName MiraveloApplicationWithdrawn = new("miravelo.applicationWithdrawn");
+    public static readonly global::Miragon.BpmnToCode.Runtime.MessageName MiraveloBikeOrderCancelled = new("miravelo.bikeOrderCancelled");
+    public static readonly global::Miragon.BpmnToCode.Runtime.MessageName MiraveloContractSigned = new("miravelo.contractSigned");
+    public static readonly global::Miragon.BpmnToCode.Runtime.MessageName MiraveloHandoverReported = new("miravelo.handoverReported");
+    public static readonly global::Miragon.BpmnToCode.Runtime.MessageName MiraveloLeasingRequestReceived = new("miravelo.leasingRequestReceived");
 
-    public static System.Collections.Generic.IReadOnlyList<string> All => new string[]
+    public static System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.MessageName> All => new global::Miragon.BpmnToCode.Runtime.MessageName[]
     {
         MiraveloAddressChanged,
         MiraveloApplicationWithdrawn,

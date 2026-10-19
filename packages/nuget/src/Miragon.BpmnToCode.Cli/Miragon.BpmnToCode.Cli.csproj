@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A .NET tool that starts the bpmn-to-code CLI with the Java runtime it carries. Each platform package is packed on a
+    machine of that platform with `dotnet pack -r <RID>` and carries the jars and the jlink runtime of
+    bpmn-to-code-cli's toolDistribution task; `dotnet pack` without a RID packs the package that points to them.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Miragon.BpmnToCode.Cli</RootNamespace>
+    <PackageId>Miragon.BpmnToCode.Cli</PackageId>
+    <Description>Generates type-safe C#, TypeScript, Kotlin and Java APIs from BPMN process models and validates them</Description>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>bpmn-to-code</ToolCommandName>
+    <ToolPackageRuntimeIdentifiers>linux-x64;linux-arm64;osx-x64;osx-arm64;win-x64</ToolPackageRuntimeIdentifiers>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <BpmnToCodeDistribution Condition="'$(BpmnToCodeDistribution)' == ''">$(MSBuildThisFileDirectory)../../../../bpmn-to-code-cli/build/tool-distribution</BpmnToCodeDistribution>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <Content Include="$(BpmnToCodeDistribution)/**" Link="%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" Pack="false" />
+  </ItemGroup>
+
+  <Target Name="BpmnToCodeRequireDistribution" BeforeTargets="Build" Condition="'$(RuntimeIdentifier)' != ''">
+    <Error Condition="!Exists('$(BpmnToCodeDistribution)/runtime') Or !Exists('$(BpmnToCodeDistribution)/lib')" Text="No tool distribution in $(BpmnToCodeDistribution). Run ./gradlew :bpmn-to-code-cli:toolDistribution on a machine of $(RuntimeIdentifier) first, or set BpmnToCodeDistribution." />
+  </Target>
+
+</Project>

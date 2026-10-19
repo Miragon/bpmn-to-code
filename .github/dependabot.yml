@@ -56,6 +56,32 @@ updates:
           - "minor"
           - "patch"
 
+  # NuGet: test dependencies of the C# runtime package
+  - package-ecosystem: "nuget"
+    directory: "/packages/nuget"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    rebase-strategy: "auto"
+    groups:
+      nuget-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      nuget-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
   # Docker base image of the web app
   - package-ecosystem: "docker"
     directory: "/bpmn-to-code-web"

@@ -3,7 +3,6 @@ package io.miragon.bpmn.web.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiInMemoryPlugin
 import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.web.model.BpmnFileData
 import io.miragon.bpmn.web.model.GenerateRequest
 import io.miragon.bpmn.web.model.GenerateResponse
@@ -21,12 +20,12 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
             val bpmnInputs = request.files.map { this.buildCommand(it) }
             val generatedApiFiles = this.executePlugin(request.config, bpmnInputs)
             val generatedFiles = generatedApiFiles.map { mapToResponse(it) }
-            val runsOnJvm = config.outputLanguage.runsOnJvm()
+            val runtimeLibrary = RuntimeLibrary.of(config.outputLanguage)
             GenerateResponse(
                 success = true,
                 files = generatedFiles,
-                libraryFiles = if (runsOnJvm) librarySourceProvider.libraryFiles() else emptyList(),
-                runtimeDependency = if (runsOnJvm) librarySourceProvider.runtimeDependency() else null,
+                libraryFiles = librarySourceProvider.libraryFiles(runtimeLibrary),
+                runtimeDependency = librarySourceProvider.runtimeDependency(runtimeLibrary),
             )
         }
     }
@@ -42,12 +41,6 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
     )
 
     private fun buildCommand(file: BpmnFileData) = CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())
-
-    /**
-     * `bpmn-to-code-runtime` is a JVM artifact, and the C# output inlines its own runtime types into each
-     * file, so offering the JVM sources or a Gradle/Maven coordinate alongside a `.cs` file would be nonsense.
-     */
-    private fun OutputLanguage.runsOnJvm() = this != OutputLanguage.CSHARP
 
     private fun mapToResponse(apiFile: GeneratedApiFile) = GenerateResponse.GeneratedFile(
         fileName = apiFile.fileName,

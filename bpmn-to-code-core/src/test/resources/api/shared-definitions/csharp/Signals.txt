@@ -9,9 +9,9 @@ namespace de.emaarco.example;
 /// </summary>
 public static class Signals
 {
-    public const string MiraveloMemberActivated = "miravelo.memberActivated";
+    public static readonly global::Miragon.BpmnToCode.Runtime.SignalName MiraveloMemberActivated = new("miravelo.memberActivated");
 
-    public static System.Collections.Generic.IReadOnlyList<string> All => new string[]
+    public static System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.SignalName> All => new global::Miragon.BpmnToCode.Runtime.SignalName[]
     {
         MiraveloMemberActivated,
     };

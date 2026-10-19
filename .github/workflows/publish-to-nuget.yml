@@ -1,0 +1,155 @@
+name: Publish to NuGet (Miragon.BpmnToCode.*)
+
+# Packs the .NET tool once per platform with that platform's Java runtime and smoke-tests it there, then publishes
+# the platform packages, the runtime package, the package pointing to the platform packages and the MSBuild package,
+# in that order, so every package finds its dependencies. Publishing uses NuGet trusted publishing (OIDC); no API key
+# is stored.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no real publish)'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no real publish)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.rid }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - rid: osx-arm64
+            runner: macos-15
+          - rid: osx-x64
+            runner: macos-15-intel
+          - rid: linux-x64
+            runner: ubuntu-24.04
+          - rid: linux-arm64
+            runner: ubuntu-24.04-arm
+          - rid: win-x64
+            runner: windows-2025
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '10.0'
+
+      # The Native AOT starter links against these on Linux
+      - name: Install the Native AOT prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Read the version
+        run: echo "VERSION=$(grep '^projectVersion=' gradle.properties | cut -d= -f2)" >> "$GITHUB_ENV"
+
+      - name: Assemble the jars and the Java runtime
+        run: ./gradlew :bpmn-to-code-cli:toolDistribution
+
+      - name: Pack the platform package
+        run: >-
+          dotnet pack packages/nuget/src/Miragon.BpmnToCode.Cli -c Release -r ${{ matrix.rid }} -o dist
+          -p:Version="$VERSION" -p:BpmnToCodeDistribution="$GITHUB_WORKSPACE/bpmn-to-code-cli/build/tool-distribution"
+
+      # Installs the tool from the packages of this job and generates and validates the shared models with it
+      - name: Smoke-test the tool on this platform
+        run: |
+          dotnet pack packages/nuget/src/Miragon.BpmnToCode.Cli -c Release -o pointer -p:Version="$VERSION"
+          dotnet tool install Miragon.BpmnToCode.Cli --version "$VERSION" --add-source dist --add-source pointer --tool-path installed
+          EXPECTED_VERSION="$VERSION" bpmn-to-code-cli/scripts/smoke-test.sh installed/bpmn-to-code
+
+      # Generates C# during dotnet build through the MSBuild package; bash paths are not handed to MSBuild on Windows
+      - name: Smoke-test the MSBuild integration on this platform
+        if: runner.os != 'Windows'
+        run: packages/nuget/smoke-test.sh ${{ matrix.rid }} bpmn-to-code-cli/build/tool-distribution
+
+      - name: Upload the platform package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nuget-${{ matrix.rid }}
+          path: dist/*.nupkg
+          if-no-files-found: error
+
+  publish:
+    name: Publish to NuGet
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '10.0'
+
+      - name: Read the version
+        run: echo "VERSION=$(grep '^projectVersion=' gradle.properties | cut -d= -f2)" >> "$GITHUB_ENV"
+
+      - name: Download the platform packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: nuget-*
+          path: platforms
+          merge-multiple: true
+
+      - name: Test the runtime package
+        run: dotnet test packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests -c Release
+
+      - name: Pack the runtime, tool and MSBuild packages
+        run: |
+          for project in Miragon.BpmnToCode.Runtime Miragon.BpmnToCode.Cli Miragon.BpmnToCode.MSBuild; do
+            dotnet pack "packages/nuget/src/$project" -c Release -o packages-out -p:Version="$VERSION"
+          done
+          ls platforms packages-out
+
+      - name: NuGet login
+        if: inputs.dry_run != true
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      # The tool package points to the platform packages and the MSBuild package depends on the runtime package
+      - name: Publish the packages
+        if: inputs.dry_run != true
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          push() {
+            dotnet nuget push "$1" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
+          for package in platforms/*.nupkg; do push "$package"; done
+          push "packages-out/Miragon.BpmnToCode.Runtime.$VERSION.nupkg"
+          push "packages-out/Miragon.BpmnToCode.Cli.$VERSION.nupkg"
+          push "packages-out/Miragon.BpmnToCode.MSBuild.$VERSION.nupkg"

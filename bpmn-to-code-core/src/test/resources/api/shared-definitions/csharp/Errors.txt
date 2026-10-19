@@ -9,14 +9,10 @@ namespace de.emaarco.example;
 /// </summary>
 public static class Errors
 {
-    public static class MiraveloApplicationInvalid
-    {
-        public const string Reference = "miravelo.applicationInvalid";
-        public const string Code = "applicationInvalid";
-    }
+    public static readonly global::Miragon.BpmnToCode.Runtime.BpmnErrorDefinition MiraveloApplicationInvalid = new("miravelo.applicationInvalid", "applicationInvalid");
 
-    public static System.Collections.Generic.IReadOnlyList<(string Reference, string Code)> All => new (string Reference, string Code)[]
+    public static System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.BpmnErrorDefinition> All => new global::Miragon.BpmnToCode.Runtime.BpmnErrorDefinition[]
     {
-        (MiraveloApplicationInvalid.Reference, MiraveloApplicationInvalid.Code),
+        MiraveloApplicationInvalid,
     };
 }

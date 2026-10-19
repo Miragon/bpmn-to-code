@@ -8,282 +8,43 @@ public static class BikeLeasingProcessApi
 {
     public const string ProcessId = "bikeLeasing";
 
-    public const Runtime.BpmnEngine ProcessEngine = Runtime.BpmnEngine.Zeebe;
-
-    /// <summary>
-    /// The runtime types this API's flow nodes are built from; inlined so the file needs no package.
-    /// </summary>
-    public static class Runtime
-    {
-        /// <summary>Common handle on any flow node, for generic tooling.</summary>
-        public interface IFlowNode
-        {
-            ElementId Id { get; }
-            BpmnElementType ElementType { get; }
-            string? Name { get; }
-        }
-
-        /// <summary>Marks an event node and exposes its event definition kind.</summary>
-        public interface IEvent : IFlowNode
-        {
-            BpmnEventType EventType { get; }
-        }
-
-        /// <summary>Marks a boundary event: one of its host's successors, reached without a sequence flow.</summary>
-        public interface IBoundaryEvent : IEvent
-        {
-        }
-
-        /// <summary>A flow node implemented by a job worker of JobType.</summary>
-        public interface IHasJobType : IFlowNode
-        {
-            string JobType { get; }
-        }
-
-        /// <summary>A flow node that declares process variables, exposed behind Variables.</summary>
-        public interface IHasVariables : IFlowNode
-        {
-            VariableDefinitions Variables { get; }
-        }
-
-        /// <summary>A call activity, calling the process CalledProcess.</summary>
-        public interface ICallActivity : IFlowNode
-        {
-            ProcessId CalledProcess { get; }
-        }
-
-        /// <summary>An event with a Timer definition.</summary>
-        public interface ITimerEvent : IEvent
-        {
-            BpmnTimer Timer { get; }
-        }
-
-        /// <summary>A flow node that sends or receives the Message.</summary>
-        public interface IHasMessage : IFlowNode
-        {
-            MessageName Message { get; }
-        }
-
-        /// <summary>An event that throws or catches the Signal.</summary>
-        public interface ISignalEvent : IEvent
-        {
-            SignalName Signal { get; }
-        }
-
-        /// <summary>An event that throws or catches the Error.</summary>
-        public interface IErrorEvent : IEvent
-        {
-            BpmnErrorDefinition Error { get; }
-        }
-
-        /// <summary>An event that throws or catches the Escalation.</summary>
-        public interface IEscalationEvent : IEvent
-        {
-            BpmnEscalationDefinition Escalation { get; }
-        }
-
-        /// <summary>An event that throws a compensation: an intermediate throw event or an end event.</summary>
-        public interface ICompensationThrowEvent : IEvent
-        {
-        }
-
-        /// <summary>A sequence flow without its target type, for generic tooling.</summary>
-        public interface ISequenceFlow
-        {
-            ElementId Id { get; }
-            string? Name { get; }
-            string? ConditionExpression { get; }
-            bool IsDefault { get; }
-            IFlowNode Target { get; }
-        }
-
-        /// <summary>One outgoing sequence flow of a flow node: its raw condition expression, default marker and typed target.</summary>
-        public sealed record SequenceFlow<TTarget>(ElementId Id, string? Name, string? ConditionExpression, bool IsDefault, TTarget Target) : ISequenceFlow
-            where TTarget : IFlowNode
-        {
-            public SequenceFlow(ElementId Id, TTarget Target) : this(Id, null, null, false, Target) { }
-
-            IFlowNode ISequenceFlow.Target => Target;
-        }
-
-        /// <summary>What can follow a flow node in its Next: the SequenceFlows to an element, an AttachedBoundaryEvent or an AssociatedCompensationHandler.</summary>
-        public interface ISuccessor<out TTarget>
-            where TTarget : IFlowNode
-        {
-            TTarget Target { get; }
-        }
-
-        /// <summary>The sequence flows from one node to the same Target; usually exactly one, reachable as Flow.</summary>
-        public sealed record SequenceFlows<TTarget>(TTarget Target, System.Collections.Generic.IReadOnlyList<SequenceFlow<TTarget>> Flows) : ISuccessor<TTarget>
-            where TTarget : IFlowNode
-        {
-            public SequenceFlow<TTarget> Flow => Flows.Count == 1 ? Flows[0] : throw new System.InvalidOperationException($"{Flows.Count} sequence flows lead to {Target.Id}; pick one of Flows");
-        }
-
-        public static class SequenceFlows
-        {
-            public static SequenceFlows<TTarget> Single<TTarget>(ElementId flowId, TTarget target, string? name = null, string? conditionExpression = null, bool isDefault = false)
-                where TTarget : IFlowNode => new(target, new[] { new SequenceFlow<TTarget>(flowId, name, conditionExpression, isDefault, target) });
-        }
-
-        /// <summary>A boundary event attached to the current node: the token can leave through it, but no sequence flow leads there.</summary>
-        public sealed record AttachedBoundaryEvent<TTarget>(TTarget Target) : ISuccessor<TTarget>
-            where TTarget : IFlowNode;
-
-        /// <summary>The compensation handler associated with the current compensation boundary event: it runs when the event triggers, but no sequence flow leads there.</summary>
-        public sealed record AssociatedCompensationHandler<TTarget>(TTarget Target) : ISuccessor<TTarget>
-            where TTarget : IFlowNode;
-
-        public sealed record ElementId(string Value)
-        {
-            public override string ToString() => Value;
-        }
-
-        public sealed record ProcessId(string Value)
-        {
-            public override string ToString() => Value;
-        }
-
-        public sealed record MessageName(string Value)
-        {
-            public override string ToString() => Value;
-        }
-
-        public sealed record SignalName(string Value)
-        {
-            public override string ToString() => Value;
-        }
-
-        /// <summary>A process variable name whose subtype encodes the direction the declaring element uses it in.</summary>
-        public abstract record VariableName(string Value)
-        {
-            public sealed override string ToString() => Value;
-
-            public sealed record Input(string Value) : VariableName(Value);
-
-            public sealed record Output(string Value) : VariableName(Value);
-
-            public sealed record InOut(string Value) : VariableName(Value);
-        }
-
-        /// <summary>The variables a node declares: All of them, those it reads (Inputs) and those it writes (Outputs).</summary>
-        public abstract class VariableDefinitions
-        {
-            public abstract System.Collections.Generic.IReadOnlyList<VariableName> All { get; }
-
-            public System.Collections.Generic.IReadOnlyList<VariableName> Inputs => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(All, variable => variable is not VariableName.Output));
-
-            public System.Collections.Generic.IReadOnlyList<VariableName> Outputs => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(All, variable => variable is not VariableName.Input));
-        }
-
-        /// <summary>BPMN element type of a flow node; an event's definition is its EventType.</summary>
-        public enum BpmnElementType
-        {
-            ServiceTask,
-            UserTask,
-            ReceiveTask,
-            SendTask,
-            ScriptTask,
-            ManualTask,
-            BusinessRuleTask,
-            Task,
-            ExclusiveGateway,
-            ParallelGateway,
-            InclusiveGateway,
-            EventBasedGateway,
-            ComplexGateway,
-            SubProcess,
-            EventSubProcess,
-            Transaction,
-            CallActivity,
-            StartEvent,
-            EndEvent,
-            IntermediateCatchEvent,
-            IntermediateThrowEvent,
-            BoundaryEvent,
-            Unknown,
-        }
-
-        /// <summary>Event definition of an event: None without one, Multiple with several.</summary>
-        public enum BpmnEventType
-        {
-            None,
-            Timer,
-            Message,
-            Error,
-            Signal,
-            Escalation,
-            Compensation,
-            Conditional,
-            Link,
-            Terminate,
-            Multiple,
-        }
-
-        /// <summary>BPMN timer definition type.</summary>
-        public enum TimerType
-        {
-            Date,
-            Duration,
-            Cycle,
-        }
-
-        /// <summary>Process engine dialect a generated Process API targets.</summary>
-        public enum BpmnEngine
-        {
-            Zeebe,
-            Camunda7,
-            Operaton,
-        }
-
-        public sealed record BpmnTimer(TimerType Type, string TimerValue);
-
-        public sealed record BpmnErrorDefinition(string Name, string Code);
-
-        public sealed record BpmnEscalationDefinition(string Name, string Code);
-
-        /// <summary>A variable mapping into or out of a called process; Source and SourceExpression are mutually exclusive.</summary>
-        public sealed record InputOutputMapping(string Target, string? Source = null, string? SourceExpression = null)
-        {
-            public override string ToString() => Target;
-        }
-    }
+    public const global::Miragon.BpmnToCode.Runtime.BpmnEngine ProcessEngine = global::Miragon.BpmnToCode.Runtime.BpmnEngine.Zeebe;
 
     /// <summary>
     /// Typed navigation over the process flow: one nested singleton class per BPMN element, reached as FlowNodes.Element.Instance.
     /// </summary>
     public static class FlowNodes
     {
-        public sealed class BoundaryApplicationInvalid : Runtime.IBoundaryEvent, Runtime.IErrorEvent
+        public sealed class BoundaryApplicationInvalid : global::Miragon.BpmnToCode.Runtime.IBoundaryEvent<ServiceTaskValidateApplication>, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<BoundaryApplicationInvalid.Successors>, global::Miragon.BpmnToCode.Runtime.IErrorEvent
         {
             public static readonly BoundaryApplicationInvalid Instance = new();
             private BoundaryApplicationInvalid() { }
 
             public const string ElementId = "boundary_applicationInvalid";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Error;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.BoundaryEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Error;
             public string? Name => "Application invalid";
-            public Runtime.BpmnErrorDefinition Error { get; } = new(Errors.MiraveloApplicationInvalid.Reference, Errors.MiraveloApplicationInvalid.Code);
+            public global::Miragon.BpmnToCode.Runtime.BpmnErrorDefinition Error { get; } = Errors.MiraveloApplicationInvalid;
             public ServiceTaskValidateApplication AttachedTo => ServiceTaskValidateApplication.Instance;
             public bool IsInterrupting => true;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => Runtime.SequenceFlows.Single(new("flow_applicationInvalidToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_applicationInvalidToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance);
             }
         }
 
-        public sealed class BoundaryCompensateContract : Runtime.IBoundaryEvent
+        public sealed class BoundaryCompensateContract : global::Miragon.BpmnToCode.Runtime.IBoundaryEvent<SubProcessConcludeContract>, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<BoundaryCompensateContract.Successors>
         {
             public static readonly BoundaryCompensateContract Instance = new();
             private BoundaryCompensateContract() { }
 
             public const string ElementId = "boundary_compensateContract";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.BoundaryEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Compensation;
             public string? Name => "Contract to revoke";
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => true;
@@ -291,19 +52,19 @@ public static class BikeLeasingProcessApi
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.AssociatedCompensationHandler<ServiceTaskCancelContract> ServiceTaskCancelContract => new(FlowNodes.ServiceTaskCancelContract.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AssociatedCompensationHandler<ServiceTaskCancelContract> ServiceTaskCancelContract => new(FlowNodes.ServiceTaskCancelContract.Instance);
             }
         }
 
-        public sealed class BoundaryCompensateInsurance : Runtime.IBoundaryEvent
+        public sealed class BoundaryCompensateInsurance : global::Miragon.BpmnToCode.Runtime.IBoundaryEvent<ServiceTaskIssueInsurancePolicy>, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<BoundaryCompensateInsurance.Successors>
         {
             public static readonly BoundaryCompensateInsurance Instance = new();
             private BoundaryCompensateInsurance() { }
 
             public const string ElementId = "boundary_compensateInsurance";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.BoundaryEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Compensation;
             public string? Name => "Policy to cancel";
             public ServiceTaskIssueInsurancePolicy AttachedTo => ServiceTaskIssueInsurancePolicy.Instance;
             public bool IsInterrupting => true;
@@ -311,19 +72,19 @@ public static class BikeLeasingProcessApi
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.AssociatedCompensationHandler<ServiceTaskCancelPolicy> ServiceTaskCancelPolicy => new(FlowNodes.ServiceTaskCancelPolicy.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AssociatedCompensationHandler<ServiceTaskCancelPolicy> ServiceTaskCancelPolicy => new(FlowNodes.ServiceTaskCancelPolicy.Instance);
             }
         }
 
-        public sealed class BoundaryCompensateOrder : Runtime.IBoundaryEvent
+        public sealed class BoundaryCompensateOrder : global::Miragon.BpmnToCode.Runtime.IBoundaryEvent<ServiceTaskOrderBike>, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<BoundaryCompensateOrder.Successors>
         {
             public static readonly BoundaryCompensateOrder Instance = new();
             private BoundaryCompensateOrder() { }
 
             public const string ElementId = "boundary_compensateOrder";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.BoundaryEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Compensation;
             public string? Name => "Order to cancel";
             public ServiceTaskOrderBike AttachedTo => ServiceTaskOrderBike.Instance;
             public bool IsInterrupting => true;
@@ -331,596 +92,596 @@ public static class BikeLeasingProcessApi
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.AssociatedCompensationHandler<CallActivityCancelBikeOrder> CallActivityCancelBikeOrder => new(FlowNodes.CallActivityCancelBikeOrder.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AssociatedCompensationHandler<CallActivityCancelBikeOrder> CallActivityCancelBikeOrder => new(FlowNodes.CallActivityCancelBikeOrder.Instance);
             }
         }
 
-        public sealed class BoundaryContractNotSigned : Runtime.IBoundaryEvent, Runtime.IEscalationEvent
+        public sealed class BoundaryContractNotSigned : global::Miragon.BpmnToCode.Runtime.IBoundaryEvent<SubProcessConcludeContract>, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<BoundaryContractNotSigned.Successors>, global::Miragon.BpmnToCode.Runtime.IEscalationEvent
         {
             public static readonly BoundaryContractNotSigned Instance = new();
             private BoundaryContractNotSigned() { }
 
             public const string ElementId = "boundary_contractNotSigned";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Escalation;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.BoundaryEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Escalation;
             public string? Name => "Contract not signed";
-            public Runtime.BpmnEscalationDefinition Escalation { get; } = new(Escalations.MiraveloContractNotSigned.Reference, Escalations.MiraveloContractNotSigned.Code);
+            public global::Miragon.BpmnToCode.Runtime.BpmnEscalationDefinition Escalation { get; } = Escalations.MiraveloContractNotSigned;
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => true;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => Runtime.SequenceFlows.Single(new("flow_contractNotSignedToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_contractNotSignedToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance);
             }
         }
 
-        public sealed class BusinessRuleTaskCheckCreditRating : Runtime.IFlowNode
+        public sealed class BusinessRuleTaskCheckCreditRating : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<BusinessRuleTaskCheckCreditRating.Successors>
         {
             public static readonly BusinessRuleTaskCheckCreditRating Instance = new();
             private BusinessRuleTaskCheckCreditRating() { }
 
             public const string ElementId = "businessRuleTask_checkCreditRating";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BusinessRuleTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.BusinessRuleTask;
             public string? Name => "Check credit rating";
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<GatewayIsSolvent> GatewayIsSolvent => Runtime.SequenceFlows.Single(new("flow_checkCreditRatingToIsSolvent"), FlowNodes.GatewayIsSolvent.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayIsSolvent> GatewayIsSolvent => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_checkCreditRatingToIsSolvent"), FlowNodes.GatewayIsSolvent.Instance);
             }
         }
 
-        public sealed class CallActivityCancelBikeOrder : Runtime.IFlowNode, Runtime.ICallActivity, Runtime.IHasVariables
+        public sealed class CallActivityCancelBikeOrder : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.ICallActivity, global::Miragon.BpmnToCode.Runtime.IHasVariables
         {
             public static readonly CallActivityCancelBikeOrder Instance = new();
             private CallActivityCancelBikeOrder() { }
 
             public const string ElementId = "callActivity_cancelBikeOrder";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.CallActivity;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.CallActivity;
             public string? Name => "Cancel bike order";
-            public Runtime.ProcessId CalledProcess { get; } = new("cancelBikeOrder");
+            public global::Miragon.BpmnToCode.Runtime.ProcessId CalledProcess { get; } = new("cancelBikeOrder");
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
-            public sealed class NodeVariables : Runtime.VariableDefinitions
+            global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions
             {
-                public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
-                public Runtime.VariableName.Output CancellationCosts { get; } = new(ProcessVariables.CancellationCosts);
-                public Runtime.VariableName.Input OrderIds { get; } = new(ProcessVariables.OrderIds);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { ApplicationId, CancellationCosts, OrderIds };
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Output CancellationCosts { get; } = new(ProcessVariables.CancellationCosts);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input OrderIds { get; } = new(ProcessVariables.OrderIds);
+                public override System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { ApplicationId, CancellationCosts, OrderIds };
             }
 
             public InputMappings Inputs { get; } = new();
             public sealed class InputMappings
             {
-                public Runtime.InputOutputMapping ApplicationId { get; } = new("applicationId", null, "${applicationId}");
-                public Runtime.InputOutputMapping OrderIds { get; } = new("orderIds", "orderIds", null);
+                public global::Miragon.BpmnToCode.Runtime.InputOutputMapping ApplicationId { get; } = new("applicationId", null, "${applicationId}");
+                public global::Miragon.BpmnToCode.Runtime.InputOutputMapping OrderIds { get; } = new("orderIds", "orderIds", null);
             }
 
             public OutputMappings Outputs { get; } = new();
             public sealed class OutputMappings
             {
-                public Runtime.InputOutputMapping CancellationCosts { get; } = new("cancellationCosts", "cancellationCosts", null);
+                public global::Miragon.BpmnToCode.Runtime.InputOutputMapping CancellationCosts { get; } = new("cancellationCosts", "cancellationCosts", null);
             }
         }
 
-        public sealed class EndEventApplicationCancelled : Runtime.IEvent
+        public sealed class EndEventApplicationCancelled : global::Miragon.BpmnToCode.Runtime.IEvent
         {
             public static readonly EndEventApplicationCancelled Instance = new();
             private EndEventApplicationCancelled() { }
 
             public const string ElementId = "endEvent_applicationCancelled";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EndEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.None;
             public string? Name => "Application cancelled";
         }
 
-        public sealed class EndEventApplicationRejected : Runtime.IEvent
+        public sealed class EndEventApplicationRejected : global::Miragon.BpmnToCode.Runtime.IEvent
         {
             public static readonly EndEventApplicationRejected Instance = new();
             private EndEventApplicationRejected() { }
 
             public const string ElementId = "endEvent_applicationRejected";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Terminate;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EndEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Terminate;
             public string? Name => "Application rejected";
         }
 
-        public sealed class EndEventContractConcluded : Runtime.IEvent
+        public sealed class EndEventContractConcluded : global::Miragon.BpmnToCode.Runtime.IEvent
         {
             public static readonly EndEventContractConcluded Instance = new();
             private EndEventContractConcluded() { }
 
             public const string ElementId = "endEvent_contractConcluded";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EndEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.None;
             public string? Name => "Contract concluded";
         }
 
-        public sealed class EndEventContractNotSigned : Runtime.IEvent, Runtime.IEscalationEvent
+        public sealed class EndEventContractNotSigned : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IEscalationEvent
         {
             public static readonly EndEventContractNotSigned Instance = new();
             private EndEventContractNotSigned() { }
 
             public const string ElementId = "endEvent_contractNotSigned";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Escalation;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EndEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Escalation;
             public string? Name => "Contract not signed";
-            public Runtime.BpmnEscalationDefinition Escalation { get; } = new(Escalations.MiraveloContractNotSigned.Reference, Escalations.MiraveloContractNotSigned.Code);
+            public global::Miragon.BpmnToCode.Runtime.BpmnEscalationDefinition Escalation { get; } = Escalations.MiraveloContractNotSigned;
         }
 
-        public sealed class EndEventCustomerReminded : Runtime.IEvent
+        public sealed class EndEventCustomerReminded : global::Miragon.BpmnToCode.Runtime.IEvent
         {
             public static readonly EndEventCustomerReminded Instance = new();
             private EndEventCustomerReminded() { }
 
             public const string ElementId = "endEvent_customerReminded";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EndEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.None;
             public string? Name => "Customer reminded";
         }
 
-        public sealed class EndEventDeliveryAddressUpdated : Runtime.IEvent
+        public sealed class EndEventDeliveryAddressUpdated : global::Miragon.BpmnToCode.Runtime.IEvent
         {
             public static readonly EndEventDeliveryAddressUpdated Instance = new();
             private EndEventDeliveryAddressUpdated() { }
 
             public const string ElementId = "endEvent_deliveryAddressUpdated";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EndEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.None;
             public string? Name => "Delivery address updated";
         }
 
-        public sealed class EndEventLeasingActive : Runtime.IEvent
+        public sealed class EndEventLeasingActive : global::Miragon.BpmnToCode.Runtime.IEvent
         {
             public static readonly EndEventLeasingActive Instance = new();
             private EndEventLeasingActive() { }
 
             public const string ElementId = "endEvent_leasingActive";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EndEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EndEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.None;
             public string? Name => "Leasing active";
         }
 
-        public sealed class EventContractSigned : Runtime.IEvent, Runtime.IHasMessage
+        public sealed class EventContractSigned : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<EventContractSigned.Successors>, global::Miragon.BpmnToCode.Runtime.IHasMessage
         {
             public static readonly EventContractSigned Instance = new();
             private EventContractSigned() { }
 
             public const string ElementId = "event_contractSigned";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateCatchEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.IntermediateCatchEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Message;
             public string? Name => "Contract signed";
-            public Runtime.MessageName Message { get; } = new(Messages.MiraveloContractSigned);
+            public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = Messages.MiraveloContractSigned;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EndEventContractConcluded> EndEventContractConcluded => Runtime.SequenceFlows.Single(new("flow_contractSignedToContractConcluded"), FlowNodes.EndEventContractConcluded.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EndEventContractConcluded> EndEventContractConcluded => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_contractSignedToContractConcluded"), FlowNodes.EndEventContractConcluded.Instance);
             }
         }
 
-        public sealed class EventReverseApplication : Runtime.IEvent, Runtime.ICompensationThrowEvent
+        public sealed class EventReverseApplication : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<EventReverseApplication.Successors>, global::Miragon.BpmnToCode.Runtime.ICompensationThrowEvent
         {
             public static readonly EventReverseApplication Instance = new();
             private EventReverseApplication() { }
 
             public const string ElementId = "event_reverseApplication";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateThrowEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Compensation;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.IntermediateThrowEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Compensation;
             public string? Name => "Application reversed";
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<ServiceTaskSendCancellationConfirmation> ServiceTaskSendCancellationConfirmation => Runtime.SequenceFlows.Single(new("flow_reverseApplicationToSendCancellationConfirmation"), FlowNodes.ServiceTaskSendCancellationConfirmation.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ServiceTaskSendCancellationConfirmation> ServiceTaskSendCancellationConfirmation => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_reverseApplicationToSendCancellationConfirmation"), FlowNodes.ServiceTaskSendCancellationConfirmation.Instance);
             }
         }
 
-        public sealed class GatewayAwaitSignature : Runtime.IFlowNode
+        public sealed class GatewayAwaitSignature : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<GatewayAwaitSignature.Successors>
         {
             public static readonly GatewayAwaitSignature Instance = new();
             private GatewayAwaitSignature() { }
 
             public const string ElementId = "gateway_awaitSignature";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EventBasedGateway;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EventBasedGateway;
             public string? Name => "Await signature";
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EventContractSigned> EventContractSigned => Runtime.SequenceFlows.Single(new("flow_awaitSignatureToContractSigned"), FlowNodes.EventContractSigned.Instance);
-                public Runtime.SequenceFlows<TimerSignatureDeadline> TimerSignatureDeadline => Runtime.SequenceFlows.Single(new("flow_awaitSignatureToSignatureDeadline"), FlowNodes.TimerSignatureDeadline.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EventContractSigned> EventContractSigned => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_awaitSignatureToContractSigned"), FlowNodes.EventContractSigned.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<TimerSignatureDeadline> TimerSignatureDeadline => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_awaitSignatureToSignatureDeadline"), FlowNodes.TimerSignatureDeadline.Instance);
             }
         }
 
-        public sealed class GatewayCollectRejections : Runtime.IFlowNode
+        public sealed class GatewayCollectRejections : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<GatewayCollectRejections.Successors>
         {
             public static readonly GatewayCollectRejections Instance = new();
             private GatewayCollectRejections() { }
 
             public const string ElementId = "gateway_collectRejections";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ExclusiveGateway;
             public string? Name => null;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<ServiceTaskSendRejection> ServiceTaskSendRejection => Runtime.SequenceFlows.Single(new("flow_collectRejectionsToSendRejection"), FlowNodes.ServiceTaskSendRejection.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ServiceTaskSendRejection> ServiceTaskSendRejection => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_collectRejectionsToSendRejection"), FlowNodes.ServiceTaskSendRejection.Instance);
             }
         }
 
-        public sealed class GatewayFork : Runtime.IFlowNode
+        public sealed class GatewayFork : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<GatewayFork.Successors>
         {
             public static readonly GatewayFork Instance = new();
             private GatewayFork() { }
 
             public const string ElementId = "gateway_fork";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ParallelGateway;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ParallelGateway;
             public string? Name => null;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<ServiceTaskIssueInsurancePolicy> ServiceTaskIssueInsurancePolicy => Runtime.SequenceFlows.Single(new("flow_forkToIssueInsurancePolicy"), FlowNodes.ServiceTaskIssueInsurancePolicy.Instance);
-                public Runtime.SequenceFlows<ServiceTaskOrderBike> ServiceTaskOrderBike => Runtime.SequenceFlows.Single(new("flow_forkToOrderBike"), FlowNodes.ServiceTaskOrderBike.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ServiceTaskIssueInsurancePolicy> ServiceTaskIssueInsurancePolicy => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_forkToIssueInsurancePolicy"), FlowNodes.ServiceTaskIssueInsurancePolicy.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ServiceTaskOrderBike> ServiceTaskOrderBike => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_forkToOrderBike"), FlowNodes.ServiceTaskOrderBike.Instance);
             }
         }
 
-        public sealed class GatewayIsSolvent : Runtime.IFlowNode
+        public sealed class GatewayIsSolvent : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<GatewayIsSolvent.Successors>
         {
             public static readonly GatewayIsSolvent Instance = new();
             private GatewayIsSolvent() { }
 
             public const string ElementId = "gateway_isSolvent";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ExclusiveGateway;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ExclusiveGateway;
             public string? Name => "Solvent?";
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => Runtime.SequenceFlows.Single(new("flow_isSolventToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance, name: "No", conditionExpression: "${!solvent}");
-                public Runtime.SequenceFlows<SubProcessConcludeContract> SubProcessConcludeContract => Runtime.SequenceFlows.Single(new("flow_isSolventToConcludeContract"), FlowNodes.SubProcessConcludeContract.Instance, name: "Yes", isDefault: true);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayCollectRejections> GatewayCollectRejections => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_isSolventToCollectRejections"), FlowNodes.GatewayCollectRejections.Instance, name: "No", conditionExpression: "${!solvent}");
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<SubProcessConcludeContract> SubProcessConcludeContract => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_isSolventToConcludeContract"), FlowNodes.SubProcessConcludeContract.Instance, name: "Yes", isDefault: true);
             }
         }
 
-        public sealed class GatewayJoin : Runtime.IFlowNode
+        public sealed class GatewayJoin : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<GatewayJoin.Successors>
         {
             public static readonly GatewayJoin Instance = new();
             private GatewayJoin() { }
 
             public const string ElementId = "gateway_join";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ParallelGateway;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ParallelGateway;
             public string? Name => null;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<ReceiveTaskHandoverReported> ReceiveTaskHandoverReported => Runtime.SequenceFlows.Single(new("flow_joinToHandoverReported"), FlowNodes.ReceiveTaskHandoverReported.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ReceiveTaskHandoverReported> ReceiveTaskHandoverReported => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_joinToHandoverReported"), FlowNodes.ReceiveTaskHandoverReported.Instance);
             }
         }
 
-        public sealed class ReceiveTaskHandoverReported : Runtime.IFlowNode, Runtime.IHasMessage
+        public sealed class ReceiveTaskHandoverReported : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ReceiveTaskHandoverReported.Successors>, global::Miragon.BpmnToCode.Runtime.IHasMessage
         {
             public static readonly ReceiveTaskHandoverReported Instance = new();
             private ReceiveTaskHandoverReported() { }
 
             public const string ElementId = "receiveTask_handoverReported";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ReceiveTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ReceiveTask;
             public string? Name => "Await bike handover";
-            public Runtime.MessageName Message { get; } = new(Messages.MiraveloHandoverReported);
+            public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = Messages.MiraveloHandoverReported;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<TimerWithdrawalPeriodElapsed> TimerWithdrawalPeriodElapsed => Runtime.SequenceFlows.Single(new("flow_handoverReportedToWithdrawalPeriodElapsed"), FlowNodes.TimerWithdrawalPeriodElapsed.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<TimerWithdrawalPeriodElapsed> TimerWithdrawalPeriodElapsed => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_handoverReportedToWithdrawalPeriodElapsed"), FlowNodes.TimerWithdrawalPeriodElapsed.Instance);
             }
         }
 
-        public sealed class ServiceTaskCancelContract : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskCancelContract : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasJobType
         {
             public static readonly ServiceTaskCancelContract Instance = new();
             private ServiceTaskCancelContract() { }
 
             public const string ElementId = "serviceTask_cancelContract";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Cancel contract";
             public string JobType { get; } = ServiceTasks.CancelContractDelegate;
         }
 
-        public sealed class ServiceTaskCancelPolicy : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskCancelPolicy : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasJobType
         {
             public static readonly ServiceTaskCancelPolicy Instance = new();
             private ServiceTaskCancelPolicy() { }
 
             public const string ElementId = "serviceTask_cancelPolicy";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Cancel policy";
             public string JobType { get; } = ServiceTasks.MiraveloCancelPolicy;
         }
 
-        public sealed class ServiceTaskIssueInsurancePolicy : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
+        public sealed class ServiceTaskIssueInsurancePolicy : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskIssueInsurancePolicy.Successors>, global::Miragon.BpmnToCode.Runtime.IHasJobType, global::Miragon.BpmnToCode.Runtime.IHasVariables
         {
             public static readonly ServiceTaskIssueInsurancePolicy Instance = new();
             private ServiceTaskIssueInsurancePolicy() { }
 
             public const string ElementId = "serviceTask_issueInsurancePolicy";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Issue insurance policy";
             public string JobType { get; } = ServiceTasks.IoMiraveloLeasingIssueInsurancePolicyDelegate;
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
-            public sealed class NodeVariables : Runtime.VariableDefinitions
+            global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions
             {
-                public Runtime.VariableName.Input BikeId { get; } = new(ProcessVariables.BikeId);
-                public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { BikeId, BikeIds };
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input BikeId { get; } = new(ProcessVariables.BikeId);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
+                public override System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { BikeId, BikeIds };
             }
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryCompensateInsurance> BoundaryCompensateInsurance => new(FlowNodes.BoundaryCompensateInsurance.Instance);
-                public Runtime.SequenceFlows<GatewayJoin> GatewayJoin => Runtime.SequenceFlows.Single(new("flow_issueInsurancePolicyToJoin"), FlowNodes.GatewayJoin.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AttachedBoundaryEvent<BoundaryCompensateInsurance> BoundaryCompensateInsurance => new(FlowNodes.BoundaryCompensateInsurance.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayJoin> GatewayJoin => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_issueInsurancePolicyToJoin"), FlowNodes.GatewayJoin.Instance);
             }
         }
 
-        public sealed class ServiceTaskOrderBike : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
+        public sealed class ServiceTaskOrderBike : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskOrderBike.Successors>, global::Miragon.BpmnToCode.Runtime.IHasJobType, global::Miragon.BpmnToCode.Runtime.IHasVariables
         {
             public static readonly ServiceTaskOrderBike Instance = new();
             private ServiceTaskOrderBike() { }
 
             public const string ElementId = "serviceTask_orderBike";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Order bike";
             public string JobType { get; } = ServiceTasks.MiraveloOrderBike;
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
-            public sealed class NodeVariables : Runtime.VariableDefinitions
+            global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions
             {
-                public Runtime.VariableName.Input BikeId { get; } = new(ProcessVariables.BikeId);
-                public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { BikeId, BikeIds };
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input BikeId { get; } = new(ProcessVariables.BikeId);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
+                public override System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { BikeId, BikeIds };
             }
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryCompensateOrder> BoundaryCompensateOrder => new(FlowNodes.BoundaryCompensateOrder.Instance);
-                public Runtime.SequenceFlows<GatewayJoin> GatewayJoin => Runtime.SequenceFlows.Single(new("flow_orderBikeToJoin"), FlowNodes.GatewayJoin.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AttachedBoundaryEvent<BoundaryCompensateOrder> BoundaryCompensateOrder => new(FlowNodes.BoundaryCompensateOrder.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayJoin> GatewayJoin => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_orderBikeToJoin"), FlowNodes.GatewayJoin.Instance);
             }
         }
 
-        public sealed class ServiceTaskSendCancellationConfirmation : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendCancellationConfirmation : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskSendCancellationConfirmation.Successors>, global::Miragon.BpmnToCode.Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendCancellationConfirmation Instance = new();
             private ServiceTaskSendCancellationConfirmation() { }
 
             public const string ElementId = "serviceTask_sendCancellationConfirmation";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send cancellation confirmation";
             public string JobType { get; } = ServiceTasks.MiraveloSendCancellationConfirmation;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EndEventApplicationCancelled> EndEventApplicationCancelled => Runtime.SequenceFlows.Single(new("flow_sendCancellationConfirmationToApplicationCancelled"), FlowNodes.EndEventApplicationCancelled.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EndEventApplicationCancelled> EndEventApplicationCancelled => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_sendCancellationConfirmationToApplicationCancelled"), FlowNodes.EndEventApplicationCancelled.Instance);
             }
         }
 
-        public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
+        public sealed class ServiceTaskSendContract : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskSendContract.Successors>, global::Miragon.BpmnToCode.Runtime.IHasJobType, global::Miragon.BpmnToCode.Runtime.IHasVariables
         {
             public static readonly ServiceTaskSendContract Instance = new();
             private ServiceTaskSendContract() { }
 
             public const string ElementId = "serviceTask_sendContract";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send contract";
             public string JobType { get; } = ServiceTasks.SendContractDelegate;
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
-            public sealed class NodeVariables : Runtime.VariableDefinitions
+            global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions
             {
-                public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
-                public Runtime.VariableName.Output ContractId { get; } = new(ProcessVariables.ContractId);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { ApplicationId, ContractId };
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Output ContractId { get; } = new(ProcessVariables.ContractId);
+                public override System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { ApplicationId, ContractId };
             }
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<GatewayAwaitSignature> GatewayAwaitSignature => Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), FlowNodes.GatewayAwaitSignature.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayAwaitSignature> GatewayAwaitSignature => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_sendContractToAwaitSignature"), FlowNodes.GatewayAwaitSignature.Instance);
             }
         }
 
-        public sealed class ServiceTaskSendRejection : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendRejection : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskSendRejection.Successors>, global::Miragon.BpmnToCode.Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendRejection Instance = new();
             private ServiceTaskSendRejection() { }
 
             public const string ElementId = "serviceTask_sendRejection";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send rejection";
             public string JobType { get; } = ServiceTasks.MiraveloSendRejection;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EndEventApplicationRejected> EndEventApplicationRejected => Runtime.SequenceFlows.Single(new("flow_sendRejectionToApplicationRejected"), FlowNodes.EndEventApplicationRejected.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EndEventApplicationRejected> EndEventApplicationRejected => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_sendRejectionToApplicationRejected"), FlowNodes.EndEventApplicationRejected.Instance);
             }
         }
 
-        public sealed class ServiceTaskSendReminderMail : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskSendReminderMail : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskSendReminderMail.Successors>, global::Miragon.BpmnToCode.Runtime.IHasJobType
         {
             public static readonly ServiceTaskSendReminderMail Instance = new();
             private ServiceTaskSendReminderMail() { }
 
             public const string ElementId = "serviceTask_sendReminderMail";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Send reminder mail";
             public string JobType { get; } = ServiceTasks.MailServiceSendReminderApplicationId;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EndEventCustomerReminded> EndEventCustomerReminded => Runtime.SequenceFlows.Single(new("flow_sendReminderMailToCustomerReminded"), FlowNodes.EndEventCustomerReminded.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EndEventCustomerReminded> EndEventCustomerReminded => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_sendReminderMailToCustomerReminded"), FlowNodes.EndEventCustomerReminded.Instance);
             }
         }
 
-        public sealed class ServiceTaskValidateApplication : Runtime.IFlowNode, Runtime.IHasJobType
+        public sealed class ServiceTaskValidateApplication : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskValidateApplication.Successors>, global::Miragon.BpmnToCode.Runtime.IHasJobType
         {
             public static readonly ServiceTaskValidateApplication Instance = new();
             private ServiceTaskValidateApplication() { }
 
             public const string ElementId = "serviceTask_validateApplication";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.ServiceTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Validate application";
             public string JobType { get; } = ServiceTasks.ValidateApplicationDelegate;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryApplicationInvalid> BoundaryApplicationInvalid => new(FlowNodes.BoundaryApplicationInvalid.Instance);
-                public Runtime.SequenceFlows<BusinessRuleTaskCheckCreditRating> BusinessRuleTaskCheckCreditRating => Runtime.SequenceFlows.Single(new("flow_validateApplicationToCheckCreditRating"), FlowNodes.BusinessRuleTaskCheckCreditRating.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AttachedBoundaryEvent<BoundaryApplicationInvalid> BoundaryApplicationInvalid => new(FlowNodes.BoundaryApplicationInvalid.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<BusinessRuleTaskCheckCreditRating> BusinessRuleTaskCheckCreditRating => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_validateApplicationToCheckCreditRating"), FlowNodes.BusinessRuleTaskCheckCreditRating.Instance);
             }
         }
 
-        public sealed class StartEventAddressChanged : Runtime.IEvent, Runtime.IHasMessage, Runtime.IHasVariables
+        public sealed class StartEventAddressChanged : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<StartEventAddressChanged.Successors>, global::Miragon.BpmnToCode.Runtime.IHasMessage, global::Miragon.BpmnToCode.Runtime.IHasVariables
         {
             public static readonly StartEventAddressChanged Instance = new();
             private StartEventAddressChanged() { }
 
             public const string ElementId = "startEvent_addressChanged";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.StartEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Message;
             public string? Name => "Address changed";
-            public Runtime.MessageName Message { get; } = new(Messages.MiraveloAddressChanged);
+            public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = Messages.MiraveloAddressChanged;
             public bool IsInterrupting => false;
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
-            public sealed class NodeVariables : Runtime.VariableDefinitions
+            global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions
             {
-                public Runtime.VariableName.Input City { get; } = new(ProcessVariables.City);
-                public Runtime.VariableName.Input Street { get; } = new(ProcessVariables.Street);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { City, Street };
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input City { get; } = new(ProcessVariables.City);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input Street { get; } = new(ProcessVariables.Street);
+                public override System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { City, Street };
             }
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<UserTaskUpdateDeliveryAddress> UserTaskUpdateDeliveryAddress => Runtime.SequenceFlows.Single(new("flow_addressChangedToUpdateDeliveryAddress"), FlowNodes.UserTaskUpdateDeliveryAddress.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<UserTaskUpdateDeliveryAddress> UserTaskUpdateDeliveryAddress => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_addressChangedToUpdateDeliveryAddress"), FlowNodes.UserTaskUpdateDeliveryAddress.Instance);
             }
         }
 
-        public sealed class StartEventApplicationWithdrawn : Runtime.IEvent, Runtime.IHasMessage
+        public sealed class StartEventApplicationWithdrawn : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<StartEventApplicationWithdrawn.Successors>, global::Miragon.BpmnToCode.Runtime.IHasMessage
         {
             public static readonly StartEventApplicationWithdrawn Instance = new();
             private StartEventApplicationWithdrawn() { }
 
             public const string ElementId = "startEvent_applicationWithdrawn";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.StartEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Message;
             public string? Name => "Application withdrawn";
-            public Runtime.MessageName Message { get; } = new(Messages.MiraveloApplicationWithdrawn);
+            public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = Messages.MiraveloApplicationWithdrawn;
             public bool IsInterrupting => true;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EventReverseApplication> EventReverseApplication => Runtime.SequenceFlows.Single(new("flow_applicationWithdrawnToReverseApplication"), FlowNodes.EventReverseApplication.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EventReverseApplication> EventReverseApplication => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_applicationWithdrawnToReverseApplication"), FlowNodes.EventReverseApplication.Instance);
             }
         }
 
-        public sealed class StartEventCustomerEligible : Runtime.IEvent
+        public sealed class StartEventCustomerEligible : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<StartEventCustomerEligible.Successors>
         {
             public static readonly StartEventCustomerEligible Instance = new();
             private StartEventCustomerEligible() { }
 
             public const string ElementId = "startEvent_customerEligible";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.None;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.StartEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.None;
             public string? Name => "Customer eligible";
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<ServiceTaskSendContract> ServiceTaskSendContract => Runtime.SequenceFlows.Single(new("flow_customerEligibleToSendContract"), FlowNodes.ServiceTaskSendContract.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ServiceTaskSendContract> ServiceTaskSendContract => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_customerEligibleToSendContract"), FlowNodes.ServiceTaskSendContract.Instance);
             }
         }
 
-        public sealed class StartEventLeasingRequestReceived : Runtime.IEvent, Runtime.IHasMessage, Runtime.IHasVariables
+        public sealed class StartEventLeasingRequestReceived : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<StartEventLeasingRequestReceived.Successors>, global::Miragon.BpmnToCode.Runtime.IHasMessage, global::Miragon.BpmnToCode.Runtime.IHasVariables
         {
             public static readonly StartEventLeasingRequestReceived Instance = new();
             private StartEventLeasingRequestReceived() { }
 
             public const string ElementId = "startEvent_leasingRequestReceived";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.StartEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Message;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.StartEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Message;
             public string? Name => "Leasing request received";
-            public Runtime.MessageName Message { get; } = new(Messages.MiraveloLeasingRequestReceived);
+            public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = Messages.MiraveloLeasingRequestReceived;
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
-            public sealed class NodeVariables : Runtime.VariableDefinitions
+            global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions
             {
-                public Runtime.VariableName.Input Age { get; } = new(ProcessVariables.Age);
-                public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
-                public Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
-                public Runtime.VariableName.Input MonthlyNetIncome { get; } = new(ProcessVariables.MonthlyNetIncome);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { Age, ApplicationId, BikeIds, MonthlyNetIncome };
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input Age { get; } = new(ProcessVariables.Age);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input BikeIds { get; } = new(ProcessVariables.BikeIds);
+                public global::Miragon.BpmnToCode.Runtime.VariableName.Input MonthlyNetIncome { get; } = new(ProcessVariables.MonthlyNetIncome);
+                public override System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { Age, ApplicationId, BikeIds, MonthlyNetIncome };
             }
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<ServiceTaskValidateApplication> ServiceTaskValidateApplication => Runtime.SequenceFlows.Single(new("flow_leasingRequestReceivedToValidateApplication"), FlowNodes.ServiceTaskValidateApplication.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ServiceTaskValidateApplication> ServiceTaskValidateApplication => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_leasingRequestReceivedToValidateApplication"), FlowNodes.ServiceTaskValidateApplication.Instance);
             }
         }
 
-        public sealed class SubProcessAddressChanged : Runtime.IFlowNode
+        public sealed class SubProcessAddressChanged : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IFlowScope<SubProcessAddressChanged.Interior>
         {
             public static readonly SubProcessAddressChanged Instance = new();
             private SubProcessAddressChanged() { }
 
             public const string ElementId = "subProcess_addressChanged";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EventSubProcess;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EventSubProcess;
             public string? Name => "Delivery address changed";
 
             public Interior Start => new();
@@ -930,14 +691,14 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class SubProcessApplicationWithdrawn : Runtime.IFlowNode
+        public sealed class SubProcessApplicationWithdrawn : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IFlowScope<SubProcessApplicationWithdrawn.Interior>
         {
             public static readonly SubProcessApplicationWithdrawn Instance = new();
             private SubProcessApplicationWithdrawn() { }
 
             public const string ElementId = "subProcess_applicationWithdrawn";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.EventSubProcess;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.EventSubProcess;
             public string? Name => "Application withdrawn";
 
             public Interior Start => new();
@@ -947,23 +708,23 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class SubProcessConcludeContract : Runtime.IFlowNode
+        public sealed class SubProcessConcludeContract : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<SubProcessConcludeContract.Successors>, global::Miragon.BpmnToCode.Runtime.IFlowScope<SubProcessConcludeContract.Interior>
         {
             public static readonly SubProcessConcludeContract Instance = new();
             private SubProcessConcludeContract() { }
 
             public const string ElementId = "subProcess_concludeContract";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.SubProcess;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.SubProcess;
             public string? Name => "Conclude contract";
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.AttachedBoundaryEvent<BoundaryCompensateContract> BoundaryCompensateContract => new(FlowNodes.BoundaryCompensateContract.Instance);
-                public Runtime.AttachedBoundaryEvent<BoundaryContractNotSigned> BoundaryContractNotSigned => new(FlowNodes.BoundaryContractNotSigned.Instance);
-                public Runtime.SequenceFlows<GatewayFork> GatewayFork => Runtime.SequenceFlows.Single(new("flow_concludeContractToFork"), FlowNodes.GatewayFork.Instance);
-                public Runtime.AttachedBoundaryEvent<TimerSignatureReminder> TimerSignatureReminder => new(FlowNodes.TimerSignatureReminder.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AttachedBoundaryEvent<BoundaryCompensateContract> BoundaryCompensateContract => new(FlowNodes.BoundaryCompensateContract.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AttachedBoundaryEvent<BoundaryContractNotSigned> BoundaryContractNotSigned => new(FlowNodes.BoundaryContractNotSigned.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayFork> GatewayFork => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_concludeContractToFork"), FlowNodes.GatewayFork.Instance);
+                public global::Miragon.BpmnToCode.Runtime.AttachedBoundaryEvent<TimerSignatureReminder> TimerSignatureReminder => new(FlowNodes.TimerSignatureReminder.Instance);
             }
 
             public Interior Start => new();
@@ -973,91 +734,91 @@ public static class BikeLeasingProcessApi
             }
         }
 
-        public sealed class TimerSignatureDeadline : Runtime.IEvent, Runtime.ITimerEvent
+        public sealed class TimerSignatureDeadline : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<TimerSignatureDeadline.Successors>, global::Miragon.BpmnToCode.Runtime.ITimerEvent
         {
             public static readonly TimerSignatureDeadline Instance = new();
             private TimerSignatureDeadline() { }
 
             public const string ElementId = "timer_signatureDeadline";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateCatchEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Timer;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.IntermediateCatchEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Timer;
             public string? Name => "14 days passed";
-            public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "P14D");
+            public global::Miragon.BpmnToCode.Runtime.BpmnTimer Timer { get; } = new(global::Miragon.BpmnToCode.Runtime.TimerType.Duration, "P14D");
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EndEventContractNotSigned> EndEventContractNotSigned => Runtime.SequenceFlows.Single(new("flow_signatureDeadlineToContractNotSigned"), FlowNodes.EndEventContractNotSigned.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EndEventContractNotSigned> EndEventContractNotSigned => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_signatureDeadlineToContractNotSigned"), FlowNodes.EndEventContractNotSigned.Instance);
             }
         }
 
-        public sealed class TimerSignatureReminder : Runtime.IBoundaryEvent, Runtime.ITimerEvent
+        public sealed class TimerSignatureReminder : global::Miragon.BpmnToCode.Runtime.IBoundaryEvent<SubProcessConcludeContract>, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<TimerSignatureReminder.Successors>, global::Miragon.BpmnToCode.Runtime.ITimerEvent
         {
             public static readonly TimerSignatureReminder Instance = new();
             private TimerSignatureReminder() { }
 
             public const string ElementId = "timer_signatureReminder";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.BoundaryEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Timer;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.BoundaryEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Timer;
             public string? Name => "7 days passed";
-            public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "P7D");
+            public global::Miragon.BpmnToCode.Runtime.BpmnTimer Timer { get; } = new(global::Miragon.BpmnToCode.Runtime.TimerType.Duration, "P7D");
             public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;
             public bool IsInterrupting => false;
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<ServiceTaskSendReminderMail> ServiceTaskSendReminderMail => Runtime.SequenceFlows.Single(new("flow_signatureReminderToSendReminderMail"), FlowNodes.ServiceTaskSendReminderMail.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ServiceTaskSendReminderMail> ServiceTaskSendReminderMail => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_signatureReminderToSendReminderMail"), FlowNodes.ServiceTaskSendReminderMail.Instance);
             }
         }
 
-        public sealed class TimerWithdrawalPeriodElapsed : Runtime.IEvent, Runtime.ITimerEvent
+        public sealed class TimerWithdrawalPeriodElapsed : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<TimerWithdrawalPeriodElapsed.Successors>, global::Miragon.BpmnToCode.Runtime.ITimerEvent
         {
             public static readonly TimerWithdrawalPeriodElapsed Instance = new();
             private TimerWithdrawalPeriodElapsed() { }
 
             public const string ElementId = "timer_withdrawalPeriodElapsed";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.IntermediateCatchEvent;
-            public Runtime.BpmnEventType EventType => Runtime.BpmnEventType.Timer;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.IntermediateCatchEvent;
+            public global::Miragon.BpmnToCode.Runtime.BpmnEventType EventType => global::Miragon.BpmnToCode.Runtime.BpmnEventType.Timer;
             public string? Name => "Withdrawal period elapsed";
-            public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, "${withdrawalPeriod}");
+            public global::Miragon.BpmnToCode.Runtime.BpmnTimer Timer { get; } = new(global::Miragon.BpmnToCode.Runtime.TimerType.Duration, "${withdrawalPeriod}");
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EndEventLeasingActive> EndEventLeasingActive => Runtime.SequenceFlows.Single(new("flow_withdrawalPeriodElapsedToLeasingActive"), FlowNodes.EndEventLeasingActive.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EndEventLeasingActive> EndEventLeasingActive => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_withdrawalPeriodElapsedToLeasingActive"), FlowNodes.EndEventLeasingActive.Instance);
             }
         }
 
-        public sealed class UserTaskUpdateDeliveryAddress : Runtime.IFlowNode, Runtime.IHasVariables
+        public sealed class UserTaskUpdateDeliveryAddress : global::Miragon.BpmnToCode.Runtime.IFlowNode, global::Miragon.BpmnToCode.Runtime.IHasSuccessors<UserTaskUpdateDeliveryAddress.Successors>, global::Miragon.BpmnToCode.Runtime.IHasVariables
         {
             public static readonly UserTaskUpdateDeliveryAddress Instance = new();
             private UserTaskUpdateDeliveryAddress() { }
 
             public const string ElementId = "userTask_updateDeliveryAddress";
-            public Runtime.ElementId Id { get; } = new(ElementId);
-            public Runtime.BpmnElementType ElementType => Runtime.BpmnElementType.UserTask;
+            public global::Miragon.BpmnToCode.Runtime.ElementId Id { get; } = new(ElementId);
+            public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.UserTask;
             public string? Name => "Update delivery address";
 
             public NodeVariables Variables { get; } = new();
-            Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;
-            public sealed class NodeVariables : Runtime.VariableDefinitions
+            global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
+            public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions
             {
-                public Runtime.VariableName.InOut DeliveryAddress { get; } = new(ProcessVariables.DeliveryAddress);
-                public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { DeliveryAddress };
+                public global::Miragon.BpmnToCode.Runtime.VariableName.InOut DeliveryAddress { get; } = new(ProcessVariables.DeliveryAddress);
+                public override System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { DeliveryAddress };
             }
 
             public Successors Next => new();
             public sealed class Successors
             {
-                public Runtime.SequenceFlows<EndEventDeliveryAddressUpdated> EndEventDeliveryAddressUpdated => Runtime.SequenceFlows.Single(new("flow_updateDeliveryAddressToDeliveryAddressUpdated"), FlowNodes.EndEventDeliveryAddressUpdated.Instance);
+                public global::Miragon.BpmnToCode.Runtime.SequenceFlows<EndEventDeliveryAddressUpdated> EndEventDeliveryAddressUpdated => global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new("flow_updateDeliveryAddressToDeliveryAddressUpdated"), FlowNodes.EndEventDeliveryAddressUpdated.Instance);
             }
         }
 
-        public static System.Collections.Generic.IReadOnlyList<Runtime.IFlowNode> All => new Runtime.IFlowNode[]
+        public static System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.IFlowNode> All => new global::Miragon.BpmnToCode.Runtime.IFlowNode[]
         {
             BoundaryApplicationInvalid.Instance,
             BoundaryCompensateContract.Instance,

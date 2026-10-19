@@ -56,17 +56,30 @@ val runtimeImage by tasks.registering(Exec::class) {
     }
 }
 
+// The jars in lib/ and the Java runtime in runtime/: what the archive and the NuGet packages carry
+val toolDistribution by tasks.registering(Sync::class) {
+    group = "distribution"
+    description = "Assembles the CLI jars and its Java runtime for the platform the build runs on"
+    // jlink writes read-only files, which a later copy over them could not replace
+    eachFile { permissions { user { write = true } } }
+    from(tasks.jar) { into("lib") }
+    from(configurations.runtimeClasspath) { into("lib") }
+    from(runtimeImage) {
+        into("runtime")
+        filesMatching(listOf("bin/**", "lib/jspawnhelper")) { permissions { unix("rwxr-xr-x") } }
+    }
+    into(layout.buildDirectory.dir("tool-distribution"))
+}
+
 val cliArchive by tasks.registering(Zip::class) {
     group = "distribution"
     description = "Packs the CLI with its own Java runtime for the platform the build runs on"
     val rootFolder = "bpmn-to-code-$version-$cliPlatform"
     archiveFileName.set("$rootFolder.zip")
     destinationDirectory.set(layout.buildDirectory.dir("cli-archive"))
-    from(tasks.jar) { into("$rootFolder/lib") }
-    from(configurations.runtimeClasspath) { into("$rootFolder/lib") }
-    from(runtimeImage) {
-        into("$rootFolder/runtime")
-        filesMatching(listOf("bin/**", "lib/jspawnhelper")) { permissions { unix("rwxr-xr-x") } }
+    from(toolDistribution) {
+        into(rootFolder)
+        useFileSystemPermissions()
     }
     from(layout.projectDirectory.dir("src/launcher")) {
         into("$rootFolder/bin")

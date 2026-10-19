@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Generates the C# Process APIs of a project's BPMN models before it compiles, through the Miragon.BpmnToCode.Cli tool
+    of the same version, and brings the runtime package the generated code is built from. The package has no assembly.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageId>Miragon.BpmnToCode.MSBuild</PackageId>
+    <Description>Generates type-safe C# APIs from BPMN process models during dotnet build</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- The package carries MSBuild files and a dependency, no assembly -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <ToolVersionProps>$(IntermediateOutputPath)Miragon.BpmnToCode.MSBuild.Version.props</ToolVersionProps>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Miragon.BpmnToCode.Runtime/Miragon.BpmnToCode.Runtime.csproj" />
+    <None Include="build/*" Pack="true" PackagePath="build/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <Target Name="BpmnToCodeWriteToolVersion" BeforeTargets="_GetPackageFiles">
+    <WriteLinesToFile File="$(ToolVersionProps)" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="&lt;Project&gt;&lt;PropertyGroup&gt;&lt;BpmnToCodeToolVersion&gt;$(PackageVersion)&lt;/BpmnToCodeToolVersion&gt;&lt;/PropertyGroup&gt;&lt;/Project&gt;" />
+    <ItemGroup>
+      <None Include="$(ToolVersionProps)" Pack="true" PackagePath="build/" />
+    </ItemGroup>
+  </Target>
+
+</Project>

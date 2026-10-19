@@ -1,45 +1,60 @@
 package io.miragon.bpmn.web.service
 
 import io.miragon.bpmn.web.model.GenerateResponse
+import io.miragon.bpmn.web.model.GenerateResponse.Snippet
 import java.util.Properties
+import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Loads the hand-written `bpmn-to-code-runtime` Kotlin sources that the web module bundles as resources
- * (copied in via `copyLibrarySources` during the build). The playground exposes these so users can
- * preview the shared types alongside their generated Process API and, if they opt in, include them
- * in the ZIP download for a self-contained bundle.
+ * Loads the hand-written sources of each runtime library that the web module bundles as resources (copied in via
+ * `copyLibrarySources` during the build). The playground exposes these so users can preview the shared types alongside
+ * their generated Process API and, if they opt in, include them in the ZIP download.
  */
 class LibrarySourceProvider {
 
-    private val cache: List<GenerateResponse.GeneratedFile> by lazy { loadLibraryFiles() }
+    private val cache = ConcurrentHashMap<RuntimeLibrary, List<GenerateResponse.GeneratedFile>>()
     private val version: String by lazy { loadProjectVersion() }
 
-    fun libraryFiles(): List<GenerateResponse.GeneratedFile> = cache
+    fun libraryFiles(library: RuntimeLibrary): List<GenerateResponse.GeneratedFile> = cache.computeIfAbsent(library) { loadLibraryFiles(it) }
 
-    fun runtimeDependency(): GenerateResponse.RuntimeDependency {
-        val group = "io.miragon"
-        val artifact = "bpmn-to-code-runtime"
+    fun runtimeDependency(library: RuntimeLibrary): GenerateResponse.RuntimeDependency {
         val currentVersion = version
         return GenerateResponse.RuntimeDependency(
-            group = group,
-            artifact = artifact,
+            name = library.packageName,
             version = currentVersion,
-            gradleSnippet = "implementation(\"$group:$artifact:$currentVersion\")",
-            mavenSnippet = """
-                |<dependency>
-                |    <groupId>$group</groupId>
-                |    <artifactId>$artifact</artifactId>
-                |    <version>$currentVersion</version>
-                |</dependency>
-            """.trimMargin(),
+            importedFrom = library.importedFrom,
+            sourcesDirectory = library.sourcesDirectory,
+            snippets = snippetsOf(library, currentVersion),
         )
     }
 
-    private fun loadLibraryFiles(): List<GenerateResponse.GeneratedFile> {
-        val manifest = readResource("library-sources/manifest.txt") ?: return emptyList()
+    private fun snippetsOf(library: RuntimeLibrary, version: String): List<Snippet> = when (library) {
+        RuntimeLibrary.JVM -> listOf(
+            Snippet(label = "Gradle", code = "implementation(\"${library.packageName}:$version\")"),
+            Snippet(
+                label = "Maven",
+                code = """
+                    |<dependency>
+                    |    <groupId>io.miragon</groupId>
+                    |    <artifactId>bpmn-to-code-runtime</artifactId>
+                    |    <version>$version</version>
+                    |</dependency>
+                """.trimMargin(),
+            ),
+        )
+
+        RuntimeLibrary.CSHARP -> listOf(
+            Snippet(label = ".NET CLI", code = "dotnet add package ${library.packageName} --version $version"),
+            Snippet(label = "PackageReference", code = "<PackageReference Include=\"${library.packageName}\" Version=\"$version\" />"),
+        )
+    }
+
+    private fun loadLibraryFiles(library: RuntimeLibrary): List<GenerateResponse.GeneratedFile> {
+        val directory = "library-sources/${library.resourceDirectory}"
+        val manifest = readResource("$directory/manifest.txt") ?: return emptyList()
         val fileNames = manifest.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
         return fileNames.mapNotNull { name ->
-            val content = readResource("library-sources/$name") ?: return@mapNotNull null
+            val content = readResource("$directory/$name") ?: return@mapNotNull null
             GenerateResponse.GeneratedFile(fileName = name, content = content, processId = "bpmn-to-code-runtime")
         }
     }

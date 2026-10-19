@@ -41,15 +41,24 @@ tasks.processResources {
 }
 
 private val runtimeTestSources = rootProject.file("bpmn-to-code-runtime/src/test")
+private val csharpRuntime = rootProject.file("packages/nuget/src/Miragon.BpmnToCode.Runtime")
+private val csharpRuntimeTests = rootProject.file("packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests")
+private val runtimeLocations = mapOf(
+    "runtime.test.sources" to runtimeTestSources,
+    "csharp.runtime" to csharpRuntime,
+    "csharp.runtime.tests" to csharpRuntimeTests,
+)
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
     systemProperty("golden.update", System.getProperty("golden.update") ?: "false")
-    systemProperty("runtime.test.sources", runtimeTestSources.absolutePath)
+    runtimeLocations.forEach { (name, location) -> systemProperty(name, location.absolutePath) }
     inputs.files(
         runtimeTestSources.resolve("kotlin/io/miragon/bpmn/runtime/path/example/BikeLeasingProcessApi.kt"),
         runtimeTestSources.resolve("java/io/miragon/bpmn/runtime/example/BikeLeasingProcessApi.java"),
     )
+    inputs.files(fileTree(csharpRuntime) { include("**/*.cs") })
+    inputs.files(fileTree(csharpRuntimeTests) { include("Example/*.cs") })
 }
 
 private val coverageExclusions = listOf(
@@ -81,5 +90,5 @@ pitest {
     )
     excludedTestClasses.add("io.miragon.bpmn.adapter.outbound.codegen.surface.GeneratedApiSurfaceTest")
     mutationThreshold.set(80)
-    jvmArgs.add("-Druntime.test.sources=${runtimeTestSources.absolutePath}")
+    jvmArgs.addAll(runtimeLocations.map { (name, location) -> "-D$name=${location.absolutePath}" })
 }

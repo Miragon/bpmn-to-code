@@ -13,6 +13,11 @@ class CSharpCodeFormatTest {
     }
 
     @Test
+    fun `stringLiteral escapes the line separators C# does not allow in a string literal`() {
+        assertThat(underTest.stringLiteral(value = "a\u0085b\u2028c\u2029d")).isEqualTo("\"a\\u0085b\\u2028c\\u2029d\"")
+    }
+
+    @Test
     fun `stringLiteral keeps an engine expression verbatim`() {
         assertThat(underTest.stringLiteral(value = $$"${applicationId}")).isEqualTo($$"\"${applicationId}\"")
     }

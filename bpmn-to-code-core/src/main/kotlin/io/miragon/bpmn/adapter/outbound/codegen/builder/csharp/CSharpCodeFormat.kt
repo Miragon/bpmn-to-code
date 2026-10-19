@@ -8,6 +8,9 @@ import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
  */
 internal object CSharpCodeFormat {
 
+    // C# ends a line at these too, and rejects a string literal that contains one (CS1010).
+    private val LINE_SEPARATORS = setOf('\u0085', '\u2028', '\u2029')
+
     /**
      * C# only interpolates in `$"..."`, so BPMN expression values such as `${reasonCode}` need no
      * special treatment — unlike Kotlin, where the builder falls back to a raw string.
@@ -21,6 +24,7 @@ internal object CSharpCodeFormat {
                 '\n' -> append("\\n")
                 '\r' -> append("\\r")
                 '\t' -> append("\\t")
+                in LINE_SEPARATORS -> append("\\u%04x".format(character.code))
                 else -> append(character)
             }
         }

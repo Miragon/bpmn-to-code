@@ -33,6 +33,7 @@ jobs:
             'bpmn-to-code-web/' \
             'bpmn-to-code-cli/' \
             'bpmn-to-code-architecture-tests/' \
+            'packages/' \
             'build.gradle.kts' \
             'settings.gradle.kts' \
             'gradle/libs.versions.toml' \
@@ -87,11 +88,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Makes CSharpCompilationTest a PR gate (it skips without an SDK)
-      - name: Set up .NET 8
+      # Makes CSharpCompilationTest a PR gate (it skips without an SDK) and tests the C# runtime package
+      - name: Set up .NET 10
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
-          dotnet-version: '8.0'
+          dotnet-version: '10.0'
+
+      # ProcessPath and the runtime types, over the generated example core keeps equal to the goldens
+      - name: Test the C# runtime package
+        run: dotnet test packages/nuget/test/Miragon.BpmnToCode.Runtime.Tests
 
       # Linting runs in the quality job
       - name: Run Gradle Build

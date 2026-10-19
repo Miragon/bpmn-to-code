@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <Version>0.0.0-development</Version>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <Authors>Miragon</Authors>
+    <Company>Miragon GmbH</Company>
+    <Copyright>Copyright (c) Miragon GmbH</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://miragon.github.io/bpmn-to-code/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Miragon/bpmn-to-code</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>bpmn;camunda;zeebe;operaton;codegen</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

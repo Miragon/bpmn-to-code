@@ -57,7 +57,9 @@ class CSharpCompilationTest {
     fun `generated csharp with several sequence flows to the same element compiles`() {
         val generated = generateFromXml(listOf(TWO_FLOWS_TO_ONE_TASK), ProcessEngine.ZEEBE)
         assertThat(generated.single { it.processId == "approval" }.content)
-            .contains("public Runtime.SequenceFlows<TaskApprove> TaskApprove => new(FlowNodes.TaskApprove.Instance, new Runtime.SequenceFlow<TaskApprove>[] {")
+            .contains(
+                "public $RUNTIME.SequenceFlows<TaskApprove> TaskApprove => new(FlowNodes.TaskApprove.Instance, new $RUNTIME.SequenceFlow<TaskApprove>[] {",
+            )
 
         assertCompiles(project(csproj(), generated))
     }
@@ -82,7 +84,7 @@ class CSharpCompilationTest {
 
     @Test
     fun `two generated apis and consumer code compile together in one project`() {
-        // given: two APIs of one run in the same namespace, each inlining its own runtime types, plus code that uses them
+        // given: two APIs of one run in the same namespace, plus code that uses them through the runtime package
         val projectDir = project(
             csproj(),
             generate(listOf("/bpmn/zeebe/bike-leasing.bpmn", "/bpmn/nested-subprocess.bpmn"), ProcessEngine.ZEEBE),
@@ -90,6 +92,18 @@ class CSharpCompilationTest {
         File(projectDir, "Consumer.cs").writeText(CONSUMER)
 
         assertCompiles(projectDir)
+    }
+
+    @Test
+    fun `process path steps only compile for what the current node offers`() {
+        val projectDir = project(csproj(), generate(listOf("/bpmn/zeebe/bike-leasing.bpmn"), ProcessEngine.ZEEBE))
+        File(projectDir, "Steps.cs").writeText(UNCHECKED_STEPS)
+
+        val result = runDotnetBuild(projectDir)
+
+        val stepLines = UNCHECKED_STEPS.lines().withIndex().filter { it.value.trimStart().startsWith("ProcessPath.From") }.map { it.index + 1 }
+        val failedLines = Regex("""Steps\.cs\((\d+),""").findAll(result.output).map { it.groupValues[1].toInt() }.toSet()
+        assertThat(failedLines).withFailMessage { result.output }.containsExactlyInAnyOrderElementsOf(stepLines)
     }
 
     private fun generate(bpmnResources: List<String>, engine: ProcessEngine) = generateFromXml(
@@ -108,11 +122,26 @@ class CSharpCompilationTest {
         ),
     )
 
+    /**
+     * The runtime package is copied in and referenced as a project, so the build sees it as a separate assembly, the
+     * way a consumer's build sees the NuGet package, and needs nothing outside the project directory.
+     */
     private fun project(csproj: String, generated: List<GeneratedApiFile>): File {
         val projectDir = Files.createTempDirectory("csharp-compile").toFile()
         generated.forEach { File(projectDir, it.fileName).writeText(it.content) }
         File(projectDir, "generated.csproj").writeText(csproj)
+        copyRuntimeInto(File(projectDir, RUNTIME_DIRECTORY))
         return projectDir
+    }
+
+    private fun copyRuntimeInto(target: File) {
+        val runtime = File(System.getProperty("csharp.runtime"))
+        runtime.walkTopDown()
+            .onEnter { it.name !in setOf("bin", "obj") }
+            .filter { it.isFile && it.extension in setOf("cs", "csproj") }
+            .forEach { it.copyTo(target.resolve(it.relativeTo(runtime)), overwrite = true) }
+        val packagesRoot = runtime.parentFile.parentFile
+        packagesRoot.resolve("Directory.Build.props").copyTo(target.resolve("Directory.Build.props"))
     }
 
     private fun assertCompiles(projectDir: File) {
@@ -136,6 +165,8 @@ class CSharpCompilationTest {
     companion object {
 
         private const val BUILD_TIMEOUT_MINUTES = 5L
+        private const val RUNTIME_DIRECTORY = "runtime"
+        private const val RUNTIME = "global::Miragon.BpmnToCode.Runtime"
 
         private fun csproj(extraSetting: String = "") = """
             <Project Sdk="Microsoft.NET.Sdk">
@@ -143,8 +174,12 @@ class CSharpCompilationTest {
                 <TargetFramework>net8.0</TargetFramework>
                 <Nullable>enable</Nullable>
                 <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+                <DefaultItemExcludes>${'$'}(DefaultItemExcludes);$RUNTIME_DIRECTORY/**</DefaultItemExcludes>
                 $extraSetting
               </PropertyGroup>
+              <ItemGroup>
+                <ProjectReference Include="$RUNTIME_DIRECTORY/Miragon.BpmnToCode.Runtime.csproj" />
+              </ItemGroup>
             </Project>
         """.trimIndent()
 
@@ -184,11 +219,14 @@ class CSharpCompilationTest {
 
         /**
          * What a consumer writes against the generated API: attribute arguments and switch labels from the
-         * constants, navigation over `FlowNodes`, and edge / facet reads — all of which must resolve and compile.
+         * constants, navigation over `FlowNodes`, edge and facet reads through the runtime interfaces, and a
+         * `ProcessPath` whose steps only compile for real successors — all of which must resolve and compile.
          */
         val CONSUMER = """
             using System;
             using De.Gen;
+            using Miragon.BpmnToCode.Runtime;
+            using Miragon.BpmnToCode.Runtime.Path;
             using Api = De.Gen.BikeLeasingProcessApi;
 
             namespace De.Gen.Consumer;
@@ -222,16 +260,19 @@ class CSharpCompilationTest {
                     string? condition = edge.ConditionExpression;
                     bool isDefault = edge.IsDefault;
                     Api.FlowNodes.ServiceTaskValidateApplication target = edge.Target;
-                    Api.Runtime.ISequenceFlow generic = edge;
-                    Api.Runtime.IHasJobType jobTask = Api.FlowNodes.ServiceTaskSendContract.Instance;
+                    ISequenceFlow generic = edge;
+                    IHasJobType jobTask = Api.FlowNodes.ServiceTaskSendContract.Instance;
                     string jobType = jobTask.JobType;
                     if (!ReferenceEquals(generic.Target, target)) throw new InvalidOperationException();
                     if (!edge.Equals(start.Next.ServiceTaskValidateApplication.Flow)) throw new InvalidOperationException();
-                    Api.Runtime.ISuccessor<Api.Runtime.IFlowNode> genericSuccessor = successor;
-                    Api.Runtime.IBoundaryEvent boundary = Api.FlowNodes.TimerSignatureReminder.Instance;
-                    Api.Runtime.AttachedBoundaryEvent<Api.FlowNodes.TimerSignatureReminder> attached = Api.FlowNodes.SubProcessConcludeContract.Instance.Next.TimerSignatureReminder;
-                    Api.Runtime.ICompensationThrowEvent thrower = Api.FlowNodes.EventReverseApplication.Instance;
-                    Api.Runtime.AssociatedCompensationHandler<Api.FlowNodes.ServiceTaskCancelContract> handler = Api.FlowNodes.BoundaryCompensateContract.Instance.Next.ServiceTaskCancelContract;
+                    ISuccessor<IFlowNode> genericSuccessor = successor;
+                    IBoundaryEvent<Api.FlowNodes.SubProcessConcludeContract> boundary = Api.FlowNodes.TimerSignatureReminder.Instance;
+                    IBoundaryEvent<IFlowNode> anyBoundary = boundary;
+                    AttachedBoundaryEvent<Api.FlowNodes.TimerSignatureReminder> attached = Api.FlowNodes.SubProcessConcludeContract.Instance.Next.TimerSignatureReminder;
+                    ICompensationThrowEvent thrower = Api.FlowNodes.EventReverseApplication.Instance;
+                    AssociatedCompensationHandler<Api.FlowNodes.ServiceTaskCancelContract> handler = Api.FlowNodes.BoundaryCompensateContract.Instance.Next.ServiceTaskCancelContract;
+                    IHasSuccessors<object> withSuccessors = start;
+                    IFlowScope<object> scope = Api.FlowNodes.SubProcessConcludeContract.Instance;
 
                     var creditRating = successor.Target.Next.BusinessRuleTaskCheckCreditRating.Target;
                     var subProcess = creditRating.Next.GatewayIsSolvent.Target.Next.SubProcessConcludeContract.Target;
@@ -239,15 +280,57 @@ class CSharpCompilationTest {
                     string? innerName = innerStart.Name;
                     string hostId = Api.FlowNodes.TimerSignatureReminder.Instance.AttachedTo.Id.Value;
                     bool interrupts = Api.FlowNodes.TimerSignatureReminder.Instance.IsInterrupting;
-                    Api.Runtime.VariableName.Input input = Api.FlowNodes.ServiceTaskSendContract.Instance.Variables.ApplicationId;
-                    Api.Runtime.IHasVariables withVariables = Api.FlowNodes.ServiceTaskSendContract.Instance;
+                    VariableName.Input input = Api.FlowNodes.ServiceTaskSendContract.Instance.Variables.ApplicationId;
+                    IHasVariables withVariables = Api.FlowNodes.ServiceTaskSendContract.Instance;
                     int declared = withVariables.Variables.All.Count + withVariables.Variables.Inputs.Count + withVariables.Variables.Outputs.Count;
                     if (declared == 0) throw new InvalidOperationException();
-                    Api.Runtime.ProcessId called = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.CalledProcess;
-                    Api.Runtime.InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
+                    ProcessId called = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.CalledProcess;
+                    InputOutputMapping mapping = Api.FlowNodes.CallActivityCancelBikeOrder.Instance.Inputs.OrderIds;
+                    MessageName message = Messages.MiraveloContractSigned;
+                    BpmnErrorDefinition error = Errors.MiraveloApplicationInvalid;
 
-                    NestedSubprocessProcessProcessApi.Runtime.ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Instance.Id;
-                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {boundary.Id} {genericSuccessor.Target.Id} {attached.Target.Id} {handler.Target.Id} {thrower.Id}");
+                    ElementId other = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Instance.Id;
+                    Console.WriteLine($"{condition} {isDefault} {innerName} {hostId} {interrupts} {input} {called} {mapping} {other} {anyBoundary.Id} {genericSuccessor.Target.Id} {attached.Target.Id} {handler.Target.Id} {thrower.Id} {withSuccessors.Id} {scope.Id} {message} {error.Code}");
+                }
+
+                public static string[] Walk()
+                {
+                    IProcessPath<Api.FlowNodes.EndEventApplicationCancelled> compensated = ProcessPath.From(Api.FlowNodes.StartEventApplicationWithdrawn.Instance)
+                        .Then(next => next.EventReverseApplication)
+                        .ThrowingCompensation(Api.FlowNodes.BoundaryCompensateContract.Instance, next => next.ServiceTaskCancelContract, includeBoundaryEvent: true)
+                        .Then(next => next.ServiceTaskSendCancellationConfirmation)
+                        .Then(next => next.EndEventApplicationCancelled);
+                    IProcessPath<Api.FlowNodes.EndEventApplicationRejected> rejected = ProcessPath.From(Api.FlowNodes.GatewayIsSolvent.Instance)
+                        .Onto(next => next.SubProcessConcludeContract)
+                        .Inside(contract => contract.Enter(start => start.StartEventCustomerEligible).Then(next => next.ServiceTaskSendContract))
+                        .Then(next => next.BoundaryContractNotSigned)
+                        .Then(next => next.GatewayCollectRejections)
+                        .Then(next => next.ServiceTaskSendRejection)
+                        .Then(next => next.EndEventApplicationRejected);
+                    return compensated.Ids;
+                }
+            }
+        """.trimIndent()
+
+        /**
+         * One step per line that must not compile: each names something the current node does not offer, or jumps
+         * without opting in.
+         */
+        val UNCHECKED_STEPS = """
+            using Miragon.BpmnToCode.Runtime.Path;
+            using Api = De.Gen.BikeLeasingProcessApi;
+
+            namespace De.Gen.Steps;
+
+            public static class Steps
+            {
+                public static void Unchecked()
+                {
+                    ProcessPath.From(Api.FlowNodes.EndEventLeasingActive.Instance).Then(next => next);
+                    ProcessPath.From(Api.FlowNodes.StartEventLeasingRequestReceived.Instance).Then(next => next.GatewayFork);
+                    ProcessPath.From(Api.FlowNodes.GatewayFork.Instance).Enter(start => start);
+                    ProcessPath.From(Api.FlowNodes.GatewayFork.Instance).ThrowingCompensation(Api.FlowNodes.BoundaryCompensateContract.Instance, next => next.ServiceTaskCancelContract);
+                    ProcessPath.From(Api.FlowNodes.GatewayFork.Instance).JumpTo(Api.FlowNodes.GatewayJoin.Instance);
                 }
             }
         """.trimIndent()

@@ -124,12 +124,9 @@
             <div class="runtime-dep-card" id="runtime-dep-card" style="display: none;">
                 <div class="runtime-dep-header">
                     <strong>Required dependency</strong>
-                    <span class="runtime-dep-hint">Generated code imports from <code>io.miragon.bpmn.runtime</code>. Add the <code>bpmn-to-code-runtime</code> artifact to your build.</span>
+                    <span class="runtime-dep-hint">Generated code imports from <code id="runtime-dep-imported-from"></code>. Add <code id="runtime-dep-name"></code> to your project.</span>
                 </div>
-                <div class="runtime-dep-tabs" role="tablist">
-                    <button type="button" class="runtime-dep-tab runtime-dep-tab-active" data-dep-tab="gradle">Gradle</button>
-                    <button type="button" class="runtime-dep-tab" data-dep-tab="maven">Maven</button>
-                </div>
+                <div class="runtime-dep-tabs" id="runtime-dep-tabs" role="tablist"></div>
                 <div class="runtime-dep-snippet-wrapper">
                     <pre class="runtime-dep-snippet" id="runtime-dep-snippet"></pre>
                     <button type="button" class="btn-copy" id="runtime-dep-copy-btn" title="Copy dependency">
@@ -143,14 +140,14 @@
             </div>
             <div id="results-content"></div>
             <details class="library-sources-panel" id="library-sources-panel" style="display: none;">
-                <summary>Library sources (bpmn-to-code-runtime)</summary>
-                <p class="library-sources-hint">For reference. These files ship with the <code>bpmn-to-code-runtime</code> artifact.</p>
+                <summary>Library sources (<span id="library-sources-name"></span>)</summary>
+                <p class="library-sources-hint">For reference. These files ship with the runtime library.</p>
                 <div id="library-sources-content"></div>
             </details>
             <div class="results-actions">
                 <div class="include-sources-toggle">
                     <input type="checkbox" id="include-sources-checkbox">
-                    <label for="include-sources-checkbox">Include library sources in the ZIP, so it compiles without the dependency</label>
+                    <label for="include-sources-checkbox">Include the runtime library sources in the ZIP</label>
                 </div>
                 <button class="btn btn-secondary" id="reset-btn" type="button">Reset</button>
                 <button class="btn btn-primary" id="download-all-btn" type="button">Download .zip</button>

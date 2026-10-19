@@ -9,14 +9,10 @@ namespace de.emaarco.example;
 /// </summary>
 public static class Escalations
 {
-    public static class MiraveloContractNotSigned
-    {
-        public const string Reference = "miravelo.contractNotSigned";
-        public const string Code = "contractNotSigned";
-    }
+    public static readonly global::Miragon.BpmnToCode.Runtime.BpmnEscalationDefinition MiraveloContractNotSigned = new("miravelo.contractNotSigned", "contractNotSigned");
 
-    public static System.Collections.Generic.IReadOnlyList<(string Reference, string Code)> All => new (string Reference, string Code)[]
+    public static System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.BpmnEscalationDefinition> All => new global::Miragon.BpmnToCode.Runtime.BpmnEscalationDefinition[]
     {
-        (MiraveloContractNotSigned.Reference, MiraveloContractNotSigned.Code),
+        MiraveloContractNotSigned,
     };
 }

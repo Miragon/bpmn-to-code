@@ -115,6 +115,16 @@ jobs:
     with:
       dry_run: ${{ inputs.dry_run == true }}
 
+  publish-nuget:
+    name: Publish to NuGet
+    needs: gate
+    uses: ./.github/workflows/publish-to-nuget.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      dry_run: ${{ inputs.dry_run == true }}
+
   # After the image is on Docker Hub, bump the deployment in Miragon/ops so the new
   # version gets rolled out. needs publish-docker so the image exists before ops points at it.
   update-ops:
