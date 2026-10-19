@@ -11,4 +11,9 @@ enum class OutputLanguage {
      * Same API surface as Kotlin and Java, on the NuGet runtime package `Miragon.BpmnToCode.Runtime`.
      */
     CSHARP,
+
+    /**
+     * Same API surface as Kotlin, one singleton class per node, on the npm runtime package `@miragon/bpmn-to-code-runtime`.
+     */
+    TYPESCRIPT,
 }

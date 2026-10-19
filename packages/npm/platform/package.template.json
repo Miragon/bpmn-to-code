@@ -1,0 +1,15 @@
+{
+  "name": "@miragon/bpmn-to-code-PLATFORM",
+  "version": "0.0.0-dev",
+  "description": "The bpmn-to-code command-line tool with its Java runtime for PLATFORM. Installed by @miragon/bpmn-to-code.",
+  "license": "MIT",
+  "homepage": "https://miragon.github.io/bpmn-to-code/getting-started/typescript",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miragon/bpmn-to-code.git",
+    "directory": "packages/npm/platform"
+  },
+  "os": [],
+  "cpu": [],
+  "preferUnplugged": true
+}

@@ -20,6 +20,7 @@ class LibrarySourceProvider {
     fun runtimeDependency(language: OutputLanguage): GenerateResponse.RuntimeDependency = when (language) {
         OutputLanguage.KOTLIN, OutputLanguage.JAVA -> jvmRuntimeDependency()
         OutputLanguage.CSHARP -> csharpRuntimeDependency()
+        OutputLanguage.TYPESCRIPT -> typescriptRuntimeDependency()
     }
 
     private fun jvmRuntimeDependency(): GenerateResponse.RuntimeDependency {
@@ -43,6 +44,12 @@ class LibrarySourceProvider {
         val projectFile = GenerateResponse.Snippet(label = ".csproj", code = "<PackageReference Include=\"$packageId\" Version=\"$version\" />")
         val cli = GenerateResponse.Snippet(label = ".NET CLI", code = "dotnet add package $packageId --version $version")
         return GenerateResponse.RuntimeDependency(name = packageId, importedFrom = packageId, version = version, snippets = listOf(projectFile, cli))
+    }
+
+    private fun typescriptRuntimeDependency(): GenerateResponse.RuntimeDependency {
+        val packageName = "@miragon/bpmn-to-code-runtime"
+        val npm = GenerateResponse.Snippet(label = "npm", code = "npm install --save-exact $packageName@$version")
+        return GenerateResponse.RuntimeDependency(name = packageName, importedFrom = packageName, version = version, snippets = listOf(npm))
     }
 
     private fun loadLibraryFiles(): List<GenerateResponse.GeneratedFile> {

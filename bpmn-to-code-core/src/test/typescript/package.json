@@ -1,0 +1,8 @@
+{
+  "name": "bpmn-to-code-typescript-compile-check",
+  "private": true,
+  "description": "TypeScript compiler for TypeScriptCompilationTest in bpmn-to-code-core.",
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

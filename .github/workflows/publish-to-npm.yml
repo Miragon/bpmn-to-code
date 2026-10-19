@@ -1,0 +1,115 @@
+name: Publish to npm
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no real publish)'
+        type: boolean
+        default: false
+
+jobs:
+  stage:
+    name: Stage packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Download CLI archives
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: cli-*
+          merge-multiple: true
+          path: archives
+
+      - name: Build the runtime package
+        run: |
+          npm ci --prefix packages/npm/bpmn-to-code-runtime
+          npm run build --prefix packages/npm/bpmn-to-code-runtime
+
+      - name: Stage
+        run: |
+          VERSION=$(grep '^projectVersion=' gradle.properties | cut -d= -f2)
+          node packages/npm/stage-packages.mjs archives "$VERSION"
+          mkdir tarballs
+          for package in packages/npm/dist/*/; do
+            (cd "$package" && npm pack --pack-destination "$GITHUB_WORKSPACE/tarballs")
+          done
+
+      - name: Upload packages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: npm-packages
+          path: tarballs/*.tgz
+          if-no-files-found: error
+
+  smoke:
+    name: Smoke test (${{ matrix.platform }})
+    needs: stage
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runner: ubuntu-latest
+          - platform: darwin-arm64
+            runner: macos-latest
+          - platform: win32-x64
+            runner: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Download packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: npm-packages
+          path: tarballs
+
+      - name: Install, generate and type-check
+        shell: bash
+        run: |
+          npm ci --prefix bpmn-to-code-core/src/test/typescript
+          mkdir smoke && cd smoke
+          echo '{ "name": "smoke", "private": true, "type": "module" }' > package.json
+          npm install --no-audit --no-fund ../tarballs/miragon-bpmn-to-code-runtime-*.tgz
+          npm install --no-audit --no-fund --save-dev ../tarballs/miragon-bpmn-to-code-${{ matrix.platform }}-*.tgz \
+            ../tarballs/miragon-bpmn-to-code-[0-9]*.tgz
+          npx bpmn-to-code generate-api --baseDir ../shared/bpmn/zeebe --filePattern '*.bpmn' --processEngine ZEEBE \
+            --outputLanguage TYPESCRIPT --outputFolderPath src --packagePath process
+          echo '{ "compilerOptions": { "target": "es2022", "module": "nodenext", "moduleResolution": "nodenext", "strict": true, "noEmit": true }, "include": ["src/**/*.ts"] }' > tsconfig.json
+          ../bpmn-to-code-core/src/test/typescript/node_modules/.bin/tsc --project tsconfig.json
+
+  publish:
+    name: Publish
+    needs: smoke
+    if: inputs.dry_run != true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: npm-packages
+          path: tarballs
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish the runtime and the platform packages, then the main package
+        run: |
+          npm publish tarballs/miragon-bpmn-to-code-runtime-*.tgz --access public --provenance
+          for tarball in tarballs/miragon-bpmn-to-code-[dlw]*.tgz; do
+            npm publish "$tarball" --access public --provenance
+          done
+          npm publish tarballs/miragon-bpmn-to-code-[0-9]*.tgz --access public --provenance

@@ -12,6 +12,7 @@ target
 .claude/scheduled_tasks.lock
 docs/node_modules
 tools/node_modules
+bpmn-to-code-core/src/test/typescript/node_modules
 docs/.vitepress/dist
 docs/.vitepress/cache
 .gstack/
