@@ -1,0 +1,1064 @@
+public final class BikeLeasingProcessApi
+  public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.CAMUNDA_7
+  public static final ProcessId PROCESS_ID = ProcessId(value="bikeLeasing")
+  public static final class FlowNodes
+    public static List<FlowNode> all() = [->BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid, ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract, ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance, ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder, ->BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned, ->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating, ->BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder, ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled, ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected, ->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded, ->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned, ->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded, ->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated, ->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive, ->BikeLeasingProcessApi.FlowNodes.EventContractSigned, ->BikeLeasingProcessApi.FlowNodes.EventReverseApplication, ->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature, ->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, ->BikeLeasingProcessApi.FlowNodes.GatewayFork, ->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent, ->BikeLeasingProcessApi.FlowNodes.GatewayJoin, ->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail, ->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication, ->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged, ->BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn, ->BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible, ->BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived, ->BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged, ->BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn, ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract, ->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline, ->BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder, ->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed, ->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress]
+    public static BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid boundaryApplicationInvalid() = ->BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid
+    public static BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract boundaryCompensateContract() = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract
+    public static BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance boundaryCompensateInsurance() = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance
+    public static BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder boundaryCompensateOrder() = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder
+    public static BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned boundaryContractNotSigned() = ->BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned
+    public static BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating businessRuleTaskCheckCreditRating() = ->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating
+    public static BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder callActivityCancelBikeOrder() = ->BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder
+    public static BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled endEventApplicationCancelled() = ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled
+    public static BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected endEventApplicationRejected() = ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected
+    public static BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded endEventContractConcluded() = ->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded
+    public static BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned endEventContractNotSigned() = ->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned
+    public static BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded endEventCustomerReminded() = ->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded
+    public static BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated endEventDeliveryAddressUpdated() = ->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated
+    public static BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive endEventLeasingActive() = ->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive
+    public static BikeLeasingProcessApi.FlowNodes.EventContractSigned eventContractSigned() = ->BikeLeasingProcessApi.FlowNodes.EventContractSigned
+    public static BikeLeasingProcessApi.FlowNodes.EventReverseApplication eventReverseApplication() = ->BikeLeasingProcessApi.FlowNodes.EventReverseApplication
+    public static BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature gatewayAwaitSignature() = ->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature
+    public static BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections gatewayCollectRejections() = ->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections
+    public static BikeLeasingProcessApi.FlowNodes.GatewayFork gatewayFork() = ->BikeLeasingProcessApi.FlowNodes.GatewayFork
+    public static BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent gatewayIsSolvent() = ->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent
+    public static BikeLeasingProcessApi.FlowNodes.GatewayJoin gatewayJoin() = ->BikeLeasingProcessApi.FlowNodes.GatewayJoin
+    public static BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported receiveTaskHandoverReported() = ->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract serviceTaskCancelContract() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy serviceTaskCancelPolicy() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy serviceTaskIssueInsurancePolicy() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike serviceTaskOrderBike() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation serviceTaskSendCancellationConfirmation() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract serviceTaskSendContract() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection serviceTaskSendRejection() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail serviceTaskSendReminderMail() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail
+    public static BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication serviceTaskValidateApplication() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication
+    public static BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged startEventAddressChanged() = ->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged
+    public static BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn startEventApplicationWithdrawn() = ->BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn
+    public static BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible startEventCustomerEligible() = ->BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible
+    public static BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived startEventLeasingRequestReceived() = ->BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived
+    public static BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged subProcessAddressChanged() = ->BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged
+    public static BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn subProcessApplicationWithdrawn() = ->BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn
+    public static BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract subProcessConcludeContract() = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+    public static BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline timerSignatureDeadline() = ->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline
+    public static BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder timerSignatureReminder() = ->BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder
+    public static BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed timerWithdrawalPeriodElapsed() = ->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed
+    public static BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress userTaskUpdateDeliveryAddress() = ->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress
+    public static final class BoundaryApplicationInvalid extends AbstractFlowNode implements BoundaryEvent<BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication>, ErrorEvent, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid.Next>
+      public static final String ELEMENT_ID = "boundary_applicationInvalid"
+      public static final BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid INSTANCE = ->BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication getAttachedTo() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication
+      public BpmnErrorDefinition getError() = BpmnErrorDefinition(code="applicationInvalid", name="miravelo.applicationInvalid")
+      public BpmnEventType getEventType() = BpmnEventType.ERROR
+      public BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid.Next getNext() = BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid.Next(gatewayCollectRejections=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationInvalidToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationInvalidToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_applicationInvalid")
+      inherited getName() = "Application invalid"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections> gatewayCollectRejections()
+    public static final class BoundaryCompensateContract extends AbstractFlowNode implements BoundaryEvent<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract.Next>
+      public static final String ELEMENT_ID = "boundary_compensateContract"
+      public static final BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract INSTANCE = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract
+      public BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract getAttachedTo() = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+      public BpmnEventType getEventType() = BpmnEventType.COMPENSATION
+      public BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract.Next getNext() = BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract.Next(serviceTaskCancelContract=AssociatedCompensationHandler(target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_compensateContract")
+      inherited getName() = "Contract to revoke"
+      public static final class Next
+        constructor()
+        public AssociatedCompensationHandler<BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract> serviceTaskCancelContract()
+    public static final class BoundaryCompensateInsurance extends AbstractFlowNode implements BoundaryEvent<BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance.Next>
+      public static final String ELEMENT_ID = "boundary_compensateInsurance"
+      public static final BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance INSTANCE = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy getAttachedTo() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy
+      public BpmnEventType getEventType() = BpmnEventType.COMPENSATION
+      public BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance.Next getNext() = BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance.Next(serviceTaskCancelPolicy=AssociatedCompensationHandler(target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_compensateInsurance")
+      inherited getName() = "Policy to cancel"
+      public static final class Next
+        constructor()
+        public AssociatedCompensationHandler<BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy> serviceTaskCancelPolicy()
+    public static final class BoundaryCompensateOrder extends AbstractFlowNode implements BoundaryEvent<BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder.Next>
+      public static final String ELEMENT_ID = "boundary_compensateOrder"
+      public static final BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder INSTANCE = ->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike getAttachedTo() = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike
+      public BpmnEventType getEventType() = BpmnEventType.COMPENSATION
+      public BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder.Next getNext() = BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder.Next(callActivityCancelBikeOrder=AssociatedCompensationHandler(target=->BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_compensateOrder")
+      inherited getName() = "Order to cancel"
+      public static final class Next
+        constructor()
+        public AssociatedCompensationHandler<BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder> callActivityCancelBikeOrder()
+    public static final class BoundaryContractNotSigned extends AbstractFlowNode implements BoundaryEvent<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract>, EscalationEvent, HasSuccessors<BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned.Next>
+      public static final String ELEMENT_ID = "boundary_contractNotSigned"
+      public static final BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned INSTANCE = ->BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned
+      public BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract getAttachedTo() = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+      public BpmnEscalationDefinition getEscalation() = BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")
+      public BpmnEventType getEventType() = BpmnEventType.ESCALATION
+      public BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned.Next getNext() = BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned.Next(gatewayCollectRejections=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractNotSignedToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractNotSignedToCollectRejections"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_contractNotSigned")
+      inherited getName() = "Contract not signed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections> gatewayCollectRejections()
+    public static final class BusinessRuleTaskCheckCreditRating extends AbstractFlowNode implements HasSuccessors<BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating.Next>
+      public static final String ELEMENT_ID = "businessRuleTask_checkCreditRating"
+      public static final BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating INSTANCE = ->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating
+      public BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating.Next getNext() = BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating.Next(gatewayIsSolvent=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_checkCreditRatingToIsSolvent"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_checkCreditRatingToIsSolvent"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent))
+      inherited getElementType() = BpmnElementType.BUSINESS_RULE_TASK
+      inherited getId() = ElementId(value="businessRuleTask_checkCreditRating")
+      inherited getName() = "Check credit rating"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent> gatewayIsSolvent()
+    public static final class CallActivityCancelBikeOrder extends AbstractFlowNode implements CallActivity, HasVariables
+      public static final String ELEMENT_ID = "callActivity_cancelBikeOrder"
+      public static final BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder INSTANCE = ->BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder
+      public ProcessId getCalledProcess() = ProcessId(value="cancelBikeOrder")
+      public BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder.Variables getVariables() = BikeLeasingProcessApi.FlowNodes.CallActivityCancelBikeOrder.Variables(all=[VariableName.Input(value="applicationId"), VariableName.Output(value="cancellationCosts"), VariableName.Input(value="orderIds")], inputs=[VariableName.Input(value="applicationId"), VariableName.Input(value="orderIds")], outputs=[VariableName.Output(value="cancellationCosts")])
+      inherited getElementType() = BpmnElementType.CALL_ACTIVITY
+      inherited getId() = ElementId(value="callActivity_cancelBikeOrder")
+      inherited getName() = "Cancel bike order"
+      public static final class Inputs
+        public static final InputOutputMapping APPLICATION_ID = InputOutputMapping(source=null, sourceExpression="${applicationId}", target="applicationId")
+        public static final InputOutputMapping ORDER_IDS = InputOutputMapping(source="orderIds", sourceExpression=null, target="orderIds")
+      public static final class Outputs
+        public static final InputOutputMapping CANCELLATION_COSTS = InputOutputMapping(source="cancellationCosts", sourceExpression=null, target="cancellationCosts")
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input APPLICATION_ID = VariableName.Input(value="applicationId")
+        public static final VariableName.Output CANCELLATION_COSTS = VariableName.Output(value="cancellationCosts")
+        public static final VariableName.Input ORDER_IDS = VariableName.Input(value="orderIds")
+        public List<VariableName> getAll()
+    public static final class EndEventApplicationCancelled extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_applicationCancelled"
+      public static final BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_applicationCancelled")
+      inherited getName() = "Application cancelled"
+    public static final class EndEventApplicationRejected extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_applicationRejected"
+      public static final BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected
+      public BpmnEventType getEventType() = BpmnEventType.TERMINATE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_applicationRejected")
+      inherited getName() = "Application rejected"
+    public static final class EndEventContractConcluded extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_contractConcluded"
+      public static final BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_contractConcluded")
+      inherited getName() = "Contract concluded"
+    public static final class EndEventContractNotSigned extends AbstractFlowNode implements EscalationEvent, Event
+      public static final String ELEMENT_ID = "endEvent_contractNotSigned"
+      public static final BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned
+      public BpmnEscalationDefinition getEscalation() = BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")
+      public BpmnEventType getEventType() = BpmnEventType.ESCALATION
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_contractNotSigned")
+      inherited getName() = "Contract not signed"
+    public static final class EndEventCustomerReminded extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_customerReminded"
+      public static final BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_customerReminded")
+      inherited getName() = "Customer reminded"
+    public static final class EndEventDeliveryAddressUpdated extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_deliveryAddressUpdated"
+      public static final BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_deliveryAddressUpdated")
+      inherited getName() = "Delivery address updated"
+    public static final class EndEventLeasingActive extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_leasingActive"
+      public static final BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_leasingActive")
+      inherited getName() = "Leasing active"
+    public static final class EventContractSigned extends AbstractFlowNode implements Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.EventContractSigned.Next>
+      public static final String ELEMENT_ID = "event_contractSigned"
+      public static final BikeLeasingProcessApi.FlowNodes.EventContractSigned INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EventContractSigned
+      public BpmnEventType getEventType() = BpmnEventType.MESSAGE
+      public MessageName getMessage() = MessageName(value="miravelo.contractSigned")
+      public BikeLeasingProcessApi.FlowNodes.EventContractSigned.Next getNext() = BikeLeasingProcessApi.FlowNodes.EventContractSigned.Next(endEventContractConcluded=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractSignedToContractConcluded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_contractSignedToContractConcluded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded))
+      inherited getElementType() = BpmnElementType.INTERMEDIATE_CATCH_EVENT
+      inherited getId() = ElementId(value="event_contractSigned")
+      inherited getName() = "Contract signed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventContractConcluded> endEventContractConcluded()
+    public static final class EventReverseApplication extends AbstractFlowNode implements CompensationThrowEvent, Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.EventReverseApplication.Next>
+      public static final String ELEMENT_ID = "event_reverseApplication"
+      public static final BikeLeasingProcessApi.FlowNodes.EventReverseApplication INSTANCE = ->BikeLeasingProcessApi.FlowNodes.EventReverseApplication
+      public BpmnEventType getEventType() = BpmnEventType.COMPENSATION
+      public BikeLeasingProcessApi.FlowNodes.EventReverseApplication.Next getNext() = BikeLeasingProcessApi.FlowNodes.EventReverseApplication.Next(serviceTaskSendCancellationConfirmation=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_reverseApplicationToSendCancellationConfirmation"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_reverseApplicationToSendCancellationConfirmation"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation))
+      inherited getElementType() = BpmnElementType.INTERMEDIATE_THROW_EVENT
+      inherited getId() = ElementId(value="event_reverseApplication")
+      inherited getName() = "Application reversed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation> serviceTaskSendCancellationConfirmation()
+    public static final class GatewayAwaitSignature extends AbstractFlowNode implements HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature.Next>
+      public static final String ELEMENT_ID = "gateway_awaitSignature"
+      public static final BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature INSTANCE = ->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature
+      public BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature.Next getNext() = BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature.Next(eventContractSigned=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToContractSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventContractSigned, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToContractSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventContractSigned, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EventContractSigned), timerSignatureDeadline=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToSignatureDeadline"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_awaitSignatureToSignatureDeadline"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline))
+      inherited getElementType() = BpmnElementType.EVENT_BASED_GATEWAY
+      inherited getId() = ElementId(value="gateway_awaitSignature")
+      inherited getName() = "Await signature"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EventContractSigned> eventContractSigned()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline> timerSignatureDeadline()
+    public static final class GatewayCollectRejections extends AbstractFlowNode implements HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections.Next>
+      public static final String ELEMENT_ID = "gateway_collectRejections"
+      public static final BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections INSTANCE = ->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections
+      public BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections.Next getNext() = BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections.Next(serviceTaskSendRejection=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectRejectionsToSendRejection"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectRejectionsToSendRejection"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_collectRejections")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection> serviceTaskSendRejection()
+    public static final class GatewayFork extends AbstractFlowNode implements HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayFork.Next>
+      public static final String ELEMENT_ID = "gateway_fork"
+      public static final BikeLeasingProcessApi.FlowNodes.GatewayFork INSTANCE = ->BikeLeasingProcessApi.FlowNodes.GatewayFork
+      public BikeLeasingProcessApi.FlowNodes.GatewayFork.Next getNext() = BikeLeasingProcessApi.FlowNodes.GatewayFork.Next(serviceTaskIssueInsurancePolicy=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToIssueInsurancePolicy"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToIssueInsurancePolicy"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy), serviceTaskOrderBike=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToOrderBike"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_forkToOrderBike"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike))
+      inherited getElementType() = BpmnElementType.PARALLEL_GATEWAY
+      inherited getId() = ElementId(value="gateway_fork")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy> serviceTaskIssueInsurancePolicy()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike> serviceTaskOrderBike()
+    public static final class GatewayIsSolvent extends AbstractFlowNode implements HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent.Next>
+      public static final String ELEMENT_ID = "gateway_isSolvent"
+      public static final BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent INSTANCE = ->BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent
+      public BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent.Next getNext() = BikeLeasingProcessApi.FlowNodes.GatewayIsSolvent.Next(gatewayCollectRejections=SequenceFlows(flow=SequenceFlow(conditionExpression="${!solvent}", id=ElementId(value="flow_isSolventToCollectRejections"), name="No", target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false), flows=[SequenceFlow(conditionExpression="${!solvent}", id=ElementId(value="flow_isSolventToCollectRejections"), name="No", target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections), subProcessConcludeContract=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_isSolventToConcludeContract"), name="Yes", target=->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_isSolventToConcludeContract"), name="Yes", target=->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract, isDefault=true)], target=->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_isSolvent")
+      inherited getName() = "Solvent?"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayCollectRejections> gatewayCollectRejections()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract> subProcessConcludeContract()
+    public static final class GatewayJoin extends AbstractFlowNode implements HasSuccessors<BikeLeasingProcessApi.FlowNodes.GatewayJoin.Next>
+      public static final String ELEMENT_ID = "gateway_join"
+      public static final BikeLeasingProcessApi.FlowNodes.GatewayJoin INSTANCE = ->BikeLeasingProcessApi.FlowNodes.GatewayJoin
+      public BikeLeasingProcessApi.FlowNodes.GatewayJoin.Next getNext() = BikeLeasingProcessApi.FlowNodes.GatewayJoin.Next(receiveTaskHandoverReported=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_joinToHandoverReported"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_joinToHandoverReported"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported))
+      inherited getElementType() = BpmnElementType.PARALLEL_GATEWAY
+      inherited getId() = ElementId(value="gateway_join")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported> receiveTaskHandoverReported()
+    public static final class ReceiveTaskHandoverReported extends AbstractFlowNode implements HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported.Next>
+      public static final String ELEMENT_ID = "receiveTask_handoverReported"
+      public static final BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported
+      public MessageName getMessage() = MessageName(value="miravelo.handoverReported")
+      public BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported.Next getNext() = BikeLeasingProcessApi.FlowNodes.ReceiveTaskHandoverReported.Next(timerWithdrawalPeriodElapsed=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_handoverReportedToWithdrawalPeriodElapsed"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_handoverReportedToWithdrawalPeriodElapsed"), name=null, target=->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed))
+      inherited getElementType() = BpmnElementType.RECEIVE_TASK
+      inherited getId() = ElementId(value="receiveTask_handoverReported")
+      inherited getName() = "Await bike handover"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed> timerWithdrawalPeriodElapsed()
+    public static final class ServiceTaskCancelContract extends AbstractFlowNode implements HasJobType
+      public static final String ELEMENT_ID = "serviceTask_cancelContract"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelContract
+      public String getJobType() = "${cancelContractDelegate}"
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_cancelContract")
+      inherited getName() = "Cancel contract"
+    public static final class ServiceTaskCancelPolicy extends AbstractFlowNode implements HasJobType
+      public static final String ELEMENT_ID = "serviceTask_cancelPolicy"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskCancelPolicy
+      public String getJobType() = "miravelo.cancelPolicy"
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_cancelPolicy")
+      inherited getName() = "Cancel policy"
+    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Next>, HasVariables
+      public static final String ELEMENT_ID = "serviceTask_issueInsurancePolicy"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy
+      public String getJobType() = "io.miravelo.leasing.IssueInsurancePolicyDelegate"
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Next getNext() = BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Next(boundaryCompensateInsurance=AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance), gatewayJoin=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_issueInsurancePolicyToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_issueInsurancePolicyToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin))
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Variables getVariables() = BikeLeasingProcessApi.FlowNodes.ServiceTaskIssueInsurancePolicy.Variables(all=[VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")], inputs=[VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")], outputs=[])
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_issueInsurancePolicy")
+      inherited getName() = "Issue insurance policy"
+      public static final class Next
+        constructor()
+        public AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateInsurance> boundaryCompensateInsurance()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayJoin> gatewayJoin()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input BIKE_ID = VariableName.Input(value="bikeId")
+        public static final VariableName.Input BIKE_IDS = VariableName.Input(value="bikeIds")
+        public List<VariableName> getAll()
+    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Next>, HasVariables
+      public static final String ELEMENT_ID = "serviceTask_orderBike"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike
+      public String getJobType() = "miravelo.orderBike"
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Next getNext() = BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Next(boundaryCompensateOrder=AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder), gatewayJoin=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_orderBikeToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_orderBikeToJoin"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayJoin))
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Variables getVariables() = BikeLeasingProcessApi.FlowNodes.ServiceTaskOrderBike.Variables(all=[VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")], inputs=[VariableName.Input(value="bikeId"), VariableName.Input(value="bikeIds")], outputs=[])
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_orderBike")
+      inherited getName() = "Order bike"
+      public static final class Next
+        constructor()
+        public AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateOrder> boundaryCompensateOrder()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayJoin> gatewayJoin()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input BIKE_ID = VariableName.Input(value="bikeId")
+        public static final VariableName.Input BIKE_IDS = VariableName.Input(value="bikeIds")
+        public List<VariableName> getAll()
+    public static final class ServiceTaskSendCancellationConfirmation extends AbstractFlowNode implements HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation.Next>
+      public static final String ELEMENT_ID = "serviceTask_sendCancellationConfirmation"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation
+      public String getJobType() = "miravelo.sendCancellationConfirmation"
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation.Next getNext() = BikeLeasingProcessApi.FlowNodes.ServiceTaskSendCancellationConfirmation.Next(endEventApplicationCancelled=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendCancellationConfirmationToApplicationCancelled"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendCancellationConfirmationToApplicationCancelled"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_sendCancellationConfirmation")
+      inherited getName() = "Send cancellation confirmation"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventApplicationCancelled> endEventApplicationCancelled()
+    public static final class ServiceTaskSendContract extends AbstractFlowNode implements HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Next>, HasVariables
+      public static final String ELEMENT_ID = "serviceTask_sendContract"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract
+      public String getJobType() = "${sendContractDelegate}"
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Next getNext() = BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Next(gatewayAwaitSignature=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendContractToAwaitSignature"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendContractToAwaitSignature"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature))
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Variables getVariables() = BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Variables(all=[VariableName.Input(value="applicationId"), VariableName.Output(value="contractId")], inputs=[VariableName.Input(value="applicationId")], outputs=[VariableName.Output(value="contractId")])
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_sendContract")
+      inherited getName() = "Send contract"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayAwaitSignature> gatewayAwaitSignature()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input APPLICATION_ID = VariableName.Input(value="applicationId")
+        public static final VariableName.Output CONTRACT_ID = VariableName.Output(value="contractId")
+        public List<VariableName> getAll()
+    public static final class ServiceTaskSendRejection extends AbstractFlowNode implements HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection.Next>
+      public static final String ELEMENT_ID = "serviceTask_sendRejection"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection
+      public String getJobType() = "miravelo.sendRejection"
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection.Next getNext() = BikeLeasingProcessApi.FlowNodes.ServiceTaskSendRejection.Next(endEventApplicationRejected=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionToApplicationRejected"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionToApplicationRejected"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_sendRejection")
+      inherited getName() = "Send rejection"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventApplicationRejected> endEventApplicationRejected()
+    public static final class ServiceTaskSendReminderMail extends AbstractFlowNode implements HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail.Next>
+      public static final String ELEMENT_ID = "serviceTask_sendReminderMail"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail
+      public String getJobType() = "${mailService.sendReminder(applicationId)}"
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail.Next getNext() = BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail.Next(endEventCustomerReminded=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendReminderMailToCustomerReminded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendReminderMailToCustomerReminded"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_sendReminderMail")
+      inherited getName() = "Send reminder mail"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventCustomerReminded> endEventCustomerReminded()
+    public static final class ServiceTaskValidateApplication extends AbstractFlowNode implements HasJobType, HasSuccessors<BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication.Next>
+      public static final String ELEMENT_ID = "serviceTask_validateApplication"
+      public static final BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication INSTANCE = ->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication
+      public String getJobType() = "${validateApplicationDelegate}"
+      public BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication.Next getNext() = BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication.Next(boundaryApplicationInvalid=AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid), businessRuleTaskCheckCreditRating=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_validateApplicationToCheckCreditRating"), name=null, target=->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_validateApplicationToCheckCreditRating"), name=null, target=->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_validateApplication")
+      inherited getName() = "Validate application"
+      public static final class Next
+        constructor()
+        public AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryApplicationInvalid> boundaryApplicationInvalid()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.BusinessRuleTaskCheckCreditRating> businessRuleTaskCheckCreditRating()
+    public static final class StartEventAddressChanged extends AbstractFlowNode implements Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Next>, HasVariables
+      public static final String ELEMENT_ID = "startEvent_addressChanged"
+      public static final BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged INSTANCE = ->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged
+      public BpmnEventType getEventType() = BpmnEventType.MESSAGE
+      public MessageName getMessage() = MessageName(value="miravelo.addressChanged")
+      public BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Next getNext() = BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Next(userTaskUpdateDeliveryAddress=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_addressChangedToUpdateDeliveryAddress"), name=null, target=->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_addressChangedToUpdateDeliveryAddress"), name=null, target=->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress))
+      public BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Variables getVariables() = BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged.Variables(all=[VariableName.Input(value="city"), VariableName.Input(value="street")], inputs=[VariableName.Input(value="city"), VariableName.Input(value="street")], outputs=[])
+      public boolean isInterrupting() = false
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_addressChanged")
+      inherited getName() = "Address changed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress> userTaskUpdateDeliveryAddress()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input CITY = VariableName.Input(value="city")
+        public static final VariableName.Input STREET = VariableName.Input(value="street")
+        public List<VariableName> getAll()
+    public static final class StartEventApplicationWithdrawn extends AbstractFlowNode implements Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn.Next>
+      public static final String ELEMENT_ID = "startEvent_applicationWithdrawn"
+      public static final BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn INSTANCE = ->BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn
+      public BpmnEventType getEventType() = BpmnEventType.MESSAGE
+      public MessageName getMessage() = MessageName(value="miravelo.applicationWithdrawn")
+      public BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn.Next getNext() = BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn.Next(eventReverseApplication=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationWithdrawnToReverseApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventReverseApplication, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_applicationWithdrawnToReverseApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EventReverseApplication, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EventReverseApplication))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_applicationWithdrawn")
+      inherited getName() = "Application withdrawn"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EventReverseApplication> eventReverseApplication()
+    public static final class StartEventCustomerEligible extends AbstractFlowNode implements Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible.Next>
+      public static final String ELEMENT_ID = "startEvent_customerEligible"
+      public static final BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible INSTANCE = ->BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      public BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible.Next getNext() = BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible.Next(serviceTaskSendContract=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_customerEligibleToSendContract"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_customerEligibleToSendContract"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract))
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_customerEligible")
+      inherited getName() = "Customer eligible"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract> serviceTaskSendContract()
+    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements Event, HasMessage, HasSuccessors<BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Next>, HasVariables
+      public static final String ELEMENT_ID = "startEvent_leasingRequestReceived"
+      public static final BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived INSTANCE = ->BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived
+      public BpmnEventType getEventType() = BpmnEventType.MESSAGE
+      public MessageName getMessage() = MessageName(value="miravelo.leasingRequestReceived")
+      public BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Next getNext() = BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Next(serviceTaskValidateApplication=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_leasingRequestReceivedToValidateApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_leasingRequestReceivedToValidateApplication"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication))
+      public BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Variables getVariables() = BikeLeasingProcessApi.FlowNodes.StartEventLeasingRequestReceived.Variables(all=[VariableName.Input(value="age"), VariableName.Input(value="applicationId"), VariableName.Input(value="bikeIds"), VariableName.Input(value="monthlyNetIncome")], inputs=[VariableName.Input(value="age"), VariableName.Input(value="applicationId"), VariableName.Input(value="bikeIds"), VariableName.Input(value="monthlyNetIncome")], outputs=[])
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_leasingRequestReceived")
+      inherited getName() = "Leasing request received"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskValidateApplication> serviceTaskValidateApplication()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input AGE = VariableName.Input(value="age")
+        public static final VariableName.Input APPLICATION_ID = VariableName.Input(value="applicationId")
+        public static final VariableName.Input BIKE_IDS = VariableName.Input(value="bikeIds")
+        public static final VariableName.Input MONTHLY_NET_INCOME = VariableName.Input(value="monthlyNetIncome")
+        public List<VariableName> getAll()
+    public static final class SubProcessAddressChanged extends AbstractFlowNode implements FlowScope<BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged.Start>
+      public static final String ELEMENT_ID = "subProcess_addressChanged"
+      public static final BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged INSTANCE = ->BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged
+      public BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged.Start getStartEvents() = BikeLeasingProcessApi.FlowNodes.SubProcessAddressChanged.Start(startEventAddressChanged=->BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged)
+      inherited getElementType() = BpmnElementType.EVENT_SUB_PROCESS
+      inherited getId() = ElementId(value="subProcess_addressChanged")
+      inherited getName() = "Delivery address changed"
+      public static final class Start
+        constructor()
+        public BikeLeasingProcessApi.FlowNodes.StartEventAddressChanged startEventAddressChanged()
+    public static final class SubProcessApplicationWithdrawn extends AbstractFlowNode implements FlowScope<BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn.Start>
+      public static final String ELEMENT_ID = "subProcess_applicationWithdrawn"
+      public static final BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn INSTANCE = ->BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn
+      public BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn.Start getStartEvents() = BikeLeasingProcessApi.FlowNodes.SubProcessApplicationWithdrawn.Start(startEventApplicationWithdrawn=->BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn)
+      inherited getElementType() = BpmnElementType.EVENT_SUB_PROCESS
+      inherited getId() = ElementId(value="subProcess_applicationWithdrawn")
+      inherited getName() = "Application withdrawn"
+      public static final class Start
+        constructor()
+        public BikeLeasingProcessApi.FlowNodes.StartEventApplicationWithdrawn startEventApplicationWithdrawn()
+    public static final class SubProcessConcludeContract extends AbstractFlowNode implements FlowScope<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Start>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Next>
+      public static final String ELEMENT_ID = "subProcess_concludeContract"
+      public static final BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract INSTANCE = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+      public BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Next getNext() = BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Next(boundaryCompensateContract=AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract), boundaryContractNotSigned=AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned), gatewayFork=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_concludeContractToFork"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayFork, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_concludeContractToFork"), name=null, target=->BikeLeasingProcessApi.FlowNodes.GatewayFork, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.GatewayFork), timerSignatureReminder=AttachedBoundaryEvent(target=->BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder))
+      public BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Start getStartEvents() = BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract.Start(startEventCustomerEligible=->BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible)
+      inherited getElementType() = BpmnElementType.SUB_PROCESS
+      inherited getId() = ElementId(value="subProcess_concludeContract")
+      inherited getName() = "Conclude contract"
+      public static final class Next
+        constructor()
+        public AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryCompensateContract> boundaryCompensateContract()
+        public AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.BoundaryContractNotSigned> boundaryContractNotSigned()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.GatewayFork> gatewayFork()
+        public AttachedBoundaryEvent<BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder> timerSignatureReminder()
+      public static final class Start
+        constructor()
+        public BikeLeasingProcessApi.FlowNodes.StartEventCustomerEligible startEventCustomerEligible()
+    public static final class TimerSignatureDeadline extends AbstractFlowNode implements Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline.Next>, TimerEvent
+      public static final String ELEMENT_ID = "timer_signatureDeadline"
+      public static final BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline INSTANCE = ->BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline
+      public BpmnEventType getEventType() = BpmnEventType.TIMER
+      public BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline.Next getNext() = BikeLeasingProcessApi.FlowNodes.TimerSignatureDeadline.Next(endEventContractNotSigned=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureDeadlineToContractNotSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureDeadlineToContractNotSigned"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned))
+      public BpmnTimer getTimer() = BpmnTimer(timerValue="P14D", type=TimerType.DURATION)
+      inherited getElementType() = BpmnElementType.INTERMEDIATE_CATCH_EVENT
+      inherited getId() = ElementId(value="timer_signatureDeadline")
+      inherited getName() = "14 days passed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventContractNotSigned> endEventContractNotSigned()
+    public static final class TimerSignatureReminder extends AbstractFlowNode implements BoundaryEvent<BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract>, HasSuccessors<BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder.Next>, TimerEvent
+      public static final String ELEMENT_ID = "timer_signatureReminder"
+      public static final BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder INSTANCE = ->BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder
+      public BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract getAttachedTo() = ->BikeLeasingProcessApi.FlowNodes.SubProcessConcludeContract
+      public BpmnEventType getEventType() = BpmnEventType.TIMER
+      public BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder.Next getNext() = BikeLeasingProcessApi.FlowNodes.TimerSignatureReminder.Next(serviceTaskSendReminderMail=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureReminderToSendReminderMail"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_signatureReminderToSendReminderMail"), name=null, target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail))
+      public BpmnTimer getTimer() = BpmnTimer(timerValue="P7D", type=TimerType.DURATION)
+      public boolean isInterrupting() = false
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="timer_signatureReminder")
+      inherited getName() = "7 days passed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.ServiceTaskSendReminderMail> serviceTaskSendReminderMail()
+    public static final class TimerWithdrawalPeriodElapsed extends AbstractFlowNode implements Event, HasSuccessors<BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed.Next>, TimerEvent
+      public static final String ELEMENT_ID = "timer_withdrawalPeriodElapsed"
+      public static final BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed INSTANCE = ->BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed
+      public BpmnEventType getEventType() = BpmnEventType.TIMER
+      public BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed.Next getNext() = BikeLeasingProcessApi.FlowNodes.TimerWithdrawalPeriodElapsed.Next(endEventLeasingActive=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_withdrawalPeriodElapsedToLeasingActive"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_withdrawalPeriodElapsedToLeasingActive"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive))
+      public BpmnTimer getTimer() = BpmnTimer(timerValue="${withdrawalPeriod}", type=TimerType.DURATION)
+      inherited getElementType() = BpmnElementType.INTERMEDIATE_CATCH_EVENT
+      inherited getId() = ElementId(value="timer_withdrawalPeriodElapsed")
+      inherited getName() = "Withdrawal period elapsed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventLeasingActive> endEventLeasingActive()
+    public static final class UserTaskUpdateDeliveryAddress extends AbstractFlowNode implements HasSuccessors<BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Next>, HasVariables
+      public static final String ELEMENT_ID = "userTask_updateDeliveryAddress"
+      public static final BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress INSTANCE = ->BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress
+      public BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Next getNext() = BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Next(endEventDeliveryAddressUpdated=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_updateDeliveryAddressToDeliveryAddressUpdated"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_updateDeliveryAddressToDeliveryAddressUpdated"), name=null, target=->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated, isDefault=false)], target=->BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated))
+      public BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Variables getVariables() = BikeLeasingProcessApi.FlowNodes.UserTaskUpdateDeliveryAddress.Variables(all=[VariableName.InOut(value="deliveryAddress")], inputs=[VariableName.InOut(value="deliveryAddress")], outputs=[VariableName.InOut(value="deliveryAddress")])
+      inherited getElementType() = BpmnElementType.USER_TASK
+      inherited getId() = ElementId(value="userTask_updateDeliveryAddress")
+      inherited getName() = "Update delivery address"
+      public static final class Next
+        constructor()
+        public SequenceFlows<BikeLeasingProcessApi.FlowNodes.EndEventDeliveryAddressUpdated> endEventDeliveryAddressUpdated()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.InOut DELIVERY_ADDRESS = VariableName.InOut(value="deliveryAddress")
+        public List<VariableName> getAll()
+
+public final class CancelBikeOrderProcessApi
+  public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.CAMUNDA_7
+  public static final ProcessId PROCESS_ID = ProcessId(value="cancelBikeOrder")
+  public static final class FlowNodes
+    public static List<FlowNode> all() = [->CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed, ->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled, ->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible, ->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, ->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts, ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation, ->CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired, ->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn]
+    public static CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed boundaryCancellationFailed() = ->CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed
+    public static CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled endEventBikeOrderCancelled() = ->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled
+    public static CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible gatewayCancellationPossible() = ->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible
+    public static CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications gatewayCollectClarifications() = ->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications
+    public static CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn gatewayMergeReturn() = ->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn
+    public static CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts serviceTaskBookCancellationCosts() = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts
+    public static CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation serviceTaskRequestCancellation() = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation
+    public static CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired startEventCancellationRequired() = ->CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired
+    public static CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn userTaskClarifyReturn() = ->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn
+    public static final class BoundaryCancellationFailed extends AbstractFlowNode implements BoundaryEvent<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation>, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed.Next>
+      public static final String ELEMENT_ID = "boundary_cancellationFailed"
+      public static final CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed
+      public CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation getAttachedTo() = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation
+      public BpmnEventType getEventType() = BpmnEventType.ERROR
+      public CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed.Next(gatewayCollectClarifications=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationFailedToCollectClarifications"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationFailedToCollectClarifications"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_cancellationFailed")
+      inherited getName() = "Cancellation failed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications> gatewayCollectClarifications()
+    public static final class EndEventBikeOrderCancelled extends AbstractFlowNode implements Event, HasJobType, HasMessage
+      public static final String ELEMENT_ID = "endEvent_bikeOrderCancelled"
+      public static final CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled
+      public BpmnEventType getEventType() = BpmnEventType.MESSAGE
+      public String getJobType() = "miravelo.bikeOrderCancelled"
+      public MessageName getMessage() = MessageName(value="miravelo.bikeOrderCancelled")
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_bikeOrderCancelled")
+      inherited getName() = "Bike order cancelled"
+    public static final class GatewayCancellationPossible extends AbstractFlowNode implements HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible.Next>
+      public static final String ELEMENT_ID = "gateway_cancellationPossible"
+      public static final CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible
+      public CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible.Next(gatewayCollectClarifications=SequenceFlows(flow=SequenceFlow(conditionExpression="${!cancellationPossible}", id=ElementId(value="flow_cancellationNotPossibleToCollectClarifications"), name="No", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false), flows=[SequenceFlow(conditionExpression="${!cancellationPossible}", id=ElementId(value="flow_cancellationNotPossibleToCollectClarifications"), name="No", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications), gatewayMergeReturn=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationPossibleToMergeReturn"), name="Yes", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationPossibleToMergeReturn"), name="Yes", target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=true)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_cancellationPossible")
+      inherited getName() = "Cancellation possible?"
+      public static final class Next
+        constructor()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications> gatewayCollectClarifications()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn> gatewayMergeReturn()
+    public static final class GatewayCollectClarifications extends AbstractFlowNode implements HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications.Next>
+      public static final String ELEMENT_ID = "gateway_collectClarifications"
+      public static final CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications
+      public CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.GatewayCollectClarifications.Next(userTaskClarifyReturn=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectClarificationsToClarifyReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectClarificationsToClarifyReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_collectClarifications")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn> userTaskClarifyReturn()
+    public static final class GatewayMergeReturn extends AbstractFlowNode implements HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn.Next>
+      public static final String ELEMENT_ID = "gateway_mergeReturn"
+      public static final CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn
+      public CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn.Next(serviceTaskBookCancellationCosts=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_mergeReturnToBookCancellationCosts"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_mergeReturnToBookCancellationCosts"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_mergeReturn")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts> serviceTaskBookCancellationCosts()
+    public static final class ServiceTaskBookCancellationCosts extends AbstractFlowNode implements HasJobType, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Next>, HasVariables
+      public static final String ELEMENT_ID = "serviceTask_bookCancellationCosts"
+      public static final CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts
+      public String getJobType() = "${bookCancellationCostsDelegate}"
+      public CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Next(endEventBikeOrderCancelled=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_bookCancellationCostsToBikeOrderCancelled"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_bookCancellationCostsToBikeOrderCancelled"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled))
+      public CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Variables getVariables() = CancelBikeOrderProcessApi.FlowNodes.ServiceTaskBookCancellationCosts.Variables(all=[VariableName.Output(value="cancellationCosts")], inputs=[], outputs=[VariableName.Output(value="cancellationCosts")])
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_bookCancellationCosts")
+      inherited getName() = "Book cancellation costs"
+      public static final class Next
+        constructor()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.EndEventBikeOrderCancelled> endEventBikeOrderCancelled()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Output CANCELLATION_COSTS = VariableName.Output(value="cancellationCosts")
+        public List<VariableName> getAll()
+    public static final class ServiceTaskRequestCancellation extends AbstractFlowNode implements HasJobType, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Next>, HasVariables
+      public static final String ELEMENT_ID = "serviceTask_requestCancellation"
+      public static final CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation
+      public String getJobType() = "miravelo.requestCancellation"
+      public CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Next(boundaryCancellationFailed=AttachedBoundaryEvent(target=->CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed), gatewayCancellationPossible=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_requestCancellationToCancellationPossible"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_requestCancellationToCancellationPossible"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible))
+      public CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Variables getVariables() = CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation.Variables(all=[VariableName.Output(value="cancellationPossible")], inputs=[], outputs=[VariableName.Output(value="cancellationPossible")])
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_requestCancellation")
+      inherited getName() = "Request cancellation"
+      public static final class Next
+        constructor()
+        public AttachedBoundaryEvent<CancelBikeOrderProcessApi.FlowNodes.BoundaryCancellationFailed> boundaryCancellationFailed()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayCancellationPossible> gatewayCancellationPossible()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Output CANCELLATION_POSSIBLE = VariableName.Output(value="cancellationPossible")
+        public List<VariableName> getAll()
+    public static final class StartEventCancellationRequired extends AbstractFlowNode implements Event, HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Next>, HasVariables
+      public static final String ELEMENT_ID = "startEvent_cancellationRequired"
+      public static final CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      public CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Next(serviceTaskRequestCancellation=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationRequiredToRequestCancellation"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_cancellationRequiredToRequestCancellation"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation))
+      public CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Variables getVariables() = CancelBikeOrderProcessApi.FlowNodes.StartEventCancellationRequired.Variables(all=[VariableName.Input(value="orderIds")], inputs=[VariableName.Input(value="orderIds")], outputs=[])
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_cancellationRequired")
+      inherited getName() = "Cancellation required"
+      public static final class Next
+        constructor()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.ServiceTaskRequestCancellation> serviceTaskRequestCancellation()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input ORDER_IDS = VariableName.Input(value="orderIds")
+        public List<VariableName> getAll()
+    public static final class UserTaskClarifyReturn extends AbstractFlowNode implements HasSuccessors<CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn.Next>
+      public static final String ELEMENT_ID = "userTask_clarifyReturn"
+      public static final CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn INSTANCE = ->CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn
+      public CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn.Next getNext() = CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn.Next(gatewayMergeReturn=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_clarifyReturnToMergeReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_clarifyReturnToMergeReturn"), name=null, target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn, isDefault=false)], target=->CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn))
+      inherited getElementType() = BpmnElementType.USER_TASK
+      inherited getId() = ElementId(value="userTask_clarifyReturn")
+      inherited getName() = "Clarify return"
+      public static final class Next
+        constructor()
+        public SequenceFlows<CancelBikeOrderProcessApi.FlowNodes.GatewayMergeReturn> gatewayMergeReturn()
+
+public final class Errors
+  public static final BpmnErrorDefinition MIRAVELO_APPLICATION_INVALID = BpmnErrorDefinition(code="applicationInvalid", name="miravelo.applicationInvalid")
+  public static List<BpmnErrorDefinition> all() = [BpmnErrorDefinition(code="applicationInvalid", name="miravelo.applicationInvalid")]
+
+public final class Escalations
+  public static final BpmnEscalationDefinition MIRAVELO_CONTRACT_NOT_SIGNED = BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")
+  public static List<BpmnEscalationDefinition> all() = [BpmnEscalationDefinition(code="contractNotSigned", name="miravelo.contractNotSigned")]
+
+public final class MembershipProcessApi
+  public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.CAMUNDA_7
+  public static final ProcessId PROCESS_ID = ProcessId(value="membership")
+  public static final class FlowNodes
+    public static List<FlowNode> all() = [->MembershipProcessApi.FlowNodes.BoundaryCompensateClaim, ->MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected, ->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent, ->MembershipProcessApi.FlowNodes.EndEventMembershipActivated, ->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed, ->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined, ->MembershipProcessApi.FlowNodes.EndEventMembershipRejected, ->MembershipProcessApi.FlowNodes.GatewayActivationFork, ->MembershipProcessApi.FlowNodes.GatewayActivationJoin, ->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, ->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots, ->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail, ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership, ->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity, ->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail, ->MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim, ->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail, ->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail, ->MembershipProcessApi.FlowNodes.StartEventConfirmationRequired, ->MembershipProcessApi.FlowNodes.StartEventMembershipRequested, ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership, ->MembershipProcessApi.FlowNodes.TimerConfirmationExpired, ->MembershipProcessApi.FlowNodes.TimerResendDaily, ->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership]
+    public static MembershipProcessApi.FlowNodes.BoundaryCompensateClaim boundaryCompensateClaim() = ->MembershipProcessApi.FlowNodes.BoundaryCompensateClaim
+    public static MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected boundaryConfirmationRejected() = ->MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected
+    public static MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent endEventConfirmationMailResent() = ->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent
+    public static MembershipProcessApi.FlowNodes.EndEventMembershipActivated endEventMembershipActivated() = ->MembershipProcessApi.FlowNodes.EndEventMembershipActivated
+    public static MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed endEventMembershipConfirmed() = ->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed
+    public static MembershipProcessApi.FlowNodes.EndEventMembershipDeclined endEventMembershipDeclined() = ->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined
+    public static MembershipProcessApi.FlowNodes.EndEventMembershipRejected endEventMembershipRejected() = ->MembershipProcessApi.FlowNodes.EndEventMembershipRejected
+    public static MembershipProcessApi.FlowNodes.GatewayActivationFork gatewayActivationFork() = ->MembershipProcessApi.FlowNodes.GatewayActivationFork
+    public static MembershipProcessApi.FlowNodes.GatewayActivationJoin gatewayActivationJoin() = ->MembershipProcessApi.FlowNodes.GatewayActivationJoin
+    public static MembershipProcessApi.FlowNodes.GatewayCollectDeclines gatewayCollectDeclines() = ->MembershipProcessApi.FlowNodes.GatewayCollectDeclines
+    public static MembershipProcessApi.FlowNodes.GatewayHasEmptySpots gatewayHasEmptySpots() = ->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots
+    public static MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail sendTaskSendConfirmationMail() = ->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail
+    public static MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership serviceTaskClaimMembership() = ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership
+    public static MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity serviceTaskNotifyCommunity() = ->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity
+    public static MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail serviceTaskResendConfirmationMail() = ->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail
+    public static MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim serviceTaskRevokeClaim() = ->MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim
+    public static MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail serviceTaskSendRejectionMail() = ->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail
+    public static MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail serviceTaskSendWelcomeMail() = ->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail
+    public static MembershipProcessApi.FlowNodes.StartEventConfirmationRequired startEventConfirmationRequired() = ->MembershipProcessApi.FlowNodes.StartEventConfirmationRequired
+    public static MembershipProcessApi.FlowNodes.StartEventMembershipRequested startEventMembershipRequested() = ->MembershipProcessApi.FlowNodes.StartEventMembershipRequested
+    public static MembershipProcessApi.FlowNodes.SubProcessConfirmMembership subProcessConfirmMembership() = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+    public static MembershipProcessApi.FlowNodes.TimerConfirmationExpired timerConfirmationExpired() = ->MembershipProcessApi.FlowNodes.TimerConfirmationExpired
+    public static MembershipProcessApi.FlowNodes.TimerResendDaily timerResendDaily() = ->MembershipProcessApi.FlowNodes.TimerResendDaily
+    public static MembershipProcessApi.FlowNodes.UserTaskConfirmMembership userTaskConfirmMembership() = ->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership
+    public static final class BoundaryCompensateClaim extends AbstractFlowNode implements BoundaryEvent<MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership>, HasSuccessors<MembershipProcessApi.FlowNodes.BoundaryCompensateClaim.Next>
+      public static final String ELEMENT_ID = "boundary_compensateClaim"
+      public static final MembershipProcessApi.FlowNodes.BoundaryCompensateClaim INSTANCE = ->MembershipProcessApi.FlowNodes.BoundaryCompensateClaim
+      public MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership getAttachedTo() = ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership
+      public BpmnEventType getEventType() = BpmnEventType.COMPENSATION
+      public MembershipProcessApi.FlowNodes.BoundaryCompensateClaim.Next getNext() = MembershipProcessApi.FlowNodes.BoundaryCompensateClaim.Next(serviceTaskRevokeClaim=AssociatedCompensationHandler(target=->MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_compensateClaim")
+      inherited getName() = "Claim to revoke"
+      public static final class Next
+        constructor()
+        public AssociatedCompensationHandler<MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim> serviceTaskRevokeClaim()
+    public static final class BoundaryConfirmationRejected extends AbstractFlowNode implements BoundaryEvent<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership>, HasMessage, HasSuccessors<MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected.Next>
+      public static final String ELEMENT_ID = "boundary_confirmationRejected"
+      public static final MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected INSTANCE = ->MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected
+      public MembershipProcessApi.FlowNodes.SubProcessConfirmMembership getAttachedTo() = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+      public BpmnEventType getEventType() = BpmnEventType.MESSAGE
+      public MessageName getMessage() = MessageName(value="miravelo.confirmationRejected")
+      public MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected.Next getNext() = MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected.Next(gatewayCollectDeclines=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRejectedToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRejectedToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines))
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="boundary_confirmationRejected")
+      inherited getName() = "Confirmation rejected"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.GatewayCollectDeclines> gatewayCollectDeclines()
+    public static final class EndEventConfirmationMailResent extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_confirmationMailResent"
+      public static final MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent INSTANCE = ->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_confirmationMailResent")
+      inherited getName() = "Confirmation mail resent"
+    public static final class EndEventMembershipActivated extends AbstractFlowNode implements Event, SignalEvent
+      public static final String ELEMENT_ID = "endEvent_membershipActivated"
+      public static final MembershipProcessApi.FlowNodes.EndEventMembershipActivated INSTANCE = ->MembershipProcessApi.FlowNodes.EndEventMembershipActivated
+      public BpmnEventType getEventType() = BpmnEventType.SIGNAL
+      public SignalName getSignal() = SignalName(value="miravelo.memberActivated")
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_membershipActivated")
+      inherited getName() = "Membership activated"
+    public static final class EndEventMembershipConfirmed extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_membershipConfirmed"
+      public static final MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed INSTANCE = ->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_membershipConfirmed")
+      inherited getName() = "Membership confirmed"
+    public static final class EndEventMembershipDeclined extends AbstractFlowNode implements CompensationThrowEvent, Event
+      public static final String ELEMENT_ID = "endEvent_membershipDeclined"
+      public static final MembershipProcessApi.FlowNodes.EndEventMembershipDeclined INSTANCE = ->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined
+      public BpmnEventType getEventType() = BpmnEventType.COMPENSATION
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_membershipDeclined")
+      inherited getName() = "Membership declined"
+    public static final class EndEventMembershipRejected extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_membershipRejected"
+      public static final MembershipProcessApi.FlowNodes.EndEventMembershipRejected INSTANCE = ->MembershipProcessApi.FlowNodes.EndEventMembershipRejected
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_membershipRejected")
+      inherited getName() = "Membership rejected"
+    public static final class GatewayActivationFork extends AbstractFlowNode implements HasSuccessors<MembershipProcessApi.FlowNodes.GatewayActivationFork.Next>
+      public static final String ELEMENT_ID = "gateway_activationFork"
+      public static final MembershipProcessApi.FlowNodes.GatewayActivationFork INSTANCE = ->MembershipProcessApi.FlowNodes.GatewayActivationFork
+      public MembershipProcessApi.FlowNodes.GatewayActivationFork.Next getNext() = MembershipProcessApi.FlowNodes.GatewayActivationFork.Next(serviceTaskNotifyCommunity=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToNotifyCommunity"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToNotifyCommunity"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity), serviceTaskSendWelcomeMail=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToSendWelcomeMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationForkToSendWelcomeMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail))
+      inherited getElementType() = BpmnElementType.PARALLEL_GATEWAY
+      inherited getId() = ElementId(value="gateway_activationFork")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity> serviceTaskNotifyCommunity()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail> serviceTaskSendWelcomeMail()
+    public static final class GatewayActivationJoin extends AbstractFlowNode implements HasSuccessors<MembershipProcessApi.FlowNodes.GatewayActivationJoin.Next>
+      public static final String ELEMENT_ID = "gateway_activationJoin"
+      public static final MembershipProcessApi.FlowNodes.GatewayActivationJoin INSTANCE = ->MembershipProcessApi.FlowNodes.GatewayActivationJoin
+      public MembershipProcessApi.FlowNodes.GatewayActivationJoin.Next getNext() = MembershipProcessApi.FlowNodes.GatewayActivationJoin.Next(endEventMembershipActivated=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationJoinToMembershipActivated"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipActivated, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_activationJoinToMembershipActivated"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipActivated, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipActivated))
+      inherited getElementType() = BpmnElementType.PARALLEL_GATEWAY
+      inherited getId() = ElementId(value="gateway_activationJoin")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipActivated> endEventMembershipActivated()
+    public static final class GatewayCollectDeclines extends AbstractFlowNode implements HasSuccessors<MembershipProcessApi.FlowNodes.GatewayCollectDeclines.Next>
+      public static final String ELEMENT_ID = "gateway_collectDeclines"
+      public static final MembershipProcessApi.FlowNodes.GatewayCollectDeclines INSTANCE = ->MembershipProcessApi.FlowNodes.GatewayCollectDeclines
+      public MembershipProcessApi.FlowNodes.GatewayCollectDeclines.Next getNext() = MembershipProcessApi.FlowNodes.GatewayCollectDeclines.Next(endEventMembershipDeclined=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectDeclinesToMembershipDeclined"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_collectDeclinesToMembershipDeclined"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipDeclined))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_collectDeclines")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipDeclined> endEventMembershipDeclined()
+    public static final class GatewayHasEmptySpots extends AbstractFlowNode implements HasSuccessors<MembershipProcessApi.FlowNodes.GatewayHasEmptySpots.Next>
+      public static final String ELEMENT_ID = "gateway_hasEmptySpots"
+      public static final MembershipProcessApi.FlowNodes.GatewayHasEmptySpots INSTANCE = ->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots
+      public MembershipProcessApi.FlowNodes.GatewayHasEmptySpots.Next getNext() = MembershipProcessApi.FlowNodes.GatewayHasEmptySpots.Next(serviceTaskSendRejectionMail=SequenceFlows(flow=SequenceFlow(conditionExpression="${!hasEmptySpots}", id=ElementId(value="flow_noEmptySpotsToSendRejectionMail"), name="No", target=->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail, isDefault=false), flows=[SequenceFlow(conditionExpression="${!hasEmptySpots}", id=ElementId(value="flow_noEmptySpotsToSendRejectionMail"), name="No", target=->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail), subProcessConfirmMembership=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_hasEmptySpotsToConfirmMembership"), name="Yes", target=->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_hasEmptySpotsToConfirmMembership"), name="Yes", target=->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership, isDefault=true)], target=->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_hasEmptySpots")
+      inherited getName() = "Empty spots left?"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail> serviceTaskSendRejectionMail()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership> subProcessConfirmMembership()
+    public static final class SendTaskSendConfirmationMail extends AbstractFlowNode implements HasSuccessors<MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail.Next>
+      public static final String ELEMENT_ID = "sendTask_sendConfirmationMail"
+      public static final MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail INSTANCE = ->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail
+      public MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail.Next getNext() = MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail.Next(userTaskConfirmMembership=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendConfirmationMailToConfirmMembership"), name=null, target=->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendConfirmationMailToConfirmMembership"), name=null, target=->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership, isDefault=false)], target=->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership))
+      inherited getElementType() = BpmnElementType.SEND_TASK
+      inherited getId() = ElementId(value="sendTask_sendConfirmationMail")
+      inherited getName() = "Send confirmation mail"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.UserTaskConfirmMembership> userTaskConfirmMembership()
+    public static final class ServiceTaskClaimMembership extends AbstractFlowNode implements HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Next>, HasVariables
+      public static final String ELEMENT_ID = "serviceTask_claimMembership"
+      public static final MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership INSTANCE = ->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership
+      public String getJobType() = "${claimMembershipDelegate}"
+      public MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Next getNext() = MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Next(boundaryCompensateClaim=AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.BoundaryCompensateClaim), gatewayHasEmptySpots=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_claimMembershipToHasEmptySpots"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_claimMembershipToHasEmptySpots"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayHasEmptySpots))
+      public MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Variables getVariables() = MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership.Variables(all=[VariableName.Output(value="hasEmptySpots"), VariableName.Input(value="membershipId")], inputs=[VariableName.Input(value="membershipId")], outputs=[VariableName.Output(value="hasEmptySpots")])
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_claimMembership")
+      inherited getName() = "Claim membership"
+      public static final class Next
+        constructor()
+        public AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.BoundaryCompensateClaim> boundaryCompensateClaim()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.GatewayHasEmptySpots> gatewayHasEmptySpots()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Output HAS_EMPTY_SPOTS = VariableName.Output(value="hasEmptySpots")
+        public static final VariableName.Input MEMBERSHIP_ID = VariableName.Input(value="membershipId")
+        public List<VariableName> getAll()
+    public static final class ServiceTaskNotifyCommunity extends AbstractFlowNode implements HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity.Next>
+      public static final String ELEMENT_ID = "serviceTask_notifyCommunity"
+      public static final MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity INSTANCE = ->MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity
+      public String getJobType() = "io.miravelo.membership.NotifyCommunityDelegate"
+      public MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity.Next getNext() = MembershipProcessApi.FlowNodes.ServiceTaskNotifyCommunity.Next(gatewayActivationJoin=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_notifyCommunityToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_notifyCommunityToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_notifyCommunity")
+      inherited getName() = "Notify community"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.GatewayActivationJoin> gatewayActivationJoin()
+    public static final class ServiceTaskResendConfirmationMail extends AbstractFlowNode implements HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail.Next>
+      public static final String ELEMENT_ID = "serviceTask_resendConfirmationMail"
+      public static final MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail INSTANCE = ->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail
+      public String getJobType() = "miravelo.resendConfirmationMail"
+      public MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail.Next getNext() = MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail.Next(endEventConfirmationMailResent=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendConfirmationMailToConfirmationMailResent"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendConfirmationMailToConfirmationMailResent"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_resendConfirmationMail")
+      inherited getName() = "Resend confirmation mail"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.EndEventConfirmationMailResent> endEventConfirmationMailResent()
+    public static final class ServiceTaskRevokeClaim extends AbstractFlowNode implements HasJobType
+      public static final String ELEMENT_ID = "serviceTask_revokeClaim"
+      public static final MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim INSTANCE = ->MembershipProcessApi.FlowNodes.ServiceTaskRevokeClaim
+      public String getJobType() = "${revokeClaimDelegate}"
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_revokeClaim")
+      inherited getName() = "Revoke claim"
+    public static final class ServiceTaskSendRejectionMail extends AbstractFlowNode implements HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail.Next>
+      public static final String ELEMENT_ID = "serviceTask_sendRejectionMail"
+      public static final MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail INSTANCE = ->MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail
+      public String getJobType() = "miravelo.sendRejectionMail"
+      public MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail.Next getNext() = MembershipProcessApi.FlowNodes.ServiceTaskSendRejectionMail.Next(endEventMembershipRejected=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionMailToMembershipRejected"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipRejected, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendRejectionMailToMembershipRejected"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipRejected, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipRejected))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_sendRejectionMail")
+      inherited getName() = "Send rejection mail"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipRejected> endEventMembershipRejected()
+    public static final class ServiceTaskSendWelcomeMail extends AbstractFlowNode implements HasJobType, HasSuccessors<MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail.Next>
+      public static final String ELEMENT_ID = "serviceTask_sendWelcomeMail"
+      public static final MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail INSTANCE = ->MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail
+      public String getJobType() = "${mailService.sendWelcomeMail(email)}"
+      public MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail.Next getNext() = MembershipProcessApi.FlowNodes.ServiceTaskSendWelcomeMail.Next(gatewayActivationJoin=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendWelcomeMailToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_sendWelcomeMailToActivationJoin"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayActivationJoin))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_sendWelcomeMail")
+      inherited getName() = "Send welcome mail"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.GatewayActivationJoin> gatewayActivationJoin()
+    public static final class StartEventConfirmationRequired extends AbstractFlowNode implements Event, HasSuccessors<MembershipProcessApi.FlowNodes.StartEventConfirmationRequired.Next>
+      public static final String ELEMENT_ID = "startEvent_confirmationRequired"
+      public static final MembershipProcessApi.FlowNodes.StartEventConfirmationRequired INSTANCE = ->MembershipProcessApi.FlowNodes.StartEventConfirmationRequired
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      public MembershipProcessApi.FlowNodes.StartEventConfirmationRequired.Next getNext() = MembershipProcessApi.FlowNodes.StartEventConfirmationRequired.Next(sendTaskSendConfirmationMail=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRequiredToSendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationRequiredToSendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail))
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_confirmationRequired")
+      inherited getName() = "Confirmation required"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.SendTaskSendConfirmationMail> sendTaskSendConfirmationMail()
+    public static final class StartEventMembershipRequested extends AbstractFlowNode implements Event, HasMessage, HasSuccessors<MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Next>, HasVariables
+      public static final String ELEMENT_ID = "startEvent_membershipRequested"
+      public static final MembershipProcessApi.FlowNodes.StartEventMembershipRequested INSTANCE = ->MembershipProcessApi.FlowNodes.StartEventMembershipRequested
+      public BpmnEventType getEventType() = BpmnEventType.MESSAGE
+      public MessageName getMessage() = MessageName(value="miravelo.membershipRequested")
+      public MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Next getNext() = MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Next(serviceTaskClaimMembership=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_membershipRequestedToClaimMembership"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_membershipRequestedToClaimMembership"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership))
+      public MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Variables getVariables() = MembershipProcessApi.FlowNodes.StartEventMembershipRequested.Variables(all=[VariableName.Input(value="email"), VariableName.Input(value="membershipId")], inputs=[VariableName.Input(value="email"), VariableName.Input(value="membershipId")], outputs=[])
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_membershipRequested")
+      inherited getName() = "Membership requested"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskClaimMembership> serviceTaskClaimMembership()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input EMAIL = VariableName.Input(value="email")
+        public static final VariableName.Input MEMBERSHIP_ID = VariableName.Input(value="membershipId")
+        public List<VariableName> getAll()
+    public static final class SubProcessConfirmMembership extends AbstractFlowNode implements FlowScope<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Start>, HasSuccessors<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Next>
+      public static final String ELEMENT_ID = "subProcess_confirmMembership"
+      public static final MembershipProcessApi.FlowNodes.SubProcessConfirmMembership INSTANCE = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+      public MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Next getNext() = MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Next(boundaryConfirmationRejected=AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected), gatewayActivationFork=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToActivationFork"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationFork, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToActivationFork"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayActivationFork, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayActivationFork), timerConfirmationExpired=AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.TimerConfirmationExpired), timerResendDaily=AttachedBoundaryEvent(target=->MembershipProcessApi.FlowNodes.TimerResendDaily))
+      public MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Start getStartEvents() = MembershipProcessApi.FlowNodes.SubProcessConfirmMembership.Start(startEventConfirmationRequired=->MembershipProcessApi.FlowNodes.StartEventConfirmationRequired)
+      inherited getElementType() = BpmnElementType.SUB_PROCESS
+      inherited getId() = ElementId(value="subProcess_confirmMembership")
+      inherited getName() = "Confirm membership"
+      public static final class Next
+        constructor()
+        public AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.BoundaryConfirmationRejected> boundaryConfirmationRejected()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.GatewayActivationFork> gatewayActivationFork()
+        public AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.TimerConfirmationExpired> timerConfirmationExpired()
+        public AttachedBoundaryEvent<MembershipProcessApi.FlowNodes.TimerResendDaily> timerResendDaily()
+      public static final class Start
+        constructor()
+        public MembershipProcessApi.FlowNodes.StartEventConfirmationRequired startEventConfirmationRequired()
+    public static final class TimerConfirmationExpired extends AbstractFlowNode implements BoundaryEvent<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership>, HasSuccessors<MembershipProcessApi.FlowNodes.TimerConfirmationExpired.Next>, TimerEvent
+      public static final String ELEMENT_ID = "timer_confirmationExpired"
+      public static final MembershipProcessApi.FlowNodes.TimerConfirmationExpired INSTANCE = ->MembershipProcessApi.FlowNodes.TimerConfirmationExpired
+      public MembershipProcessApi.FlowNodes.SubProcessConfirmMembership getAttachedTo() = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+      public BpmnEventType getEventType() = BpmnEventType.TIMER
+      public MembershipProcessApi.FlowNodes.TimerConfirmationExpired.Next getNext() = MembershipProcessApi.FlowNodes.TimerConfirmationExpired.Next(gatewayCollectDeclines=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationExpiredToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmationExpiredToCollectDeclines"), name=null, target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines, isDefault=false)], target=->MembershipProcessApi.FlowNodes.GatewayCollectDeclines))
+      public BpmnTimer getTimer() = BpmnTimer(timerValue="P3DT12H", type=TimerType.DURATION)
+      public boolean isInterrupting() = true
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="timer_confirmationExpired")
+      inherited getName() = "3.5 days passed"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.GatewayCollectDeclines> gatewayCollectDeclines()
+    public static final class TimerResendDaily extends AbstractFlowNode implements BoundaryEvent<MembershipProcessApi.FlowNodes.SubProcessConfirmMembership>, HasSuccessors<MembershipProcessApi.FlowNodes.TimerResendDaily.Next>, TimerEvent
+      public static final String ELEMENT_ID = "timer_resendDaily"
+      public static final MembershipProcessApi.FlowNodes.TimerResendDaily INSTANCE = ->MembershipProcessApi.FlowNodes.TimerResendDaily
+      public MembershipProcessApi.FlowNodes.SubProcessConfirmMembership getAttachedTo() = ->MembershipProcessApi.FlowNodes.SubProcessConfirmMembership
+      public BpmnEventType getEventType() = BpmnEventType.TIMER
+      public MembershipProcessApi.FlowNodes.TimerResendDaily.Next getNext() = MembershipProcessApi.FlowNodes.TimerResendDaily.Next(serviceTaskResendConfirmationMail=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendDailyToResendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_resendDailyToResendConfirmationMail"), name=null, target=->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail, isDefault=false)], target=->MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail))
+      public BpmnTimer getTimer() = BpmnTimer(timerValue="R/P1D", type=TimerType.CYCLE)
+      public boolean isInterrupting() = false
+      inherited getElementType() = BpmnElementType.BOUNDARY_EVENT
+      inherited getId() = ElementId(value="timer_resendDaily")
+      inherited getName() = "Every day"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.ServiceTaskResendConfirmationMail> serviceTaskResendConfirmationMail()
+    public static final class UserTaskConfirmMembership extends AbstractFlowNode implements HasSuccessors<MembershipProcessApi.FlowNodes.UserTaskConfirmMembership.Next>
+      public static final String ELEMENT_ID = "userTask_confirmMembership"
+      public static final MembershipProcessApi.FlowNodes.UserTaskConfirmMembership INSTANCE = ->MembershipProcessApi.FlowNodes.UserTaskConfirmMembership
+      public MembershipProcessApi.FlowNodes.UserTaskConfirmMembership.Next getNext() = MembershipProcessApi.FlowNodes.UserTaskConfirmMembership.Next(endEventMembershipConfirmed=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToMembershipConfirmed"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_confirmMembershipToMembershipConfirmed"), name=null, target=->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed, isDefault=false)], target=->MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed))
+      inherited getElementType() = BpmnElementType.USER_TASK
+      inherited getId() = ElementId(value="userTask_confirmMembership")
+      inherited getName() = "Confirm membership"
+      public static final class Next
+        constructor()
+        public SequenceFlows<MembershipProcessApi.FlowNodes.EndEventMembershipConfirmed> endEventMembershipConfirmed()
+
+public final class Messages
+  public static final MessageName MIRAVELO_ADDRESS_CHANGED = MessageName(value="miravelo.addressChanged")
+  public static final MessageName MIRAVELO_APPLICATION_WITHDRAWN = MessageName(value="miravelo.applicationWithdrawn")
+  public static final MessageName MIRAVELO_BIKE_ORDER_CANCELLED = MessageName(value="miravelo.bikeOrderCancelled")
+  public static final MessageName MIRAVELO_CONFIRMATION_REJECTED = MessageName(value="miravelo.confirmationRejected")
+  public static final MessageName MIRAVELO_CONTRACT_SIGNED = MessageName(value="miravelo.contractSigned")
+  public static final MessageName MIRAVELO_HANDOVER_REPORTED = MessageName(value="miravelo.handoverReported")
+  public static final MessageName MIRAVELO_LEASING_REQUEST_RECEIVED = MessageName(value="miravelo.leasingRequestReceived")
+  public static final MessageName MIRAVELO_MEMBERSHIP_REQUESTED = MessageName(value="miravelo.membershipRequested")
+  public static List<MessageName> all() = [MessageName(value="miravelo.addressChanged"), MessageName(value="miravelo.applicationWithdrawn"), MessageName(value="miravelo.bikeOrderCancelled"), MessageName(value="miravelo.confirmationRejected"), MessageName(value="miravelo.contractSigned"), MessageName(value="miravelo.handoverReported"), MessageName(value="miravelo.leasingRequestReceived"), MessageName(value="miravelo.membershipRequested")]
+
+public final class ProcessVariables
+  public static final String AGE = "age"
+  public static final String APPLICATION_ID = "applicationId"
+  public static final String BIKE_ID = "bikeId"
+  public static final String BIKE_IDS = "bikeIds"
+  public static final String CANCELLATION_COSTS = "cancellationCosts"
+  public static final String CANCELLATION_POSSIBLE = "cancellationPossible"
+  public static final String CITY = "city"
+  public static final String CONTRACT_ID = "contractId"
+  public static final String DELIVERY_ADDRESS = "deliveryAddress"
+  public static final String EMAIL = "email"
+  public static final String HAS_EMPTY_SPOTS = "hasEmptySpots"
+  public static final String MEMBERSHIP_ID = "membershipId"
+  public static final String MONTHLY_NET_INCOME = "monthlyNetIncome"
+  public static final String ORDER_IDS = "orderIds"
+  public static final String STREET = "street"
+  public static List<String> all() = ["age", "applicationId", "bikeId", "bikeIds", "cancellationCosts", "cancellationPossible", "city", "contractId", "deliveryAddress", "email", "hasEmptySpots", "membershipId", "monthlyNetIncome", "orderIds", "street"]
+
+public final class ServiceTasks
+  public static final String BOOK_CANCELLATION_COSTS_DELEGATE = "${bookCancellationCostsDelegate}"
+  public static final String CANCEL_CONTRACT_DELEGATE = "${cancelContractDelegate}"
+  public static final String CLAIM_MEMBERSHIP_DELEGATE = "${claimMembershipDelegate}"
+  public static final String IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE = "io.miravelo.leasing.IssueInsurancePolicyDelegate"
+  public static final String IO_MIRAVELO_MEMBERSHIP_NOTIFY_COMMUNITY_DELEGATE = "io.miravelo.membership.NotifyCommunityDelegate"
+  public static final String MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_ = "${mailService.sendReminder(applicationId)}"
+  public static final String MAIL_SERVICE_SEND_WELCOME_MAIL_EMAIL_ = "${mailService.sendWelcomeMail(email)}"
+  public static final String MIRAVELO_BIKE_ORDER_CANCELLED = "miravelo.bikeOrderCancelled"
+  public static final String MIRAVELO_CANCEL_POLICY = "miravelo.cancelPolicy"
+  public static final String MIRAVELO_ORDER_BIKE = "miravelo.orderBike"
+  public static final String MIRAVELO_REQUEST_CANCELLATION = "miravelo.requestCancellation"
+  public static final String MIRAVELO_RESEND_CONFIRMATION_MAIL = "miravelo.resendConfirmationMail"
+  public static final String MIRAVELO_SEND_CANCELLATION_CONFIRMATION = "miravelo.sendCancellationConfirmation"
+  public static final String MIRAVELO_SEND_REJECTION = "miravelo.sendRejection"
+  public static final String MIRAVELO_SEND_REJECTION_MAIL = "miravelo.sendRejectionMail"
+  public static final String MIRAVELO_SHIP_WELCOME_PACKAGE = "miravelo.shipWelcomePackage"
+  public static final String REVOKE_CLAIM_DELEGATE = "${revokeClaimDelegate}"
+  public static final String SEND_CONTRACT_DELEGATE = "${sendContractDelegate}"
+  public static final String VALIDATE_APPLICATION_DELEGATE = "${validateApplicationDelegate}"
+  public static List<String> all() = ["${bookCancellationCostsDelegate}", "${cancelContractDelegate}", "${claimMembershipDelegate}", "${mailService.sendReminder(applicationId)}", "${mailService.sendWelcomeMail(email)}", "${revokeClaimDelegate}", "${sendContractDelegate}", "${validateApplicationDelegate}", "io.miravelo.leasing.IssueInsurancePolicyDelegate", "io.miravelo.membership.NotifyCommunityDelegate", "miravelo.bikeOrderCancelled", "miravelo.cancelPolicy", "miravelo.orderBike", "miravelo.requestCancellation", "miravelo.resendConfirmationMail", "miravelo.sendCancellationConfirmation", "miravelo.sendRejection", "miravelo.sendRejectionMail", "miravelo.shipWelcomePackage"]
+
+public final class Signals
+  public static final SignalName MIRAVELO_MEMBER_ACTIVATED = SignalName(value="miravelo.memberActivated")
+  public static List<SignalName> all() = [SignalName(value="miravelo.memberActivated")]
+
+public final class WelcomePackageProcessApi
+  public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.CAMUNDA_7
+  public static final ProcessId PROCESS_ID = ProcessId(value="welcomePackage")
+  public static final class FlowNodes
+    public static List<FlowNode> all() = [->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped, ->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage, ->WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated]
+    public static WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped endEventWelcomePackageShipped() = ->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped
+    public static WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage serviceTaskShipWelcomePackage() = ->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage
+    public static WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated startEventMemberActivated() = ->WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated
+    public static final class EndEventWelcomePackageShipped extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_welcomePackageShipped"
+      public static final WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped INSTANCE = ->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_welcomePackageShipped")
+      inherited getName() = "Welcome package shipped"
+    public static final class ServiceTaskShipWelcomePackage extends AbstractFlowNode implements HasJobType, HasSuccessors<WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage.Next>
+      public static final String ELEMENT_ID = "serviceTask_shipWelcomePackage"
+      public static final WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage INSTANCE = ->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage
+      public String getJobType() = "miravelo.shipWelcomePackage"
+      public WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage.Next getNext() = WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage.Next(endEventWelcomePackageShipped=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_shipWelcomePackageToWelcomePackageShipped"), name=null, target=->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_shipWelcomePackageToWelcomePackageShipped"), name=null, target=->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped, isDefault=false)], target=->WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="serviceTask_shipWelcomePackage")
+      inherited getName() = "Ship welcome package"
+      public static final class Next
+        constructor()
+        public SequenceFlows<WelcomePackageProcessApi.FlowNodes.EndEventWelcomePackageShipped> endEventWelcomePackageShipped()
+    public static final class StartEventMemberActivated extends AbstractFlowNode implements Event, HasSuccessors<WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Next>, HasVariables, SignalEvent
+      public static final String ELEMENT_ID = "startEvent_memberActivated"
+      public static final WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated INSTANCE = ->WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated
+      public BpmnEventType getEventType() = BpmnEventType.SIGNAL
+      public WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Next getNext() = WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Next(serviceTaskShipWelcomePackage=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_memberActivatedToShipWelcomePackage"), name=null, target=->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_memberActivatedToShipWelcomePackage"), name=null, target=->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage, isDefault=false)], target=->WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage))
+      public SignalName getSignal() = SignalName(value="miravelo.memberActivated")
+      public WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Variables getVariables() = WelcomePackageProcessApi.FlowNodes.StartEventMemberActivated.Variables(all=[VariableName.Input(value="membershipId")], inputs=[VariableName.Input(value="membershipId")], outputs=[])
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent_memberActivated")
+      inherited getName() = "Member activated"
+      public static final class Next
+        constructor()
+        public SequenceFlows<WelcomePackageProcessApi.FlowNodes.ServiceTaskShipWelcomePackage> serviceTaskShipWelcomePackage()
+      public static final class Variables extends VariableDefinitions
+        public static final VariableName.Input MEMBERSHIP_ID = VariableName.Input(value="membershipId")
+        public List<VariableName> getAll()

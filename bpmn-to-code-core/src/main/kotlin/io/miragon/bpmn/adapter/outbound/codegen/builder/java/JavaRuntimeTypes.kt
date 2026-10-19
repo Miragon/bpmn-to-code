@@ -1,36 +1,57 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
-import com.palantir.javapoet.ClassName
+import io.miragon.bpmn.adapter.outbound.codegen.template.TypeReferences
 
 /**
- * The `bpmn-to-code-runtime` types the generated Java code refers to.
+ * The types generated Java code refers to: the `bpmn-to-code-runtime` types, `java.util.List`, and the `java.lang`
+ * types that are only written out when a generated type shadows them.
  */
 internal object JavaRuntimeTypes {
 
-    const val PACKAGE = "io.miragon.bpmn.runtime"
+    private const val PACKAGE = "io.miragon.bpmn.runtime"
+    private const val JAVA_LANG = "java.lang"
 
-    val ABSTRACT_FLOW_NODE: ClassName = ClassName.get(PACKAGE, "AbstractFlowNode")
-    val ATTACHED_BOUNDARY_EVENT: ClassName = ClassName.get(PACKAGE, "AttachedBoundaryEvent")
-    val ASSOCIATED_COMPENSATION_HANDLER: ClassName = ClassName.get(PACKAGE, "AssociatedCompensationHandler")
-    val BOUNDARY_EVENT: ClassName = ClassName.get(PACKAGE, "BoundaryEvent")
-    val BPMN_ELEMENT_TYPE: ClassName = ClassName.get(PACKAGE, "BpmnElementType")
-    val BPMN_ENGINE: ClassName = ClassName.get(PACKAGE, "BpmnEngine")
-    val BPMN_ERROR_DEFINITION: ClassName = ClassName.get(PACKAGE, "BpmnErrorDefinition")
-    val BPMN_ESCALATION_DEFINITION: ClassName = ClassName.get(PACKAGE, "BpmnEscalationDefinition")
-    val BPMN_EVENT_TYPE: ClassName = ClassName.get(PACKAGE, "BpmnEventType")
-    val BPMN_TIMER: ClassName = ClassName.get(PACKAGE, "BpmnTimer")
-    val ELEMENT_ID: ClassName = ClassName.get(PACKAGE, "ElementId")
-    val EVENT: ClassName = ClassName.get(PACKAGE, "Event")
-    val FLOW_NODE: ClassName = ClassName.get(PACKAGE, "FlowNode")
-    val FLOW_SCOPE: ClassName = ClassName.get(PACKAGE, "FlowScope")
-    val HAS_SUCCESSORS: ClassName = ClassName.get(PACKAGE, "HasSuccessors")
-    val INPUT_OUTPUT_MAPPING: ClassName = ClassName.get(PACKAGE, "InputOutputMapping")
-    val MESSAGE_NAME: ClassName = ClassName.get(PACKAGE, "MessageName")
-    val PROCESS_ID: ClassName = ClassName.get(PACKAGE, "ProcessId")
-    val SEQUENCE_FLOW: ClassName = ClassName.get(PACKAGE, "SequenceFlow")
-    val SEQUENCE_FLOWS: ClassName = ClassName.get(PACKAGE, "SequenceFlows")
-    val SIGNAL_NAME: ClassName = ClassName.get(PACKAGE, "SignalName")
-    val TIMER_TYPE: ClassName = ClassName.get(PACKAGE, "TimerType")
-    val VARIABLE_DEFINITIONS: ClassName = ClassName.get(PACKAGE, "VariableDefinitions")
-    val VARIABLE_NAME: ClassName = ClassName.get(PACKAGE, "VariableName")
+    private val RUNTIME_TYPES = listOf(
+        "AbstractFlowNode",
+        "AssociatedCompensationHandler",
+        "AttachedBoundaryEvent",
+        "BoundaryEvent",
+        "BpmnElementType",
+        "BpmnEngine",
+        "BpmnErrorDefinition",
+        "BpmnEscalationDefinition",
+        "BpmnEventType",
+        "BpmnTimer",
+        "CallActivity",
+        "CompensationThrowEvent",
+        "ElementId",
+        "ErrorEvent",
+        "EscalationEvent",
+        "Event",
+        "FlowNode",
+        "FlowScope",
+        "HasJobType",
+        "HasMessage",
+        "HasSuccessors",
+        "HasVariables",
+        "InputOutputMapping",
+        "MessageName",
+        "ProcessId",
+        "SequenceFlow",
+        "SequenceFlows",
+        "SignalEvent",
+        "SignalName",
+        "TimerEvent",
+        "TimerType",
+        "VariableDefinitions",
+        "VariableName",
+    )
+
+    private val QUALIFIED_NAMES = RUNTIME_TYPES.associateWith { "$PACKAGE.$it" } + mapOf(
+        "List" to "java.util.List",
+        "String" to "$JAVA_LANG.String",
+        "Override" to "$JAVA_LANG.Override",
+    )
+
+    fun references(generatedTypeNames: Set<String>): TypeReferences = TypeReferences(qualifiedNames = QUALIFIED_NAMES, implicitPackages = setOf(JAVA_LANG), shadowingNames = generatedTypeNames)
 }

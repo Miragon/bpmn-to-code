@@ -1,0 +1,56 @@
+public final class ApprovalProcessApi
+  public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE
+  public static final ProcessId PROCESS_ID = ProcessId(value="approval")
+  public static final class FlowNodes
+    public static List<FlowNode> all() = [->ApprovalProcessApi.FlowNodes.EndEventApproved, ->ApprovalProcessApi.FlowNodes.EndEventManual, ->ApprovalProcessApi.FlowNodes.GatewayAmount, ->ApprovalProcessApi.FlowNodes.StartEvent, ->ApprovalProcessApi.FlowNodes.TaskApprove]
+    public static ApprovalProcessApi.FlowNodes.EndEventApproved endEventApproved() = ->ApprovalProcessApi.FlowNodes.EndEventApproved
+    public static ApprovalProcessApi.FlowNodes.EndEventManual endEventManual() = ->ApprovalProcessApi.FlowNodes.EndEventManual
+    public static ApprovalProcessApi.FlowNodes.GatewayAmount gatewayAmount() = ->ApprovalProcessApi.FlowNodes.GatewayAmount
+    public static ApprovalProcessApi.FlowNodes.StartEvent startEvent() = ->ApprovalProcessApi.FlowNodes.StartEvent
+    public static ApprovalProcessApi.FlowNodes.TaskApprove taskApprove() = ->ApprovalProcessApi.FlowNodes.TaskApprove
+    public static final class EndEventApproved extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_approved"
+      public static final ApprovalProcessApi.FlowNodes.EndEventApproved INSTANCE = ->ApprovalProcessApi.FlowNodes.EndEventApproved
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_approved")
+      inherited getName() = null
+    public static final class EndEventManual extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "endEvent_manual"
+      public static final ApprovalProcessApi.FlowNodes.EndEventManual INSTANCE = ->ApprovalProcessApi.FlowNodes.EndEventManual
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="endEvent_manual")
+      inherited getName() = null
+    public static final class GatewayAmount extends AbstractFlowNode implements HasSuccessors<ApprovalProcessApi.FlowNodes.GatewayAmount.Next>
+      public static final String ELEMENT_ID = "gateway_amount"
+      public static final ApprovalProcessApi.FlowNodes.GatewayAmount INSTANCE = ->ApprovalProcessApi.FlowNodes.GatewayAmount
+      public ApprovalProcessApi.FlowNodes.GatewayAmount.Next getNext() = ApprovalProcessApi.FlowNodes.GatewayAmount.Next(endEventManual=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_else"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventManual, isDefault=true), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_else"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventManual, isDefault=true)], target=->ApprovalProcessApi.FlowNodes.EndEventManual), taskApprove=SequenceFlows(flow=<throws IllegalStateException>, flows=[SequenceFlow(conditionExpression="=amount < 100", id=ElementId(value="flow_small"), name=null, target=->ApprovalProcessApi.FlowNodes.TaskApprove, isDefault=false), SequenceFlow(conditionExpression="=customer.isVip", id=ElementId(value="flow_vip"), name=null, target=->ApprovalProcessApi.FlowNodes.TaskApprove, isDefault=false)], target=->ApprovalProcessApi.FlowNodes.TaskApprove))
+      inherited getElementType() = BpmnElementType.EXCLUSIVE_GATEWAY
+      inherited getId() = ElementId(value="gateway_amount")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<ApprovalProcessApi.FlowNodes.EndEventManual> endEventManual()
+        public SequenceFlows<ApprovalProcessApi.FlowNodes.TaskApprove> taskApprove()
+    public static final class StartEvent extends AbstractFlowNode implements Event, HasSuccessors<ApprovalProcessApi.FlowNodes.StartEvent.Next>
+      public static final String ELEMENT_ID = "startEvent"
+      public static final ApprovalProcessApi.FlowNodes.StartEvent INSTANCE = ->ApprovalProcessApi.FlowNodes.StartEvent
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      public ApprovalProcessApi.FlowNodes.StartEvent.Next getNext() = ApprovalProcessApi.FlowNodes.StartEvent.Next(gatewayAmount=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_start"), name=null, target=->ApprovalProcessApi.FlowNodes.GatewayAmount, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_start"), name=null, target=->ApprovalProcessApi.FlowNodes.GatewayAmount, isDefault=false)], target=->ApprovalProcessApi.FlowNodes.GatewayAmount))
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="startEvent")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<ApprovalProcessApi.FlowNodes.GatewayAmount> gatewayAmount()
+    public static final class TaskApprove extends AbstractFlowNode implements HasSuccessors<ApprovalProcessApi.FlowNodes.TaskApprove.Next>
+      public static final String ELEMENT_ID = "task_approve"
+      public static final ApprovalProcessApi.FlowNodes.TaskApprove INSTANCE = ->ApprovalProcessApi.FlowNodes.TaskApprove
+      public ApprovalProcessApi.FlowNodes.TaskApprove.Next getNext() = ApprovalProcessApi.FlowNodes.TaskApprove.Next(endEventApproved=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="flow_approved"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventApproved, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="flow_approved"), name=null, target=->ApprovalProcessApi.FlowNodes.EndEventApproved, isDefault=false)], target=->ApprovalProcessApi.FlowNodes.EndEventApproved))
+      inherited getElementType() = BpmnElementType.TASK
+      inherited getId() = ElementId(value="task_approve")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<ApprovalProcessApi.FlowNodes.EndEventApproved> endEventApproved()

@@ -1,84 +1,52 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
-import com.palantir.javapoet.FieldSpec
-import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
 import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
-import io.miragon.bpmn.adapter.outbound.codegen.ObjectWriter
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSyntax.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
+import io.miragon.bpmn.adapter.outbound.codegen.template.TemplateRenderer
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.shared.ProcessGraph
-import io.miragon.bpmn.domain.shared.RootElements
-import javax.lang.model.element.Modifier.FINAL
-import javax.lang.model.element.Modifier.PUBLIC
-import javax.lang.model.element.Modifier.STATIC
+import io.miragon.bpmn.domain.shared.OutputLanguage
 
 /**
- * Generates the type-safe API contract for a single BPMN process as a Java class file.
- * References shared BPMN types (BpmnTimer, BpmnErrorDefinition, etc.) from the `bpmn-to-code-runtime` artifact.
+ * Generates the type-safe API contract for a single BPMN process as a Java class file, rendered by
+ * `templates/java/process-api.ftl`. It refers to the types of the `bpmn-to-code-runtime` artifact.
  */
 internal class JavaProcessApiBuilder : ProcessApiBuilder {
 
-    companion object {
-        private const val PROCESS_ID = "PROCESS_ID"
-    }
-
-    private val objectWriters: Map<ApiObjectType, ObjectWriter<TypeSpec.Builder>> = mapOf(
-        ApiObjectType.PROCESS_ID to ProcessIdWriter(),
-        ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
-        ApiObjectType.FLOW to FlowWriter(),
-    )
-
     override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
-        val rootClassBuilder = JavaConstantHolder(modelApi.fileName()).builder()
-        objectWriters
-            .filterKeys { ApiObjectSelection.includes(it, modelApi) }
-            .forEach { (_, writer) -> writer.addTo(rootClassBuilder, modelApi) }
-        return JavaSourceFile.render(
-            type = rootClassBuilder.build(),
+        val typeName = modelApi.fileName()
+        val graph = FlowGraphFactory.build(modelApi.model.graph, modelApi.model.definitions).takeIf {
+            ApiObjectSelection.includes(ApiObjectType.FLOW, modelApi)
+        }
+        val t = JavaRuntimeTypes.references(generatedTypeNames = generatedTypeNamesOf(typeName, graph))
+        val mapper = JavaFlowNodeMapper(t)
+        val api = JavaTemplateModel.ProcessApi(
+            typeName = typeName,
+            processId = stringLiteral(modelApi.model.processId),
+            processEngine = modelApi.targetEngine.name,
+            flowNodes = graph?.nodes?.map { mapper.map(it) },
+            t = t,
+        )
+        val body = TemplateRenderer.render("java/process-api.ftl", api)
+        return GeneratedApiFile(
+            fileName = "$typeName.java",
             packagePath = modelApi.packagePath,
+            content = JavaSourceFiles.render(packageName = modelApi.packagePath, t = t, body = body),
+            language = OutputLanguage.JAVA,
             processId = modelApi.model.processId,
         )
     }
 
-    private class ProcessIdWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val processIdClass = JavaRuntimeTypes.PROCESS_ID
-            val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
-            builder.addField(fieldBuilder.initializer($$"new $T($S)", processIdClass, modelApi.model.processId).build())
-        }
+    private fun generatedTypeNamesOf(typeName: String, graph: FlowGraph?): Set<String> {
+        val nodeNames = graph?.nodes.orEmpty().map { it.objectName }
+        return setOf(typeName) + HOLDER_NAMES + nodeNames
     }
 
-    private class ProcessEngineWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnEngineClass = JavaRuntimeTypes.BPMN_ENGINE
-            val fieldBuilder = FieldSpec.builder(bpmnEngineClass, "PROCESS_ENGINE")
-                .addModifiers(PUBLIC, FINAL, STATIC).initializer($$"$T.$L", bpmnEngineClass, modelApi.targetEngine.name)
-            builder.addField(fieldBuilder.build())
-        }
-    }
-
-    private inner class FlowWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val flowClass = buildFlowClass(modelApi.model.graph, modelApi.model.definitions)
-            builder.addType(flowClass)
-        }
-    }
-
-    /**
-     * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
-     * `elementType` and display `name`, plus its reachable successors behind `getNext()`. Boundary events and
-     * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
-     * opens its interior via `getStartEvents()`.
-     */
-    private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements): TypeSpec {
-        val flowBuilder = JavaConstantHolder("FlowNodes").builder(STATIC).addJavadoc("Typed navigation over the process flow: one nested class per BPMN element.\n")
-        JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
-        return flowBuilder.build()
+    private companion object {
+        val HOLDER_NAMES = setOf("FlowNodes", "Next", "Start", "Variables", "Inputs", "Outputs")
     }
 }

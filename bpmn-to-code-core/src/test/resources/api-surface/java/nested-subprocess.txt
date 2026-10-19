@@ -1,0 +1,106 @@
+public final class NestedSubprocessProcessProcessApi
+  public static final BpmnEngine PROCESS_ENGINE = BpmnEngine.ZEEBE
+  public static final ProcessId PROCESS_ID = ProcessId(value="NestedSubprocessProcess")
+  public static final class FlowNodes
+    public static List<FlowNode> all() = [->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner, ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter, ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot, ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner, ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter, ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot, ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner, ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter, ->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner]
+    public static NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner endEventInner() = ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner
+    public static NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter endEventOuter() = ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter
+    public static NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot endEventRoot() = ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot
+    public static NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner startEventInner() = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner
+    public static NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter startEventOuter() = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter
+    public static NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot startEventRoot() = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot
+    public static NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner subProcessInner() = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner
+    public static NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter subProcessOuter() = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter
+    public static NestedSubprocessProcessProcessApi.FlowNodes.TaskInner taskInner() = ->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner
+    public static final class EndEventInner extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "EndEvent_Inner"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="EndEvent_Inner")
+      inherited getName() = null
+    public static final class EndEventOuter extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "EndEvent_Outer"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="EndEvent_Outer")
+      inherited getName() = null
+    public static final class EndEventRoot extends AbstractFlowNode implements Event
+      public static final String ELEMENT_ID = "EndEvent_Root"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      inherited getElementType() = BpmnElementType.END_EVENT
+      inherited getId() = ElementId(value="EndEvent_Root")
+      inherited getName() = null
+    public static final class StartEventInner extends AbstractFlowNode implements Event, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner.Next>
+      public static final String ELEMENT_ID = "StartEvent_Inner"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      public NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner.Next getNext() = NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner.Next(taskInner=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner))
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="StartEvent_Inner")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.TaskInner> taskInner()
+    public static final class StartEventOuter extends AbstractFlowNode implements Event, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter.Next>
+      public static final String ELEMENT_ID = "StartEvent_Outer"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      public NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter.Next getNext() = NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter.Next(subProcessInner=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner))
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="StartEvent_Outer")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner> subProcessInner()
+    public static final class StartEventRoot extends AbstractFlowNode implements Event, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Next>
+      public static final String ELEMENT_ID = "StartEvent_Root"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot
+      public BpmnEventType getEventType() = BpmnEventType.NONE
+      public NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Next getNext() = NestedSubprocessProcessProcessApi.FlowNodes.StartEventRoot.Next(subProcessOuter=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r1"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter))
+      inherited getElementType() = BpmnElementType.START_EVENT
+      inherited getId() = ElementId(value="StartEvent_Root")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter> subProcessOuter()
+    public static final class SubProcessInner extends AbstractFlowNode implements FlowScope<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Start>, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Next>
+      public static final String ELEMENT_ID = "SubProcess_Inner"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner
+      public NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Next getNext() = NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Next(endEventOuter=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_o2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter))
+      public NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Start getStartEvents() = NestedSubprocessProcessProcessApi.FlowNodes.SubProcessInner.Start(startEventInner=->NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner)
+      inherited getElementType() = BpmnElementType.SUB_PROCESS
+      inherited getId() = ElementId(value="SubProcess_Inner")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.EndEventOuter> endEventOuter()
+      public static final class Start
+        constructor()
+        public NestedSubprocessProcessProcessApi.FlowNodes.StartEventInner startEventInner()
+    public static final class SubProcessOuter extends AbstractFlowNode implements FlowScope<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Start>, HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Next>
+      public static final String ELEMENT_ID = "SubProcess_Outer"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter
+      public NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Next getNext() = NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Next(endEventRoot=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_r2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot))
+      public NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Start getStartEvents() = NestedSubprocessProcessProcessApi.FlowNodes.SubProcessOuter.Start(startEventOuter=->NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter)
+      inherited getElementType() = BpmnElementType.SUB_PROCESS
+      inherited getId() = ElementId(value="SubProcess_Outer")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.EndEventRoot> endEventRoot()
+      public static final class Start
+        constructor()
+        public NestedSubprocessProcessProcessApi.FlowNodes.StartEventOuter startEventOuter()
+    public static final class TaskInner extends AbstractFlowNode implements HasSuccessors<NestedSubprocessProcessProcessApi.FlowNodes.TaskInner.Next>
+      public static final String ELEMENT_ID = "Task_Inner"
+      public static final NestedSubprocessProcessProcessApi.FlowNodes.TaskInner INSTANCE = ->NestedSubprocessProcessProcessApi.FlowNodes.TaskInner
+      public NestedSubprocessProcessProcessApi.FlowNodes.TaskInner.Next getNext() = NestedSubprocessProcessProcessApi.FlowNodes.TaskInner.Next(endEventInner=SequenceFlows(flow=SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner, isDefault=false), flows=[SequenceFlow(conditionExpression=null, id=ElementId(value="Flow_i2"), name=null, target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner, isDefault=false)], target=->NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner))
+      inherited getElementType() = BpmnElementType.SERVICE_TASK
+      inherited getId() = ElementId(value="Task_Inner")
+      inherited getName() = null
+      public static final class Next
+        constructor()
+        public SequenceFlows<NestedSubprocessProcessProcessApi.FlowNodes.EndEventInner> endEventInner()

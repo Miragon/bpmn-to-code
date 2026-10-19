@@ -2,6 +2,8 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.sun.source.util.JavacTask
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
+import io.miragon.bpmn.adapter.outbound.codegen.surface.GeneratedSourceCompiler
+import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.OutputLanguage
@@ -128,6 +130,20 @@ class JavaProcessApiBuilderTest {
         assertThat(result.fileName).isEqualTo("RetailCancelBikeOrderProcessApi.java")
         assertMatchesGolden(result.content, "/api/PrefixedCancelBikeOrderProcessApiJava.txt")
         assertJavaSyntaxValid(result.fileName, result.content)
+    }
+
+    @Test
+    fun `a runtime type shadowed by a generated class is referenced by its qualified name`() {
+        // given: an end event whose id folds to the name of the runtime type Event
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Event(id = "event", shape = EventShape.END_EVENT)))
+
+        // when: we build the process API file
+        val result = underTest.buildApiFile(testProcessModelApi(model = model))
+
+        // then: the runtime type is written out instead of imported, and the file compiles
+        assertThat(result.content).contains("public static final class Event extends AbstractFlowNode implements io.miragon.bpmn.runtime.Event {")
+        assertThat(result.content).doesNotContain("import io.miragon.bpmn.runtime.Event;")
+        GeneratedSourceCompiler.compileJava(listOf(result))
     }
 
     private fun assertJavaSyntaxValid(fileName: String, source: String) {
