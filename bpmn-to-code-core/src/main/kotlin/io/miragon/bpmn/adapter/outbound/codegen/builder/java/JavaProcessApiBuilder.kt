@@ -4,6 +4,9 @@ import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaConstantHolder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaFlowWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaSourceFile
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import javax.lang.model.element.Modifier.FINAL

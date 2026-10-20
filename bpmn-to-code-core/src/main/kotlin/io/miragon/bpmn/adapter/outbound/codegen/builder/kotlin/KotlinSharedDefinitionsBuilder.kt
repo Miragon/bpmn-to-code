@@ -1,12 +1,13 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinErrorsWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinEscalationsWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinMessagesWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinProcessVariablesWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinServiceTasksWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinSignalsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.KotlinSourceFile
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinErrorsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinEscalationsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinProcessVariablesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinServiceTasksWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 /**

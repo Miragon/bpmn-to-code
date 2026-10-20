@@ -2,7 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.pascalCase
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape

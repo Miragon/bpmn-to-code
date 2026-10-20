@@ -1,12 +1,13 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaErrorsWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaEscalationsWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaMessagesWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaProcessVariablesWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaServiceTasksWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaSignalsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaSourceFile
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaErrorsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaEscalationsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaProcessVariablesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaServiceTasksWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 /**

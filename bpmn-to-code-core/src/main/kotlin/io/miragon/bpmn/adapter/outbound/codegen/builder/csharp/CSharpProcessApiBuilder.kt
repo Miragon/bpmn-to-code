@@ -2,6 +2,9 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpFlowWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpSourceFile
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.domain.shared.ProcessEngine
 
