@@ -4,6 +4,8 @@ import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
+import io.miragon.bpmn.adapter.outbound.codegen.ProcessId
+import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaConstantHolder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaFlowWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaSourceFile
@@ -23,18 +25,18 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
         private const val PROCESS_ID = "PROCESS_ID"
     }
 
-    override fun render(api: ProcessApiGraph): String {
-        val rootClassBuilder = JavaConstantHolder(api.typeName).builder()
+    override fun render(api: ProcessApiGraph): SourceCode {
+        val rootClassBuilder = JavaConstantHolder(api.typeName.value).builder()
             .addField(processIdField(api.processId))
             .addField(processEngineField(api.processEngine))
         api.flow?.let { rootClassBuilder.addType(buildFlowClass(it)) }
         return JavaSourceFile.render(type = rootClassBuilder.build(), packagePath = api.packagePath)
     }
 
-    private fun processIdField(processId: String): FieldSpec {
+    private fun processIdField(processId: ProcessId): FieldSpec {
         val processIdClass = JavaRuntimeTypes.PROCESS_ID
         val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
-        return fieldBuilder.initializer($$"new $T($S)", processIdClass, processId).build()
+        return fieldBuilder.initializer($$"new $T($S)", processIdClass, processId.value).build()
     }
 
     private fun processEngineField(processEngine: ProcessEngine): FieldSpec {

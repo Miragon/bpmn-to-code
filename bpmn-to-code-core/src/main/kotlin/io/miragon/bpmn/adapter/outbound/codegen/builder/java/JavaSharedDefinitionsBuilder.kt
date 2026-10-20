@@ -1,6 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
+import io.miragon.bpmn.adapter.outbound.codegen.PackagePath
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaSourceFile
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.shared.JavaEscalationsWriter
@@ -24,7 +26,7 @@ internal class JavaSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         JavaProcessVariablesWriter,
     ).associateBy { it.type }
 
-    override fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String {
+    override fun render(group: SharedDefinitionsGraph.Group, packagePath: PackagePath): SourceCode {
         val writer = writers.getValue(group.type)
         val type = writer.write(group.entries)
         return JavaSourceFile.render(type = type, packagePath = packagePath)

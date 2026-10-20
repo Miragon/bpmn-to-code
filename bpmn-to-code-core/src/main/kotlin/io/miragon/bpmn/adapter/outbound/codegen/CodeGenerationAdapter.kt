@@ -21,11 +21,11 @@ internal class CodeGenerationAdapter(
         val generator = generatorFor(modelApi.outputLanguage)
         val api = ProcessApiGraph.of(modelApi)
         val processFile = GeneratedApiFile(
-            fileName = "${api.typeName}.${generator.fileExtension}",
-            packagePath = api.packagePath,
-            content = generator.processApiBuilder.render(api),
+            fileName = "${api.typeName.value}.${generator.fileExtension}",
+            packagePath = api.packagePath.value,
+            content = generator.processApiBuilder.render(api).value,
             language = modelApi.outputLanguage,
-            processId = api.processId,
+            processId = api.processId.value,
         )
         return listOf(processFile)
     }
@@ -37,7 +37,7 @@ internal class CodeGenerationAdapter(
             GeneratedApiFile(
                 fileName = "${group.type.typeName}.${generator.fileExtension}",
                 packagePath = api.packagePath,
-                content = generator.sharedDefinitionsBuilder.render(group, api.packagePath),
+                content = generator.sharedDefinitionsBuilder.render(group, PackagePath(api.packagePath)).value,
                 language = api.outputLanguage,
                 processId = null,
             )

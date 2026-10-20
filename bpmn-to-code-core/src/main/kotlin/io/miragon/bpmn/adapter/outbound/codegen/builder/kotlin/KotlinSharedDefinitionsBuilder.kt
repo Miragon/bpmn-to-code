@@ -1,6 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
 
+import io.miragon.bpmn.adapter.outbound.codegen.PackagePath
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.KotlinSourceFile
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.shared.KotlinEscalationsWriter
@@ -24,7 +26,7 @@ internal class KotlinSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         KotlinProcessVariablesWriter,
     ).associateBy { it.type }
 
-    override fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String {
+    override fun render(group: SharedDefinitionsGraph.Group, packagePath: PackagePath): SourceCode {
         val writer = writers.getValue(group.type)
         val type = writer.write(group.entries)
         return KotlinSourceFile.render(type = type, packagePath = packagePath)
