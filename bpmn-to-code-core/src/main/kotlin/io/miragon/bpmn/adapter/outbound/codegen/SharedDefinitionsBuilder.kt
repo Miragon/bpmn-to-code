@@ -7,5 +7,5 @@ import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGra
  */
 internal fun interface SharedDefinitionsBuilder {
 
-    fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String
+    fun render(group: SharedDefinitionsGraph.Group, packagePath: PackagePath): SourceCode
 }

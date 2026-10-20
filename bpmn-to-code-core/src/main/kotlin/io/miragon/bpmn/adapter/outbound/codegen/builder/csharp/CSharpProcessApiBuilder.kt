@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
+import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpFlowWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpSourceFile
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpWriter
@@ -18,16 +19,16 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
  */
 internal class CSharpProcessApiBuilder : ProcessApiBuilder {
 
-    override fun render(api: ProcessApiGraph): String {
+    override fun render(api: ProcessApiGraph): SourceCode {
         val flow = api.flow
         val sections = listOfNotNull<(CSharpWriter) -> Unit>(
-            { writer -> writer.constant("ProcessId", api.processId) },
+            { writer -> writer.constant("ProcessId", api.processId.value) },
             { writer -> writeProcessEngine(writer, api.processEngine) },
             { writer -> writeRuntimeTypes(writer) },
             flow?.let { graph -> { writer -> writeFlow(writer, graph) } },
         )
         return CSharpSourceFile.render(packagePath = api.packagePath) { writer ->
-            writer.staticClass(api.typeName) {
+            writer.staticClass(api.typeName.value) {
                 writer.forEachSeparated(sections) { section -> section(writer) }
             }
         }

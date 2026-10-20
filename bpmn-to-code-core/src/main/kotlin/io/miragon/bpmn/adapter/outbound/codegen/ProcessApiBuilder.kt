@@ -5,5 +5,5 @@ package io.miragon.bpmn.adapter.outbound.codegen
  */
 internal fun interface ProcessApiBuilder {
 
-    fun render(api: ProcessApiGraph): String
+    fun render(api: ProcessApiGraph): SourceCode
 }

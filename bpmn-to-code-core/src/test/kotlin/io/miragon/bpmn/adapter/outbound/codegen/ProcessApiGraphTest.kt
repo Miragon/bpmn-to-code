@@ -26,9 +26,9 @@ class ProcessApiGraphTest {
         // then: it holds the identity of the process and its flow graph
         assertThat(api).isEqualTo(
             ProcessApiGraph(
-                typeName = "BikeLeasingProcessApi",
-                packagePath = "de.emaarco.example",
-                processId = "bikeLeasing",
+                typeName = ApiTypeName("BikeLeasingProcessApi"),
+                packagePath = PackagePath("de.emaarco.example"),
+                processId = ProcessId("bikeLeasing"),
                 processEngine = ProcessEngine.CAMUNDA_7,
                 flow = FlowGraphFactory.build(model.graph, model.definitions),
             ),

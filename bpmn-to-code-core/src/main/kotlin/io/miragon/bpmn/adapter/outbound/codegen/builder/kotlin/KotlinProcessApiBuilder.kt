@@ -4,6 +4,8 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
+import io.miragon.bpmn.adapter.outbound.codegen.ProcessId
+import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.KotlinFlowWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.KotlinSourceFile
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
@@ -19,18 +21,18 @@ internal class KotlinProcessApiBuilder : ProcessApiBuilder {
         private const val PROCESS_ID = "PROCESS_ID"
     }
 
-    override fun render(api: ProcessApiGraph): String {
-        val rootObjectBuilder = TypeSpec.objectBuilder(api.typeName)
+    override fun render(api: ProcessApiGraph): SourceCode {
+        val rootObjectBuilder = TypeSpec.objectBuilder(api.typeName.value)
             .addProperty(processIdProperty(api.processId))
             .addProperty(processEngineProperty(api.processEngine))
         api.flow?.let { rootObjectBuilder.addType(buildFlowObject(it)) }
         return KotlinSourceFile.render(type = rootObjectBuilder.build(), packagePath = api.packagePath)
     }
 
-    private fun processIdProperty(processId: String): PropertySpec {
+    private fun processIdProperty(processId: ProcessId): PropertySpec {
         val processIdClass = KotlinRuntimeTypes.PROCESS_ID
         return PropertySpec.builder(PROCESS_ID, processIdClass)
-            .initializer("%T(%S)", processIdClass, processId).build()
+            .initializer("%T(%S)", processIdClass, processId.value).build()
     }
 
     private fun processEngineProperty(processEngine: ProcessEngine): PropertySpec {

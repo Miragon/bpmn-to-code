@@ -33,7 +33,7 @@ class CodeGenerationAdapterTest {
     fun `generateCode renders the process api into a file named after it`() {
         // given: a Kotlin model API and a stubbed process builder
         val modelApi = testProcessModelApi()
-        every { kotlinProcessBuilder.render(api = any()) } returns "content"
+        every { kotlinProcessBuilder.render(api = any()) } returns SourceCode("content")
 
         // when: generating code for the model
         val result = underTest.generateCode(modelApi)
@@ -68,8 +68,8 @@ class CodeGenerationAdapterTest {
                 errors = listOf(RootElementDefinition.Error(id = "error_damaged", name = "bikeDamaged", code = "DAMAGED")),
             ),
         )
-        every { kotlinSharedBuilder.render(group = any(), packagePath = "packagePath") } answers {
-            "content of ${firstArg<SharedDefinitionsGraph.Group>().type.typeName}"
+        every { kotlinSharedBuilder.render(group = any(), packagePath = PackagePath("packagePath")) } answers {
+            SourceCode("content of ${firstArg<SharedDefinitionsGraph.Group>().type.typeName}")
         }
 
         // when: generating the shared code
@@ -80,8 +80,8 @@ class CodeGenerationAdapterTest {
             sharedFile(fileName = "Messages.kt", content = "content of Messages"),
             sharedFile(fileName = "Errors.kt", content = "content of Errors"),
         )
-        verify { kotlinSharedBuilder.render(group = match { it.type == SharedDefinitionType.MESSAGES }, packagePath = "packagePath") }
-        verify { kotlinSharedBuilder.render(group = match { it.type == SharedDefinitionType.ERRORS }, packagePath = "packagePath") }
+        verify { kotlinSharedBuilder.render(group = match { it.type == SharedDefinitionType.MESSAGES }, packagePath = PackagePath("packagePath")) }
+        verify { kotlinSharedBuilder.render(group = match { it.type == SharedDefinitionType.ERRORS }, packagePath = PackagePath("packagePath")) }
         confirmVerified(kotlinSharedBuilder)
     }
 

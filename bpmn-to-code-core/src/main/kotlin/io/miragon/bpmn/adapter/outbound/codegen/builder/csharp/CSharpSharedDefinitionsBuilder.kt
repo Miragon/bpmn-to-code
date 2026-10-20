@@ -1,6 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.adapter.outbound.codegen.PackagePath
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpSourceFile
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpErrorsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpEscalationsWriter
@@ -26,7 +28,7 @@ internal class CSharpSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         CSharpProcessVariablesWriter,
     ).associateBy { it.type }
 
-    override fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String {
+    override fun render(group: SharedDefinitionsGraph.Group, packagePath: PackagePath): SourceCode {
         val sharedDefinitionWriter = writers.getValue(group.type)
         return CSharpSourceFile.render(packagePath = packagePath) { writer ->
             sharedDefinitionWriter.write(writer, group.entries)
