@@ -4,6 +4,8 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.KotlinFlowWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.poet.KotlinSourceFile
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.domain.shared.ProcessEngine
 

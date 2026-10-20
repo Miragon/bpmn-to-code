@@ -1,6 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpCodeFormat.pascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.pascalCase
 
 /**
  * Names of the C# counterpart of `bpmn-to-code-runtime`. The types themselves are the fixed text

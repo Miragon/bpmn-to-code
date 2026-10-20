@@ -1,12 +1,13 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpErrorsWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpEscalationsWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpMessagesWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpProcessVariablesWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpServiceTasksWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpSignalsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpSourceFile
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpErrorsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpEscalationsWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpMessagesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpProcessVariablesWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpServiceTasksWriter
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared.CSharpSignalsWriter
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 /**
