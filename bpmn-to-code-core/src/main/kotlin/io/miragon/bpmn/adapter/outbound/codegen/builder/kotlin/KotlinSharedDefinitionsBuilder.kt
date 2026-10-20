@@ -7,11 +7,10 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinMess
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.shared.KotlinSignalsWriter
-import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 /**
- * Generates one Kotlin object per kind of engine-global identifier, shared by all Process APIs of a run.
+ * Renders the Kotlin object of one kind of engine-global identifier, shared by all Process APIs of a run.
  */
 internal class KotlinSharedDefinitionsBuilder : SharedDefinitionsBuilder {
 
@@ -22,9 +21,11 @@ internal class KotlinSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         KotlinErrorsWriter,
         KotlinEscalationsWriter,
         KotlinProcessVariablesWriter,
-    )
+    ).associateBy { it.type }
 
-    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers
-        .filter { it.shouldWrite(api.definitions) }
-        .map { KotlinSourceFile.render(type = it.write(api.definitions), packagePath = api.packagePath) }
+    override fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String {
+        val writer = writers.getValue(group.type)
+        val type = writer.write(group.entries)
+        return KotlinSourceFile.render(type = type, packagePath = packagePath)
+    }
 }

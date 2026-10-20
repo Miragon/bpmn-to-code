@@ -6,8 +6,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinRuntimeTypes
-import io.miragon.bpmn.domain.SharedDefinitions
-import io.miragon.bpmn.domain.shared.VariableMapping
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 internal object KotlinSignalsWriter : KotlinSharedDefinitionWriter<String>() {
 
@@ -15,7 +14,7 @@ internal object KotlinSignalsWriter : KotlinSharedDefinitionWriter<String>() {
     override val kdoc = "BPMN signal names broadcast and caught by signal events."
     override val elementType: TypeName = KotlinRuntimeTypes.SIGNAL_NAME
 
-    override fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<String>> = definitions.signals
+    override fun valueOf(entry: SharedDefinitionsGraph.Entry): String = entry.value
 
     override fun initializer(value: String): CodeBlock = CodeBlock.of("%T(%L)", elementType, stringLiteral(value))
 }

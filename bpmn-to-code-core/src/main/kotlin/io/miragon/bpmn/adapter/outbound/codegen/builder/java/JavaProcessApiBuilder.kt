@@ -2,15 +2,10 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import com.palantir.javapoet.FieldSpec
 import com.palantir.javapoet.TypeSpec
-import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectSelection
-import io.miragon.bpmn.adapter.outbound.codegen.ApiObjectType
-import io.miragon.bpmn.adapter.outbound.codegen.ObjectWriter
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraphFactory
-import io.miragon.bpmn.domain.BpmnModelApi
-import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.shared.ProcessGraph
-import io.miragon.bpmn.domain.shared.RootElements
+import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
+import io.miragon.bpmn.domain.shared.ProcessEngine
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
@@ -25,49 +20,25 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
         private const val PROCESS_ID = "PROCESS_ID"
     }
 
-    private val objectWriters: Map<ApiObjectType, ObjectWriter<TypeSpec.Builder>> = mapOf(
-        ApiObjectType.PROCESS_ID to ProcessIdWriter(),
-        ApiObjectType.PROCESS_ENGINE to ProcessEngineWriter(),
-        ApiObjectType.FLOW to FlowWriter(),
-    )
-
-    override fun buildApiFile(modelApi: BpmnModelApi): GeneratedApiFile {
-        val rootClassBuilder = JavaConstantHolder(modelApi.fileName()).builder()
-        objectWriters
-            .filterKeys { ApiObjectSelection.includes(it, modelApi) }
-            .forEach { (_, writer) -> writer.addTo(rootClassBuilder, modelApi) }
-        return JavaSourceFile.render(
-            type = rootClassBuilder.build(),
-            packagePath = modelApi.packagePath,
-            processId = modelApi.model.processId,
-        )
+    override fun render(api: ProcessApiGraph): String {
+        val rootClassBuilder = JavaConstantHolder(api.typeName).builder()
+            .addField(processIdField(api.processId))
+            .addField(processEngineField(api.processEngine))
+        api.flow?.let { rootClassBuilder.addType(buildFlowClass(it)) }
+        return JavaSourceFile.render(type = rootClassBuilder.build(), packagePath = api.packagePath)
     }
 
-    private class ProcessIdWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val processIdClass = JavaRuntimeTypes.PROCESS_ID
-            val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
-            builder.addField(fieldBuilder.initializer($$"new $T($S)", processIdClass, modelApi.model.processId).build())
-        }
+    private fun processIdField(processId: String): FieldSpec {
+        val processIdClass = JavaRuntimeTypes.PROCESS_ID
+        val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
+        return fieldBuilder.initializer($$"new $T($S)", processIdClass, processId).build()
     }
 
-    private class ProcessEngineWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val bpmnEngineClass = JavaRuntimeTypes.BPMN_ENGINE
-            val fieldBuilder = FieldSpec.builder(bpmnEngineClass, "PROCESS_ENGINE")
-                .addModifiers(PUBLIC, FINAL, STATIC).initializer($$"$T.$L", bpmnEngineClass, modelApi.targetEngine.name)
-            builder.addField(fieldBuilder.build())
-        }
-    }
-
-    private inner class FlowWriter : ObjectWriter<TypeSpec.Builder> {
-
-        override fun addTo(builder: TypeSpec.Builder, modelApi: BpmnModelApi) {
-            val flowClass = buildFlowClass(modelApi.model.graph, modelApi.model.definitions)
-            builder.addType(flowClass)
-        }
+    private fun processEngineField(processEngine: ProcessEngine): FieldSpec {
+        val bpmnEngineClass = JavaRuntimeTypes.BPMN_ENGINE
+        val fieldBuilder = FieldSpec.builder(bpmnEngineClass, "PROCESS_ENGINE")
+            .addModifiers(PUBLIC, FINAL, STATIC).initializer($$"$T.$L", bpmnEngineClass, processEngine.name)
+        return fieldBuilder.build()
     }
 
     /**
@@ -76,9 +47,9 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
      * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
      * opens its interior via `getStartEvents()`.
      */
-    private fun buildFlowClass(graph: ProcessGraph, definitions: RootElements): TypeSpec {
+    private fun buildFlowClass(graph: FlowGraph): TypeSpec {
         val flowBuilder = JavaConstantHolder("FlowNodes").builder(STATIC).addJavadoc("Typed navigation over the process flow: one nested class per BPMN element.\n")
-        JavaFlowWriter().write(flowBuilder, FlowGraphFactory.build(graph, definitions))
+        JavaFlowWriter().write(flowBuilder, graph)
         return flowBuilder.build()
     }
 }

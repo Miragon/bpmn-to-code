@@ -6,9 +6,9 @@ The generator emits the same API in Kotlin, Java and C#. The three languages dif
 
 ## Decision
 
-**What is language-independent is computed once.** Before any source is written, a process model is turned into a `FlowGraph`: a flat, language-neutral list of nodes with their generated names, their facets and their successors. It lives in the `codegen/flow` package. The builders only render it.
+**What is language-independent is computed once.** Before any source is written, `CodeGenerationAdapter` turns a process model into a `ProcessApiGraph`: the API's name, package, process id and engine, plus a `FlowGraph`, a flat, language-neutral list of nodes with their generated names, their facets and their successors (package `codegen/flow`). The shared definitions of a run become a `SharedDefinitionsGraph`, one group of constants per kind (package `codegen/definitions`). The adapter also names and wraps the files. The builders only render a graph to source text.
 
-**One pair of builders per language.** Each `OutputLanguage` has a `ProcessApiBuilder` for a Process API and a `SharedDefinitionsBuilder` for the shared definition files ([record 6](006-generated-api-shape.md)). `CodeGenerationAdapter` picks them from two maps. There is no common base class; what the builders share is the model they render.
+**One generator per language.** Each `OutputLanguage` has a `LanguageGenerator`: its file extension, a `ProcessApiBuilder` for a Process API and a `SharedDefinitionsBuilder` for one kind of shared definition ([record 6](006-generated-api-shape.md)). `CodeGenerationAdapter` picks it from one map. There is no common base class; what the builders share is the model they render.
 
 **Kotlin and Java are rendered with KotlinPoet and JavaPoet.** The libraries model a type tree and take care of imports, escaping and formatting.
 
@@ -21,7 +21,7 @@ The generator emits the same API in Kotlin, Java and C#. The three languages dif
 ## Consequences
 
 - A change to naming, facets or successors is made once and reaches all three languages.
-- A new language is two builders and two map entries, plus fixtures.
+- A new language, or a new way of writing an existing one, is two builders and one map entry, plus fixtures. The golden tests go through the adapter, so they test whatever is registered.
 - The C# compile test is skipped when no .NET SDK is installed. A contributor without one can break C# and only learns it in CI, where the SDK is present.
 - The runtime types exist twice: as hand-written Kotlin and as a C# text block. A change to one has to be made in the other by hand, and nothing but the fixtures links them.
 - Runtime types of two generated C# files are unrelated to each other, so generic C# code over several Process APIs needs its own abstraction. The process-path API ([record 8](008-runtime-library-and-process-paths.md)) has no C# counterpart.

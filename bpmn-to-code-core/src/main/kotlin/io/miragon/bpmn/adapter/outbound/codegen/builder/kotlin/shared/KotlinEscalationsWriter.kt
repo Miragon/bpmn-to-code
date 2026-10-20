@@ -6,8 +6,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinRuntimeTypes
-import io.miragon.bpmn.domain.SharedDefinitions
-import io.miragon.bpmn.domain.shared.VariableMapping
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 internal object KotlinEscalationsWriter : KotlinSharedDefinitionWriter<Pair<String, String>>() {
 
@@ -15,7 +14,7 @@ internal object KotlinEscalationsWriter : KotlinSharedDefinitionWriter<Pair<Stri
     override val kdoc = "BPMN escalation definitions with name and code, as thrown and caught by the processes."
     override val elementType: TypeName = KotlinRuntimeTypes.BPMN_ESCALATION_DEFINITION
 
-    override fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<Pair<String, String>>> = definitions.escalations
+    override fun valueOf(entry: SharedDefinitionsGraph.Entry): Pair<String, String> = entry.value to checkNotNull(entry.code)
 
     override fun initializer(value: Pair<String, String>): CodeBlock = KotlinCodeFormat.namedCall(
         type = elementType,

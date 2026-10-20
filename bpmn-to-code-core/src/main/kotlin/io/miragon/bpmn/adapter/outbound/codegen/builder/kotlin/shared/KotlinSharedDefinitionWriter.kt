@@ -9,32 +9,29 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
-import io.miragon.bpmn.domain.SharedDefinitions
-import io.miragon.bpmn.domain.shared.VariableMapping
 
 /**
  * Writes the Kotlin object of one kind of shared definition: a property per definition plus `all`.
  */
 internal abstract class KotlinSharedDefinitionWriter<T : Any> {
 
-    protected abstract val type: SharedDefinitionType
+    abstract val type: SharedDefinitionType
     protected abstract val kdoc: String
     protected abstract val elementType: TypeName
     protected open val modifiers: List<KModifier> = emptyList()
 
-    protected abstract fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<T>>
+    protected abstract fun valueOf(entry: SharedDefinitionsGraph.Entry): T
 
     protected abstract fun initializer(value: T): CodeBlock
 
-    fun shouldWrite(definitions: SharedDefinitions): Boolean = definitionsOf(definitions).isNotEmpty()
-
-    fun write(definitions: SharedDefinitions): TypeSpec {
-        val ofKind = definitionsOf(definitions)
+    fun write(entries: List<SharedDefinitionsGraph.Entry>): TypeSpec {
+        val properties = entries.map { property(name = it.constantName, initializer = initializer(valueOf(it))) }
         return TypeSpec.objectBuilder(type.typeName).addKdoc(kdoc)
-            .addProperties(ofKind.map { property(name = it.getName(), initializer = initializer(it.getValue())) })
-            .addProperty(allDefinitions(ofKind))
+            .addProperties(properties)
+            .addProperty(allDefinitions(entries))
             .build()
     }
 
@@ -54,6 +51,6 @@ internal abstract class KotlinSharedDefinitionWriter<T : Any> {
     private fun property(name: String, initializer: CodeBlock): PropertySpec = PropertySpec.builder(name, elementType)
         .addModifiers(modifiers).initializer(initializer).build()
 
-    private fun allDefinitions(definitions: List<VariableMapping<T>>): PropertySpec = PropertySpec.builder("all", LIST.parameterizedBy(elementType))
-        .initializer(KotlinCodeFormat.listOfNames(definitions.map { it.getName() })).build()
+    private fun allDefinitions(entries: List<SharedDefinitionsGraph.Entry>): PropertySpec = PropertySpec.builder("all", LIST.parameterizedBy(elementType))
+        .initializer(KotlinCodeFormat.listOfNames(entries.map { it.constantName })).build()
 }

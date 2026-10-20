@@ -1,12 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.codegen
 
-import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 /**
- * Renders the shared definition files of a run in one output language.
+ * Renders the file of one kind of shared definition in one output language.
  */
 internal fun interface SharedDefinitionsBuilder {
 
-    fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile>
+    fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String
 }

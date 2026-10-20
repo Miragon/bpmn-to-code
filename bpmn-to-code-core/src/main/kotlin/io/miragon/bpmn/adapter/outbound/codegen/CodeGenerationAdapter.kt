@@ -6,6 +6,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaProcessApiBuild
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
@@ -13,33 +14,55 @@ import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
 
 internal class CodeGenerationAdapter(
-    private val processApiBuilders: Map<OutputLanguage, ProcessApiBuilder> = Companion.processApiBuilders,
-    private val sharedDefinitionsBuilders: Map<OutputLanguage, SharedDefinitionsBuilder> = Companion.sharedDefinitionsBuilders,
+    private val generators: Map<OutputLanguage, LanguageGenerator> = Companion.generators,
 ) : GenerateApiCodePort {
 
     override fun generateCode(modelApi: BpmnModelApi): List<GeneratedApiFile> {
-        val language = modelApi.outputLanguage
-        val processApiBuilder = processApiBuilders[language] ?: throw IllegalArgumentException("$language is not supported")
-        val processFile = processApiBuilder.buildApiFile(modelApi)
+        val generator = generatorFor(modelApi.outputLanguage)
+        val api = ProcessApiGraph.of(modelApi)
+        val processFile = GeneratedApiFile(
+            fileName = "${api.typeName}.${generator.fileExtension}",
+            packagePath = api.packagePath,
+            content = generator.processApiBuilder.render(api),
+            language = modelApi.outputLanguage,
+            processId = api.processId,
+        )
         return listOf(processFile)
     }
 
     override fun generateSharedCode(api: SharedDefinitionsApi): List<GeneratedApiFile> {
-        val language = api.outputLanguage
-        val sharedDefinitionsBuilder = sharedDefinitionsBuilders[language] ?: throw IllegalArgumentException("$language is not supported")
-        return sharedDefinitionsBuilder.buildApiFiles(api)
+        val generator = generatorFor(api.outputLanguage)
+        val graph = SharedDefinitionsGraph.of(api.definitions)
+        return graph.groups.map { group ->
+            GeneratedApiFile(
+                fileName = "${group.type.typeName}.${generator.fileExtension}",
+                packagePath = api.packagePath,
+                content = generator.sharedDefinitionsBuilder.render(group, api.packagePath),
+                language = api.outputLanguage,
+                processId = null,
+            )
+        }
     }
 
+    private fun generatorFor(language: OutputLanguage): LanguageGenerator = requireNotNull(generators[language]) { "$language is not supported" }
+
     companion object {
-        val processApiBuilders: Map<OutputLanguage, ProcessApiBuilder> = mapOf(
-            OutputLanguage.KOTLIN to KotlinProcessApiBuilder(),
-            OutputLanguage.JAVA to JavaProcessApiBuilder(),
-            OutputLanguage.CSHARP to CSharpProcessApiBuilder(),
-        )
-        val sharedDefinitionsBuilders: Map<OutputLanguage, SharedDefinitionsBuilder> = mapOf(
-            OutputLanguage.KOTLIN to KotlinSharedDefinitionsBuilder(),
-            OutputLanguage.JAVA to JavaSharedDefinitionsBuilder(),
-            OutputLanguage.CSHARP to CSharpSharedDefinitionsBuilder(),
+        val generators: Map<OutputLanguage, LanguageGenerator> = mapOf(
+            OutputLanguage.KOTLIN to LanguageGenerator(
+                fileExtension = "kt",
+                processApiBuilder = KotlinProcessApiBuilder(),
+                sharedDefinitionsBuilder = KotlinSharedDefinitionsBuilder(),
+            ),
+            OutputLanguage.JAVA to LanguageGenerator(
+                fileExtension = "java",
+                processApiBuilder = JavaProcessApiBuilder(),
+                sharedDefinitionsBuilder = JavaSharedDefinitionsBuilder(),
+            ),
+            OutputLanguage.CSHARP to LanguageGenerator(
+                fileExtension = "cs",
+                processApiBuilder = CSharpProcessApiBuilder(),
+                sharedDefinitionsBuilder = CSharpSharedDefinitionsBuilder(),
+            ),
         )
     }
 }
