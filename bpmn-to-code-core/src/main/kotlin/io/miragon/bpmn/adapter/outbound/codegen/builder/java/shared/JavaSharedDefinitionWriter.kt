@@ -8,10 +8,9 @@ import com.palantir.javapoet.ParameterizedTypeName
 import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaConstantHolder
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
-import io.miragon.bpmn.domain.SharedDefinitions
-import io.miragon.bpmn.domain.shared.VariableMapping
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
@@ -21,21 +20,19 @@ import javax.lang.model.element.Modifier.STATIC
  */
 internal abstract class JavaSharedDefinitionWriter<T : Any> {
 
-    protected abstract val type: SharedDefinitionType
+    abstract val type: SharedDefinitionType
     protected abstract val javadoc: String
     protected abstract val elementType: ClassName
 
-    protected abstract fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<T>>
+    protected abstract fun valueOf(entry: SharedDefinitionsGraph.Entry): T
 
     protected abstract fun initializer(value: T): CodeBlock
 
-    fun shouldWrite(definitions: SharedDefinitions): Boolean = definitionsOf(definitions).isNotEmpty()
-
-    fun write(definitions: SharedDefinitions): TypeSpec {
-        val ofKind = definitionsOf(definitions)
+    fun write(entries: List<SharedDefinitionsGraph.Entry>): TypeSpec {
+        val fields = entries.map { field(name = it.constantName, initializer = initializer(valueOf(it))) }
         return JavaConstantHolder(type.typeName).builder().addJavadoc(javadoc)
-            .addFields(ofKind.map { field(name = it.getName(), initializer = initializer(it.getValue())) })
-            .addMethod(allAccessor(ofKind))
+            .addFields(fields)
+            .addMethod(allAccessor(entries))
             .build()
     }
 
@@ -51,8 +48,8 @@ internal abstract class JavaSharedDefinitionWriter<T : Any> {
 
     private fun field(name: String, initializer: CodeBlock): FieldSpec = FieldSpec.builder(elementType, name, PUBLIC, STATIC, FINAL).initializer(initializer).build()
 
-    private fun allAccessor(definitions: List<VariableMapping<T>>): MethodSpec {
-        val fields = definitions.map { CodeBlock.of($$"$N", it.getName()) }
+    private fun allAccessor(entries: List<SharedDefinitionsGraph.Entry>): MethodSpec {
+        val fields = entries.map { CodeBlock.of($$"$N", it.constantName) }
         return MethodSpec.methodBuilder("all").addModifiers(PUBLIC, STATIC)
             .returns(ParameterizedTypeName.get(ClassName.get(List::class.java), elementType))
             .addStatement($$"return $T.of(\n$L)", List::class.java, CodeBlock.join(fields, ",\n")).build()

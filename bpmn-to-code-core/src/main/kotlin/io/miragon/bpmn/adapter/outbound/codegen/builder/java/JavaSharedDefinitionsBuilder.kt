@@ -7,11 +7,10 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaMessages
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.shared.JavaSignalsWriter
-import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 /**
- * Generates one Java class per kind of engine-global identifier, shared by all Process APIs of a run.
+ * Renders the Java class of one kind of engine-global identifier, shared by all Process APIs of a run.
  */
 internal class JavaSharedDefinitionsBuilder : SharedDefinitionsBuilder {
 
@@ -22,9 +21,11 @@ internal class JavaSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         JavaErrorsWriter,
         JavaEscalationsWriter,
         JavaProcessVariablesWriter,
-    )
+    ).associateBy { it.type }
 
-    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers
-        .filter { it.shouldWrite(api.definitions) }
-        .map { JavaSourceFile.render(type = it.write(api.definitions), packagePath = api.packagePath) }
+    override fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String {
+        val writer = writers.getValue(group.type)
+        val type = writer.write(group.entries)
+        return JavaSourceFile.render(type = type, packagePath = packagePath)
+    }
 }

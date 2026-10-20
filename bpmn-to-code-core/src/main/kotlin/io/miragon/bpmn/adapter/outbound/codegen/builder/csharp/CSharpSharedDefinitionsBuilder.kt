@@ -7,11 +7,10 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpMess
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpProcessVariablesWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpServiceTasksWriter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.shared.CSharpSignalsWriter
-import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 /**
- * Generates one C# static class per kind of engine-global identifier, shared by all Process APIs of a run.
+ * Renders the C# static class of one kind of engine-global identifier, shared by all Process APIs of a run.
  * Plain `const string`s need none of the runtime types [CSharpProcessApiBuilder] inlines per file, so the
  * classes are the same for every process.
  */
@@ -24,13 +23,12 @@ internal class CSharpSharedDefinitionsBuilder : SharedDefinitionsBuilder {
         CSharpErrorsWriter,
         CSharpEscalationsWriter,
         CSharpProcessVariablesWriter,
-    )
+    ).associateBy { it.type }
 
-    override fun buildApiFiles(api: SharedDefinitionsApi): List<GeneratedApiFile> = writers
-        .filter { it.shouldWrite(api.definitions) }
-        .map { sharedDefinitionWriter ->
-            CSharpSourceFile.render(typeName = sharedDefinitionWriter.type.typeName, packagePath = api.packagePath) { writer ->
-                sharedDefinitionWriter.write(writer, api.definitions)
-            }
+    override fun render(group: SharedDefinitionsGraph.Group, packagePath: String): String {
+        val sharedDefinitionWriter = writers.getValue(group.type)
+        return CSharpSourceFile.render(packagePath = packagePath) { writer ->
+            sharedDefinitionWriter.write(writer, group.entries)
         }
+    }
 }

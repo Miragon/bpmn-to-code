@@ -7,8 +7,7 @@ import com.squareup.kotlinpoet.asTypeName
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinCodeFormat.stringLiteral
-import io.miragon.bpmn.domain.SharedDefinitions
-import io.miragon.bpmn.domain.shared.VariableMapping
+import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 
 internal object KotlinServiceTasksWriter : KotlinSharedDefinitionWriter<String>() {
 
@@ -18,7 +17,7 @@ internal object KotlinServiceTasksWriter : KotlinSharedDefinitionWriter<String>(
     override val elementType: TypeName = String::class.asTypeName()
     override val modifiers = listOf(KModifier.CONST)
 
-    override fun definitionsOf(definitions: SharedDefinitions): List<VariableMapping<String>> = definitions.serviceTasks
+    override fun valueOf(entry: SharedDefinitionsGraph.Entry): String = entry.value
 
     override fun initializer(value: String): CodeBlock = stringLiteral(value)
 }
