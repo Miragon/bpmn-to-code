@@ -1,15 +1,20 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer
+package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class CSharpCodeFormatTest {
+class CSharpSyntaxTest {
 
-    private val underTest = CSharpCodeFormat
+    private val underTest = CSharpSyntax
 
     @Test
     fun `stringLiteral escapes quotes, backslashes and control characters`() {
         assertThat(underTest.stringLiteral(value = "say \"hi\"\r\n\tC:\\temp")).isEqualTo(""""say \"hi\"\r\n\tC:\\temp"""")
+    }
+
+    @Test
+    fun `stringLiteral writes any other control character as a unicode escape`() {
+        assertThat(underTest.stringLiteral(value = "a\u0001b")).isEqualTo("\"a\\u0001b\"")
     }
 
     @Test

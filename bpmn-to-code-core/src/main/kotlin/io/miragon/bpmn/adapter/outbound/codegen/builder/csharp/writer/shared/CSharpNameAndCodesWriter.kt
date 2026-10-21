@@ -1,6 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue

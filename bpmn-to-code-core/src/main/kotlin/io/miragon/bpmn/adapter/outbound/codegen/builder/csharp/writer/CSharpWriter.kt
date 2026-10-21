@@ -1,7 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.disambiguated
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.disambiguated
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
 
 /**
  * Accumulates C# source text with block-aware indentation.

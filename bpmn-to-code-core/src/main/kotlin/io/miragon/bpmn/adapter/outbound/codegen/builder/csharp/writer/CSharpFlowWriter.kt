@@ -1,8 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer
 
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpRuntimeTypes
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.nullableStringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.nullableStringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge

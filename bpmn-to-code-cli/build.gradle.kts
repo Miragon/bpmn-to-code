@@ -46,7 +46,7 @@ val runtimeImage by tasks.registering(Exec::class) {
         outputDir.get().asFile.deleteRecursively()
         commandLine(
             jlink.get(),
-            "--add-modules", "java.base,java.xml,java.compiler,java.logging",
+            "--add-modules", "java.base,java.xml,java.compiler,java.logging,java.desktop",
             "--strip-debug",
             "--no-header-files",
             "--no-man-pages",

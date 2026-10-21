@@ -152,8 +152,7 @@ public final class BikeLeasingProcessApi {
       return ServiceTaskOrderBike.INSTANCE;
     }
 
-    public static ServiceTaskSendCancellationConfirmation serviceTaskSendCancellationConfirmation(
-        ) {
+    public static ServiceTaskSendCancellationConfirmation serviceTaskSendCancellationConfirmation() {
       return ServiceTaskSendCancellationConfirmation.INSTANCE;
     }
 
@@ -334,8 +333,7 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public AssociatedCompensationHandler<ServiceTaskCancelContract> serviceTaskCancelContract(
-            ) {
+        public AssociatedCompensationHandler<ServiceTaskCancelContract> serviceTaskCancelContract() {
           return new AssociatedCompensationHandler<>(ServiceTaskCancelContract.INSTANCE);
         }
       }
@@ -407,8 +405,7 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public AssociatedCompensationHandler<CallActivityCancelBikeOrder> callActivityCancelBikeOrder(
-            ) {
+        public AssociatedCompensationHandler<CallActivityCancelBikeOrder> callActivityCancelBikeOrder() {
           return new AssociatedCompensationHandler<>(CallActivityCancelBikeOrder.INSTANCE);
         }
       }
@@ -691,8 +688,7 @@ public final class BikeLeasingProcessApi {
       }
 
       public static final class Next {
-        public SequenceFlows<ServiceTaskSendCancellationConfirmation> serviceTaskSendCancellationConfirmation(
-            ) {
+        public SequenceFlows<ServiceTaskSendCancellationConfirmation> serviceTaskSendCancellationConfirmation() {
           return SequenceFlows.single(new ElementId("flow_reverseApplicationToSendCancellationConfirmation"), ServiceTaskSendCancellationConfirmation.INSTANCE);
         }
       }
@@ -1122,17 +1118,13 @@ public final class BikeLeasingProcessApi {
           return new AttachedBoundaryEvent<>(BoundaryApplicationInvalid.INSTANCE);
         }
 
-        public SequenceFlows<BusinessRuleTaskCheckCreditRating> businessRuleTaskCheckCreditRating(
-            ) {
+        public SequenceFlows<BusinessRuleTaskCheckCreditRating> businessRuleTaskCheckCreditRating() {
           return SequenceFlows.single(new ElementId("flow_validateApplicationToCheckCreditRating"), BusinessRuleTaskCheckCreditRating.INSTANCE);
         }
       }
     }
 
-    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>,
-        Event,
-        HasMessage,
-        HasVariables {
+    public static final class StartEventAddressChanged extends AbstractFlowNode implements HasSuccessors<StartEventAddressChanged.Next>, Event, HasMessage, HasVariables {
       public static final String ELEMENT_ID = "startEvent_addressChanged";
 
       public static final StartEventAddressChanged INSTANCE = new StartEventAddressChanged();
@@ -1249,10 +1241,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>,
-        Event,
-        HasMessage,
-        HasVariables {
+    public static final class StartEventLeasingRequestReceived extends AbstractFlowNode implements HasSuccessors<StartEventLeasingRequestReceived.Next>, Event, HasMessage, HasVariables {
       public static final String ELEMENT_ID = "startEvent_leasingRequestReceived";
 
       public static final StartEventLeasingRequestReceived INSTANCE = new StartEventLeasingRequestReceived();

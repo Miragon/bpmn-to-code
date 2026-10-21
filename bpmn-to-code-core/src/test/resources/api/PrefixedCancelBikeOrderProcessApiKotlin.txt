@@ -21,10 +21,6 @@ import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.RegisteredVariableDefinitions
 import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.VariableName
-import kotlin.Boolean
-import kotlin.String
-import kotlin.Suppress
-import kotlin.collections.List
 
 object RetailCancelBikeOrderProcessApi {
   val PROCESS_ID: ProcessId = ProcessId("cancelBikeOrder")
@@ -51,8 +47,7 @@ object RetailCancelBikeOrderProcessApi {
       id = ElementId(BoundaryCancellationFailed.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Cancellation failed",
-    ), HasSuccessors<BoundaryCancellationFailed.Next>,
-        BoundaryEvent<ServiceTaskRequestCancellation> {
+    ), HasSuccessors<BoundaryCancellationFailed.Next>, BoundaryEvent<ServiceTaskRequestCancellation> {
       override val eventType: BpmnEventType = BpmnEventType.ERROR
 
       const val ELEMENT_ID: String = "boundary_cancellationFailed"
@@ -101,7 +96,7 @@ object RetailCancelBikeOrderProcessApi {
           get() = SequenceFlows.single(
             flowId = ElementId("flow_cancellationNotPossibleToCollectClarifications"),
             name = "No",
-            conditionExpression = $$"""${!cancellationPossible}""",
+            conditionExpression = "\${!cancellationPossible}",
             target = GatewayCollectClarifications,
           )
 
@@ -163,8 +158,7 @@ object RetailCancelBikeOrderProcessApi {
       override val next: Next = Next
 
       object Variables : RegisteredVariableDefinitions() {
-        val CANCELLATION_COSTS: VariableName.Output =
-            output(ProcessVariables.CANCELLATION_COSTS)
+        val CANCELLATION_COSTS: VariableName.Output = output(ProcessVariables.CANCELLATION_COSTS)
       }
 
       object Next {
@@ -190,8 +184,7 @@ object RetailCancelBikeOrderProcessApi {
       override val next: Next = Next
 
       object Variables : RegisteredVariableDefinitions() {
-        val CANCELLATION_POSSIBLE: VariableName.Output =
-            output(ProcessVariables.CANCELLATION_POSSIBLE)
+        val CANCELLATION_POSSIBLE: VariableName.Output = output(ProcessVariables.CANCELLATION_POSSIBLE)
       }
 
       object Next {
