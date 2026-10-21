@@ -39,9 +39,10 @@ jobs:
       - name: Build & Test
         run: ./gradlew build --warning-mode all
 
-      - name: Validate Plugin
-        run: ./gradlew publishPlugins --validate-only
-
       - name: Publish Plugin
         if: inputs.dry_run != true
         run: ./gradlew publishPlugins
+
+      - name: Publish to Maven Local (Dry Run)
+        if: inputs.dry_run == true
+        run: ./gradlew :bpmn-to-code-gradle:publishToMavenLocal
