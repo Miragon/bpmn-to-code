@@ -40,15 +40,18 @@ tasks.processResources {
 }
 
 private val runtimeTestSources = rootProject.file("bpmn-to-code-runtime/src/test")
+private val csharpRuntimeProject = rootProject.file("packages/nuget/BpmnToCode.Runtime")
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
     systemProperty("golden.update", System.getProperty("golden.update") ?: "false")
     systemProperty("runtime.test.sources", runtimeTestSources.absolutePath)
+    systemProperty("csharp.runtime.project", csharpRuntimeProject.absolutePath)
     inputs.files(
         runtimeTestSources.resolve("kotlin/io/miragon/bpmn/runtime/path/example/BikeLeasingProcessApi.kt"),
         runtimeTestSources.resolve("java/io/miragon/bpmn/runtime/example/BikeLeasingProcessApi.java"),
     )
+    inputs.files(fileTree(csharpRuntimeProject) { include("*.cs", "*.csproj") }).withPropertyName("csharpRuntimeProject")
 }
 
 private val coverageExclusions = listOf(

@@ -30,7 +30,7 @@ All three tasks and goals take these.
 |-----------|----------------|---------------|-------------|
 | `outputFolderPath` | — | `src/main/kotlin` | Source root the code is written to; the package directories are created below it |
 | `packagePath` | — | `de.emaarco.generated` | Package (C#: namespace) of the generated code. One package per task or execution: two runs sharing a package overwrite each other's [shared definitions](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
-| `outputLanguage` | — | `KOTLIN` | `KOTLIN`, `JAVA` or `CSHARP` (experimental) |
+| `outputLanguage` | — | `KOTLIN` | `KOTLIN`, `JAVA` or `CSHARP` |
 
 ## Process JSON
 
@@ -64,10 +64,6 @@ They live in the model, so they apply the same way in Gradle, Maven and the [web
 |-------|-----------|---------|
 | `KOTLIN` | `object` with nested objects | `io.miragon:bpmn-to-code-runtime` |
 | `JAVA` | `final class` with nested static classes | `io.miragon:bpmn-to-code-runtime` |
-| `CSHARP` | `static class` with the same content | none, the types are inlined into each file |
+| `CSHARP` | `static class` with the same content | `Miragon.BpmnToCode.Runtime` (NuGet) |
 
 The Gradle plugin adds the runtime [when the `java` plugin is applied](/getting-started/gradle#runtime-dependency); with Maven you [declare it yourself](/getting-started/maven#runtime-dependency).
-
-::: warning Experimental
-C# output is experimental and may change in a minor release. See [C# specifics](/guide/generated-api#c-specifics).
-:::

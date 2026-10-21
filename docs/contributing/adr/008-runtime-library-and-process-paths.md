@@ -6,7 +6,7 @@ Generated code needs support types: wrappers for ids and names, the interfaces a
 
 ## Decision
 
-**Generated JVM code depends on a published, hand-written library.** `io.miragon:bpmn-to-code-runtime` holds the support types. It has no dependencies. The generator emits references to it instead of emitting the types per module. The Gradle plugin adds it in its own version; Maven users declare it ([record 1](001-product-surfaces-and-distribution.md)). C# is the deliberate exception and inlines the types per file ([record 7](007-output-languages.md)).
+**Generated JVM code depends on a published, hand-written library.** `io.miragon:bpmn-to-code-runtime` holds the support types. It has no dependencies. The generator emits references to it instead of emitting the types per module. The Gradle plugin adds it in its own version; Maven users declare it ([record 1](001-product-surfaces-and-distribution.md)). C# follows the same pattern with the NuGet package `Miragon.BpmnToCode.Runtime`, which `Miragon.BpmnToCode.MSBuild` adds in its own version as the Gradle plugin does for the JVM ([record 7](007-output-languages.md)).
 
 **Generator and runtime are released together and used in the same version.** Generated code may reference runtime types that an older runtime does not have. No compatibility across versions is promised in either direction.
 
@@ -16,7 +16,7 @@ Generated code needs support types: wrappers for ids and names, the interfaces a
 
 **`ProcessPath` is a compile-checked walk over `FlowNodes`.** A path starts at a node and advances through the node's `Next`, so only a real successor compiles. Entering and walking a sub-process is checked the same way. Leaving an activity through a boundary event and recording a compensation check the picked successor but let the caller name the activity. One step, `jumpTo`, is unchecked and needs an explicit opt-in to `@RiskyNavigation`.
 
-**One engine, two call shapes.** Kotlin uses extension functions on `ProcessPath`. `PathWalk` wraps the same engine in instance methods for Java and has a separate terminal type, because an end event has no successors to continue with.
+**One engine, two call shapes.** Kotlin uses extension functions on `ProcessPath`. `PathWalk` wraps the same engine in instance methods for Java and has a separate terminal type, because an end event has no successors to continue with. C# has the shape of `PathWalk` (`ProcessPath.From(…).Then(n => n.X)…End(…)`); a step's target type is inferred from the generated `IHasSuccessors<TNext>`, `IFlowScope<TStart>` and `ISubProcess<TStart, TNext>`, and `JumpTo` is marked `[Experimental]`, so using it needs an explicit `#pragma warning disable BPMNTOCODE001`.
 
 **A path yields string arrays.** The ids of the recorded nodes and of the sequence flows walked are arrays, so they spread into the string-vararg assertions of the engines' test libraries.
 
@@ -31,7 +31,7 @@ Usage is documented in [Process paths](/guide/process-path).
 - Users must have the runtime on their classpath and, on Maven, keep its version in step with the plugin by hand.
 - A path asserts order only within one sequential branch. Parallel branches are walked separately and combined into an unordered set.
 - Path semantics follow what engines report, so a difference between engines ends up as a default and a flag here.
-- The path API exists for JVM languages only.
+- The path API exists for the JVM languages and C#. The C# one is hand-written in the runtime package and has to follow a change to the Kotlin engine by hand; the same bike-leasing scenarios run against both.
 
 ## Rejected alternatives
 

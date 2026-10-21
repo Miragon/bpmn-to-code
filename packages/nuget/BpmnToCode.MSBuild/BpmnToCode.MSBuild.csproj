@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Carries MSBuild targets and a dependency on the runtime package, no assembly. The targets run the .NET tool of the
+    same version, which is written into the package as Miragon.BpmnToCode.MSBuild.props when it is packed; NuGet
+    imports that file before the project and the targets after it.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+
+    <PackageId>Miragon.BpmnToCode.MSBuild</PackageId>
+    <Version>0.0.0-dev</Version>
+    <Authors>Miragon</Authors>
+    <Description>Generates the type-safe C# Process APIs of a project's BPMN models during dotnet build and adds the runtime package they are built from.</Description>
+    <PackageTags>bpmn;camunda;zeebe;operaton;codegen;msbuild</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://miragon.github.io/bpmn-to-code/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Miragon/bpmn-to-code</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <ToolVersionProps>$(IntermediateOutputPath)Miragon.BpmnToCode.MSBuild.props</ToolVersionProps>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../BpmnToCode.Runtime/BpmnToCode.Runtime.csproj" />
+    <None Include="targets/*" Pack="true" PackagePath="build/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <Target Name="BpmnToCodeWriteToolVersion" BeforeTargets="_GetPackageFiles">
+    <WriteLinesToFile File="$(ToolVersionProps)" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="&lt;Project&gt;&lt;PropertyGroup&gt;&lt;BpmnToCodeToolVersion&gt;$(PackageVersion)&lt;/BpmnToCodeToolVersion&gt;&lt;/PropertyGroup&gt;&lt;/Project&gt;" />
+    <ItemGroup>
+      <None Include="$(ToolVersionProps)" Pack="true" PackagePath="build/" />
+    </ItemGroup>
+  </Target>
+
+</Project>

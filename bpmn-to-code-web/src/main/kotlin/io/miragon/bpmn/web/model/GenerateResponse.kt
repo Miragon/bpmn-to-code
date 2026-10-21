@@ -17,14 +17,19 @@ data class GenerateResponse(
     @Serializable
     data class GeneratedFile(val fileName: String, val content: String, val processId: String?)
 
+    /**
+     * The package the generated code is built from, with one snippet per way of adding it to a build.
+     */
     @Serializable
     data class RuntimeDependency(
-        val group: String,
-        val artifact: String,
+        val name: String,
+        val importedFrom: String,
         val version: String,
-        val gradleSnippet: String,
-        val mavenSnippet: String,
+        val snippets: List<Snippet>,
     )
+
+    @Serializable
+    data class Snippet(val label: String, val code: String)
 
     companion object {
         fun failure(statusCode: HttpStatusCode, error: String?) = GenerateResponse(

@@ -3,8 +3,8 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
 /**
- * How generated C# code is written: string literals, PascalCase identifiers, and member names that must not
- * equal their enclosing type's name.
+ * How generated C# code is written: string literals, PascalCase identifiers and namespaces, and member names that must
+ * not equal their enclosing type's name.
  */
 internal object CSharpSyntax {
 
@@ -57,6 +57,15 @@ internal object CSharpSyntax {
     fun disambiguated(name: String, enclosingType: String?): String {
         if (name != enclosingType) return name
         return name + "_"
+    }
+
+    /**
+     * The .NET namespace of a package path: every segment in PascalCase, `io.miravelo.process` becomes
+     * `Io.Miravelo.Process`. The directory the files are written to keeps the package path as given.
+     */
+    fun namespaceOf(packagePath: String): String {
+        val segments = packagePath.split('.')
+        return segments.joinToString(".") { segment -> segment.replaceFirstChar { it.uppercaseChar() } }
     }
 
     private fun escaped(character: Char): String = when {

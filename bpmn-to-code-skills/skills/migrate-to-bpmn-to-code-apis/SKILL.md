@@ -30,12 +30,12 @@ Pick Mode B when `$ARGUMENTS` contains `--from-5x` or the scan finds references 
 |---|---|---|---|
 | process id | `Api.PROCESS_ID` (`ProcessId`) | same | `Api.ProcessId` (`const string`) |
 | shared definitions | `Messages.X` (`MessageName`), `Signals.X` (`SignalName`), `Errors.X` (`BpmnErrorDefinition`), `Escalations.X`, `ServiceTasks.X` (`const String`) | same | `Messages.X` (`const string`), `Errors.X.Reference` / `.Code`, `ServiceTasks.X` |
-| element id | `Api.FlowNodes.Node.id` (`ElementId`) | `Api.FlowNodes.node().getId()` | `Api.FlowNodes.Node.Instance.Id` |
-| job type of one element | `Api.FlowNodes.Node.jobType` (`String`, `HasJobType`) | `Api.FlowNodes.node().getJobType()` | `Api.FlowNodes.Node.Instance.JobType` |
-| variable | `Api.FlowNodes.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.FlowNodes.Node.Instance.Variables.V` |
-| call activity | `Api.FlowNodes.Node.calledProcess` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.FlowNodes.node().getCalledProcess()`, `Api.FlowNodes.Node.Inputs.M` | `Api.FlowNodes.Node.Instance.CalledProcess`, `.Inputs.M` |
-| timer | `Api.FlowNodes.Node.timer` (`BpmnTimer`) | `Api.FlowNodes.node().getTimer()` | `Api.FlowNodes.Node.Instance.Timer` |
-| sequence flow | `Api.FlowNodes.Node.next.<target>.flow` (`SequenceFlows<Target>`, `.flows` when several lead there) | `Api.FlowNodes.node().getNext().<target>().getFlow()` | `Api.FlowNodes.Node.Instance.Next.<Target>.Flow` |
+| element id | `Api.FlowNodes.Node.id` (`ElementId`) | `Api.FlowNodes.node().getId()` | `Api.FlowNodes.Node.Id` |
+| job type of one element | `Api.FlowNodes.Node.jobType` (`String`, `HasJobType`) | `Api.FlowNodes.node().getJobType()` | `Api.FlowNodes.Node.JobType` |
+| variable | `Api.FlowNodes.Node.Variables.V` (`VariableName.Input` / `.Output` / `.InOut`) | same | `Api.FlowNodes.Node.Variables.V` |
+| call activity | `Api.FlowNodes.Node.calledProcess` (`ProcessId`), `.Inputs.M` / `.Outputs.M` (`InputOutputMapping`) | `Api.FlowNodes.node().getCalledProcess()`, `Api.FlowNodes.Node.Inputs.M` | `Api.FlowNodes.Node.CalledProcess`, `.Inputs.M` |
+| timer | `Api.FlowNodes.Node.timer` (`BpmnTimer`) | `Api.FlowNodes.node().getTimer()` | `Api.FlowNodes.Node.Timer` |
+| sequence flow | `Api.FlowNodes.Node.next.<target>.flow` (`SequenceFlows<Target>`, `.flows` when several lead there) | `Api.FlowNodes.node().getNext().<target>().getFlow()` | `Api.FlowNodes.Node.Next.<Target>.Flow` |
 
 Only `ServiceTasks.X` is a plain string constant; a node's `jobType` refers to it but is no compile-time constant,
 so annotations (`@JobWorker(type = …)`) always use `ServiceTasks.X` — a job type can be shared by several processes.
@@ -57,7 +57,7 @@ For each generated API file, extract a lookup table of string values mapped to t
 
 - **Kotlin `object`**: `const val NAME: String = "value"` (plain string), `val NAME: ElementId = ElementId("value")`, `MessageName("value")`, `SignalName("value")`, `ProcessId("value")`, `VariableName.Input("value")` / `.Output` / `.InOut`, `InputOutputMapping(target = "value", …)`. Nodes are the nested objects directly inside `FlowNodes`; their `Variables`, `Inputs`, `Outputs` objects hang on the node.
 - **Java `final class`**: `public static final String NAME = "value";` (plain string), `public static final ElementId NAME = new ElementId("value");` and the same wrappers; node ids sit in the constructor `super(new ElementId("value"), …)` of each `FlowNodes` node class.
-- **C# `static class`**: `public const string Name = "value";` (plain string); `Runtime.ElementId Id { get; } = new("value")` on each node class; `Runtime.VariableName.Input Name { get; } = new("value")` inside `NodeVariables`; `Runtime.InputOutputMapping Name { get; } = new("value", …)` inside `InputMappings` / `OutputMappings`.
+- **C# `static class`**: `public const string Name = "value";` (plain string), which also holds each node's `ElementId`; a node is reached through the property `FlowNodes.<Node>`, typed by its class `FlowNodes.<Node>Node`, and its `NodeVariables` refer to `ProcessVariables`; `global::Miragon.BpmnToCode.Runtime.InputOutputMapping Name { get; } = new("value", …)` inside `InputMappings` / `OutputMappings`.
 - The shared definition files hold one top-level type each (`ServiceTasks`, `Messages`, `Signals`, `Errors`, `Escalations`), with the same constant shapes.
 - Record the fully qualified reference path, for example `BikeLeasingProcessApi.FlowNodes.ServiceTaskSendContract.Variables.APPLICATION_ID` or `ServiceTasks.MIRAVELO_SEND_CONTRACT`.
 - Also record the package / namespace of each API file for import management.
@@ -146,12 +146,12 @@ Locate the generated API files as in Mode A Step 1 and parse the **current** (6.
 
 | 5.x | Kotlin | Java | C# |
 |---|---|---|---|
-| `Elements.X` | `FlowNodes.X.id` | `FlowNodes.x().getId()` | `FlowNodes.X.Instance.Id` |
-| `Elements.X.value` | `FlowNodes.X.id.value` | `FlowNodes.x().getId().getValue()` | `FlowNodes.X.Instance.Id.Value` |
-| `Variables.Node.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Instance.Variables.V` |
-| `CallActivities.Node.PROCESS_ID` | `FlowNodes.Node.calledProcess` | `FlowNodes.node().getCalledProcess()` | `FlowNodes.Node.Instance.CalledProcess` |
-| `CallActivities.Node.Inputs.M` / `.Outputs.M` | `FlowNodes.Node.Inputs.M` / `.Outputs.M` | same | `FlowNodes.Node.Instance.Inputs.M` |
-| `Timers.T` | `FlowNodes.T.timer` | `FlowNodes.t().getTimer()` | `FlowNodes.T.Instance.Timer` |
+| `Elements.X` | `FlowNodes.X.id` | `FlowNodes.x().getId()` | `FlowNodes.X.Id` |
+| `Elements.X.value` | `FlowNodes.X.id.value` | `FlowNodes.x().getId().getValue()` | `FlowNodes.X.Id.Value` |
+| `Variables.Node.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Variables.V` | `FlowNodes.Node.Variables.V` |
+| `CallActivities.Node.PROCESS_ID` | `FlowNodes.Node.calledProcess` | `FlowNodes.node().getCalledProcess()` | `FlowNodes.Node.CalledProcess` |
+| `CallActivities.Node.Inputs.M` / `.Outputs.M` | `FlowNodes.Node.Inputs.M` / `.Outputs.M` | same | `FlowNodes.Node.Inputs.M` |
+| `Timers.T` | `FlowNodes.T.timer` | `FlowNodes.t().getTimer()` | `FlowNodes.T.Timer` |
 | `Flow.Sub.Inner` / `Flow.sub().inner()` | `FlowNodes.Inner` | `FlowNodes.inner()` | `FlowNodes.Inner` |
 | `Flow.Sub.Inner.Next::x` (method refs) | `FlowNodes.Inner.Next::x` | same | — |
 | `Flow.X` (any other reference) | `FlowNodes.X` | `FlowNodes.x()` | `FlowNodes.X` |
@@ -160,7 +160,7 @@ Locate the generated API files as in Mode A Step 1 and parse the **current** (6.
 
 Flag, do not auto-rewrite:
 
-- **C# `const` usages**: `Elements.X` in a `switch` label or attribute has no 6.0 equivalent, because `FlowNodes.X.Instance.Id` is an instance property. Propose `ServiceTasks.X` where the code actually meant a job type, otherwise ask.
+- **C# `const` usages**: `Elements.X` in a `switch` label or attribute needs the node's constant `FlowNodes.XNode.ElementId`, because `FlowNodes.X.Id` is an instance property. Propose `ServiceTasks.X` where the code actually meant a job type, otherwise ask.
 - **Element ids that 6.0 rejects**: an element named `FlowNodes`, `Next`, `Start`, `SequenceFlows`, `Variables`, `Instance`, … now fails the `reserved-element-name` rule; the model must be renamed before regeneration.
 
 ### Step 3 – Present, confirm, apply, verify

@@ -15,6 +15,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefin
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefinitionsModel.NameAndCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefinitionsModel.Names
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefinitionsModel.NamesAndCodes
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.namespaceOf
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph.Entry
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph.Group
@@ -43,14 +44,14 @@ internal class CSharpSharedDefinitionsBuilder : SharedDefinitionsBuilder {
     }
 
     private fun namesOf(group: Group, packagePath: PackagePath): Names = Names(
-        namespace = packagePath.value,
+        namespace = namespaceOf(packagePath.value),
         typeName = group.type.typeName,
         doc = docOf(group.type),
         constants = group.entries.map { constantOf(group.type, it) },
     )
 
     private fun namesAndCodesOf(group: Group, packagePath: PackagePath): NamesAndCodes = NamesAndCodes(
-        namespace = packagePath.value,
+        namespace = namespaceOf(packagePath.value),
         typeName = group.type.typeName,
         doc = docOf(group.type),
         definitions = group.entries.map { nameAndCodeOf(group.type, it) },

@@ -40,9 +40,10 @@ Read the source, then compare every place in scope that states the fact. Search 
 | Fact | Source of truth | What to compare |
 |---|---|---|
 | Process engines | `ProcessEngine` in core's `domain/shared` | names and count; CIB seven is documented as `CAMUNDA_7` |
-| Output languages | `OutputLanguage` in core's `domain/shared` | names; C# is "experimental", never "beta" |
+| Output languages | `OutputLanguage` in core's `domain/shared` | names; experimental markers only where ADR 011 lists the surface, and the word is "experimental", never "beta" |
 | Gradle tasks | `bpmn-to-code-gradle/src/main/kotlin` | task names, parameters, conventions, experimental markers, no lifecycle wiring, automatic runtime dependency |
 | Maven goals | `bpmn-to-code-maven/src/main/java` | goal names, parameters, `defaultValue`s, `defaultPhase` (snippets must bind a phase when it is `NONE`), manual runtime dependency |
+| .NET packages | `packages/nuget/*/*.csproj` (`PackageId`), `Miragon.BpmnToCode.MSBuild.targets` | package ids, `BpmnToCode*` properties and their defaults, the `BpmnToCodeValidate` target in `docs/getting-started/dotnet.md`, the setup skill's `resources/dotnet.md`, the package READMEs, the README and ADR 001 |
 | Validation rules | `BpmnRules` in `bpmn-to-code-testing`, rule classes in core's `domain/validation/rules`, built-in list in `BpmnValidationService` | ids, severities, `mandatory`, default versus opt-in, build-time set versus `BpmnRules.all()`, any stated rule count |
 | Web app | routing and `System.getenv` calls in `bpmn-to-code-web/src/main/kotlin`, the `Dockerfile` | routes, environment variables really read, file limit, fixed package; `bpmn-to-code-web/README.md` is the Docker Hub description and must stand alone |
 | Shipped skills | `bpmn-to-code-skills/skills` and `bpmn-to-code-skills/agents` | lists in `bpmn-to-code-skills/README.md`, `docs/skills/`, `context7.json` |

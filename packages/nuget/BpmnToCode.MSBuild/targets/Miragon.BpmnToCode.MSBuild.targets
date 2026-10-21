@@ -1,0 +1,58 @@
+<Project>
+
+  <PropertyGroup>
+    <BpmnToCodeEnabled Condition="'$(BpmnToCodeEnabled)' == ''">true</BpmnToCodeEnabled>
+    <BpmnToCodeBaseDir Condition="'$(BpmnToCodeBaseDir)' == ''">$(MSBuildProjectDirectory)</BpmnToCodeBaseDir>
+    <BpmnToCodePackagePath Condition="'$(BpmnToCodePackagePath)' == ''">$(RootNamespace)</BpmnToCodePackagePath>
+    <BpmnToCodeOutputFolderPath Condition="'$(BpmnToCodeOutputFolderPath)' == ''">$(IntermediateOutputPath)bpmn-to-code/</BpmnToCodeOutputFolderPath>
+    <BpmnToCodeFailOnWarning Condition="'$(BpmnToCodeFailOnWarning)' == ''">false</BpmnToCodeFailOnWarning>
+    <BpmnToCodeToolCommand Condition="'$(BpmnToCodeToolCommand)' == '' And '$(BpmnToCodeToolVersion)' != ''">dotnet tool exec Miragon.BpmnToCode@$(BpmnToCodeToolVersion) --yes --</BpmnToCodeToolCommand>
+    <!-- Full paths without a trailing separator: a quoted "C:\models\" would escape its closing quote on Windows. -->
+    <_BpmnToCodeBaseDir>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(BpmnToCodeBaseDir)').TrimEnd('/').TrimEnd('\'))</_BpmnToCodeBaseDir>
+    <_BpmnToCodeOutputDir>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(BpmnToCodeOutputFolderPath)').TrimEnd('/').TrimEnd('\'))</_BpmnToCodeOutputDir>
+    <_BpmnToCodeStampFile>$(IntermediateOutputPath)bpmn-to-code.stamp</_BpmnToCodeStampFile>
+    <_BpmnToCodeInputsFile>$(IntermediateOutputPath)bpmn-to-code.inputs</_BpmnToCodeInputsFile>
+    <_BpmnToCodeSourceArguments>--baseDir &quot;$(_BpmnToCodeBaseDir)&quot; --filePattern &quot;$(BpmnToCodeFilePattern)&quot; --processEngine $(BpmnToCodeProcessEngine)</_BpmnToCodeSourceArguments>
+    <_BpmnToCodeGenerateArguments>generate-api $(_BpmnToCodeSourceArguments) --outputLanguage CSHARP --outputFolderPath &quot;$(_BpmnToCodeOutputDir)&quot; --packagePath $(BpmnToCodePackagePath)</_BpmnToCodeGenerateArguments>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(BpmnToCodeEnabled)' == 'true' And '$(BpmnToCodeFilePattern)' != ''">
+    <BpmnToCodeModel Include="$(_BpmnToCodeBaseDir)/$(BpmnToCodeFilePattern)" />
+    <UpToDateCheckInput Include="@(BpmnToCodeModel)" />
+  </ItemGroup>
+
+  <Target Name="BpmnToCodeGenerate" BeforeTargets="CoreCompile" DependsOnTargets="_BpmnToCodeRunGenerator" Condition="'$(BpmnToCodeEnabled)' == 'true'">
+    <ItemGroup>
+      <_BpmnToCodeGeneratedFile Include="$(_BpmnToCodeOutputDir)/**/*.cs" />
+      <Compile Remove="@(_BpmnToCodeGeneratedFile)" />
+      <Compile Include="@(_BpmnToCodeGeneratedFile)" />
+      <FileWrites Include="@(_BpmnToCodeGeneratedFile);$(_BpmnToCodeStampFile);$(_BpmnToCodeInputsFile)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_BpmnToCodeRunGenerator" DependsOnTargets="_BpmnToCodeCheckSettings;_BpmnToCodeWriteInputs" Inputs="@(BpmnToCodeModel);$(_BpmnToCodeInputsFile)" Outputs="$(_BpmnToCodeStampFile)">
+    <Error Condition="'$(BpmnToCodePackagePath)' == ''" Text="bpmn-to-code: set BpmnToCodePackagePath to the namespace of the generated code." />
+    <Exec Command="$(BpmnToCodeToolCommand) $(_BpmnToCodeGenerateArguments)" />
+    <Touch Files="$(_BpmnToCodeStampFile)" AlwaysCreate="true" />
+  </Target>
+
+  <Target Name="_BpmnToCodeWriteInputs">
+    <WriteLinesToFile File="$(_BpmnToCodeInputsFile)" Lines="$(BpmnToCodeToolCommand);$(_BpmnToCodeGenerateArguments);@(BpmnToCodeModel->'%(FullPath)')" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+
+  <Target Name="_BpmnToCodeCheckSettings">
+    <Error Condition="'$(BpmnToCodeToolCommand)' == ''" Text="bpmn-to-code: set BpmnToCodeToolVersion to the version of the Miragon.BpmnToCode tool, or BpmnToCodeToolCommand to the command that starts it." />
+    <Error Condition="'$(BpmnToCodeProcessEngine)' == ''" Text="bpmn-to-code: set BpmnToCodeProcessEngine to ZEEBE, CAMUNDA_7 or OPERATON." />
+    <Error Condition="'$(BpmnToCodeFilePattern)' == ''" Text="bpmn-to-code: set BpmnToCodeFilePattern to the BPMN files below BpmnToCodeBaseDir, for example bpmn/*.bpmn." />
+  </Target>
+
+  <Target Name="BpmnToCodeValidate" DependsOnTargets="_BpmnToCodeCheckSettings">
+    <PropertyGroup>
+      <_BpmnToCodeValidateArguments>$(_BpmnToCodeSourceArguments)</_BpmnToCodeValidateArguments>
+      <_BpmnToCodeValidateArguments Condition="'$(BpmnToCodeFailOnWarning)' == 'true'">$(_BpmnToCodeValidateArguments) --failOnWarning</_BpmnToCodeValidateArguments>
+      <_BpmnToCodeValidateArguments Condition="'$(BpmnToCodeDisabledRules)' != ''">$(_BpmnToCodeValidateArguments) --disabledRules $(BpmnToCodeDisabledRules)</_BpmnToCodeValidateArguments>
+    </PropertyGroup>
+    <Exec Command="$(BpmnToCodeToolCommand) validate $(_BpmnToCodeValidateArguments)" />
+  </Target>
+
+</Project>

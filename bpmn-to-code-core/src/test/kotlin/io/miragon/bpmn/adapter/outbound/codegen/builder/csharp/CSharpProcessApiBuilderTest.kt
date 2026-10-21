@@ -25,13 +25,17 @@ import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnEventType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.File
 import io.miragon.bpmn.runtime.TimerType as RuntimeTimerType
 
 class CSharpProcessApiBuilderTest {
 
     private val underTest = CodeGenerationAdapter()
 
-    private val runtimeTypes = requireNotNull(javaClass.getResource("/io/miragon/bpmn/codegen/templates/csharp/runtime-types.cs")).readText()
+    private val runtimePackageSource = File(requireNotNull(System.getProperty("csharp.runtime.project")))
+        .listFiles { file -> file.extension == "cs" }.orEmpty()
+        .sortedBy { it.name }
+        .joinToString("\n") { it.readText() }
 
     @Test
     fun `generateCode generates correct process API file`() {
@@ -70,10 +74,10 @@ class CSharpProcessApiBuilderTest {
         assertMatchesGolden(result.content, "/api/PrefixedCancelBikeOrderProcessApiCsharp.txt")
         assertThat(result.content).contains("public static class RetailCancelBikeOrderProcessApi", "public const string ProcessId = \"cancelBikeOrder\";")
         assertThat(result.content).contains(
-            $$"public Runtime.SequenceFlows<GatewayCollectClarifications> GatewayCollectClarifications => Runtime.SequenceFlows.Single(new(\"flow_cancellationNotPossibleToCollectClarifications\"), FlowNodes.GatewayCollectClarifications.Instance, name: \"No\", conditionExpression: \"${!cancellationPossible}\");",
+            $$"public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayCollectClarificationsNode> GatewayCollectClarifications => _gatewayCollectClarifications ??= global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new(\"flow_cancellationNotPossibleToCollectClarifications\"), FlowNodes.GatewayCollectClarifications, name: \"No\", conditionExpression: \"${!cancellationPossible}\");",
         )
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlows<GatewayMergeReturn> GatewayMergeReturn => Runtime.SequenceFlows.Single(new(\"flow_cancellationPossibleToMergeReturn\"), FlowNodes.GatewayMergeReturn.Instance, name: \"Yes\", isDefault: true);",
+            "public global::Miragon.BpmnToCode.Runtime.SequenceFlows<GatewayMergeReturnNode> GatewayMergeReturn => _gatewayMergeReturn ??= global::Miragon.BpmnToCode.Runtime.SequenceFlows.Single(new(\"flow_cancellationPossibleToMergeReturn\"), FlowNodes.GatewayMergeReturn, name: \"Yes\", isDefault: true);",
         )
     }
 
@@ -106,7 +110,7 @@ class CSharpProcessApiBuilderTest {
 
         // then: one stable name for both flows, carried by one SequenceFlows
         assertThat(result.content).contains(
-            "public Runtime.SequenceFlows<Approve> Approve => new(FlowNodes.Approve.Instance, new Runtime.SequenceFlow<Approve>[] {",
+            "public global::Miragon.BpmnToCode.Runtime.SequenceFlows<ApproveNode> Approve => _approve ??= new(FlowNodes.Approve, new global::Miragon.BpmnToCode.Runtime.SequenceFlow<ApproveNode>[] {",
         )
     }
 
@@ -123,33 +127,29 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
-    fun `runtime types are inlined exactly once as a nested Runtime class`() {
+    fun `refers to the runtime package by its global name instead of inlining its types`() {
         val result = underTest.generateCode(csharpApi(testBikeLeasingModel())).single()
 
-        assertThat(result.content.split("public static class Runtime")).hasSize(2)
-        runtimeTypes.lines().filter { it.isNotBlank() }.forEach { line ->
-            assertThat(result.content).contains(line.trim())
-        }
+        assertThat(result.content).contains(": global::Miragon.BpmnToCode.Runtime.IFlowNode")
+        assertThat(result.content).doesNotContain("class Runtime", "public interface IFlowNode", " Runtime.")
     }
 
     @Test
-    fun `inlined runtime enums mirror the Kotlin and Java runtime enums in PascalCase`() {
+    fun `runtime package enums mirror the Kotlin and Java runtime enums in PascalCase`() {
         val runtimeEnums = listOf(BpmnElementType.entries, BpmnEventType.entries, RuntimeTimerType.entries, BpmnEngine.entries)
 
         runtimeEnums.flatten().forEach { constant ->
-            assertThat(runtimeTypes).contains(" ${pascalCase(constant.name)},")
+            assertThat(runtimePackageSource).contains(" ${pascalCase(constant.name)},")
         }
     }
 
     @Test
     fun `variable name records keep the raw name as string representation in derived records`() {
-        val result = underTest.generateCode(csharpApi(testBikeLeasingModel())).single()
-
-        assertThat(result.content).contains(
+        assertThat(runtimePackageSource).contains(
             """
-            |        public abstract record VariableName(string Value)
-            |        {
-            |            public sealed override string ToString() => Value;
+            |public abstract record VariableName(string Value)
+            |{
+            |    public sealed override string ToString() => Value;
             """.trimMargin(),
         )
     }
@@ -158,18 +158,22 @@ class CSharpProcessApiBuilderTest {
     fun `flat FlowNodes lists subprocess interior nodes as direct children with Start on the subprocess`() {
         val result = underTest.generateCode(csharpApi(testBikeLeasingModel())).single()
 
-        assertThat(result.content).contains("        public sealed class StartEventCustomerEligible : Runtime.IEvent")
-        assertThat(result.content).contains("public Interior Start => new();")
-        assertThat(result.content).contains("public StartEventCustomerEligible StartEventCustomerEligible => StartEventCustomerEligible.Instance;")
+        assertThat(result.content).contains("        public sealed class StartEventCustomerEligibleNode : global::Miragon.BpmnToCode.Runtime.IEvent")
+        assertThat(result.content).contains("public Interior Start { get; } = new();")
+        assertThat(result.content).contains(
+            "public sealed class SubProcessConcludeContractNode : global::Miragon.BpmnToCode.Runtime.IFlowNode, " +
+                "global::Miragon.BpmnToCode.Runtime.ISubProcess<SubProcessConcludeContractNode.Interior, SubProcessConcludeContractNode.Successors>",
+        )
+        assertThat(result.content).contains("public StartEventCustomerEligibleNode StartEventCustomerEligible => FlowNodes.StartEventCustomerEligible;")
     }
 
     @Test
     fun `boundary event exposes its host and whether it interrupts`() {
         val result = underTest.generateCode(csharpApi(testBikeLeasingModel())).single()
 
-        assertThat(result.content).contains("public SubProcessConcludeContract AttachedTo => SubProcessConcludeContract.Instance;")
+        assertThat(result.content).contains("public SubProcessConcludeContractNode AttachedTo => FlowNodes.SubProcessConcludeContract;")
         assertThat(result.content).contains("public bool IsInterrupting => false;")
-        assertThat(result.content).contains("public Runtime.BpmnTimer Timer { get; } = new(Runtime.TimerType.Duration, \"P7D\");")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.BpmnTimer Timer { get; } = new(global::Miragon.BpmnToCode.Runtime.TimerType.Duration, \"P7D\");")
     }
 
     @Test
@@ -177,11 +181,11 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.generateCode(csharpApi(testBikeLeasingModel())).single()
 
         assertThat(result.content).contains("public string JobType { get; } = ServiceTasks.MiraveloOrderBike;")
-        assertThat(result.content).contains("public Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);")
-        assertThat(result.content).contains("public Runtime.ProcessId CalledProcess { get; } = new(\"cancelBikeOrder\");")
-        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.MiraveloLeasingRequestReceived);")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.VariableName.Input ApplicationId { get; } = new(ProcessVariables.ApplicationId);")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.ProcessId CalledProcess { get; } = new(\"cancelBikeOrder\");")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = new(Messages.MiraveloLeasingRequestReceived);")
         assertThat(result.content).contains(
-            "public Runtime.BpmnErrorDefinition Error { get; } = new(Errors.MiraveloApplicationInvalid.Reference, Errors.MiraveloApplicationInvalid.Code);",
+            "public global::Miragon.BpmnToCode.Runtime.BpmnErrorDefinition Error { get; } = new(Errors.MiraveloApplicationInvalid.Reference, Errors.MiraveloApplicationInvalid.Code);",
         )
     }
 
@@ -203,7 +207,7 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.generateCode(csharpApi(model)).single()
 
         // then: the node points at the renamed constant
-        assertThat(result.content).contains("public Runtime.MessageName Message { get; } = new(Messages.Messages_);")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = new(Messages.Messages_);")
     }
 
     @Test
@@ -212,12 +216,12 @@ class CSharpProcessApiBuilderTest {
 
         val eagerInitializers = result.content.lines().filter { it.contains("{ get; } = ") }
         assertThat(eagerInitializers).isNotEmpty()
-        assertThat(eagerInitializers).noneMatch { it.contains(".Instance") }
+        assertThat(eagerInitializers).noneMatch { it.contains("FlowNodes.") }
     }
 
     @Test
-    fun `renames a facet member that would collide with its node's class name`() {
-        // given: a timer event whose id folds to the same name as its Timer property
+    fun `node is reached through a property of FlowNodes, its type carries a Node suffix`() {
+        // given: a timer event whose id folds to the name of its Timer property
         val model = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Event(
@@ -231,19 +235,53 @@ class CSharpProcessApiBuilderTest {
         // when: we build the process API file
         val result = underTest.generateCode(csharpApi(model)).single()
 
-        // then: the property is renamed, because C# rejects a member named like its enclosing type (CS0542)
-        assertThat(result.content).contains("public Runtime.BpmnTimer Timer_ { get; } = new(Runtime.TimerType.Duration, \"PT1M\");")
+        // then: the node is a property of FlowNodes, so no member has to give way to its type's name
+        assertThat(result.content).contains("public static TimerNode Timer => TimerNode.Instance;")
+        assertThat(result.content).contains("public sealed class TimerNode : global::Miragon.BpmnToCode.Runtime.IEvent, global::Miragon.BpmnToCode.Runtime.ITimerEvent")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.BpmnTimer Timer { get; } = new(global::Miragon.BpmnToCode.Runtime.TimerType.Duration, \"PT1M\");")
+    }
+
+    @Test
+    fun `a node type named like the property of another node gets a trailing underscore`() {
+        // given: elements whose names differ only by a Node suffix
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Unknown(id = "task", outgoing = listOf("flow_taskToTaskNode")),
+                FlowNodeDefinition.Unknown(id = "taskNode", incoming = listOf("flow_taskToTaskNode")),
+            ),
+            sequenceFlows = listOf(SequenceFlowDefinition(id = "flow_taskToTaskNode", sourceRef = "task", targetRef = "taskNode")),
+        )
+
+        // when: we build the process API file
+        val result = underTest.generateCode(csharpApi(model)).single()
+
+        // then: the type of task gives way to the property of taskNode, which keeps its own type
+        assertThat(result.content).contains("public static TaskNode_ Task => TaskNode_.Instance;")
+        assertThat(result.content).contains("public static TaskNodeNode TaskNode => TaskNodeNode.Instance;")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.SequenceFlows<TaskNodeNode> TaskNode => _taskNode ??= ")
+    }
+
+    @Test
+    fun `namespace is the package path in PascalCase`() {
+        val result = underTest.generateCode(csharpApi(testBikeLeasingModel())).single()
+
+        assertThat(result.content).contains("namespace De.Emaarco.Example;")
+        assertThat(result.packagePath).isEqualTo("de.emaarco.example")
     }
 
     @Test
     fun `node lists the variables it declares behind the variables facet`() {
         val result = underTest.generateCode(csharpApi(testBikeLeasingModel())).single()
 
-        assertThat(result.content).contains("public sealed class ServiceTaskOrderBike : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables")
-        assertThat(result.content).contains("Runtime.VariableDefinitions Runtime.IHasVariables.Variables => Variables;")
-        assertThat(result.content).contains("public sealed class NodeVariables : Runtime.VariableDefinitions")
         assertThat(result.content).contains(
-            "public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { BikeId, BikeIds };",
+            "public sealed class ServiceTaskOrderBikeNode : global::Miragon.BpmnToCode.Runtime.IFlowNode, " +
+                "global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskOrderBikeNode.Successors>, " +
+                "global::Miragon.BpmnToCode.Runtime.IHasJobType, global::Miragon.BpmnToCode.Runtime.IHasVariables",
+        )
+        assertThat(result.content).contains("global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;")
+        assertThat(result.content).contains("public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions")
+        assertThat(result.content).contains(
+            "public override global::System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { BikeId, BikeIds };",
         )
     }
 
@@ -257,9 +295,9 @@ class CSharpProcessApiBuilderTest {
         val result = underTest.generateCode(csharpApi(model)).single()
 
         // then: only the colliding variables are renamed, in the declaration and in the list
-        assertThat(result.content).contains("public Runtime.VariableName.Input All_ { get; } = new(ProcessVariables.All);")
+        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.VariableName.Input All_ { get; } = new(ProcessVariables.All);")
         assertThat(result.content).contains(
-            "public override System.Collections.Generic.IReadOnlyList<Runtime.VariableName> All => new Runtime.VariableName[] { All_, Inputs_, OrderId, Outputs_ };",
+            "public override global::System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { All_, Inputs_, OrderId, Outputs_ };",
         )
     }
 

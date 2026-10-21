@@ -4,7 +4,7 @@
 
 ![A process test with hand-typed element ids only fails when it runs after an id changed in the model; built from the generated flow nodes, it stops compiling instead](../public/process-path.gif)
 
-It works in any process test that has the runtime on its classpath. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java).
+It works in any process test that has the runtime on its classpath. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java). C# gets the same walk in the package `Miragon.BpmnToCode.Runtime` ([From C#](#from-c-sharp)).
 
 ```kotlin
 import io.miragon.bpmn.runtime.path.ProcessPath
@@ -158,3 +158,39 @@ String[] ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
 ```
 
 `PathWalk.nodesOf(…)` unites branches as in Kotlin.
+
+## From C# {#from-c-sharp}
+
+`Miragon.BpmnToCode.Runtime` contains `ProcessPath` with the steps of `PathWalk`; each lambda receives the current node's `Next`:
+
+```csharp
+using Miragon.BpmnToCode.Runtime;
+using Api = MiraVelo.Process.BikeLeasingProcessApi;
+
+string[] ids = ProcessPath.From(Api.FlowNodes.StartEventLeasingRequestReceived)
+    .Then(n => n.ServiceTaskValidateApplication)
+    .Then(n => n.BusinessRuleTaskCheckCreditRating)
+    .Then(n => n.GatewayIsSolvent)
+    .Onto(n => n.SubProcessConcludeContract)
+    .Inside(contract => contract
+        .Enter(start => start.StartEventCustomerEligible)
+        .Then(n => n.ServiceTaskSendContract)
+        .Then(n => n.GatewayAwaitSignature)
+        .Then(n => n.EventContractSigned)
+        .End(n => n.EndEventContractConcluded))
+    .Then(n => n.GatewayFork)
+    .Then(n => n.ServiceTaskOrderBike)
+    .Then(n => n.GatewayJoin)
+    .Then(n => n.ReceiveTaskHandoverReported)
+    .Then(n => n.TimerWithdrawalPeriodElapsed)
+    .End(n => n.EndEventLeasingActive)
+    .Ids;
+```
+
+- **The last step is `End`**, as in Java. It returns a `PathEnd` that can still record a compensation or leave through a boundary event with `InterruptedBy`.
+- **`Onto` returns a path standing on the subprocess**: `Enter` descends into it, `Inside` walks its interior and continues after it. `Enter(Api.FlowNodes.SubProcessConcludeContract, s => s.StartEventCustomerEligible)` descends into a named subprocess from anywhere.
+- `ThrowingCompensation(Api.FlowNodes.BoundaryCompensateContract, n => n.ServiceTaskCancelContract, includeBoundaryEvent: true)`, `ThenMultipleTimes(3, n => n.X)` and `ProcessPath.NodesOf(a.Nodes, b.Nodes)` work as in Kotlin.
+- **`JumpTo` is marked `[Experimental("BPMNTOCODE001")]`**, so the compiler rejects it until you opt in with `#pragma warning disable BPMNTOCODE001`.
+- `Ids`, `DistinctIds` and `FlowIds` are `string[]`, `Nodes` and `Flows` the recorded elements and flows.
+- When several flows lead to the same element, step along one of them: `.Then(n => n.<Target>.Flows[1])` records that flow.
+
