@@ -26,7 +26,7 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
                 success = true,
                 files = generatedFiles,
                 libraryFiles = if (runsOnJvm) librarySourceProvider.libraryFiles() else emptyList(),
-                runtimeDependency = if (runsOnJvm) librarySourceProvider.runtimeDependency() else null,
+                runtimeDependency = librarySourceProvider.runtimeDependency(config.outputLanguage),
             )
         }
     }
@@ -44,8 +44,7 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
     private fun buildCommand(file: BpmnFileData) = CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())
 
     /**
-     * `bpmn-to-code-runtime` is a JVM artifact, and the C# output inlines its own runtime types into each
-     * file, so offering the JVM sources or a Gradle/Maven coordinate alongside a `.cs` file would be nonsense.
+     * The bundled sources are those of the JVM `bpmn-to-code-runtime`; C# has a runtime package of its own.
      */
     private fun OutputLanguage.runsOnJvm() = this != OutputLanguage.CSHARP
 

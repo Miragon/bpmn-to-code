@@ -1,20 +1,22 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 /**
- * Names of the C# counterpart of `bpmn-to-code-runtime`. The types themselves are the fixed text
- * `templates/csharp/runtime-types.cs`, emitted verbatim into every generated file as a nested `Runtime` class of the
- * process API. Nesting keeps two generated files in one assembly from clashing and spares consumers a package: they
- * reference `MyProcessApi.Runtime.ElementId`.
+ * Names of the types of `Miragon.BpmnToCode.Runtime` (in `packages/nuget`), the C# counterpart of
+ * `bpmn-to-code-runtime`, which the generated code refers to. They are qualified with `global::`, so no type or
+ * namespace of the consumer can shadow them.
  */
 internal object CSharpRuntimeTypes {
 
-    const val CLASS_NAME = "Runtime"
+    const val NAMESPACE = "global::Miragon.BpmnToCode.Runtime"
 
-    const val BOUNDARY_EVENT = "$CLASS_NAME.IBoundaryEvent"
-    const val EVENT = "$CLASS_NAME.IEvent"
-    const val FLOW_NODE = "$CLASS_NAME.IFlowNode"
+    const val BOUNDARY_EVENT = "$NAMESPACE.IBoundaryEvent"
+    const val EVENT = "$NAMESPACE.IEvent"
+    const val FLOW_NODE = "$NAMESPACE.IFlowNode"
+    const val HAS_SUCCESSORS = "$NAMESPACE.IHasSuccessors"
+    const val FLOW_SCOPE = "$NAMESPACE.IFlowScope"
+    const val SUB_PROCESS = "$NAMESPACE.ISubProcess"
 
     val VARIABLE_DEFINITIONS_MEMBERS = setOf("All", "Inputs", "Outputs")
 
-    fun facetInterface(typeName: String): String = "$CLASS_NAME.I$typeName"
+    fun facetInterface(typeName: String): String = "$NAMESPACE.I$typeName"
 }

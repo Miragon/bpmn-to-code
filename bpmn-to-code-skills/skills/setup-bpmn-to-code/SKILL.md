@@ -24,7 +24,8 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    |---|---|
    | `build.gradle.kts` or `build.gradle` | [resources/gradle.md](resources/gradle.md) |
    | `pom.xml` | [resources/maven.md](resources/maven.md) |
-   | neither, or a `*.csproj` | [resources/cli.md](resources/cli.md) |
+   | a `*.csproj` | [resources/dotnet.md](resources/dotnet.md) |
+   | neither | [resources/cli.md](resources/cli.md) |
 
    In a multi-module build, ask which module holds the BPMN files and set it up there.
 
@@ -38,7 +39,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    | `xmlns:operaton` | `OPERATON` | Operaton |
 
    If files use different namespaces, one task or execution per group is needed (see the resource).
-4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP` (experimental).
+4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP`.
 5. **Package:** suggest `<base package>.adapter.process` (or `.process` if the project has no `adapter` package). Look up the base package from existing sources.
 6. **CI:** a `.github/workflows/` folder means GitHub Actions. Note the workflows that already run on pull requests.
 
@@ -48,9 +49,9 @@ Ask only for what Step 1 could not settle, with the detected value as the defaul
 
 - Package of the generated code.
 - **Where the generated code goes:**
-  - **committed in the source folder** (`src/main/<lang>`): visible in reviews, needs a CI drift check.
-  - **in the build directory**: never committed, always fresh.
-- Whether to add the **model validation test** with `bpmn-to-code-testing` (recommended).
+  - **committed in the source folder** (`src/main/<lang>`, for .NET a folder like `Generated/`): visible in reviews, needs a CI drift check.
+  - **in the build directory** (for .NET `obj/`): never committed, always fresh.
+- Whether to add the **model validation test** with `bpmn-to-code-testing` (recommended). For .NET, offer the `BpmnToCodeValidate` target from [resources/dotnet.md](resources/dotnet.md) instead.
 - With committed code and GitHub Actions: whether to add the **CI drift check** (recommended).
 
 ## Step 3: Look up the version

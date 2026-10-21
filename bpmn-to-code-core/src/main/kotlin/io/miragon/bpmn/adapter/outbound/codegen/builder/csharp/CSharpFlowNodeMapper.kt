@@ -12,7 +12,6 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiM
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiModel.Successor
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiModel.Timer
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiModel.Variable
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.disambiguated
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.nullableStringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
@@ -24,27 +23,32 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 
 /**
- * Turns a node of the flow graph into the C# class the template renders, a sealed singleton, e.g.
+ * Turns a node of the flow graph into the C# class the template renders, a sealed singleton reached through a property
+ * of `FlowNodes`, e.g. (`Runtime` standing for `global::Miragon.BpmnToCode.Runtime`)
  * ```
- * public sealed class ServiceTaskSendContract : Runtime.IFlowNode, Runtime.IHasJobType, Runtime.IHasVariables
+ * public static ServiceTaskSendContractNode ServiceTaskSendContract => ServiceTaskSendContractNode.Instance;
+ *
+ * public sealed class ServiceTaskSendContractNode : Runtime.IFlowNode,
+ *     Runtime.IHasSuccessors<ServiceTaskSendContractNode.Successors>, Runtime.IHasJobType, Runtime.IHasVariables
  * {
- *     public static readonly ServiceTaskSendContract Instance = new();
+ *     internal static readonly ServiceTaskSendContractNode Instance = new();
  *     public string JobType { get; } = ServiceTasks.SendContractDelegate;
  *     public NodeVariables Variables { get; } = new();
- *     public Successors Next => new();
+ *     public Successors Next { get; } = new();
  *     …
  * }
  * ```
+ * `Next` and `Start` carry the runtime's navigation interfaces, which a `ProcessPath` walks along.
  */
-internal object CSharpFlowNodeMapper {
-
-    private const val FLOW_NODES = "FlowNodes"
+internal class CSharpFlowNodeMapper(private val names: CSharpNodeNames) {
 
     fun map(node: FlowGraphNode): FlowNode {
         val facets = node.facets
+        val name = names.of(node.objectName)
         return FlowNode(
-            className = disambiguated(node.objectName, FLOW_NODES),
-            interfaces = interfacesOf(node),
+            property = name.property,
+            type = name.type,
+            interfaces = interfacesOf(node, name.type),
             elementId = stringLiteral(node.id),
             elementType = pascalCase(node.elementType),
             eventType = node.eventType?.let { pascalCase(it) },
@@ -56,25 +60,42 @@ internal object CSharpFlowNodeMapper {
             signal = facets.signal?.let { CSharpSharedReferences.constantOrLiteral(SIGNALS, it) },
             error = facets.error?.let { CSharpSharedReferences.nameAndCode(ERRORS, it) },
             escalation = facets.escalation?.let { CSharpSharedReferences.nameAndCode(ESCALATIONS, it) },
-            attachedTo = facets.attachedTo?.objectName,
+            attachedTo = facets.attachedTo?.let { names.of(it.objectName) },
             interrupting = facets.isInterrupting,
             variables = facets.variables.map { variableOf(it) },
             inputs = facets.inputs.map { mappingOf(it) },
             outputs = facets.outputs.map { mappingOf(it) },
             successors = node.successors.map { successorOf(it) },
-            interiorStarts = node.interiorStarts.map { it.objectName },
+            interiorStarts = node.interiorStarts.map { names.of(it.objectName) },
         )
     }
 
-    private fun interfacesOf(node: FlowGraphNode): List<String> {
+    private fun interfacesOf(node: FlowGraphNode, typeName: String): List<String> {
         val facetInterfaces = node.facets.facetInterfaces.map { CSharpRuntimeTypes.facetInterface(it.typeName) }
-        return listOf(nodeInterfaceOf(node)) + facetInterfaces
+        return listOf(nodeInterfaceOf(node)) + navigationInterfacesOf(node, typeName) + facetInterfaces
     }
 
     private fun nodeInterfaceOf(node: FlowGraphNode): String = when {
         node.isBoundaryEvent -> CSharpRuntimeTypes.BOUNDARY_EVENT
         node.eventType != null -> CSharpRuntimeTypes.EVENT
         else -> CSharpRuntimeTypes.FLOW_NODE
+    }
+
+    /**
+     * `IHasSuccessors<…Node.Successors>` for `Next`, `IFlowScope<…Node.Interior>` for `Start`, and
+     * `ISubProcess<…Node.Interior, …Node.Successors>` for a subprocess that has both.
+     */
+    private fun navigationInterfacesOf(node: FlowGraphNode, typeName: String): List<String> {
+        val successors = "$typeName.Successors"
+        val interior = "$typeName.Interior"
+        val hasSuccessors = node.successors.isNotEmpty()
+        val hasInterior = node.interiorStarts.isNotEmpty()
+        return when {
+            hasSuccessors && hasInterior -> listOf("${CSharpRuntimeTypes.SUB_PROCESS}<$interior, $successors>")
+            hasSuccessors -> listOf("${CSharpRuntimeTypes.HAS_SUCCESSORS}<$successors>")
+            hasInterior -> listOf("${CSharpRuntimeTypes.FLOW_SCOPE}<$interior>")
+            else -> emptyList()
+        }
     }
 
     private fun timerOf(timer: TimerFacet): Timer = Timer(
@@ -90,11 +111,13 @@ internal object CSharpFlowNodeMapper {
 
     /**
      * A variable called `all`, `inputs` or `outputs` would hide the member of that name it inherits from
-     * `VariableDefinitions`: `all` becomes `All_`.
+     * `VariableDefinitions`, and one called `processVariables` the class its name constant lives in: `all` becomes
+     * `All_`.
      */
     private fun variablePropertyName(variable: VariableFacet): String {
         val propertyName = pascalCase(variable.rawName)
-        if (propertyName !in CSharpRuntimeTypes.VARIABLE_DEFINITIONS_MEMBERS) return propertyName
+        val hiddenNames = CSharpRuntimeTypes.VARIABLE_DEFINITIONS_MEMBERS + PROCESS_VARIABLES.typeName
+        if (propertyName !in hiddenNames) return propertyName
         return propertyName + "_"
     }
 
@@ -106,7 +129,7 @@ internal object CSharpFlowNodeMapper {
     )
 
     private fun successorOf(successor: SuccessorEdge): Successor = Successor(
-        target = successor.target.objectName,
+        target = names.of(successor.target.objectName),
         type = successorTypeOf(successor),
         flows = sequenceFlowsOf(successor).map { flowOf(it) },
     )

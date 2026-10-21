@@ -9,7 +9,7 @@ bpmn-to-code-cli/src/launcher/bpmn-to-code text eol=lf
 *.bat           text eol=crlf
 *.cmd           text eol=crlf
 
-# Code templates and the text they include are rendered into generated files verbatim
+# Code templates are rendered into generated files verbatim
 bpmn-to-code-core/src/main/resources/io/miragon/bpmn/codegen/templates/** text eol=lf
 
 # Binary files should be left untouched

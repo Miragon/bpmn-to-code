@@ -85,4 +85,4 @@ Thus, bpmn-to-code ships with [Agent Skills](/skills/) that automate these workf
 
 ## Get Started
 
-Set up the [Gradle plugin](/getting-started/gradle) or the [Maven plugin](/getting-started/maven), or try the [web app](/web/) without installing anything. All three run the same generator and produce Kotlin, Java or C# (experimental).
+Set up the [Gradle plugin](/getting-started/gradle) or the [Maven plugin](/getting-started/maven), or try the [web app](/web/) without installing anything. All three run the same generator and produce Kotlin, Java or C#.

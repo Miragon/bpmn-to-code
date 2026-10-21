@@ -14,7 +14,7 @@ Upload up to three BPMN files, pick the output language and engine, and download
   Open Web App
 </a>
 
-Generated code uses the fixed package `com.example.process`; change it after downloading. Kotlin and Java output needs the `bpmn-to-code-runtime` dependency, which the app shows next to the result.
+Generated code uses the fixed package `com.example.process` (for C# the namespace `Com.Example.Process`); change it after downloading. The generated code needs the runtime package of its language, which the app shows next to the result: `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#.
 
 ## Self-host with Docker
 
@@ -77,17 +77,20 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
   ],
   "libraryFiles": [],
   "runtimeDependency": {
-    "group": "io.miragon",
-    "artifact": "bpmn-to-code-runtime",
+    "name": "io.miragon:bpmn-to-code-runtime",
+    "importedFrom": "io.miragon.bpmn.runtime",
     "version": "<version>",
-    "gradleSnippet": "implementation(\"io.miragon:bpmn-to-code-runtime:<version>\")",
-    "mavenSnippet": "<dependency>...</dependency>"
+    "snippets": [
+      { "label": "Gradle", "code": "implementation(\"io.miragon:bpmn-to-code-runtime:<version>\")" },
+      { "label": "Maven", "code": "<dependency>...</dependency>" }
+    ]
   }
 }
 ```
 
 - `files` holds one Process API per BPMN file plus the [shared definition files](/guide/generated-api#shared-definitions), which have `processId: null`.
-- `libraryFiles` holds the sources of `bpmn-to-code-runtime` and `runtimeDependency` its coordinates. Both are left out for C#, which needs no runtime.
+- `runtimeDependency` names the runtime package of the output language, with one snippet per way of adding it to a build: Gradle and Maven for Kotlin and Java, `.csproj` and .NET CLI for C#.
+- `libraryFiles` holds the sources of `bpmn-to-code-runtime`; it is empty for C#.
 - `/api/generate-json` answers with `success` and `files` only, one `<processId>.json` per BPMN file.
 
 ### Errors

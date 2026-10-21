@@ -12,6 +12,12 @@ On macOS and Linux with [Homebrew](https://brew.sh):
 brew install miragon/tap/bpmn-to-code
 ```
 
+In a .NET project as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) (.NET SDK 10 or newer):
+
+```bash
+dotnet tool install Miragon.BpmnToCode
+```
+
 Every [GitHub release](https://github.com/Miragon/bpmn-to-code/releases) also carries one zip per platform: `linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64` and `win32-x64`. Each contains its own Java runtime, so no Java installation is needed.
 
 ```bash

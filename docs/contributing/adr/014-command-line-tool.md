@@ -19,7 +19,9 @@ The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets 
 
 **Exit codes are part of the interface.** `0` on success, `1` when the models fail validation or cannot be read or generated, `2` when the call itself is wrong: an unknown command, a missing flag, a value that does not exist. Findings and errors go to standard error.
 
-**It ships with its own Java runtime.** Each release carries one zip per platform (`linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64`, `win32-x64`): the jars, a runtime trimmed by `jlink` to `java.base`, `java.xml`, `java.compiler` and `java.logging`, and a start script in `bin/` that uses only that runtime. Every archive is built and started once on a runner of its platform. The zip is what every package manager installs: the Homebrew formula `miragon/tap/bpmn-to-code` in `Miragon/homebrew-tap` today, npm and NuGet later. They call `bin/bpmn-to-code` and need nothing else.
+**It ships with its own Java runtime.** Each release carries one zip per platform (`linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64`, `win32-x64`): the jars, a runtime trimmed by `jlink` to `java.base`, `java.xml`, `java.compiler` and `java.logging`, and a start script in `bin/` that uses only that runtime. Every archive is built and started once on a runner of its platform. The zip is what every package manager installs: the Homebrew formula `miragon/tap/bpmn-to-code` in `Miragon/homebrew-tap` and the .NET tool `Miragon.BpmnToCode` on nuget.org. They need nothing else: Homebrew calls `bin/bpmn-to-code`; a launcher of another ecosystem starts the bundled `java` with the same arguments as that script, `-cp "lib/*" io.miragon.bpmn.cli.MainKt`, because it cannot rely on a shell to run the script.
+
+**The .NET tool is RID-specific.** One package per platform holds that platform's archive next to a launcher of a few lines in C#, and a top-level package points to them, so `dotnet tool install` fetches only the runtime that fits. NuGet packages do not keep the executable bit, so the launcher sets it on the bundled `java` before the first start. RID-specific tools need the .NET 10 SDK. `Miragon.BpmnToCode.MSBuild` runs the tool of its own version through `dotnet tool exec` before the project compiles, so a .NET build generates like a Gradle or Maven build without installing anything.
 
 **It is experimental.** Commands, flags and exit codes may change in a minor release until the tool is declared stable ([record 11](011-compatibility-policy.md)).
 
@@ -31,6 +33,7 @@ The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets 
 - Nobody installs Java to use the tool. An archive is about 30 MB, and a run over a handful of models takes about half a second, most of it the start of the JVM.
 - A further platform is a further runner in `publish-cli.yml`, and for macOS and Linux a further line in the Homebrew formula.
 - The formula follows the newest stable release; it is written and checked by `publish-homebrew.yml` as in the other Miragon CLIs.
+- A .NET team on an SDK older than 10 cannot install the tool and has to take an archive instead.
 - The archives are not signed. macOS blocks a zip downloaded in a browser until its quarantine flag is removed; Homebrew, `curl` and other package managers do not set it.
 
 ## Rejected alternatives

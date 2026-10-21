@@ -1,5 +1,6 @@
 package io.miragon.bpmn.web.service
 
+import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.web.model.GenerateResponse
 import java.util.Properties
 
@@ -7,7 +8,7 @@ import java.util.Properties
  * Loads the hand-written `bpmn-to-code-runtime` Kotlin sources that the web module bundles as resources
  * (copied in via `copyLibrarySources` during the build). The playground exposes these so users can
  * preview the shared types alongside their generated Process API and, if they opt in, include them
- * in the ZIP download for a self-contained bundle.
+ * in the ZIP download for a self-contained bundle. It also names the runtime package of each output language.
  */
 class LibrarySourceProvider {
 
@@ -16,22 +17,47 @@ class LibrarySourceProvider {
 
     fun libraryFiles(): List<GenerateResponse.GeneratedFile> = cache
 
-    fun runtimeDependency(): GenerateResponse.RuntimeDependency {
-        val group = "io.miragon"
-        val artifact = "bpmn-to-code-runtime"
-        val currentVersion = version
-        return GenerateResponse.RuntimeDependency(
-            group = group,
-            artifact = artifact,
-            version = currentVersion,
-            gradleSnippet = "implementation(\"$group:$artifact:$currentVersion\")",
-            mavenSnippet = """
+    fun runtimeDependency(language: OutputLanguage): GenerateResponse.RuntimeDependency = when (language) {
+        OutputLanguage.KOTLIN, OutputLanguage.JAVA -> jvmRuntimeDependency()
+        OutputLanguage.CSHARP -> csharpRuntimeDependency()
+    }
+
+    private fun jvmRuntimeDependency(): GenerateResponse.RuntimeDependency {
+        val coordinate = "io.miragon:bpmn-to-code-runtime"
+        val gradle = GenerateResponse.Snippet(label = "Gradle", code = "implementation(\"$coordinate:$version\")")
+        val maven = GenerateResponse.Snippet(
+            label = "Maven",
+            code = """
                 |<dependency>
-                |    <groupId>$group</groupId>
-                |    <artifactId>$artifact</artifactId>
-                |    <version>$currentVersion</version>
+                |    <groupId>io.miragon</groupId>
+                |    <artifactId>bpmn-to-code-runtime</artifactId>
+                |    <version>$version</version>
                 |</dependency>
             """.trimMargin(),
+        )
+        return GenerateResponse.RuntimeDependency(
+            name = coordinate,
+            importedFrom = "io.miragon.bpmn.runtime",
+            version = version,
+            snippets = listOf(gradle, maven),
+        )
+    }
+
+    private fun csharpRuntimeDependency(): GenerateResponse.RuntimeDependency {
+        val packageId = "Miragon.BpmnToCode.Runtime"
+        val projectFile = GenerateResponse.Snippet(
+            label = ".csproj",
+            code = "<PackageReference Include=\"$packageId\" Version=\"$version\" />",
+        )
+        val cli = GenerateResponse.Snippet(
+            label = ".NET CLI",
+            code = "dotnet add package $packageId --version $version",
+        )
+        return GenerateResponse.RuntimeDependency(
+            name = packageId,
+            importedFrom = packageId,
+            version = version,
+            snippets = listOf(projectFile, cli),
         )
     }
 
