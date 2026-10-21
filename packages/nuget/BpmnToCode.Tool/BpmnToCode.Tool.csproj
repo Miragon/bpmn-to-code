@@ -11,13 +11,11 @@
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>bpmn-to-code</ToolCommandName>
-    <ToolPackageRuntimeIdentifiers>linux-x64;linux-arm64;osx-x64;osx-arm64;win-x64</ToolPackageRuntimeIdentifiers>
-    <RuntimeIdentifiers>$(ToolPackageRuntimeIdentifiers)</RuntimeIdentifiers>
 
     <PackageId>Miragon.BpmnToCode</PackageId>
     <Version>0.0.0-dev</Version>
     <Authors>Miragon</Authors>
-    <Description>Generates type-safe APIs from BPMN process models and validates the models. Brings its own Java runtime.</Description>
+    <Description>Generates type-safe APIs from BPMN process models and validates the models. Needs Java 21 or newer.</Description>
     <PackageTags>bpmn;camunda;zeebe;operaton;codegen</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://miragon.github.io/bpmn-to-code/</PackageProjectUrl>
@@ -29,12 +27,12 @@
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
-    <None Include="cli/$(RuntimeIdentifier)/**" Link="cli/%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  <ItemGroup>
+    <None Include="cli/lib/**" Link="cli/lib/%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <Target Name="_RequireBundledCli" BeforeTargets="Build" Condition="'$(RuntimeIdentifier)' != ''">
-    <Error Condition="!Exists('cli/$(RuntimeIdentifier)/runtime')" Text="No command-line tool staged for $(RuntimeIdentifier): run stage-archives.sh first." />
+  <Target Name="_RequireStagedJars" BeforeTargets="Build">
+    <Error Condition="!Exists('cli/lib')" Text="No command-line tool staged: run stage-archives.sh first." />
   </Target>
 
 </Project>

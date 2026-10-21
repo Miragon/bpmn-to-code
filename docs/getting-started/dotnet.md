@@ -6,9 +6,9 @@ A .NET project generates its C# Process APIs during `dotnet build`, the way a Gr
 |---|---|
 | `Miragon.BpmnToCode.MSBuild` | Generates the Process APIs before the project compiles and adds the runtime package |
 | `Miragon.BpmnToCode.Runtime` | The types the generated code is built from, and [`ProcessPath`](/guide/process-path#from-c-sharp) |
-| `Miragon.BpmnToCode` | The [command-line tool](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli) as a .NET tool, with its own Java runtime |
+| `Miragon.BpmnToCode` | The [command-line tool](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli) as a .NET tool, which runs on Java 21 |
 
-**Requirements:** .NET SDK 10 or newer, on Linux with glibc (x64, ARM64; not Alpine), macOS (Intel, Apple Silicon) or Windows (x64). The generated code and the runtime package target .NET 8 and later. No JDK.
+**Requirements:** .NET SDK 10 or newer and Java 21 or newer, from `JAVA_HOME` or the `PATH`; the tool fails with a message naming the version it found otherwise. The generated code and the runtime package target .NET 8 and later.
 
 ::: warning Experimental
 The .NET tool `Miragon.BpmnToCode` is the [command-line tool](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli) and shares its status: its commands, flags and exit codes are experimental and may change in a minor release. The MSBuild integration and the generated C# are stable.
@@ -46,7 +46,7 @@ The .NET tool `Miragon.BpmnToCode` is the [command-line tool](https://github.com
 | `BpmnToCodeFailOnWarning` | `false` | Whether `BpmnToCodeValidate` fails on warnings |
 | `BpmnToCodeDisabledRules` | none | Comma-separated ids of [validation rules](/validate/) `BpmnToCodeValidate` skips |
 
-The generation runs the .NET tool `Miragon.BpmnToCode` of the package's own version through `dotnet tool exec`, which fetches it from your NuGet feeds on the first build. Nothing has to be installed. To run another build of the tool, set `BpmnToCodeToolCommand` to the command that starts it.
+The generation runs the .NET tool `Miragon.BpmnToCode` of the package's own version through `dotnet tool exec`, which fetches it from your NuGet feeds on the first build. Besides Java 21, nothing has to be installed. To run another build of the tool, set `BpmnToCodeToolCommand` to the command that starts it.
 
 ## 3. Use the generated API
 

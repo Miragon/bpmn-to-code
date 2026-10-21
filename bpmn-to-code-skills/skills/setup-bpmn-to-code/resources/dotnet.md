@@ -1,6 +1,6 @@
 # .NET with the MSBuild package
 
-For a project with a `*.csproj` (.NET SDK 10 or newer). `Miragon.BpmnToCode.MSBuild` generates the C# Process APIs during `dotnet build` and adds `Miragon.BpmnToCode.Runtime`, the package the generated code is built from. Nothing has to be installed.
+For a project with a `*.csproj` (.NET SDK 10 or newer, Java 21 or newer from `JAVA_HOME` or the `PATH`). `Miragon.BpmnToCode.MSBuild` generates the C# Process APIs during `dotnet build` and adds `Miragon.BpmnToCode.Runtime`, the package the generated code is built from. Nothing else has to be installed.
 
 ## Add the package
 

@@ -1,6 +1,6 @@
 # bpmn-to-code
 
-Generates type-safe APIs from BPMN process models and validates the models, for Zeebe (Camunda 8), Camunda 7 and Operaton. The tool brings its own Java runtime; nothing but the .NET SDK is needed.
+Generates type-safe APIs from BPMN process models and validates the models, for Zeebe (Camunda 8), Camunda 7 and Operaton. The tool needs the .NET 10 SDK and Java 21 or newer from `JAVA_HOME` or the `PATH`.
 
 ```bash
 dotnet tool install Miragon.BpmnToCode
