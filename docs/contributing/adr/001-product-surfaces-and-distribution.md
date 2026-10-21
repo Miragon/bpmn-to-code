@@ -37,7 +37,7 @@ Parameters and defaults are listed in [Configuration](/guide/configuration).
 
 - Users add one plugin or one test dependency and get a working generator; there is no core version to align.
 - The classes of `io.miragon.bpmn.domain` exist in three published jars. Changing a domain type is a change to the testing library's API ([record 11](011-compatibility-policy.md)).
-- KotlinPoet, JavaPoet and `camunda-bpmn-model` reach the user's build classpath, `camunda-bpmn-model` and AssertJ the test classpath, all under their original package names.
+- FreeMarker and `camunda-bpmn-model` reach the user's build classpath, `camunda-bpmn-model` and AssertJ the test classpath, all under their original package names.
 - Core's dependency list is maintained in every wrapper by hand. A dependency a wrapper forgets fails only when the published plugin runs, which is why the Gradle module resolves its own published plugin in a smoke test.
 - A skill fix reaches users only with the next release.
 - A setting that exists in one entry point only is a defect, not a feature.

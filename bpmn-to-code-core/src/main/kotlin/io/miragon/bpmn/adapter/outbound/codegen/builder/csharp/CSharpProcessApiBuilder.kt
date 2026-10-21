@@ -3,58 +3,30 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpFlowWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpSourceFile
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpWriter
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
-import io.miragon.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.pascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TemplateRenderer
 
 /**
- * Generates the process API for a single BPMN process as a C# file.
+ * Generates the process API for a single BPMN process as a C# file, rendered by `templates/csharp/process-api.ftl`.
  *
- * The shape matches the Kotlin and Java builders: constant registries plus the typed `FlowNodes` navigation.
- * There is no C# runtime package; the handful of runtime types every node references
- * ([CSharpRuntimeTypes]) is emitted into the file itself as a nested `Runtime` class, so the generated file
- * still has no dependencies at all.
+ * The shape matches the Kotlin and Java output: process id and engine plus the typed `FlowNodes` navigation. There is
+ * no C# runtime package; the runtime types every node references are inlined into the file as a nested `Runtime`
+ * class, so the generated file has no dependencies at all.
  */
 internal class CSharpProcessApiBuilder : ProcessApiBuilder {
 
     override fun render(api: ProcessApiGraph): SourceCode {
-        val flow = api.flow
-        val sections = listOfNotNull<(CSharpWriter) -> Unit>(
-            { writer -> writer.constant("ProcessId", api.processId.value) },
-            { writer -> writeProcessEngine(writer, api.processEngine) },
-            { writer -> writeRuntimeTypes(writer) },
-            flow?.let { graph -> { writer -> writeFlow(writer, graph) } },
+        val rendered = TemplateRenderer.render(
+            templateName = "csharp/process-api.ftl",
+            model = CSharpProcessApiModel(
+                namespace = api.packagePath.value,
+                typeName = api.typeName.value,
+                processId = stringLiteral(api.processId.value),
+                processEngine = pascalCase(api.processEngine.name),
+                flowNodes = api.flow?.nodes?.map { CSharpFlowNodeMapper.map(it) },
+            ),
         )
-        return CSharpSourceFile.render(packagePath = api.packagePath) { writer ->
-            writer.staticClass(api.typeName.value) {
-                writer.forEachSeparated(sections) { section -> section(writer) }
-            }
-        }
-    }
-
-    private fun writeProcessEngine(writer: CSharpWriter, processEngine: ProcessEngine) {
-        val engineType = CSharpRuntimeTypes.BPMN_ENGINE
-        writer.constantExpression(name = "ProcessEngine", expression = CSharpRuntimeTypes.enumMember(engineType, processEngine.name), type = engineType)
-    }
-
-    private fun writeRuntimeTypes(writer: CSharpWriter) {
-        writer.docComment("The runtime types this API's flow nodes are built from; inlined so the file needs no package.")
-        writer.staticClass(CSharpRuntimeTypes.CLASS_NAME) {
-            CSharpRuntimeTypes.SOURCE.lines().forEach { writer.line(it) }
-        }
-    }
-
-    /**
-     * Renders the process as a typed navigation graph: one nested singleton class per element exposing its
-     * `Id`, `ElementType` and `Name`, its facets and its successors behind `Next`; every node is a direct child of
-     * `FlowNodes`, and a subprocess opens its interior via `Start`.
-     */
-    private fun writeFlow(writer: CSharpWriter, graph: FlowGraph) {
-        writer.docComment("Typed navigation over the process flow: one nested singleton class per BPMN element, reached as FlowNodes.Element.Instance.")
-        writer.staticClass("FlowNodes") {
-            CSharpFlowWriter(writer).write(graph)
-        }
+        return SourceCode(rendered)
     }
 }

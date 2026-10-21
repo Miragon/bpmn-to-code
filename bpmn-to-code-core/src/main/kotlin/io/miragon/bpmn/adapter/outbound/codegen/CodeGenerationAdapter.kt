@@ -1,11 +1,11 @@
 package io.miragon.bpmn.adapter.outbound.codegen
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.freemarker.CSharpFreemarkerProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.freemarker.CSharpFreemarkerSharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.freemarker.JavaFreemarkerProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.freemarker.JavaFreemarkerSharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.freemarker.KotlinFreemarkerProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.freemarker.KotlinFreemarkerSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnModelApi
@@ -50,18 +50,18 @@ internal class CodeGenerationAdapter(
         val generators: Map<OutputLanguage, LanguageGenerator> = mapOf(
             OutputLanguage.KOTLIN to LanguageGenerator(
                 fileExtension = "kt",
-                processApiBuilder = KotlinFreemarkerProcessApiBuilder(),
-                sharedDefinitionsBuilder = KotlinFreemarkerSharedDefinitionsBuilder(),
+                processApiBuilder = KotlinProcessApiBuilder(),
+                sharedDefinitionsBuilder = KotlinSharedDefinitionsBuilder(),
             ),
             OutputLanguage.JAVA to LanguageGenerator(
                 fileExtension = "java",
-                processApiBuilder = JavaFreemarkerProcessApiBuilder(),
-                sharedDefinitionsBuilder = JavaFreemarkerSharedDefinitionsBuilder(),
+                processApiBuilder = JavaProcessApiBuilder(),
+                sharedDefinitionsBuilder = JavaSharedDefinitionsBuilder(),
             ),
             OutputLanguage.CSHARP to LanguageGenerator(
                 fileExtension = "cs",
-                processApiBuilder = CSharpFreemarkerProcessApiBuilder(),
-                sharedDefinitionsBuilder = CSharpFreemarkerSharedDefinitionsBuilder(),
+                processApiBuilder = CSharpProcessApiBuilder(),
+                sharedDefinitionsBuilder = CSharpSharedDefinitionsBuilder(),
             ),
         )
     }

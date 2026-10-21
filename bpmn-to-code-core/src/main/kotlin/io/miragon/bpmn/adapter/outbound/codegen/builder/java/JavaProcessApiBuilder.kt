@@ -1,60 +1,29 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
-import com.palantir.javapoet.FieldSpec
-import com.palantir.javapoet.TypeSpec
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
-import io.miragon.bpmn.adapter.outbound.codegen.ProcessId
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaConstantHolder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaFlowWriter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.poet.JavaSourceFile
-import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph
-import io.miragon.bpmn.domain.shared.ProcessEngine
-import javax.lang.model.element.Modifier.FINAL
-import javax.lang.model.element.Modifier.PUBLIC
-import javax.lang.model.element.Modifier.STATIC
+import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSyntax.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.freemarker.GeneratedTypeNames
 
 /**
- * Generates the type-safe API contract for a single BPMN process as a Java class file.
- * References shared BPMN types (BpmnTimer, BpmnErrorDefinition, etc.) from the `bpmn-to-code-runtime` artifact.
+ * Generates the type-safe API contract for a single BPMN process as a Java class file, rendered by
+ * `templates/java/process-api.ftl`. It refers to the types of the `bpmn-to-code-runtime` artifact.
  */
 internal class JavaProcessApiBuilder : ProcessApiBuilder {
 
-    companion object {
-        private const val PROCESS_ID = "PROCESS_ID"
-    }
-
     override fun render(api: ProcessApiGraph): SourceCode {
-        val rootClassBuilder = JavaConstantHolder(api.typeName.value).builder()
-            .addField(processIdField(api.processId))
-            .addField(processEngineField(api.processEngine))
-        api.flow?.let { rootClassBuilder.addType(buildFlowClass(it)) }
-        return JavaSourceFile.render(type = rootClassBuilder.build(), packagePath = api.packagePath)
-    }
-
-    private fun processIdField(processId: ProcessId): FieldSpec {
-        val processIdClass = JavaRuntimeTypes.PROCESS_ID
-        val fieldBuilder = FieldSpec.builder(processIdClass, PROCESS_ID).addModifiers(PUBLIC, FINAL, STATIC)
-        return fieldBuilder.initializer($$"new $T($S)", processIdClass, processId.value).build()
-    }
-
-    private fun processEngineField(processEngine: ProcessEngine): FieldSpec {
-        val bpmnEngineClass = JavaRuntimeTypes.BPMN_ENGINE
-        val fieldBuilder = FieldSpec.builder(bpmnEngineClass, "PROCESS_ENGINE")
-            .addModifiers(PUBLIC, FINAL, STATIC).initializer($$"$T.$L", bpmnEngineClass, processEngine.name)
-        return fieldBuilder.build()
-    }
-
-    /**
-     * Renders the process as a typed navigation graph: one nested class per element exposing its `id`,
-     * `elementType` and display `name`, plus its reachable successors behind `getNext()`. Boundary events and
-     * subprocess continuations are plain successors; every node is a direct child of `FlowNodes`, and a subprocess
-     * opens its interior via `getStartEvents()`.
-     */
-    private fun buildFlowClass(graph: FlowGraph): TypeSpec {
-        val flowBuilder = JavaConstantHolder("FlowNodes").builder(STATIC).addJavadoc("Typed navigation over the process flow: one nested class per BPMN element.\n")
-        JavaFlowWriter().write(flowBuilder, graph)
-        return flowBuilder.build()
+        val file = JavaSourceFile.of(packagePath = api.packagePath, generatedTypeNames = GeneratedTypeNames.of(api))
+        val mapper = JavaFlowNodeMapper(file.types)
+        return file.render(
+            templateName = "java/process-api.ftl",
+            model = JavaProcessApiModel(
+                typeName = api.typeName.value,
+                processId = stringLiteral(api.processId.value),
+                processEngine = api.processEngine.name,
+                flowNodes = api.flow?.nodes?.map { mapper.map(it) },
+                types = file.types,
+            ),
+        )
     }
 }

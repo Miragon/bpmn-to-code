@@ -1,4 +1,4 @@
-# 7. Output languages: `FlowGraph`, poet builders and the C# text writer
+# 7. Output languages: `FlowGraph` and FreeMarker templates
 
 ## Context
 
@@ -10,9 +10,7 @@ The generator emits the same API in Kotlin, Java and C#. The three languages dif
 
 **One generator per language.** Each `OutputLanguage` has a `LanguageGenerator`: its file extension, a `ProcessApiBuilder` for a Process API and a `SharedDefinitionsBuilder` for one kind of shared definition ([record 6](006-generated-api-shape.md)). `CodeGenerationAdapter` picks it from one map. There is no common base class; what the builders share is the model they render.
 
-**Kotlin and Java are rendered with KotlinPoet and JavaPoet.** The libraries model a type tree and take care of imports, escaping and formatting.
-
-**C# is rendered by a small text writer.** No comparable library exists on the JVM, so `CSharpWriter` accumulates source text with block-aware indentation, and that is all the C# builders use. `packagePath` is taken verbatim as the namespace.
+**Every language is rendered from FreeMarker templates.** The templates live under `templates/<language>`, so a generated file looks like its template. The builders map a graph to a template model of literals, identifiers and references, and the template writes the code around them; escaping and keywords are handled per language by `KotlinSyntax`, `JavaSyntax` and `CSharpSyntax`, imports and shadowed names for Kotlin and Java by `TypeReferences`. `TemplateRenderer` pins locale, time zone, encoding and number formats, so the same model renders to the same bytes on every machine. `packagePath` is taken verbatim as the C# namespace.
 
 **C# has no runtime package.** The types the JVM languages get from the runtime library ([record 8](008-runtime-library-and-process-paths.md)) are emitted as one fixed block into every generated C# file, nested in the Process API as `Runtime`. C# output is experimental ([record 11](011-compatibility-policy.md)).
 
@@ -25,10 +23,11 @@ The generator emits the same API in Kotlin, Java and C#. The three languages dif
 - The C# compile test is skipped when no .NET SDK is installed. A contributor without one can break C# and only learns it in CI, where the SDK is present.
 - The runtime types exist twice: as hand-written Kotlin and as a C# text block. A change to one has to be made in the other by hand, and nothing but the fixtures links them.
 - Runtime types of two generated C# files are unrelated to each other, so generic C# code over several Process APIs needs its own abstraction. The process-path API ([record 8](008-runtime-library-and-process-paths.md)) has no C# counterpart.
-- The poet libraries are part of the plugins' dependencies ([record 1](001-product-surfaces-and-distribution.md)).
+- FreeMarker is part of the plugins' dependencies ([record 1](001-product-surfaces-and-distribution.md)).
+- Templates are strings: a missing import or a broken escape is not caught by a type tree, only by the golden files and the compile tests.
 
 ## Rejected alternatives
 
-- **One template engine for all languages.** For Kotlin and Java it gives up what the poet libraries do for free: imports, escaping, and a type tree instead of strings. For C# text emission is what happens, out of necessity and kept to one small class.
+- **KotlinPoet and JavaPoet for Kotlin and Java, a text writer for C#.** The poets handle imports, escaping and formatting, but leave three ways of writing code, each with its own layout, and wrap lines on their own. They were used before 6.0 and replaced by the templates.
 - **A NuGet package with the C# runtime types.** The clean long-term answer. Publishing and versioning a second ecosystem's package is a larger effort than the generator, and inlining can be reversed later.
 - **C# with constants only and no navigation.** It made the output differ per language in shape, not only in syntax.
