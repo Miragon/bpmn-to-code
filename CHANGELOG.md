@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.6.0](https://github.com/Miragon/bpmn-to-code/compare/v6.5.0...v6.6.0) (2026-10-21)
+
+
+### Features
+
+* **csharp:** build on a runtime package with process paths, a dotnet tool and msbuild integration ([#233](https://github.com/Miragon/bpmn-to-code/issues/233)) ([e95ed75](https://github.com/Miragon/bpmn-to-code/commit/e95ed75b03165611bd055e909202b155769678c6))
+* **skills:** add a github actions drift check for the committed process api to the setup skill ([#235](https://github.com/Miragon/bpmn-to-code/issues/235)) ([69bc64c](https://github.com/Miragon/bpmn-to-code/commit/69bc64c9aab2469a3891e646af1b9b6dc06c12b4))
+* **skills:** rework agent skills around engine code against the generated api ([#225](https://github.com/Miragon/bpmn-to-code/issues/225)) ([d37c0cb](https://github.com/Miragon/bpmn-to-code/commit/d37c0cbfce7a4dfd92d5a75eff2af62b64af3111))
+* **typescript:** generate typescript on a runtime package and ship the cli on npm ([#234](https://github.com/Miragon/bpmn-to-code/issues/234)) ([20aef06](https://github.com/Miragon/bpmn-to-code/commit/20aef06377b2ca83058a6d2867c81b1152cc691d))
+
+
+### Bug Fixes
+
+* **cli:** drop redundant version from Homebrew formula ([#214](https://github.com/Miragon/bpmn-to-code/issues/214)) ([48cce92](https://github.com/Miragon/bpmn-to-code/commit/48cce92c257554d52bb22f6bdcbf42f7bd694afe))
+
 ## [6.5.0](https://github.com/Miragon/bpmn-to-code/compare/v6.4.0...v6.5.0) (2026-10-18)
 
 
