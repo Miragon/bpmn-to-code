@@ -46,8 +46,8 @@ export default defineConfig({
         items: [
           { text: 'Gradle', link: '/getting-started/gradle' },
           { text: 'Maven', link: '/getting-started/maven' },
-          { text: '.NET', link: '/getting-started/dotnet' },
-          { text: 'TypeScript', link: '/getting-started/typescript' },
+          { text: '.NET (experimental)', link: '/getting-started/dotnet' },
+          { text: 'TypeScript (experimental)', link: '/getting-started/typescript' },
           { text: 'Web App', link: '/web/' },
           { text: 'Generated API', link: '/guide/generated-api' },
           { text: 'Process Paths', link: '/guide/process-path' },

@@ -87,16 +87,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Makes CSharpCompilationTest a PR gate (it skips without an SDK)
-      - name: Set up .NET 8
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
-        with:
-          dotnet-version: '8.0'
-
-      # Makes TypeScriptCompilationTest a PR gate (it skips without the pinned compiler)
-      - name: Install the TypeScript compiler
-        run: npm ci --prefix packages/npm/bpmn-to-code-runtime
-
       # Linting runs in the quality job
       - name: Run Gradle Build
         run: ./gradlew build --warning-mode all -x lintKotlin -x detekt -x detektMain -x detektTest

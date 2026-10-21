@@ -68,7 +68,7 @@ class GradlePluginSmokeTest {
             bpmnFile = "zeebe/bike-leasing.bpmn",
         )
 
-        // when: running generation only — the C# compile gate lives in core's CSharpCompilationTest
+        // when: running generation only — the C# compile gate lives in packages/nuget/BpmnToCode.Runtime.Tests
         val result = GradleRunner.create()
             .withProjectDir(projectDir).withPluginClasspath().withArguments("generateBpmnModelApi").build()
 
@@ -90,7 +90,7 @@ class GradlePluginSmokeTest {
             bpmnFile = "zeebe/bike-leasing.bpmn",
         )
 
-        // when: running generation only — the type check lives in core's TypeScriptCompilationTest
+        // when: running generation only — the type check lives in the tests of packages/npm/bpmn-to-code-runtime
         val result = GradleRunner.create()
             .withProjectDir(projectDir).withPluginClasspath().withArguments("generateBpmnModelApi").build()
 

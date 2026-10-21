@@ -14,7 +14,7 @@ Upload up to three BPMN files, pick the output language and engine, and download
   Open Web App
 </a>
 
-Generated code uses the fixed package `com.example.process` (for C# the namespace `Com.Example.Process`); change it after downloading. The generated code needs the runtime package of its language, which the app shows next to the result: `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#, `@miragon/bpmn-to-code-runtime` for TypeScript.
+Generated code uses the fixed package `com.example.process` (for C# the namespace `Com.Example.Process`); change it after downloading. The generated code needs the runtime package of its language, which the app shows next to the result: `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#, `@miragon/bpmn-to-code-runtime` for TypeScript. C# and TypeScript output are experimental, and their NuGet and npm packages are not published yet.
 
 ## Self-host with Docker
 

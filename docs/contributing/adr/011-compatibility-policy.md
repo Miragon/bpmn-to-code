@@ -22,7 +22,7 @@ Everything else in core, including the inbound adapters, is internal and may cha
 
 **Stable surfaces break only in a major release.** A minor release adds; a patch release fixes.
 
-**Experimental surfaces may break in a minor release.** A surface is experimental when the documentation or the code says so. Today that is the TypeScript output with its packages, the build-time validation task and goal, and the command-line tool with its .NET tool and npm package. C# output left this status in 6.6.0. The word is "experimental" everywhere.
+**Experimental surfaces may break in a minor release.** A surface is experimental when the documentation or the code says so. Today that is the C# and TypeScript output with their packages, the build-time validation task and goal, and the command-line tool with its .NET tool and npm package. C# and TypeScript keep this status at least until their NuGet and npm packages are published. The word is "experimental" everywhere.
 
 **Breaking changes ship without flags or compatibility layers.** A major release changes the output, and the migration guide in the [changelog](/changelog/) describes the way over. There is no option to keep the previous shape and no deprecated copy of a renamed type.
 

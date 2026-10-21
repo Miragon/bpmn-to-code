@@ -34,7 +34,7 @@ Read before changing structure: [`docs/contributing/architecture.md`](docs/contr
 
 - Lines target 120 characters. ktlint wraps longer lines but never joins shorter ones, so collapse by hand whatever fits on one line.
 - No baseline and no suppressions: fix the finding, or add a scoped, commented exception to the config.
-- The C# compilation test is skipped without a `dotnet` command, so a green local build proves nothing about generated C#. See the architecture page for how to run it.
+- Core does not compile generated C# or TypeScript. That happens in `packages/nuget/BpmnToCode.Runtime.Tests` (`dotnet test`) and `packages/npm/bpmn-to-code-runtime` (`npm test`), both on the CLI from `./gradlew :bpmn-to-code-cli:installDist`. See the contributing page for how to run them.
 - The TypeScript compilation test is skipped until `npm ci --prefix packages/npm/bpmn-to-code-runtime` has run.
 
 ## How to work

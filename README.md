@@ -26,7 +26,7 @@ Around the generator:
 - **[Validation](https://miragon.github.io/bpmn-to-code/validate/)**: built-in rules run before every generation, as a build task, or as tests with `bpmn-to-code-testing`, where you can add your own rules.
 - **[Process JSON](https://miragon.github.io/bpmn-to-code/surface/json)** (deprecated, removed in 7.0): a compact JSON view of each process.
 - **[Agent Skills](https://miragon.github.io/bpmn-to-code/skills/)**: a Claude Code plugin that sets up the build plugin, migrates hardcoded strings, and writes and tests workers, process adapters and process tests against the generated API.
-- **[Command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli)**: generate and validate without Gradle or Maven, also as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) and an [npm package](https://miragon.github.io/bpmn-to-code/getting-started/typescript); the archives bring their own Java runtime, the .NET tool and the npm package need Java 21.
+- **[Command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli)**: generate and validate without Gradle or Maven, also as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) and an [npm package](https://miragon.github.io/bpmn-to-code/getting-started/typescript) (both not yet published); the archives bring their own Java runtime, the .NET tool and the npm package need Java 21.
 - **[Web app](https://bpmn-to-code.miragon.io/static/index.html)**: try it in the browser, or self-host the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
 
 ## What it helps with
@@ -130,10 +130,10 @@ Details: [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/ma
 |---|---|---|
 | Kotlin | `KOTLIN` | `io.miragon:bpmn-to-code-runtime` |
 | Java | `JAVA` | `io.miragon:bpmn-to-code-runtime` |
-| C# | `CSHARP` | `Miragon.BpmnToCode.Runtime` (NuGet) |
-| TypeScript (experimental) | `TYPESCRIPT` | `@miragon/bpmn-to-code-runtime` (npm) |
+| C# (experimental) | `CSHARP` | `Miragon.BpmnToCode.Runtime` (NuGet, not yet published) |
+| TypeScript (experimental) | `TYPESCRIPT` | `@miragon/bpmn-to-code-runtime` (npm, not yet published) |
 
-TypeScript output is experimental and may change in a minor release. C# and TypeScript output are available in the Gradle and Maven plugins, the command line and the web app; C# also during `dotnet build` through `Miragon.BpmnToCode.MSBuild`.
+C# and TypeScript output are experimental and may change in a minor release; their NuGet and npm packages are not published yet. C# and TypeScript output are available in the Gradle and Maven plugins, the command line and the web app; C# also during `dotnet build` through `Miragon.BpmnToCode.MSBuild`.
 
 ## Links
 

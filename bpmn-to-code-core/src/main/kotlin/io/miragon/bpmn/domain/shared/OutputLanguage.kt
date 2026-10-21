@@ -8,7 +8,7 @@ enum class OutputLanguage {
     JAVA,
 
     /**
-     * Same API surface as Kotlin and Java, on the NuGet runtime package `Miragon.BpmnToCode.Runtime`.
+     * Experimental. Same API surface as Kotlin and Java, on the NuGet runtime package `Miragon.BpmnToCode.Runtime`.
      */
     CSHARP,
 

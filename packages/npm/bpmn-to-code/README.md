@@ -1,5 +1,7 @@
 # bpmn-to-code
 
+> **Experimental, not yet published.** This package may change in a minor release and is not on npm yet.
+
 Generates type-safe APIs from BPMN process models and validates the models, for Zeebe (Camunda 8), Camunda 7 and Operaton. The package installs the command-line tool, which needs Java 21 or newer from `JAVA_HOME` or the `PATH`.
 
 ```bash

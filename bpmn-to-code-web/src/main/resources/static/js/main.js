@@ -19,6 +19,8 @@ const TAB_CONFIG = {
     }
 };
 
+const UNPUBLISHED_RUNTIME_PACKAGES = ['Miragon.BpmnToCode.Runtime', '@miragon/bpmn-to-code-runtime'];
+
 // Application State
 const state = {
     files: [],
@@ -438,6 +440,7 @@ function buildReadmeContents() {
         ``,
         `The Process API files in this archive import from \`${dep.importedFrom}\`.`,
         `Add \`${dep.name}\` ${dep.version} to your build to make them compile.`,
+        ...(isUnpublished(dep) ? [``, `\`${dep.name}\` is experimental and not published yet.`] : []),
         ``,
         ...sections,
     ].join('\n');
@@ -454,7 +457,8 @@ function renderRuntimeDependency() {
     card.style.display = 'block';
     state.depSnippetIndex = 0;
     document.getElementById('runtime-dep-hint').innerHTML =
-        `Generated code imports from <code>${escapeHtml(dep.importedFrom)}</code>. Add <code>${escapeHtml(dep.name)}</code> to your build.`;
+        `Generated code imports from <code>${escapeHtml(dep.importedFrom)}</code>. Add <code>${escapeHtml(dep.name)}</code> to your build.`
+        + (isUnpublished(dep) ? ' The package is experimental and not published yet.' : '');
     const tabs = document.getElementById('runtime-dep-tabs');
     tabs.innerHTML = dep.snippets.map((snippet, index) =>
         `<button type="button" class="runtime-dep-tab" data-dep-index="${index}">${escapeHtml(snippet.label)}</button>`).join('');
@@ -612,4 +616,8 @@ function setupLegalLinks(legalLinks) {
     } else {
         privacyLink.style.display = 'none';
     }
+}
+
+function isUnpublished(dep) {
+    return UNPUBLISHED_RUNTIME_PACKAGES.includes(dep.name);
 }

@@ -11,8 +11,8 @@ Neither Gradle nor Maven is needed. The generated TypeScript holds the constants
 
 **Requirements:** Node 18 or newer, in an ES module project (`"type": "module"`, or a bundler); the runtime package ships as ES module only, so a CommonJS project needs Node 20.19 or newer, and Jest needs its ES module support. The tool needs Java 21 or newer, from `JAVA_HOME` or the `PATH`; it fails with a message naming the version it found otherwise.
 
-::: warning Experimental
-TypeScript output is experimental and may change in a minor release. See [TypeScript specifics](/guide/generated-api#typescript-specifics).
+::: warning Experimental, not yet published
+TypeScript output is experimental and may change in a minor release. See [TypeScript specifics](/guide/generated-api#typescript-specifics). The two packages are not on npm yet; until they are, the steps below only work with packages packed from this repository.
 :::
 
 ## 1. Install the packages

@@ -85,4 +85,4 @@ Thus, bpmn-to-code ships with [Agent Skills](/skills/) that automate these workf
 
 ## Get Started
 
-Set up the [Gradle plugin](/getting-started/gradle) or the [Maven plugin](/getting-started/maven), use the [command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli), the [.NET tool](/getting-started/dotnet) or the [npm package](/getting-started/typescript), or try the [web app](/web/) without installing anything. All of them run the same generator and produce Kotlin, Java, C# or TypeScript (experimental).
+Set up the [Gradle plugin](/getting-started/gradle) or the [Maven plugin](/getting-started/maven), use the [command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli), the [.NET tool](/getting-started/dotnet) or the [npm package](/getting-started/typescript), or try the [web app](/web/) without installing anything. All of them run the same generator and produce Kotlin, Java, C# (experimental) or TypeScript (experimental).
