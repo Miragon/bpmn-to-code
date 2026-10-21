@@ -6,6 +6,8 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaProcessApiBuild
 import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnModelApi
@@ -62,6 +64,11 @@ internal class CodeGenerationAdapter(
                 fileExtension = "cs",
                 processApiBuilder = CSharpProcessApiBuilder(),
                 sharedDefinitionsBuilder = CSharpSharedDefinitionsBuilder(),
+            ),
+            OutputLanguage.TYPESCRIPT to LanguageGenerator(
+                fileExtension = "ts",
+                processApiBuilder = TypeScriptProcessApiBuilder(),
+                sharedDefinitionsBuilder = TypeScriptSharedDefinitionsBuilder(),
             ),
         )
     }

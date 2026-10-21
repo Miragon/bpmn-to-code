@@ -21,6 +21,7 @@ class MavenMojoSmokeTest {
         "OPERATON, KOTLIN, operaton/bike-leasing.bpmn",
         "ZEEBE, JAVA, zeebe/bike-leasing.bpmn",
         "ZEEBE, CSHARP, zeebe/bike-leasing.bpmn",
+        "ZEEBE, TYPESCRIPT, zeebe/bike-leasing.bpmn",
     )
     fun `mojo generates output files`(engine: String, language: String, bpmnFile: String, @TempDir projectDir: File) {
         // given: a temp project directory with a BPMN resource and a configured mojo
@@ -47,6 +48,7 @@ class MavenMojoSmokeTest {
         val expectedExt = when (language) {
             "KOTLIN" -> ".kt"
             "JAVA" -> ".java"
+            "TYPESCRIPT" -> ".ts"
             else -> ".cs"
         }
         assertThat(generatedFiles).allSatisfy { file -> assertThat(file.isFile).isTrue() }

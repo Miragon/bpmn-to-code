@@ -37,7 +37,7 @@ class MavenMojoParameterTest {
 
         assertThatThrownBy { mojo.execute() }
             .isInstanceOf(MojoFailureException::class.java)
-            .hasMessage("outputLanguage 'SCALA' is not supported (valid values: KOTLIN, JAVA, CSHARP)")
+            .hasMessage("outputLanguage 'SCALA' is not supported (valid values: KOTLIN, JAVA, CSHARP, TYPESCRIPT)")
     }
 
     companion object {

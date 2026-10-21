@@ -93,6 +93,10 @@ jobs:
         with:
           dotnet-version: '8.0'
 
+      # Makes TypeScriptCompilationTest a PR gate (it skips without the pinned compiler)
+      - name: Install the TypeScript compiler
+        run: npm ci --prefix packages/npm/bpmn-to-code-runtime
+
       # Linting runs in the quality job
       - name: Run Gradle Build
         run: ./gradlew build --warning-mode all -x lintKotlin -x detekt -x detektMain -x detektTest

@@ -28,11 +28,12 @@ updates:
           - "minor"
           - "patch"
 
-  # npm: docs website and bpmnlint tooling
+  # npm: docs website, bpmnlint tooling, and the TypeScript runtime package, whose compiler the compile test uses
   - package-ecosystem: "npm"
     directories:
       - "/docs"
       - "/tools"
+      - "/packages/npm/bpmn-to-code-runtime"
     schedule:
       interval: "monthly"
     cooldown:

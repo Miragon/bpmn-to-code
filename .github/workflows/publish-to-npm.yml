@@ -1,0 +1,142 @@
+name: Publish to npm
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Dry run (build & verify only, no real publish)'
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  stage:
+    name: Stage packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          persist-credentials: false
+
+      # The jars are the same in every archive; the main package takes them from the Linux one
+      - name: Download the CLI archive
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: cli-linux-x64
+          merge-multiple: true
+          path: archives
+
+      - name: Build the runtime package
+        run: |
+          npm ci --prefix packages/npm/bpmn-to-code-runtime
+          npm run build --prefix packages/npm/bpmn-to-code-runtime
+
+      - name: Stage
+        run: |
+          VERSION=$(grep '^projectVersion=' gradle.properties | cut -d= -f2)
+          node packages/npm/stage-packages.mjs archives "$VERSION"
+          mkdir tarballs
+          for package in packages/npm/dist/*/; do
+            (cd "$package" && npm pack --pack-destination "$GITHUB_WORKSPACE/tarballs")
+          done
+
+      - name: Upload packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-packages
+          path: tarballs/*.tgz
+          if-no-files-found: error
+
+  smoke:
+    name: Smoke test (${{ matrix.runner }})
+    needs: stage
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          persist-credentials: false
+
+      - name: Download packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: npm-packages
+          path: tarballs
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install, generate and type-check
+        shell: bash
+        run: |
+          npm ci --prefix packages/npm/bpmn-to-code-runtime
+          mkdir smoke && cd smoke
+          echo '{ "name": "smoke", "private": true, "type": "module" }' > package.json
+          npm install --no-audit --no-fund ../tarballs/miragon-bpmn-to-code-runtime-*.tgz
+          npm install --no-audit --no-fund --save-dev ../tarballs/miragon-bpmn-to-code-[0-9]*.tgz
+          npx bpmn-to-code generate-api --baseDir ../shared/bpmn/zeebe --filePattern '*.bpmn' --processEngine ZEEBE \
+            --outputLanguage TYPESCRIPT --outputFolderPath src --packagePath process
+          echo '{ "compilerOptions": { "target": "es2022", "module": "nodenext", "moduleResolution": "nodenext", "strict": true, "noEmit": true }, "include": ["src/**/*.ts"] }' > tsconfig.json
+          ../packages/npm/bpmn-to-code-runtime/node_modules/.bin/tsc --project tsconfig.json
+
+  publish:
+    name: Publish
+    needs: smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: npm-packages
+          path: tarballs
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing needs npm 11.5.1 or later, which not every Node 24 release bundles
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@11
+
+      # Skips versions already on npm, so a failed run can be repeated; a prerelease is tagged next instead of latest.
+      # A dry run checks every package with npm publish --dry-run.
+      - name: Publish the runtime package, then the main package
+        env:
+          PUBLISH_MODE: ${{ inputs.dry_run && '--dry-run' || '--provenance' }}
+        run: |
+          publish() {
+            local manifest name version
+            manifest=$(tar -xOzf "$1" package/package.json)
+            name=$(echo "$manifest" | jq -r .name)
+            version=$(echo "$manifest" | jq -r .version)
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published"
+              return
+            fi
+            local tag=latest
+            if [[ "$version" == *-* ]]; then tag=next; fi
+            npm publish "$1" --access public --tag "$tag" "$PUBLISH_MODE"
+          }
+          publish tarballs/miragon-bpmn-to-code-runtime-*.tgz
+          publish tarballs/miragon-bpmn-to-code-[0-9]*.tgz

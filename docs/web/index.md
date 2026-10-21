@@ -14,7 +14,7 @@ Upload up to three BPMN files, pick the output language and engine, and download
   Open Web App
 </a>
 
-Generated code uses the fixed package `com.example.process` (for C# the namespace `Com.Example.Process`); change it after downloading. The generated code needs the runtime package of its language, which the app shows next to the result: `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#.
+Generated code uses the fixed package `com.example.process` (for C# the namespace `Com.Example.Process`); change it after downloading. The generated code needs the runtime package of its language, which the app shows next to the result: `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#, `@miragon/bpmn-to-code-runtime` for TypeScript.
 
 ## Self-host with Docker
 
@@ -64,7 +64,7 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
   }'
 ```
 
-`outputLanguage` is `KOTLIN`, `JAVA` or `CSHARP`; `processEngine` is `ZEEBE`, `CAMUNDA_7` or `OPERATON`. `POST /api/generate-json` takes the same body with only `processEngine` in `config`.
+`outputLanguage` is `KOTLIN`, `JAVA`, `CSHARP` or `TYPESCRIPT`; `processEngine` is `ZEEBE`, `CAMUNDA_7` or `OPERATON`. `POST /api/generate-json` takes the same body with only `processEngine` in `config`.
 
 ### Response of `/api/generate`
 
@@ -89,8 +89,8 @@ curl -X POST https://bpmn-to-code.miragon.io/api/generate \
 ```
 
 - `files` holds one Process API per BPMN file plus the [shared definition files](/guide/generated-api#shared-definitions), which have `processId: null`.
-- `runtimeDependency` names the runtime package of the output language, with one snippet per way of adding it to a build: Gradle and Maven for Kotlin and Java, `.csproj` and .NET CLI for C#.
-- `libraryFiles` holds the sources of `bpmn-to-code-runtime`; it is empty for C#.
+- `runtimeDependency` names the runtime package of the output language, with one snippet per way of adding it to a build: Gradle and Maven for Kotlin and Java, `.csproj` and .NET CLI for C#, npm for TypeScript.
+- `libraryFiles` holds the sources of `bpmn-to-code-runtime`; it is empty for C# and TypeScript.
 - `/api/generate-json` answers with `success` and `files` only, one `<processId>.json` per BPMN file.
 
 ### Errors

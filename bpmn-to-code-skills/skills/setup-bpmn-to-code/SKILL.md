@@ -25,7 +25,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    | `build.gradle.kts` or `build.gradle` | [resources/gradle.md](resources/gradle.md) |
    | `pom.xml` | [resources/maven.md](resources/maven.md) |
    | a `*.csproj` | [resources/dotnet.md](resources/dotnet.md) |
-   | neither | [resources/cli.md](resources/cli.md) |
+   | neither, or a `package.json` | [resources/cli.md](resources/cli.md) |
 
    In a multi-module build, ask which module holds the BPMN files and set it up there.
 
@@ -39,7 +39,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    | `xmlns:operaton` | `OPERATON` | Operaton |
 
    If files use different namespaces, one task or execution per group is needed (see the resource).
-4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP`.
+4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP`, a `package.json` with TypeScript sources → `TYPESCRIPT` (experimental).
 5. **Package:** suggest `<base package>.adapter.process` (or `.process` if the project has no `adapter` package). Look up the base package from existing sources.
 6. **CI:** a `.github/workflows/` folder means GitHub Actions. Note the workflows that already run on pull requests.
 

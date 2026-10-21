@@ -4,7 +4,7 @@
 
 ![A process test with hand-typed element ids only fails when it runs after an id changed in the model; built from the generated flow nodes, it stops compiling instead](../public/process-path.gif)
 
-It works in any process test that has the runtime on its classpath. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java). C# gets the same walk in the package `Miragon.BpmnToCode.Runtime` ([From C#](#from-c-sharp)).
+It works in any process test that has the runtime on its classpath. Kotlin uses `ProcessPath` with extension steps, Java the fluent [`PathWalk`](#from-java). C# gets the same walk in the package `Miragon.BpmnToCode.Runtime` ([From C#](#from-c-sharp)), TypeScript in the package `@miragon/bpmn-to-code-runtime` ([From TypeScript](#from-typescript)).
 
 ```kotlin
 import io.miragon.bpmn.runtime.path.ProcessPath
@@ -194,3 +194,38 @@ string[] ids = ProcessPath.From(Api.FlowNodes.StartEventLeasingRequestReceived)
 - `Ids`, `DistinctIds` and `FlowIds` are `string[]`, `Nodes` and `Flows` the recorded elements and flows.
 - When several flows lead to the same element, step along one of them: `.Then(n => n.<Target>.Flows[1])` records that flow.
 
+## From TypeScript {#from-typescript}
+
+`@miragon/bpmn-to-code-runtime` contains `ProcessPath` with the steps of Kotlin; each lambda receives the current node's `next`:
+
+```ts
+import { BikeLeasingProcessApi } from "./process/BikeLeasingProcessApi.js";
+import { ProcessPath } from "@miragon/bpmn-to-code-runtime";
+
+const nodes = BikeLeasingProcessApi.FlowNodes;
+
+const path = ProcessPath.from(nodes.StartEventLeasingRequestReceived)
+  .then((next) => next.serviceTaskValidateApplication)
+  .then((next) => next.businessRuleTaskCheckCreditRating)
+  .then((next) => next.gatewayIsSolvent)
+  .onto((next) => next.subProcessConcludeContract)
+  .inside((contract) => contract
+    .enter((start) => start.startEventCustomerEligible)
+    .then((next) => next.serviceTaskSendContract)
+    .then((next) => next.gatewayAwaitSignature)
+    .then((next) => next.eventContractSigned)
+    .then((next) => next.endEventContractConcluded))
+  .then((next) => next.gatewayFork)
+  .then((next) => next.serviceTaskOrderBike)
+  .then((next) => next.gatewayJoin)
+  .then((next) => next.receiveTaskHandoverReported)
+  .then((next) => next.timerWithdrawalPeriodElapsed)
+  .then((next) => next.endEventLeasingActive);
+
+expect(passedElementIds).toEqual(path.ids);
+```
+
+- The steps are those of Kotlin: `then`, `thenMultipleTimes(3, (next) => …)`, `onto`, `enter`, `inside`, `interruptedBy(nodes.Host, (next) => next.boundary)` and `throwingCompensation(nodes.Boundary, (next) => next.handler, { includeBoundaryEvent: true })`. Entering a named subprocess from anywhere is `enter(nodes.SubProcessConcludeContract, (start) => start.startEventCustomerEligible)`.
+- The compiler checks what Kotlin checks: `then` only on an element with successors, `enter` and `inside` only on a subprocess, `throwingCompensation` only on an event that throws a compensation, and only a compensation handler as its handler.
+- The unchecked step needs an explicit opt-in, as in Kotlin: `jumpTo(RiskyNavigation, nodes.GatewayFork)`, with `RiskyNavigation` imported from the package.
+- `ids`, `distinctIds` and `flowIds` are `string[]`, `nodes` the recorded elements; `nodesOf(a.nodes, b.nodes)` unites parallel branches.
