@@ -39,7 +39,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    | `xmlns:operaton` | `OPERATON` | Operaton |
 
    If files use different namespaces, one task or execution per group is needed (see the resource).
-4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP`, a `package.json` with TypeScript sources → `TYPESCRIPT` (experimental).
+4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP` (experimental), a `package.json` with TypeScript sources → `TYPESCRIPT` (experimental). The NuGet and npm packages are not published yet; tell the user before setting up either.
 5. **Package:** suggest `<base package>.adapter.process` (or `.process` if the project has no `adapter` package). Look up the base package from existing sources.
 6. **CI:** a `.github/workflows/` folder means GitHub Actions. Note the workflows that already run on pull requests.
 

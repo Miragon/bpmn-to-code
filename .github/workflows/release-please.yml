@@ -107,6 +107,8 @@ jobs:
     secrets:
       RELEASE_PLEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
 
+  # Packs and smoke-tests on every release, but pushes to nuget.org only once the
+  # repository variable PUBLISH_NUGET is 'true' (Settings → Secrets and variables → Actions).
   publish-nuget:
     name: Publish to NuGet
     needs: publish-cli
@@ -115,8 +117,9 @@ jobs:
       id-token: write
     uses: ./.github/workflows/publish-to-nuget.yml
     with:
-      dry_run: ${{ inputs.dry_run == true }}
+      dry_run: ${{ inputs.dry_run == true || vars.PUBLISH_NUGET != 'true' }}
 
+  # Same gate for npm: published only once the repository variable PUBLISH_NPM is 'true'.
   publish-npm:
     name: Publish to npm
     needs: publish-cli
@@ -125,7 +128,7 @@ jobs:
       id-token: write
     uses: ./.github/workflows/publish-to-npm.yml
     with:
-      dry_run: ${{ inputs.dry_run == true }}
+      dry_run: ${{ inputs.dry_run == true || vars.PUBLISH_NPM != 'true' }}
 
   publish-docker:
     name: Publish to Docker Hub

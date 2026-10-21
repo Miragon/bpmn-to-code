@@ -11,7 +11,7 @@ brew install lefthook   # macOS; other platforms: see the Lefthook installation 
 lefthook install
 ```
 
-Optional: a .NET 8 SDK (or a container that provides `dotnet`) to compile the generated C# locally, and Node 22 for the docs site, the BPMN linter and the TypeScript compile check.
+Optional: a .NET 8 SDK (or a container that provides `dotnet` and Java 21) for the C# tests in `packages/nuget`, and Node 22 for the docs site, the BPMN linter and the TypeScript tests in `packages/npm`.
 
 ## Everyday commands
 
@@ -44,7 +44,7 @@ There is no baseline and no suppression list for ktlint or detekt: fix the findi
 | `compileKotlin` | yes | yes | |
 | ktlint, detekt | yes | yes | |
 | All tests (incl. architecture tests) | | yes | |
-| C# compilation test | | yes (CI installs .NET 8) | |
+| C# and TypeScript tests in `packages/` | | yes, in `build-packages.yml` | |
 | Coverage rule | core only, see below | core, web, testing, runtime | |
 | PIT | | | core, runtime, web, testing |
 | Docs build | | when `docs/` changed | |
@@ -68,25 +68,35 @@ PIT is too slow for a pull request. It runs every night and on demand (`gh workf
 
 The flag also updates the generated bike-leasing API checked in under `bpmn-to-code-runtime/src/test`. The runtime cannot depend on core, so its `ProcessPath` tests run against that copy, and `RuntimeExampleDriftTest` in core fails when copy and golden file differ.
 
-**Compiled output.** Core's tests compile the generated Kotlin with the embedded Kotlin compiler and the generated Java with `javac`. `CSharpCompilationTest` runs `dotnet build` (target `net8.0`, warnings as errors) and is skipped when there is no `dotnet` on the `PATH`. A green local build therefore says nothing about C# unless you have a .NET 8 SDK or put a wrapper named `dotnet` on the `PATH` that runs the SDK image:
+**Compiled output.** Core's tests compile the generated Kotlin with the embedded Kotlin compiler and the generated Java with `javac`. Core only compares the generated C# and TypeScript with golden files and needs neither toolchain. Whether that output compiles against its runtime package is tested next to the package, on code the command-line tool generates, the way a user's build does. Both test suites take the tool from `./gradlew :bpmn-to-code-cli:installDist`, or from the path in `BPMN_TO_CODE_CLI`, and fail when it is missing.
 
-```sh
-#!/bin/sh
-dir="$(pwd -P)"
-exec podman run --rm -v "$dir":"$dir" -w "$dir" mcr.microsoft.com/dotnet/sdk:8.0 dotnet "$@"
+`packages/nuget/BpmnToCode.Runtime.Tests` is an xUnit project. Before it compiles, it generates the bike-leasing and nested-subprocess APIs and walks them with `ProcessPath`. Further cases generate into a temporary directory and are compiled in memory with Roslyn, as C# 12 with warnings as errors:
+
+```bash
+./gradlew :bpmn-to-code-cli:installDist
+dotnet test packages/nuget/BpmnToCode.Runtime.Tests
+```
+
+The tests start the tool, which runs on Java, so `dotnet` and Java 21 have to be available in the same environment. Without a local .NET 8 SDK, use an image that has both:
+
+```dockerfile
+FROM docker.io/library/eclipse-temurin:21-jdk AS jdk
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+COPY --from=jdk /opt/java/openjdk /opt/java/openjdk
+ENV JAVA_HOME=/opt/java/openjdk PATH=/opt/java/openjdk/bin:$PATH
 ```
 
 ```bash
-PATH=/path/to/wrapper-dir:$PATH ./gradlew :bpmn-to-code-core:test --tests '*CSharpCompilationTest' --rerun
+podman build -t dotnet8-jdk21 -f Containerfile .   # the file above
+podman run --rm -v "$PWD":"$PWD" -w "$PWD" dotnet8-jdk21 dotnet test packages/nuget/BpmnToCode.Runtime.Tests
 ```
 
-CI installs .NET 8, so the test gates every pull request.
-
-`TypeScriptCompilationTest` type-checks the generated TypeScript with `tsc --strict`, once with `nodenext` and once with `bundler` module resolution. It uses the compiler pinned in the runtime package `packages/npm/bpmn-to-code-runtime` and is skipped until that is installed:
+`npm test` in `packages/npm/bpmn-to-code-runtime` builds the runtime package and generates several models into `test/generated`. It then type-checks them with `tsc --strict` together with consumer code, once with `nodenext` and once with `bundler` module resolution, and runs the process path scenarios with Node:
 
 ```bash
+./gradlew :bpmn-to-code-cli:installDist
 npm ci --prefix packages/npm/bpmn-to-code-runtime
-./gradlew :bpmn-to-code-core:test --tests '*TypeScriptCompilationTest'
+npm test --prefix packages/npm/bpmn-to-code-runtime
 ```
 
 **Other layers.** The Gradle module runs smoke tests with Gradle TestKit, the Maven module executes its mojos directly, the web module tests its routes with the Ktor test host, and `ProcessJsonSchemaTest` validates the emitted JSON against the schema in `docs/public/schema`. Unit test conventions are in the `create-unit-test` skill under `.claude/skills/`.

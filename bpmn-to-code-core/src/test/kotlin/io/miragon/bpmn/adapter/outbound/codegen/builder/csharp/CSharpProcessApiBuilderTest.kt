@@ -2,7 +2,6 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.pascalCase
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
@@ -20,22 +19,12 @@ import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.withId
-import io.miragon.bpmn.runtime.BpmnElementType
-import io.miragon.bpmn.runtime.BpmnEngine
-import io.miragon.bpmn.runtime.BpmnEventType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.File
-import io.miragon.bpmn.runtime.TimerType as RuntimeTimerType
 
 class CSharpProcessApiBuilderTest {
 
     private val underTest = CodeGenerationAdapter()
-
-    private val runtimePackageSource = File(requireNotNull(System.getProperty("csharp.runtime.project")))
-        .listFiles { file -> file.extension == "cs" }.orEmpty()
-        .sortedBy { it.name }
-        .joinToString("\n") { it.readText() }
 
     @Test
     fun `generateCode generates correct process API file`() {
@@ -132,26 +121,6 @@ class CSharpProcessApiBuilderTest {
 
         assertThat(result.content).contains(": global::Miragon.BpmnToCode.Runtime.IFlowNode")
         assertThat(result.content).doesNotContain("class Runtime", "public interface IFlowNode", " Runtime.")
-    }
-
-    @Test
-    fun `runtime package enums mirror the Kotlin and Java runtime enums in PascalCase`() {
-        val runtimeEnums = listOf(BpmnElementType.entries, BpmnEventType.entries, RuntimeTimerType.entries, BpmnEngine.entries)
-
-        runtimeEnums.flatten().forEach { constant ->
-            assertThat(runtimePackageSource).contains(" ${pascalCase(constant.name)},")
-        }
-    }
-
-    @Test
-    fun `variable name records keep the raw name as string representation in derived records`() {
-        assertThat(runtimePackageSource).contains(
-            """
-            |public abstract record VariableName(string Value)
-            |{
-            |    public sealed override string ToString() => Value;
-            """.trimMargin(),
-        )
     }
 
     @Test

@@ -1,0 +1,105 @@
+name: Packages Build
+
+# Compiles and runs generated C# and TypeScript against their runtime packages,
+# on code the CLI generates, the way the .NET tool and the npm package do.
+on:
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.filter.outputs.packages }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes the packages depend on
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
+            'bpmn-to-code-core/' \
+            'bpmn-to-code-cli/' \
+            'bpmn-to-code-runtime/src/main/' \
+            'packages/' \
+            'shared/bpmn/' \
+            'build.gradle.kts' \
+            'settings.gradle.kts' \
+            'gradle/libs.versions.toml' \
+            '.github/workflows/build-packages.yml')
+          if [ -n "$CHANGED" ]; then
+            echo "packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "packages=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  dotnet:
+    name: C# against the NuGet runtime
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '8.0'
+
+      - name: Build the CLI
+        run: ./gradlew :bpmn-to-code-cli:installDist
+
+      - name: Test
+        run: dotnet test packages/nuget/BpmnToCode.Runtime.Tests --nologo
+
+  npm:
+    name: TypeScript against the npm runtime
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Build the CLI
+        run: ./gradlew :bpmn-to-code-cli:installDist
+
+      - name: Test
+        run: |
+          npm ci --prefix packages/npm/bpmn-to-code-runtime
+          npm test --prefix packages/npm/bpmn-to-code-runtime

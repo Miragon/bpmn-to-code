@@ -1,2 +1,4 @@
 dist/
 node_modules/
+bpmn-to-code-runtime/test/generated/
+bpmn-to-code-runtime/test/out/

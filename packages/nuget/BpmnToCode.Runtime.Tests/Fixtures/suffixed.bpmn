@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="suffixed" isExecutable="true">
+    <bpmn:task id="task"><bpmn:outgoing>flow_taskToTaskNode</bpmn:outgoing></bpmn:task>
+    <bpmn:task id="taskNode"><bpmn:incoming>flow_taskToTaskNode</bpmn:incoming></bpmn:task>
+    <bpmn:sequenceFlow id="flow_taskToTaskNode" sourceRef="task" targetRef="taskNode" />
+  </bpmn:process>
+</bpmn:definitions>

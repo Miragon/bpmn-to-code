@@ -1,6 +1,6 @@
 # Command-line tool
 
-For projects without Gradle, Maven or a `*.csproj` (for that, see [dotnet.md](dotnet.md)), for example Node with TypeScript output. The tool is experimental. It calls the same generator as the plugins, so the output is identical.
+For projects without Gradle, Maven or a `*.csproj` (for that, see [dotnet.md](dotnet.md)), for example Node with TypeScript output. The tool is experimental, and so are C# and TypeScript output; the NuGet and npm packages are not published yet. It calls the same generator as the plugins, so the output is identical.
 
 ## Install
 

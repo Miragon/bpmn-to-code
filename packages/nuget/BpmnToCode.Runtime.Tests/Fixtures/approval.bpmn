@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="approval" isExecutable="true">
+    <bpmn:startEvent id="startEvent"><bpmn:outgoing>flow_start</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:exclusiveGateway id="gateway_amount" default="flow_else">
+      <bpmn:incoming>flow_start</bpmn:incoming>
+      <bpmn:outgoing>flow_small</bpmn:outgoing>
+      <bpmn:outgoing>flow_vip</bpmn:outgoing>
+      <bpmn:outgoing>flow_else</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="task_approve">
+      <bpmn:incoming>flow_small</bpmn:incoming>
+      <bpmn:incoming>flow_vip</bpmn:incoming>
+      <bpmn:outgoing>flow_approved</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="endEvent_approved"><bpmn:incoming>flow_approved</bpmn:incoming></bpmn:endEvent>
+    <bpmn:endEvent id="endEvent_manual"><bpmn:incoming>flow_else</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_start" sourceRef="startEvent" targetRef="gateway_amount" />
+    <bpmn:sequenceFlow id="flow_small" sourceRef="gateway_amount" targetRef="task_approve">
+      <bpmn:conditionExpression>=amount &lt; 100</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_vip" sourceRef="gateway_amount" targetRef="task_approve">
+      <bpmn:conditionExpression>=customer.isVip</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_else" sourceRef="gateway_amount" targetRef="endEvent_manual" />
+    <bpmn:sequenceFlow id="flow_approved" sourceRef="task_approve" targetRef="endEvent_approved" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -28,7 +28,7 @@ updates:
           - "minor"
           - "patch"
 
-  # npm: docs website, bpmnlint tooling, and the TypeScript runtime package, whose compiler the compile test uses
+  # npm: docs website, bpmnlint tooling, and the TypeScript runtime package, whose compiler its tests use
   - package-ecosystem: "npm"
     directories:
       - "/docs"

@@ -10,8 +10,8 @@ A .NET project generates its C# Process APIs during `dotnet build`, the way a Gr
 
 **Requirements:** .NET SDK 10 or newer and Java 21 or newer, from `JAVA_HOME` or the `PATH`; the tool fails with a message naming the version it found otherwise. The generated code and the runtime package target .NET 8 and later.
 
-::: warning Experimental
-The .NET tool `Miragon.BpmnToCode` is the [command-line tool](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli) and shares its status: its commands, flags and exit codes are experimental and may change in a minor release. The MSBuild integration and the generated C# are stable.
+::: warning Experimental, not yet published
+The C# output, the MSBuild integration and the .NET tool are experimental and may change in a minor release. The three packages are not on nuget.org yet; until they are, the steps below only work with packages packed from this repository.
 :::
 
 ## 1. Add the package

@@ -13,8 +13,8 @@ Everything shares one version, `projectVersion` in `gradle.properties`.
 | `miragon/bpmn-to-code-web:<version>` and `:latest` | Docker Hub | `publish-to-docker.yml` |
 | `bpmn-to-code-<version>-<platform>.zip`, the command-line tool with a Java runtime, for `linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64` and `win32-x64`, plus `SHA256SUMS` | Assets of the GitHub release, with a build provenance attestation | `publish-cli.yml` |
 | Homebrew formula `bpmn-to-code` | `Miragon/homebrew-tap`, pull request merged by the Miragon release-please app | `publish-homebrew.yml` |
-| .NET tool `Miragon.BpmnToCode`; `Miragon.BpmnToCode.Runtime`; `Miragon.BpmnToCode.MSBuild` | nuget.org | `publish-to-nuget.yml` |
-| `@miragon/bpmn-to-code`; `@miragon/bpmn-to-code-runtime` | npm | `publish-to-npm.yml` |
+| .NET tool `Miragon.BpmnToCode`; `Miragon.BpmnToCode.Runtime`; `Miragon.BpmnToCode.MSBuild` | nuget.org | `publish-to-nuget.yml`, held back, see [below](#holding-back-nuget-and-npm) |
+| `@miragon/bpmn-to-code`; `@miragon/bpmn-to-code-runtime` | npm | `publish-to-npm.yml`, held back, see [below](#holding-back-nuget-and-npm) |
 | Deployment of the hosted web app | Pull request in `Miragon/ops` | `update-ops-deployment.yml` |
 | This documentation site | GitHub Pages | `deploy-docs.yml` |
 
@@ -33,6 +33,10 @@ Everything runs in one workflow, `release-please.yml`, on every push to `main`:
 The Maven Central, Gradle Plugin Portal and Docker workflows run `./gradlew build` before they publish; the CLI workflow runs the build of the CLI module on every platform. The NuGet and npm workflows build no Gradle module; they repackage the CLI archives of the same run.
 
 A file that carries the current version as a literal must be listed in `extra-files` and wrap the version in `x-release-please-start-version` / `x-release-please-end` markers. Otherwise it keeps the old number after the next release.
+
+### Holding back NuGet and npm
+
+The NuGet and npm packages are not published yet. Until the repository variables `PUBLISH_NUGET` and `PUBLISH_NPM` are set to `true` (Settings → Secrets and variables → Actions → Variables), a release runs `publish-to-nuget.yml` and `publish-to-npm.yml` in dry-run mode: the packages are packed and smoke-tested, but not pushed. Setting a variable takes effect with the next release; no code change is needed. Remove the "not yet published" notes in the same step (`grep -rnE "not (yet )?published|not on (nuget.org|npm) yet"`).
 
 ### Dry run
 
