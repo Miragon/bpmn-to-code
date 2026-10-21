@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [6.6.1](https://github.com/Miragon/bpmn-to-code/compare/v6.6.0...v6.6.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* flag unpublished runtime packages in the web app ([#247](https://github.com/Miragon/bpmn-to-code/issues/247)) ([5bb4de8](https://github.com/Miragon/bpmn-to-code/commit/5bb4de884bd3f39b930fed6978ce38c8e522c7ae))
+
 ## [6.6.0](https://github.com/Miragon/bpmn-to-code/compare/v6.5.0...v6.6.0) (2026-10-21)
 
 

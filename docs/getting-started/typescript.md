@@ -19,8 +19,8 @@ TypeScript output is experimental and may change in a minor release. See [TypeSc
 
 <!-- x-release-please-start-version -->
 ```bash
-npm install --save-exact @miragon/bpmn-to-code-runtime@6.6.0
-npm install --save-dev --save-exact @miragon/bpmn-to-code@6.6.0
+npm install --save-exact @miragon/bpmn-to-code-runtime@6.6.1
+npm install --save-dev --save-exact @miragon/bpmn-to-code@6.6.1
 ```
 <!-- x-release-please-end -->
 

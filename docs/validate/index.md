@@ -65,7 +65,7 @@ tasks.named("validateBpmnModels", ValidateBpmnModelsTask::class) {
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>6.6.0</version>
+    <version>6.6.1</version>
     <executions>
         <execution>
             <id>validate-bpmn</id>
