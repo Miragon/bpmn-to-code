@@ -1,8 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.shared
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.disambiguated
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpCodeFormat.pascalCase
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.disambiguated
+import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.CSharpWriter
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant

@@ -3,29 +3,22 @@
 
 package de.emaarco.example
 
-import kotlin.String
-import kotlin.Suppress
-import kotlin.collections.List
-
 /**
  * Job worker task types used in `@JobWorker(type = ServiceTasks.X)` annotations.
  * Kept as `const val String` because annotation arguments must be compile-time constants.
  */
 object ServiceTasks {
-  const val BOOK_CANCELLATION_COSTS_DELEGATE: String =
-      $$"""${bookCancellationCostsDelegate}"""
+  const val BOOK_CANCELLATION_COSTS_DELEGATE: String = "\${bookCancellationCostsDelegate}"
 
-  const val CANCEL_CONTRACT_DELEGATE: String = $$"""${cancelContractDelegate}"""
+  const val CANCEL_CONTRACT_DELEGATE: String = "\${cancelContractDelegate}"
 
-  const val MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_: String =
-      $$"""${mailService.sendReminder(applicationId)}"""
+  const val MAIL_SERVICE_SEND_REMINDER_APPLICATION_ID_: String = "\${mailService.sendReminder(applicationId)}"
 
-  const val SEND_CONTRACT_DELEGATE: String = $$"""${sendContractDelegate}"""
+  const val SEND_CONTRACT_DELEGATE: String = "\${sendContractDelegate}"
 
-  const val VALIDATE_APPLICATION_DELEGATE: String = $$"""${validateApplicationDelegate}"""
+  const val VALIDATE_APPLICATION_DELEGATE: String = "\${validateApplicationDelegate}"
 
-  const val IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE: String =
-      "io.miravelo.leasing.IssueInsurancePolicyDelegate"
+  const val IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE: String = "io.miravelo.leasing.IssueInsurancePolicyDelegate"
 
   const val MIRAVELO_BIKE_ORDER_CANCELLED: String = "miravelo.bikeOrderCancelled"
 
@@ -35,8 +28,7 @@ object ServiceTasks {
 
   const val MIRAVELO_REQUEST_CANCELLATION: String = "miravelo.requestCancellation"
 
-  const val MIRAVELO_SEND_CANCELLATION_CONFIRMATION: String =
-      "miravelo.sendCancellationConfirmation"
+  const val MIRAVELO_SEND_CANCELLATION_CONFIRMATION: String = "miravelo.sendCancellationConfirmation"
 
   const val MIRAVELO_SEND_REJECTION: String = "miravelo.sendRejection"
 

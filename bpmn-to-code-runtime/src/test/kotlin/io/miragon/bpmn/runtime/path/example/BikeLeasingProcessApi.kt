@@ -33,10 +33,6 @@ import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.TimerEvent
 import io.miragon.bpmn.runtime.TimerType
 import io.miragon.bpmn.runtime.VariableName
-import kotlin.Boolean
-import kotlin.String
-import kotlin.Suppress
-import kotlin.collections.List
 
 object BikeLeasingProcessApi {
   val PROCESS_ID: ProcessId = ProcessId("bikeLeasing")
@@ -96,8 +92,7 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryApplicationInvalid.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Application invalid",
-    ), HasSuccessors<BoundaryApplicationInvalid.Next>,
-        BoundaryEvent<ServiceTaskValidateApplication>, ErrorEvent {
+    ), HasSuccessors<BoundaryApplicationInvalid.Next>, BoundaryEvent<ServiceTaskValidateApplication>, ErrorEvent {
       override val eventType: BpmnEventType = BpmnEventType.ERROR
 
       const val ELEMENT_ID: String = "boundary_applicationInvalid"
@@ -137,8 +132,7 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Next {
-        val serviceTaskCancelContract:
-            AssociatedCompensationHandler<ServiceTaskCancelContract>
+        val serviceTaskCancelContract: AssociatedCompensationHandler<ServiceTaskCancelContract>
           get() = AssociatedCompensationHandler(target = ServiceTaskCancelContract)
       }
     }
@@ -147,8 +141,7 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryCompensateInsurance.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Policy to cancel",
-    ), HasSuccessors<BoundaryCompensateInsurance.Next>,
-        BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
+    ), HasSuccessors<BoundaryCompensateInsurance.Next>, BoundaryEvent<ServiceTaskIssueInsurancePolicy> {
       override val eventType: BpmnEventType = BpmnEventType.COMPENSATION
 
       const val ELEMENT_ID: String = "boundary_compensateInsurance"
@@ -183,8 +176,7 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Next {
-        val callActivityCancelBikeOrder:
-            AssociatedCompensationHandler<CallActivityCancelBikeOrder>
+        val callActivityCancelBikeOrder: AssociatedCompensationHandler<CallActivityCancelBikeOrder>
           get() = AssociatedCompensationHandler(target = CallActivityCancelBikeOrder)
       }
     }
@@ -193,8 +185,7 @@ object BikeLeasingProcessApi {
       id = ElementId(BoundaryContractNotSigned.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "Contract not signed",
-    ), HasSuccessors<BoundaryContractNotSigned.Next>, BoundaryEvent<SubProcessConcludeContract>,
-        EscalationEvent {
+    ), HasSuccessors<BoundaryContractNotSigned.Next>, BoundaryEvent<SubProcessConcludeContract>, EscalationEvent {
       override val eventType: BpmnEventType = BpmnEventType.ESCALATION
 
       const val ELEMENT_ID: String = "boundary_contractNotSigned"
@@ -249,8 +240,7 @@ object BikeLeasingProcessApi {
       object Variables : RegisteredVariableDefinitions() {
         val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)
 
-        val CANCELLATION_COSTS: VariableName.Output =
-            output(ProcessVariables.CANCELLATION_COSTS)
+        val CANCELLATION_COSTS: VariableName.Output = output(ProcessVariables.CANCELLATION_COSTS)
 
         val ORDER_IDS: VariableName.Input = input(ProcessVariables.ORDER_IDS)
       }
@@ -258,7 +248,7 @@ object BikeLeasingProcessApi {
       object Inputs {
         val APPLICATION_ID: InputOutputMapping = InputOutputMapping(
           target = "applicationId",
-          sourceExpression = $$"""${applicationId}""",
+          sourceExpression = "\${applicationId}",
         )
 
         val ORDER_IDS: InputOutputMapping = InputOutputMapping(
@@ -381,8 +371,7 @@ object BikeLeasingProcessApi {
       override val next: Next = Next
 
       object Next {
-        val serviceTaskSendCancellationConfirmation:
-            SequenceFlows<ServiceTaskSendCancellationConfirmation>
+        val serviceTaskSendCancellationConfirmation: SequenceFlows<ServiceTaskSendCancellationConfirmation>
           get() = SequenceFlows.single(
             flowId = ElementId("flow_reverseApplicationToSendCancellationConfirmation"),
             target = ServiceTaskSendCancellationConfirmation,
@@ -468,7 +457,7 @@ object BikeLeasingProcessApi {
           get() = SequenceFlows.single(
             flowId = ElementId("flow_isSolventToCollectRejections"),
             name = "No",
-            conditionExpression = $$"""${!solvent}""",
+            conditionExpression = "\${!solvent}",
             target = GatewayCollectRejections,
           )
 
@@ -546,8 +535,7 @@ object BikeLeasingProcessApi {
     ), HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType, HasVariables {
       const val ELEMENT_ID: String = "serviceTask_issueInsurancePolicy"
 
-      override val jobType: String =
-          ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE
+      override val jobType: String = ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE
 
       override val variables: Variables = Variables
 
@@ -705,8 +693,7 @@ object BikeLeasingProcessApi {
         val boundaryApplicationInvalid: AttachedBoundaryEvent<BoundaryApplicationInvalid>
           get() = AttachedBoundaryEvent(target = BoundaryApplicationInvalid)
 
-        val businessRuleTaskCheckCreditRating:
-            SequenceFlows<BusinessRuleTaskCheckCreditRating>
+        val businessRuleTaskCheckCreditRating: SequenceFlows<BusinessRuleTaskCheckCreditRating>
           get() = SequenceFlows.single(
             flowId = ElementId("flow_validateApplicationToCheckCreditRating"),
             target = BusinessRuleTaskCheckCreditRating,
@@ -812,8 +799,7 @@ object BikeLeasingProcessApi {
 
         val BIKE_IDS: VariableName.Input = input(ProcessVariables.BIKE_IDS)
 
-        val MONTHLY_NET_INCOME: VariableName.Input =
-            input(ProcessVariables.MONTHLY_NET_INCOME)
+        val MONTHLY_NET_INCOME: VariableName.Input = input(ProcessVariables.MONTHLY_NET_INCOME)
       }
 
       object Next {
@@ -918,8 +904,7 @@ object BikeLeasingProcessApi {
       id = ElementId(TimerSignatureReminder.ELEMENT_ID),
       elementType = BpmnElementType.BOUNDARY_EVENT,
       name = "7 days passed",
-    ), HasSuccessors<TimerSignatureReminder.Next>, BoundaryEvent<SubProcessConcludeContract>,
-        TimerEvent {
+    ), HasSuccessors<TimerSignatureReminder.Next>, BoundaryEvent<SubProcessConcludeContract>, TimerEvent {
       override val eventType: BpmnEventType = BpmnEventType.TIMER
 
       const val ELEMENT_ID: String = "timer_signatureReminder"
@@ -956,7 +941,7 @@ object BikeLeasingProcessApi {
 
       override val timer: BpmnTimer = BpmnTimer(
         type = TimerType.DURATION,
-        timerValue = $$"""${withdrawalPeriod}""",
+        timerValue = "\${withdrawalPeriod}",
       )
 
       override val next: Next = Next
