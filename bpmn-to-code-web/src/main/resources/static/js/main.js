@@ -457,8 +457,8 @@ function renderRuntimeDependency() {
     card.style.display = 'block';
     state.depSnippetIndex = 0;
     document.getElementById('runtime-dep-hint').innerHTML =
-        `Generated code imports from <code>${escapeHtml(dep.importedFrom)}</code>. Add <code>${escapeHtml(dep.name)}</code> to your build.`
-        + (isUnpublished(dep) ? ' The package is experimental and not published yet.' : '');
+        `Generated code imports from <code>${escapeHtml(dep.importedFrom)}</code>. Add <code>${escapeHtml(dep.name)}</code> to your build.`;
+    renderUnpublishedBanner(dep);
     const tabs = document.getElementById('runtime-dep-tabs');
     tabs.innerHTML = dep.snippets.map((snippet, index) =>
         `<button type="button" class="runtime-dep-tab" data-dep-index="${index}">${escapeHtml(snippet.label)}</button>`).join('');
@@ -478,6 +478,15 @@ function renderRuntimeDependency() {
                 showError('Failed to copy to clipboard');
             });
     };
+}
+
+function renderUnpublishedBanner(dep) {
+    const banner = document.getElementById('runtime-dep-unpublished');
+    banner.hidden = !isUnpublished(dep);
+    const registry = dep.name.startsWith('@') ? 'npm' : 'nuget.org';
+    banner.innerHTML = `<strong>Not published yet.</strong> <code>${escapeHtml(dep.name)}</code> is experimental`
+        + ` and not on ${registry} yet, so the command below does not work.`
+        + ' To compile without it, tick "Include library sources in the ZIP".';
 }
 
 function flashCopyButton(button) {

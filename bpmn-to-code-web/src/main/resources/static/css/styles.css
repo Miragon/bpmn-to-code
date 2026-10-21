@@ -102,8 +102,6 @@ main { display: flex; flex-direction: column; gap: var(--cd-space-4); padding-bo
 .hero { padding: var(--cd-space-8) 0 var(--cd-space-6); text-align: center; }
 .hero h1 { font-size: clamp(36px, 5.2vw, 64px); font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: var(--cd-space-4); }
 .hero .lead { font-size: 20px; line-height: 1.5; color: var(--cd-ui-text-leise); max-width: 640px; margin: 0 auto var(--cd-space-5); }
-.hero-meta { font-size: 13px; line-height: 1.5; color: var(--cd-ui-text-leise); }
-.hero-meta + .hero-meta { margin-top: var(--cd-space-2); }
 
 /* Tab switcher */
 .tab-switcher {
@@ -344,6 +342,16 @@ main { display: flex; flex-direction: column; gap: var(--cd-space-4); padding-bo
     white-space: pre;
 }
 .runtime-dep-snippet-wrapper .btn-copy { position: absolute; top: var(--cd-space-2); right: var(--cd-space-2); }
+
+/* Unpublished runtime package */
+.runtime-dep-unpublished {
+    margin-bottom: var(--cd-space-3);
+    padding: var(--cd-space-3);
+    background: var(--cd-ui-warning-flaeche);
+    border-left: 3px solid var(--cd-ui-warning);
+    border-radius: var(--cd-radius-md);
+    font-size: 13px;
+}
 
 /* Library sources */
 .library-sources-panel { margin-top: var(--cd-space-3); padding: var(--cd-space-3) 0; border-block: 1px solid var(--cd-ui-linie); }
