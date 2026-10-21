@@ -51,16 +51,6 @@ tasks.named<Test>("test") {
     )
 }
 
-// The poet and writer generation is no longer registered but kept until the FreeMarker generation has replaced it.
-private val poetAndWriterGeneration = listOf(
-    "**/adapter/outbound/codegen/builder/*/poet/**",
-    "**/adapter/outbound/codegen/builder/csharp/writer/**",
-    "**/adapter/outbound/codegen/builder/kotlin/Kotlin*",
-    "**/adapter/outbound/codegen/builder/java/Java*",
-    "**/adapter/outbound/codegen/builder/csharp/CSharpProcessApiBuilder*",
-    "**/adapter/outbound/codegen/builder/csharp/CSharpSharedDefinitionsBuilder*",
-)
-
 private val coverageExclusions = listOf(
     "**/domain/shared/**",
     "**/domain/validation/model/**",
@@ -69,7 +59,7 @@ private val coverageExclusions = listOf(
     "**/application/port/**",
     $$"**/*$DefaultImpls*",
     $$"**/*$Companion*",
-) + poetAndWriterGeneration
+)
 
 tasks.jacocoTestReport {
     classDirectories.setFrom(
@@ -87,12 +77,6 @@ pitest {
     excludedClasses.addAll(
         "io.miragon.bpmn.adapter.outbound.engine.*Constants*",
         "io.miragon.bpmn.adapter.outbound.json.model.*",
-        "io.miragon.bpmn.adapter.outbound.codegen.builder.*.poet.*",
-        "io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.writer.*",
-        "io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.Kotlin*",
-        "io.miragon.bpmn.adapter.outbound.codegen.builder.java.Java*",
-        "io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiBuilder*",
-        "io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefinitionsBuilder*",
     )
     mutationThreshold.set(80)
     jvmArgs.add("-Druntime.test.sources=${runtimeTestSources.absolutePath}")

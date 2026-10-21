@@ -12,7 +12,7 @@ Every record has the same sections: Context, Decision, Consequences, Rejected al
 4. [BPMN-aligned domain model](004-bpmn-aligned-domain-model.md): a sealed flow-node hierarchy with structural containment.
 5. [One API per file, deterministic whole-run generation, generated-file ownership](005-one-api-per-file-deterministic-generation.md): naming by `variantName`, byte-identical output, and which files the generator may delete.
 6. [Generated API shape](006-generated-api-shape.md): `FlowNodes`, `Next`, shared definition files and naming.
-7. [Output languages](007-output-languages.md): the language-neutral `FlowGraph`, poet builders for Kotlin and Java, a text writer for C#.
+7. [Output languages](007-output-languages.md): the language-neutral `FlowGraph`, rendered to every language from FreeMarker templates.
 8. [Runtime library and process paths](008-runtime-library-and-process-paths.md): the published support types and the compile-checked `ProcessPath`.
 9. [Process JSON contract](009-process-json-contract.md): a schema-versioned, BPMN-aligned public format. Superseded by record 13.
 10. [Validation](010-validation.md): the rule model, mandatory rules, and the three places validation runs.
