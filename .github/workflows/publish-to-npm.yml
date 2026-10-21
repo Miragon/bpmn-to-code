@@ -138,5 +138,5 @@ jobs:
             if [[ "$version" == *-* ]]; then tag=next; fi
             npm publish "$1" --access public --tag "$tag" "$PUBLISH_MODE"
           }
-          publish tarballs/miragon-bpmn-to-code-runtime-*.tgz
-          publish tarballs/miragon-bpmn-to-code-[0-9]*.tgz
+          publish ./tarballs/miragon-bpmn-to-code-runtime-*.tgz
+          publish ./tarballs/miragon-bpmn-to-code-[0-9]*.tgz
