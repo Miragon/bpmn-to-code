@@ -20,7 +20,7 @@ Each skill does one thing for one element. Engine- and language-specific code li
 
 | Skill | Description |
 |-------|-------------|
-| `setup-bpmn-to-code` | Set up the Gradle plugin, the Maven plugin or the CLI, with the runtime and an optional model validation test. |
+| `setup-bpmn-to-code` | Set up the Gradle plugin, the Maven plugin or the CLI, with the runtime, an optional model validation test and an optional GitHub Actions drift check. |
 | `migrate-to-bpmn-to-code-apis` | Replace hardcoded BPMN strings with references to the generated Process API, or rewrite 5.x references to the 6.0 node-centric `FlowNodes`. |
 | `create-worker` | Write the handler for one service task: Zeebe job worker, `JavaDelegate`, external task or process-engine-api worker. |
 | `test-worker` | Write the unit test for one handler. |

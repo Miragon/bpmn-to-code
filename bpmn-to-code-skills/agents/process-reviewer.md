@@ -23,6 +23,7 @@ A process id, a `.bpmn` path, or nothing. With nothing, take every executable mo
 ### 2. The generated API
 - Find `<Process>ProcessApi` and the shared `ServiceTasks`, `Messages`, `Signals`, `Errors`, `Escalations`, `ProcessVariables`.
 - Compare the model's element ids with `FlowNodes`. A missing or extra id means the API is stale: name the generation command.
+- If the API is committed in a source folder, look in `.github/workflows/` for a job that regenerates it and then fails on `git status --porcelain`. No such job is a finding. So is a check with `git diff --exit-code`, which misses a new model, and a Gradle call without `--rerun`, which misses a hand-edited file.
 - Grep the main and test sources for string literals that equal an element id, job type, message, signal, error code or variable name. Each is a finding: it should be the generated constant.
 
 ### 3. Inbound: one handler per job type
@@ -51,10 +52,11 @@ A process id, a `.bpmn` path, or nothing. With nothing, take every executable mo
 
 One section per check, each finding located by element id and class. Severity:
 - **❌** breaks at runtime: a missing handler, a mismatched error code, a stale API
-- **⚠️** a gap: a missing test, a string literal
+- **⚠️** a gap: a missing test, a string literal, a missing CI drift check
 - **ℹ️** a question
 
 End with a verdict and the next steps, most important first. Name the bpmn-to-code skill that fixes each step:
+- `/setup-bpmn-to-code`
 - `/create-worker`
 - `/test-worker`
 - `/create-process-adapter`

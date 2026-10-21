@@ -1,6 +1,6 @@
 ---
 name: setup-bpmn-to-code
-description: "Sets up bpmn-to-code in an existing project with the Gradle plugin, the Maven plugin or the CLI, so the build generates a type-safe Process API from the BPMN models. Use when adding bpmn-to-code or BPMN code generation to a project."
+description: "Sets up bpmn-to-code in an existing project with the Gradle plugin, the Maven plugin or the CLI, so the build generates a type-safe Process API from the BPMN models, with an optional GitHub Actions check that the committed API is up to date. Use when adding bpmn-to-code or BPMN code generation to a project, or a CI check for a stale generated API."
 argument-hint: "[gradle|maven|cli]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(bpmn-to-code *)
 ---
@@ -12,7 +12,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
 ## IMPORTANT
 
 - Show a draft of every change and wait for confirmation before editing.
-- Never overwrite an existing bpmn-to-code configuration without asking. If one exists, offer to fix it instead.
+- Never overwrite an existing bpmn-to-code configuration without asking. If one exists, offer to fix it instead, including a missing CI drift check.
 - Use one version for every bpmn-to-code artifact (plugin, runtime, testing).
 - Never edit generated files. They are rewritten on every run.
 
@@ -40,6 +40,7 @@ Configure bpmn-to-code once per project. The build-tool specifics live in `resou
    If files use different namespaces, one task or execution per group is needed (see the resource).
 4. **Output language:** `src/main/kotlin` → `KOTLIN`, `src/main/java` only → `JAVA`, a `*.csproj` → `CSHARP` (experimental).
 5. **Package:** suggest `<base package>.adapter.process` (or `.process` if the project has no `adapter` package). Look up the base package from existing sources.
+6. **CI:** a `.github/workflows/` folder means GitHub Actions. Note the workflows that already run on pull requests.
 
 ## Step 2: Ask what is left
 
@@ -50,6 +51,7 @@ Ask only for what Step 1 could not settle, with the detected value as the defaul
   - **committed in the source folder** (`src/main/<lang>`): visible in reviews, needs a CI drift check.
   - **in the build directory**: never committed, always fresh.
 - Whether to add the **model validation test** with `bpmn-to-code-testing` (recommended).
+- With committed code and GitHub Actions: whether to add the **CI drift check** (recommended).
 
 ## Step 3: Look up the version
 
@@ -63,6 +65,7 @@ Read the matching resource and build the draft from it:
 2. the runtime dependency where the resource says it is needed
 3. the hook into the build
 4. the testing dependency and the test, if wanted
+5. the drift check from [resources/github-actions.md](resources/github-actions.md), if wanted
 
 Show the draft and ask: *"Apply these changes? (yes / edit / cancel)"*. Then apply them.
 
@@ -71,6 +74,7 @@ Show the draft and ask: *"Apply these changes? (yes / edit / cancel)"*. Then app
 1. Run the generation command from the resource.
 2. List the generated files: `<Process>ProcessApi`, `ServiceTasks`, `Messages`, `ProcessVariables`, …
 3. Run the model validation test if one was added.
+4. If the drift check was added, tell the user it passes only once the generated files are committed.
 
 If generation fails, read the reported rule violation and point to the element id. Do not disable rules to make it pass.
 
@@ -80,4 +84,4 @@ If generation fails, read the reported rule violation and point to the element i
 - New engine glue:
   - `/create-worker` for a service task
   - `/create-process-adapter` for a start, message, signal or user task call
-- Generated code committed: the drift check in CI, see https://miragon.github.io/bpmn-to-code/guide/verify-in-ci.
+- Generated code committed in a project without GitHub Actions: recommend a CI job that regenerates and fails on `git status --porcelain`, see https://miragon.github.io/bpmn-to-code/guide/verify-in-ci.
