@@ -2,7 +2,7 @@
 
 The web app of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code): upload BPMN files in the browser and get the generated Process API or the process JSON, without a build tool. It uses the same generator as the Gradle and Maven plugins and keeps nothing on disk.
 
-- Output languages: Kotlin, Java, C#
+- Output languages: Kotlin, Java, C#, TypeScript (experimental)
 - Engines: Camunda 8 / Zeebe, Camunda 7, Operaton
 - Up to three BPMN files per request; the generated code uses the package `com.example.process` (C#: namespace `Com.Example.Process`)
 

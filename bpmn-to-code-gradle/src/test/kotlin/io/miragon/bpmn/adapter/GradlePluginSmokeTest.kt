@@ -81,6 +81,28 @@ class GradlePluginSmokeTest {
     }
 
     @Test
+    fun `generateBpmnModelApi writes a ts file with FlowNodes for TYPESCRIPT`(@TempDir projectDir: File) {
+        // given: a JVM project (the plugin only wires itself when a JVM plugin is present) targeting TypeScript
+        writeProject(
+            projectDir = projectDir,
+            engine = "ZEEBE",
+            target = Target.TYPESCRIPT,
+            bpmnFile = "zeebe/bike-leasing.bpmn",
+        )
+
+        // when: running generation only — the type check lives in core's TypeScriptCompilationTest
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir).withPluginClasspath().withArguments("generateBpmnModelApi").build()
+
+        // then: the Process API module carries the navigation, next to the shared definition modules
+        assertThat(result.task(":generateBpmnModelApi")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        val generated = assertGeneratedFiles(projectDir, ".ts")
+        val processApi = generated.single { it.name == "BikeLeasingProcessApi.ts" }
+        assertThat(processApi.readText()).contains("export const BikeLeasingProcessApi = {", "  FlowNodes: {")
+        assertThat(generated.map { it.name }).contains("ServiceTasks.ts", "Messages.ts")
+    }
+
+    @Test
     fun `generateBpmnModelApi removes stale generated files and keeps hand-written ones`(@TempDir projectDir: File) {
         // given: a package folder in the sources holding a formerly generated file and a hand-written one
         writeProject(
@@ -264,6 +286,7 @@ class GradlePluginSmokeTest {
             """.trimIndent(),
         ),
         CSHARP(compileTask = "compileJava", extension = ".cs", consumerPath = "", consumerSource = ""),
+        TYPESCRIPT(compileTask = "compileJava", extension = ".ts", consumerPath = "", consumerSource = ""),
         ;
 
         companion object {

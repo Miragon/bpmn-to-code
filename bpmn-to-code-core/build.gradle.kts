@@ -41,17 +41,23 @@ tasks.processResources {
 
 private val runtimeTestSources = rootProject.file("bpmn-to-code-runtime/src/test")
 private val csharpRuntimeProject = rootProject.file("packages/nuget/BpmnToCode.Runtime")
+private val typescriptRuntimePackage = rootProject.file("packages/npm/bpmn-to-code-runtime")
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
     systemProperty("golden.update", System.getProperty("golden.update") ?: "false")
     systemProperty("runtime.test.sources", runtimeTestSources.absolutePath)
+    systemProperty("typescript.compiler", typescriptRuntimePackage.resolve("node_modules/.bin/tsc").absolutePath)
     systemProperty("csharp.runtime.project", csharpRuntimeProject.absolutePath)
+    systemProperty("typescript.runtime.package", typescriptRuntimePackage.absolutePath)
     inputs.files(
         runtimeTestSources.resolve("kotlin/io/miragon/bpmn/runtime/path/example/BikeLeasingProcessApi.kt"),
         runtimeTestSources.resolve("java/io/miragon/bpmn/runtime/example/BikeLeasingProcessApi.java"),
     )
-    inputs.files(fileTree(csharpRuntimeProject) { include("*.cs", "*.csproj") }).withPropertyName("csharpRuntimeProject")
+    inputs.files(fileTree(csharpRuntimeProject) { include("*.cs", "*.csproj") })
+        .withPropertyName("csharpRuntimeProject")
+    inputs.files(fileTree(typescriptRuntimePackage) { include("src/**", "package.json", "tsconfig.json") })
+        .withPropertyName("typescriptRuntimePackage")
 }
 
 private val coverageExclusions = listOf(

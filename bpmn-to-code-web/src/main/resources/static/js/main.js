@@ -69,11 +69,11 @@ function switchTab(tab) {
 }
 
 /**
- * The library sources are the JVM `bpmn-to-code-runtime`; C# has a runtime package of its own,
+ * The library sources are the JVM `bpmn-to-code-runtime`; C# and TypeScript have runtime packages of their own,
  * so the toggle has nothing to offer there.
  */
 function updateIncludeSourcesVisibility() {
-    const jvmTarget = document.getElementById('output-language').value !== 'CSHARP';
+    const jvmTarget = ['KOTLIN', 'JAVA'].includes(document.getElementById('output-language').value);
     const visible = state.activeTab !== 'json' && jvmTarget;
     document.querySelector('.include-sources-toggle').style.display = visible ? '' : 'none';
 }
@@ -300,7 +300,7 @@ async function handleGenerate(e) {
     }
 }
 
-const HIGHLIGHT_CLASSES = { KOTLIN: 'kotlin', JAVA: 'java', CSHARP: 'csharp' };
+const HIGHLIGHT_CLASSES = { KOTLIN: 'kotlin', JAVA: 'java', CSHARP: 'csharp', TYPESCRIPT: 'typescript' };
 
 function renderResults(files) {
     const languageClass = state.activeTab === 'json'

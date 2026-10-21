@@ -44,9 +44,9 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
     private fun buildCommand(file: BpmnFileData) = CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())
 
     /**
-     * The bundled sources are those of the JVM `bpmn-to-code-runtime`; C# has a runtime package of its own.
+     * The bundled sources are those of the JVM `bpmn-to-code-runtime`; C# and TypeScript have runtime packages of their own.
      */
-    private fun OutputLanguage.runsOnJvm() = this != OutputLanguage.CSHARP
+    private fun OutputLanguage.runsOnJvm() = this == OutputLanguage.KOTLIN || this == OutputLanguage.JAVA
 
     private fun mapToResponse(apiFile: GeneratedApiFile) = GenerateResponse.GeneratedFile(
         fileName = apiFile.fileName,

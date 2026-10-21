@@ -87,6 +87,35 @@ class WebGenerationServiceTest {
     }
 
     @Test
+    fun `should generate TypeScript API on the npm runtime package`() {
+        // given: a valid Zeebe BPMN file with TypeScript output language
+        val request = GenerateRequest(
+            files = listOf(
+                BpmnFileData(
+                    fileName = "zeebe-bike-leasing.bpmn",
+                    content = loadBpmnBase64("bpmn/zeebe/bike-leasing.bpmn"),
+                ),
+            ),
+            config = GenerateRequest.GenerationConfig(
+                outputLanguage = OutputLanguage.TYPESCRIPT,
+                processEngine = ProcessEngine.ZEEBE,
+            ),
+        )
+
+        // when: generating the API
+        val response = underTest.generate(request)
+
+        // then: a TypeScript file is generated and the npm runtime package is offered instead of the JVM sources
+        assertThat(response.success).isTrue()
+        val generatedFile = response.files.first()
+        assertThat(generatedFile.fileName).endsWith(".ts")
+        assertThat(generatedFile.content).contains("export const BikeLeasingProcessApi = {", "} as const;")
+        assertThat(generatedFile.content).contains("import * as Runtime from \"@miragon/bpmn-to-code-runtime\";")
+        assertThat(response.libraryFiles).isEmpty()
+        assertThat(response.runtimeDependency?.name).isEqualTo("@miragon/bpmn-to-code-runtime")
+    }
+
+    @Test
     fun `should generate Java API from BPMN file`() {
         // given: a valid Zeebe BPMN file with Java output language
         val request = GenerateRequest(

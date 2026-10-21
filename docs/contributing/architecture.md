@@ -26,6 +26,7 @@ Outside the Gradle build:
 | `shared/bpmn` | The MiraVelo BPMN models every module tests against, see [Tests](./#tests) |
 | `tools` | bpmnlint setup for those models |
 | `packages/nuget` | The .NET tool `Miragon.BpmnToCode` (a C# launcher that starts the CLI jars on the installed Java), the C# runtime package `Miragon.BpmnToCode.Runtime` and the MSBuild integration `Miragon.BpmnToCode.MSBuild`, packed by `publish-to-nuget.yml` |
+| `packages/npm` | The npm package `@miragon/bpmn-to-code` with its launcher, which starts the CLI jars on the installed Java, and the TypeScript runtime package `@miragon/bpmn-to-code-runtime`, staged by `publish-to-npm.yml` |
 | `docs` | This site |
 
 All published artifacts share one version, `projectVersion` in `gradle.properties`. Why core is embedded instead of published: [ADR 001](./adr/001-product-surfaces-and-distribution).

@@ -11,7 +11,7 @@ brew install lefthook   # macOS; other platforms: see the Lefthook installation 
 lefthook install
 ```
 
-Optional: a .NET 8 SDK (or a container that provides `dotnet`) to compile the generated C# locally, and Node 22 for the docs site and the BPMN linter.
+Optional: a .NET 8 SDK (or a container that provides `dotnet`) to compile the generated C# locally, and Node 22 for the docs site, the BPMN linter and the TypeScript compile check.
 
 ## Everyday commands
 
@@ -81,6 +81,13 @@ PATH=/path/to/wrapper-dir:$PATH ./gradlew :bpmn-to-code-core:test --tests '*CSha
 ```
 
 CI installs .NET 8, so the test gates every pull request.
+
+`TypeScriptCompilationTest` type-checks the generated TypeScript with `tsc --strict`, once with `nodenext` and once with `bundler` module resolution. It uses the compiler pinned in the runtime package `packages/npm/bpmn-to-code-runtime` and is skipped until that is installed:
+
+```bash
+npm ci --prefix packages/npm/bpmn-to-code-runtime
+./gradlew :bpmn-to-code-core:test --tests '*TypeScriptCompilationTest'
+```
 
 **Other layers.** The Gradle module runs smoke tests with Gradle TestKit, the Maven module executes its mojos directly, the web module tests its routes with the Ktor test host, and `ProcessJsonSchemaTest` validates the emitted JSON against the schema in `docs/public/schema`. Unit test conventions are in the `create-unit-test` skill under `.claude/skills/`.
 

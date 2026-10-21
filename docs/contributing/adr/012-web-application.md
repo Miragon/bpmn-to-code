@@ -22,7 +22,7 @@ Usage, the REST API and the environment variables are documented in [Web app](/w
 
 ## Consequences
 
-- There is one build, one artifact and one container, and no Node toolchain in the repository.
+- There is one build, one artifact and one container, and no Node toolchain in the web module.
 - BPMN files stay inside a self-hosted installation, but its users' browsers still contact the CDN hosts. Where they cannot, at least the diagram preview, the highlighting and the ZIP download are unavailable; only the missing ZIP library is reported to the user.
 - CORS allows every origin unless the operator sets a list.
 - The published image is built for `linux/amd64` only.

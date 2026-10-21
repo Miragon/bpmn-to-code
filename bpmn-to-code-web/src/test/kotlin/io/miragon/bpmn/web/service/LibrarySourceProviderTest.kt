@@ -50,4 +50,12 @@ class LibrarySourceProviderTest {
             "dotnet add package Miragon.BpmnToCode.Runtime --version ${dependency.version}",
         )
     }
+
+    @Test
+    fun `runtimeDependency names the npm runtime package for TypeScript`() {
+        val dependency = underTest.runtimeDependency(OutputLanguage.TYPESCRIPT)
+
+        assertThat(dependency.name).isEqualTo("@miragon/bpmn-to-code-runtime")
+        assertThat(dependency.snippets.single().code).isEqualTo("npm install --save-exact @miragon/bpmn-to-code-runtime@${dependency.version}")
+    }
 }

@@ -23,6 +23,8 @@ The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets 
 
 **The .NET tool needs Java 21 for now.** `Miragon.BpmnToCode` is one package of about 8 MB: the jars of the archive and a launcher of a few lines in C# that starts the `java` of `JAVA_HOME`, else the one on the `PATH`, with the same arguments as the start script, `-cp "lib/*" io.miragon.bpmn.cli.MainKt`. It fails with a clear message when Java is missing or older than 21. A RID-specific tool with one package per platform and its own runtime would spare the Java install, but means about 30 MB per platform while the C# output is new. Adding it later breaks nobody: the launcher would prefer a bundled runtime when one is installed. The tool needs the .NET 10 SDK, as `dotnet tool exec` does. `Miragon.BpmnToCode.MSBuild` runs the tool of its own version through `dotnet tool exec` before the project compiles, so a .NET build generates like a Gradle or Maven build without installing the tool.
 
+**The npm package needs Java 21 for now.** `@miragon/bpmn-to-code` is one package of about 8 MB: the jars of the archive and a launcher of a few lines that starts the `java` of `JAVA_HOME`, else the one on the `PATH`, and fails with a clear message when it is missing or older than 21. One package per platform with its own runtime, as esbuild and Biome do, would spare the Java install, but means about 30 MB per platform and seven packages to publish while the TypeScript output is experimental. Adding such packages later breaks nobody: the launcher would prefer a bundled runtime when one is installed.
+
 **It is experimental.** Commands, flags and exit codes may change in a minor release until the tool is declared stable ([record 11](011-compatibility-policy.md)).
 
 **Core is an ordinary dependency.** As in the web app, the module depends on core directly instead of copying its classes. Arguments are parsed with Clikt's core module, which needs no terminal library, and logging goes through `slf4j-simple` at level `warn`.
@@ -30,7 +32,7 @@ The deprecated process JSON ([record 13](013-process-json-deprecation.md)) gets 
 ## Consequences
 
 - A setting added to the plugins needs a flag of the same name, or the entry points drift apart ([record 1](001-product-surfaces-and-distribution.md)).
-- Nobody installs Java to use the archives or Homebrew; the .NET tool needs Java 21. An archive is about 30 MB, and a run over a handful of models takes about half a second, most of it the start of the JVM.
+- Nobody installs Java to use the archives or Homebrew; the .NET tool and the npm package need Java 21. An archive is about 30 MB, and a run over a handful of models takes about half a second, most of it the start of the JVM.
 - A further platform is a further runner in `publish-cli.yml`, and for macOS and Linux a further line in the Homebrew formula.
 - The formula follows the newest stable release; it is written and checked by `publish-homebrew.yml` as in the other Miragon CLIs.
 - A .NET team on an SDK older than 10 cannot install the tool and has to take an archive instead.

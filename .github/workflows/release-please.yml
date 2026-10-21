@@ -117,6 +117,16 @@ jobs:
     with:
       dry_run: ${{ inputs.dry_run == true }}
 
+  publish-npm:
+    name: Publish to npm
+    needs: publish-cli
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/publish-to-npm.yml
+    with:
+      dry_run: ${{ inputs.dry_run == true }}
+
   publish-docker:
     name: Publish to Docker Hub
     needs: gate
