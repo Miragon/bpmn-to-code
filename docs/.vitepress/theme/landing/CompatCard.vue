@@ -26,7 +26,6 @@ import LucideIcon from './LucideIcon.vue'
       <dd>
         <a href="https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle" target="_blank" rel="noopener">Gradle<LucideIcon name="arrow-up-right" /></a>
         <a href="https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven" target="_blank" rel="noopener">Maven<LucideIcon name="arrow-up-right" /></a>
-        <a href="https://www.nuget.org/packages/Miragon.BpmnToCode.MSBuild" target="_blank" rel="noopener">MSBuild<LucideIcon name="arrow-up-right" /></a>
       </dd>
     </div>
   </dl>
