@@ -25,7 +25,7 @@ Outside the Gradle build:
 | `bpmn-to-code-skills` | Claude Code plugin for users of bpmn-to-code, installed through the marketplace manifest in `.claude-plugin/` |
 | `shared/bpmn` | The MiraVelo BPMN models every module tests against, see [Tests](./#tests) |
 | `tools` | bpmnlint setup for those models |
-| `packages/nuget` | The .NET tool `Miragon.BpmnToCode` (a C# launcher and the CLI archives), the C# runtime package `Miragon.BpmnToCode.Runtime` and the MSBuild integration `Miragon.BpmnToCode.MSBuild`, packed by `publish-to-nuget.yml` |
+| `packages/nuget` | The .NET tool `Miragon.BpmnToCode` (a C# launcher that starts the CLI jars on the installed Java), the C# runtime package `Miragon.BpmnToCode.Runtime` and the MSBuild integration `Miragon.BpmnToCode.MSBuild`, packed by `publish-to-nuget.yml` |
 | `docs` | This site |
 
 All published artifacts share one version, `projectVersion` in `gradle.properties`. Why core is embedded instead of published: [ADR 001](./adr/001-product-surfaces-and-distribution).

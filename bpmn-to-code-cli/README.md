@@ -12,7 +12,7 @@ On macOS and Linux with [Homebrew](https://brew.sh):
 brew install miragon/tap/bpmn-to-code
 ```
 
-In a .NET project as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) (.NET SDK 10 or newer):
+In a .NET project as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) (.NET SDK 10 or newer, Java 21 or newer):
 
 ```bash
 dotnet tool install Miragon.BpmnToCode

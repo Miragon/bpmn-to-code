@@ -26,7 +26,7 @@ Around the generator:
 - **[Validation](https://miragon.github.io/bpmn-to-code/validate/)**: built-in rules run before every generation, as a build task, or as tests with `bpmn-to-code-testing`, where you can add your own rules.
 - **[Process JSON](https://miragon.github.io/bpmn-to-code/surface/json)** (deprecated, removed in 7.0): a compact JSON view of each process.
 - **[Agent Skills](https://miragon.github.io/bpmn-to-code/skills/)**: a Claude Code plugin that sets up the build plugin, migrates hardcoded strings, and writes and tests workers, process adapters and process tests against the generated API.
-- **[Command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli)**: generate and validate without Gradle or Maven, also as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet); every package brings its own Java runtime.
+- **[Command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli)**: generate and validate without Gradle or Maven, also as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet); the archives bring their own Java runtime, the .NET tool needs Java 21.
 - **[Web app](https://bpmn-to-code.miragon.io/static/index.html)**: try it in the browser, or self-host the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
 
 ## What it helps with
