@@ -19,7 +19,7 @@ Each style comes in Kotlin and Java, modelled on the [MiraVelo blueprints](https
 
 | Skill | What it does |
 |-------|--------------|
-| `setup-bpmn-to-code` | Sets up the Gradle plugin, the Maven plugin or the command-line tool. Detects build tool, engine, language and BPMN files, adds the runtime and optionally a model validation test. |
+| `setup-bpmn-to-code` | Sets up the Gradle plugin, the Maven plugin or the command-line tool. Detects build tool, engine, language and BPMN files, adds the runtime and optionally a model validation test and a GitHub Actions job that fails when the committed API is out of date. |
 | `migrate-to-bpmn-to-code-apis` | Replaces hardcoded BPMN strings with references to the generated Process API. With `--from-5x` it rewrites 5.x references (`Elements`, `Variables`, `CallActivities`, `Timers`) to the 6.x `FlowNodes`. |
 
 **Engine code**
@@ -44,7 +44,7 @@ Writing the style guide and checking models against it are skills of [Miragon/bp
 
 | Subagent | What it does |
 |----------|--------------|
-| `process-reviewer` | Reviews one process against its code: the generated API is current, every job type has one handler, error codes match, messages and user tasks go through the process adapter, every branch has a process test. Reports, does not fix. |
+| `process-reviewer` | Reviews one process against its code: the generated API is current and checked in CI, every job type has one handler, error codes match, messages and user tasks go through the process adapter, every branch has a process test. Reports, does not fix. |
 
 ## bpmn-cli
 
