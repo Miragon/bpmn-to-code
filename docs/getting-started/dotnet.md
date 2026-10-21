@@ -19,7 +19,7 @@ The .NET tool `Miragon.BpmnToCode` is the [command-line tool](https://github.com
 <!-- x-release-please-start-version -->
 ```xml
 <ItemGroup>
-  <PackageReference Include="Miragon.BpmnToCode.MSBuild" Version="6.5.0" />
+  <PackageReference Include="Miragon.BpmnToCode.MSBuild" Version="6.6.0" />
 </ItemGroup>
 ```
 <!-- x-release-please-end -->
@@ -86,8 +86,8 @@ Without the MSBuild package, install the tool as a local tool, so the version is
 <!-- x-release-please-start-version -->
 ```bash
 dotnet new tool-manifest   # once per repository, creates .config/dotnet-tools.json
-dotnet tool install Miragon.BpmnToCode --version 6.5.0
-dotnet add package Miragon.BpmnToCode.Runtime --version 6.5.0
+dotnet tool install Miragon.BpmnToCode --version 6.6.0
+dotnet add package Miragon.BpmnToCode.Runtime --version 6.6.0
 dotnet bpmn-to-code generate-api --baseDir . --filePattern "bpmn/*.bpmn" --processEngine ZEEBE \
   --outputLanguage CSHARP --outputFolderPath Generated --packagePath MiraVelo.Process
 ```

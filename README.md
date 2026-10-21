@@ -58,7 +58,7 @@ import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "6.5.0"
+    id("io.miragon.bpmn-to-code-gradle") version "6.6.0"
 }
 
 tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
@@ -84,7 +84,7 @@ The goals are not bound to a lifecycle phase by default, so bind the goal yourse
     <dependency>
         <groupId>io.miragon</groupId>
         <artifactId>bpmn-to-code-runtime</artifactId>
-        <version>6.5.0</version>
+        <version>6.6.0</version>
     </dependency>
 </dependencies>
 
@@ -93,7 +93,7 @@ The goals are not bound to a lifecycle phase by default, so bind the goal yourse
         <plugin>
             <groupId>io.miragon</groupId>
             <artifactId>bpmn-to-code-maven</artifactId>
-            <version>6.5.0</version>
+            <version>6.6.0</version>
             <executions>
                 <execution>
                     <phase>generate-sources</phase>
