@@ -1,6 +1,7 @@
 ---
 layout: page
-title: Miragon bpmn-to-code
+title: bpmn-to-code
+titleTemplate: Miragon
 sidebar: false
 aside: false
 editLink: false
