@@ -19,6 +19,7 @@
         { "type": "generic", "path": "docs/getting-started/typescript.md" },
         { "type": "generic", "path": "docs/validate/index.md" },
         { "type": "generic", "path": "docs/validate/testing.md" },
+        { "type": "generic", "path": "docs/.vitepress/theme/HomeLanding.vue" },
         { "type": "json", "path": "bpmn-to-code-skills/.claude-plugin/plugin.json", "jsonpath": "$.version" }
       ]
     }

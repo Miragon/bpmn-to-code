@@ -29,7 +29,7 @@ Run these first; they need no judgement.
 
    Paths with `*`, `<…>` or `{…}` are skipped by the script; check them by eye. Hits below `build/` are build outputs and fine.
 4. **Class and function names.** Every backticked `CamelCase` type or `function()` named in `CLAUDE.md`, `docs/contributing/**` and `.claude/skills/**` is found by `grep -rn` in the sources.
-5. **Sidebar.** Every `link:` in `docs/.vitepress/config.mts` resolves to a file, and every page under `docs/` except the ADRs is reachable from the sidebar or linked from another page.
+5. **Sidebar.** Every `link:` in `docs/.vitepress/config.ts` resolves to a file, and every page under `docs/` except the ADRs is reachable from the sidebar or linked from another page.
 6. **Versions.** `grep -rn "$(grep projectVersion= gradle.properties | cut -d= -f2)"` over the scope: every hit is in a file listed under `extra-files` in `release-please-config.json` and sits between release-please markers. Every `extra-files` entry exists. Older version literals outside `docs/changelog/` and the benchmark page are suspicious.
 7. **Deleted pages.** No link or sidebar entry points at a page that `git status` or `git log --diff-filter=D -- docs` shows as removed.
 

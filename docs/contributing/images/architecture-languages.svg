@@ -40,29 +40,29 @@
 <text x="500.0" y="487.25" font-size="15" text-anchor="middle" fill="#1D1D1D">ProcessApiGraph + SharedDefinitionsGraph: computed once, language-neutral</text>
 <line x1="735" y1="408" x2="735" y2="450" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
 <rect x="175" y="556" width="140" height="64" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
-<text x="245.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6B6B">templates</text>
+<text x="245.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6666">templates</text>
 <text x="245.0" y="599.6999999999999" font-size="15" text-anchor="middle" fill="#1D1D1D">kotlin</text>
 <line x1="245" y1="518" x2="245" y2="552" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
 <rect x="345" y="556" width="140" height="64" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
-<text x="415.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6B6B">templates</text>
+<text x="415.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6666">templates</text>
 <text x="415.0" y="599.6999999999999" font-size="15" text-anchor="middle" fill="#1D1D1D">java</text>
 <line x1="415" y1="518" x2="415" y2="552" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
 <rect x="515" y="556" width="140" height="64" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
-<text x="585.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6B6B">templates</text>
+<text x="585.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6666">templates</text>
 <text x="585.0" y="599.6999999999999" font-size="15" text-anchor="middle" fill="#1D1D1D">csharp</text>
 <line x1="585" y1="518" x2="585" y2="552" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
 <rect x="685" y="556" width="140" height="64" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
-<text x="755.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6B6B">templates</text>
+<text x="755.0" y="580.8" font-size="13" text-anchor="middle" fill="#6B6666">templates</text>
 <text x="755.0" y="599.6999999999999" font-size="15" text-anchor="middle" fill="#1D1D1D">typescript</text>
 <line x1="755" y1="518" x2="755" y2="552" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
 <rect x="40" y="710" width="290" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
-<text x="185.0" y="737.8" font-size="13" text-anchor="middle" fill="#6B6B6B">runtime types on Maven Central</text>
+<text x="185.0" y="737.8" font-size="13" text-anchor="middle" fill="#6B6666">runtime types on Maven Central</text>
 <text x="185.0" y="756.6999999999999" font-size="15" text-anchor="middle" fill="#1D1D1D">io.miragon:bpmn-to-code-runtime</text>
 <rect x="360" y="710" width="290" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
-<text x="505.0" y="737.8" font-size="13" text-anchor="middle" fill="#6B6B6B">runtime types on NuGet</text>
+<text x="505.0" y="737.8" font-size="13" text-anchor="middle" fill="#6B6666">runtime types on NuGet</text>
 <text x="505.0" y="756.6999999999999" font-size="15" text-anchor="middle" fill="#1D1D1D">Miragon.BpmnToCode.Runtime</text>
 <rect x="680" y="710" width="290" height="70" rx="10" fill="#FFFFFF" stroke="#335DE5" stroke-width="2"/>
-<text x="825.0" y="737.8" font-size="13" text-anchor="middle" fill="#6B6B6B">runtime types on npm</text>
+<text x="825.0" y="737.8" font-size="13" text-anchor="middle" fill="#6B6666">runtime types on npm</text>
 <text x="825.0" y="756.6999999999999" font-size="15" text-anchor="middle" fill="#1D1D1D">@miragon/bpmn-to-code-runtime</text>
 <line x1="245" y1="624" x2="165" y2="706" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
 <line x1="415" y1="624" x2="215" y2="706" stroke="#335DE5" stroke-width="2" marker-end="url(#head)"/>
