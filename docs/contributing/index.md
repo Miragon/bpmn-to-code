@@ -111,12 +111,12 @@ npm test --prefix packages/npm/bpmn-to-code-runtime
 
 ## Docs site
 
-The site is [VitePress](https://vitepress.dev/) in `docs/`:
+The site is [VitePress](https://vitepress.dev/) in `docs/`, built with the Miragon docs kit in `docs/.vitepress/miragon/`. The kit is vendored unchanged from [Miragon/corporate-identity](https://github.com/Miragon/corporate-identity) (skill `docs-site`) and sets theme, colours in light and dark mode, anchors, Mermaid, search and the legal row; `node .vitepress/miragon/check.mjs` fails when it was edited here. The repo only owns `config.ts`, the landing page in `theme/` and the pages:
 
 ```bash
 cd docs
 npm ci
-npm run build                 # what CI runs; fails on dead links
+DOCS_BASE=/bpmn-to-code/ npm run build   # what CI runs; fails on dead links
 npx vitepress dev             # local preview with hot reload
 ```
 
@@ -126,7 +126,7 @@ npx vitepress dev             # local preview with hot reload
 
 The docs site and the web app follow the Miragon corporate design:
 
-- Colours, spacing and radii come from `cd-tokens.generated.css`, in `docs/.vitepress/theme/` and in the web app's `static/css/`. The file is generated from the Miragon design tokens. Replace it as a whole when the tokens change and never edit it by hand. Stylesheets use the `--cd-*` variables instead of raw colour values.
+- Colours, spacing and radii come from `cd-tokens.generated.css`: for the docs it ships with the kit, the web app keeps its own copy in `static/css/`. The file is generated from the Miragon design tokens. Replace it as a whole when the tokens change and never edit it by hand. Stylesheets use the `--cd-ui-*` roles instead of raw colour values.
 - The typefaces are Geist and Geist Mono, shipped with the site and the app.
 - Text stays English, because bpmn-to-code is used internationally. Apart from that the Miragon writing rules apply: no dash as a connector between clauses, no emoji as decoration, concrete statements instead of adjectives.
 - One name per thing: "Agent Skills", "Process JSON", "CIB seven", "Camunda 7", "Camunda 8".

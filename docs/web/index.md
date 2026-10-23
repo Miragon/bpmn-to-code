@@ -10,9 +10,7 @@ Generate from BPMN models in the browser, no Gradle or Maven setup needed. The w
 
 Upload up to three BPMN files, pick the output language and engine, and download the generated Process API or the [Process JSON](/surface/json). Nothing to install.
 
-<a href="https://bpmn-to-code.miragon.io/static/index.html" target="_blank" class="web-app-button">
-  Open Web App
-</a>
+[Open the web app ↗](https://bpmn-to-code.miragon.io/static/index.html)
 
 Generated code uses the fixed package `com.example.process` (for C# the namespace `Com.Example.Process`); change it after downloading. The generated code needs the runtime package of its language, which the app shows next to the result: `bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#, `@miragon/bpmn-to-code-runtime` for TypeScript. C# and TypeScript output are experimental, and their NuGet and npm packages are not published yet.
 

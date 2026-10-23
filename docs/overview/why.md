@@ -1,23 +1,22 @@
 # Why bpmn-to-code
 
-You have just modeled a process. Tasks, messages, signals, timers, all laid out in Camunda Modeler. Now you need to implement it. You open your IDE and start wiring the code to the process model.
-
-This is what that looks like:
+A BPMN model and the code that runs it share a lot of names: job types, messages, signals, errors, variables, element ids. Without a generator, those names live twice. Once in the model, once as strings in your workers, process adapters and tests:
 
 ```kotlin
-// Scattered across your codebase
-@JobWorker(type = "miravelo.sendContract")   // copy-pasted from the modeler
+@JobWorker(type = "miravelo.sendContract")   // copied from the modeler
 fun sendContract() { /* ... */ }
 
 client.newPublishMessageCommand()
-  .messageName("miravelo.contractSigned")    // hope nobody renames this
+  .messageName("miravelo.contractSigned")    // breaks silently when renamed
   .correlationKey(applicationId)
   .send()
 ```
 
-You copy these strings from the modeler. If someone renames a job type or a message, nothing breaks at compile time. You find out at runtime, when a worker stops picking up jobs or a message correlation silently fails.
+Nothing connects the two copies. Rename a job type in the modeler and the build stays green; you find out at runtime, when a worker stops picking up jobs or a message no longer correlates.
 
-bpmn-to-code reads your BPMN files and generates the constants from them, on every build:
+## The model becomes the source of the names
+
+bpmn-to-code reads your BPMN files on every build and generates one typed [Process API](/guide/generated-api) per process. Your code refers to the model instead of repeating it:
 
 ```kotlin
 @JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
@@ -29,60 +28,24 @@ client.newPublishMessageCommand()
   .send()
 ```
 
-Typos become compiler errors. Renamed elements break the build before they break production.
+A renamed or deleted element is now a compile error in the place that uses it.
 
-The same model feeds two more things:
+## One model, three checks
 
-- [Generated API](/guide/generated-api): every element as a typed node with its job type, message, timer, variables and sequence flows.
-- [Validation](/validate/): built-in rules during generation, a build task, and a testing library for your own architecture rules.
+The same generated API carries more than constants, so the model is checked at three points:
 
-## Does AI Make This Obsolete?
-
-My name is Marco. I built bpmn-to-code to solve exactly this. If you're interested in the whole story, you can find it [here](https://medium.com/miragon/simplifying-process-automation-with-bpmn-to-code-from-bpmn-models-to-process-apis-216adafeb0ac). Lately, I have been asking myself whether it was the right call, or whether AI has already made it obsolete.
-
-AI coding assistants are getting better every month. They read XML, understand process structures, and generate code. You can paste a BPMN file into Claude, describe what you want, and get typed constants back.
-
-You could even build an agent skill that replaces the plugin entirely: scan the project for BPMN files, generate all the constants, write the output to disk. No build plugin, no configuration, no dependency.
-
-And honestly? I can't fully deny that. So I figured I'd make it official. I pointed bpmn-to-code at [Death by Clawd](https://deathbyclawd.com?url=bpmn-to-code.miragon.io), a tool that (even if not dead-serious) scores how easily AI can replace a software product:
-
-<img src="/death-by-clawd-score.png" alt="Death by Clawd score for bpmn-to-code: 91 out of 100" style="max-width: 420px; border-radius: 8px;" />
-
-And the verdict was clear: 91 out of 100. Already dead. Cause of death: *Prompt engineering presented as a product.*
-
-My defense? None. Guilty as charged, unless you ever need to do this more than once.
-
-## Why It Still Makes Sense
-
-Every time your BPMN model changes, you rebuild, and the Process API updates automatically. Your IDE knows every element by name. Rename a task in the modeler, and the compiler tells you exactly what broke. No string search, no grepping through the codebase, no silent failures at runtime.
-
-And when generation is wired into your build, it runs the same way everywhere: on every machine, every branch, every CI pipeline. That shifts the question from "can AI produce this output?" to "can I trust this output unconditionally, on every run, with no external calls?"
-
-This is where bpmn-to-code shines:
-
-- **Deterministic output**: Same BPMN in, same code out. Every run, every machine, every time. An LLM can vary across model versions, reorder fields, or introduce formatting drift. Diffs stay clean only when output is byte-identical.
-- **No hallucination risk**: The plugin maps XML to code via deterministic rules. It cannot invent an element ID or silently drop a service task. Build pipelines need guarantees, not probabilities.
-- **No external dependencies**: No network calls, no API keys, no rate limits, no model deprecations. Works offline. Never flakes because a provider had an outage.
-
-| Concern | Build toolkit | Agent skill / LLM |
+| When | What | How |
 |---|---|---|
-| **Output stability** | Byte-identical | May vary across model versions |
-| **CI/CD** | Offline, no API dependency | Requires network + API key |
-| **Hallucination risk** | None | Possible invented IDs or drift |
+| While you write code | Every element, its job type, message, timer, variables and successors are typed | [Generated API](/guide/generated-api) |
+| In your tests | A process test walks a route the model contains, or it does not compile | [ProcessPath](/guide/process-path) |
+| In the build | Rules catch missing implementations, unnamed messages and your own conventions | [Validation](/validate/) |
 
-The generated Process API is where these two worlds meet: bpmn-to-code produces the reliable, deterministic process context that makes AI assistance trustworthy. Use the toolkit for generation and validation; use AI to work with the output.
+## Generated, not prompted
 
-## What I Suggest
+A coding agent can read a BPMN file and write constants, too. The difference is what happens on the next change. bpmn-to-code maps the XML to code by fixed rules: the same model gives byte-identical output on every machine and in every CI run, offline, without an API key. It cannot invent an id or drop a task, and a model change shows up as a clean diff.
 
-Use the toolkit for deterministic generation and validation. Use AI for everything around it:
+That is also what makes agents useful here. The [Agent Skills](/skills/) set up the plugin, write workers and process tests and turn your BPMN style guide into rules, and they do it against the generated API instead of against XML. When the agent gets a name wrong, the compiler says so.
 
-- **Setting up** the plugin in a new project: detecting BPMN files, configuring the build, choosing the right engine.
-- **Migrating** existing codebases from hardcoded strings to the generated type-safe API.
-- **Scaffolding** worker implementations, REST controllers, and test boilerplate from the generated Process API.
-- **Understanding** a process: let your coding assistant read the BPMN file and the generated Process API and ask questions about it.
-
-Thus, bpmn-to-code ships with [Agent Skills](/skills/) that automate these workflows. They are optional: the build plugins work standalone.
-
-## Get Started
+## Get started
 
 Set up the [Gradle plugin](/getting-started/gradle) or the [Maven plugin](/getting-started/maven), use the [command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli), the [.NET tool](/getting-started/dotnet) or the [npm package](/getting-started/typescript), or try the [web app](/web/) without installing anything. All of them run the same generator and produce Kotlin, Java, C# (experimental) or TypeScript (experimental).

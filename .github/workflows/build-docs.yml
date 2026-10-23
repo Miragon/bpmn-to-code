@@ -43,11 +43,15 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          # The full history: VitePress reads "last updated" from git.
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: docs/package-lock.json
 
@@ -60,6 +64,15 @@ jobs:
         run: npm ci
         working-directory: docs
 
+      # The kit in docs/.vitepress/miragon/ and the logos in docs/public/logo/ come unchanged
+      # from the corporate identity. Fails when someone edited them in this repo.
+      - name: Check the Miragon docs kit
+        run: node .vitepress/miragon/check.mjs
+        working-directory: docs
+
       - name: Build Documentation
         run: npm run build
         working-directory: docs
+        env:
+          # Project pages are served under /bpmn-to-code/; the kit sets VitePress' base from it.
+          DOCS_BASE: /bpmn-to-code/

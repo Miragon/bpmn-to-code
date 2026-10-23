@@ -1,21 +1,28 @@
 {
   "name": "bpmn-to-code-docs",
+  "version": "0.0.0",
   "private": true,
+  "description": "VitePress site of the bpmn-to-code docs (https://miragon.github.io/bpmn-to-code/), built with the Miragon docs kit. The pages are the Markdown files next to this package.json.",
+  "type": "module",
   "scripts": {
-    "dev": "portless run sh -c '(open $PORTLESS_URL/bpmn-to-code/) & vitepress dev --port $PORT --host 127.0.0.1'",
+    "dev": "portless run sh -c '(open $PORTLESS_URL/) & vitepress dev --port $PORT --host 127.0.0.1'",
     "build": "vitepress build",
-    "preview": "vitepress preview"
+    "preview": "vitepress preview",
+    "check:kit": "node .vitepress/miragon/check.mjs"
   },
   "devDependencies": {
-    "vitepress": "2.0.0-alpha.20",
-    "vue": "3.5.44"
-  },
-  "dependencies": {
+    "@braintree/sanitize-url": "7.1.2",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
-    "oxc-minify": "0.154.0"
+    "cytoscape": "3.34.3",
+    "cytoscape-cose-bilkent": "4.1.0",
+    "dayjs": "1.11.23",
+    "debug": "4.4.3",
+    "mermaid": "11.17.2",
+    "vitepress": "1.6.4",
+    "vitepress-plugin-mermaid": "2.0.17"
   },
   "overrides": {
-    "esbuild": "0.28.1"
+    "vite": "6.4.3"
   }
 }

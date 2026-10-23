@@ -1,17 +1,9 @@
-import DefaultTheme from 'vitepress/theme'
-import VersionBadge from './VersionBadge.vue'
-import '@fontsource-variable/geist'
-import '@fontsource-variable/geist-mono'
-import './cd-tokens.generated.css'
-import './style.css'
-import './landing/landing.css'
-import { h } from 'vue'
+import MiragonTheme from '../miragon/theme'
+import HomeLanding from './HomeLanding.vue'
 
 export default {
-  extends: DefaultTheme,
-  Layout() {
-    return h(DefaultTheme.Layout, null, {
-      'nav-bar-content-after': () => h(VersionBadge),
-    })
+  extends: MiragonTheme,
+  enhanceApp({ app }) {
+    app.component('HomeLanding', HomeLanding)
   },
 }

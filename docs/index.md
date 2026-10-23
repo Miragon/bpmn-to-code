@@ -1,10 +1,10 @@
 ---
 layout: page
-pageClass: landing-page
+title: Miragon bpmn-to-code
+sidebar: false
+aside: false
+editLink: false
+lastUpdated: false
 ---
 
-<script setup>
-import LandingPage from './.vitepress/theme/landing/LandingPage.vue'
-</script>
-
-<LandingPage />
+<HomeLanding />
