@@ -1,20 +1,13 @@
 package io.miragon.bpmn.domain.validation.rules
 
-import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
+import io.miragon.bpmn.domain.ProcessApiNames
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
 
 /**
- * Rejects element ids whose generated name would shadow a part of the Process API itself.
- *
- * Every element becomes a nested type inside `FlowNodes`, next to the holders (`Next`, `Start`, …), the
- * `all` / `all()` / `All` enumeration, and refers to the shared definitions (`ServiceTasks`, `Messages`, …) and runtime types by their simple name. An
- * element named like one of those would shadow it in at least one target language and the generated file
- * would not compile; an element whose accessor is named like a `java.lang.Object` method breaks the Java
- * output the same way. In C#, the members of a node (`Id`, `Name`, `Message`, `Timer`, …) are PascalCase too
- * and shadow an element of that name wherever the node refers to it.
+ * Rejects element ids whose generated name would shadow a part of the Process API itself, see [ProcessApiNames].
  */
 class ReservedElementNameRule : SingleModelValidationRule {
 
@@ -24,106 +17,14 @@ class ReservedElementNameRule : SingleModelValidationRule {
 
     override fun validate(context: SingleModelValidationContext): List<ValidationViolation> {
         val model = context.model
-        return model.allFlowNodes.filter { it.id?.toCamelCase()?.isReserved() == true }.map { node ->
+        val reservedNodes = model.allFlowNodes.filter { node -> node.id?.let { ProcessApiNames.isReserved(ProcessApiNames.elementName(it)) } == true }
+        return reservedNodes.map { node ->
+            val elementName = ProcessApiNames.elementName(node.id.orEmpty())
             violation(
                 processId = model.processId,
                 elementId = node.id,
-                message = "Element id '${node.id}' would be generated as '${node.id.orEmpty().toCamelCase()}', which is reserved by the Process API. Rename the element.",
+                message = "Element id '${node.id}' would be generated as '$elementName', which is reserved by the Process API. Rename the element.",
             )
         }
-    }
-
-    private fun String.isReserved(): Boolean = this in RESERVED_TYPE_NAMES || replaceFirstChar { it.lowercaseChar() } in RESERVED_ACCESSOR_NAMES
-
-    companion object {
-
-        val RESERVED_TYPE_NAMES: Set<String> = setOf(
-            "FlowNodes",
-            "All",
-            "Next",
-            "Start",
-            "Variables",
-            "Inputs",
-            "Outputs",
-            "Instance",
-            "Runtime",
-            "Successors",
-            "Interior",
-            "NodeVariables",
-            "InputMappings",
-            "OutputMappings",
-            "Id",
-            "Name",
-            "ElementType",
-            "EventType",
-            "AttachedTo",
-            "IsInterrupting",
-            "JobType",
-            "CalledProcess",
-            "Message",
-            "Signal",
-            "Timer",
-            "Error",
-            "Escalation",
-            "ElementId",
-            "ProcessId",
-            "MessageName",
-            "SignalName",
-            "VariableName",
-            "BpmnTimer",
-            "BpmnErrorDefinition",
-            "BpmnEscalationDefinition",
-            "InputOutputMapping",
-            "SequenceFlow",
-            "SequenceFlows",
-            "AttachedBoundaryEvent",
-            "AssociatedCompensationHandler",
-            "ISuccessor",
-            "FlowNode",
-            "AbstractFlowNode",
-            "HasSuccessors",
-            "BoundaryEvent",
-            "IBoundaryEvent",
-            "FlowScope",
-            "HasJobType",
-            "HasVariables",
-            "VariableDefinitions",
-            "RegisteredVariableDefinitions",
-            "CallActivity",
-            "TimerEvent",
-            "HasMessage",
-            "SignalEvent",
-            "ErrorEvent",
-            "EscalationEvent",
-            "CompensationThrowEvent",
-            "IHasJobType",
-            "IHasVariables",
-            "ICallActivity",
-            "ITimerEvent",
-            "IHasMessage",
-            "ISignalEvent",
-            "IErrorEvent",
-            "IEscalationEvent",
-            "ICompensationThrowEvent",
-            "BpmnEngine",
-            "IFlowNode",
-            "ISequenceFlow",
-            "Messages",
-            "Errors",
-            "Signals",
-            "Escalations",
-            "ServiceTasks",
-            "ProcessVariables",
-        )
-
-        val RESERVED_ACCESSOR_NAMES: Set<String> = setOf(
-            "hashCode",
-            "toString",
-            "getClass",
-            "notify",
-            "notifyAll",
-            "wait",
-            "equals",
-        )
     }
 }

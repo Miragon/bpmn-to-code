@@ -61,9 +61,9 @@ public static class ${typeName}
             public sealed class NodeVariables : ${runtime}.VariableDefinitions
             {
 <#items as variable>
-                public ${runtime}.VariableName.${variable.subtype} ${memberName(variable.name, "NodeVariables")} { get; } = new(${variable.nameConstant});
+                public ${runtime}.VariableName.${variable.subtype} ${variable.name} { get; } = new(${variable.nameConstant});
 </#items>
-                public override global::System.Collections.Generic.IReadOnlyList<${runtime}.VariableName> All => new ${runtime}.VariableName[] { ${node.variables?map(variable -> memberName(variable.name, "NodeVariables"))?join(", ")} };
+                public override global::System.Collections.Generic.IReadOnlyList<${runtime}.VariableName> All => new ${runtime}.VariableName[] { ${node.variables?map(variable -> variable.name)?join(", ")} };
             }
 </#list>
 <@mappings property="Inputs" className="InputMappings" mappings=node.inputs/>
@@ -74,7 +74,7 @@ public static class ${typeName}
             public sealed class Successors
             {
 <#items as successor>
-<#assign member = memberName(successor.target.property, "Successors")>
+<#assign member = successor.target.property>
 <#assign successorType = "${runtime}.${successor.type}<${successor.target.type}>">
 <#assign target = "FlowNodes.${successor.target.property}">
 <#if successor.flows?size == 1>
@@ -94,7 +94,7 @@ public static class ${typeName}
             public sealed class Interior
             {
 <#items as start>
-                public ${start.type} ${memberName(start.property, "Interior")} => FlowNodes.${start.property};
+                public ${start.type} ${start.property} => FlowNodes.${start.property};
 </#items>
             }
 </#list>
@@ -120,18 +120,11 @@ public static class ${typeName}
             public sealed class ${className}
             {
 <#items as mapping>
-                public ${runtime}.InputOutputMapping ${memberName(mapping.name, className)} { get; } = new(${mapping.target}, ${mapping.source!"null"}, ${mapping.sourceExpression!"null"});
+                public ${runtime}.InputOutputMapping ${mapping.name} { get; } = new(${mapping.target}, ${mapping.source!"null"}, ${mapping.sourceExpression!"null"});
 </#items>
             }
 </#list>
 </#macro>
-<#-- C# rejects a member named like its enclosing type (CS0542): a successor `Successors` is declared as `Successors_`. -->
-<#function memberName name enclosingType>
-  <#if name == enclosingType>
-    <#return name + "_">
-  </#if>
-  <#return name>
-</#function>
 <#-- e.g. `new("flow_isSolventToConcludeContract"), FlowNodes.SubProcessConcludeContract, name: "Yes", isDefault: true` -->
 <#function singleFlowArguments flow target>
   <#local arguments = ["new(${flow.id})", target]>

@@ -11,6 +11,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.NodeName
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeSyntax
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.SharedNameAndCode
+import io.miragon.bpmn.domain.ProcessApiNamingException
 
 /**
  * How a C# flow node is written: a sealed singleton class reached through a property of `FlowNodes`, e.g.
@@ -41,19 +42,30 @@ internal class CSharpFlowNodeSyntax(private val names: CSharpNodeNames) : FlowNo
 
     /**
      * A variable called `all`, `inputs` or `outputs` would hide the member of that name it inherits from
-     * `VariableDefinitions`, and one called `processVariables` the class its name constant lives in: `all` becomes
-     * `All_`.
+     * `VariableDefinitions`, one called `processVariables` the class its name constant lives in, and one called
+     * `nodeVariables` would be named like its holder. Nothing is renamed, so generation fails.
      */
     override fun variableName(variable: VariableFacet): String {
         val propertyName = pascalCase(variable.rawName)
-        val hiddenNames = CSharpRuntimeTypes.VARIABLE_DEFINITIONS_MEMBERS + PROCESS_VARIABLES.typeName
-        if (propertyName !in hiddenNames) return propertyName
-        return propertyName + "_"
+        val reservedNames = CSharpRuntimeTypes.VARIABLE_DEFINITIONS_MEMBERS + PROCESS_VARIABLES.typeName + VARIABLES_HOLDER
+        return requireUnreserved(name = propertyName, reservedNames = reservedNames, generatedFrom = "variable '${variable.rawName}'")
     }
 
-    override fun mappingName(mapping: MappingFacet): String = pascalCase(mapping.target)
+    /**
+     * A mapping called `inputMappings` or `outputMappings` would be named like its holder.
+     */
+    override fun mappingName(mapping: MappingFacet): String = requireUnreserved(
+        name = pascalCase(mapping.target),
+        reservedNames = MAPPING_HOLDERS,
+        generatedFrom = "mapping target '${mapping.target}'",
+    )
 
     override fun sharedNameAndCode(type: SharedDefinitionType, sharedValue: SharedValue<Pair<String, String>>): SharedNameAndCode = CSharpSharedReferences.nameAndCode(type, sharedValue)
+
+    private fun requireUnreserved(name: String, reservedNames: Set<String>, generatedFrom: String): String {
+        if (name !in reservedNames) return name
+        throw ProcessApiNamingException("C# reserves the name '$name' of the $generatedFrom inside a node. Rename it.")
+    }
 
     private fun nodeInterfaceOf(node: FlowGraphNode): String = when {
         node.isBoundaryEvent -> CSharpRuntimeTypes.BOUNDARY_EVENT
@@ -76,5 +88,10 @@ internal class CSharpFlowNodeSyntax(private val names: CSharpNodeNames) : FlowNo
             hasInterior -> listOf("${CSharpRuntimeTypes.FLOW_SCOPE}<$interior>")
             else -> emptyList()
         }
+    }
+
+    private companion object {
+        const val VARIABLES_HOLDER = "NodeVariables"
+        val MAPPING_HOLDERS = setOf("InputMappings", "OutputMappings")
     }
 }

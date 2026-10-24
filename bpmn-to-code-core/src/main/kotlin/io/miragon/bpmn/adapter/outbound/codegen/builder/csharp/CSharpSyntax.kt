@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
 /**
@@ -43,12 +44,14 @@ internal object CSharpSyntax {
     }
 
     /**
-     * The name a member declared as [name] ends up with inside [enclosingType].
-     * C# rejects a member named like its enclosing type (CS0542): `Messages` inside `Messages` becomes `Messages_`.
+     * [name], unless it is the name of [enclosingType]: C# rejects a member named like its enclosing type (CS0542), and
+     * nothing is renamed, so generation fails naming both.
      */
-    fun disambiguated(name: String, enclosingType: String?): String {
+    fun memberOf(name: String, enclosingType: String): String {
         if (name != enclosingType) return name
-        return name + "_"
+        throw ProcessApiNamingException(
+            "C# cannot declare '$name' inside the type '$enclosingType' of the same name. Rename the element or definition it is generated from.",
+        )
     }
 
     /**
