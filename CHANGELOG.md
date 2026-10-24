@@ -3,6 +3,25 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [7.0.0](https://github.com/Miragon/bpmn-to-code/compare/v6.6.1...v7.0.0) (2026-10-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* simplify validation, codegen input and the jvm builders after the architecture review ([#253](https://github.com/Miragon/bpmn-to-code/issues/253))
+* remove the process json ([#208](https://github.com/Miragon/bpmn-to-code/issues/208))
+* deepen codegen, naming, validation and entry points after the architecture review ([#251](https://github.com/Miragon/bpmn-to-code/issues/251))
+
+### Features
+
+* remove the process json ([#208](https://github.com/Miragon/bpmn-to-code/issues/208)) ([8b6cf34](https://github.com/Miragon/bpmn-to-code/commit/8b6cf342eb171e6605d755fbf100b36973b24d18))
+
+
+### Code Refactoring
+
+* deepen codegen, naming, validation and entry points after the architecture review ([#251](https://github.com/Miragon/bpmn-to-code/issues/251)) ([5ced326](https://github.com/Miragon/bpmn-to-code/commit/5ced326906a889e033c6d5aa297487b28a6264d1))
+* simplify validation, codegen input and the jvm builders after the architecture review ([#253](https://github.com/Miragon/bpmn-to-code/issues/253)) ([e647245](https://github.com/Miragon/bpmn-to-code/commit/e647245ade277fb568cd06b6b7df69e5c1771dcc))
+
 ## [6.6.1](https://github.com/Miragon/bpmn-to-code/compare/v6.6.0...v6.6.1) (2026-10-21)
 
 
