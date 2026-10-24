@@ -19,7 +19,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 /**
  * The one validation every entry point runs. Each model is validated on its own, and the models against each other
  * once none of them has an error. Generation and the build task check the same: the processes that get a Process API
- * pass the rules, and no two files would be generated under one name.
+ * pass the rules, and no two files would be generated under one name. The mandatory rules run whatever [rules] lists.
  */
 class BpmnValidationService(
     private val config: ValidationConfig = ValidationConfig(),
@@ -28,11 +28,13 @@ class BpmnValidationService(
 
     private val logger = KotlinLogging.logger {}
 
-    private val singleModelRules = rules.filterIsInstance<SingleModelValidationRule>().filter { it.isActive() }
-    private val crossModelRules = rules.filterIsInstance<CrossModelValidationRule>().filter { it.isActive() }
+    private val rulesToRun = (rules + BuiltInRules.mandatory()).distinctBy { it.id }
+
+    private val singleModelRules = rulesToRun.filterIsInstance<SingleModelValidationRule>().filter { it.isActive() }
+    private val crossModelRules = rulesToRun.filterIsInstance<CrossModelValidationRule>().filter { it.isActive() }
 
     init {
-        warnOnDisabledMandatoryRules(rules)
+        warnOnDisabledMandatoryRules(rulesToRun)
     }
 
     fun validate(models: List<ProcessModel>, engine: ProcessEngine): ValidationResult {

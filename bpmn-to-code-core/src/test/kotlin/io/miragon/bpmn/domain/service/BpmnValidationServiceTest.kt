@@ -192,8 +192,21 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `validates with the given rules instead of the built-in ones`() {
-        // given: a service that only knows the empty-process rule
+    fun `runs the mandatory rules when the given rules leave them out`() {
+        // given: a service that is given the empty-process rule only
+        val underTest = BpmnValidationService(rules = listOf(EmptyProcessRule()))
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
+
+        // when
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
+
+        // then
+        assertThat(result.violations).anyMatch { it.ruleId == "missing-element-id" }
+    }
+
+    @Test
+    fun `validates with the given rules and the mandatory ones instead of all built-in ones`() {
+        // given: a service that is given the empty-process rule only
         val underTest = BpmnValidationService(rules = listOf(EmptyProcessRule()))
         val emptyModel = testProcessModel(processId = "empty", flowNodes = emptyList())
         val unimplementedModel = testProcessModel(

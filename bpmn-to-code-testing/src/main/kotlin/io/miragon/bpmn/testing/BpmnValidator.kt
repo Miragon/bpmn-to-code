@@ -4,7 +4,6 @@ import io.miragon.bpmn.adapter.inbound.ExtractProcessModelsPlugin
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.BuiltInRules
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.ValidationResult
@@ -83,7 +82,7 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
         }
 
         val models = ExtractProcessModelsPlugin().execute(resourceLoader(), selectedEngine)
-        val validationService = BpmnValidationService(config = ValidationConfig(disabledRules = disabledRuleIds), rules = resolveRules())
+        val validationService = BpmnValidationService(config = ValidationConfig(disabledRules = disabledRuleIds), rules = rules ?: BpmnRules.all())
         val result = validationService.validate(models = models, engine = selectedEngine)
         return BpmnValidationAssert.assertThat(applyPolicy(result))
     }
@@ -91,14 +90,6 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
     private fun applyPolicy(result: ValidationResult): ValidationResult {
         if (!failOnWarning) return result
         return ValidationResult(result.violations.map { if (it.severity == Severity.WARN) it.copy(severity = Severity.ERROR) else it })
-    }
-
-    /**
-     * The selected rules, or [BpmnRules.all], and the mandatory rules, which run whether they are selected or not.
-     */
-    private fun resolveRules(): List<ValidationRule> {
-        val selectedRules = rules ?: BpmnRules.all()
-        return (selectedRules + BuiltInRules.mandatory()).distinctBy { it.id }
     }
 
     companion object {
