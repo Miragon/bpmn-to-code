@@ -19,8 +19,8 @@ class CreateProcessJsonInMemoryPluginTest {
     @Test
     fun `execute delegates to use case and returns generated files`() {
         // given: multiple BpmnInput objects
-        val firstInput = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = "<bpmn>first</bpmn>", processName = "first.bpmn")
-        val secondInput = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = "<bpmn>second</bpmn>", processName = "second.bpmn")
+        val firstInput = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = "<bpmn>first</bpmn>", fileName = "first.bpmn")
+        val secondInput = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = "<bpmn>second</bpmn>", fileName = "second.bpmn")
         val expectedFiles = listOf(
             GeneratedJsonFile(fileName = "first.json", content = "{}", processId = "first"),
             GeneratedJsonFile(fileName = "second.json", content = "{}", processId = "second"),

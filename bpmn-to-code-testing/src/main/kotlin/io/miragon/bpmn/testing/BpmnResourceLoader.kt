@@ -75,6 +75,7 @@ internal object BpmnResourceLoader {
 
     private fun walkForBpmnFiles(directory: Path): List<BpmnResource> {
         val bpmnFiles = Files.walk(directory).use { paths -> paths.filter { it.extension == "bpmn" }.toList() }
-        return bpmnFiles.map { BpmnResource(fileName = it.name, content = it.readBytes()) }
+        val resources = bpmnFiles.map { BpmnResource(fileName = directory.relativize(it).toString(), content = it.readBytes()) }
+        return resources.sortedBy { it.fileName }
     }
 }

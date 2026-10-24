@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.typescript
 
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -31,8 +32,8 @@ class TypeScriptSyntaxTest {
     @Test
     fun `identifier rejects a name that would not compile`() {
         assertThatThrownBy { underTest.identifier(name = "Task.Approve") }
-            .isInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(ProcessApiNamingException::class.java)
         assertThatThrownBy { underTest.identifier(name = "1") }
-            .isInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(ProcessApiNamingException::class.java)
     }
 }

@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.JvmSyntax
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import javax.lang.model.SourceVersion
 
 /**
@@ -30,8 +31,8 @@ internal object JavaSyntax : JvmSyntax {
      * rather than emitting code that does not compile.
      */
     override fun identifier(name: String): String {
-        require(SourceVersion.isName(name)) { "not a valid name: $name" }
-        return name
+        if (SourceVersion.isName(name)) return name
+        throw ProcessApiNamingException("'$name' is not a valid Java name. Rename the element or definition it is generated from.")
     }
 
     private fun escaped(character: Char): String = when {

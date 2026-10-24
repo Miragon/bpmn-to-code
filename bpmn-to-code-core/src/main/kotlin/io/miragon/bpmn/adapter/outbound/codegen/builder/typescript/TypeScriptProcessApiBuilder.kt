@@ -6,6 +6,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSyntax.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeMapper
+import io.miragon.bpmn.domain.ProcessApiNamingException
 
 /**
  * Generates the Process API of one BPMN process as a TypeScript module, rendered by
@@ -46,6 +47,8 @@ internal class TypeScriptProcessApiBuilder : ProcessApiBuilder {
             TypeScriptSourceFile.RUNTIME_ALIAS +
             api.typeName.value
         val shadowing = api.flow?.nodes.orEmpty().map { it.objectName }.filter { it in moduleNames }
-        require(shadowing.isEmpty()) { "element names clash with names the TypeScript module declares: $shadowing" }
+        if (shadowing.isNotEmpty()) {
+            throw ProcessApiNamingException("Element names clash with names the TypeScript module declares: $shadowing. Rename the elements.")
+        }
     }
 }

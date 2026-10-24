@@ -3,6 +3,7 @@ package io.miragon.bpmn.adapter
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.Log
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -92,7 +93,7 @@ class MavenMojoSmokeTest {
 
         // when / then: the mojo fails naming the API, both files and the way to tell them apart
         assertThatThrownBy { mojo.execute() }
-            .isInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(MojoFailureException::class.java)
             .hasMessageContaining("'BikeLeasingProcessApi'")
             .hasMessageContaining("corporate/bike-leasing.bpmn (process id 'bikeLeasing'), default/bike-leasing.bpmn (process id 'bikeLeasing')")
             .hasMessageContaining("variantName")

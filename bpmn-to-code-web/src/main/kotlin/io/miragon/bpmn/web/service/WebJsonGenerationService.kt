@@ -24,7 +24,7 @@ class WebJsonGenerationService {
         }
     }
 
-    private fun buildInput(file: BpmnFileData) = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())
+    private fun buildInput(file: BpmnFileData) = CreateProcessJsonInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), fileName = file.fileName)
 
     private fun mapToResponse(jsonFile: GeneratedJsonFile) = GenerateJsonResponse.GeneratedJsonFileResponse(
         fileName = jsonFile.fileName,

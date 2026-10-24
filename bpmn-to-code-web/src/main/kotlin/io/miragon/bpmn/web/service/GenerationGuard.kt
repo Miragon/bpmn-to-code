@@ -2,9 +2,7 @@ package io.miragon.bpmn.web.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.miragon.bpmn.domain.BpmnReadException
-import io.miragon.bpmn.domain.ProcessApiNamingException
-import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.domain.RejectedModelException
 import io.miragon.bpmn.web.model.BpmnFileData
 
 /**
@@ -29,13 +27,7 @@ internal object GenerationGuard {
         }
         return try {
             generate()
-        } catch (e: BpmnReadException) {
-            logger.warn { e.message }
-            failure(HttpStatusCode.BadRequest, e.message)
-        } catch (e: BpmnValidationException) {
-            logger.error(e) { "BPMN validation failed during generation" }
-            failure(HttpStatusCode.BadRequest, e.message)
-        } catch (e: ProcessApiNamingException) {
+        } catch (e: RejectedModelException) {
             logger.warn { e.message }
             failure(HttpStatusCode.BadRequest, e.message)
         } catch (e: IllegalStateException) {

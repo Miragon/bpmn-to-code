@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.java
 
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -23,6 +24,6 @@ class JavaSyntaxTest {
 
     @Test
     fun `identifier rejects a keyword`() {
-        assertThatThrownBy { JavaSyntax.identifier("class") }.isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { JavaSyntax.identifier("class") }.isInstanceOf(ProcessApiNamingException::class.java)
     }
 }

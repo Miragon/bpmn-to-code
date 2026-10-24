@@ -25,6 +25,4 @@ data class BpmnFileData(
     } catch (e: IllegalArgumentException) {
         throw BpmnReadException("File '$fileName' is not valid Base64", e)
     }
-
-    fun processName(): String = fileName.removeSuffix(".bpmn")
 }

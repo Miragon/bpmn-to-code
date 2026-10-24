@@ -41,7 +41,7 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
         engine = config.processEngine,
     )
 
-    private fun buildCommand(file: BpmnFileData) = CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), processName = file.processName())
+    private fun buildCommand(file: BpmnFileData) = CreateProcessApiInMemoryPlugin.BpmnInput(bpmnXml = file.bpmnXml(), fileName = file.fileName)
 
     /**
      * The bundled sources are those of the JVM `bpmn-to-code-runtime`; C# and TypeScript have runtime packages of their own.

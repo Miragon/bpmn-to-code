@@ -176,7 +176,7 @@ class GenerationRoutesTest {
             val response = client.post(endpoint) { jsonBody(requestOf(bpmnFile(fileName = "truncated.bpmn", bpmnXml = "<bpmn:definitions"))) }
 
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
-            assertThat(jsonOf(response.bodyAsText()).getValue("error").jsonPrimitive.content).contains("Failed to extract file: truncated")
+            assertThat(jsonOf(response.bodyAsText()).getValue("error").jsonPrimitive.content).contains("truncated.bpmn")
         }
     }
 

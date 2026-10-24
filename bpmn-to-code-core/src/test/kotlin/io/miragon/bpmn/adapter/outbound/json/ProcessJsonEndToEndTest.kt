@@ -27,7 +27,7 @@ class ProcessJsonEndToEndTest {
         // given: the shared fixture for this engine
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
             bpmnXml = readResource("/bpmn/$fixture.bpmn"),
-            processName = fixture.substringAfter("/"),
+            fileName = fixture.substringAfter("/"),
         )
 
         // when: running the real extraction and JSON generation

@@ -1,5 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.typescript
 
+import io.miragon.bpmn.domain.ProcessApiNamingException
+
 /**
  * How values and names are written in generated TypeScript code.
  */
@@ -30,7 +32,7 @@ internal object TypeScriptSyntax {
      * emitting code that does not compile.
      */
     fun identifier(name: String): String {
-        require(IDENTIFIER.matches(name)) { "not a valid name: $name" }
-        return name
+        if (IDENTIFIER.matches(name)) return name
+        throw ProcessApiNamingException("'$name' is not a valid TypeScript name. Rename the element or definition it is generated from.")
     }
 }

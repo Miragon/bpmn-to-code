@@ -1,8 +1,10 @@
 package io.miragon.bpmn.adapter;
 
+import io.miragon.bpmn.domain.RejectedModelException;
 import io.miragon.bpmn.domain.shared.ProcessEngine;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -51,6 +53,18 @@ public abstract class AbstractBpmnMojo extends AbstractMojo {
 		Path path = Path.of(required(name, value));
 		Path projectRoot = projectDirectory == null ? Path.of("").toAbsolutePath() : projectDirectory.toPath();
 		return projectRoot.resolve(path).normalize().toString();
+	}
+
+	/**
+	 * Runs {@code run}, failing the build with the message of a model the generator rejects, which the user has to fix,
+	 * rather than with an error of the plugin.
+	 */
+	protected static <T> T failingOnRejectedModels(Supplier<T> run) throws MojoFailureException {
+		try {
+			return run.get();
+		} catch (RejectedModelException rejection) {
+			throw new MojoFailureException(rejection.getMessage(), rejection);
+		}
 	}
 
 	protected static String required(String name, String value) throws MojoFailureException {

@@ -55,24 +55,17 @@ public class BpmnModelMojo extends AbstractBpmnMojo {
 		CreateProcessApiFilesystemPlugin plugin = new CreateProcessApiFilesystemPlugin();
 		OutputLanguage language = EnumParameter.parse("outputLanguage", outputLanguage, OutputLanguage.class);
 		ProcessEngine engine = processEngine();
-		List<BpmnFileResult> results = plugin.execute(
-				baseDir(),
-				filePattern(),
-				projectPath("outputFolderPath", outputFolderPath),
-				required("packagePath", packagePath),
-				language,
-				engine,
-				new ValidationConfig()
+		String baseDir = baseDir();
+		String filePattern = filePattern();
+		String outputFolder = projectPath("outputFolderPath", outputFolderPath);
+		String packageName = required("packagePath", packagePath);
+		List<BpmnFileResult> results = failingOnRejectedModels(
+				() -> plugin.execute(baseDir, filePattern, outputFolder, packageName, language, engine, new ValidationConfig())
 		);
-		if (results.isEmpty()) {
-			getLog().info("No BPMN models found");
-			return;
-		}
 		for (BpmnFileResult result : results) {
-			String files = String.join(", ", result.getSourceFiles());
-			getLog().info("  Generated: " + result.getProcessId() + " (from " + files + ")");
+			getLog().info("  " + result.describe());
 		}
-		getLog().info("BPMN models generated successfully (" + results.size() + " models)");
+		getLog().info(BpmnFileResult.Companion.summaryOf(results));
 	}
 	
 }

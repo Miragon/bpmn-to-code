@@ -24,9 +24,4 @@ class BpmnFileDataTest {
 
         assertThatThrownBy { broken.bpmnXml() }.isInstanceOf(BpmnReadException::class.java).hasMessageContaining("broken.bpmn")
     }
-
-    @Test
-    fun `names the process after the file`() {
-        assertThat(underTest.processName()).isEqualTo("order-process")
-    }
 }

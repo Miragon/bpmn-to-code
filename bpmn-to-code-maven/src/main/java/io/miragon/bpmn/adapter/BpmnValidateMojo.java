@@ -53,7 +53,9 @@ public class BpmnValidateMojo extends AbstractBpmnMojo {
 		ValidateBpmnFilesystemPlugin plugin = new ValidateBpmnFilesystemPlugin();
 		ProcessEngine engine = processEngine();
 		ValidationConfig config = new ValidationConfig(failOnWarning, disabledRules);
-		ValidationResult result = plugin.execute(baseDir(), filePattern(), engine, config);
+		String baseDir = baseDir();
+		String filePattern = filePattern();
+		ValidationResult result = failingOnRejectedModels(() -> plugin.execute(baseDir, filePattern, engine, config));
 
 		for (ValidationViolation v : result.getWarnings()) {
 			getLog().warn(v.describe());
