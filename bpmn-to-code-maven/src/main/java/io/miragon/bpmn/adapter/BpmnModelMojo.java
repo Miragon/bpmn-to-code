@@ -6,7 +6,6 @@ import io.miragon.bpmn.domain.shared.OutputLanguage;
 import io.miragon.bpmn.domain.shared.ProcessEngine;
 import io.miragon.bpmn.domain.validation.model.ValidationConfig;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -24,23 +23,21 @@ public class BpmnModelMojo extends AbstractBpmnMojo {
 	
 	/**
 	 * Output folder path where the generated API code will be written.
-	 * Defaults to "src/main/kotlin".
 	 */
-	@Parameter(property = "outputFolderPath", defaultValue = "src/main/kotlin")
+	@Parameter(property = "outputFolderPath")
 	private String outputFolderPath;
 	
 	/**
 	 * Package path for the generated API code.
-	 * Defaults to "de.emaarco.generated".
 	 */
-	@Parameter(property = "packagePath", defaultValue = "de.emaarco.generated")
+	@Parameter(property = "packagePath")
 	private String packagePath;
 	
 	/**
 	 * Output language for code generation.
-	 * Valid values: KOTLIN, JAVA, CSHARP (experimental), TYPESCRIPT (experimental). Defaults to KOTLIN.
+	 * Valid values: KOTLIN, JAVA, CSHARP (experimental), TYPESCRIPT (experimental).
 	 */
-	@Parameter(property = "outputLanguage", defaultValue = "KOTLIN")
+	@Parameter(property = "outputLanguage")
 	private String outputLanguage;
 	
 	/**
@@ -58,7 +55,15 @@ public class BpmnModelMojo extends AbstractBpmnMojo {
 		CreateProcessApiFilesystemPlugin plugin = new CreateProcessApiFilesystemPlugin();
 		OutputLanguage language = EnumParameter.parse("outputLanguage", outputLanguage, OutputLanguage.class);
 		ProcessEngine engine = processEngine();
-		List<BpmnFileResult> results = plugin.execute(baseDir, filePattern, outputFolderPath, packagePath, language, engine, new ValidationConfig());
+		List<BpmnFileResult> results = plugin.execute(
+				baseDir(),
+				filePattern(),
+				projectPath("outputFolderPath", outputFolderPath),
+				required("packagePath", packagePath),
+				language,
+				engine,
+				new ValidationConfig()
+		);
 		if (results.isEmpty()) {
 			getLog().info("No BPMN models found");
 			return;

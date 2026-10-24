@@ -117,6 +117,24 @@ class MavenMojoSmokeTest {
         assertThat(File(packageDir, "CorporateBikeLeasingProcessApi.kt")).exists()
     }
 
+    @Test
+    fun `mojo resolves relative paths against the project directory`(@TempDir projectDir: File) {
+        // given: a project whose paths are configured relative to it
+        writeBpmn(projectDir = projectDir, path = "bike-leasing.bpmn", bpmn = bikeLeasingBpmn())
+        val mojo = modelMojo(projectDir)
+        setField(obj = mojo, name = "projectDirectory", value = projectDir)
+        setField(obj = mojo, name = "baseDir", value = ".")
+        setField(obj = mojo, name = "outputFolderPath", value = "build/generated")
+
+        // when: executing the mojo from a working directory other than the project
+        mojo.execute()
+
+        // then: the API is written below the project, not below the working directory
+        assertThat(File(projectDir, "build/generated/io/miragon/smoketest/BikeLeasingProcessApi.kt")).exists()
+    }
+
+    private fun bikeLeasingBpmn(): String = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes().decodeToString()
+
     private fun writeBpmn(projectDir: File, path: String, bpmn: String) {
         val file = File(projectDir, "src/main/resources/$path")
         file.parentFile.mkdirs()

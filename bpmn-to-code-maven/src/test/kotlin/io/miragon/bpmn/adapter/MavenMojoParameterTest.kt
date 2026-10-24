@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 
 class MavenMojoParameterTest {
 
@@ -38,6 +39,36 @@ class MavenMojoParameterTest {
         assertThatThrownBy { mojo.execute() }
             .isInstanceOf(MojoFailureException::class.java)
             .hasMessage("outputLanguage 'SCALA' is not supported (valid values: KOTLIN, JAVA, CSHARP, TYPESCRIPT)")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["baseDir", "filePattern", "outputFolderPath", "packagePath"])
+    fun `fails naming a required parameter that is missing`(parameter: String) {
+        val mojo = configuredModelMojo()
+        setField(obj = mojo, name = parameter, value = "")
+
+        assertThatThrownBy { mojo.execute() }
+            .isInstanceOf(MojoFailureException::class.java)
+            .hasMessage("$parameter is required")
+    }
+
+    @Test
+    fun `fails with the valid values when outputLanguage is missing`() {
+        val mojo = configuredModelMojo()
+        setField(obj = mojo, name = "outputLanguage", value = "")
+
+        assertThatThrownBy { mojo.execute() }
+            .isInstanceOf(MojoFailureException::class.java)
+            .hasMessage("outputLanguage is required (valid values: KOTLIN, JAVA, CSHARP, TYPESCRIPT)")
+    }
+
+    private fun configuredModelMojo() = BpmnModelMojo().apply {
+        setField(obj = this, name = "baseDir", value = ".")
+        setField(obj = this, name = "filePattern", value = "*.bpmn")
+        setField(obj = this, name = "outputFolderPath", value = "build/generated")
+        setField(obj = this, name = "packagePath", value = "io.miragon.smoketest")
+        setField(obj = this, name = "outputLanguage", value = "KOTLIN")
+        setField(obj = this, name = "processEngine", value = "ZEEBE")
     }
 
     companion object {

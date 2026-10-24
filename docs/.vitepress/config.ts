@@ -74,6 +74,7 @@ export default miragonDocs({
           collapsed: true,
           items: [
             { text: 'Release Notes', link: '/changelog/' },
+            { text: 'v7 Migration Guide', link: '/changelog/v7' },
             { text: 'v6 Migration Guide', link: '/changelog/v6' },
             { text: 'Older Versions', link: '/changelog/older' },
           ],

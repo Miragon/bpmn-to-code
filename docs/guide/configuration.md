@@ -8,7 +8,7 @@ Every parameter of the three Gradle tasks and Maven goals. Setup snippets are on
 | [Process JSON](/surface/json) (deprecated) | `generateBpmnModelJson` (`GenerateBpmnJsonTask`) | `generate-bpmn-json` |
 | [Validation](/validate/) (experimental) | `validateBpmnModels` (`ValidateBpmnModelsTask`) | `validate-bpmn` |
 
-The Gradle task classes live in `io.miragon.bpmn.adapter`. A Gradle property without a default has to be set, or the build fails naming it. The Maven goals are bound to no lifecycle phase; each parameter is also a user property of the same name (`-DprocessEngine=ZEEBE`).
+The Gradle task classes live in `io.miragon.bpmn.adapter`. A parameter without a default has to be set, or the build fails naming it. The Maven goals are bound to no lifecycle phase; each parameter is also a user property of the same name (`-DprocessEngine=ZEEBE`).
 
 ## Common parameters
 
@@ -16,11 +16,11 @@ All three tasks and goals take these.
 
 | Parameter | Gradle default | Maven default | Description |
 |-----------|----------------|---------------|-------------|
-| `baseDir` | — | `.` | Directory `filePattern` is resolved against |
-| `filePattern` | — | `src/main/resources/*.bpmn` | Glob selecting the BPMN files, relative to `baseDir` |
+| `baseDir` | — | — | Directory `filePattern` is resolved against |
+| `filePattern` | — | — | Glob selecting the BPMN files, relative to `baseDir` |
 | `processEngine` | — | — | `ZEEBE`, `CAMUNDA_7` or `OPERATON`; see [Engines](/engines/) |
 
-**Paths.** In Gradle, a relative `baseDir` or `outputFolderPath` resolves against the project directory. In Maven it resolves against the directory Maven is started in, so use `${project.basedir}`.
+**Paths.** A relative `baseDir` or `outputFolderPath` resolves against the project directory, in Gradle and in Maven.
 
 **File pattern.** `*` matches within one directory, `**/` any number of directories, including none: `src/main/resources/**/*.bpmn` also finds files directly in `src/main/resources`. Files behind a symlinked directory are not read. There is no exclude; see filtering files for [Gradle](/getting-started/gradle#filtering-files) and [Maven](/getting-started/maven#filtering-files).
 
@@ -28,9 +28,9 @@ All three tasks and goals take these.
 
 | Parameter | Gradle default | Maven default | Description |
 |-----------|----------------|---------------|-------------|
-| `outputFolderPath` | — | `src/main/kotlin` | Source root the code is written to; the package directories are created below it |
-| `packagePath` | — | `de.emaarco.generated` | Package (C#: namespace; TypeScript: subdirectory, as for the other languages) of the generated code. One package per task or execution: two runs sharing a package overwrite each other's [shared definitions](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
-| `outputLanguage` | — | `KOTLIN` | `KOTLIN`, `JAVA`, `CSHARP` (experimental) or `TYPESCRIPT` (experimental) |
+| `outputFolderPath` | — | — | Source root the code is written to; the package directories are created below it |
+| `packagePath` | — | — | Package (C#: namespace; TypeScript: subdirectory, as for the other languages) of the generated code. One package per task or execution: two runs sharing a package overwrite each other's [shared definitions](/guide/generated-api#shared-definitions) and remove each other's Process APIs as stale |
+| `outputLanguage` | — | — | `KOTLIN`, `JAVA`, `CSHARP` (experimental) or `TYPESCRIPT` (experimental) |
 
 ## Process JSON
 
@@ -38,7 +38,7 @@ Deprecated, will be removed in 7.0. The task and the goal log a warning on every
 
 | Parameter | Gradle default | Maven default | Description |
 |-----------|----------------|---------------|-------------|
-| `outputFolderPath` | — | `src/main/resources/bpmn-json` | Directory the `.json` files are written to |
+| `outputFolderPath` | — | — | Directory the `.json` files are written to |
 
 ## Validation
 
