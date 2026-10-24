@@ -5,7 +5,7 @@ Gradle plugin of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code), publis
 <!-- x-release-please-start-version -->
 ```kotlin
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "6.6.1"
+    id("io.miragon.bpmn-to-code-gradle") version "7.0.0"
 }
 ```
 <!-- x-release-please-end -->

@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, provide, ref } from "vue"
 import LandingDemo from "./LandingDemo.vue"
 
-const version = "6.6.1" // x-release-please-version
+const version = "7.0.0" // x-release-please-version
 
 const facts = [
   { label: "Languages", value: "Kotlin · Java · C# · TypeScript", note: "(C# and TS experimental)" },
