@@ -18,8 +18,8 @@ import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.testBikeLeasingModel
 import io.miragon.bpmn.domain.testCancelBikeOrderModel
+import io.miragon.bpmn.domain.testProcessApiRequest
 import io.miragon.bpmn.domain.testProcessModel
-import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.withId
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -34,17 +34,17 @@ class CSharpProcessApiBuilderTest {
     @Test
     fun `generateCode generates correct process API file`() {
         // given: the bike-leasing model, which covers every implementation kind of Camunda 7
-        val modelApi = testProcessModelApi(
+        val request = testProcessApiRequest(
             packagePath = "de.emaarco.example",
             language = OutputLanguage.CSHARP,
             model = testBikeLeasingModel(),
         )
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: a single model file is returned at the root package
-        assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.cs")
+        assertThat(result.fileName).isEqualTo("BikeLeasingProcessApi.cs")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
         assertThat(result.language).isEqualTo(OutputLanguage.CSHARP)
 
@@ -54,14 +54,14 @@ class CSharpProcessApiBuilderTest {
     @Test
     fun `generateCode leads the API name with the variant name of the model`() {
         // given: a model that declares a variant name
-        val modelApi = testProcessModelApi(
+        val request = testProcessApiRequest(
             packagePath = "de.emaarco.example",
             language = OutputLanguage.CSHARP,
             model = testCancelBikeOrderModel(variantName = "retail"),
         )
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: the API carries the prefix, with the gateway's conditional and default flows named after their targets
         assertThat(result.fileName).isEqualTo("RetailCancelBikeOrderProcessApi.cs")
@@ -289,10 +289,10 @@ class CSharpProcessApiBuilderTest {
         // given: a model with flow nodes whose ids use dashes
         val defaultModel = testBikeLeasingModel()
         val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.id?.replace("_", "-")) }
-        val modelApi = csharpApi(testBikeLeasingModel(flowNodes = modifiedNodes))
+        val request = csharpApi(testBikeLeasingModel(flowNodes = modifiedNodes))
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: dashes never leak into an identifier, only into the string values
         val declarations = result.content.lines().filter {
@@ -302,7 +302,7 @@ class CSharpProcessApiBuilderTest {
         assertThat(declarations.map { it.substringBefore("=") }).noneMatch { it.contains("-") }
     }
 
-    private fun csharpApi(model: ProcessModel) = testProcessModelApi(
+    private fun csharpApi(model: ProcessModel) = testProcessApiRequest(
         model = model,
         packagePath = "de.emaarco.example",
         language = OutputLanguage.CSHARP,

@@ -67,6 +67,13 @@ public abstract class AbstractBpmnMojo extends AbstractMojo {
 		}
 	}
 
+	protected static void failingOnRejectedModels(Runnable run) throws MojoFailureException {
+		failingOnRejectedModels(() -> {
+			run.run();
+			return null;
+		});
+	}
+
 	protected static String required(String name, String value) throws MojoFailureException {
 		if (value == null || value.isBlank()) {
 			throw new MojoFailureException(name + " is required");

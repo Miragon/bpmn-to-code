@@ -24,4 +24,26 @@ class ProcessApiNamesTest {
     fun `keeps any other name free`() {
         assertThat(underTest.isReserved(elementName = "ServiceTaskSendContract")).isFalse()
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["newsletterSubscription", "newsletter-subscription", "newsletter_subscription"])
+    fun `names the Process API in PascalCase regardless of the separators of the process id`(processId: String) {
+        val model = testProcessModel(processId = processId)
+
+        assertThat(underTest.apiTypeName(model)).isEqualTo("NewsletterSubscriptionProcessApi")
+    }
+
+    @Test
+    fun `leads the name of the Process API with the variant name`() {
+        val model = testProcessModel(processId = "newsletter-subscription", variantName = "corporate")
+
+        assertThat(underTest.apiTypeName(model)).isEqualTo("CorporateNewsletterSubscriptionProcessApi")
+    }
+
+    @Test
+    fun `reads the separators of a variant name like those of the process id`() {
+        val model = testProcessModel(processId = "newsletterSubscription", variantName = "corporate-fleet")
+
+        assertThat(underTest.apiTypeName(model)).isEqualTo("CorporateFleetNewsletterSubscriptionProcessApi")
+    }
 }

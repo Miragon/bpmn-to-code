@@ -3,8 +3,6 @@ package io.miragon.bpmn.adapter;
 import io.miragon.bpmn.adapter.inbound.ValidateBpmnFilesystemPlugin;
 import io.miragon.bpmn.domain.shared.ProcessEngine;
 import io.miragon.bpmn.domain.validation.model.ValidationConfig;
-import io.miragon.bpmn.domain.validation.ValidationResult;
-import io.miragon.bpmn.domain.validation.model.ValidationViolation;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -55,18 +53,7 @@ public class BpmnValidateMojo extends AbstractBpmnMojo {
 		ValidationConfig config = new ValidationConfig(failOnWarning, disabledRules);
 		String baseDir = baseDir();
 		String filePattern = filePattern();
-		ValidationResult result = failingOnRejectedModels(() -> plugin.execute(baseDir, filePattern, engine, config));
-
-		for (ValidationViolation v : result.getWarnings()) {
-			getLog().warn(v.describe());
-		}
-		for (ValidationViolation v : result.getErrors()) {
-			getLog().error(v.describe());
-		}
-
-		if (result.hasFailures(failOnWarning)) {
-			throw new MojoFailureException(result.getFailureSummary());
-		}
+		failingOnRejectedModels(() -> plugin.execute(baseDir, filePattern, engine, config));
 		getLog().info("BPMN validation passed");
 	}
 }

@@ -24,17 +24,17 @@ data class SourcedProcessModel(val fileName: String, val model: ProcessModel) {
         }
 
         /**
-         * Rejects a variant name that could not become part of a name, and files that [artifactNameOf] would
-         * generate under one name. Every file gets artifacts of its own, so files declaring the same process id
-         * need a distinct variant name each.
+         * Rejects a variant name that could not become part of a name, and files that would get a Process API under
+         * one name. Every file gets a Process API of its own, so files declaring the same process id need a distinct
+         * variant name each.
          */
-        fun requireDistinctArtifactNames(sources: List<SourcedProcessModel>, artifactNameOf: (ProcessModel) -> String) {
+        fun requireDistinctApiNames(sources: List<SourcedProcessModel>) {
             val sourcesWithMalformedVariantName = sources.filter { it.hasMalformedVariantName() }
             if (sourcesWithMalformedVariantName.isNotEmpty()) {
                 throw ProcessApiNamingException(sourcesWithMalformedVariantName.joinToString("\n") { it.describeMalformedVariantName() })
             }
-            val sourcesByArtifactName = sources.groupBy { artifactNameOf(it.model) }
-            val collisions = sourcesByArtifactName.filterValues { it.size > 1 }
+            val sourcesByApiName = sources.groupBy { ProcessApiNames.apiTypeName(it.model) }
+            val collisions = sourcesByApiName.filterValues { it.size > 1 }
             if (collisions.isNotEmpty()) {
                 throw ProcessApiNamingException(collisions.entries.joinToString("\n") { describeCollision(it.key, it.value) })
             }
@@ -50,9 +50,9 @@ data class SourcedProcessModel(val fileName: String, val model: ProcessModel) {
             return "$rejection It has to start with a letter and may contain letters, digits, '_' and '-'."
         }
 
-        private fun describeCollision(artifactName: String, sources: List<SourcedProcessModel>): String {
+        private fun describeCollision(apiName: String, sources: List<SourcedProcessModel>): String {
             val files = sources.map { it.describe() }.sorted().joinToString()
-            return "'$artifactName' would be generated from several BPMN files: $files. " +
+            return "'$apiName' would be generated from several BPMN files: $files. " +
                 "Every BPMN file gets a Process API of its own: give each a distinct process id, " +
                 "or a distinct 'variantName' extension property."
         }

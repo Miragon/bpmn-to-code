@@ -1,7 +1,6 @@
 package io.miragon.bpmn.domain.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.miragon.bpmn.domain.ProcessApiNames
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -20,7 +19,7 @@ import io.miragon.bpmn.domain.validation.model.ValidationViolation
 /**
  * The one validation every entry point runs. Each model is validated on its own, and the models against each other
  * once none of them has an error. Generation and the build task check the same: the processes that get a Process API
- * pass the rules, and no two files would be generated under one name.
+ * pass the rules, and no two files would be generated under one name. The mandatory rules run whatever [rules] lists.
  */
 class BpmnValidationService(
     private val config: ValidationConfig = ValidationConfig(),
@@ -29,11 +28,13 @@ class BpmnValidationService(
 
     private val logger = KotlinLogging.logger {}
 
-    private val singleModelRules = rules.filterIsInstance<SingleModelValidationRule>().filter { it.isActive() }
-    private val crossModelRules = rules.filterIsInstance<CrossModelValidationRule>().filter { it.isActive() }
+    private val rulesToRun = (rules + BuiltInRules.mandatory()).distinctBy { it.id }
+
+    private val singleModelRules = rulesToRun.filterIsInstance<SingleModelValidationRule>().filter { it.isActive() }
+    private val crossModelRules = rulesToRun.filterIsInstance<CrossModelValidationRule>().filter { it.isActive() }
 
     init {
-        warnOnDisabledMandatoryRules(rules)
+        warnOnDisabledMandatoryRules(rulesToRun)
     }
 
     fun validate(models: List<ProcessModel>, engine: ProcessEngine): ValidationResult {
@@ -50,33 +51,23 @@ class BpmnValidationService(
     }
 
     /**
-     * What the build task reports: the findings of the processes that get a Process API.
+     * The processes a Process API is generated for, normalized and in the order they are generated in. Warnings are
+     * logged; the build task calls this too, so it fails where the generation fails.
      *
+     * @throws BpmnValidationException when a rule fails
      * @throws io.miragon.bpmn.domain.ProcessApiNamingException when the models pass but two files would be generated
      * under one name
      */
-    fun validateProcessApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): ValidationResult {
-        val executableSources = SourcedProcessModel.executableOnly(sources)
-        return validateSources(sources = executableSources, engine = engine, artifactNameOf = ProcessApiNames::apiTypeName)
-    }
-
-    /**
-     * The processes a Process API is generated for, normalized and in the order they are generated in.
-     */
     fun processApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): List<SourcedProcessModel> {
         val executableSources = SourcedProcessModel.executableOnly(sources)
-        failOn(validateSources(sources = executableSources, engine = engine, artifactNameOf = ProcessApiNames::apiTypeName))
+        failOn(validateSources(sources = executableSources, engine = engine))
         return normalized(executableSources)
     }
 
-    private fun validateSources(
-        sources: List<SourcedProcessModel>,
-        engine: ProcessEngine,
-        artifactNameOf: (ProcessModel) -> String,
-    ): ValidationResult {
+    private fun validateSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): ValidationResult {
         val result = validate(models = sources.map { it.model }, engine = engine)
         if (!result.hasFailures(config.failOnWarning)) {
-            SourcedProcessModel.requireDistinctArtifactNames(sources, artifactNameOf)
+            SourcedProcessModel.requireDistinctApiNames(sources)
         }
         return result
     }

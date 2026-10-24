@@ -81,7 +81,7 @@ class GenerateProcessApiServiceTest {
             fileSystemOutput.writeFiles(listOf(expectedGeneratedFile, sharedFile), "outputFolder")
         }
         confirmVerified(codeGenerator, bpmnFileLoader, fileSystemOutput)
-        assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("dummy.bpmn"))))
+        assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFile = "dummy.bpmn")))
     }
 
     @Test
@@ -130,7 +130,7 @@ class GenerateProcessApiServiceTest {
         // then: only the executable process is generated and reported
         verify(exactly = 1) { codeGenerator.generate(requestOf(dummyModel)) }
         verify { fileSystemOutput.writeFiles(listOf(expectedGeneratedFile), "outputFolder") }
-        assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("keep.bpmn"))))
+        assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFile = "keep.bpmn")))
     }
 
     @Test
@@ -180,8 +180,8 @@ class GenerateProcessApiServiceTest {
         // then: each file is generated on its own, in the order of the names they are generated under
         verify { codeGenerator.generate(requestOf(corporateModel, dummyModel)) }
         assertThat(results).containsExactly(
-            BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("corporate/order.bpmn")),
-            BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("default/order.bpmn")),
+            BpmnFileResult(processId = "newsletterSubscription", sourceFile = "corporate/order.bpmn"),
+            BpmnFileResult(processId = "newsletterSubscription", sourceFile = "default/order.bpmn"),
         )
     }
 

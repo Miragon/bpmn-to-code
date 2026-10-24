@@ -24,8 +24,8 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
             templateName = "csharp/process-api.ftl",
             model = CSharpProcessApiModel(
                 namespace = namespaceOf(api.packagePath.value),
-                typeName = api.typeName.value,
-                processId = stringLiteral(api.processId.value),
+                typeName = api.typeName,
+                processId = stringLiteral(api.processId),
                 processEngine = pascalCase(api.processEngine.name),
                 flowNodes = nodes?.map { mapper.map(it) },
             ),

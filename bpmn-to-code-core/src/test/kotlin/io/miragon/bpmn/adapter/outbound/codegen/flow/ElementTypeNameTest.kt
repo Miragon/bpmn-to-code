@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.shared
+package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance

@@ -39,14 +39,6 @@ internal object CSharpSharedReferences {
     }
 
     /**
-     * e.g. `Messages.MiraveloContractSigned`, or `"miravelo.contractSigned"` when no shared constant holds the value
-     */
-    fun constantOrLiteral(type: SharedDefinitionType, sharedValue: SharedValue<String>): String {
-        val constant = sharedValue.constant ?: return stringLiteral(sharedValue.value)
-        return reference(type, constant.name)
-    }
-
-    /**
      * e.g. `Errors.MiraveloApplicationInvalid.Reference` and `Errors.MiraveloApplicationInvalid.Code`, or
      * `"miravelo.applicationInvalid"` and `"applicationInvalid"` when no shared constant holds them
      */

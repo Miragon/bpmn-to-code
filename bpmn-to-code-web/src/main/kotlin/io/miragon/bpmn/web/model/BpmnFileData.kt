@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import java.util.Base64
 
 /**
- * One uploaded BPMN file, as both generation endpoints receive it.
+ * One uploaded BPMN file, as the generation endpoint receives it.
  */
 @Serializable
 data class BpmnFileData(

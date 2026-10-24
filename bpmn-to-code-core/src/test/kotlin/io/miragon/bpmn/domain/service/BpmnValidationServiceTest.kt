@@ -192,8 +192,21 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `validates with the given rules instead of the built-in ones`() {
-        // given: a service that only knows the empty-process rule
+    fun `runs the mandatory rules when the given rules leave them out`() {
+        // given: a service that is given the empty-process rule only
+        val underTest = BpmnValidationService(rules = listOf(EmptyProcessRule()))
+        val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
+
+        // when
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
+
+        // then
+        assertThat(result.violations).anyMatch { it.ruleId == "missing-element-id" }
+    }
+
+    @Test
+    fun `validates with the given rules and the mandatory ones instead of all built-in ones`() {
+        // given: a service that is given the empty-process rule only
         val underTest = BpmnValidationService(rules = listOf(EmptyProcessRule()))
         val emptyModel = testProcessModel(processId = "empty", flowNodes = emptyList())
         val unimplementedModel = testProcessModel(
@@ -301,30 +314,6 @@ class BpmnValidationServiceTest {
         val apiSources = underTest.processApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
 
         assertThat(apiSources.map { it.fileName }).containsExactly("order.bpmn")
-    }
-
-    @Test
-    fun `validateProcessApiSources checks what the generation checks`() {
-        // given: a non-executable process that would fail, and two files sharing a process id
-        val sources = listOf(
-            SourcedProcessModel("draft.bpmn", testProcessModel(processId = "draft", flowNodes = listOf(serviceTaskWithoutImplementation("task1"))).copy(isExecutable = false)),
-            SourcedProcessModel("v1.bpmn", testProcessModel()),
-            SourcedProcessModel("v2.bpmn", testProcessModel()),
-        )
-
-        // when / then: the draft is left out, and the shared process id is rejected as in the generation
-        assertThrows<ProcessApiNamingException> {
-            underTest.validateProcessApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
-        }
-    }
-
-    @Test
-    fun `validateProcessApiSources reports the findings instead of throwing them`() {
-        val sources = listOf(SourcedProcessModel("order.bpmn", testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))))
-
-        val result = underTest.validateProcessApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
-
-        assertThat(result.errors).extracting("ruleId").containsExactly("missing-service-task-implementation")
     }
 
     private class RejectsEveryModelSetRule : CrossModelValidationRule {

@@ -4,12 +4,12 @@ import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGra
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessApiRequest
 import io.miragon.bpmn.domain.SharedDefinitions
-import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.testBikeLeasingModel
-import io.miragon.bpmn.domain.testProcessModelApi
+import io.miragon.bpmn.domain.testProcessApiRequest
+import io.miragon.bpmn.domain.testProcessModel
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
@@ -34,12 +34,13 @@ class CodeGenerationAdapterTest {
 
     @Test
     fun `generateCode renders the process api into a file named after it`() {
-        // given: a Kotlin model API and a stubbed process builder
-        val modelApi = testProcessModelApi()
+        // given: a Kotlin run of one model and a stubbed process builder
+        val model = testProcessModel()
+        val request = testProcessApiRequest(model = model)
         every { kotlinProcessBuilder.render(api = any()) } returns SourceCode("content")
 
         // when: generating code for the model
-        val result = underTest.generateCode(modelApi)
+        val result = underTest.generateCode(request)
 
         // then: the builder renders the neutral process api, and the adapter names the file after it
         assertThat(result).containsExactly(
@@ -51,7 +52,7 @@ class CodeGenerationAdapterTest {
                 processId = "order",
             ),
         )
-        verify { kotlinProcessBuilder.render(api = ProcessApiGraph.of(modelApi)) }
+        verify { kotlinProcessBuilder.render(api = ProcessApiGraph.of(model, request)) }
         confirmVerified(kotlinProcessBuilder)
     }
 
@@ -77,26 +78,24 @@ class CodeGenerationAdapterTest {
 
     @Test
     fun `generateCode throws when output language is not supported`() {
-        val modelApi = testProcessModelApi(language = OutputLanguage.JAVA)
+        val request = testProcessApiRequest(language = OutputLanguage.JAVA)
 
-        assertThatThrownBy { underTest.generateCode(modelApi) }.isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { underTest.generateCode(request) }.isInstanceOf(IllegalArgumentException::class.java)
     }
 
     @Test
     fun `generateSharedCode renders one file per kind of shared definition`() {
         // given: a message and an error, and a stubbed shared builder
-        val api = sharedDefinitionsApi(
-            definitions = SharedDefinitions(
-                messages = listOf(RootElementDefinition.Message(id = "message_bikeReturned", name = "bikeReturned")),
-                errors = listOf(RootElementDefinition.Error(id = "error_damaged", name = "bikeDamaged", code = "DAMAGED")),
-            ),
+        val definitions = SharedDefinitions(
+            messages = listOf(RootElementDefinition.Message(id = "message_bikeReturned", name = "bikeReturned")),
+            errors = listOf(RootElementDefinition.Error(id = "error_damaged", name = "bikeDamaged", code = "DAMAGED")),
         )
         every { kotlinSharedBuilder.render(group = any(), packagePath = PackagePath("packagePath")) } answers {
             SourceCode("content of ${firstArg<SharedDefinitionsGraph.Group>().type.typeName}")
         }
 
         // when: generating the shared code
-        val result = underTest.generateSharedCode(api)
+        val result = underTest.generateSharedCode(definitions = definitions, outputLanguage = OutputLanguage.KOTLIN, packagePath = "packagePath")
 
         // then: each kind is rendered into a file named after its type
         assertThat(result).containsExactly(
@@ -110,7 +109,7 @@ class CodeGenerationAdapterTest {
 
     @Test
     fun `generateSharedCode renders nothing without shared definitions`() {
-        val result = underTest.generateSharedCode(sharedDefinitionsApi(definitions = SharedDefinitions()))
+        val result = underTest.generateSharedCode(definitions = SharedDefinitions(), outputLanguage = OutputLanguage.KOTLIN, packagePath = "packagePath")
 
         assertThat(result).isEmpty()
         confirmVerified(kotlinSharedBuilder)
@@ -118,19 +117,8 @@ class CodeGenerationAdapterTest {
 
     @Test
     fun `generateSharedCode throws when output language is not supported`() {
-        val api = sharedDefinitionsApi(definitions = SharedDefinitions(), language = OutputLanguage.JAVA)
-
-        assertThatThrownBy { underTest.generateSharedCode(api) }.isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { underTest.generateSharedCode(definitions = SharedDefinitions(), outputLanguage = OutputLanguage.JAVA, packagePath = "packagePath") }.isInstanceOf(IllegalArgumentException::class.java)
     }
-
-    private fun sharedDefinitionsApi(
-        definitions: SharedDefinitions,
-        language: OutputLanguage = OutputLanguage.KOTLIN,
-    ): SharedDefinitionsApi = SharedDefinitionsApi(
-        definitions = definitions,
-        outputLanguage = language,
-        packagePath = "packagePath",
-    )
 
     private fun sharedFile(fileName: String, content: String): GeneratedApiFile = GeneratedApiFile(
         fileName = fileName,

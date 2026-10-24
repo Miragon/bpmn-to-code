@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
@@ -10,8 +10,8 @@ import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.testBikeLeasingModel
 import io.miragon.bpmn.domain.testCancelBikeOrderModel
+import io.miragon.bpmn.domain.testProcessApiRequest
 import io.miragon.bpmn.domain.testProcessModel
-import io.miragon.bpmn.domain.testProcessModelApi
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlin.CoreEnvironmentDeprecation
 import org.jetbrains.kotlin.K1Deprecation
@@ -33,13 +33,13 @@ class KotlinProcessApiBuilderTest {
     @Test
     fun `generateCode generates correct process API file`() {
         // given: the bike-leasing model, which covers every implementation kind of Camunda 7
-        val modelApi = testProcessModelApi(packagePath = "de.emaarco.example", model = testBikeLeasingModel())
+        val request = testProcessApiRequest(packagePath = "de.emaarco.example", model = testBikeLeasingModel())
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: a single model file is returned at the root package
-        assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.kt")
+        assertThat(result.fileName).isEqualTo("BikeLeasingProcessApi.kt")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
         assertMatchesGolden(result.content, "/api/BikeLeasingProcessApiKotlin.txt")
@@ -74,7 +74,7 @@ class KotlinProcessApiBuilderTest {
         )
 
         // when
-        val result = underTest.generateCode(testProcessModelApi(model = model)).single()
+        val result = underTest.generateCode(testProcessApiRequest(model = model)).single()
 
         // then: one stable name for both flows, carried by one transition
         assertThat(result.content).contains("val approve: SequenceFlows<Approve>")
@@ -90,7 +90,7 @@ class KotlinProcessApiBuilderTest {
         )
 
         // when
-        val result = underTest.generateCode(testProcessModelApi(model = model)).single()
+        val result = underTest.generateCode(testProcessApiRequest(model = model)).single()
 
         // then
         assertThat(result.content).contains("name = \"Notify public channel\"")
@@ -100,14 +100,14 @@ class KotlinProcessApiBuilderTest {
     @Test
     fun `generateCode leads the API name with the variant name of the model`() {
         // given: a model that declares a variant name
-        val modelApi = testProcessModelApi(
+        val request = testProcessApiRequest(
             packagePath = "de.emaarco.example",
             language = OutputLanguage.KOTLIN,
             model = testCancelBikeOrderModel(variantName = "retail"),
         )
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: the variant name leads the API name, while the process id stays the one of the model
         assertThat(result.fileName).isEqualTo("RetailCancelBikeOrderProcessApi.kt")

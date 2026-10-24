@@ -4,7 +4,6 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
-import io.miragon.bpmn.adapter.outbound.shared.ElementTypeName
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessGraph

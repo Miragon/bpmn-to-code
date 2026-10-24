@@ -4,9 +4,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.miragon.bpmn.domain.RejectedModelException
 import io.miragon.bpmn.web.model.BpmnFileData
+import io.miragon.bpmn.web.model.GenerateResponse
 
 /**
- * What both generation endpoints do around the generation itself: accept one to [MAX_FILES] files, answer a
+ * What the generation endpoint does around the generation itself: accept one to [MAX_FILES] files, answer a
  * file that cannot be read or a model the generator rejects with 400 and the reason, and any other failure of the
  * generator with 500.
  */
@@ -18,24 +19,24 @@ internal object GenerationGuard {
 
     private val logger = KotlinLogging.logger {}
 
-    fun <R> run(files: List<BpmnFileData>, failure: (HttpStatusCode, String?) -> R, generate: () -> R): R {
+    fun run(files: List<BpmnFileData>, generate: () -> GenerateResponse): GenerateResponse {
         if (files.isEmpty()) {
-            return failure(HttpStatusCode.BadRequest, "No files provided")
+            return GenerateResponse.failure(HttpStatusCode.BadRequest, "No files provided")
         }
         if (files.size > MAX_FILES) {
-            return failure(HttpStatusCode.BadRequest, "Maximum $MAX_FILES BPMN files allowed")
+            return GenerateResponse.failure(HttpStatusCode.BadRequest, "Maximum $MAX_FILES BPMN files allowed")
         }
         return try {
             generate()
         } catch (e: RejectedModelException) {
             logger.warn { e.message }
-            failure(HttpStatusCode.BadRequest, e.message)
+            GenerateResponse.failure(HttpStatusCode.BadRequest, e.message)
         } catch (e: IllegalStateException) {
             logger.error(e) { "Unexpected error during generation" }
-            failure(HttpStatusCode.InternalServerError, UNKNOWN_ERROR)
+            GenerateResponse.failure(HttpStatusCode.InternalServerError, UNKNOWN_ERROR)
         } catch (e: IllegalArgumentException) {
             logger.error(e) { "Unexpected error during generation" }
-            failure(HttpStatusCode.InternalServerError, UNKNOWN_ERROR)
+            GenerateResponse.failure(HttpStatusCode.InternalServerError, UNKNOWN_ERROR)
         }
     }
 }

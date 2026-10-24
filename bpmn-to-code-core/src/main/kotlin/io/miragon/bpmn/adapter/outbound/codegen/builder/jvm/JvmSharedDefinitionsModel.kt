@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TypeReferences
@@ -9,7 +9,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TypeReferences
  *
  * @property elementType the runtime type of every constant, e.g. `MessageName`
  */
-internal data class KotlinSharedDefinitionsModel(
+internal data class JvmSharedDefinitionsModel(
     val typeName: String,
     val doc: List<String>,
     val shape: SharedDefinitionType.Shape,

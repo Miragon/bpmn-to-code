@@ -2,13 +2,10 @@ package io.miragon.bpmn.adapter.inbound
 
 import io.miragon.bpmn.application.port.inbound.ValidateBpmnFromFilesystemUseCase
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
 import io.mockk.confirmVerified
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class ValidateBpmnFilesystemPluginTest {
@@ -18,20 +15,18 @@ class ValidateBpmnFilesystemPluginTest {
 
     @Test
     fun `execute delegates to use case with correct command`() {
-        // given: a config and an expected validation result
+        // given: a config
         val config = ValidationConfig(failOnWarning = true, disabledRules = setOf("missing-element-id"))
-        val expectedResult = ValidationResult(emptyList())
-        every { useCase.validateBpmn(any()) } returns expectedResult
 
         // when: execute is called with all parameters
-        val result = underTest.execute(
+        underTest.execute(
             baseDir = "/path/to/bpmn",
             filePattern = "*.bpmn",
             engine = ProcessEngine.ZEEBE,
             validationConfig = config,
         )
 
-        // then: use case is called with the correct command and result is returned
+        // then: use case is called with the correct command
         verify {
             useCase.validateBpmn(
                 ValidateBpmnFromFilesystemUseCase.Command(
@@ -42,18 +37,13 @@ class ValidateBpmnFilesystemPluginTest {
                 ),
             )
         }
-        assertThat(result).isEqualTo(expectedResult)
         confirmVerified(useCase)
     }
 
     @Test
     fun `execute uses default validation config when not provided`() {
-        // given: an expected validation result
-        val expectedResult = ValidationResult(emptyList())
-        every { useCase.validateBpmn(any()) } returns expectedResult
-
         // when: execute is called without explicit validationConfig
-        val result = underTest.execute(
+        underTest.execute(
             baseDir = "/path/to/bpmn",
             filePattern = "*.bpmn",
             engine = ProcessEngine.CAMUNDA_7,
@@ -70,7 +60,6 @@ class ValidateBpmnFilesystemPluginTest {
                 ),
             )
         }
-        assertThat(result).isEqualTo(expectedResult)
         confirmVerified(useCase)
     }
 }

@@ -17,7 +17,7 @@ class WebGenerationService(private val librarySourceProvider: LibrarySourceProvi
     fun generate(request: GenerateRequest): GenerateResponse {
         val config = request.config
         logger.info { "Generating API for ${request.files.size} file(s) [${config.outputLanguage}, ${config.processEngine}]" }
-        return GenerationGuard.run(files = request.files, failure = GenerateResponse::failure) {
+        return GenerationGuard.run(files = request.files) {
             val bpmnInputs = request.files.map { this.buildCommand(it) }
             val generatedApiFiles = this.executePlugin(request.config, bpmnInputs)
             val generatedFiles = generatedApiFiles.map { mapToResponse(it) }

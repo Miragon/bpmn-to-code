@@ -32,8 +32,8 @@ internal class TypeScriptProcessApiBuilder : ProcessApiBuilder {
         return file.render(
             templateName = "typescript/process-api.ftl",
             model = TypeScriptProcessApiModel(
-                typeName = api.typeName.value,
-                processId = stringLiteral(api.processId.value),
+                typeName = api.typeName,
+                processId = stringLiteral(api.processId),
                 processEngine = stringLiteral(api.processEngine.name),
                 flowNodes = api.flow?.nodes?.map { mapper.map(it) },
                 runtimeTypes = file.runtimeTypes,
@@ -45,7 +45,7 @@ internal class TypeScriptProcessApiBuilder : ProcessApiBuilder {
     private fun requireNoClassShadowsModuleName(api: ProcessApiGraph) {
         val moduleNames = SharedDefinitionType.entries.map { it.typeName } +
             TypeScriptSourceFile.RUNTIME_ALIAS +
-            api.typeName.value
+            api.typeName
         val shadowing = api.flow?.nodes.orEmpty().map { it.objectName }.filter { it in moduleNames }
         if (shadowing.isNotEmpty()) {
             throw ProcessApiNamingException("Element names clash with names the TypeScript module declares: $shadowing. Rename the elements.")

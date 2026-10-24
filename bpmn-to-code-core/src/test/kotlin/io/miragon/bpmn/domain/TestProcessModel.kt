@@ -39,12 +39,12 @@ fun testProcessModel(
     detectedEngine = detectedEngine,
 )
 
-fun testProcessModelApi(
+fun testProcessApiRequest(
     model: ProcessModel = testProcessModel(),
     packagePath: String = "packagePath",
     language: OutputLanguage = OutputLanguage.KOTLIN,
     engine: ProcessEngine = ProcessEngine.ZEEBE,
-) = BpmnModelApi(model = model, packagePath = packagePath, outputLanguage = language, targetEngine = engine)
+) = ProcessApiRequest(models = listOf(model), packagePath = packagePath, outputLanguage = language, engine = engine)
 
 /**
  * Polymorphic copy of a [FlowNodeDefinition] with a new [id], across the sealed hierarchy.

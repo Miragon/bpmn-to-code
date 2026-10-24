@@ -9,10 +9,11 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.TaskImplementation
 import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.testProcessModel
-import io.miragon.bpmn.domain.validation.model.Severity
+import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.mockk.every
 import io.mockk.mockk
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class ValidateBpmnServiceTest {
@@ -31,21 +32,17 @@ class ValidateBpmnServiceTest {
     private val dummyResource = BpmnResource(fileName = "dummy.bpmn", content = "<bpmn></bpmn>".encodeToByteArray())
 
     @Test
-    fun `valid model returns empty result`() {
+    fun `accepts a valid model`() {
         // given: a valid model whose detected engine matches the selected one
         every { bpmnFileLoader.loadFrom(any(), any()) } returns listOf(dummyResource)
         every { bpmnExtractor.extract(any(), any()) } returns testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
-        // when: validateBpmn is called
-        val result = underTest.validateBpmn(command)
-
-        // then: result has no violations
-        assertThat(result.isValid).isTrue()
-        assertThat(result.violations).isEmpty()
+        // when / then
+        assertThatCode { underTest.validateBpmn(command) }.doesNotThrowAnyException()
     }
 
     @Test
-    fun `an error of a single model stops execution and returns early`() {
+    fun `rejects a model the generation would reject`() {
         // given: a model with a service task missing implementation (an ERROR of a single-model rule)
         val invalidModel = testProcessModel(
             flowNodes = listOf(
@@ -59,11 +56,9 @@ class ValidateBpmnServiceTest {
         every { bpmnFileLoader.loadFrom(any(), any()) } returns listOf(dummyResource)
         every { bpmnExtractor.extract(any(), any()) } returns invalidModel
 
-        // when: validateBpmn is called
-        val result = underTest.validateBpmn(command)
-
-        // then: result contains only the errors of the single-model rules, no cross-model violations added
-        assertThat(result.hasErrors).isTrue()
-        assertThat(result.errors).anyMatch { it.severity == Severity.ERROR }
+        // when / then
+        assertThatThrownBy { underTest.validateBpmn(command) }
+            .isInstanceOf(BpmnValidationException::class.java)
+            .hasMessageContaining("missing-service-task-implementation")
     }
 }
