@@ -1,6 +1,7 @@
 package io.miragon.bpmn.adapter
 
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiFilesystemPlugin
+import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import org.gradle.api.provider.Property
@@ -36,15 +37,8 @@ abstract class GenerateBpmnModelsTask : AbstractBpmnTask() {
             outputLanguage = outputLanguage.get(),
             engine = processEngine.get(),
         )
-        if (results.isEmpty()) {
-            logger.lifecycle("No BPMN models found")
-            return
-        }
-        results.forEach { result ->
-            val files = result.sourceFiles.joinToString(", ")
-            logger.lifecycle("  Generated: ${result.processId} (from $files)")
-        }
-        logger.lifecycle("BPMN models generated successfully (${results.size} models)")
+        results.forEach { logger.lifecycle("  ${it.describe()}") }
+        logger.lifecycle(BpmnFileResult.summaryOf(results))
     }
 
     private fun packageDirectory(): Provider<String> = outputFolderPath.zip(packagePath) { folder, packageName ->

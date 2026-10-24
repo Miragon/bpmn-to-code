@@ -2,10 +2,13 @@ package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.ProcessApiRequest
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
+import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.RootElementDefinition
+import io.miragon.bpmn.domain.testBikeLeasingModel
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.mockk.confirmVerified
 import io.mockk.every
@@ -50,6 +53,26 @@ class CodeGenerationAdapterTest {
         )
         verify { kotlinProcessBuilder.render(api = ProcessApiGraph.of(modelApi)) }
         confirmVerified(kotlinProcessBuilder)
+    }
+
+    @Test
+    fun `generate renders a process api per model and the shared definitions of the run`() {
+        // given: a run of the bike-leasing model, whose job types become a shared definition file
+        val request = ProcessApiRequest(
+            models = listOf(testBikeLeasingModel()),
+            outputLanguage = OutputLanguage.KOTLIN,
+            packagePath = "io.miravelo.process",
+            engine = ProcessEngine.ZEEBE,
+        )
+        every { kotlinProcessBuilder.render(api = any()) } returns SourceCode("api")
+        every { kotlinSharedBuilder.render(group = any(), packagePath = any()) } returns SourceCode("shared")
+
+        // when: generating the run
+        val result = underTest.generate(request)
+
+        // then: the Process API comes first, followed by one file per kind of shared definition
+        assertThat(result.first().fileName).isEqualTo("BikeLeasingProcessApi.kt")
+        assertThat(result.drop(1)).isNotEmpty().allMatch { it.processId == null && it.content == "shared" }
     }
 
     @Test

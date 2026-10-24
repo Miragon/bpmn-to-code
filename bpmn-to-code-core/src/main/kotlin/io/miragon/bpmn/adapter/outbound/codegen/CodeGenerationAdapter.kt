@@ -12,6 +12,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGra
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.ProcessApiRequest
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
 
@@ -19,7 +20,12 @@ internal class CodeGenerationAdapter(
     private val generators: Map<OutputLanguage, LanguageGenerator> = Companion.generators,
 ) : GenerateApiCodePort {
 
-    override fun generateCode(modelApi: BpmnModelApi): List<GeneratedApiFile> {
+    override fun generate(request: ProcessApiRequest): List<GeneratedApiFile> {
+        val processFiles = request.modelApis.flatMap { generateCode(it) }
+        return processFiles + generateSharedCode(request.sharedDefinitionsApi)
+    }
+
+    fun generateCode(modelApi: BpmnModelApi): List<GeneratedApiFile> {
         val generator = generatorFor(modelApi.outputLanguage)
         val api = ProcessApiGraph.of(modelApi)
         val processFile = GeneratedApiFile(
@@ -32,7 +38,7 @@ internal class CodeGenerationAdapter(
         return listOf(processFile)
     }
 
-    override fun generateSharedCode(api: SharedDefinitionsApi): List<GeneratedApiFile> {
+    fun generateSharedCode(api: SharedDefinitionsApi): List<GeneratedApiFile> {
         val generator = generatorFor(api.outputLanguage)
         val graph = SharedDefinitionsGraph.of(api.definitions)
         return graph.groups.map { group ->

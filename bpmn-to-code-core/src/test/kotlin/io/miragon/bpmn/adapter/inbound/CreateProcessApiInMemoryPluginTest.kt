@@ -55,7 +55,7 @@ class CreateProcessApiInMemoryPluginTest {
 
     private fun mockInput(fileName: String) = CreateProcessApiInMemoryPlugin.BpmnInput(
         bpmnXml = "<bpmn>$fileName</bpmn>",
-        processName = "$fileName.bpmn",
+        fileName = "$fileName.bpmn",
     )
 
     private fun mockApiFile(fileName: String) = GeneratedApiFile(

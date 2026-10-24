@@ -19,9 +19,9 @@ class CreateProcessJsonInMemoryPlugin(
         GenerateProcessJsonInMemoryUseCase.Command(
             engine = engine,
             validationConfig = validationConfig,
-            resources = bpmnContents.map { BpmnResource(fileName = it.processName, content = it.bpmnXml.encodeToByteArray()) },
+            resources = bpmnContents.map { BpmnResource(fileName = it.fileName, content = it.bpmnXml.encodeToByteArray()) },
         ),
     )
 
-    data class BpmnInput(val bpmnXml: String, val processName: String)
+    data class BpmnInput(val bpmnXml: String, val fileName: String)
 }

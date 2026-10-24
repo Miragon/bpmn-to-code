@@ -2,6 +2,7 @@ package io.miragon.bpmn.application.service
 
 import io.miragon.bpmn.adapter.inbound.ExtractProcessModelsPlugin
 import io.miragon.bpmn.application.port.inbound.ExtractProcessModelsUseCase
+import io.miragon.bpmn.domain.BpmnReadException
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -66,7 +67,7 @@ class ExtractProcessModelsServiceTest {
 
         // then: the failure names the offending file rather than the batch
         assertThatThrownBy { underTest.extractProcessModels(command(resources)) }
-            .isInstanceOf(IllegalStateException::class.java).hasMessageContaining("broken.bpmn")
+            .isInstanceOf(BpmnReadException::class.java).hasMessageContaining("broken.bpmn")
     }
 
     private fun command(resources: List<BpmnResource>) = ExtractProcessModelsUseCase.Command(

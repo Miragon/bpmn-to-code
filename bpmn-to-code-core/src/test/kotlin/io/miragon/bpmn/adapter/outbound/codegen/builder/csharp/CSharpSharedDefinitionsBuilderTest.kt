@@ -3,11 +3,13 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.assertMatchesGoldenFiles
 import io.miragon.bpmn.adapter.outbound.codegen.builder.miraVeloSharedDefinitionsApi
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.SharedDefinitionsApi
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class CSharpSharedDefinitionsBuilderTest {
@@ -28,7 +30,7 @@ class CSharpSharedDefinitionsBuilderTest {
     }
 
     @Test
-    fun `renames a constant that would collide with its enclosing type`() {
+    fun `fails on a constant that would be named like its enclosing type`() {
         // given: a message named exactly like the shared class that will contain it
         val definitions = SharedDefinitions(messages = listOf(RootElementDefinition.Message(id = "Messages", name = "Messages")))
         val api = SharedDefinitionsApi(
@@ -37,12 +39,10 @@ class CSharpSharedDefinitionsBuilderTest {
             packagePath = "de.emaarco.example",
         )
 
-        // when: we build the shared definition files
-        val result = underTest.generateSharedCode(api).single()
-
-        // then: the constant is renamed, because C# rejects a member named like its enclosing type (CS0542)
-        assertThat(result.content).contains("public const string Messages_ = \"Messages\";")
-        assertThat(result.content).doesNotContain("public const string Messages =")
+        // when / then: generation fails, because C# rejects a member named like its enclosing type (CS0542)
+        assertThatThrownBy { underTest.generateSharedCode(api) }
+            .isInstanceOf(ProcessApiNamingException::class.java)
+            .hasMessageContaining("'Messages'")
     }
 
     @Test

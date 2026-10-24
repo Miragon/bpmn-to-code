@@ -1,6 +1,7 @@
 package io.miragon.bpmn.web.service
 
 import io.ktor.http.HttpStatusCode
+import io.miragon.bpmn.domain.BpmnReadException
 import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.validation.BpmnValidationException
 import io.miragon.bpmn.domain.validation.model.Severity
@@ -48,6 +49,15 @@ class GenerationGuardTest {
         val exception = ProcessApiNamingException("'OrderProcessApi' would be generated from several BPMN files: a.bpmn, b.bpmn.")
 
         val answer = GenerationGuard.run(files = files(count = 2), failure = ::Answer) { throw exception }
+
+        assertThat(answer).isEqualTo(Answer(status = HttpStatusCode.BadRequest, error = exception.message))
+    }
+
+    @Test
+    fun `answers a file that cannot be read with the reason`() {
+        val exception = BpmnReadException("Failed to extract file: broken.bpmn. Please check its a valid file for ZEEBE")
+
+        val answer = GenerationGuard.run(files = files(count = 1), failure = ::Answer) { throw exception }
 
         assertThat(answer).isEqualTo(Answer(status = HttpStatusCode.BadRequest, error = exception.message))
     }

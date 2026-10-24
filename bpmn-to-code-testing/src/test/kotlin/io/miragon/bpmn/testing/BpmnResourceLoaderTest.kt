@@ -43,8 +43,8 @@ class BpmnResourceLoaderTest {
         // when: loading from the directory
         val resources = BpmnResourceLoader.fromDirectory(tempDir)
 
-        // then: only the BPMN files are returned
-        assertThat(resources.map { it.fileName }).containsExactlyInAnyOrder("root.bpmn", "nested.bpmn")
+        // then: only the BPMN files are returned, named by their path below the directory and sorted by it
+        assertThat(resources.map { it.fileName }).containsExactly("root.bpmn", "sub/nested.bpmn")
     }
 
     @Test

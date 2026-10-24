@@ -1,10 +1,10 @@
 package io.miragon.bpmn.domain.service
 
+import io.miragon.bpmn.domain.ProcessApiNames
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.VariableMapping
-import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 import io.miragon.bpmn.domain.validation.model.CollisionDetail
 
@@ -31,7 +31,7 @@ class CollisionDetectionService {
                 items = model.allFlowNodes,
                 variableType = "FlowNode",
                 rawName = { it.id.orEmpty() },
-                constantName = { it.id.orEmpty().toCamelCase() },
+                constantName = { ProcessApiNames.elementName(it.id.orEmpty()) },
             ),
         )
         collisions.addAll(findRepeatedIds(modelId, model.allFlowNodes))
@@ -96,7 +96,7 @@ class CollisionDetectionService {
             CollisionDetail(
                 processId = processId,
                 variableType = "FlowNode",
-                constantName = id.toCamelCase(),
+                constantName = ProcessApiNames.elementName(id),
                 conflictingIds = List(occurrences) { id },
             )
         }

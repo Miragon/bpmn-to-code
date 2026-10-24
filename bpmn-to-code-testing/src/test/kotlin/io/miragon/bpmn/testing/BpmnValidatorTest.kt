@@ -50,12 +50,26 @@ class BpmnValidatorTest {
     }
 
     @Test
-    fun `disableRules switches off a mandatory rule since no code is generated`() {
+    fun `disableRules keeps a mandatory rule active`() {
         BpmnValidator
             .fromClasspath("bpmn/c7/cancel-bike-order.bpmn")
             .engine(ProcessEngine.CAMUNDA_7)
             .withRules(AlwaysFailingMandatoryRule())
-            .disableRules("always-failing-mandatory").validate().assertNoViolations("always-failing-mandatory")
+            .disableRules("always-failing-mandatory").validate().assertHasViolations()
+    }
+
+    @Test
+    fun `runs the built-in mandatory rules alongside the selected ones`(@TempDir tempDir: Path) {
+        // given: a model whose start event would be generated under the reserved name Next
+        Files.writeString(tempDir.resolve("approval.bpmn"), RESERVED_ELEMENT_NAME)
+
+        // when / then: the reserved-element-name rule reports, although only empty-process is selected
+        BpmnValidator
+            .fromDirectory(tempDir)
+            .engine(ProcessEngine.ZEEBE)
+            .withRules(BpmnRules.EMPTY_PROCESS)
+            .validate()
+            .assertViolation(ruleId = "reserved-element-name")
     }
 
     @Test
@@ -150,5 +164,16 @@ class BpmnValidatorTest {
                 message = "always fails",
             ),
         )
+    }
+
+    private companion object {
+        val RESERVED_ELEMENT_NAME = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+              <bpmn:process id="approval" isExecutable="true">
+                <bpmn:startEvent id="next" />
+              </bpmn:process>
+            </bpmn:definitions>
+        """.trimIndent()
     }
 }

@@ -1,12 +1,12 @@
 package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
-import io.miragon.bpmn.domain.utils.StringUtils.toCamelCase
+import io.miragon.bpmn.domain.ProcessApiNames
 
 /**
  * Derives the navigation identifiers for elements and sequence flows.
  *
- * Names come from the id's [toCamelCase] form — the one guarded by the mandatory `collision-detection`
+ * Names come from [ProcessApiNames.elementName] — the one guarded by the mandatory `collision-detection`
  * rule. That rule rejects any model whose ids collapse to the same name before generation runs, so across the
  * whole model the names are already guaranteed unique and no disambiguation is needed here.
  *
@@ -21,7 +21,7 @@ internal object FlowNaming {
      * Names every node of the model by the edge that reaches it, keyed by element id.
      */
     fun assign(nodes: List<FlowNodeWithId>): Map<String, FlowEdge> = nodes.associate { node ->
-        val objectName = node.definition.id.orEmpty().toCamelCase()
+        val objectName = ProcessApiNames.elementName(node.definition.id.orEmpty())
         node.id to FlowEdge(propertyName = decapitalize(objectName), objectName = objectName)
     }
 

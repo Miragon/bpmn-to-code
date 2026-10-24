@@ -15,8 +15,8 @@ public final class ${typeName} {
     }
 <#list flowNodes as node>
 
-    public static ${node.className} ${node.accessorName}() {
-      return ${node.className}.INSTANCE;
+    public static ${node.type} ${node.property}() {
+      return ${node.type}.INSTANCE;
     }
 </#list>
 
@@ -24,28 +24,28 @@ public final class ${typeName} {
       return ${types.List}.of(
 <#list flowNodes as node>
 <#if node?has_next>
-          ${node.className}.INSTANCE,
+          ${node.type}.INSTANCE,
 <#else>
-          ${node.className}.INSTANCE);
+          ${node.type}.INSTANCE);
 </#if>
 </#list>
     }
 <#list flowNodes as node>
 
 <#if node.interfaces?has_content>
-    public static final class ${node.className} extends ${types.AbstractFlowNode} implements ${node.interfaces?join(", ")} {
+    public static final class ${node.type} extends ${types.AbstractFlowNode} implements ${node.interfaces?join(", ")} {
 <#else>
-    public static final class ${node.className} extends ${types.AbstractFlowNode} {
+    public static final class ${node.type} extends ${types.AbstractFlowNode} {
 </#if>
       public static final ${types.String} ELEMENT_ID = ${node.elementId};
 
-      public static final ${node.className} INSTANCE = new ${node.className}();
+      public static final ${node.type} INSTANCE = new ${node.type}();
 <#if node.variables?has_content>
 
       private static final Variables VARIABLES = new Variables();
 </#if>
 
-      private ${node.className}() {
+      private ${node.type}() {
 <#if node.name??>
         super(new ${types.ElementId}(ELEMENT_ID), ${types.BpmnElementType}.${node.elementType}, ${node.name});
 <#else>
@@ -77,7 +77,7 @@ public final class ${typeName} {
 <@sharedNameAndCodeGetter type=types.BpmnEscalationDefinition name="getEscalation" definition=node.escalation/>
 </#if>
 <#if node.attachedTo??>
-<@getter type=node.attachedTo name="getAttachedTo" value="${node.attachedTo}.INSTANCE"/>
+<@getter type=node.attachedTo.type name="getAttachedTo" value="${node.attachedTo.type}.INSTANCE"/>
 </#if>
 <#if node.interrupting??>
 <@getter type="boolean" name="isInterrupting" value=node.interrupting?c overrides=node.attachedTo??/>
@@ -113,13 +113,13 @@ public final class ${typeName} {
 
       public static final class Next {
 <#items as successor>
-        public ${successor.type}<${successor.target}> ${successor.name}() {
+        public ${types[successor.type]}<${successor.target.type}> ${successor.target.property}() {
 <#if successor.flows?size == 1>
-          return ${types.SequenceFlows}.single(${flowArguments(successor.flows[0], successor.target)});
+          return ${types.SequenceFlows}.single(${flowArguments(successor.flows[0], successor.target.type)});
 <#elseif successor.flows?has_content>
-          return new ${types.SequenceFlows}<>(${successor.target}.INSTANCE, ${types.List}.of(${sequenceFlows(successor)}));
+          return new ${types.SequenceFlows}<>(${successor.target.type}.INSTANCE, ${types.List}.of(${sequenceFlows(successor)}));
 <#else>
-          return new ${successor.type}<>(${successor.target}.INSTANCE);
+          return new ${types[successor.type]}<>(${successor.target.type}.INSTANCE);
 </#if>
         }
 <#sep>
@@ -132,8 +132,8 @@ public final class ${typeName} {
 
       public static final class Start {
 <#items as start>
-        public ${start.className} ${start.name}() {
-          return ${start.className}.INSTANCE;
+        public ${start.type} ${start.property}() {
+          return ${start.type}.INSTANCE;
         }
 <#sep>
 
@@ -174,7 +174,7 @@ public final class ${typeName} {
 
       public static final class ${className} {
 <#items as mapping>
-        public static final ${types.InputOutputMapping} ${mapping.name} = new ${types.InputOutputMapping}(${mapping.target}, ${mapping.source}, ${mapping.sourceExpression});
+        public static final ${types.InputOutputMapping} ${mapping.name} = new ${types.InputOutputMapping}(${mapping.target}, ${mapping.source!"null"}, ${mapping.sourceExpression!"null"});
 
 </#items>
         private ${className}() {
@@ -184,12 +184,12 @@ public final class ${typeName} {
 </#macro>
 <#function flowArguments flow target>
   <#local id = "new ${types.ElementId}(${flow.id})">
-  <#if flow.onlyDefaults>
+  <#if !flow.name?? && !flow.conditionExpression?? && !flow.defaultFlow>
     <#return "${id}, ${target}.INSTANCE">
   </#if>
-  <#return "${id}, ${flow.name}, ${flow.conditionExpression}, ${flow.defaultFlow?c}, ${target}.INSTANCE">
+  <#return "${id}, ${flow.name!'null'}, ${flow.conditionExpression!'null'}, ${flow.defaultFlow?c}, ${target}.INSTANCE">
 </#function>
 <#function sequenceFlows successor>
-  <#local flows = successor.flows?map(flow -> "new ${types.SequenceFlow}<>(${flowArguments(flow, successor.target)})")>
+  <#local flows = successor.flows?map(flow -> "new ${types.SequenceFlow}<>(${flowArguments(flow, successor.target.type)})")>
   <#return flows?join(", ")>
 </#function>

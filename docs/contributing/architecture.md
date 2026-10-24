@@ -49,7 +49,7 @@ Core is a hexagon under `io.miragon.bpmn`. `HexagonalArchitectureTest` allows ex
 There is no dependency-injection framework, hence these further rules:
 
 - A service or plugin takes its collaborators as constructor parameters typed as ports; the concrete implementation appears only as default value.
-- A service implements exactly one inbound port and does not call another service. That is why the filesystem and the in-memory variant of a use case are two services.
+- A service implements exactly one inbound port and does not call another service. That is why the filesystem and the in-memory variant of a use case are two services; both hand the models to `BpmnValidationService` and the whole run to one port call, so they differ only in reading and writing.
 - All ports are interfaces.
 
 The other modules see core only through `domain` and `adapter.inbound`. `ExternalModuleImportTest` enforces that for the Gradle plugin, the Maven plugin, the web app and the command-line tool. `domain` is also what users compile custom validation rules against, so changes there are public API changes ([ADR 011](./adr/011-compatibility-policy)).

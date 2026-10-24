@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.utils.StringUtils.toUpperSnakeCase
 
 /**
@@ -27,14 +28,6 @@ internal object CSharpSyntax {
     }
 
     /**
-     * e.g. `"Send contract"`, or `null` for a missing value
-     */
-    fun nullableStringLiteral(value: String?): String {
-        if (value == null) return "null"
-        return stringLiteral(value)
-    }
-
-    /**
      * PascalCase identifier for a BPMN name, derived from the UPPER_SNAKE_CASE form so that the sanitising already done
      * there applies to C# identifiers too: `miravelo.orderBike` becomes `MiraveloOrderBike`, `3rdReminder` becomes
      * `_3RdReminder`.
@@ -51,12 +44,14 @@ internal object CSharpSyntax {
     }
 
     /**
-     * The name a member declared as [name] ends up with inside [enclosingType].
-     * C# rejects a member named like its enclosing type (CS0542): `Messages` inside `Messages` becomes `Messages_`.
+     * [name], unless it is the name of [enclosingType]: C# rejects a member named like its enclosing type (CS0542), and
+     * nothing is renamed, so generation fails naming both.
      */
-    fun disambiguated(name: String, enclosingType: String?): String {
+    fun memberOf(name: String, enclosingType: String): String {
         if (name != enclosingType) return name
-        return name + "_"
+        throw ProcessApiNamingException(
+            "C# cannot declare '$name' inside the type '$enclosingType' of the same name. Rename the element or definition it is generated from.",
+        )
     }
 
     /**

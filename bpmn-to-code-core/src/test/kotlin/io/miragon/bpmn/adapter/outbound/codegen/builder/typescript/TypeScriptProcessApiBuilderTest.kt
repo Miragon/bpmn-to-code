@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.typescript
 
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
@@ -147,7 +148,7 @@ class TypeScriptProcessApiBuilderTest {
 
         // when / then: generation fails instead of emitting a module tsc rejects
         assertThatThrownBy { underTest.generateCode(typeScriptApi(model)) }
-            .isInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(ProcessApiNamingException::class.java)
             .hasMessageContaining("Messages")
     }
 

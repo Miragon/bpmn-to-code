@@ -6,6 +6,7 @@ import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessApiNamingException
+import io.miragon.bpmn.domain.ProcessApiRequest
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -44,8 +45,7 @@ class GenerateProcessApiInMemoryServiceTest {
             language = OutputLanguage.KOTLIN,
             processId = null,
         )
-        every { codeGenerator.generateCode(any()) } returns listOf(expectedGeneratedFile)
-        every { codeGenerator.generateSharedCode(any()) } returns listOf(sharedFile)
+        every { codeGenerator.generate(any()) } returns listOf(expectedGeneratedFile, sharedFile)
         val command = GenerateProcessApiInMemoryUseCase.Command(
             resources = listOf(bpmnInput),
             packagePath = "com.example",
@@ -58,8 +58,7 @@ class GenerateProcessApiInMemoryServiceTest {
 
         // then: BpmnFile is created, models are extracted, code is generated
         verify { bpmnService.extract(match { it.fileName == "test.bpmn" }, eq(ProcessEngine.ZEEBE)) }
-        verify { codeGenerator.generateCode(match { it.model.processId == dummyModel.processId }) }
-        verify { codeGenerator.generateSharedCode(match { it.packagePath == "com.example" }) }
+        verify { codeGenerator.generate(requestOf(dummyModel)) }
         assertThat(result).containsExactly(expectedGeneratedFile, sharedFile)
         confirmVerified(codeGenerator, bpmnService)
     }
@@ -80,7 +79,7 @@ class GenerateProcessApiInMemoryServiceTest {
         assertThatThrownBy { underTest.generateProcessApi(command) }
             .isInstanceOf(BpmnValidationException::class.java)
             .extracting("violations").matches { (it as List<*>).size == 1 }
-        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify(exactly = 0) { codeGenerator.generate(any()) }
     }
 
     @Test
@@ -100,7 +99,7 @@ class GenerateProcessApiInMemoryServiceTest {
         // when / then: it fails naming both files and never generates code
         assertThatThrownBy { underTest.generateProcessApi(command) }
             .isInstanceOf(ProcessApiNamingException::class.java).hasMessageContaining("v1.bpmn").hasMessageContaining("v2.bpmn")
-        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify(exactly = 0) { codeGenerator.generate(any()) }
     }
 
     @Test
@@ -122,8 +121,7 @@ class GenerateProcessApiInMemoryServiceTest {
         underTest.generateProcessApi(command)
 
         // then: each file is generated under its own name
-        verify(exactly = 1) { codeGenerator.generateCode(match { it.fileName() == "V2TestProcessProcessApi" }) }
-        verify(exactly = 1) { codeGenerator.generateCode(match { it.fileName() == "TestProcessProcessApi" }) }
+        verify(exactly = 1) { codeGenerator.generate(match { request -> request.modelApis.map { it.fileName() } == listOf("TestProcessProcessApi", "V2TestProcessProcessApi") }) }
     }
 
     @Test
@@ -145,9 +143,15 @@ class GenerateProcessApiInMemoryServiceTest {
         underTest.generateProcessApi(command)
 
         // then: only the executable process is generated, like on the filesystem path
-        verify(exactly = 1) { codeGenerator.generateCode(any()) }
-        verify { codeGenerator.generateCode(match { it.model.processId == "testProcess" }) }
+        verify(exactly = 1) { codeGenerator.generate(requestOf(dummyModel)) }
     }
 
     private val dummyModel = ProcessModel(processId = "testProcess", flowNodes = emptyList())
+
+    private fun requestOf(vararg models: ProcessModel) = ProcessApiRequest(
+        models = models.toList(),
+        outputLanguage = OutputLanguage.KOTLIN,
+        packagePath = "com.example",
+        engine = ProcessEngine.ZEEBE,
+    )
 }

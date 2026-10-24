@@ -90,7 +90,7 @@ class ProcessJsonActivityFacetsTest {
     private fun generate(engine: ProcessEngine, fixture: String): JsonObject {
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
             bpmnXml = readResource("/bpmn/$fixture.bpmn"),
-            processName = fixture,
+            fileName = fixture,
         )
         val generated = underTest.execute(bpmnContents = listOf(input), engine = engine).single()
         return Json.parseToJsonElement(generated.content).jsonObject

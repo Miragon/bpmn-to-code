@@ -9,10 +9,10 @@ import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessApiNamingException
+import io.miragon.bpmn.domain.ProcessApiRequest
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.testProcessModelApi
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
@@ -56,8 +56,7 @@ class GenerateProcessApiServiceTest {
             language = OutputLanguage.KOTLIN,
             processId = null,
         )
-        every { codeGenerator.generateCode(any()) } returns listOf(expectedGeneratedFile)
-        every { codeGenerator.generateSharedCode(any()) } returns listOf(sharedFile)
+        every { codeGenerator.generate(any()) } returns listOf(expectedGeneratedFile, sharedFile)
         val command = GenerateProcessApiFromFilesystemUseCase.Command(
             baseDir = "baseDir",
             filePattern = "*.bpmn",
@@ -71,10 +70,8 @@ class GenerateProcessApiServiceTest {
         val results = underTest.generateProcessApi(command)
 
         // then: the API code is generated and written to disk
-        val expectedModelApi = getExpectedModelApi()
         verify { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") }
-        verify { codeGenerator.generateCode(expectedModelApi) }
-        verify { codeGenerator.generateSharedCode(match { it.packagePath == "de.emaarco.example" && it.outputLanguage == OutputLanguage.KOTLIN }) }
+        verify { codeGenerator.generate(requestOf(dummyModel)) }
         verifyOrder {
             fileSystemOutput.deleteStaleFiles(
                 generatedFiles = listOf(expectedGeneratedFile, sharedFile),
@@ -99,7 +96,7 @@ class GenerateProcessApiServiceTest {
 
         // then: nothing is generated, written or reported, and previously generated files become stale
         assertThat(results).isEmpty()
-        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify { codeGenerator.generate(requestOf()) }
         verify {
             fileSystemOutput.deleteStaleFiles(
                 generatedFiles = emptyList(),
@@ -125,13 +122,13 @@ class GenerateProcessApiServiceTest {
         every { bpmnFileLoader.loadFrom("baseDir", "*.bpmn") } returns listOf(keepResource, draftResource)
         every { bpmnService.extract(keepResource, any()) } returns dummyModel
         every { bpmnService.extract(draftResource, any()) } returns nonExecutableModel
-        every { codeGenerator.generateCode(any()) } returns listOf(expectedGeneratedFile)
+        every { codeGenerator.generate(any()) } returns listOf(expectedGeneratedFile)
 
         // when: generateProcessApi is invoked
         val results = underTest.generateProcessApi(command())
 
         // then: only the executable process is generated and reported
-        verify(exactly = 1) { codeGenerator.generateCode(getExpectedModelApi()) }
+        verify(exactly = 1) { codeGenerator.generate(requestOf(dummyModel)) }
         verify { fileSystemOutput.writeFiles(listOf(expectedGeneratedFile), "outputFolder") }
         assertThat(results).isEqualTo(listOf(BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("keep.bpmn"))))
     }
@@ -149,7 +146,7 @@ class GenerateProcessApiServiceTest {
 
         // then: generation completes with no output and no crash
         assertThat(results).isEmpty()
-        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify { codeGenerator.generate(requestOf()) }
         verify { fileSystemOutput.writeFiles(emptyList(), "outputFolder") }
     }
 
@@ -164,7 +161,7 @@ class GenerateProcessApiServiceTest {
             .isInstanceOf(ProcessApiNamingException::class.java)
             .hasMessageContaining("'NewsletterSubscriptionProcessApi'")
             .hasMessageContaining("corporate/order.bpmn (process id 'newsletterSubscription'), default/order.bpmn (process id 'newsletterSubscription')")
-        verify(exactly = 0) { codeGenerator.generateCode(any()) }
+        verify(exactly = 0) { codeGenerator.generate(any()) }
         verify(exactly = 0) { fileSystemOutput.deleteStaleFiles(generatedFiles = any(), outputFolderPath = any(), packagePath = any()) }
         verify(exactly = 0) { fileSystemOutput.writeFiles(any(), any()) }
     }
@@ -181,10 +178,7 @@ class GenerateProcessApiServiceTest {
         val results = underTest.generateProcessApi(command())
 
         // then: each file is generated on its own, in the order of the names they are generated under
-        verifyOrder {
-            codeGenerator.generateCode(getExpectedModelApi(corporateModel))
-            codeGenerator.generateCode(getExpectedModelApi(dummyModel))
-        }
+        verify { codeGenerator.generate(requestOf(corporateModel, dummyModel)) }
         assertThat(results).containsExactly(
             BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("corporate/order.bpmn")),
             BpmnFileResult(processId = "newsletterSubscription", sourceFiles = listOf("default/order.bpmn")),
@@ -210,9 +204,10 @@ class GenerateProcessApiServiceTest {
         packagePath = "de.emaarco.example",
     )
 
-    private fun getExpectedModelApi(model: ProcessModel = dummyModel) = testProcessModelApi(
-        model = model,
+    private fun requestOf(vararg models: ProcessModel) = ProcessApiRequest(
+        models = models.toList(),
+        outputLanguage = OutputLanguage.KOTLIN,
         packagePath = "de.emaarco.example",
-        language = OutputLanguage.KOTLIN,
+        engine = ProcessEngine.ZEEBE,
     )
 }

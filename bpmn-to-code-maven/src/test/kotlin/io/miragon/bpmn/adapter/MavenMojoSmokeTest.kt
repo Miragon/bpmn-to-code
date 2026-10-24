@@ -3,6 +3,7 @@ package io.miragon.bpmn.adapter
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.Log
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -92,7 +93,7 @@ class MavenMojoSmokeTest {
 
         // when / then: the mojo fails naming the API, both files and the way to tell them apart
         assertThatThrownBy { mojo.execute() }
-            .isInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(MojoFailureException::class.java)
             .hasMessageContaining("'BikeLeasingProcessApi'")
             .hasMessageContaining("corporate/bike-leasing.bpmn (process id 'bikeLeasing'), default/bike-leasing.bpmn (process id 'bikeLeasing')")
             .hasMessageContaining("variantName")
@@ -116,6 +117,24 @@ class MavenMojoSmokeTest {
         assertThat(File(packageDir, "BikeLeasingProcessApi.kt")).exists()
         assertThat(File(packageDir, "CorporateBikeLeasingProcessApi.kt")).exists()
     }
+
+    @Test
+    fun `mojo resolves relative paths against the project directory`(@TempDir projectDir: File) {
+        // given: a project whose paths are configured relative to it
+        writeBpmn(projectDir = projectDir, path = "bike-leasing.bpmn", bpmn = bikeLeasingBpmn())
+        val mojo = modelMojo(projectDir)
+        setField(obj = mojo, name = "projectDirectory", value = projectDir)
+        setField(obj = mojo, name = "baseDir", value = ".")
+        setField(obj = mojo, name = "outputFolderPath", value = "build/generated")
+
+        // when: executing the mojo from a working directory other than the project
+        mojo.execute()
+
+        // then: the API is written below the project, not below the working directory
+        assertThat(File(projectDir, "build/generated/io/miragon/smoketest/BikeLeasingProcessApi.kt")).exists()
+    }
+
+    private fun bikeLeasingBpmn(): String = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn")).readBytes().decodeToString()
 
     private fun writeBpmn(projectDir: File, path: String, bpmn: String) {
         val file = File(projectDir, "src/main/resources/$path")

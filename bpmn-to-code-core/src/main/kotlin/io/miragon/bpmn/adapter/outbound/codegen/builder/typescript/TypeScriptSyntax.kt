@@ -1,5 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.typescript
 
+import io.miragon.bpmn.domain.ProcessApiNamingException
+
 /**
  * How values and names are written in generated TypeScript code.
  */
@@ -26,19 +28,11 @@ internal object TypeScriptSyntax {
     }
 
     /**
-     * e.g. `"Send contract"`, or `null` for a missing value
-     */
-    fun nullableStringLiteral(value: String?): String {
-        if (value == null) return "null"
-        return stringLiteral(value)
-    }
-
-    /**
      * [name] unchanged; generation fails on a name that is no valid identifier, such as `Task.Approve`, rather than
      * emitting code that does not compile.
      */
     fun identifier(name: String): String {
-        require(IDENTIFIER.matches(name)) { "not a valid name: $name" }
-        return name
+        if (IDENTIFIER.matches(name)) return name
+        throw ProcessApiNamingException("'$name' is not a valid TypeScript name. Rename the element or definition it is generated from.")
     }
 }

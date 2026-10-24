@@ -2,15 +2,15 @@ package io.miragon.bpmn.testing
 
 import io.miragon.bpmn.adapter.inbound.ExtractProcessModelsPlugin
 import io.miragon.bpmn.domain.BpmnResource
-import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 import io.miragon.bpmn.domain.shared.ProcessEngine
+import io.miragon.bpmn.domain.validation.BuiltInRules
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.ValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
-import io.miragon.bpmn.domain.validation.model.ValidationViolation
+import io.miragon.bpmn.domain.validation.model.ValidationConfig
 import java.nio.file.Path
 
 /**
@@ -42,7 +42,7 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
 
     /**
      * Sets the validation rules to use. Accepts both [SingleModelValidationRule] and
-     * [CrossModelValidationRule]. Defaults to [BpmnRules.all] if not called.
+     * [CrossModelValidationRule]. Defaults to [BpmnRules.all] if not called. The mandatory rules run in any case.
      */
     fun withRules(vararg rules: ValidationRule): BpmnValidator {
         this.rules = rules.toList()
@@ -51,7 +51,7 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
 
     /**
      * Sets the validation rules to use. Accepts both [SingleModelValidationRule] and
-     * [CrossModelValidationRule]. Defaults to [BpmnRules.all] if not called.
+     * [CrossModelValidationRule]. Defaults to [BpmnRules.all] if not called. The mandatory rules run in any case.
      */
     fun withRules(rules: List<ValidationRule>): BpmnValidator {
         this.rules = rules
@@ -59,7 +59,7 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
     }
 
     /**
-     * Disables the given rules by their IDs.
+     * Disables the given rules by their IDs. Mandatory rules stay active.
      */
     fun disableRules(vararg ruleIds: String): BpmnValidator {
         this.disabledRuleIds = ruleIds.toSet()
@@ -83,36 +83,22 @@ class BpmnValidator private constructor(private val resourceLoader: () -> List<B
         }
 
         val models = ExtractProcessModelsPlugin().execute(resourceLoader(), selectedEngine)
-        val activeRules = resolveRules()
-        val result = runValidation(models = models, engine = selectedEngine, activeRules = activeRules)
-        return BpmnValidationAssert.assertThat(result)
+        val validationService = BpmnValidationService(config = ValidationConfig(disabledRules = disabledRuleIds), rules = resolveRules())
+        val result = validationService.validate(models = models, engine = selectedEngine)
+        return BpmnValidationAssert.assertThat(applyPolicy(result))
     }
 
-    private fun applyPolicy(violations: List<ValidationViolation>): List<ValidationViolation> = if (failOnWarning) {
-        violations.map { if (it.severity == Severity.WARN) it.copy(severity = Severity.ERROR) else it }
-    } else {
-        violations
+    private fun applyPolicy(result: ValidationResult): ValidationResult {
+        if (!failOnWarning) return result
+        return ValidationResult(result.violations.map { if (it.severity == Severity.WARN) it.copy(severity = Severity.ERROR) else it })
     }
 
+    /**
+     * The selected rules, or [BpmnRules.all], and the mandatory rules, which run whether they are selected or not.
+     */
     private fun resolveRules(): List<ValidationRule> {
-        val base = rules ?: BpmnRules.all()
-        return base.filterNot { it.id in disabledRuleIds }
-    }
-
-    private fun runValidation(
-        models: List<ProcessModel>,
-        engine: ProcessEngine,
-        activeRules: List<ValidationRule>,
-    ): ValidationResult {
-        val validationService = BpmnValidationService(rules = activeRules)
-        val singleModelFindings = validationService.collectSingleModelViolations(models = models, engine = engine)
-        val singleModelViolations = applyPolicy(singleModelFindings)
-        if (singleModelViolations.any { it.severity == Severity.ERROR }) {
-            return ValidationResult(singleModelViolations)
-        }
-        val crossModelFindings = validationService.collectCrossModelViolations(models = models, engine = engine)
-        val crossModelViolations = applyPolicy(crossModelFindings)
-        return ValidationResult(singleModelViolations + crossModelViolations)
+        val selectedRules = rules ?: BpmnRules.all()
+        return (selectedRules + BuiltInRules.mandatory()).distinctBy { it.id }
     }
 
     companion object {

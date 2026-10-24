@@ -106,7 +106,7 @@ class ProcessJsonSchemaTest {
         // given: a Zeebe process whose zeebe:subscription sits on the bpmn:Message root element
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
             bpmnXml = readResource("/bpmn/zeebe/bike-leasing.bpmn"),
-            processName = "bike-leasing",
+            fileName = "bike-leasing",
         )
         val generated = underTest.execute(listOf(input), ProcessEngine.ZEEBE).single()
 
@@ -123,7 +123,7 @@ class ProcessJsonSchemaTest {
     private fun generateAll(engine: ProcessEngine): List<Pair<String, String>> = fixturesFor(engine).flatMap { fixture ->
         val input = CreateProcessJsonInMemoryPlugin.BpmnInput(
             bpmnXml = readResource("/bpmn/$fixture.bpmn"),
-            processName = fixture,
+            fileName = fixture,
         )
         underTest.execute(bpmnContents = listOf(input), engine = engine).map { fixture to it.content }
     }

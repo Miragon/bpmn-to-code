@@ -2,13 +2,13 @@ package io.miragon.bpmn.web.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.miragon.bpmn.domain.ProcessApiNamingException
-import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.domain.RejectedModelException
 import io.miragon.bpmn.web.model.BpmnFileData
 
 /**
  * What both generation endpoints do around the generation itself: accept one to [MAX_FILES] files, answer a
- * model the generator rejects with 400 and the reason, and any other failure of the generator with 500.
+ * file that cannot be read or a model the generator rejects with 400 and the reason, and any other failure of the
+ * generator with 500.
  */
 internal object GenerationGuard {
 
@@ -27,10 +27,7 @@ internal object GenerationGuard {
         }
         return try {
             generate()
-        } catch (e: BpmnValidationException) {
-            logger.error(e) { "BPMN validation failed during generation" }
-            failure(HttpStatusCode.BadRequest, e.message)
-        } catch (e: ProcessApiNamingException) {
+        } catch (e: RejectedModelException) {
             logger.warn { e.message }
             failure(HttpStatusCode.BadRequest, e.message)
         } catch (e: IllegalStateException) {

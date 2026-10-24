@@ -31,7 +31,7 @@ internal class ProcessModelReader(private val dialect: EngineDialect) {
             processName = modelInstance.getProcessName(),
             definitions = modelInstance.readRootElements(dialect::correlationKeyOf),
             isExecutable = modelInstance.isExecutable(),
-            detectedEngine = EngineDetector.detect(bytes.decodeToString()),
+            detectedEngine = EngineDialects.detect(bytes.decodeToString()),
             variantName = modelInstance.extractVariantName(),
         )
     }

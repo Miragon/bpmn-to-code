@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test
 class BpmnRulesTest {
 
     @Test
-    fun `all() returns all 13 built-in rules`() {
+    fun `all() returns the rules of every generation and the unreferenced-root-element rule`() {
         val rules = BpmnRules.all()
-        assertThat(rules).hasSize(13)
+        assertThat(rules).hasSize(14).contains(BpmnRules.ENGINE_MISMATCH, BpmnRules.UNREFERENCED_ROOT_ELEMENT)
     }
 
     @Test
@@ -31,6 +31,7 @@ class BpmnRulesTest {
         assertThat(BpmnRules.COLLISION_DETECTION.id).isEqualTo("collision-detection")
         assertThat(BpmnRules.RESERVED_ELEMENT_NAME.id).isEqualTo("reserved-element-name")
         assertThat(BpmnRules.SHARED_DEFINITION_COLLISION.id).isEqualTo("shared-definition-collision")
+        assertThat(BpmnRules.ENGINE_MISMATCH.id).isEqualTo("engine-mismatch")
     }
 
     @Test

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -73,40 +74,35 @@ public class GeneratedApiCompilationTest
     }
 
     [Fact]
-    public void GeneratedApiWithElementsNamedApartOnlyByANodeSuffixCompiles()
+    public void GenerationFailsForElementsNamedApartOnlyByANodeSuffix()
     {
         // when
-        var generated = GeneratedApi.Generate("ZEEBE", GeneratedApi.Fixture("suffixed.bpmn"));
+        var failure = Assert.Throws<InvalidOperationException>(() => GeneratedApi.Generate("ZEEBE", GeneratedApi.Fixture("suffixed.bpmn")));
 
         // then
-        Assert.Contains("public static TaskNode_ Task => TaskNode_.Instance;", generated["SuffixedProcessApi.cs"]);
-        AssertCompiles(generated.Values);
+        Assert.Contains("[TaskNode]", failure.Message);
+    }
+
+    [Theory]
+    [InlineData("inputs")]
+    [InlineData("processVariables")]
+    public void GenerationFailsForAVariableNamedLikeAMemberOfItsHolder(string variableName)
+    {
+        // given
+        var renamed = GeneratedApi.SharedModel("zeebe/bike-leasing.bpmn").Replace("target=\"bikeIds\"", $"target=\"{variableName}\"");
+
+        // when
+        var failure = Assert.Throws<InvalidOperationException>(() => GeneratedApi.Generate("ZEEBE", renamed));
+
+        // then
+        Assert.Contains($"variable '{variableName}'", failure.Message);
     }
 
     [Fact]
-    public void GeneratedApiWithVariablesNamedLikeTheMembersOfTheirHolderCompiles()
+    public void GeneratedApiWithAnElementNamedSystemCompiles()
     {
         // given
-        var renamed = GeneratedApi.SharedModel("zeebe/bike-leasing.bpmn")
-            .Replace("target=\"bikeIds\"", "target=\"inputs\"")
-            .Replace("target=\"age\"", "target=\"outputs\"");
-
-        // when
-        var generated = GeneratedApi.Generate("ZEEBE", renamed);
-
-        // then
-        Assert.Contains(" Inputs_ { get; }", generated["BikeLeasingProcessApi.cs"]);
-        Assert.Contains(" Outputs_ { get; }", generated["BikeLeasingProcessApi.cs"]);
-        AssertCompiles(generated.Values);
-    }
-
-    [Fact]
-    public void GeneratedApiWithAnElementNamedSystemAndAVariableNamedLikeASharedTypeCompiles()
-    {
-        // given
-        var renamed = GeneratedApi.SharedModel("zeebe/bike-leasing.bpmn")
-            .Replace("gateway_fork", "system")
-            .Replace("target=\"bikeIds\"", "target=\"processVariables\"");
+        var renamed = GeneratedApi.SharedModel("zeebe/bike-leasing.bpmn").Replace("gateway_fork", "system");
 
         // when
         var generated = GeneratedApi.Generate("ZEEBE", renamed);

@@ -1,6 +1,8 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class CSharpSyntaxTest {
@@ -23,11 +25,6 @@ class CSharpSyntaxTest {
     }
 
     @Test
-    fun `nullableStringLiteral writes a missing value as null`() {
-        assertThat(underTest.nullableStringLiteral(value = null)).isEqualTo("null")
-    }
-
-    @Test
     fun `pascalCase joins the words of a BPMN name`() {
         assertThat(underTest.pascalCase(name = "miravelo.orderBike")).isEqualTo("MiraveloOrderBike")
     }
@@ -43,13 +40,15 @@ class CSharpSyntaxTest {
     }
 
     @Test
-    fun `disambiguated renames a member named like its enclosing type`() {
-        assertThat(underTest.disambiguated(name = "Messages", enclosingType = "Messages")).isEqualTo("Messages_")
+    fun `memberOf rejects a member named like its enclosing type`() {
+        assertThatThrownBy { underTest.memberOf(name = "Messages", enclosingType = "Messages") }
+            .isInstanceOf(ProcessApiNamingException::class.java)
+            .hasMessageContaining("'Messages'")
     }
 
     @Test
-    fun `disambiguated keeps any other member name`() {
-        assertThat(underTest.disambiguated(name = "MiraveloOrderBike", enclosingType = "Messages")).isEqualTo("MiraveloOrderBike")
+    fun `memberOf keeps any other member name`() {
+        assertThat(underTest.memberOf(name = "MiraveloOrderBike", enclosingType = "Messages")).isEqualTo("MiraveloOrderBike")
     }
 
     @Test

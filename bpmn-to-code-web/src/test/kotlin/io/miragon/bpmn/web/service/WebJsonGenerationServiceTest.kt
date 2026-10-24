@@ -70,7 +70,7 @@ class WebJsonGenerationServiceTest {
         // then: a bad request names both files and the way to tell them apart
         assertThat(response.success).isFalse()
         assertThat(response.statusCode).isEqualTo(HttpStatusCode.BadRequest)
-        assertThat(response.error).contains("'bikeLeasing.json'", "corporate (process id 'bikeLeasing'), private (process id 'bikeLeasing')", "variantName")
+        assertThat(response.error).contains("'bikeLeasing.json'", "corporate.bpmn (process id 'bikeLeasing'), private.bpmn (process id 'bikeLeasing')", "variantName")
     }
 
     @Test

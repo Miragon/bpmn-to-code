@@ -21,7 +21,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 )
 public class BpmnJsonMojo extends AbstractBpmnMojo {
 
-	@Parameter(property = "outputFolderPath", defaultValue = "src/main/resources/bpmn-json")
+	/**
+	 * Directory the JSON files are written to.
+	 */
+	@Parameter(property = "outputFolderPath")
 	private String outputFolderPath;
 
 	/**
@@ -37,7 +40,13 @@ public class BpmnJsonMojo extends AbstractBpmnMojo {
 				+ "If you use the Process JSON, describe your use case in https://github.com/Miragon/bpmn-to-code/issues/206.");
 		CreateProcessJsonFilesystemPlugin plugin = new CreateProcessJsonFilesystemPlugin();
 		ProcessEngine engine = processEngine();
-		plugin.execute(baseDir, filePattern, outputFolderPath, engine, new ValidationConfig());
+		String baseDir = baseDir();
+		String filePattern = filePattern();
+		String outputFolder = projectPath("outputFolderPath", outputFolderPath);
+		failingOnRejectedModels(() -> {
+			plugin.execute(baseDir, filePattern, outputFolder, engine, new ValidationConfig());
+			return null;
+		});
 		getLog().info("BPMN JSON files generated successfully");
 	}
 

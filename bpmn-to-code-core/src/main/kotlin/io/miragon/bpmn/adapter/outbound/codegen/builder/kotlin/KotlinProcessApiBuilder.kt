@@ -4,7 +4,9 @@ import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinSyntax.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeMapper
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.GeneratedTypeNames
+import io.miragon.bpmn.adapter.outbound.codegen.freemarker.JvmFlowNodeSyntax
 
 /**
  * Generates the type-safe API contract for a single BPMN process as a Kotlin object file, rendered by
@@ -14,7 +16,7 @@ internal class KotlinProcessApiBuilder : ProcessApiBuilder {
 
     override fun render(api: ProcessApiGraph): SourceCode {
         val file = KotlinSourceFile.of(packagePath = api.packagePath, generatedTypeNames = GeneratedTypeNames.of(api))
-        val mapper = KotlinFlowNodeMapper(file.types)
+        val mapper = FlowNodeMapper(JvmFlowNodeSyntax(file.types, KotlinSyntax))
         return file.render(
             templateName = "kotlin/process-api.ftl",
             model = KotlinProcessApiModel(

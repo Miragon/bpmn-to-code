@@ -257,7 +257,7 @@ class WebGenerationServiceTest {
         // then: a bad request names the API, both files and the way to tell them apart
         assertThat(response.success).isFalse()
         assertThat(response.statusCode).isEqualTo(HttpStatusCode.BadRequest)
-        assertThat(response.error).contains("'BikeLeasingProcessApi'", "bike-leasing-a (process id 'bikeLeasing'), bike-leasing-b (process id 'bikeLeasing')", "variantName")
+        assertThat(response.error).contains("'BikeLeasingProcessApi'", "bike-leasing-a.bpmn (process id 'bikeLeasing'), bike-leasing-b.bpmn (process id 'bikeLeasing')", "variantName")
     }
 
     private fun loadBpmnBase64(resourcePath: String): String {

@@ -97,5 +97,5 @@ A failed request answers with `"success": false` and the reason in `error`.
 
 | Status | When |
 |--------|------|
-| `400` | No files, more than three files, a model that fails [validation](/validate/), or two files that would be generated under one name |
+| `400` | No files, more than three files, a file that is not Base64 or not readable BPMN, a model that fails [validation](/validate/), or two files that would be generated under one name |
 | `500` | Any other failure |

@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.enum
 import io.miragon.bpmn.adapter.inbound.CreateProcessApiFilesystemPlugin
+import io.miragon.bpmn.domain.BpmnFileResult
 import io.miragon.bpmn.domain.shared.OutputLanguage
 
 class GenerateApiCommand : CoreCliktCommand(name = "generate-api") {
@@ -27,13 +28,7 @@ class GenerateApiCommand : CoreCliktCommand(name = "generate-api") {
             outputLanguage = outputLanguage,
             engine = source.processEngine,
         )
-        if (results.isEmpty()) {
-            echo("No BPMN models found")
-            return
-        }
-        results.forEach { result ->
-            val files = result.sourceFiles.joinToString(", ")
-            echo("Generated: ${result.processId} (from $files)")
-        }
+        results.forEach { echo(it.describe()) }
+        echo(BpmnFileResult.summaryOf(results))
     }
 }

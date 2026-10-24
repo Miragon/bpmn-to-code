@@ -2,7 +2,9 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
+import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
@@ -20,7 +22,10 @@ import io.miragon.bpmn.domain.testProcessModel
 import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.withId
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class CSharpProcessApiBuilderTest {
 
@@ -159,8 +164,8 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
-    fun `node references a shared constant under the name its shared class gives it`() {
-        // given: a message named exactly like the shared class, which renames the constant (CS0542)
+    fun `fails on a node referring to a shared constant named like its shared class`() {
+        // given: a message named exactly like the shared class (CS0542)
         val model = testProcessModel(
             flowNodes = listOf(
                 FlowNodeDefinition.Event(
@@ -172,11 +177,10 @@ class CSharpProcessApiBuilderTest {
             messages = listOf(RootElementDefinition.Message(id = "Messages", name = "Messages")),
         )
 
-        // when: we build the process API file
-        val result = underTest.generateCode(csharpApi(model)).single()
-
-        // then: the node points at the renamed constant
-        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.MessageName Message { get; } = new(Messages.Messages_);")
+        // when / then: generation fails instead of renaming the constant
+        assertThatThrownBy { underTest.generateCode(csharpApi(model)) }
+            .isInstanceOf(ProcessApiNamingException::class.java)
+            .hasMessageContaining("'Messages'")
     }
 
     @Test
@@ -211,7 +215,7 @@ class CSharpProcessApiBuilderTest {
     }
 
     @Test
-    fun `a node type named like the property of another node gets a trailing underscore`() {
+    fun `fails on a node type named like the property of another node`() {
         // given: elements whose names differ only by a Node suffix
         val model = testProcessModel(
             flowNodes = listOf(
@@ -221,13 +225,10 @@ class CSharpProcessApiBuilderTest {
             sequenceFlows = listOf(SequenceFlowDefinition(id = "flow_taskToTaskNode", sourceRef = "task", targetRef = "taskNode")),
         )
 
-        // when: we build the process API file
-        val result = underTest.generateCode(csharpApi(model)).single()
-
-        // then: the type of task gives way to the property of taskNode, which keeps its own type
-        assertThat(result.content).contains("public static TaskNode_ Task => TaskNode_.Instance;")
-        assertThat(result.content).contains("public static TaskNodeNode TaskNode => TaskNodeNode.Instance;")
-        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.SequenceFlows<TaskNodeNode> TaskNode => _taskNode ??= ")
+        // when / then: generation fails naming the clashing element instead of renaming the type of task
+        assertThatThrownBy { underTest.generateCode(csharpApi(model)) }
+            .isInstanceOf(ProcessApiNamingException::class.java)
+            .hasMessageContaining("[TaskNode]")
     }
 
     @Test
@@ -254,20 +255,33 @@ class CSharpProcessApiBuilderTest {
         )
     }
 
-    @Test
-    fun `renames a variable that would hide a member its holder inherits`() {
-        // given: a node whose variables are named like the members of VariableDefinitions
-        val variables = listOf("all", "inputs", "outputs", "orderId").map { VariableDefinition(name = it, direction = VariableDirection.INPUT) }
+    @ParameterizedTest
+    @ValueSource(strings = ["all", "inputs", "outputs", "processVariables", "nodeVariables"])
+    fun `fails on a variable that would hide a member of its holder`(variableName: String) {
+        // given: a node with a variable named like a member of VariableDefinitions or a type it refers to
+        val variables = listOf(VariableDefinition(name = variableName, direction = VariableDirection.INPUT))
         val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = "task", variables = variables)))
 
-        // when: we build the process API file
-        val result = underTest.generateCode(csharpApi(model)).single()
+        // when / then: generation fails naming the variable instead of renaming it
+        assertThatThrownBy { underTest.generateCode(csharpApi(model)) }
+            .isInstanceOf(ProcessApiNamingException::class.java)
+            .hasMessageContaining("variable '$variableName'")
+    }
 
-        // then: only the colliding variables are renamed, in the declaration and in the list
-        assertThat(result.content).contains("public global::Miragon.BpmnToCode.Runtime.VariableName.Input All_ { get; } = new(ProcessVariables.All);")
-        assertThat(result.content).contains(
-            "public override global::System.Collections.Generic.IReadOnlyList<global::Miragon.BpmnToCode.Runtime.VariableName> All => new global::Miragon.BpmnToCode.Runtime.VariableName[] { All_, Inputs_, OrderId, Outputs_ };",
+    @Test
+    fun `fails on a mapping target that would be named like its holder`() {
+        // given: a call activity mapping into a variable named like the class holding the input mappings
+        val mapping = CallActivityDefinition.Mapping(direction = VariableDirection.INPUT, source = "contractId", target = "inputMappings")
+        val callActivity = FlowNodeDefinition.Activity.CallActivity(
+            id = "callActivity_cancelBikeOrder",
+            definition = CallActivityDefinition(id = "callActivity_cancelBikeOrder", calledElement = "cancelBikeOrder", mappings = listOf(mapping)),
         )
+        val model = testProcessModel(flowNodes = listOf(callActivity))
+
+        // when / then: generation fails naming the mapping target instead of renaming it
+        assertThatThrownBy { underTest.generateCode(csharpApi(model)) }
+            .isInstanceOf(ProcessApiNamingException::class.java)
+            .hasMessageContaining("mapping target 'inputMappings'")
     }
 
     @Test

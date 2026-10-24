@@ -1,10 +1,8 @@
 package io.miragon.bpmn.application.port.outbound
 
-import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
-import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.domain.ProcessApiRequest
 
 interface GenerateApiCodePort {
-    fun generateCode(modelApi: BpmnModelApi): List<GeneratedApiFile>
-    fun generateSharedCode(api: SharedDefinitionsApi): List<GeneratedApiFile>
+    fun generate(request: ProcessApiRequest): List<GeneratedApiFile>
 }

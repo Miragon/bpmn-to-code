@@ -26,7 +26,7 @@ Every language is written in core; an entry point only chooses one.
 | C# | `builder/csharp`, `templates/csharp` | `Miragon.BpmnToCode.Runtime` (NuGet) | `Miragon.BpmnToCode.MSBuild` during `dotnet build`, or the .NET tool `Miragon.BpmnToCode` | Golden files; `dotnet test` in `packages/nuget/BpmnToCode.Runtime.Tests` |
 | TypeScript | `builder/typescript`, `templates/typescript` | `@miragon/bpmn-to-code-runtime` (npm) | `@miragon/bpmn-to-code` in an npm script | Golden files; `npm test` in `packages/npm/bpmn-to-code-runtime` |
 
-A builder maps the language-neutral graph to a template model and handles keywords, escaping and imports; the FreeMarker template writes the code around it. `CodeGenerationAdapter` picks the builders of a language from one map.
+A builder maps the language-neutral graph to a template model and handles keywords, escaping and imports; the FreeMarker template writes the code around it. Every language renders its flow nodes from the same `FlowNodeModel`, which `FlowNodeMapper` builds; a language only supplies a `FlowNodeSyntax` that writes literals, names and references. `CodeGenerationAdapter` picks the builders of a language from one map.
 
 ## Where the parts live
 
@@ -34,6 +34,7 @@ A builder maps the language-neutral graph to a template model and handles keywor
 bpmn-to-code-core/src/main/
 ├─ kotlin/io/miragon/bpmn/adapter/outbound/codegen/
 │  ├─ flow/, definitions/            language-neutral graphs
+│  ├─ freemarker/                    flow node model and mapper, rendering, type references
 │  └─ builder/<language>/            graph → template model, syntax, imports
 └─ resources/io/miragon/bpmn/codegen/templates/<language>/   FreeMarker templates
 bpmn-to-code-core/src/test/resources/api/   golden files per language
@@ -59,7 +60,7 @@ packages/npm/                               bpmn-to-code-runtime (+ test/), bpmn
 ## Adding a language
 
 1. A value in `OutputLanguage`, which Gradle, Maven and the CLI accept from then on, and an option in the form of the web app.
-2. A package `builder/<language>` and a folder `templates/<language>`, registered in `CodeGenerationAdapter`.
+2. A package `builder/<language>` with a `FlowNodeSyntax`, and a folder `templates/<language>`, registered in `CodeGenerationAdapter`.
 3. Golden files under `src/test/resources/api/`, and tests next to the runtime package that compile the output with the language's own compiler.
 4. A runtime package in the language's registry, if the output refers to runtime types, and a package that starts the CLI there.
 5. A getting-started page and a line in [ADR 007](./adr/007-output-languages).
