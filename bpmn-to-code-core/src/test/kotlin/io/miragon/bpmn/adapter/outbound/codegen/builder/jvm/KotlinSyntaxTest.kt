@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

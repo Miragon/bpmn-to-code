@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder.java
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import com.sun.source.util.JavacTask
 import io.miragon.bpmn.adapter.outbound.assertMatchesGolden

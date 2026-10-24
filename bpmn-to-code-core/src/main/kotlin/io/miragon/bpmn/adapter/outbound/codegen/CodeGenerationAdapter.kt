@@ -2,10 +2,9 @@ package io.miragon.bpmn.adapter.outbound.codegen
 
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.java.JavaSharedDefinitionsBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinProcessApiBuilder
-import io.miragon.bpmn.adapter.outbound.codegen.builder.kotlin.KotlinSharedDefinitionsBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.jvm.JvmLanguage
+import io.miragon.bpmn.adapter.outbound.codegen.builder.jvm.JvmProcessApiBuilder
+import io.miragon.bpmn.adapter.outbound.codegen.builder.jvm.JvmSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
@@ -64,13 +63,13 @@ internal class CodeGenerationAdapter(
         val generators: Map<OutputLanguage, LanguageGenerator> = mapOf(
             OutputLanguage.KOTLIN to LanguageGenerator(
                 fileExtension = "kt",
-                processApiBuilder = KotlinProcessApiBuilder(),
-                sharedDefinitionsBuilder = KotlinSharedDefinitionsBuilder(),
+                processApiBuilder = JvmProcessApiBuilder(JvmLanguage.KOTLIN),
+                sharedDefinitionsBuilder = JvmSharedDefinitionsBuilder(JvmLanguage.KOTLIN),
             ),
             OutputLanguage.JAVA to LanguageGenerator(
                 fileExtension = "java",
-                processApiBuilder = JavaProcessApiBuilder(),
-                sharedDefinitionsBuilder = JavaSharedDefinitionsBuilder(),
+                processApiBuilder = JvmProcessApiBuilder(JvmLanguage.JAVA),
+                sharedDefinitionsBuilder = JvmSharedDefinitionsBuilder(JvmLanguage.JAVA),
             ),
             OutputLanguage.CSHARP to LanguageGenerator(
                 fileExtension = "cs",

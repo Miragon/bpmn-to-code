@@ -21,12 +21,12 @@ Every language is written in core; an entry point only chooses one.
 
 | Language | Rendered by | Runtime types | Generated in its ecosystem by | Checked by |
 |---|---|---|---|---|
-| Kotlin | `builder/kotlin`, `templates/kotlin` | `io.miragon:bpmn-to-code-runtime` (Maven Central) | Gradle or Maven plugin | Golden files; compiled in `NestedSubProcessCompilationTest` |
-| Java | `builder/java`, `templates/java` | `io.miragon:bpmn-to-code-runtime` (Maven Central) | Gradle or Maven plugin | Golden files; compiled in `JavaProcessApiBuilderTest` |
+| Kotlin | `builder/jvm`, `templates/kotlin` | `io.miragon:bpmn-to-code-runtime` (Maven Central) | Gradle or Maven plugin | Golden files; compiled in `NestedSubProcessCompilationTest` |
+| Java | `builder/jvm`, `templates/java` | `io.miragon:bpmn-to-code-runtime` (Maven Central) | Gradle or Maven plugin | Golden files; compiled in `JavaProcessApiBuilderTest` |
 | C# | `builder/csharp`, `templates/csharp` | `Miragon.BpmnToCode.Runtime` (NuGet) | `Miragon.BpmnToCode.MSBuild` during `dotnet build`, or the .NET tool `Miragon.BpmnToCode` | Golden files; `dotnet test` in `packages/nuget/BpmnToCode.Runtime.Tests` |
 | TypeScript | `builder/typescript`, `templates/typescript` | `@miragon/bpmn-to-code-runtime` (npm) | `@miragon/bpmn-to-code` in an npm script | Golden files; `npm test` in `packages/npm/bpmn-to-code-runtime` |
 
-A builder maps the language-neutral graph to a template model and handles keywords, escaping and imports; the FreeMarker template writes the code around it. Every language renders its flow nodes from the same `FlowNodeModel`, which `FlowNodeMapper` builds; a language only supplies a `FlowNodeSyntax` that writes literals, names and references. `CodeGenerationAdapter` picks the builders of a language from one map.
+A builder maps the language-neutral graph to a template model and handles keywords, escaping and imports; the FreeMarker template writes the code around it. Every language renders its flow nodes from the same `FlowNodeModel`, which `FlowNodeMapper` builds; a language only supplies a `FlowNodeSyntax` that writes literals, names and references. `CodeGenerationAdapter` picks the builders of a language from one map. Kotlin and Java share the builders in `builder/jvm`; a `JvmLanguage` holds what sets them apart: syntax, templates, implicit imports and doc comments.
 
 ## Where the parts live
 
@@ -35,7 +35,7 @@ bpmn-to-code-core/src/main/
 ├─ kotlin/io/miragon/bpmn/adapter/outbound/codegen/
 │  ├─ flow/, definitions/            language-neutral graphs
 │  ├─ freemarker/                    flow node model and mapper, rendering, type references
-│  └─ builder/<language>/            graph → template model, syntax, imports
+│  └─ builder/{jvm,csharp,typescript}/   graph → template model, syntax, imports
 └─ resources/io/miragon/bpmn/codegen/templates/<language>/   FreeMarker templates
 bpmn-to-code-core/src/test/resources/api/   golden files per language
 bpmn-to-code-runtime/                       runtime types for Kotlin and Java

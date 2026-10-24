@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder.java
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.domain.ProcessApiNamingException
 import org.assertj.core.api.Assertions.assertThat

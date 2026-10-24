@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.builder.java
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.adapter.outbound.codegen.builder.assertMatchesGoldenFiles
