@@ -1,10 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.adapter.outbound.codegen.PackagePath
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.ImportingSourceFile
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.JvmSyntax
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.RuntimeTypes
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TypeReferences
 
 /**
  * What tells generated Kotlin and Java apart: the templates under `templates/<templateDirectory>`, how names and
@@ -24,7 +20,7 @@ internal enum class JvmLanguage(
     KOTLIN(
         templateDirectory = "kotlin",
         syntax = KotlinSyntax,
-        qualifiedNames = RuntimeTypes.qualifiedNames(listOf("RegisteredVariableDefinitions")) + mapOf(
+        qualifiedNames = JvmRuntimeTypes.qualifiedNames(listOf("RegisteredVariableDefinitions")) + mapOf(
             "Boolean" to "kotlin.Boolean",
             "String" to "kotlin.String",
             "List" to "kotlin.collections.List",
@@ -37,7 +33,7 @@ internal enum class JvmLanguage(
     JAVA(
         templateDirectory = "java",
         syntax = JavaSyntax,
-        qualifiedNames = RuntimeTypes.qualifiedNames(listOf("VariableDefinitions")) + mapOf(
+        qualifiedNames = JvmRuntimeTypes.qualifiedNames(listOf("VariableDefinitions")) + mapOf(
             "List" to "java.util.List",
             "String" to "java.lang.String",
             "Override" to "java.lang.Override",

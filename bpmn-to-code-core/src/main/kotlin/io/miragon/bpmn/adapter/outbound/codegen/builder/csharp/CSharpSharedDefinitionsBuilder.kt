@@ -19,7 +19,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.name
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph.Entry
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph.Group
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TemplateRenderer
+import io.miragon.bpmn.adapter.outbound.codegen.rendering.TemplateRenderer
 
 /**
  * Generates one C# static class per kind of engine-global identifier, shared by all Process APIs of a run. Names are

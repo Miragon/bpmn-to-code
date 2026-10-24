@@ -5,7 +5,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.memb
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.SharedNameAndCode
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.SharedNameAndCode
 
 /**
  * How a shared constant is named in its C# class, and how a flow node refers to it.

@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.flownode
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
@@ -6,7 +6,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.NodeName
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.NodeName
 
 /**
  * What a [FlowNodeMapper] needs to know about one output language: how values, names and references are written.

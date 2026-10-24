@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 

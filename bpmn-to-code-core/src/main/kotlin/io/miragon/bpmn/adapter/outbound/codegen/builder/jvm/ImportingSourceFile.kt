@@ -1,6 +1,7 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
+import io.miragon.bpmn.adapter.outbound.codegen.rendering.TemplateRenderer
 
 /**
  * A generated Kotlin or Java file, whose imports are only known once its body is rendered. The body's template reads

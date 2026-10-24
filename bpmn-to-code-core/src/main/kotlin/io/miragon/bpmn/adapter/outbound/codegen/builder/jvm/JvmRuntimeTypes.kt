@@ -1,10 +1,10 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 /**
  * The `bpmn-to-code-runtime` types generated Kotlin and Java code refers to, by simple name: `SequenceFlows` is
  * `io.miragon.bpmn.runtime.SequenceFlows`.
  */
-internal object RuntimeTypes {
+internal object JvmRuntimeTypes {
 
     private const val PACKAGE = "io.miragon.bpmn.runtime"
 

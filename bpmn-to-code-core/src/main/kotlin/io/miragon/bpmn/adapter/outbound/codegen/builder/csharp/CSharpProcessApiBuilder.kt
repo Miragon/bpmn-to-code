@@ -6,8 +6,8 @@ import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.namespaceOf
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeMapper
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TemplateRenderer
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeMapper
+import io.miragon.bpmn.adapter.outbound.codegen.rendering.TemplateRenderer
 
 /**
  * Generates the process API for a single BPMN process as a C# file, rendered by `templates/csharp/process-api.ftl`.

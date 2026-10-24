@@ -1,6 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.NodeName
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.NodeName
 import io.miragon.bpmn.domain.ProcessApiNamingException
 
 /**

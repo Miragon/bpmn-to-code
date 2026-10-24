@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.rendering
 
 import freemarker.cache.ClassTemplateLoader
 import freemarker.cache.StrongCacheStorage

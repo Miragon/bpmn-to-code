@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.flownode
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType.ERRORS
@@ -14,11 +14,11 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.Flow
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.Mapping
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.Successor
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.Timer
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.Variable
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Flow
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Mapping
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Successor
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Timer
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Variable
 
 /**
  * Turns a node of the flow graph into the [FlowNodeModel] every language renders. What differs per language is how a
