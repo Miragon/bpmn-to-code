@@ -36,20 +36,14 @@ class EngineMismatchRule : SingleModelValidationRule {
     }
 
     private fun mismatchMessage(detected: ProcessEngine, selected: ProcessEngine): String {
-        val detectedName = displayName(detected)
-        val selectedName = displayName(selected)
+        val detectedName = detected.displayName
+        val selectedName = selected.displayName
         return "This model targets $detectedName, but the selected engine is $selectedName. " +
             "These engines use incompatible BPMN configurations — select '$detectedName' " +
             "as the process engine, or provide a model built for $selectedName."
     }
 
     private fun undeterminedMessage(selected: ProcessEngine): String = "Could not determine this model's target engine from its BPMN namespaces, " +
-        "so it cannot be verified against the selected engine (${displayName(selected)}). " +
+        "so it cannot be verified against the selected engine (${selected.displayName}). " +
         "Make sure the model carries the expected engine namespace."
-
-    private fun displayName(engine: ProcessEngine): String = when (engine) {
-        ProcessEngine.ZEEBE -> "Zeebe (Camunda 8)"
-        ProcessEngine.CAMUNDA_7 -> "Camunda 7"
-        ProcessEngine.OPERATON -> "Operaton"
-    }
 }

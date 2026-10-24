@@ -30,7 +30,7 @@ class ExtractBpmnAdapterTest {
     @Test
     fun `extract throws when no dialect is registered for the engine`() {
         // given: an adapter that only knows Zeebe
-        val zeebeOnly = ExtractBpmnAdapter(dialects = ExtractBpmnAdapter.dialects.filterKeys { it == ProcessEngine.ZEEBE })
+        val zeebeOnly = ExtractBpmnAdapter(dialects = EngineDialects.byEngine.filterKeys { it == ProcessEngine.ZEEBE })
         val bpmnResource = classpathResource("c7/bike-leasing.bpmn")
 
         // when / then: an exception is thrown

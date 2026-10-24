@@ -4,24 +4,24 @@ import io.miragon.bpmn.domain.shared.ProcessEngine
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class EngineDetectorTest {
+class EngineDialectsTest {
 
     @Test
     fun `detects Zeebe from its namespace`() {
         val content = """<definitions xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" />"""
-        assertThat(EngineDetector.detect(content)).isEqualTo(ProcessEngine.ZEEBE)
+        assertThat(EngineDialects.detect(content)).isEqualTo(ProcessEngine.ZEEBE)
     }
 
     @Test
     fun `detects Operaton from its namespace`() {
         val content = """<definitions xmlns:operaton="http://operaton.org/schema/1.0/bpmn" />"""
-        assertThat(EngineDetector.detect(content)).isEqualTo(ProcessEngine.OPERATON)
+        assertThat(EngineDialects.detect(content)).isEqualTo(ProcessEngine.OPERATON)
     }
 
     @Test
     fun `detects Camunda 7 from its namespace`() {
         val content = """<definitions xmlns:camunda="http://camunda.org/schema/1.0/bpmn" />"""
-        assertThat(EngineDetector.detect(content)).isEqualTo(ProcessEngine.CAMUNDA_7)
+        assertThat(EngineDialects.detect(content)).isEqualTo(ProcessEngine.CAMUNDA_7)
     }
 
     @Test
@@ -34,12 +34,18 @@ class EngineDetectorTest {
         """.trimIndent()
 
         // then: the modeler namespace must not be mistaken for Camunda 7
-        assertThat(EngineDetector.detect(content)).isEqualTo(ProcessEngine.ZEEBE)
+        assertThat(EngineDialects.detect(content)).isEqualTo(ProcessEngine.ZEEBE)
+    }
+
+    @Test
+    fun `prefers Operaton over Camunda 7 when a model declares both`() {
+        val content = """<definitions xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" />"""
+        assertThat(EngineDialects.detect(content)).isEqualTo(ProcessEngine.OPERATON)
     }
 
     @Test
     fun `returns null for plain BPMN without engine extensions`() {
         val content = """<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" />"""
-        assertThat(EngineDetector.detect(content)).isNull()
+        assertThat(EngineDialects.detect(content)).isNull()
     }
 }

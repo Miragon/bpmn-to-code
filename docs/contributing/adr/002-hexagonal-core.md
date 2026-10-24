@@ -30,7 +30,7 @@ The module map is in [Architecture](/contributing/architecture); the other quali
 - The layer rule alone would let a service use an adapter directly. Only the constructor typing rule and review keep the ports meaningful.
 - The hexagon is a convention of core. The plugin modules keep their classes flat under `adapter`, the web module has its own `routes`, `service` and `model` packages.
 - Konsist reads Kotlin sources. The Maven Mojos are written in Java, so the import restriction does not actually check them, and the testing library is not in the checked list.
-- Two domain rules know engine vocabulary: `engine-mismatch` names the engines, and `missing-service-task-implementation` tells the user which engine attribute to set. This is accepted for two rules; a third one is the trigger to move the wording behind a port.
+- The domain knows some engine vocabulary: `ProcessEngine` carries the display name of each engine, and `missing-service-task-implementation` tells the user which engine attribute to set. This is accepted for one rule; a second one is the trigger to move the wording behind a port.
 
 ## Rejected alternatives
 
