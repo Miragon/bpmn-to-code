@@ -27,12 +27,7 @@ class GenerateProcessApiService(
     override fun generateProcessApi(command: GenerateProcessApiFromFilesystemUseCase.Command): List<BpmnFileResult> {
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val extractedModels = inputFiles.map { SourcedProcessModel(it.fileName, bpmnService.extract(it, command.engine)) }
-        val executableSources = SourcedProcessModel.executableOnly(extractedModels)
-        val sources = BpmnValidationService(command.validationConfig).validateAndNormalize(
-            sources = executableSources,
-            engine = command.engine,
-            artifactNameOf = { toBpmnModelApi(it, command).fileName() },
-        )
+        val sources = BpmnValidationService(command.validationConfig).processApiSources(sources = extractedModels, engine = command.engine)
         val models = sources.map { it.model }
         val processFiles = models.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
         val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(models, command))

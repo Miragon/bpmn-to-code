@@ -84,7 +84,7 @@ BpmnValidator
     .assertNoViolations()
 ```
 
-Any rule can be disabled here, including the ones that are [mandatory](/validate/#built-in-rules) during generation: the testing module generates no code.
+[Mandatory](/validate/#built-in-rules) rules cannot be disabled, as during generation: listing one logs a warning and keeps it active. They also run when `withRules(...)` leaves them out.
 
 ## Treating Warnings as Failures
 
@@ -124,10 +124,7 @@ result.assertNoViolations("empty-process")
 
 ## Built-in Rules
 
-`BpmnRules.all()` holds the rules described in the [rule table](/validate/#built-in-rules), each as a constant named after its ID (`missing-message-name` is `BpmnRules.MISSING_MESSAGE_NAME`). Two differences to generation and the validate task:
-
-- `UNREFERENCED_ROOT_ELEMENT` (WARN) is included: a message, signal, error or escalation that no element references, usually left over from an earlier version of the model.
-- `engine-mismatch` is not available.
+`BpmnRules.all()` holds the rules described in the [rule table](/validate/#built-in-rules), each as a constant named after its ID (`missing-message-name` is `BpmnRules.MISSING_MESSAGE_NAME`). It adds one rule to those of generation and the validate task: `UNREFERENCED_ROOT_ELEMENT` (WARN), a message, signal, error or escalation that no element references, usually left over from an earlier version of the model.
 
 ## Optional Rules (opt-in)
 

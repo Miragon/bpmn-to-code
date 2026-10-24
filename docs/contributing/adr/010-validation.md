@@ -17,8 +17,10 @@ Turning BPMN ids into identifiers of a programming language is lossy: `task-ship
 **Validation runs in three places.**
 
 - *Generation*: the built-in rule set, no settings, non-executable processes left out before validation.
-- *The build task* (`validateBpmnModels`, `validate-bpmn`): the same rule set without generating. Rules can be disabled by id and warnings can fail the build. It is experimental ([record 11](011-compatibility-policy.md)).
-- *The testing library* (`bpmn-to-code-testing`): a fluent test API with AssertJ assertions. It has a default rule set of its own, further opt-in rules, and is the only place where custom rules can be added.
+- *The build task* (`validateBpmnModels`, `validate-bpmn`): the same checks as the generation of the Process API, without generating: the same rule set on the executable processes, and the rejection of files generated under one name. Rules can be disabled by id and warnings can fail the build. It is experimental ([record 11](011-compatibility-policy.md)).
+- *The testing library* (`bpmn-to-code-testing`): a fluent test API with AssertJ assertions. Its default rule set is the built-in one plus `unreferenced-root-element`, it has further opt-in rules, and is the only place where custom rules can be added. The mandatory rules run there too, whatever is selected or disabled.
+
+**One catalogue and one pipeline.** `BuiltInRules` in core lists the built-in rules once, and `BpmnValidationService` runs them for every entry point: generation, the build task and the testing library differ only in the models they hand over and in what they do with the result.
 
 **The testing library is a separate artifact.** It exposes AssertJ, which must not reach the classpath of the build plugins. It carries core's classes itself ([record 1](001-product-surfaces-and-distribution.md)).
 
@@ -28,14 +30,9 @@ The rule table is in [Validate](/validate/), the test API in [Testing](/validate
 
 - A model an engine accepts can be rejected by the generator until ids are renamed.
 - The build plugins have no extension point for rules. A custom rule runs in tests only.
-- The three places do not behave identically. The build task validates non-executable processes, generation does not. The testing library's default set contains `unreferenced-root-element` and lacks `engine-mismatch`; the built-in set of generation and the build task is the other way round. The testing library selects rules before core sees them, so there a mandatory rule can be disabled or left out.
+- The testing library validates every model it loads, also a non-executable one, and does not reject files generated under one name: it generates nothing.
+- A test that selects only its own rule still sees the findings of the mandatory rules.
 - A custom rule is written against core's `domain` package, which makes that package public API ([record 11](011-compatibility-policy.md)).
-
-## Open questions
-
-- Should the build-time validate task skip non-executable processes, as generation does?
-- Is it intentional that `engine-mismatch` is absent from `BpmnRules.all()`?
-- Should the testing library keep being able to disable mandatory rules?
 
 ## Rejected alternatives
 

@@ -1,118 +1,118 @@
 package io.miragon.bpmn.domain.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.miragon.bpmn.domain.GeneratedJsonFile
+import io.miragon.bpmn.domain.ProcessApiNames
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.validation.BpmnValidationException
+import io.miragon.bpmn.domain.validation.BuiltInRules
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.ValidationRule
 import io.miragon.bpmn.domain.validation.model.CrossModelValidationContext
+import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
 import io.miragon.bpmn.domain.validation.model.ValidationViolation
-import io.miragon.bpmn.domain.validation.rules.CollisionDetectionRule
-import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
-import io.miragon.bpmn.domain.validation.rules.EngineMismatchRule
-import io.miragon.bpmn.domain.validation.rules.MissingCalledElementRule
-import io.miragon.bpmn.domain.validation.rules.MissingElementIdRule
-import io.miragon.bpmn.domain.validation.rules.MissingErrorDefinitionRule
-import io.miragon.bpmn.domain.validation.rules.MissingMessageNameRule
-import io.miragon.bpmn.domain.validation.rules.MissingProcessIdRule
-import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
-import io.miragon.bpmn.domain.validation.rules.MissingSignalNameRule
-import io.miragon.bpmn.domain.validation.rules.MissingTimerDefinitionRule
-import io.miragon.bpmn.domain.validation.rules.ReservedElementNameRule
-import io.miragon.bpmn.domain.validation.rules.SharedDefinitionCollisionRule
 
+/**
+ * The one validation every entry point runs. Each model is validated on its own, and the models against each other
+ * once none of them has an error. Generation and the build task check the same: the processes that get a Process API
+ * pass the rules, and no two files would be generated under one name.
+ */
 class BpmnValidationService(
     private val config: ValidationConfig = ValidationConfig(),
-    rules: List<ValidationRule> = builtInRules(),
+    rules: List<ValidationRule> = BuiltInRules.defaults(),
 ) {
 
     private val logger = KotlinLogging.logger {}
 
-    private val singleModelRules = rules.filterIsInstance<SingleModelValidationRule>()
-    private val crossModelRules = rules.filterIsInstance<CrossModelValidationRule>()
+    private val singleModelRules = rules.filterIsInstance<SingleModelValidationRule>().filter { it.isActive() }
+    private val crossModelRules = rules.filterIsInstance<CrossModelValidationRule>().filter { it.isActive() }
 
     init {
-        warnOnDisabledMandatoryRules()
+        warnOnDisabledMandatoryRules(rules)
     }
 
-    fun collectSingleModelViolations(models: List<ProcessModel>, engine: ProcessEngine): List<ValidationViolation> {
-        val activeRules = singleModelRules.filterNot { it.id in config.disabledRules && !it.mandatory }
-        return models.flatMap { model ->
-            val ctx = SingleModelValidationContext(model, engine)
-            activeRules.flatMap { it.validate(ctx) }
+    fun validate(models: List<ProcessModel>, engine: ProcessEngine): ValidationResult {
+        val singleModelViolations = models.flatMap { model ->
+            val context = SingleModelValidationContext(model, engine)
+            singleModelRules.flatMap { it.validate(context) }
         }
-    }
-
-    fun collectCrossModelViolations(models: List<ProcessModel>, engine: ProcessEngine): List<ValidationViolation> {
-        val ctx = CrossModelValidationContext(models, engine)
-        return crossModelRules.filterNot { it.id in config.disabledRules && !it.mandatory }.flatMap { it.validate(ctx) }
-    }
-
-    /**
-     * Validates each model on its own, and the models against each other once every one of them is sound.
-     */
-    fun validate(models: List<ProcessModel>, engine: ProcessEngine) {
-        failOn(collectSingleModelViolations(models, engine))
-        failOn(collectCrossModelViolations(models, engine))
+        if (singleModelViolations.any { it.severity == Severity.ERROR }) {
+            return ValidationResult(singleModelViolations)
+        }
+        val context = CrossModelValidationContext(models, engine)
+        val crossModelViolations = crossModelRules.flatMap { it.validate(context) }
+        return ValidationResult(singleModelViolations + crossModelViolations)
     }
 
     /**
-     * The checks every generation runs before it writes anything: the models are validated, no two files may be
-     * generated under one name, and what passes is normalized and put into the order it is generated in.
+     * What the build task reports: the findings of the processes that get a Process API.
+     *
+     * @throws io.miragon.bpmn.domain.ProcessApiNamingException when the models pass but two files would be generated
+     * under one name
      */
-    fun validateAndNormalize(
+    fun validateProcessApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): ValidationResult {
+        val executableSources = SourcedProcessModel.executableOnly(sources)
+        return validateSources(sources = executableSources, engine = engine, artifactNameOf = ProcessApiNames::apiTypeName)
+    }
+
+    /**
+     * The processes a Process API is generated for, normalized and in the order they are generated in.
+     */
+    fun processApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): List<SourcedProcessModel> {
+        val executableSources = SourcedProcessModel.executableOnly(sources)
+        failOn(validateSources(sources = executableSources, engine = engine, artifactNameOf = ProcessApiNames::apiTypeName))
+        return normalized(executableSources)
+    }
+
+    /**
+     * The processes a Process JSON is generated for: all of them, normalized and in the order they are generated in.
+     */
+    fun processJsonSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): List<SourcedProcessModel> {
+        failOn(validateSources(sources = sources, engine = engine, artifactNameOf = GeneratedJsonFile::nameOf))
+        return normalized(sources)
+    }
+
+    private fun validateSources(
         sources: List<SourcedProcessModel>,
         engine: ProcessEngine,
         artifactNameOf: (ProcessModel) -> String,
-    ): List<SourcedProcessModel> {
-        validate(models = sources.map { it.model }, engine = engine)
-        SourcedProcessModel.requireDistinctArtifactNames(sources, artifactNameOf)
+    ): ValidationResult {
+        val result = validate(models = sources.map { it.model }, engine = engine)
+        if (!result.hasFailures(config.failOnWarning)) {
+            SourcedProcessModel.requireDistinctArtifactNames(sources, artifactNameOf)
+        }
+        return result
+    }
+
+    private fun normalized(sources: List<SourcedProcessModel>): List<SourcedProcessModel> {
         val normalizedSources = sources.map { it.copy(model = it.model.normalized()) }
         return normalizedSources.sortedBy { it.model.apiName }
     }
 
-    private fun failOn(violations: List<ValidationViolation>) {
-        val result = ValidationResult(violations)
+    private fun failOn(result: ValidationResult) {
         result.warnings.forEach { logger.warn { it.describe() } }
-        val failures = result.failures(config.failOnWarning)
+        val failures: List<ValidationViolation> = result.failures(config.failOnWarning)
         if (failures.isNotEmpty()) {
             throw BpmnValidationException(failures)
         }
     }
+
+    private fun ValidationRule.isActive(): Boolean = mandatory || id !in config.disabledRules
 
     /**
      * Mandatory rules are integrity-critical: they stay active on every path and cannot be disabled
      * via [ValidationConfig.disabledRules]. When a caller tries anyway, the attempt is surfaced as a
      * warning rather than silently ignored — the rule is kept active regardless.
      */
-    private fun warnOnDisabledMandatoryRules() {
-        (singleModelRules + crossModelRules).filter { it.mandatory && it.id in config.disabledRules }.forEach { rule ->
+    private fun warnOnDisabledMandatoryRules(rules: List<ValidationRule>) {
+        rules.filter { it.mandatory && it.id in config.disabledRules }.forEach { rule ->
             logger.warn { "[BPMN VALIDATION] Rule '${rule.id}' is mandatory and cannot be disabled; keeping it active." }
         }
-    }
-
-    companion object {
-
-        private fun builtInRules(): List<ValidationRule> = listOf(
-            EngineMismatchRule(),
-            MissingServiceTaskImplementationRule(),
-            MissingMessageNameRule(),
-            MissingErrorDefinitionRule(),
-            MissingSignalNameRule(),
-            MissingTimerDefinitionRule(),
-            MissingCalledElementRule(),
-            MissingElementIdRule(),
-            EmptyProcessRule(),
-            MissingProcessIdRule(),
-            CollisionDetectionRule(),
-            ReservedElementNameRule(),
-            SharedDefinitionCollisionRule(),
-        )
     }
 }

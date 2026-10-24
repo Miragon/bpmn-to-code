@@ -17,11 +17,5 @@ data class BpmnModelApi(
     val targetEngine: ProcessEngine,
 ) {
 
-    fun fileName(): String {
-        val separatedApiName = model.apiName.split("_", "-")
-        val apiName = separatedApiName.joinToString("") { it.camelCase() }
-        return "${apiName}ProcessApi"
-    }
-
-    private fun String.camelCase() = replaceFirstChar { it.uppercase() }
+    fun fileName(): String = ProcessApiNames.apiTypeName(model)
 }

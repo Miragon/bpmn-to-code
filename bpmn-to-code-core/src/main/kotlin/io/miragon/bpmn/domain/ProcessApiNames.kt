@@ -104,6 +104,16 @@ object ProcessApiNames {
     )
 
     /**
+     * The name of the Process API generated from [model], e.g. `CorporateBikeLeasingProcessApi` for the process
+     * `bikeLeasing` with the variant name `corporate`
+     */
+    fun apiTypeName(model: ProcessModel): String {
+        val separatedApiName = model.apiName.split("_", "-")
+        val apiName = separatedApiName.joinToString("") { word -> word.replaceFirstChar { it.uppercase() } }
+        return "${apiName}ProcessApi"
+    }
+
+    /**
      * e.g. `serviceTask_sendContract` is `ServiceTaskSendContract`
      */
     fun elementName(elementId: String): String = elementId.toCamelCase()

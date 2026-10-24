@@ -18,7 +18,6 @@ import io.miragon.bpmn.domain.validation.rules.EmptyProcessRule
 import io.miragon.bpmn.domain.validation.rules.MissingServiceTaskImplementationRule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 
 class BpmnValidationServiceTest {
@@ -36,24 +35,20 @@ class BpmnValidationServiceTest {
         // given: a valid BPMN model whose detected engine matches the selected one
         val model = testProcessModel(detectedEngine = ProcessEngine.ZEEBE)
 
-        // when / then: no exception is thrown
-        assertDoesNotThrow {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        // when / then: no error is reported
+        assertThat(underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE).hasErrors).isFalse()
     }
 
     @Test
-    fun `throws BpmnValidationException for missing service task implementation`() {
+    fun `reports missing service task implementation`() {
         // given: a model with a service task that has no implementation
         val model = testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
 
         // then: the missing-implementation rule fires
-        assertThat(exception.violations).anyMatch { it.ruleId == "missing-service-task-implementation" }
+        assertThat(result.violations).anyMatch { it.ruleId == "missing-service-task-implementation" }
     }
 
     @Test
@@ -64,10 +59,8 @@ class BpmnValidationServiceTest {
         )
         val model = testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))
 
-        // when / then: no exception is thrown because the rule is disabled
-        assertDoesNotThrow {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        // when / then: no error is reported because the rule is disabled
+        assertThat(underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE).hasErrors).isFalse()
     }
 
     @Test
@@ -75,21 +68,19 @@ class BpmnValidationServiceTest {
         // given: a model that produces only warnings (empty process)
         val model = testProcessModel(flowNodes = emptyList())
 
-        // when / then: no exception is thrown
-        assertDoesNotThrow {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        // when / then: no error is reported
+        assertThat(underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE).hasErrors).isFalse()
     }
 
     @Test
-    fun `failOnWarning promotes warnings to failures`() {
+    fun `failOnWarning promotes warnings to failures of the generation`() {
         // given: a service with failOnWarning and a model with an empty process
         val underTest = BpmnValidationService(ValidationConfig(failOnWarning = true))
-        val model = testProcessModel(flowNodes = emptyList())
+        val sources = listOf(SourcedProcessModel("empty.bpmn", testProcessModel(flowNodes = emptyList())))
 
         // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
+            underTest.processApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
         }
 
         // then: the empty-process warning is treated as a failure
@@ -97,17 +88,15 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `throws BpmnValidationException for flow node with null element id`() {
+    fun `reports flow node with null element id`() {
         // given: a model containing a flow node without an ID
         val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
 
         // then: the missing-element-id rule fires with ERROR severity
-        assertThat(exception.violations).anyMatch {
+        assertThat(result.violations).anyMatch {
             it.ruleId == "missing-element-id" && it.severity == Severity.ERROR
         }
     }
@@ -123,12 +112,10 @@ class BpmnValidationServiceTest {
         )
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
 
         // then: the collision-detection rule fires
-        assertThat(exception.violations).anyMatch { it.ruleId == "collision-detection" }
+        assertThat(result.violations).anyMatch { it.ruleId == "collision-detection" }
     }
 
     @Test
@@ -140,12 +127,10 @@ class BpmnValidationServiceTest {
         )
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
 
         // then: the collision-detection rule fires
-        assertThat(exception.violations).anyMatch { it.ruleId == "collision-detection" }
+        assertThat(result.violations).anyMatch { it.ruleId == "collision-detection" }
     }
 
     @Test
@@ -155,12 +140,10 @@ class BpmnValidationServiceTest {
         val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")))
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(first, second), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(first, second), engine = ProcessEngine.ZEEBE)
 
         // then: the shared-definition-collision rule fires
-        assertThat(exception.violations).anyMatch { it.ruleId == "shared-definition-collision" }
+        assertThat(result.violations).anyMatch { it.ruleId == "shared-definition-collision" }
     }
 
     @Test
@@ -171,12 +154,10 @@ class BpmnValidationServiceTest {
         val second = testProcessModel(processId = "second", flowNodes = listOf(jobWorkerTask(id = "task2", jobType = "newsletter-sendMail")))
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(first, second), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(first, second), engine = ProcessEngine.ZEEBE)
 
         // then: the rule still fires despite being disabled
-        assertThat(exception.violations).anyMatch { it.ruleId == "shared-definition-collision" }
+        assertThat(result.violations).anyMatch { it.ruleId == "shared-definition-collision" }
     }
 
     @Test
@@ -191,12 +172,10 @@ class BpmnValidationServiceTest {
         )
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
 
         // then: the collision-detection rule still fires despite being disabled
-        assertThat(exception.violations).anyMatch { it.ruleId == "collision-detection" }
+        assertThat(result.violations).anyMatch { it.ruleId == "collision-detection" }
     }
 
     @Test
@@ -206,12 +185,10 @@ class BpmnValidationServiceTest {
         val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = null)))
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
 
         // then: the missing-element-id rule still fires despite being disabled
-        assertThat(exception.violations).anyMatch { it.ruleId == "missing-element-id" }
+        assertThat(result.violations).anyMatch { it.ruleId == "missing-element-id" }
     }
 
     @Test
@@ -225,7 +202,7 @@ class BpmnValidationServiceTest {
         )
 
         // when
-        val violations = underTest.collectSingleModelViolations(models = listOf(emptyModel, unimplementedModel), engine = ProcessEngine.ZEEBE)
+        val violations = underTest.validate(models = listOf(emptyModel, unimplementedModel), engine = ProcessEngine.ZEEBE).violations
 
         // then: only the given rule reports, the built-in service-task check does not run
         assertThat(violations.map { it.ruleId to it.processId }).containsExactly("empty-process" to "empty")
@@ -238,12 +215,10 @@ class BpmnValidationServiceTest {
         val model = testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(model), engine = ProcessEngine.ZEEBE)
 
         // then: only the single-model rule reports
-        assertThat(exception.violations).extracting("ruleId").containsExactly("missing-service-task-implementation")
+        assertThat(result.violations).extracting("ruleId").containsExactly("missing-service-task-implementation")
     }
 
     @Test
@@ -252,16 +227,14 @@ class BpmnValidationServiceTest {
         val underTest = BpmnValidationService(rules = listOf(MissingServiceTaskImplementationRule(), RejectsEveryModelSetRule()))
 
         // when
-        val exception = assertThrows<BpmnValidationException> {
-            underTest.validate(models = listOf(testProcessModel()), engine = ProcessEngine.ZEEBE)
-        }
+        val result = underTest.validate(models = listOf(testProcessModel()), engine = ProcessEngine.ZEEBE)
 
         // then
-        assertThat(exception.violations).extracting("ruleId").containsExactly("rejects-every-model-set")
+        assertThat(result.violations).extracting("ruleId").containsExactly("rejects-every-model-set")
     }
 
     @Test
-    fun `validateAndNormalize keeps files sharing a process id apart once their variant names differ`() {
+    fun `processApiSources keeps files sharing a process id apart once their variant names differ`() {
         // given: two files of one process, one of them with a variant name
         val sources = listOf(
             SourcedProcessModel("corporate/order.bpmn", testProcessModel(variantName = "corporate")),
@@ -269,7 +242,7 @@ class BpmnValidationServiceTest {
         )
 
         // when
-        val normalizedSources = underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
+        val normalizedSources = underTest.processApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
 
         // then: each file stays a model of its own, in the order of the names they are generated under
         assertThat(normalizedSources.map { it.fileName }).containsExactly("corporate/order.bpmn", "default/order.bpmn")
@@ -277,19 +250,19 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `validateAndNormalize rejects a process id declared in several files without telling them apart`() {
+    fun `processApiSources rejects a process id declared in several files without telling them apart`() {
         val sources = listOf(
             SourcedProcessModel("v1.bpmn", testProcessModel()),
             SourcedProcessModel("v2.bpmn", testProcessModel()),
         )
 
         assertThrows<ProcessApiNamingException> {
-            underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
+            underTest.processApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
         }
     }
 
     @Test
-    fun `validateAndNormalize validates each file before rejecting a shared process id`() {
+    fun `processApiSources validates each file before rejecting a shared process id`() {
         // given: two files of one process, one of them with a service task lacking an implementation
         val sources = listOf(
             SourcedProcessModel("v1.bpmn", testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))),
@@ -298,7 +271,7 @@ class BpmnValidationServiceTest {
 
         // when
         val exception = assertThrows<BpmnValidationException> {
-            underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
+            underTest.processApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
         }
 
         // then: the violation is reported, not the shared process id
@@ -306,16 +279,52 @@ class BpmnValidationServiceTest {
     }
 
     @Test
-    fun `validateAndNormalize normalizes the models it returns`() {
+    fun `processApiSources normalizes the models it returns`() {
         // given: a model whose flow nodes are unsorted
         val model = testProcessModel(flowNodes = listOf(FlowNodeDefinition.Unknown(id = "z-node"), FlowNodeDefinition.Unknown(id = "a-node")))
         val sources = listOf(SourcedProcessModel("order.bpmn", model))
 
         // when
-        val normalizedSources = underTest.validateAndNormalize(sources = sources, engine = ProcessEngine.ZEEBE) { it.apiName }
+        val normalizedSources = underTest.processApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
 
         // then
         assertThat(normalizedSources.single().model.flowNodes.map { it.id }).containsExactly("a-node", "z-node")
+    }
+
+    @Test
+    fun `processApiSources leaves out non-executable processes`() {
+        val sources = listOf(
+            SourcedProcessModel("order.bpmn", testProcessModel()),
+            SourcedProcessModel("draft.bpmn", testProcessModel(processId = "draft").copy(isExecutable = false)),
+        )
+
+        val apiSources = underTest.processApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
+
+        assertThat(apiSources.map { it.fileName }).containsExactly("order.bpmn")
+    }
+
+    @Test
+    fun `validateProcessApiSources checks what the generation checks`() {
+        // given: a non-executable process that would fail, and two files sharing a process id
+        val sources = listOf(
+            SourcedProcessModel("draft.bpmn", testProcessModel(processId = "draft", flowNodes = listOf(serviceTaskWithoutImplementation("task1"))).copy(isExecutable = false)),
+            SourcedProcessModel("v1.bpmn", testProcessModel()),
+            SourcedProcessModel("v2.bpmn", testProcessModel()),
+        )
+
+        // when / then: the draft is left out, and the shared process id is rejected as in the generation
+        assertThrows<ProcessApiNamingException> {
+            underTest.validateProcessApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
+        }
+    }
+
+    @Test
+    fun `validateProcessApiSources reports the findings instead of throwing them`() {
+        val sources = listOf(SourcedProcessModel("order.bpmn", testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))))
+
+        val result = underTest.validateProcessApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
+
+        assertThat(result.errors).extracting("ruleId").containsExactly("missing-service-task-implementation")
     }
 
     private class RejectsEveryModelSetRule : CrossModelValidationRule {
