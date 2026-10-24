@@ -19,11 +19,6 @@ class TypeScriptSyntaxTest {
     }
 
     @Test
-    fun `nullableStringLiteral writes a missing value as null`() {
-        assertThat(underTest.nullableStringLiteral(value = null)).isEqualTo("null")
-    }
-
-    @Test
     fun `identifier keeps a valid name`() {
         assertThat(underTest.identifier(name = "ServiceTaskSendContract")).isEqualTo("ServiceTaskSendContract")
     }

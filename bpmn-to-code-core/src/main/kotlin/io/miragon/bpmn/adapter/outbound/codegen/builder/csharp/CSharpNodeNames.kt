@@ -1,7 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpProcessApiModel.NodeName
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.disambiguated
+import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.NodeName
 
 /**
  * How the flow nodes of one Process API are named in C#: reached through the property `FlowNodes.<Node>`, typed by
@@ -16,7 +16,7 @@ internal class CSharpNodeNames(objectNames: Collection<String>) {
     /**
      * e.g. property `ServiceTaskSendContract` and type `ServiceTaskSendContractNode`
      */
-    fun of(objectName: String): NodeName = NodeName(property = propertyName(objectName), type = typeName(objectName))
+    fun of(objectName: String): NodeName = NodeName(type = typeName(objectName), property = propertyName(objectName))
 
     /**
      * Renamed only when it would equal `FlowNodes` itself.

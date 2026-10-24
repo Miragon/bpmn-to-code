@@ -27,14 +27,6 @@ internal object CSharpSyntax {
     }
 
     /**
-     * e.g. `"Send contract"`, or `null` for a missing value
-     */
-    fun nullableStringLiteral(value: String?): String {
-        if (value == null) return "null"
-        return stringLiteral(value)
-    }
-
-    /**
      * PascalCase identifier for a BPMN name, derived from the UPPER_SNAKE_CASE form so that the sanitising already done
      * there applies to C# identifiers too: `miravelo.orderBike` becomes `MiraveloOrderBike`, `3rdReminder` becomes
      * `_3RdReminder`.

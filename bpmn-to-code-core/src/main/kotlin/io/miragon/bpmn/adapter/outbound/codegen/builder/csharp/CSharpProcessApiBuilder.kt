@@ -6,6 +6,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.namespaceOf
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.pascalCase
 import io.miragon.bpmn.adapter.outbound.codegen.builder.csharp.CSharpSyntax.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeMapper
 import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TemplateRenderer
 
 /**
@@ -18,7 +19,7 @@ internal class CSharpProcessApiBuilder : ProcessApiBuilder {
 
     override fun render(api: ProcessApiGraph): SourceCode {
         val nodes = api.flow?.nodes
-        val mapper = CSharpFlowNodeMapper(CSharpNodeNames(nodes.orEmpty().map { it.objectName }))
+        val mapper = FlowNodeMapper(CSharpFlowNodeSyntax(CSharpNodeNames(nodes.orEmpty().map { it.objectName })))
         val rendered = TemplateRenderer.render(
             templateName = "csharp/process-api.ftl",
             model = CSharpProcessApiModel(

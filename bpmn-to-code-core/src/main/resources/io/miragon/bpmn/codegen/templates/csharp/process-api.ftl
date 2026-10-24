@@ -26,7 +26,7 @@ public static class ${typeName}
 <#if node.eventType??>
             public ${runtime}.BpmnEventType EventType => ${runtime}.BpmnEventType.${node.eventType};
 </#if>
-            public string? Name => ${node.name};
+            public string? Name => ${node.name!"null"};
 <#if node.jobType??>
             public string JobType { get; } = ${node.jobType};
 </#if>
@@ -37,10 +37,10 @@ public static class ${typeName}
             public ${runtime}.BpmnTimer Timer { get; } = new(${runtime}.TimerType.${node.timer.type}, ${node.timer.expression});
 </#if>
 <#if node.message??>
-            public ${runtime}.MessageName Message { get; } = new(${node.message});
+            public ${runtime}.MessageName Message { get; } = new(${node.message.reference!node.message.literal});
 </#if>
 <#if node.signal??>
-            public ${runtime}.SignalName Signal { get; } = new(${node.signal});
+            public ${runtime}.SignalName Signal { get; } = new(${node.signal.reference!node.signal.literal});
 </#if>
 <#if node.error??>
             public ${runtime}.BpmnErrorDefinition Error { get; } = new(${node.error.name}, ${node.error.code});
@@ -120,7 +120,7 @@ public static class ${typeName}
             public sealed class ${className}
             {
 <#items as mapping>
-                public ${runtime}.InputOutputMapping ${memberName(mapping.name, className)} { get; } = new(${mapping.target}, ${mapping.source}, ${mapping.sourceExpression});
+                public ${runtime}.InputOutputMapping ${memberName(mapping.name, className)} { get; } = new(${mapping.target}, ${mapping.source!"null"}, ${mapping.sourceExpression!"null"});
 </#items>
             }
 </#list>

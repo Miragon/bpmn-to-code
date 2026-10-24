@@ -1,6 +1,6 @@
 <#list flowNodes! as node>
-export class ${node.className} implements ${node.interfaces?join(", ")} {
-  static readonly INSTANCE = new ${node.className}();
+export class ${node.type} implements ${node.interfaces?join(", ")} {
+  static readonly INSTANCE = new ${node.type}();
 
   private constructor() {}
 
@@ -10,7 +10,7 @@ export class ${node.className} implements ${node.interfaces?join(", ")} {
 <#if node.eventType??>
   readonly eventType = ${node.eventType};
 </#if>
-  readonly name = ${node.name};
+  readonly name = ${node.name!"null"};
 <#if node.jobType??>
   readonly jobType = ${node.jobType};
 </#if>
@@ -18,13 +18,13 @@ export class ${node.className} implements ${node.interfaces?join(", ")} {
   readonly calledProcess = ${node.calledProcess};
 </#if>
 <#if node.timer??>
-  readonly timer = { type: ${node.timer.type}, timerValue: ${node.timer.value} } as const;
+  readonly timer = { type: ${node.timer.type}, timerValue: ${node.timer.expression} } as const;
 </#if>
 <#if node.message??>
-  readonly message = ${node.message};
+  readonly message = ${node.message.reference!node.message.literal};
 </#if>
 <#if node.signal??>
-  readonly signal = ${node.signal};
+  readonly signal = ${node.signal.reference!node.signal.literal};
 </#if>
 <#if node.error??>
 <@sharedNameAndCode property="error" definition=node.error/>
@@ -40,15 +40,15 @@ export class ${node.className} implements ${node.interfaces?join(", ")} {
 </#if>
 <#if node.attachedTo??>
 
-  get attachedTo(): ${node.attachedTo} {
-    return ${node.attachedTo}.INSTANCE;
+  get attachedTo(): ${node.attachedTo.type} {
+    return ${node.attachedTo.type}.INSTANCE;
   }
 </#if>
 <#list node.variables>
 
   readonly variables = ${runtimeValues.variableDefinitions}({
 <#items as variable>
-    ${variable.key}: ${runtimeValues[variable.subtype?uncap_first]}(${variable.nameConstant}),
+    ${variable.name}: ${runtimeValues[variable.subtype?uncap_first]}(${variable.nameConstant}),
 </#items>
   });
 </#list>
@@ -58,7 +58,7 @@ export class ${node.className} implements ${node.interfaces?join(", ")} {
 
   readonly next = {
 <#items as successor>
-    get ${successor.key}(): ${runtimeTypes[successor.type]}<${successor.target}> {
+    get ${successor.target.property}(): ${runtimeTypes[successor.type]}<${successor.target.type}> {
       return ${runtimeValues[successor.type?uncap_first]}(${successorArguments(successor)});
     },
 </#items>
@@ -68,8 +68,8 @@ export class ${node.className} implements ${node.interfaces?join(", ")} {
 
   readonly startEvents = {
 <#items as start>
-    get ${start.key}(): ${start.className} {
-      return ${start.className}.INSTANCE;
+    get ${start.property}(): ${start.type} {
+      return ${start.type}.INSTANCE;
     },
 </#items>
   };
@@ -83,12 +83,12 @@ export const ${typeName} = {
 <#if flowNodes??>
   FlowNodes: {
 <#list flowNodes as node>
-    ${node.className}: ${node.className}.INSTANCE,
+    ${node.type}: ${node.type}.INSTANCE,
 </#list>
     get all(): readonly ${runtimeTypes.FlowNode}[] {
       return [
 <#list flowNodes as node>
-        ${node.className}.INSTANCE,
+        ${node.type}.INSTANCE,
 </#list>
       ];
     },
@@ -107,14 +107,14 @@ export const ${typeName} = {
 
   readonly ${property} = {
 <#items as mapping>
-    ${mapping.key}: { target: ${mapping.target}, source: ${mapping.source}, sourceExpression: ${mapping.sourceExpression} },
+    ${mapping.name}: { target: ${mapping.target}, source: ${mapping.source!"null"}, sourceExpression: ${mapping.sourceExpression!"null"} },
 </#items>
   } as const;
 </#list>
 </#macro>
 <#-- e.g. `SubProcessConcludeContract.INSTANCE, { id: "flow_isSolventToConcludeContract", name: "Yes", isDefault: true }` -->
 <#function successorArguments successor>
-  <#local arguments = ["${successor.target}.INSTANCE"]>
+  <#local arguments = ["${successor.target.type}.INSTANCE"]>
   <#list successor.flows as flow>
     <#local arguments += [flowLiteral(flow)]>
   </#list>

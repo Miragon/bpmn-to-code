@@ -17,11 +17,6 @@ class JavaSyntaxTest {
     }
 
     @Test
-    fun `nullableStringLiteral writes null for a missing value`() {
-        assertThat(JavaSyntax.nullableStringLiteral(null)).isEqualTo("null")
-    }
-
-    @Test
     fun `identifier keeps a valid name`() {
         assertThat(JavaSyntax.identifier("serviceTaskSendContract")).isEqualTo("serviceTaskSendContract")
     }

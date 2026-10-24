@@ -5,6 +5,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSyntax.stringLiteral
+import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeMapper
 
 /**
  * Generates the Process API of one BPMN process as a TypeScript module, rendered by
@@ -26,7 +27,7 @@ internal class TypeScriptProcessApiBuilder : ProcessApiBuilder {
     override fun render(api: ProcessApiGraph): SourceCode {
         requireNoClassShadowsModuleName(api)
         val file = TypeScriptSourceFile()
-        val mapper = TypeScriptFlowNodeMapper(file)
+        val mapper = FlowNodeMapper(TypeScriptFlowNodeSyntax(file))
         return file.render(
             templateName = "typescript/process-api.ftl",
             model = TypeScriptProcessApiModel(

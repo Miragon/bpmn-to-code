@@ -25,14 +25,6 @@ internal object JavaSyntax : JvmSyntax {
     }
 
     /**
-     * e.g. `"Send contract"`, or `null` for a missing value
-     */
-    fun nullableStringLiteral(value: String?): String {
-        if (value == null) return "null"
-        return stringLiteral(value)
-    }
-
-    /**
      * [name] unchanged.
      * Generation fails on a name that is no valid Java identifier, such as `send-contract`,
      * rather than emitting code that does not compile.

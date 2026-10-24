@@ -23,11 +23,6 @@ class CSharpSyntaxTest {
     }
 
     @Test
-    fun `nullableStringLiteral writes a missing value as null`() {
-        assertThat(underTest.nullableStringLiteral(value = null)).isEqualTo("null")
-    }
-
-    @Test
     fun `pascalCase joins the words of a BPMN name`() {
         assertThat(underTest.pascalCase(name = "miravelo.orderBike")).isEqualTo("MiraveloOrderBike")
     }

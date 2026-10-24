@@ -10,13 +10,13 @@ object ${typeName} {
   object FlowNodes {
     val all: ${types.List}<${types.FlowNode}> = listOf(
 <#list flowNodes as node>
-      ${node.objectName},
+      ${node.type},
 </#list>
     )
 <#list flowNodes as node>
 
-    object ${node.objectName} : ${types.AbstractFlowNode}(
-      id = ${types.ElementId}(${node.objectName}.ELEMENT_ID),
+    object ${node.type} : ${types.AbstractFlowNode}(
+      id = ${types.ElementId}(${node.type}.ELEMENT_ID),
       elementType = ${types.BpmnElementType}.${node.elementType},
 <#if node.name??>
       name = ${node.name},
@@ -43,7 +43,7 @@ object ${typeName} {
 
       override val timer: ${types.BpmnTimer} = ${types.BpmnTimer}(
         type = ${types.TimerType}.${node.timer.type},
-        timerValue = ${node.timer.value},
+        timerValue = ${node.timer.expression},
       )
 </#if>
 <#if node.message??>
@@ -60,8 +60,8 @@ object ${typeName} {
 </#if>
 <#if node.attachedTo??>
 
-      override val attachedTo: ${node.attachedTo}
-        get() = ${node.attachedTo}
+      override val attachedTo: ${node.attachedTo.type}
+        get() = ${node.attachedTo.type}
 </#if>
 <#if node.interrupting??>
 
@@ -100,24 +100,24 @@ object ${typeName} {
 
       object Next {
 <#items as successor>
-        val ${successor.name}: ${successor.type}<${successor.target}>
+        val ${successor.target.property}: ${types[successor.type]}<${successor.target.type}>
 <#if successor.flows?size == 1>
           get() = ${types.SequenceFlows}.single(
-<@flowArguments flow=successor.flows[0] idParameter="flowId" target=successor.target indent="            "/>
+<@flowArguments flow=successor.flows[0] idParameter="flowId" target=successor.target.type indent="            "/>
           )
 <#elseif successor.flows?has_content>
           get() = ${types.SequenceFlows}(
-            target = ${successor.target},
+            target = ${successor.target.type},
             flows = listOf(
 <#list successor.flows as flow>
               ${types.SequenceFlow}(
-<@flowArguments flow=flow idParameter="id" target=successor.target indent="                "/>
+<@flowArguments flow=flow idParameter="id" target=successor.target.type indent="                "/>
               ),
 </#list>
             ),
           )
 <#else>
-          get() = ${successor.type}(target = ${successor.target})
+          get() = ${types[successor.type]}(target = ${successor.target.type})
 </#if>
 <#sep>
 
@@ -129,8 +129,8 @@ object ${typeName} {
 
       object Start {
 <#items as start>
-        val ${start.name}: ${start.objectName}
-          get() = ${start.objectName}
+        val ${start.property}: ${start.type}
+          get() = ${start.type}
 <#sep>
 
 </#sep>
