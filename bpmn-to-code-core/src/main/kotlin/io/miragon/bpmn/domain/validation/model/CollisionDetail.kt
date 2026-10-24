@@ -1,11 +1,10 @@
 package io.miragon.bpmn.domain.validation.model
 
 /**
- * Represents a single variable name collision within a BPMN model.
- * A collision occurs when different IDs (e.g., "endEvent_dataProcessed" and "endEvent-dataProcessed")
- * are normalized to the same constant name (e.g., "END_EVENT_DATA_PROCESSED").
+ * Different ids (e.g. "endEvent_dataProcessed" and "endEvent-dataProcessed") that would be generated under the same
+ * name (e.g. "EndEventDataProcessed"), as the collision rules report them.
  */
-data class CollisionDetail(
+internal data class CollisionDetail(
     val variableType: String,
     val constantName: String,
     val conflictingIds: List<String>,
