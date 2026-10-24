@@ -10,10 +10,7 @@ import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.application.port.outbound.SaveProcessApiPort
 import io.miragon.bpmn.domain.BpmnFileResult
-import io.miragon.bpmn.domain.BpmnModelApi
-import io.miragon.bpmn.domain.ProcessModel
-import io.miragon.bpmn.domain.SharedDefinitions
-import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.domain.ProcessApiRequest
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
 
@@ -28,10 +25,14 @@ class GenerateProcessApiService(
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val extractedModels = inputFiles.map { SourcedProcessModel(it.fileName, bpmnService.extract(it, command.engine)) }
         val sources = BpmnValidationService(command.validationConfig).processApiSources(sources = extractedModels, engine = command.engine)
-        val models = sources.map { it.model }
-        val processFiles = models.flatMap { codeGenerator.generateCode(toBpmnModelApi(it, command)) }
-        val sharedFiles = codeGenerator.generateSharedCode(toSharedDefinitionsApi(models, command))
-        val generatedFiles = processFiles + sharedFiles
+        val generatedFiles = codeGenerator.generate(
+            ProcessApiRequest(
+                models = sources.map { it.model },
+                outputLanguage = command.outputLanguage,
+                packagePath = command.packagePath,
+                engine = command.engine,
+            ),
+        )
         fileSystemOutput.deleteStaleFiles(
             generatedFiles = generatedFiles,
             outputFolderPath = command.outputFolderPath,
@@ -40,23 +41,4 @@ class GenerateProcessApiService(
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
         return sources.map { BpmnFileResult(processId = it.model.processId, sourceFiles = listOf(it.fileName)) }
     }
-
-    private fun toBpmnModelApi(
-        model: ProcessModel,
-        command: GenerateProcessApiFromFilesystemUseCase.Command,
-    ) = BpmnModelApi(
-        model = model,
-        outputLanguage = command.outputLanguage,
-        packagePath = command.packagePath,
-        targetEngine = command.engine,
-    )
-
-    private fun toSharedDefinitionsApi(
-        models: List<ProcessModel>,
-        command: GenerateProcessApiFromFilesystemUseCase.Command,
-    ) = SharedDefinitionsApi(
-        definitions = SharedDefinitions.from(models),
-        outputLanguage = command.outputLanguage,
-        packagePath = command.packagePath,
-    )
 }

@@ -16,7 +16,7 @@ One code base serves three process engines, three output languages and four call
 
 **There is no dependency injection framework.** A service names its outbound adapters as default values of its constructor parameters, and a plugin does the same with its service. The application layer is therefore allowed to import outbound adapters. What stays strict is the type: a constructor parameter is always typed as the port, never as the adapter or service behind it, so tests and callers can pass another implementation.
 
-**Each use case exists for the file system and in memory.** Generating code and generating JSON each have a port, a service and a plugin that read and write files, and a second set that takes BPMN content and returns the generated text. Services do not call each other, so the two pipelines are written out twice rather than shared.
+**Each use case exists for the file system and in memory.** Generating code and generating JSON each have a port, a service and a plugin that read and write files, and a second set that takes BPMN content and returns the generated text. Services do not call each other, so the two pipelines are written out twice rather than shared. To keep that cheap, what a pipeline decides lives outside the services: the domain's `BpmnValidationService` selects, validates and orders the models, and one call of `GenerateApiCodePort.generate` renders a whole run. The two services differ only in where the BPMN comes from and where the files go.
 
 **The rules are tests.** The unpublished module `bpmn-to-code-architecture-tests` checks with Konsist: the layer dependencies above, the domain's import allow-list, that ports are interfaces, that a service implements exactly one inbound port and a plugin at most one, the constructor typing rule, the naming of each layer's classes, and the import restriction for the Gradle, Maven and web modules.
 
@@ -26,7 +26,7 @@ The module map is in [Architecture](/contributing/architecture); the other quali
 
 - A new engine or language is an outbound adapter; the domain and the callers do not change.
 - The in-memory path is what makes the web application stateless and lets tests run the real pipeline without touching disk.
-- Each use case costs a port, a service and a plugin, and a change to the generation pipeline has to be made in the file-system and the in-memory service.
+- Each use case costs a port, a service and a plugin. A new step of the generation pipeline belongs in the domain or behind a port; only a change to the order of the calls has to be made in the file-system and the in-memory service.
 - The layer rule alone would let a service use an adapter directly. Only the constructor typing rule and review keep the ports meaningful.
 - The hexagon is a convention of core. The plugin modules keep their classes flat under `adapter`, the web module has its own `routes`, `service` and `model` packages.
 - Konsist reads Kotlin sources. The Maven Mojos are written in Java, so the import restriction does not actually check them, and the testing library is not in the checked list.
