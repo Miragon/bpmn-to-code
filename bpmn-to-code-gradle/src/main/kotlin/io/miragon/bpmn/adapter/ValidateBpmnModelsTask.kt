@@ -2,7 +2,6 @@ package io.miragon.bpmn.adapter
 
 import io.miragon.bpmn.adapter.inbound.ValidateBpmnFilesystemPlugin
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
-import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
@@ -27,22 +26,13 @@ abstract class ValidateBpmnModelsTask : AbstractBpmnTask() {
     @TaskAction
     fun execute() {
         logger.warn("[EXPERIMENTAL] The 'validateBpmnModels' task is experimental and may change in future releases.")
-        val plugin = ValidateBpmnFilesystemPlugin()
-        val treatWarningsAsErrors = failOnWarning.get()
-        val config = ValidationConfig(failOnWarning = treatWarningsAsErrors, disabledRules = disabledRules.get())
-        val result = plugin.execute(
+        val config = ValidationConfig(failOnWarning = failOnWarning.get(), disabledRules = disabledRules.get())
+        ValidateBpmnFilesystemPlugin().execute(
             baseDir = absolutePathOf(baseDir),
             filePattern = filePattern.get(),
             engine = processEngine.get(),
             validationConfig = config,
         )
-
-        result.warnings.forEach { logger.warn(it.describe()) }
-        result.errors.forEach { logger.error(it.describe()) }
-
-        if (result.hasFailures(treatWarningsAsErrors)) {
-            throw GradleException(result.failureSummary)
-        }
         logger.lifecycle("BPMN validation passed")
     }
 }

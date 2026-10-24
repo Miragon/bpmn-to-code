@@ -51,18 +51,12 @@ class BpmnValidationService(
     }
 
     /**
-     * What the build task reports: the findings of the processes that get a Process API.
+     * The processes a Process API is generated for, normalized and in the order they are generated in. Warnings are
+     * logged; the build task calls this too, so it fails where the generation fails.
      *
+     * @throws BpmnValidationException when a rule fails
      * @throws io.miragon.bpmn.domain.ProcessApiNamingException when the models pass but two files would be generated
      * under one name
-     */
-    fun validateProcessApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): ValidationResult {
-        val executableSources = SourcedProcessModel.executableOnly(sources)
-        return validateSources(sources = executableSources, engine = engine)
-    }
-
-    /**
-     * The processes a Process API is generated for, normalized and in the order they are generated in.
      */
     fun processApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): List<SourcedProcessModel> {
         val executableSources = SourcedProcessModel.executableOnly(sources)

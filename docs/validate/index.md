@@ -104,15 +104,19 @@ mvn bpmn-to-code:validate-bpmn@validate-bpmn
 
 The Maven goal is bound to no phase by default, so the execution needs a `<phase>`. `@validate-bpmn` names the execution whose configuration applies; without it Maven runs the goal with its defaults.
 
-Each finding is one line, followed by a summary when the build fails:
+The task fails the way the generation fails: warnings are logged one per line, and a failing build names a summary followed by one line per finding:
 
 ```
 > Task :validateBpmnModels FAILED
 [EXPERIMENTAL] The 'validateBpmnModels' task is experimental and may change in future releases.
-[BPMN VALIDATION ERROR] bikeLeasing/serviceTask_sendContract: Service task has no implementation. Add a zeebe:taskDefinition with a type attribute. (rule: missing-service-task-implementation)
-[BPMN VALIDATION ERROR] bikeLeasing/timer_signatureReminder: Timer event definition has no valid type (Date, Duration, or Cycle). (rule: missing-timer-definition)
 
-BPMN validation failed: 2 error(s), 0 warning(s)
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':validateBpmnModels'.
+> BPMN validation failed: 2 error(s), 0 warning(s)
+  [BPMN VALIDATION ERROR] bikeLeasing/serviceTask_sendContract: Service task has no implementation. Add a zeebe:taskDefinition with a type attribute. (rule: missing-service-task-implementation)
+  [BPMN VALIDATION ERROR] bikeLeasing/timer_signatureReminder: Timer event definition has no valid type (Date, Duration, or Cycle). (rule: missing-timer-definition)
 ```
 
 ## Project-specific rules

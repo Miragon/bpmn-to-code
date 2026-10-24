@@ -3,7 +3,6 @@ package io.miragon.bpmn.adapter.inbound
 import io.miragon.bpmn.application.port.inbound.ValidateBpmnFromFilesystemUseCase
 import io.miragon.bpmn.application.service.ValidateBpmnService
 import io.miragon.bpmn.domain.shared.ProcessEngine
-import io.miragon.bpmn.domain.validation.ValidationResult
 import io.miragon.bpmn.domain.validation.model.ValidationConfig
 
 class ValidateBpmnFilesystemPlugin(private val useCase: ValidateBpmnFromFilesystemUseCase = ValidateBpmnService()) {
@@ -13,12 +12,13 @@ class ValidateBpmnFilesystemPlugin(private val useCase: ValidateBpmnFromFilesyst
         filePattern: String,
         engine: ProcessEngine,
         validationConfig: ValidationConfig = ValidationConfig(),
-    ): ValidationResult = useCase.validateBpmn(
-        ValidateBpmnFromFilesystemUseCase.Command(
+    ) {
+        val command = ValidateBpmnFromFilesystemUseCase.Command(
             baseDir = baseDir,
             filePattern = filePattern,
             engine = engine,
             validationConfig = validationConfig,
-        ),
-    )
+        )
+        useCase.validateBpmn(command)
+    }
 }

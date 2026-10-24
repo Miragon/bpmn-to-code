@@ -316,30 +316,6 @@ class BpmnValidationServiceTest {
         assertThat(apiSources.map { it.fileName }).containsExactly("order.bpmn")
     }
 
-    @Test
-    fun `validateProcessApiSources checks what the generation checks`() {
-        // given: a non-executable process that would fail, and two files sharing a process id
-        val sources = listOf(
-            SourcedProcessModel("draft.bpmn", testProcessModel(processId = "draft", flowNodes = listOf(serviceTaskWithoutImplementation("task1"))).copy(isExecutable = false)),
-            SourcedProcessModel("v1.bpmn", testProcessModel()),
-            SourcedProcessModel("v2.bpmn", testProcessModel()),
-        )
-
-        // when / then: the draft is left out, and the shared process id is rejected as in the generation
-        assertThrows<ProcessApiNamingException> {
-            underTest.validateProcessApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
-        }
-    }
-
-    @Test
-    fun `validateProcessApiSources reports the findings instead of throwing them`() {
-        val sources = listOf(SourcedProcessModel("order.bpmn", testProcessModel(flowNodes = listOf(serviceTaskWithoutImplementation("task1")))))
-
-        val result = underTest.validateProcessApiSources(sources = sources, engine = ProcessEngine.ZEEBE)
-
-        assertThat(result.errors).extracting("ruleId").containsExactly("missing-service-task-implementation")
-    }
-
     private class RejectsEveryModelSetRule : CrossModelValidationRule {
         override val id = "rejects-every-model-set"
         override val severity = Severity.ERROR

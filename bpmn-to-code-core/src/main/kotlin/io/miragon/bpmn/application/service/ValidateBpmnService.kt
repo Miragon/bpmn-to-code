@@ -7,16 +7,15 @@ import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.LoadBpmnFilesPort
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.service.BpmnValidationService
-import io.miragon.bpmn.domain.validation.ValidationResult
 
 class ValidateBpmnService(
     private val bpmnFileLoader: LoadBpmnFilesPort = BpmnFileLoader(),
     private val bpmnService: ExtractBpmnPort = ExtractBpmnAdapter(),
 ) : ValidateBpmnFromFilesystemUseCase {
 
-    override fun validateBpmn(command: ValidateBpmnFromFilesystemUseCase.Command): ValidationResult {
+    override fun validateBpmn(command: ValidateBpmnFromFilesystemUseCase.Command) {
         val inputFiles = bpmnFileLoader.loadFrom(command.baseDir, command.filePattern)
         val sources = inputFiles.map { SourcedProcessModel(it.fileName, bpmnService.extract(it, command.engine)) }
-        return BpmnValidationService(command.validationConfig).validateProcessApiSources(sources = sources, engine = command.engine)
+        BpmnValidationService(command.validationConfig).processApiSources(sources = sources, engine = command.engine)
     }
 }
