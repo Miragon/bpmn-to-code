@@ -1,6 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.csharp
 
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel
 
 /**
  * What `process-api.ftl` renders.

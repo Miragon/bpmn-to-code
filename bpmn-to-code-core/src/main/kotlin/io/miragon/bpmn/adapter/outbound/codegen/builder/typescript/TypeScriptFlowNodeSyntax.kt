@@ -6,8 +6,8 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.NodeName
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeSyntax
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.NodeName
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeSyntax
 
 /**
  * How a TypeScript flow node is written: an exported singleton class, e.g.

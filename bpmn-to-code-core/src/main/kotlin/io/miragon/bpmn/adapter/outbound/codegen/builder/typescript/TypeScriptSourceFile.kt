@@ -1,12 +1,10 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.typescript
 
-import freemarker.template.SimpleScalar
-import freemarker.template.TemplateHashModel
-import freemarker.template.TemplateModel
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSyntax.identifier
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TemplateRenderer
+import io.miragon.bpmn.adapter.outbound.codegen.rendering.TemplateNames
+import io.miragon.bpmn.adapter.outbound.codegen.rendering.TemplateRenderer
 
 /**
  * A generated TypeScript module, whose imports are only known once its body is rendered, e.g.
@@ -26,9 +24,9 @@ internal class TypeScriptSourceFile {
     private val sharedDefinitions = sortedSetOf<String>()
     private var runtimeImport = RuntimeImport.NONE
 
-    val runtimeTypes: TemplateHashModel = RuntimeNames { runtimeType(it) }
+    val runtimeTypes = TemplateNames(::runtimeType)
 
-    val runtimeValues: TemplateHashModel = RuntimeNames { runtimeValue(it) }
+    val runtimeValues = TemplateNames(::runtimeValue)
 
     /**
      * e.g. `Runtime.HasSuccessors`
@@ -68,13 +66,6 @@ internal class TypeScriptSourceFile {
     data class Wrapper(val runtimeImport: RuntimeImport, val sharedDefinitions: List<String>, val body: String)
 
     enum class RuntimeImport { NONE, TYPE, VALUE }
-
-    private class RuntimeNames(private val reference: (String) -> String) : TemplateHashModel {
-
-        override fun get(key: String): TemplateModel = SimpleScalar(reference(key))
-
-        override fun isEmpty(): Boolean = false
-    }
 
     companion object {
         const val RUNTIME_ALIAS = "Runtime"

@@ -3,8 +3,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeMapper
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.JvmFlowNodeSyntax
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeMapper
 import io.miragon.bpmn.domain.ProcessApiNames
 
 /**
@@ -23,7 +22,7 @@ internal class JvmProcessApiBuilder(private val language: JvmLanguage) : Process
                 processId = language.syntax.stringLiteral(api.processId),
                 processEngine = api.processEngine.name,
                 flowNodes = api.flow?.nodes?.map { mapper.map(it) },
-                types = file.types,
+                types = file.types.names,
             ),
         )
     }

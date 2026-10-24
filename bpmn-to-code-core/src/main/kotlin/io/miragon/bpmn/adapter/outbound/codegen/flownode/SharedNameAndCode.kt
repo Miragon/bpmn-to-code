@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.flownode
 
 /**
  * A node's error or escalation, which the template writes as

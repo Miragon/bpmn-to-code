@@ -5,7 +5,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.ProcessApiGraph
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
 import io.miragon.bpmn.adapter.outbound.codegen.SourceCode
 import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSyntax.stringLiteral
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeMapper
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeMapper
 import io.miragon.bpmn.domain.ProcessApiNamingException
 
 /**

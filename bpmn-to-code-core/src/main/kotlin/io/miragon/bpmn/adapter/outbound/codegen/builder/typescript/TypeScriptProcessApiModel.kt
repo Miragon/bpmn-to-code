@@ -1,7 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.typescript
 
-import freemarker.template.TemplateHashModel
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel
+import io.miragon.bpmn.adapter.outbound.codegen.rendering.TemplateNames
 
 /**
  * What `process-api.ftl` renders.
@@ -17,6 +17,6 @@ internal data class TypeScriptProcessApiModel(
     val processId: String,
     val processEngine: String,
     val flowNodes: List<FlowNodeModel>?,
-    val runtimeTypes: TemplateHashModel,
-    val runtimeValues: TemplateHashModel,
+    val runtimeTypes: TemplateNames,
+    val runtimeValues: TemplateNames,
 )

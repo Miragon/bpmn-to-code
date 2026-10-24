@@ -34,7 +34,8 @@ A builder maps the language-neutral graph to a template model and handles keywor
 bpmn-to-code-core/src/main/
 ├─ kotlin/io/miragon/bpmn/adapter/outbound/codegen/
 │  ├─ flow/, definitions/            language-neutral graphs
-│  ├─ freemarker/                    flow node model and mapper, rendering, type references
+│  ├─ flownode/                      flow node model and mapper
+│  ├─ rendering/                     FreeMarker setup, the only code that knows FreeMarker
 │  └─ builder/{jvm,csharp,typescript}/   graph → template model, syntax, imports
 └─ resources/io/miragon/bpmn/codegen/templates/<language>/   FreeMarker templates
 bpmn-to-code-core/src/test/resources/api/   golden files per language

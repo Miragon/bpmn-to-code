@@ -1,7 +1,5 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.JvmSyntax
-
 /**
  * How values and names are written in generated Kotlin code.
  */

@@ -8,9 +8,9 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeModel.NodeName
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.FlowNodeSyntax
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.SharedNameAndCode
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.NodeName
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeSyntax
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.SharedNameAndCode
 import io.miragon.bpmn.domain.ProcessApiNamingException
 
 /**

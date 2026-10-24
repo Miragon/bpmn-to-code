@@ -39,7 +39,7 @@ internal class JvmSharedDefinitionsBuilder(private val language: JvmLanguage) : 
                 shape = definitionType.shape,
                 elementType = file.types.of(definitionType.runtimeTypeName),
                 constants = group.entries.map { constantOf(it) },
-                types = file.types,
+                types = file.types.names,
             ),
         )
     }

@@ -1,6 +1,5 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.JvmSyntax
 import io.miragon.bpmn.domain.ProcessApiNamingException
 import javax.lang.model.SourceVersion
 

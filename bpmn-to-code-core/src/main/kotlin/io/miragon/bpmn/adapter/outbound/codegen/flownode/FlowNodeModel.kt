@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.codegen.freemarker
+package io.miragon.bpmn.adapter.outbound.codegen.flownode
 
 /**
  * A flow node as every `process-api.ftl` renders it. Strings are literals, identifiers or references written in the

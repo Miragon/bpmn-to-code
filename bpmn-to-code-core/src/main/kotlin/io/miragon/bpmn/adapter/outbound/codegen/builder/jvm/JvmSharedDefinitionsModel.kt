@@ -1,7 +1,7 @@
 package io.miragon.bpmn.adapter.outbound.codegen.builder.jvm
 
 import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType
-import io.miragon.bpmn.adapter.outbound.codegen.freemarker.TypeReferences
+import io.miragon.bpmn.adapter.outbound.codegen.rendering.TemplateNames
 
 /**
  * What `shared-definitions.ftl` renders. Strings are literals or identifiers; the template writes each constant in the
@@ -15,7 +15,7 @@ internal data class JvmSharedDefinitionsModel(
     val shape: SharedDefinitionType.Shape,
     val elementType: String,
     val constants: List<Constant>,
-    val types: TypeReferences,
+    val types: TemplateNames,
 ) {
 
     /**
