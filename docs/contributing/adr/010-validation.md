@@ -8,7 +8,7 @@ Turning BPMN ids into identifiers of a programming language is lossy: `task-ship
 
 **Rules are domain code in core.** A `ValidationRule` has an id, a severity (error or warning) and a `mandatory` flag. It is either a `SingleModelValidationRule`, which sees one process model, or a `CrossModelValidationRule`, which sees all models of a run. Cross-model rules run only when no single-model rule reported an error. All findings are collected and reported together.
 
-**Validation is part of generation.** Every generation run, for code and for JSON, on every entry point, validates the models before it writes anything. Errors fail the run, warnings are logged. Generation takes no validation settings ([record 1](001-product-surfaces-and-distribution.md)).
+**Validation is part of generation.** Every generation run, on every entry point, validates the models before it writes anything. Errors fail the run, warnings are logged. Generation takes no validation settings ([record 1](001-product-surfaces-and-distribution.md)).
 
 **Mandatory rules cannot be disabled.** The rules without which the output would not compile or would silently lose an element are marked mandatory: missing process and element ids, colliding names within a Process API, colliding names of shared definitions, and reserved names. Core keeps them active whatever the configuration says and logs a warning when a caller tries to disable one.
 

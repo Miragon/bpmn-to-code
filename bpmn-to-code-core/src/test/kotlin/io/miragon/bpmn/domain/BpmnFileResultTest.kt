@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 
 class BpmnFileResultTest {
 
-    private val underTest = BpmnFileResult(processId = "bikeLeasing", sourceFiles = listOf("zeebe/bike-leasing.bpmn"))
+    private val underTest = BpmnFileResult(processId = "bikeLeasing", sourceFile = "zeebe/bike-leasing.bpmn")
 
     @Test
     fun `describes the process api and the files it is generated from`() {

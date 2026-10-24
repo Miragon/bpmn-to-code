@@ -1,4 +1,4 @@
-package io.miragon.bpmn.adapter.outbound.shared
+package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind

@@ -1,7 +1,6 @@
 package io.miragon.bpmn.domain.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.miragon.bpmn.domain.ProcessApiNames
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.SourcedProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -57,7 +56,7 @@ class BpmnValidationService(
      */
     fun validateProcessApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): ValidationResult {
         val executableSources = SourcedProcessModel.executableOnly(sources)
-        return validateSources(sources = executableSources, engine = engine, artifactNameOf = ProcessApiNames::apiTypeName)
+        return validateSources(sources = executableSources, engine = engine)
     }
 
     /**
@@ -65,18 +64,14 @@ class BpmnValidationService(
      */
     fun processApiSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): List<SourcedProcessModel> {
         val executableSources = SourcedProcessModel.executableOnly(sources)
-        failOn(validateSources(sources = executableSources, engine = engine, artifactNameOf = ProcessApiNames::apiTypeName))
+        failOn(validateSources(sources = executableSources, engine = engine))
         return normalized(executableSources)
     }
 
-    private fun validateSources(
-        sources: List<SourcedProcessModel>,
-        engine: ProcessEngine,
-        artifactNameOf: (ProcessModel) -> String,
-    ): ValidationResult {
+    private fun validateSources(sources: List<SourcedProcessModel>, engine: ProcessEngine): ValidationResult {
         val result = validate(models = sources.map { it.model }, engine = engine)
         if (!result.hasFailures(config.failOnWarning)) {
-            SourcedProcessModel.requireDistinctArtifactNames(sources, artifactNameOf)
+            SourcedProcessModel.requireDistinctApiNames(sources)
         }
         return result
     }

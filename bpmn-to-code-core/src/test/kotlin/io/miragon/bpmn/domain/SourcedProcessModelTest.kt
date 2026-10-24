@@ -17,9 +17,9 @@ class SourcedProcessModelTest {
             SourcedProcessModel("bike-return.bpmn", testProcessModel(processId = "bike-return")),
         )
 
-        assertThatThrownBy { SourcedProcessModel.requireDistinctArtifactNames(sources) { it.apiName } }
+        assertThatThrownBy { SourcedProcessModel.requireDistinctApiNames(sources) }
             .isInstanceOf(ProcessApiNamingException::class.java)
-            .hasMessageContaining("'bike-leasing' would be generated from several BPMN files")
+            .hasMessageContaining("'BikeLeasingProcessApi' would be generated from several BPMN files")
             .hasMessageContaining("corporate/bike-leasing.bpmn (process id 'bike-leasing'), default/bike-leasing.bpmn (process id 'bike-leasing')")
             .hasMessageContaining("variantName")
             .hasMessageNotContaining("bike-return")
@@ -32,7 +32,7 @@ class SourcedProcessModelTest {
             SourcedProcessModel("corporate/bike-leasing.bpmn", testProcessModel(processId = "bike-leasing", variantName = "corporate")),
         )
 
-        assertThatCode { SourcedProcessModel.requireDistinctArtifactNames(sources) { it.apiName } }.doesNotThrowAnyException()
+        assertThatCode { SourcedProcessModel.requireDistinctApiNames(sources) }.doesNotThrowAnyException()
     }
 
     @Test
@@ -42,7 +42,7 @@ class SourcedProcessModelTest {
             SourcedProcessModel("b/bike-leasing.bpmn", testProcessModel(processId = "bike-leasing", variantName = "corporate")),
         )
 
-        assertThatThrownBy { SourcedProcessModel.requireDistinctArtifactNames(sources) { it.apiName } }
+        assertThatThrownBy { SourcedProcessModel.requireDistinctApiNames(sources) }
             .isInstanceOf(ProcessApiNamingException::class.java)
             .hasMessageContaining("a/bike-leasing.bpmn (process id 'bike-leasing', variantName 'corporate')")
     }
@@ -54,7 +54,7 @@ class SourcedProcessModelTest {
             SourcedProcessModel("underscored.bpmn", testProcessModel(processId = "bike_leasing")),
         )
 
-        assertThatThrownBy { SourcedProcessModel.requireDistinctArtifactNames(sources) { testProcessModelApi(model = it).fileName() } }
+        assertThatThrownBy { SourcedProcessModel.requireDistinctApiNames(sources) }
             .isInstanceOf(ProcessApiNamingException::class.java)
             .hasMessageContaining("'BikeLeasingProcessApi' would be generated from several BPMN files")
             .hasMessageContaining("dashed.bpmn (process id 'bike-leasing'), underscored.bpmn (process id 'bike_leasing')")
@@ -69,8 +69,8 @@ class SourcedProcessModelTest {
             SourcedProcessModel("b/bike-return.bpmn", testProcessModel(processId = "bike-return")),
         )
 
-        assertThatThrownBy { SourcedProcessModel.requireDistinctArtifactNames(sources) { it.apiName } }
-            .hasMessageContaining("'bike-leasing'").hasMessageContaining("'bike-return'")
+        assertThatThrownBy { SourcedProcessModel.requireDistinctApiNames(sources) }
+            .hasMessageContaining("'BikeLeasingProcessApi'").hasMessageContaining("'BikeReturnProcessApi'")
     }
 
     @ParameterizedTest
@@ -78,7 +78,7 @@ class SourcedProcessModelTest {
     fun `rejects a variant name that cannot become part of a name`(variantName: String) {
         val sources = listOf(SourcedProcessModel("bike-leasing.bpmn", testProcessModel(processId = "bike-leasing", variantName = variantName)))
 
-        assertThatThrownBy { SourcedProcessModel.requireDistinctArtifactNames(sources) { it.apiName } }
+        assertThatThrownBy { SourcedProcessModel.requireDistinctApiNames(sources) }
             .isInstanceOf(ProcessApiNamingException::class.java)
             .hasMessageContaining("variantName '$variantName'").hasMessageContaining("bike-leasing.bpmn")
     }
@@ -88,7 +88,7 @@ class SourcedProcessModelTest {
     fun `accepts a variant name made of letters, digits, underscores and dashes`(variantName: String) {
         val sources = listOf(SourcedProcessModel("bike-leasing.bpmn", testProcessModel(processId = "bike-leasing", variantName = variantName)))
 
-        assertThatCode { SourcedProcessModel.requireDistinctArtifactNames(sources) { it.apiName } }.doesNotThrowAnyException()
+        assertThatCode { SourcedProcessModel.requireDistinctApiNames(sources) }.doesNotThrowAnyException()
     }
 
     @Test

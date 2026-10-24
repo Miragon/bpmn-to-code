@@ -1,11 +1,11 @@
 package io.miragon.bpmn.domain
 
 /**
- * A Process API generated from [sourceFiles], as every entry point reports it.
+ * A Process API generated from [sourceFile], as every entry point reports it.
  */
-data class BpmnFileResult(val processId: String, val sourceFiles: List<String>) {
+data class BpmnFileResult(val processId: String, val sourceFile: String) {
 
-    fun describe(): String = "Generated: $processId (from ${sourceFiles.joinToString(", ")})"
+    fun describe(): String = "Generated: $processId (from $sourceFile)"
 
     companion object {
 

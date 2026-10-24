@@ -39,6 +39,6 @@ class GenerateProcessApiService(
             packagePath = command.packagePath,
         )
         fileSystemOutput.writeFiles(generatedFiles, command.outputFolderPath)
-        return sources.map { BpmnFileResult(processId = it.model.processId, sourceFiles = listOf(it.fileName)) }
+        return sources.map { BpmnFileResult(processId = it.model.processId, sourceFile = it.fileName) }
     }
 }
