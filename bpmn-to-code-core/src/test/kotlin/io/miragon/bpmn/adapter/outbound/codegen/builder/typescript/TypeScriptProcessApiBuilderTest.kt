@@ -12,8 +12,8 @@ import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.testBikeLeasingModel
 import io.miragon.bpmn.domain.testCancelBikeOrderModel
+import io.miragon.bpmn.domain.testProcessApiRequest
 import io.miragon.bpmn.domain.testProcessModel
-import io.miragon.bpmn.domain.testProcessModelApi
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -25,13 +25,13 @@ class TypeScriptProcessApiBuilderTest {
     @Test
     fun `generateCode generates correct process API file`() {
         // given: the bike-leasing model, which covers every implementation kind of Camunda 7
-        val modelApi = typeScriptApi(testBikeLeasingModel())
+        val request = typeScriptApi(testBikeLeasingModel())
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: a single TypeScript file is returned in the requested package
-        assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.ts")
+        assertThat(result.fileName).isEqualTo("BikeLeasingProcessApi.ts")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
         assertThat(result.language).isEqualTo(OutputLanguage.TYPESCRIPT)
         assertMatchesGolden(result.content, "/api/BikeLeasingProcessApiTypescript.txt")
@@ -40,10 +40,10 @@ class TypeScriptProcessApiBuilderTest {
     @Test
     fun `generateCode leads the API name with the variant name of the model`() {
         // given: a model that declares a variant name
-        val modelApi = typeScriptApi(testCancelBikeOrderModel(variantName = "retail"))
+        val request = typeScriptApi(testCancelBikeOrderModel(variantName = "retail"))
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: the API carries the prefix
         assertThat(result.fileName).isEqualTo("RetailCancelBikeOrderProcessApi.ts")
@@ -160,7 +160,7 @@ class TypeScriptProcessApiBuilderTest {
         assertThat(result.content).doesNotContain("FlowNodes")
     }
 
-    private fun typeScriptApi(model: ProcessModel) = testProcessModelApi(
+    private fun typeScriptApi(model: ProcessModel) = testProcessApiRequest(
         packagePath = "de.emaarco.example",
         language = OutputLanguage.TYPESCRIPT,
         model = model,

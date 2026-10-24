@@ -11,6 +11,6 @@ internal object GeneratedTypeNames {
 
     fun of(api: ProcessApiGraph): Set<String> {
         val nodeNames = api.flow?.nodes.orEmpty().map { it.objectName }
-        return setOf(api.typeName.value) + ProcessApiNames.HOLDER_NAMES + nodeNames
+        return setOf(api.typeName) + ProcessApiNames.HOLDER_NAMES + nodeNames
     }
 }

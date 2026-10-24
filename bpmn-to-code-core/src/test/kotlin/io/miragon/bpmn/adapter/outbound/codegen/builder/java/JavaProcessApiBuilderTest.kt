@@ -11,8 +11,8 @@ import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.testBikeLeasingModel
 import io.miragon.bpmn.domain.testCancelBikeOrderModel
+import io.miragon.bpmn.domain.testProcessApiRequest
 import io.miragon.bpmn.domain.testProcessModel
-import io.miragon.bpmn.domain.testProcessModelApi
 import io.miragon.bpmn.domain.withId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,17 +30,17 @@ class JavaProcessApiBuilderTest {
     @Test
     fun `generateCode generates correct process API file`() {
         // given: the bike-leasing model, which covers every implementation kind of Camunda 7
-        val modelApi = testProcessModelApi(
+        val request = testProcessApiRequest(
             packagePath = "de.emaarco.example",
             language = OutputLanguage.JAVA,
             model = testBikeLeasingModel(),
         )
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: a single model file is returned at the root package
-        assertThat(result.fileName).isEqualTo("${modelApi.fileName()}.java")
+        assertThat(result.fileName).isEqualTo("BikeLeasingProcessApi.java")
         assertThat(result.packagePath).isEqualTo("de.emaarco.example")
 
         assertMatchesGolden(result.content, "/api/BikeLeasingProcessApiJava.txt")
@@ -50,10 +50,10 @@ class JavaProcessApiBuilderTest {
     @Test
     fun `flow nodes are singletons that cannot be instantiated`() {
         // given: the bike-leasing model
-        val modelApi = testProcessModelApi(model = testBikeLeasingModel(), language = OutputLanguage.JAVA)
+        val request = testProcessApiRequest(model = testBikeLeasingModel(), language = OutputLanguage.JAVA)
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: every node is only reachable through its INSTANCE
         val content = result.content
@@ -71,14 +71,14 @@ class JavaProcessApiBuilderTest {
         // given: a model with flow nodes that have slashes in their names
         val defaultModel = testBikeLeasingModel()
         val modifiedNodes = defaultModel.flowNodes.map { it.withId(it.id?.replace("_", "-")) }
-        val modelApi = testProcessModelApi(
+        val request = testProcessApiRequest(
             model = testBikeLeasingModel(flowNodes = modifiedNodes),
             packagePath = "de.emaarco.example",
             language = OutputLanguage.JAVA,
         )
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: expect the generated code contains valid Java
         assertThat(result.content).isNotEmpty()
@@ -110,7 +110,7 @@ class JavaProcessApiBuilderTest {
         )
 
         // when
-        val result = underTest.generateCode(testProcessModelApi(model = model, language = OutputLanguage.JAVA)).single()
+        val result = underTest.generateCode(testProcessApiRequest(model = model, language = OutputLanguage.JAVA)).single()
 
         // then: one stable name for both flows, carried by one SequenceFlows
         assertThat(result.content).contains("public SequenceFlows<Approve> approve()")
@@ -121,14 +121,14 @@ class JavaProcessApiBuilderTest {
     @Test
     fun `generateCode leads the API name with the variant name of the model`() {
         // given: a model that declares a variant name
-        val modelApi = testProcessModelApi(
+        val request = testProcessApiRequest(
             packagePath = "de.emaarco.example",
             language = OutputLanguage.JAVA,
             model = testCancelBikeOrderModel(variantName = "retail"),
         )
 
         // when: we build the process API file
-        val result = underTest.generateCode(modelApi).single()
+        val result = underTest.generateCode(request).single()
 
         // then: the variant name leads the API name, while the process id stays the one of the model
         assertThat(result.fileName).isEqualTo("RetailCancelBikeOrderProcessApi.java")

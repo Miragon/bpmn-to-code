@@ -20,8 +20,8 @@ internal class JavaProcessApiBuilder : ProcessApiBuilder {
         return file.render(
             templateName = "java/process-api.ftl",
             model = JavaProcessApiModel(
-                typeName = api.typeName.value,
-                processId = stringLiteral(api.processId.value),
+                typeName = api.typeName,
+                processId = stringLiteral(api.processId),
                 processEngine = api.processEngine.name,
                 flowNodes = api.flow?.nodes?.map { mapper.map(it) },
                 types = file.types,

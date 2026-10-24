@@ -10,10 +10,9 @@ import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptPro
 import io.miragon.bpmn.adapter.outbound.codegen.builder.typescript.TypeScriptSharedDefinitionsBuilder
 import io.miragon.bpmn.adapter.outbound.codegen.definitions.SharedDefinitionsGraph
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
-import io.miragon.bpmn.domain.BpmnModelApi
 import io.miragon.bpmn.domain.GeneratedApiFile
 import io.miragon.bpmn.domain.ProcessApiRequest
-import io.miragon.bpmn.domain.SharedDefinitionsApi
+import io.miragon.bpmn.domain.SharedDefinitions
 import io.miragon.bpmn.domain.shared.OutputLanguage
 
 internal class CodeGenerationAdapter(
@@ -21,32 +20,39 @@ internal class CodeGenerationAdapter(
 ) : GenerateApiCodePort {
 
     override fun generate(request: ProcessApiRequest): List<GeneratedApiFile> {
-        val processFiles = request.modelApis.flatMap { generateCode(it) }
-        return processFiles + generateSharedCode(request.sharedDefinitionsApi)
-    }
-
-    fun generateCode(modelApi: BpmnModelApi): List<GeneratedApiFile> {
-        val generator = generatorFor(modelApi.outputLanguage)
-        val api = ProcessApiGraph.of(modelApi)
-        val processFile = GeneratedApiFile(
-            fileName = "${api.typeName.value}.${generator.fileExtension}",
-            packagePath = api.packagePath.value,
-            content = generator.processApiBuilder.render(api).value,
-            language = modelApi.outputLanguage,
-            processId = api.processId.value,
+        val processFiles = generateCode(request)
+        val sharedDefinitions = SharedDefinitions.from(request.models)
+        val sharedFiles = generateSharedCode(
+            definitions = sharedDefinitions,
+            outputLanguage = request.outputLanguage,
+            packagePath = request.packagePath,
         )
-        return listOf(processFile)
+        return processFiles + sharedFiles
     }
 
-    fun generateSharedCode(api: SharedDefinitionsApi): List<GeneratedApiFile> {
-        val generator = generatorFor(api.outputLanguage)
-        val graph = SharedDefinitionsGraph.of(api.definitions)
+    fun generateCode(request: ProcessApiRequest): List<GeneratedApiFile> {
+        val generator = generatorFor(request.outputLanguage)
+        return request.models.map { model ->
+            val api = ProcessApiGraph.of(model, request)
+            GeneratedApiFile(
+                fileName = "${api.typeName}.${generator.fileExtension}",
+                packagePath = api.packagePath.value,
+                content = generator.processApiBuilder.render(api).value,
+                language = request.outputLanguage,
+                processId = api.processId,
+            )
+        }
+    }
+
+    fun generateSharedCode(definitions: SharedDefinitions, outputLanguage: OutputLanguage, packagePath: String): List<GeneratedApiFile> {
+        val generator = generatorFor(outputLanguage)
+        val graph = SharedDefinitionsGraph.of(definitions)
         return graph.groups.map { group ->
             GeneratedApiFile(
                 fileName = "${group.type.typeName}.${generator.fileExtension}",
-                packagePath = api.packagePath,
-                content = generator.sharedDefinitionsBuilder.render(group, PackagePath(api.packagePath)).value,
-                language = api.outputLanguage,
+                packagePath = packagePath,
+                content = generator.sharedDefinitionsBuilder.render(group, PackagePath(packagePath)).value,
+                language = outputLanguage,
                 processId = null,
             )
         }

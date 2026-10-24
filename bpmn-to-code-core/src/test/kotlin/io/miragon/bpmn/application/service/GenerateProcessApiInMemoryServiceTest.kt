@@ -5,6 +5,7 @@ import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
 import io.miragon.bpmn.application.port.outbound.GenerateApiCodePort
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.GeneratedApiFile
+import io.miragon.bpmn.domain.ProcessApiNames
 import io.miragon.bpmn.domain.ProcessApiNamingException
 import io.miragon.bpmn.domain.ProcessApiRequest
 import io.miragon.bpmn.domain.ProcessModel
@@ -121,7 +122,7 @@ class GenerateProcessApiInMemoryServiceTest {
         underTest.generateProcessApi(command)
 
         // then: each file is generated under its own name
-        verify(exactly = 1) { codeGenerator.generate(match { request -> request.modelApis.map { it.fileName() } == listOf("TestProcessProcessApi", "V2TestProcessProcessApi") }) }
+        verify(exactly = 1) { codeGenerator.generate(match { request -> request.models.map { ProcessApiNames.apiTypeName(it) } == listOf("TestProcessProcessApi", "V2TestProcessProcessApi") }) }
     }
 
     @Test

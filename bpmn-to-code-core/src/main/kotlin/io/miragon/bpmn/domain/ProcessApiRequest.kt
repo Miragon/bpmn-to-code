@@ -12,11 +12,4 @@ data class ProcessApiRequest(
     val outputLanguage: OutputLanguage,
     val packagePath: String,
     val engine: ProcessEngine,
-) {
-
-    val modelApis: List<BpmnModelApi>
-        get() = models.map { BpmnModelApi(model = it, outputLanguage = outputLanguage, packagePath = packagePath, targetEngine = engine) }
-
-    val sharedDefinitionsApi: SharedDefinitionsApi
-        get() = SharedDefinitionsApi(definitions = SharedDefinitions.from(models), outputLanguage = outputLanguage, packagePath = packagePath)
-}
+)
