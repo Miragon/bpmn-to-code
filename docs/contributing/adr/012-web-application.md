@@ -14,7 +14,7 @@ Not everyone who wants to see what bpmn-to-code produces has a build to add a pl
 
 **Third-party browser libraries come from public CDNs.** The page loads the BPMN viewer (bpmn-js), syntax highlighting (highlight.js) and ZIP creation (JSZip) from unpkg and cdnjs at runtime in the user's browser. The fonts ship with the application.
 
-**Requests are bounded.** A request may carry at most three files. A model the generator rejects is answered with status 400 and the reason, any other failure with 500 and no detail.
+**Requests are bounded.** A request may carry at most three files. A file that cannot be read or a model the generator rejects is answered with status 400 and the reason, any other failure with 500 and no detail.
 
 **The generator is warmed up at start.** A daemon thread generates the bundled example models in every output language and as JSON several times before the first request arrives. The application serves too few requests for the JVM to compile the generator's code on its own, so without the warm-up every request would run slowly.
 

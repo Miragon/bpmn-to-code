@@ -152,7 +152,7 @@ class GenerationRoutesTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `answers content that is not base64 with an unknown error`(endpoint: String) {
+    fun `answers content that is not base64 as a bad request`(endpoint: String) {
         testApplication {
             application { configureApp(appConfig()) }
             val file = buildJsonObject {
@@ -162,8 +162,21 @@ class GenerationRoutesTest {
 
             val response = client.post(endpoint) { jsonBody(requestOf(file)) }
 
-            assertThat(response.status).isEqualTo(HttpStatusCode.InternalServerError)
-            assertThat(jsonOf(response.bodyAsText())).isEqualTo(failure(error = "Unknown error occurred"))
+            assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
+            assertThat(jsonOf(response.bodyAsText())).isEqualTo(failure(error = "File 'broken.bpmn' is not valid Base64"))
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
+    fun `answers a file that is not well-formed xml as a bad request`(endpoint: String) {
+        testApplication {
+            application { configureApp(appConfig()) }
+
+            val response = client.post(endpoint) { jsonBody(requestOf(bpmnFile(fileName = "truncated.bpmn", bpmnXml = "<bpmn:definitions"))) }
+
+            assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
+            assertThat(jsonOf(response.bodyAsText()).getValue("error").jsonPrimitive.content).contains("Failed to extract file: truncated")
         }
     }
 

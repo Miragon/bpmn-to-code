@@ -97,8 +97,7 @@ private fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             logger.error(cause) { "Unhandled exception" }
-            val message = mapOf("error" to (cause.message ?: "Unknown error"))
-            call.respond(HttpStatusCode.InternalServerError, message)
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Unknown error occurred"))
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.engine
 
+import io.miragon.bpmn.domain.BpmnReadException
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.shared.ProcessEngine
 import io.miragon.bpmn.domain.shared.TaskImplementation
@@ -44,7 +45,7 @@ class ExtractBpmnAdapterTest {
 
         // when / then: the failure is wrapped and points at the file
         assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE) }
-            .isInstanceOf(IllegalStateException::class.java).hasMessageContaining("no-process.bpmn")
+            .isInstanceOf(BpmnReadException::class.java).hasMessageContaining("no-process.bpmn")
     }
 
     @Test
@@ -54,7 +55,18 @@ class ExtractBpmnAdapterTest {
 
         // when / then: the reader's parse failure reaches the caller with the file that caused it
         assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE) }
-            .isInstanceOf(IllegalStateException::class.java).hasMessageContaining("truncated.bpmn")
+            .isInstanceOf(BpmnReadException::class.java).hasMessageContaining("truncated.bpmn")
+    }
+
+    @Test
+    fun `a file declaring a DOCTYPE is reported as unreadable with its name`() {
+        // given: a BPMN file with a DOCTYPE declaration
+        val bpmnResource = BpmnResource(fileName = "doctype.bpmn", content = WITH_DOCTYPE.toByteArray())
+
+        // when / then: the security check reaches the caller as an unreadable file
+        assertThatThrownBy { underTest.extract(bpmnFile = bpmnResource, engine = ProcessEngine.ZEEBE) }
+            .isInstanceOf(BpmnReadException::class.java).hasMessageContaining("doctype.bpmn")
+            .hasCauseInstanceOf(SecurityException::class.java)
     }
 
     private fun classpathResource(fileName: String): BpmnResource {
@@ -63,6 +75,12 @@ class ExtractBpmnAdapterTest {
     }
 
     private companion object {
+        private val WITH_DOCTYPE = """
+            <?xml version="1.0"?>
+            <!DOCTYPE definitions [<!ENTITY xxe "x">]>
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_1" />
+        """.trimIndent()
+
         private val DEFINITIONS_WITHOUT_PROCESS = """
             <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_1"
                               targetNamespace="http://bpmn.io/schema/bpmn">

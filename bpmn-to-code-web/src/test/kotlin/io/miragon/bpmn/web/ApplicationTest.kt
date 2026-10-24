@@ -110,7 +110,7 @@ class ApplicationTest {
     }
 
     @Test
-    fun `answers an unhandled exception with a json error`() {
+    fun `answers an unhandled exception with a json error that hides its message`() {
         testApplication {
             application {
                 configureApp(appConfig())
@@ -120,7 +120,7 @@ class ApplicationTest {
             val response = client.get("/failing")
 
             assertThat(response.status).isEqualTo(HttpStatusCode.InternalServerError)
-            assertThat(response.bodyAsText()).contains("\"error\": \"Boom\"")
+            assertThat(response.bodyAsText()).contains("\"error\": \"Unknown error occurred\"").doesNotContain("Boom")
         }
     }
 

@@ -5,6 +5,7 @@ import io.miragon.bpmn.adapter.outbound.engine.dialect.CamundaDialect
 import io.miragon.bpmn.adapter.outbound.engine.dialect.EngineDialect
 import io.miragon.bpmn.adapter.outbound.engine.dialect.ZeebeDialect
 import io.miragon.bpmn.application.port.outbound.ExtractBpmnPort
+import io.miragon.bpmn.domain.BpmnReadException
 import io.miragon.bpmn.domain.BpmnResource
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.shared.ProcessEngine
@@ -19,17 +20,18 @@ internal class ExtractBpmnAdapter(
             logger.info { "Extracting model '${bpmnFile.fileName}' for '$engine'" }
             ProcessModelReader(dialect).read(bpmnFile.content)
         } catch (ex: IllegalStateException) {
-            throw IllegalStateException(
-                "Failed to extract file: ${bpmnFile.fileName}. Please check its a valid file for $engine",
-                ex,
-            )
+            throw unreadable(bpmnFile = bpmnFile, engine = engine, cause = ex)
         } catch (ex: IllegalArgumentException) {
-            throw IllegalStateException(
-                "Failed to extract file: ${bpmnFile.fileName}. Please check its a valid file for $engine",
-                ex,
-            )
+            throw unreadable(bpmnFile = bpmnFile, engine = engine, cause = ex)
+        } catch (ex: SecurityException) {
+            throw unreadable(bpmnFile = bpmnFile, engine = engine, cause = ex)
         }
     }
+
+    private fun unreadable(bpmnFile: BpmnResource, engine: ProcessEngine, cause: RuntimeException) = BpmnReadException(
+        message = "Failed to extract file: ${bpmnFile.fileName}. Please check its a valid file for $engine",
+        cause = cause,
+    )
 
     companion object {
         private const val CAMUNDA_7_NAMESPACE = "http://camunda.org/schema/1.0/bpmn"

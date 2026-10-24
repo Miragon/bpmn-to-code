@@ -1,5 +1,6 @@
 package io.miragon.bpmn.web.model
 
+import io.miragon.bpmn.domain.BpmnReadException
 import kotlinx.serialization.Serializable
 import java.util.Base64
 
@@ -19,7 +20,11 @@ data class BpmnFileData(
     val content: String,
 ) {
 
-    fun bpmnXml(): String = String(Base64.getDecoder().decode(content))
+    fun bpmnXml(): String = try {
+        String(Base64.getDecoder().decode(content))
+    } catch (e: IllegalArgumentException) {
+        throw BpmnReadException("File '$fileName' is not valid Base64", e)
+    }
 
     fun processName(): String = fileName.removeSuffix(".bpmn")
 }

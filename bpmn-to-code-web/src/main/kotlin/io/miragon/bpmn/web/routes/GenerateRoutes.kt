@@ -21,7 +21,7 @@ fun Route.generateRoutes(generationService: WebGenerationService) {
         description = "Upload BPMN files and generate type-safe API code for Zeebe, Camunda 7 or Operaton"
         responses {
             HttpStatusCode.OK { description = "Code generated successfully" }
-            HttpStatusCode.BadRequest { description = "No files provided, or more than 3 files" }
+            HttpStatusCode.BadRequest { description = "No files, more than 3 files, an unreadable file or a rejected model" }
             HttpStatusCode.InternalServerError { description = "Unexpected error during generation" }
         }
     }

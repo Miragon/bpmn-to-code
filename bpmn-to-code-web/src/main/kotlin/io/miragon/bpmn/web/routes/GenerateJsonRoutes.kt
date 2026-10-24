@@ -27,7 +27,7 @@ fun Route.generateJsonRoutes(jsonService: WebJsonGenerationService) {
             "Upload BPMN files and generate JSON representations of the process models"
         responses {
             HttpStatusCode.OK { description = "JSON generated successfully" }
-            HttpStatusCode.BadRequest { description = "No files provided, or more than 3 files" }
+            HttpStatusCode.BadRequest { description = "No files, more than 3 files, an unreadable file or a rejected model" }
             HttpStatusCode.InternalServerError { description = "Unexpected error during generation" }
         }
     }
