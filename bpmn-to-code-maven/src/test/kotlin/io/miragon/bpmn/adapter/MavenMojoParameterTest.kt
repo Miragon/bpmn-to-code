@@ -76,7 +76,6 @@ class MavenMojoParameterTest {
         @JvmStatic
         fun mojos(): List<Named<AbstractMojo>> = listOf(
             named("generate-bpmn-api", BpmnModelMojo().apply { setField(obj = this, name = "outputLanguage", value = "KOTLIN") }),
-            named("generate-bpmn-json", BpmnJsonMojo()),
             named("validate-bpmn", BpmnValidateMojo()),
         )
     }

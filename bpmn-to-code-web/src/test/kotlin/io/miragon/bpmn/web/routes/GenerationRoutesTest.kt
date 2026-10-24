@@ -25,8 +25,6 @@ import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import java.util.Base64
 
 class GenerationRoutesTest {
@@ -47,66 +45,37 @@ class GenerationRoutesTest {
     }
 
     @Test
-    fun `generates the process json`() {
+    fun `rejects a request without files`() {
         testApplication {
             application { configureApp(appConfig()) }
 
-            val response = client.post("/api/generate-json") { jsonBody(requestOf(bikeLeasing())) }
-
-            val body = jsonOf(response.bodyAsText())
-            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-            assertThat(body.getValue("success").jsonPrimitive.boolean).isTrue()
-            assertThat(fileNamesIn(body, "files")).isNotEmpty().allMatch { it.endsWith(".json") }
-        }
-    }
-
-    @Test
-    fun `marks the process json endpoint as deprecated`() {
-        testApplication {
-            application { configureApp(appConfig()) }
-
-            val response = client.post("/api/generate-json") { jsonBody(requestOf(bikeLeasing())) }
-
-            assertThat(response.headers["Deprecation"]).isEqualTo("true")
-            assertThat(response.headers["Link"]).isEqualTo("<https://github.com/Miragon/bpmn-to-code/issues/206>; rel=\"deprecation\"")
-        }
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `rejects a request without files`(endpoint: String) {
-        testApplication {
-            application { configureApp(appConfig()) }
-
-            val response = client.post(endpoint) { jsonBody(requestOf()) }
+            val response = client.post("/api/generate") { jsonBody(requestOf()) }
 
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
             assertThat(jsonOf(response.bodyAsText())).isEqualTo(failure(error = "No files provided"))
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `rejects more than three files`(endpoint: String) {
+    @Test
+    fun `rejects more than three files`() {
         testApplication {
             application { configureApp(appConfig()) }
             val files = (1..4).map { bikeLeasing(fileName = "bike-leasing-$it.bpmn") }
 
-            val response = client.post(endpoint) { jsonBody(requestOf(*files.toTypedArray())) }
+            val response = client.post("/api/generate") { jsonBody(requestOf(*files.toTypedArray())) }
 
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
             assertThat(jsonOf(response.bodyAsText())).isEqualTo(failure(error = "Maximum 3 BPMN files allowed"))
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `answers files sharing a process id with the conflict`(endpoint: String) {
+    @Test
+    fun `answers files sharing a process id with the conflict`() {
         testApplication {
             application { configureApp(appConfig()) }
             val files = arrayOf(bikeLeasing(fileName = "bike-leasing-a.bpmn"), bikeLeasing(fileName = "bike-leasing-b.bpmn"))
 
-            val response = client.post(endpoint) { jsonBody(requestOf(*files)) }
+            val response = client.post("/api/generate") { jsonBody(requestOf(*files)) }
 
             val body = jsonOf(response.bodyAsText())
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
@@ -115,9 +84,8 @@ class GenerationRoutesTest {
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `ignores the enableVariants setting of clients written against earlier versions`(endpoint: String) {
+    @Test
+    fun `ignores the enableVariants setting of clients written against earlier versions`() {
         testApplication {
             application { configureApp(appConfig()) }
             val request = buildJsonObject {
@@ -129,19 +97,18 @@ class GenerationRoutesTest {
                 }
             }
 
-            val response = client.post(endpoint) { jsonBody(request) }
+            val response = client.post("/api/generate") { jsonBody(request) }
 
             assertThat(response.status).isEqualTo(HttpStatusCode.OK)
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `answers an invalid model with its violations`(endpoint: String) {
+    @Test
+    fun `answers an invalid model with its violations`() {
         testApplication {
             application { configureApp(appConfig()) }
 
-            val response = client.post(endpoint) { jsonBody(requestOf(bpmnFile(fileName = "reserved.bpmn", bpmnXml = RESERVED_ELEMENT_NAME))) }
+            val response = client.post("/api/generate") { jsonBody(requestOf(bpmnFile(fileName = "reserved.bpmn", bpmnXml = RESERVED_ELEMENT_NAME))) }
 
             val body = jsonOf(response.bodyAsText())
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
@@ -150,9 +117,8 @@ class GenerationRoutesTest {
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `answers content that is not base64 as a bad request`(endpoint: String) {
+    @Test
+    fun `answers content that is not base64 as a bad request`() {
         testApplication {
             application { configureApp(appConfig()) }
             val file = buildJsonObject {
@@ -160,20 +126,19 @@ class GenerationRoutesTest {
                 put("content", "not-valid-base64!!!")
             }
 
-            val response = client.post(endpoint) { jsonBody(requestOf(file)) }
+            val response = client.post("/api/generate") { jsonBody(requestOf(file)) }
 
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
             assertThat(jsonOf(response.bodyAsText())).isEqualTo(failure(error = "File 'broken.bpmn' is not valid Base64"))
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = ["/api/generate", "/api/generate-json"])
-    fun `answers a file that is not well-formed xml as a bad request`(endpoint: String) {
+    @Test
+    fun `answers a file that is not well-formed xml as a bad request`() {
         testApplication {
             application { configureApp(appConfig()) }
 
-            val response = client.post(endpoint) { jsonBody(requestOf(bpmnFile(fileName = "truncated.bpmn", bpmnXml = "<bpmn:definitions"))) }
+            val response = client.post("/api/generate") { jsonBody(requestOf(bpmnFile(fileName = "truncated.bpmn", bpmnXml = "<bpmn:definitions"))) }
 
             assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
             assertThat(jsonOf(response.bodyAsText()).getValue("error").jsonPrimitive.content).contains("truncated.bpmn")

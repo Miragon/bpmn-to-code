@@ -28,8 +28,8 @@ internal interface EngineDialect {
     /**
      * Names of the `bpmn:extensionElements` children in [namespace] that this dialect reads **in full**.
      *
-     * These are left out of a node's raw `extensions`, which exists to carry what is *not* normalised
-     * (the process JSON's raw layer) — emitting both would state the same fact twice and let the two drift apart.
+     * These are left out of a node's raw `extensions`, which exists to carry what is *not* normalised —
+     * emitting both would state the same fact twice and let the two drift apart.
      *
      * Membership is a claim about coverage, so an element belongs here only if every attribute and child
      * it can carry ends up in a typed field. Partially read elements stay out and keep being reported raw.

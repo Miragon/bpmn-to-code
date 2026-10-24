@@ -183,6 +183,19 @@ class ZeebeExtractionTest {
     }
 
     @Test
+    fun `extract reads the retries of a job worker`() {
+        val taskDefinition = """<zeebe:taskDefinition type="miravelo.validateApplication" />"""
+        val withRetries = """<zeebe:taskDefinition type="miravelo.validateApplication" retries="3" />"""
+        val resourceUrl = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn"))
+        val bpmn = File(resourceUrl.toURI()).readText().replace(taskDefinition, withRetries)
+
+        val implementations = underTest.read(bpmn.encodeToByteArray()).serviceTasks.associate { it.id to it.implementation }
+
+        assertThat(implementations["serviceTask_validateApplication"])
+            .isEqualTo(TaskImplementation.JobWorker(jobType = "miravelo.validateApplication", retries = "3"))
+    }
+
+    @Test
     fun `extract returns variantName from process-level extension properties`() {
         assertThat(extractWithProcessProperty(name = "variantName", value = " corporate ").variantName).isEqualTo("corporate")
     }

@@ -104,48 +104,4 @@ class GradlePluginDependencyResolutionSmokeTest {
         // then: bpmn-to-code-runtime is on the implementation configuration
         assertThat(result.output).contains("io.miragon:bpmn-to-code-runtime:$pluginVersion")
     }
-
-    @Test
-    fun `generateBpmnModelJson resolves kotlinx-serialization from published artifact`(@TempDir projectDir: File) {
-        // given: a minimal project configured to resolve the plugin from mavenLocal
-        val resourcesDir = File(projectDir, "src/main/resources").also { it.mkdirs() }
-        val bpmnStream = requireNotNull(javaClass.classLoader.getResourceAsStream("bpmn/zeebe/bike-leasing.bpmn"))
-        File(resourcesDir, "bike-leasing.bpmn").writeBytes(bpmnStream.readBytes())
-        File(projectDir, "settings.gradle").writeText(
-            """
-            pluginManagement {
-                repositories {
-                    mavenLocal()
-                    gradlePluginPortal()
-                    mavenCentral()
-                }
-            }
-            """.trimIndent(),
-        )
-        File(projectDir, "build.gradle").writeText(
-            """
-            plugins {
-                id 'io.miragon.bpmn-to-code-gradle' version '$pluginVersion'
-            }
-
-            tasks.named('generateBpmnModelJson') {
-                baseDir = projectDir.toString()
-                filePattern = 'src/main/resources/*.bpmn'
-                outputFolderPath = "${'$'}{projectDir}/build/generated-json"
-                processEngine = io.miragon.bpmn.domain.shared.ProcessEngine.ZEEBE
-            }
-            """.trimIndent(),
-        )
-
-        // when: running WITHOUT withPluginClasspath() so Gradle resolves from mavenLocal
-        val result = GradleRunner.create().withProjectDir(projectDir).withArguments("generateBpmnModelJson").build()
-
-        // then: the task succeeds and generates JSON files
-        assertThat(result.task(":generateBpmnModelJson")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        val outputDir = File(projectDir, "build/generated-json")
-        assertThat(outputDir).isDirectory()
-        val generatedFiles = requireNotNull(outputDir.listFiles())
-        assertThat(generatedFiles).isNotEmpty()
-        assertThat(generatedFiles).allSatisfy { file -> assertThat(file.name).endsWith(".json") }
-    }
 }

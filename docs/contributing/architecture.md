@@ -8,7 +8,7 @@ Gradle modules (`settings.gradle.kts`):
 
 | Module | What it is | Published to |
 |---|---|---|
-| `bpmn-to-code-core` | Reads BPMN, validates, generates the Process API and the process JSON | Not published. Its classes are packed into the Gradle plugin, Maven plugin and testing jars; the web app and the command-line tool depend on it directly. |
+| `bpmn-to-code-core` | Reads BPMN, validates, generates the Process API | Not published. Its classes are packed into the Gradle plugin, Maven plugin and testing jars; the web app and the command-line tool depend on it directly. |
 | `bpmn-to-code-gradle` | Gradle plugin `io.miragon.bpmn-to-code-gradle` | Gradle Plugin Portal |
 | `bpmn-to-code-maven` | Maven plugin `io.miragon:bpmn-to-code-maven` (mojos written in Java) | Maven Central |
 | `bpmn-to-code-runtime` | Dependency-free types the generated Kotlin and Java code refers to, plus `ProcessPath` | Maven Central |
@@ -43,7 +43,7 @@ Core is a hexagon under `io.miragon.bpmn`. `HexagonalArchitectureTest` allows ex
 | `application.port.inbound` | Use cases (`…UseCase`, `…Query`) | `domain` |
 | `application.port.outbound` | Ports (`…Port`, `…Repository`) | `domain` |
 | `application.service` | One `…Service` per inbound port | `domain`, both port packages, `adapter.outbound` |
-| `adapter.outbound` | BPMN reading (`engine`), code generation (`codegen`), `json`, `filesystem` | `domain`, `application.port.outbound` |
+| `adapter.outbound` | BPMN reading (`engine`), code generation (`codegen`), `filesystem` | `domain`, `application.port.outbound` |
 | `adapter.inbound` | The `…Plugin` classes, one per use case | `domain`, `application.port.inbound`, `application.service` |
 
 There is no dependency-injection framework, hence these further rules:

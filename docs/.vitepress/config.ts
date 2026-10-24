@@ -53,12 +53,6 @@ export default miragonDocs({
       ],
     },
     {
-      text: 'Process JSON (deprecated)',
-      items: [
-        { text: 'Format Reference', link: '/surface/json' },
-      ],
-    },
-    {
       text: 'Agent Skills',
       items: [
         { text: 'Available Skills', link: '/skills/' },

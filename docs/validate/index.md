@@ -4,7 +4,7 @@ bpmn-to-code checks your BPMN models against a set of rules. The same rules run 
 
 | Where | Rules | Fails on | Can be tuned |
 |-------|-------|----------|--------------|
-| **Generation**: `generateBpmnModelApi`, `generateBpmnModelJson`, the Maven goals `generate-bpmn-api` and `generate-bpmn-json`, the [web app](/web/) | all [built-in rules](#built-in-rules) | any `ERROR` | no |
+| **Generation**: `generateBpmnModelApi`, the Maven goal `generate-bpmn-api`, the [web app](/web/) | all [built-in rules](#built-in-rules) | any `ERROR` | no |
 | **Validate task**: `validateBpmnModels` / `validate-bpmn` _(experimental)_ | the same rules | any `ERROR`, with `failOnWarning` also any `WARN` | `failOnWarning`, `disabledRules` |
 | **[Testing library](/validate/testing)**: `bpmn-to-code-testing` | the built-in rules, opt-in rules and [your own](/validate/custom-rules) | whatever your test asserts | any rule but a mandatory one can be selected or disabled |
 
@@ -14,7 +14,7 @@ The validate task checks exactly what the generation of the Process API checks, 
 
 Two details:
 
-- A process marked `isExecutable="false"` gets no Process API, so neither the API generation nor the validate task validates it. The Process JSON includes it.
+- A process marked `isExecutable="false"` gets no Process API, so neither the API generation nor the validate task validates it.
 - Rules that compare processes with each other run only once every process is free of errors on its own.
 
 ## Built-in rules

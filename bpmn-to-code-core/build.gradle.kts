@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.pitest)
     jacoco
 }
@@ -15,13 +14,11 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(libs.bpmnmodel)
     implementation(libs.bundles.codegen)
-    implementation(libs.kotlinxSerializationJson)
 
     api(libs.slf4jApi)
     api(libs.kotlinLogging)
     testImplementation(libs.bundles.testing)
     testImplementation(kotlin("compiler-embeddable"))
-    testImplementation(libs.jsonSchemaValidator)
     testImplementation(project(":bpmn-to-code-runtime"))
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
@@ -29,13 +26,6 @@ dependencies {
 sourceSets {
     test {
         resources.srcDir(rootProject.file("shared"))
-        resources.srcDir(rootProject.file("docs/public/schema"))
-    }
-}
-
-tasks.processResources {
-    from(rootProject.file("docs/public/schema")) {
-        into("META-INF/bpmn-to-code/schema")
     }
 }
 
@@ -55,7 +45,6 @@ private val coverageExclusions = listOf(
     "**/domain/shared/**",
     "**/domain/validation/model/**",
     "**/adapter/outbound/engine/**/*Constants*",
-    "**/adapter/outbound/json/model/**",
     "**/application/port/**",
     $$"**/*$DefaultImpls*",
     $$"**/*$Companion*",
@@ -74,10 +63,7 @@ tasks.jacocoTestCoverageVerification {
 }
 
 pitest {
-    excludedClasses.addAll(
-        "io.miragon.bpmn.adapter.outbound.engine.*Constants*",
-        "io.miragon.bpmn.adapter.outbound.json.model.*",
-    )
+    excludedClasses.addAll("io.miragon.bpmn.adapter.outbound.engine.*Constants*")
     mutationThreshold.set(80)
     jvmArgs.add("-Druntime.test.sources=${runtimeTestSources.absolutePath}")
 }

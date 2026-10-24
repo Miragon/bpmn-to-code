@@ -12,7 +12,7 @@ The Process API is an `object` (Kotlin), `final class` (Java), `static class` (C
 | `PROCESS_ENGINE` | The engine the API was generated for (`BpmnEngine`: `ZEEBE`, `CAMUNDA_7`, `OPERATON`) |
 | `FlowNodes` | One node per element, carrying the element's own data and its successors |
 
-Element ids, variables, timers and call-activity mappings have no section of their own: they live on the node that declares them. The API is the code-side twin of the [Process JSON](/surface/json), which holds the same facts as data.
+Element ids, variables, timers and call-activity mappings have no section of their own: they live on the node that declares them.
 
 ## Shared definitions
 
@@ -454,7 +454,7 @@ object CallActivityCancelBikeOrder : /* … */ CallActivity, HasVariables {
 | Zeebe | the FEEL expression of `zeebe:input` / `zeebe:output` | always `null` |
 | Camunda 7, Operaton | the `source` variable of `camunda:in` / `camunda:out` | its `sourceExpression`, e.g. `${applicationId}` |
 
-The same model for Camunda 7 yields `InputOutputMapping(target = "applicationId", sourceExpression = "\${applicationId}")`. The "pass all variables" modes (`variables="all"`, `propagateAllParentVariables` / `propagateAllChildVariables`) produce no constants; the [Process JSON](/surface/json) reports them.
+The same model for Camunda 7 yields `InputOutputMapping(target = "applicationId", sourceExpression = "\${applicationId}")`. The "pass all variables" modes (`variables="all"`, `propagateAllParentVariables` / `propagateAllChildVariables`) produce no constants.
 
 ## Several files, one process id
 
