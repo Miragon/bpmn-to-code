@@ -32,6 +32,24 @@ class SharedDefinitionsTest {
     }
 
     @Test
+    fun `from skips messages, signals and job types named by a FEEL expression`() {
+        // given: a process whose message, signal and job type are computed at runtime
+        val model = testProcessModel(
+            flowNodes = listOf(jobWorkerTask(id = "Task_A", jobType = "=bikeType + \".check\"")),
+            messages = listOf(RootElementDefinition.Message(id = "Message_A", name = "=\"bike-\" + bikeId")),
+            signals = listOf(RootElementDefinition.Signal(id = "Signal_A", name = "=\"bike-\" + bikeId")),
+        )
+
+        // when: collecting the shared definitions
+        val result = SharedDefinitions.from(listOf(model))
+
+        // then: none of them becomes a shared constant
+        assertThat(result.serviceTasks).isEmpty()
+        assertThat(result.messages).isEmpty()
+        assertThat(result.signals).isEmpty()
+    }
+
+    @Test
     fun `from keeps one entry for a variable used by two processes in different directions`() {
         // given: two processes both declaring orderId, one reading and one writing it
         val first = testProcessModel(

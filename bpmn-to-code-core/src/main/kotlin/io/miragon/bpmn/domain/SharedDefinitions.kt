@@ -1,5 +1,6 @@
 package io.miragon.bpmn.domain
 
+import io.miragon.bpmn.domain.shared.Feel
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
 import io.miragon.bpmn.domain.shared.VariableDefinition
@@ -29,7 +30,7 @@ data class SharedDefinitions(
             processVariables = models.flatMap { it.variables }.distinctByValue(),
         )
 
-        private fun <T : VariableMapping<*>> List<T>.distinctByValue(): List<T> = filter { it.getRawName().isNotEmpty() }
+        private fun <T : VariableMapping<*>> List<T>.distinctByValue(): List<T> = filter { it.getRawName().isNotEmpty() && !Feel.isExpression(it.getRawName()) }
             .distinctBy { it.getValue() }.sortedBy { it.getRawName() }
     }
 }
