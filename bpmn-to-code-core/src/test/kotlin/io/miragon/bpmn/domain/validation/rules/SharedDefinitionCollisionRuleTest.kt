@@ -208,6 +208,16 @@ class SharedDefinitionCollisionRuleTest {
         assertThat(violationsOf(first, second)).isEmpty()
     }
 
+    @Test
+    fun `ignores feel signal names that differ only in whitespace`() {
+        // given: two processes whose dynamic signal names are the same FEEL expression, spaced differently
+        val first = testProcessModel(processId = "first", signals = listOf(RootElementDefinition.Signal(id = "s1", name = "=\"bike-\" + bikeId")))
+        val second = testProcessModel(processId = "second", signals = listOf(RootElementDefinition.Signal(id = "s2", name = "=\"bike-\"+bikeId")))
+
+        // when / then: dynamic names get no constant, so nothing can collide
+        assertThat(violationsOf(first, second)).isEmpty()
+    }
+
     private fun violationsOf(vararg models: ProcessModel): List<ValidationViolation> {
         val context = CrossModelValidationContext(models.toList(), ProcessEngine.ZEEBE)
         return underTest.validate(context)

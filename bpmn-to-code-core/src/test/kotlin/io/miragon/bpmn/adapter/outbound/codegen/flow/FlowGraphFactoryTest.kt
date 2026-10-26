@@ -272,6 +272,27 @@ class FlowGraphFactoryTest {
     }
 
     @Test
+    fun `signal named by a FEEL expression keeps its value but has no shared constant`() {
+        // given: a signal whose name is computed at runtime
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Event(
+                    id = "onBikeReturned",
+                    shape = EventShape.INTERMEDIATE_THROW_EVENT,
+                    eventDefinitions = listOf(EventDefinitionInstance.Signal(signalRef = "Signal_A")),
+                ),
+            ),
+            signals = listOf(RootElementDefinition.Signal(id = "Signal_A", name = "=\"bike-\" + bikeId")),
+        )
+
+        // when
+        val graph = FlowGraphFactory.build(model)
+
+        // then: the shared Signals file will not contain it, so the node must not reference it
+        assertThat(graph.node("onBikeReturned").facets.signal).isEqualTo(SharedValue("=\"bike-\" + bikeId", null))
+    }
+
+    @Test
     fun `event references resolve through the root-element registry by ref`() {
         val model = testProcessModel(
             flowNodes = listOf(

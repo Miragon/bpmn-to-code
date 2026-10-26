@@ -10,6 +10,7 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
 import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
+import io.miragon.bpmn.domain.shared.Feel
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.RootElements
@@ -110,7 +111,7 @@ internal class FlowFacetsFactory(
      * name and code.
      */
     private fun <T> T.sharedIn(candidates: List<VariableMapping<*>>): SharedValue<T> {
-        val definition = candidates.firstOrNull { it.getValue() == this }
+        val definition = candidates.firstOrNull { it.getValue() == this && !Feel.isExpression(it.getRawName()) }
         return SharedValue(this, definition?.let { SharedConstant(name = it.getName()) })
     }
 

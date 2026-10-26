@@ -1,6 +1,7 @@
 package io.miragon.bpmn.domain.validation.rules
 
 import io.miragon.bpmn.domain.ProcessModel
+import io.miragon.bpmn.domain.shared.Feel
 import io.miragon.bpmn.domain.shared.VariableMapping
 import io.miragon.bpmn.domain.validation.CrossModelValidationRule
 import io.miragon.bpmn.domain.validation.model.CollisionDetail
@@ -38,7 +39,7 @@ class SharedDefinitionCollisionRule : CrossModelValidationRule {
         itemsOf: (ProcessModel) -> List<T>,
     ): List<CollisionDetail> {
         val usages = models.flatMap { model ->
-            itemsOf(model).filter { it.getName().isNotEmpty() }.map { model.processId to it }
+            itemsOf(model).filter { it.getName().isNotEmpty() && !Feel.isExpression(it.getRawName()) }.map { model.processId to it }
         }
         val usagesPerConstantName = usages.groupBy { (_, item) -> item.getName() }
         return usagesPerConstantName.mapNotNull { (constantName, usagesWithSameName) ->

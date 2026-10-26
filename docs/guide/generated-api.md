@@ -30,6 +30,7 @@ Job types, message and signal names, errors, escalations and variable names iden
 - A file is only generated when at least one process contains a matching element.
 - Each value appears once, however many processes use it.
 - **Constants are named after the name**, not the id: the message `miravelo.contractSigned` is `MIRAVELO_CONTRACT_SIGNED`. This holds for errors and escalations too; the code is a value of the definition, not part of its name. Two different definitions that lead to the same constant fail generation with the `shared-definition-collision` [rule](/validate/).
+- Names that are a FEEL expression (Zeebe, starting with `=`) are resolved at runtime and get no constant. A FlowNode that uses one carries the expression as its value.
 - Every file lists its values: Kotlin `ServiceTasks.all`, Java `ServiceTasks.all()`, C# `ServiceTasks.All`, TypeScript `ServiceTasks.all`. That turns "every job type has a registered worker" into a loop in a test.
 
 ::: warning One `packagePath` per generation run
