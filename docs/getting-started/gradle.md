@@ -11,13 +11,13 @@ The Gradle plugin generates the Process API from your BPMN models as part of the
 
 ```kotlin [build.gradle.kts]
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "7.0.0"
+    id("io.miragon.bpmn-to-code-gradle") version "7.0.1"
 }
 ```
 
 ```groovy [build.gradle]
 plugins {
-    id 'io.miragon.bpmn-to-code-gradle' version '7.0.0'
+    id 'io.miragon.bpmn-to-code-gradle' version '7.0.1'
 }
 ```
 
@@ -73,7 +73,7 @@ It adds nothing when the `java` plugin is absent. Declare the dependency yoursel
 <!-- x-release-please-start-version -->
 ```kotlin
 dependencies {
-    implementation("io.miragon:bpmn-to-code-runtime:7.0.0")
+    implementation("io.miragon:bpmn-to-code-runtime:7.0.1")
 }
 ```
 <!-- x-release-please-end -->

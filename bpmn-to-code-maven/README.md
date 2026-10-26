@@ -7,7 +7,7 @@ Maven plugin of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code), publish
 <plugin>
     <groupId>io.miragon</groupId>
     <artifactId>bpmn-to-code-maven</artifactId>
-    <version>7.0.0</version>
+    <version>7.0.1</version>
 </plugin>
 ```
 <!-- x-release-please-end -->

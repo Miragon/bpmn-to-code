@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [7.0.1](https://github.com/Miragon/bpmn-to-code/compare/v7.0.0...v7.0.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **core:** skip FEEL expression names in shared definitions ([#255](https://github.com/Miragon/bpmn-to-code/issues/255)) ([9f60874](https://github.com/Miragon/bpmn-to-code/commit/9f608744d8e36e6be3bbe1ec850530f13a7af399))
+
 ## [7.0.0](https://github.com/Miragon/bpmn-to-code/compare/v6.6.1...v7.0.0) (2026-10-24)
 
 
