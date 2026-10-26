@@ -27,6 +27,8 @@ import "@fontsource-variable/geist-mono"
 import "./cd-tokens.generated.css"
 import "./miragon.css"
 import LegalRow from "./LegalRow.vue"
+import GitHubStars from "./GitHubStars.vue"
+import StarPrompt from "./StarPrompt.vue"
 
 // Im Titel jeder Seite steht der Komet statt der Wortmarke, daneben der Produktname
 // (theme/miragon.css, Abschnitt TITEL: KOMET UND PRODUKTNAME).
@@ -37,12 +39,15 @@ const Komet: FunctionalComponent = () =>
   h("svg", { class: "miragon-komet", viewBox: "0 0 288.08 89.63", role: "img", "aria-label": "Miragon" }, [
     h("path", { d: KOMET, fill: "#00E676" }),
   ])
-// Das Layout von VitePress mit der Rechtsleiste ganz unten. Slots von außen reicht es weiter,
+// Das Layout von VitePress mit GitHub und Sternen im Header, der Bitte um einen Stern am
+// Seitenende und der Rechtsleiste ganz unten. Slots von außen reicht es weiter,
 // auch einen eigenen layout-bottom, der dann über der Rechtsleiste steht.
 const Layout: FunctionalComponent = (_, { slots }) =>
   h(DefaultTheme.Layout, null, {
     ...slots,
     "nav-bar-title-before": () => [slots["nav-bar-title-before"]?.(), h(Komet)],
+    "nav-bar-content-after": () => [slots["nav-bar-content-after"]?.(), h(GitHubStars)],
+    "doc-footer-before": () => [slots["doc-footer-before"]?.(), h(StarPrompt)],
     "layout-bottom": () => [slots["layout-bottom"]?.(), h(LegalRow)],
   })
 
