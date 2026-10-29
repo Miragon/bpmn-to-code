@@ -1,5 +1,6 @@
 ---
 name: setup-bpmn-to-code
+disable-model-invocation: true
 description: "Sets up bpmn-to-code in an existing project with the Gradle plugin, the Maven plugin or the CLI, so the build generates a type-safe Process API from the BPMN models, with an optional GitHub Actions check that the committed API is up to date. Use when adding bpmn-to-code or BPMN code generation to a project, or a CI check for a stale generated API."
 argument-hint: "[gradle|maven|cli]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(bpmn-to-code *)

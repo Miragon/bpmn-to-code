@@ -1,5 +1,6 @@
 ---
 name: migrate-to-bpmn-to-code-apis
+disable-model-invocation: true
 argument-hint: "[path/to/scan] | [ProcessApiClassName] | --from-5x"
 description: "Replaces hardcoded BPMN element ids, job types and message names with references to the generated Process API, or rewrites 5.x API references to 6.x with --from-5x. Use when moving code onto the Process API or upgrading to bpmn-to-code 6."
 allowed-tools: Read, Glob, Grep, Edit

@@ -1,5 +1,6 @@
 ---
 name: generate-rule-to-enforce-bpmn-styleguide
+disable-model-invocation: true
 argument-hint: "[rule-slug]"
 description: "Turns one rule of a BPMN_STYLE_GUIDE.md into a Kotlin validation rule for bpmn-to-code-testing and registers it in the model validation test. Use when a modeling convention should be enforced in the build."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(javap *)

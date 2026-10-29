@@ -1,5 +1,6 @@
 ---
 name: bpmn-to-code-validate-docs
+disable-model-invocation: true
 description: "Check that docs, READMEs, CLAUDE.md, repo skills and context7.json still match the code. Use before a release, after changing plugin parameters, validation rules, engines, output languages, web routes, modules or workflows, and whenever docs were moved or deleted."
 ---
 
