@@ -141,6 +141,6 @@ C# and TypeScript output are experimental and may change in a minor release; the
 - [Changelog and migration guides](https://miragon.github.io/bpmn-to-code/changelog/)
 - [Contributing](https://miragon.github.io/bpmn-to-code/contributing/)
 
-Issues, pull requests and discussions are welcome on [GitHub](https://github.com/Miragon/bpmn-to-code).
+Issues and discussions are welcome on [GitHub](https://github.com/Miragon/bpmn-to-code). We do not accept external pull requests.
 
 bpmn-to-code is built and maintained by [Miragon](https://miragon.io).
