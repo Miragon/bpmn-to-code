@@ -3,18 +3,40 @@ name: Lint BPMN models
 on:
   pull_request:
     branches: [ main ]
-    paths:
-      - '**/*.bpmn'
-      - 'tools/**'
-      - '.github/workflows/lint-bpmn-models.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect BPMN Changes
+    runs-on: ubuntu-latest
+    outputs:
+      bpmn: ${{ steps.filter.outputs.bpmn }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for BPMN or tooling changes
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
+            '*.bpmn' \
+            'tools/' \
+            '.github/workflows/lint-bpmn-models.yml')
+          if [ -n "$CHANGED" ]; then
+            echo "bpmn=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bpmn=false" >> "$GITHUB_OUTPUT"
+          fi
+
   lint-bpmn:
     name: Lint BPMN models
+    needs: changes
+    if: needs.changes.outputs.bpmn == 'true'
     runs-on: ubuntu-24.04
 
     steps:
