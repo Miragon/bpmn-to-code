@@ -2,7 +2,7 @@
 name: create-process-adapter
 description: "Adds one call from the application to the process engine (start a process, correlate a message, send a signal, complete a user task) as an outbound port and process adapter method. Use when code has to start or continue a BPMN process."
 argument-hint: "<start|message|signal|user-task> <process id, message, signal or element id>"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(bpmn --version), Bash(bpmn show *), Bash(bpmn find *), Bash(npx -y @miragon/bpmn-cli@0.7 *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(bpmn --version), Bash(bpmn show *), Bash(bpmn find *), Bash(npx -y @miragon/bpmn-cli@0.10 *)
 ---
 
 # Skill: create-process-adapter
@@ -22,7 +22,7 @@ Write one outbound call to the engine. The application talks to a port in its ow
 - **Ports speak domain:** parameters are domain types, and the adapter converts them to engine values.
 - **Never edit generated files.**
 
-**bpmn-cli:** run `bpmn --version` once. If it fails, use `npx -y @miragon/bpmn-cli@0.7` wherever this skill says `bpmn`. Without Node, read the BPMN XML instead.
+**bpmn-cli:** run `bpmn --version` once. If it fails, use `npx -y @miragon/bpmn-cli@0.10` wherever this skill says `bpmn`. Without Node, read the BPMN XML instead.
 
 ## Step 1: Identify the call
 
@@ -31,8 +31,8 @@ Resolve `$ARGUMENTS` to one of these:
 | Call | Generated name | Read from the model |
 |---|---|---|
 | start | `PROCESS_ID`, or `Messages.X` for a message start event | the start event's variables |
-| message | `Messages.X` | the catching element: `bpmn show <file> <id> --context` shows its correlation key |
-| signal | `Signals.X` | the catching elements (`bpmn find <file> <signal>`) |
+| message | `Messages.X` | the catching element: `bpmn show <file> <id>` shows its correlation key |
+| signal | `Signals.X` | the catching elements: `bpmn find <file> <signal>` gives the signal's id, `bpmn show <file> <signal id>` lists them under `used by:` |
 | user task | `FlowNodes.<UserTask>` | its output variables |
 
 Without `bpmn`, read the BPMN XML.

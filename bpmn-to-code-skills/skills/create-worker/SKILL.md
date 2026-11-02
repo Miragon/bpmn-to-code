@@ -2,7 +2,7 @@
 name: create-worker
 description: "Implements one BPMN service task as a job worker, JavaDelegate or external-task handler that calls one use case, with names from the generated Process API. Use when a service task or job type needs code that handles it."
 argument-hint: "<element id or job type>"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(bpmn --version), Bash(bpmn show *), Bash(bpmn find *), Bash(npx -y @miragon/bpmn-cli@0.7 *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(bpmn --version), Bash(bpmn show *), Bash(bpmn find *), Bash(npx -y @miragon/bpmn-cli@0.10 *)
 ---
 
 # Skill: create-worker
@@ -21,7 +21,7 @@ Write one inbound adapter: the class the engine calls for one BPMN element. It t
 - **Error mapping:** a business error that the model catches with an error boundary event becomes a BPMN error with `Errors.X.code`. Everything else is a technical failure and goes to retry or incident.
 - **Never edit generated files.**
 
-**bpmn-cli:** run `bpmn --version` once. If it fails, use `npx -y @miragon/bpmn-cli@0.7` wherever this skill says `bpmn`. Without Node, read the BPMN XML instead.
+**bpmn-cli:** run `bpmn --version` once. If it fails, use `npx -y @miragon/bpmn-cli@0.10` wherever this skill says `bpmn`. Without Node, read the BPMN XML instead.
 
 ## Step 1: Find the element
 
@@ -29,7 +29,7 @@ Write one inbound adapter: the class the engine calls for one BPMN element. It t
 2. Resolve `$ARGUMENTS` (element id or job type) to its `FlowNodes.<Node>` and its `ServiceTasks` constant.
 3. Collect what the handler needs:
    - **input and output variables** from `FlowNodes.<Node>.Variables`
-   - **error boundary events** and their codes. Read them with `bpmn show <file> <element-id> --context`, which lists `caught by:` and the boundary events. If `bpmn` is not available, read the BPMN XML.
+   - **error boundary events** and their codes. Read them with `bpmn show <file> <element-id>`, which lists each boundary event with its error and code. If `bpmn` is not available, read the BPMN XML.
 
 ## Step 2: Detect the stack
 
