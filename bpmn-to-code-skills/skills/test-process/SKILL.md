@@ -2,7 +2,7 @@
 name: test-process
 description: "Writes one process test that runs a BPMN scenario on a test engine and asserts the walked path as a typed ProcessPath. Use when testing a process path, a gateway branch, a boundary event or a timer."
 argument-hint: "<process id> <scenario, e.g. 'happy path' or 'bike unavailable'>"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *), Bash(bpmn --version), Bash(bpmn show *), Bash(bpmn find *), Bash(npx -y @miragon/bpmn-cli@0.10 *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(./gradlew *), Bash(mvn *), Bash(./mvnw *)
 ---
 
 # Skill: test-process
@@ -24,11 +24,9 @@ Assert the walked path with `ProcessPath` from `bpmn-to-code-runtime`. The engin
   - exception: with a remote engine, the in-memory test engine has no REST API for workers and adapter. Its resource drives the engine directly, with the same generated names.
 - **Never edit generated files.**
 
-**bpmn-cli:** run `bpmn --version` once. If it fails, use `npx -y @miragon/bpmn-cli@0.10` wherever this skill says `bpmn`. Without Node, read the BPMN XML instead.
-
 ## Step 1: Pick the path
 
-1. Read the model in flow order: `bpmn show <file>`. For one branch, use `bpmn show <file> --around <id>`. Without `bpmn`, read the BPMN XML.
+1. Read the flow from the generated API: start at the start event in `FlowNodes` and follow each node's `Next`. Gateway flows carry their condition, boundary events their `attachedTo`. If the API is missing, run `/setup-bpmn-to-code` first. If it is older than the BPMN file, regenerate.
 2. Turn `$ARGUMENTS` into a concrete walk:
    - the start event
    - each gateway decision and which mocked use case result causes it
