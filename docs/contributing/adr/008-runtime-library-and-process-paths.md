@@ -38,3 +38,4 @@ Usage is documented in [Process paths](/guide/process-path).
 - **Generate the support types into every module.** Each module would get its own `ProcessId`, and code shared between modules could not be typed.
 - **`@JvmInline value class` wrappers.** No allocation, but unreachable from Java, as described above.
 - **Record the compensation boundary event always.** Paths written for Camunda 7 and Operaton would then contain an element the engine never reports.
+- **Actions per path step** (complete a task, publish a message). Each engine and test library does this differently, so the runtime would depend on one of them. A path only describes the route; the test drives the instance.
