@@ -31,8 +31,8 @@ Resolve `$ARGUMENTS` to one of these:
 | Call | Generated name | Read from the model |
 |---|---|---|
 | start | `PROCESS_ID`, or `Messages.X` for a message start event | the start event's variables |
-| message | `Messages.X` | the catching element: `bpmn show <file> <id> --context` shows its correlation key |
-| signal | `Signals.X` | the catching elements (`bpmn find <file> <signal>`) |
+| message | `Messages.X` | the catching element: `bpmn show <file> <id>` shows its correlation key |
+| signal | `Signals.X` | the elements that use it: `used by:` in `bpmn show <file> <signal-id>` |
 | user task | `FlowNodes.<UserTask>` | its output variables |
 
 Without `bpmn`, read the BPMN XML.
