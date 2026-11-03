@@ -29,7 +29,7 @@ Write one inbound adapter: the class the engine calls for one BPMN element. It t
 2. Resolve `$ARGUMENTS` (element id or job type) to its `FlowNodes.<Node>` and its `ServiceTasks` constant.
 3. Collect what the handler needs:
    - **input and output variables** from `FlowNodes.<Node>.Variables`
-   - **error boundary events** and their codes. Read them with `bpmn show <file> <element-id> --context`, which lists `caught by:` and the boundary events. If `bpmn` is not available, read the BPMN XML.
+   - **error boundary events** and their codes. Read them with `bpmn show <file> <element-id>`, which lists `caught by:` and the boundary events. If `bpmn` is not available, read the BPMN XML.
 
 ## Step 2: Detect the stack
 
