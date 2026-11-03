@@ -262,6 +262,7 @@ Each node extends `AbstractFlowNode` and implements one runtime interface per fa
 | `jobType`, `HasJobType` | tasks and events with an [implementation](/engines/#what-is-extracted) | `String`, the `ServiceTasks` constant | `implementation` |
 | `variables`, `HasVariables` | nodes declaring variables | the node's `Variables` | `ioMapping`, `multiInstance` |
 | `calledProcess`, `CallActivity`; `Inputs`, `Outputs` | call activities | `ProcessId`; `InputOutputMapping` | `calledElement`, `ioMapping` |
+| `multiInstance`, `MultiInstanceActivity` | multi-instance activities | `BpmnMultiInstance` (`type`: `SEQUENTIAL`, `PARALLEL`; `inputCollection`, `inputElement`, `outputCollection`, `outputElement` as modelled, `null` where not declared; Camunda 7 and Operaton have no outputs) | `multiInstance` |
 | `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `DATE`, `DURATION`, `CYCLE`; `timerValue`) | `eventDefinitions[]` |
 | `message`, `HasMessage` | message events, send and receive tasks | `MessageName`, the `Messages` constant | `eventDefinitions[]`, `messageRef` |
 | `signal` / `error` / `escalation`; `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition | the `Signals` / `Errors` / `Escalations` constant | `eventDefinitions[]` |

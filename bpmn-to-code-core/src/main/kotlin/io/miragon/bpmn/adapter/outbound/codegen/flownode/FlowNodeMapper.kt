@@ -10,12 +10,14 @@ import io.miragon.bpmn.adapter.outbound.codegen.SharedDefinitionType.SIGNALS
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MultiInstanceFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.VariableFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Flow
 import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Mapping
+import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.MultiInstance
 import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Successor
 import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Timer
 import io.miragon.bpmn.adapter.outbound.codegen.flownode.FlowNodeModel.Variable
@@ -40,6 +42,7 @@ internal class FlowNodeMapper(private val syntax: FlowNodeSyntax) {
             jobType = facets.jobType?.let { constantOrLiteral(SERVICE_TASKS, it) },
             calledProcess = facets.calledProcessId?.let { syntax.literal(it) },
             timer = facets.timer?.let { Timer(type = syntax.enumMember(it.type.name), expression = syntax.literal(it.expression)) },
+            multiInstance = facets.multiInstance?.let { multiInstanceOf(it) },
             message = facets.message?.let { sharedName(MESSAGES, it) },
             signal = facets.signal?.let { sharedName(SIGNALS, it) },
             error = facets.error?.let { syntax.sharedNameAndCode(ERRORS, it) },
@@ -63,6 +66,14 @@ internal class FlowNodeMapper(private val syntax: FlowNodeSyntax) {
     private fun sharedName(type: SharedDefinitionType, sharedValue: SharedValue<String>): SharedName = SharedName(
         reference = sharedValue.constant?.let { syntax.sharedReference(type, it.name) },
         literal = syntax.literal(sharedValue.value),
+    )
+
+    private fun multiInstanceOf(multiInstance: MultiInstanceFacet): MultiInstance = MultiInstance(
+        type = syntax.enumMember(if (multiInstance.sequential) "SEQUENTIAL" else "PARALLEL"),
+        inputCollection = multiInstance.inputCollection?.let { syntax.literal(it) },
+        inputElement = multiInstance.inputElement?.let { syntax.literal(it) },
+        outputCollection = multiInstance.outputCollection?.let { syntax.literal(it) },
+        outputElement = multiInstance.outputElement?.let { syntax.literal(it) },
     )
 
     private fun variableOf(variable: VariableFacet): Variable = Variable(

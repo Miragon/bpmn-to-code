@@ -20,6 +20,15 @@ export class ${node.type} implements ${node.interfaces?join(", ")} {
 <#if node.timer??>
   readonly timer = { type: ${node.timer.type}, timerValue: ${node.timer.expression} } as const;
 </#if>
+<#if node.multiInstance??>
+  readonly multiInstance = {
+    type: ${node.multiInstance.type},
+    inputCollection: ${node.multiInstance.inputCollection!"null"},
+    inputElement: ${node.multiInstance.inputElement!"null"},
+    outputCollection: ${node.multiInstance.outputCollection!"null"},
+    outputElement: ${node.multiInstance.outputElement!"null"},
+  } as const;
+</#if>
 <#if node.message??>
   readonly message = ${node.message.reference!node.message.literal};
 </#if>

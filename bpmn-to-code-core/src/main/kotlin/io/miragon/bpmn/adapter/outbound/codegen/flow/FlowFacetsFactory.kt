@@ -2,6 +2,7 @@ package io.miragon.bpmn.adapter.outbound.codegen.flow
 
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MappingFacet
+import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.MultiInstanceFacet
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.NodeFacets
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
@@ -43,6 +44,7 @@ internal class FlowFacetsFactory(
             inputs = callActivity?.inputMappings.toMappingFacets(),
             outputs = callActivity?.outputMappings.toMappingFacets(),
             timer = event?.firstDefinition<EventDefinitionInstance.Timer>()?.toFacet(),
+            multiInstance = (node as? FlowNodeDefinition.Activity)?.multiInstance?.let { MultiInstanceFacet.of(it) },
             message = node.messageReference()?.resolveName()?.sharedIn(definitions.messages),
             signal = event?.firstDefinition<EventDefinitionInstance.Signal>()?.resolveName()?.sharedIn(definitions.signals),
             error = event?.firstDefinition<EventDefinitionInstance.Error>()?.resolve()?.sharedIn(definitions.errors),

@@ -104,6 +104,13 @@ public enum TimerType
     Cycle,
 }
 
+/// <summary>Whether the instances of a multi-instance activity run one after another or at the same time.</summary>
+public enum MultiInstanceType
+{
+    Sequential,
+    Parallel,
+}
+
 /// <summary>Process engine dialect a generated Process API targets.</summary>
 public enum BpmnEngine
 {
@@ -113,6 +120,14 @@ public enum BpmnEngine
 }
 
 public sealed record BpmnTimer(TimerType Type, string TimerValue);
+
+/// <summary>The multi-instance loop characteristics of an activity; Camunda 7 and Operaton define no output bindings.</summary>
+public sealed record BpmnMultiInstance(
+    MultiInstanceType Type,
+    string? InputCollection = null,
+    string? InputElement = null,
+    string? OutputCollection = null,
+    string? OutputElement = null);
 
 public sealed record BpmnErrorDefinition(string Name, string Code);
 

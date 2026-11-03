@@ -4,8 +4,10 @@ import io.miragon.bpmn.adapter.outbound.assertMatchesGolden
 import io.miragon.bpmn.adapter.outbound.codegen.CodeGenerationAdapter
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
+import io.miragon.bpmn.domain.shared.MultiInstanceDefinition
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
+import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
 import io.miragon.bpmn.domain.testBikeLeasingModel
@@ -138,5 +140,39 @@ class KotlinProcessApiBuilderTest {
             })
             assertThat(errors).withFailMessage { "Kotlin syntax errors in generated output: $errors" }.isEmpty()
         }
+    }
+
+    @Test
+    fun `multi-instance activity exposes how its instances run and which collections they bind`() {
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Activity.Task(
+                    id = "serviceTask_orderBike",
+                    kind = TaskKind.SERVICE,
+                    multiInstance = MultiInstanceDefinition(
+                        sequential = true,
+                        inputCollection = "=bikeIds",
+                        inputElement = "bikeId",
+                        outputCollection = "orderedBikes",
+                        outputElement = "=orderedBike",
+                    ),
+                ),
+            ),
+        )
+
+        val result = underTest.generateCode(testProcessApiRequest(model = model)).single()
+
+        assertThat(result.content).contains("MultiInstanceActivity {")
+        assertThat(result.content).contains(
+            """
+            |      override val multiInstance: BpmnMultiInstance = BpmnMultiInstance(
+            |        type = MultiInstanceType.SEQUENTIAL,
+            |        inputCollection = "=bikeIds",
+            |        inputElement = "bikeId",
+            |        outputCollection = "orderedBikes",
+            |        outputElement = "=orderedBike",
+            |      )
+            """.trimMargin(),
+        )
     }
 }

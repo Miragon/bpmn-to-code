@@ -10,9 +10,11 @@ import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
 import io.miragon.bpmn.domain.shared.MessageReference
+import io.miragon.bpmn.domain.shared.MultiInstanceDefinition
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
+import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
@@ -246,7 +248,8 @@ class CSharpProcessApiBuilderTest {
         assertThat(result.content).contains(
             "public sealed class ServiceTaskOrderBikeNode : global::Miragon.BpmnToCode.Runtime.IFlowNode, " +
                 "global::Miragon.BpmnToCode.Runtime.IHasSuccessors<ServiceTaskOrderBikeNode.Successors>, " +
-                "global::Miragon.BpmnToCode.Runtime.IHasJobType, global::Miragon.BpmnToCode.Runtime.IHasVariables",
+                "global::Miragon.BpmnToCode.Runtime.IHasJobType, global::Miragon.BpmnToCode.Runtime.IMultiInstanceActivity, " +
+                "global::Miragon.BpmnToCode.Runtime.IHasVariables",
         )
         assertThat(result.content).contains("global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;")
         assertThat(result.content).contains("public sealed class NodeVariables : global::Miragon.BpmnToCode.Runtime.VariableDefinitions")
@@ -307,4 +310,31 @@ class CSharpProcessApiBuilderTest {
         packagePath = "de.emaarco.example",
         language = OutputLanguage.CSHARP,
     )
+
+    @Test
+    fun `multi-instance activity exposes how its instances run and which collections they bind`() {
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Activity.Task(
+                    id = "serviceTask_orderBike",
+                    kind = TaskKind.SERVICE,
+                    multiInstance = MultiInstanceDefinition(
+                        sequential = true,
+                        inputCollection = "=bikeIds",
+                        inputElement = "bikeId",
+                        outputCollection = "orderedBikes",
+                        outputElement = "=orderedBike",
+                    ),
+                ),
+            ),
+        )
+
+        val result = underTest.generateCode(csharpApi(model)).single()
+
+        assertThat(result.content).contains("global::Miragon.BpmnToCode.Runtime.IMultiInstanceActivity")
+        assertThat(result.content).contains(
+            "public global::Miragon.BpmnToCode.Runtime.BpmnMultiInstance MultiInstance { get; } = " +
+                "new(global::Miragon.BpmnToCode.Runtime.MultiInstanceType.Sequential, \"=bikeIds\", \"bikeId\", \"orderedBikes\", \"=orderedBike\");",
+        )
+    }
 }
