@@ -166,7 +166,7 @@ class KotlinProcessApiBuilderTest {
         assertThat(result.content).contains(
             """
             |      override val multiInstance: BpmnMultiInstance = BpmnMultiInstance(
-            |        sequential = true,
+            |        type = MultiInstanceType.SEQUENTIAL,
             |        inputCollection = "=bikeIds",
             |        inputElement = "bikeId",
             |        outputCollection = "orderedBikes",

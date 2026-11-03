@@ -192,7 +192,7 @@ class TypeScriptProcessApiBuilderTest {
         assertThat(result.content).contains(
             """
             |  readonly multiInstance = {
-            |    sequential: true,
+            |    type: "SEQUENTIAL",
             |    inputCollection: "=bikeIds",
             |    inputElement: "bikeId",
             |    outputCollection: "orderedBikes",

@@ -71,6 +71,7 @@ object ProcessApiNames {
         "CallActivity",
         "TimerEvent",
         "MultiInstanceActivity",
+        "MultiInstanceType",
         "HasMessage",
         "SignalEvent",
         "ErrorEvent",

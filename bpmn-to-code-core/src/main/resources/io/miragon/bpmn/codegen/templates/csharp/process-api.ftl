@@ -37,7 +37,7 @@ public static class ${typeName}
             public ${runtime}.BpmnTimer Timer { get; } = new(${runtime}.TimerType.${node.timer.type}, ${node.timer.expression});
 </#if>
 <#if node.multiInstance??>
-            public ${runtime}.BpmnMultiInstance MultiInstance { get; } = new(${node.multiInstance.sequential}, ${node.multiInstance.inputCollection!"null"}, ${node.multiInstance.inputElement!"null"}, ${node.multiInstance.outputCollection!"null"}, ${node.multiInstance.outputElement!"null"});
+            public ${runtime}.BpmnMultiInstance MultiInstance { get; } = new(${runtime}.MultiInstanceType.${node.multiInstance.type}, ${node.multiInstance.inputCollection!"null"}, ${node.multiInstance.inputElement!"null"}, ${node.multiInstance.outputCollection!"null"}, ${node.multiInstance.outputElement!"null"});
 </#if>
 <#if node.message??>
             public ${runtime}.MessageName Message { get; } = new(${node.message.reference!node.message.literal});

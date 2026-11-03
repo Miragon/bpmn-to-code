@@ -178,7 +178,7 @@ class JavaProcessApiBuilderTest {
 
         assertThat(result.content).contains("implements MultiInstanceActivity {")
         assertThat(result.content).contains(
-            "return new BpmnMultiInstance(true, \"=bikeIds\", \"bikeId\", \"orderedBikes\", \"=orderedBike\");",
+            "return new BpmnMultiInstance(MultiInstanceType.SEQUENTIAL, \"=bikeIds\", \"bikeId\", \"orderedBikes\", \"=orderedBike\");",
         )
         assertJavaSyntaxValid(result.fileName, result.content)
     }

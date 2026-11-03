@@ -437,7 +437,7 @@ export class ServiceTaskIssueInsurancePolicy implements Runtime.FlowNode, Runtim
   readonly name = "Issue insurance policy";
   readonly jobType = ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE;
   readonly multiInstance = {
-    sequential: true,
+    type: "SEQUENTIAL",
     inputCollection: "${bikeIds}",
     inputElement: "bikeId",
     outputCollection: null,
@@ -470,7 +470,7 @@ export class ServiceTaskOrderBike implements Runtime.FlowNode, Runtime.HasSucces
   readonly name = "Order bike";
   readonly jobType = ServiceTasks.MIRAVELO_ORDER_BIKE;
   readonly multiInstance = {
-    sequential: false,
+    type: "PARALLEL",
     inputCollection: "${bikeIds}",
     inputElement: "bikeId",
     outputCollection: null,

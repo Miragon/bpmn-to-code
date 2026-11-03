@@ -27,6 +27,7 @@ import io.miragon.bpmn.runtime.HasVariables;
 import io.miragon.bpmn.runtime.InputOutputMapping;
 import io.miragon.bpmn.runtime.MessageName;
 import io.miragon.bpmn.runtime.MultiInstanceActivity;
+import io.miragon.bpmn.runtime.MultiInstanceType;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SequenceFlows;
 import io.miragon.bpmn.runtime.TimerEvent;
@@ -887,7 +888,7 @@ public final class BikeLeasingProcessApi {
 
       @Override
       public BpmnMultiInstance getMultiInstance() {
-        return new BpmnMultiInstance(true, "${bikeIds}", "bikeId", null, null);
+        return new BpmnMultiInstance(MultiInstanceType.SEQUENTIAL, "${bikeIds}", "bikeId", null, null);
       }
 
       @Override
@@ -943,7 +944,7 @@ public final class BikeLeasingProcessApi {
 
       @Override
       public BpmnMultiInstance getMultiInstance() {
-        return new BpmnMultiInstance(false, "${bikeIds}", "bikeId", null, null);
+        return new BpmnMultiInstance(MultiInstanceType.PARALLEL, "${bikeIds}", "bikeId", null, null);
       }
 
       @Override

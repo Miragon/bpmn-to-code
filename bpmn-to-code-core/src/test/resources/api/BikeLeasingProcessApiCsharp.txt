@@ -498,7 +498,7 @@ public static class BikeLeasingProcessApi
             public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Issue insurance policy";
             public string JobType { get; } = ServiceTasks.IoMiraveloLeasingIssueInsurancePolicyDelegate;
-            public global::Miragon.BpmnToCode.Runtime.BpmnMultiInstance MultiInstance { get; } = new(true, "${bikeIds}", "bikeId", null, null);
+            public global::Miragon.BpmnToCode.Runtime.BpmnMultiInstance MultiInstance { get; } = new(global::Miragon.BpmnToCode.Runtime.MultiInstanceType.Sequential, "${bikeIds}", "bikeId", null, null);
 
             public NodeVariables Variables { get; } = new();
             global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;
@@ -531,7 +531,7 @@ public static class BikeLeasingProcessApi
             public global::Miragon.BpmnToCode.Runtime.BpmnElementType ElementType => global::Miragon.BpmnToCode.Runtime.BpmnElementType.ServiceTask;
             public string? Name => "Order bike";
             public string JobType { get; } = ServiceTasks.MiraveloOrderBike;
-            public global::Miragon.BpmnToCode.Runtime.BpmnMultiInstance MultiInstance { get; } = new(false, "${bikeIds}", "bikeId", null, null);
+            public global::Miragon.BpmnToCode.Runtime.BpmnMultiInstance MultiInstance { get; } = new(global::Miragon.BpmnToCode.Runtime.MultiInstanceType.Parallel, "${bikeIds}", "bikeId", null, null);
 
             public NodeVariables Variables { get; } = new();
             global::Miragon.BpmnToCode.Runtime.VariableDefinitions global::Miragon.BpmnToCode.Runtime.IHasVariables.Variables => Variables;

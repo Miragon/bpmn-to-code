@@ -40,6 +40,8 @@ export type BpmnEventType =
 
 export type TimerType = "DATE" | "DURATION" | "CYCLE";
 
+export type MultiInstanceType = "SEQUENTIAL" | "PARALLEL";
+
 /**
  * Any element of FlowNodes, for code that handles nodes generically.
  */
@@ -133,7 +135,7 @@ export interface BpmnTimer {
  * The multi-instance loop characteristics of an activity; Camunda 7 and Operaton define no output bindings.
  */
 export interface BpmnMultiInstance {
-  readonly sequential: boolean;
+  readonly type: MultiInstanceType;
   readonly inputCollection: string | null;
   readonly inputElement: string | null;
   readonly outputCollection: string | null;

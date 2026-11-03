@@ -35,6 +35,7 @@ internal object JvmRuntimeTypes {
         "InputOutputMapping",
         "MessageName",
         "MultiInstanceActivity",
+        "MultiInstanceType",
         "ProcessId",
         "SequenceFlow",
         "SequenceFlows",

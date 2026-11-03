@@ -334,7 +334,7 @@ class CSharpProcessApiBuilderTest {
         assertThat(result.content).contains("global::Miragon.BpmnToCode.Runtime.IMultiInstanceActivity")
         assertThat(result.content).contains(
             "public global::Miragon.BpmnToCode.Runtime.BpmnMultiInstance MultiInstance { get; } = " +
-                "new(true, \"=bikeIds\", \"bikeId\", \"orderedBikes\", \"=orderedBike\");",
+                "new(global::Miragon.BpmnToCode.Runtime.MultiInstanceType.Sequential, \"=bikeIds\", \"bikeId\", \"orderedBikes\", \"=orderedBike\");",
         )
     }
 }

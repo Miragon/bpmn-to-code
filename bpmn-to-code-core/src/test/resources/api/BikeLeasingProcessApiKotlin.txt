@@ -29,6 +29,7 @@ import io.miragon.bpmn.runtime.HasVariables
 import io.miragon.bpmn.runtime.InputOutputMapping
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.MultiInstanceActivity
+import io.miragon.bpmn.runtime.MultiInstanceType
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.RegisteredVariableDefinitions
 import io.miragon.bpmn.runtime.SequenceFlows
@@ -540,7 +541,7 @@ object BikeLeasingProcessApi {
       override val jobType: String = ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE
 
       override val multiInstance: BpmnMultiInstance = BpmnMultiInstance(
-        sequential = true,
+        type = MultiInstanceType.SEQUENTIAL,
         inputCollection = "\${bikeIds}",
         inputElement = "bikeId",
       )
@@ -577,7 +578,7 @@ object BikeLeasingProcessApi {
       override val jobType: String = ServiceTasks.MIRAVELO_ORDER_BIKE
 
       override val multiInstance: BpmnMultiInstance = BpmnMultiInstance(
-        sequential = false,
+        type = MultiInstanceType.PARALLEL,
         inputCollection = "\${bikeIds}",
         inputElement = "bikeId",
       )

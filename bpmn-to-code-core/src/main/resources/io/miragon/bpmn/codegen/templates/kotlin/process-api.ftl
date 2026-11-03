@@ -49,7 +49,7 @@ object ${typeName} {
 <#if node.multiInstance??>
 
       override val multiInstance: ${types.BpmnMultiInstance} = ${types.BpmnMultiInstance}(
-        sequential = ${node.multiInstance.sequential},
+        type = ${types.MultiInstanceType}.${node.multiInstance.type},
 <#if node.multiInstance.inputCollection??>
         inputCollection = ${node.multiInstance.inputCollection},
 </#if>

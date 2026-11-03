@@ -22,7 +22,7 @@ export class ${node.type} implements ${node.interfaces?join(", ")} {
 </#if>
 <#if node.multiInstance??>
   readonly multiInstance = {
-    sequential: ${node.multiInstance.sequential},
+    type: ${node.multiInstance.type},
     inputCollection: ${node.multiInstance.inputCollection!"null"},
     inputElement: ${node.multiInstance.inputElement!"null"},
     outputCollection: ${node.multiInstance.outputCollection!"null"},

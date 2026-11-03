@@ -69,7 +69,7 @@ internal class FlowNodeMapper(private val syntax: FlowNodeSyntax) {
     )
 
     private fun multiInstanceOf(multiInstance: MultiInstanceFacet): MultiInstance = MultiInstance(
-        sequential = multiInstance.sequential.toString(),
+        type = syntax.enumMember(if (multiInstance.sequential) "SEQUENTIAL" else "PARALLEL"),
         inputCollection = multiInstance.inputCollection?.let { syntax.literal(it) },
         inputElement = multiInstance.inputElement?.let { syntax.literal(it) },
         outputCollection = multiInstance.outputCollection?.let { syntax.literal(it) },

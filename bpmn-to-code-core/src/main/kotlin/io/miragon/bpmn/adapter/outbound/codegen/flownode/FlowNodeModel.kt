@@ -55,10 +55,10 @@ internal data class FlowNodeModel(
     /**
      * Each binding is a literal, e.g. [inputCollection] `"=bikeIds"`, or `null` when the model declares none.
      *
-     * @property sequential `true` or `false`
+     * @property type a `MultiInstanceType` member, e.g. `PARALLEL`
      */
     data class MultiInstance(
-        val sequential: String,
+        val type: String,
         val inputCollection: String?,
         val inputElement: String?,
         val outputCollection: String?,
