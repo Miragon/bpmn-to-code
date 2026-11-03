@@ -10,6 +10,7 @@ import io.miragon.bpmn.runtime.BpmnEngine;
 import io.miragon.bpmn.runtime.BpmnErrorDefinition;
 import io.miragon.bpmn.runtime.BpmnEscalationDefinition;
 import io.miragon.bpmn.runtime.BpmnEventType;
+import io.miragon.bpmn.runtime.BpmnMultiInstance;
 import io.miragon.bpmn.runtime.BpmnTimer;
 import io.miragon.bpmn.runtime.CallActivity;
 import io.miragon.bpmn.runtime.CompensationThrowEvent;
@@ -25,6 +26,7 @@ import io.miragon.bpmn.runtime.HasSuccessors;
 import io.miragon.bpmn.runtime.HasVariables;
 import io.miragon.bpmn.runtime.InputOutputMapping;
 import io.miragon.bpmn.runtime.MessageName;
+import io.miragon.bpmn.runtime.MultiInstanceActivity;
 import io.miragon.bpmn.runtime.ProcessId;
 import io.miragon.bpmn.runtime.SequenceFlows;
 import io.miragon.bpmn.runtime.TimerEvent;
@@ -867,7 +869,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType, HasVariables {
+    public static final class ServiceTaskIssueInsurancePolicy extends AbstractFlowNode implements HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType, MultiInstanceActivity, HasVariables {
       public static final String ELEMENT_ID = "serviceTask_issueInsurancePolicy";
 
       public static final ServiceTaskIssueInsurancePolicy INSTANCE = new ServiceTaskIssueInsurancePolicy();
@@ -881,6 +883,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public String getJobType() {
         return ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE;
+      }
+
+      @Override
+      public BpmnMultiInstance getMultiInstance() {
+        return new BpmnMultiInstance(true, "${bikeIds}", "bikeId", null, null);
       }
 
       @Override
@@ -918,7 +925,7 @@ public final class BikeLeasingProcessApi {
       }
     }
 
-    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType, HasVariables {
+    public static final class ServiceTaskOrderBike extends AbstractFlowNode implements HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType, MultiInstanceActivity, HasVariables {
       public static final String ELEMENT_ID = "serviceTask_orderBike";
 
       public static final ServiceTaskOrderBike INSTANCE = new ServiceTaskOrderBike();
@@ -932,6 +939,11 @@ public final class BikeLeasingProcessApi {
       @Override
       public String getJobType() {
         return ServiceTasks.MIRAVELO_ORDER_BIKE;
+      }
+
+      @Override
+      public BpmnMultiInstance getMultiInstance() {
+        return new BpmnMultiInstance(false, "${bikeIds}", "bikeId", null, null);
       }
 
       @Override

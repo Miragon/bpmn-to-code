@@ -8,8 +8,10 @@ import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.MessageReference
+import io.miragon.bpmn.domain.shared.MultiInstanceDefinition
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.RootElementDefinition
+import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.testBikeLeasingModel
 import io.miragon.bpmn.domain.testCancelBikeOrderModel
 import io.miragon.bpmn.domain.testProcessApiRequest
@@ -165,4 +167,38 @@ class TypeScriptProcessApiBuilderTest {
         language = OutputLanguage.TYPESCRIPT,
         model = model,
     )
+
+    @Test
+    fun `multi-instance activity exposes how its instances run and which collections they bind`() {
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Activity.Task(
+                    id = "serviceTask_orderBike",
+                    kind = TaskKind.SERVICE,
+                    multiInstance = MultiInstanceDefinition(
+                        sequential = true,
+                        inputCollection = "=bikeIds",
+                        inputElement = "bikeId",
+                        outputCollection = "orderedBikes",
+                        outputElement = "=orderedBike",
+                    ),
+                ),
+            ),
+        )
+
+        val result = underTest.generateCode(typeScriptApi(model)).single()
+
+        assertThat(result.content).contains("implements Runtime.FlowNode, Runtime.MultiInstanceActivity {")
+        assertThat(result.content).contains(
+            """
+            |  readonly multiInstance = {
+            |    sequential: true,
+            |    inputCollection: "=bikeIds",
+            |    inputElement: "bikeId",
+            |    outputCollection: "orderedBikes",
+            |    outputElement: "=orderedBike",
+            |  } as const;
+            """.trimMargin(),
+        )
+    }
 }

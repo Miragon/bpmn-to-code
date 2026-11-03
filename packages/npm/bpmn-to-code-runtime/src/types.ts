@@ -90,6 +90,13 @@ export interface CallActivity extends FlowNode {
   readonly calledProcess: string;
 }
 
+/**
+ * An activity that runs as multi-instance.
+ */
+export interface MultiInstanceActivity extends FlowNode {
+  readonly multiInstance: BpmnMultiInstance;
+}
+
 export interface TimerEvent extends Event {
   readonly timer: BpmnTimer;
 }
@@ -120,6 +127,17 @@ export interface CompensationThrowEvent extends Event {
 export interface BpmnTimer {
   readonly type: TimerType;
   readonly timerValue: string;
+}
+
+/**
+ * The multi-instance loop characteristics of an activity; Camunda 7 and Operaton define no output bindings.
+ */
+export interface BpmnMultiInstance {
+  readonly sequential: boolean;
+  readonly inputCollection: string | null;
+  readonly inputElement: string | null;
+  readonly outputCollection: string | null;
+  readonly outputElement: string | null;
 }
 
 export interface BpmnErrorDefinition {

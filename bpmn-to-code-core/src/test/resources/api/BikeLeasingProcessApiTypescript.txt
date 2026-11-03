@@ -426,7 +426,7 @@ export class ServiceTaskCancelPolicy implements Runtime.FlowNode, Runtime.HasJob
   readonly jobType = ServiceTasks.MIRAVELO_CANCEL_POLICY;
 }
 
-export class ServiceTaskIssueInsurancePolicy implements Runtime.FlowNode, Runtime.HasSuccessors, Runtime.HasJobType, Runtime.HasVariables {
+export class ServiceTaskIssueInsurancePolicy implements Runtime.FlowNode, Runtime.HasSuccessors, Runtime.HasJobType, Runtime.MultiInstanceActivity, Runtime.HasVariables {
   static readonly INSTANCE = new ServiceTaskIssueInsurancePolicy();
 
   private constructor() {}
@@ -436,6 +436,13 @@ export class ServiceTaskIssueInsurancePolicy implements Runtime.FlowNode, Runtim
   readonly elementType = "SERVICE_TASK";
   readonly name = "Issue insurance policy";
   readonly jobType = ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE;
+  readonly multiInstance = {
+    sequential: true,
+    inputCollection: "${bikeIds}",
+    inputElement: "bikeId",
+    outputCollection: null,
+    outputElement: null,
+  } as const;
 
   readonly variables = Runtime.variableDefinitions({
     BIKE_ID: Runtime.input(ProcessVariables.BIKE_ID),
@@ -452,7 +459,7 @@ export class ServiceTaskIssueInsurancePolicy implements Runtime.FlowNode, Runtim
   };
 }
 
-export class ServiceTaskOrderBike implements Runtime.FlowNode, Runtime.HasSuccessors, Runtime.HasJobType, Runtime.HasVariables {
+export class ServiceTaskOrderBike implements Runtime.FlowNode, Runtime.HasSuccessors, Runtime.HasJobType, Runtime.MultiInstanceActivity, Runtime.HasVariables {
   static readonly INSTANCE = new ServiceTaskOrderBike();
 
   private constructor() {}
@@ -462,6 +469,13 @@ export class ServiceTaskOrderBike implements Runtime.FlowNode, Runtime.HasSucces
   readonly elementType = "SERVICE_TASK";
   readonly name = "Order bike";
   readonly jobType = ServiceTasks.MIRAVELO_ORDER_BIKE;
+  readonly multiInstance = {
+    sequential: false,
+    inputCollection: "${bikeIds}",
+    inputElement: "bikeId",
+    outputCollection: null,
+    outputElement: null,
+  } as const;
 
   readonly variables = Runtime.variableDefinitions({
     BIKE_ID: Runtime.input(ProcessVariables.BIKE_ID),

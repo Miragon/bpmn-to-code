@@ -46,6 +46,24 @@ object ${typeName} {
         timerValue = ${node.timer.expression},
       )
 </#if>
+<#if node.multiInstance??>
+
+      override val multiInstance: ${types.BpmnMultiInstance} = ${types.BpmnMultiInstance}(
+        sequential = ${node.multiInstance.sequential},
+<#if node.multiInstance.inputCollection??>
+        inputCollection = ${node.multiInstance.inputCollection},
+</#if>
+<#if node.multiInstance.inputElement??>
+        inputElement = ${node.multiInstance.inputElement},
+</#if>
+<#if node.multiInstance.outputCollection??>
+        outputCollection = ${node.multiInstance.outputCollection},
+</#if>
+<#if node.multiInstance.outputElement??>
+        outputElement = ${node.multiInstance.outputElement},
+</#if>
+      )
+</#if>
 <#if node.message??>
 <@sharedName property="message" type=types.MessageName definition=node.message/>
 </#if>

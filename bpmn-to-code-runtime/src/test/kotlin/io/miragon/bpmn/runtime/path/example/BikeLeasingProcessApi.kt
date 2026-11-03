@@ -12,6 +12,7 @@ import io.miragon.bpmn.runtime.BpmnEngine
 import io.miragon.bpmn.runtime.BpmnErrorDefinition
 import io.miragon.bpmn.runtime.BpmnEscalationDefinition
 import io.miragon.bpmn.runtime.BpmnEventType
+import io.miragon.bpmn.runtime.BpmnMultiInstance
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.CallActivity
 import io.miragon.bpmn.runtime.CompensationThrowEvent
@@ -27,6 +28,7 @@ import io.miragon.bpmn.runtime.HasSuccessors
 import io.miragon.bpmn.runtime.HasVariables
 import io.miragon.bpmn.runtime.InputOutputMapping
 import io.miragon.bpmn.runtime.MessageName
+import io.miragon.bpmn.runtime.MultiInstanceActivity
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.RegisteredVariableDefinitions
 import io.miragon.bpmn.runtime.SequenceFlows
@@ -532,10 +534,16 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskIssueInsurancePolicy.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Issue insurance policy",
-    ), HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType, HasVariables {
+    ), HasSuccessors<ServiceTaskIssueInsurancePolicy.Next>, HasJobType, MultiInstanceActivity, HasVariables {
       const val ELEMENT_ID: String = "serviceTask_issueInsurancePolicy"
 
       override val jobType: String = ServiceTasks.IO_MIRAVELO_LEASING_ISSUE_INSURANCE_POLICY_DELEGATE
+
+      override val multiInstance: BpmnMultiInstance = BpmnMultiInstance(
+        sequential = true,
+        inputCollection = "\${bikeIds}",
+        inputElement = "bikeId",
+      )
 
       override val variables: Variables = Variables
 
@@ -563,10 +571,16 @@ object BikeLeasingProcessApi {
       id = ElementId(ServiceTaskOrderBike.ELEMENT_ID),
       elementType = BpmnElementType.SERVICE_TASK,
       name = "Order bike",
-    ), HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType, HasVariables {
+    ), HasSuccessors<ServiceTaskOrderBike.Next>, HasJobType, MultiInstanceActivity, HasVariables {
       const val ELEMENT_ID: String = "serviceTask_orderBike"
 
       override val jobType: String = ServiceTasks.MIRAVELO_ORDER_BIKE
+
+      override val multiInstance: BpmnMultiInstance = BpmnMultiInstance(
+        sequential = false,
+        inputCollection = "\${bikeIds}",
+        inputElement = "bikeId",
+      )
 
       override val variables: Variables = Variables
 

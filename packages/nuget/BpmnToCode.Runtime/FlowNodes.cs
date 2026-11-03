@@ -54,6 +54,12 @@ public interface ICallActivity : IFlowNode
     ProcessId CalledProcess { get; }
 }
 
+/// <summary>An activity that runs as multi-instance, described by MultiInstance.</summary>
+public interface IMultiInstanceActivity : IFlowNode
+{
+    BpmnMultiInstance MultiInstance { get; }
+}
+
 /// <summary>An event with a Timer definition.</summary>
 public interface ITimerEvent : IEvent
 {

@@ -1,5 +1,6 @@
 package io.miragon.bpmn.adapter.outbound.codegen.flow
 
+import io.miragon.bpmn.domain.shared.MultiInstanceDefinition
 import io.miragon.bpmn.domain.shared.TimerType
 
 /**
@@ -103,6 +104,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val inputs: List<MappingFacet> = emptyList(),
         val outputs: List<MappingFacet> = emptyList(),
         val timer: TimerFacet? = null,
+        val multiInstance: MultiInstanceFacet? = null,
         val message: SharedValue<String>? = null,
         val signal: SharedValue<String>? = null,
         val error: SharedValue<Pair<String, String>>? = null,
@@ -118,6 +120,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
                     FacetInterface.HAS_JOB_TYPE to jobType,
                     FacetInterface.CALL_ACTIVITY to calledProcessId,
                     FacetInterface.TIMER_EVENT to timer,
+                    FacetInterface.MULTI_INSTANCE_ACTIVITY to multiInstance,
                     FacetInterface.HAS_MESSAGE to message,
                     FacetInterface.SIGNAL_EVENT to signal,
                     FacetInterface.ERROR_EVENT to error,
@@ -133,6 +136,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         HAS_JOB_TYPE("HasJobType"),
         CALL_ACTIVITY("CallActivity"),
         TIMER_EVENT("TimerEvent"),
+        MULTI_INSTANCE_ACTIVITY("MultiInstanceActivity"),
         HAS_MESSAGE("HasMessage"),
         SIGNAL_EVENT("SignalEvent"),
         ERROR_EVENT("ErrorEvent"),
@@ -151,6 +155,24 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
     )
 
     data class TimerFacet(val type: TimerType, val expression: String)
+
+    data class MultiInstanceFacet(
+        val sequential: Boolean,
+        val inputCollection: String?,
+        val inputElement: String?,
+        val outputCollection: String?,
+        val outputElement: String?,
+    ) {
+        companion object {
+            fun of(definition: MultiInstanceDefinition): MultiInstanceFacet = MultiInstanceFacet(
+                sequential = definition.sequential,
+                inputCollection = definition.inputCollection,
+                inputElement = definition.inputElement,
+                outputCollection = definition.outputCollection,
+                outputElement = definition.outputElement,
+            )
+        }
+    }
 
     /**
      * A node's job type, message, signal, error or escalation — an error or escalation as name and code. [constant]

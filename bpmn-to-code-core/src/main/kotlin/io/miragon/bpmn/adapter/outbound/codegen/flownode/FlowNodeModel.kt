@@ -26,6 +26,7 @@ internal data class FlowNodeModel(
     val jobType: String?,
     val calledProcess: String?,
     val timer: Timer?,
+    val multiInstance: MultiInstance?,
     val message: SharedName?,
     val signal: SharedName?,
     val error: SharedNameAndCode?,
@@ -50,6 +51,19 @@ internal data class FlowNodeModel(
      * @property expression e.g. `"P14D"`
      */
     data class Timer(val type: String, val expression: String)
+
+    /**
+     * Each binding is a literal, e.g. [inputCollection] `"=bikeIds"`, or `null` when the model declares none.
+     *
+     * @property sequential `true` or `false`
+     */
+    data class MultiInstance(
+        val sequential: String,
+        val inputCollection: String?,
+        val inputElement: String?,
+        val outputCollection: String?,
+        val outputElement: String?,
+    )
 
     /**
      * Rendered as `val APPLICATION_ID: VariableName.Input = input(ProcessVariables.APPLICATION_ID)` in Kotlin.

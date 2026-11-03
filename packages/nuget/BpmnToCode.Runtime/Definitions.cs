@@ -114,6 +114,14 @@ public enum BpmnEngine
 
 public sealed record BpmnTimer(TimerType Type, string TimerValue);
 
+/// <summary>The multi-instance loop characteristics of an activity; Camunda 7 and Operaton define no output bindings.</summary>
+public sealed record BpmnMultiInstance(
+    bool Sequential,
+    string? InputCollection = null,
+    string? InputElement = null,
+    string? OutputCollection = null,
+    string? OutputElement = null);
+
 public sealed record BpmnErrorDefinition(string Name, string Code);
 
 public sealed record BpmnEscalationDefinition(string Name, string Code);

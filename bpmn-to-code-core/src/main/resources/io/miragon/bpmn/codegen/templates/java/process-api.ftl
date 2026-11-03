@@ -64,6 +64,9 @@ public final class ${typeName} {
 <#if node.timer??>
 <@getter type=types.BpmnTimer name="getTimer" value="new ${types.BpmnTimer}(${types.TimerType}.${node.timer.type}, ${node.timer.expression})"/>
 </#if>
+<#if node.multiInstance??>
+<@getter type=types.BpmnMultiInstance name="getMultiInstance" value="new ${types.BpmnMultiInstance}(${node.multiInstance.sequential}, ${node.multiInstance.inputCollection!'null'}, ${node.multiInstance.inputElement!'null'}, ${node.multiInstance.outputCollection!'null'}, ${node.multiInstance.outputElement!'null'})"/>
+</#if>
 <#if node.message??>
 <@sharedNameGetter type=types.MessageName name="getMessage" definition=node.message/>
 </#if>
