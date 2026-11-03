@@ -90,6 +90,23 @@ assertThat(path.flowIds).containsExactly("flow_checkCreditRatingToIsSolvent", "f
 The guarantee is structural: each step is an edge the model contains. It is not a simulation. A path can be valid in the model and still not be what the engine executes, since an exclusive gateway takes one branch and a parallel gateway all of them.
 :::
 
+## Why a path carries no actions
+
+A path describes the route you expect. It does not drive the process. There is no step like `then({ it.x }, completeWith(…))`, and none is planned: completing a task, publishing a message or setting variables works differently in every engine and test library, and the runtime would have to depend on one of them.
+
+Keep the actions in the test, address the elements through the generated API, and assert the route with the path at the end:
+
+```kotlin
+// drive the instance with your engine's test API, e.g. complete the job of FlowNodes.ServiceTaskValidateApplication
+val path = ProcessPath.from(FlowNodes.StartEventLeasingRequestReceived)
+    .then { it.serviceTaskValidateApplication }
+    .then { it.businessRuleTaskCheckCreditRating }
+
+assertThat(instance).hasPassedInOrder(*path.ids)
+```
+
+The decision is recorded in [ADR 008](/contributing/adr/008-runtime-library-and-process-paths).
+
 ## Parallel branches
 
 An in-order assertion only makes sense within one sequential branch. Walk each parallel branch on its own and assert the unordered set with `nodesOf`:
