@@ -47,6 +47,7 @@ assertThat(instance).hasPassedInOrder(*path.ids)
 | `inside { enter { … }.then { … } }` | walks the interior of the current subprocess and returns to the subprocess node | what the block walked |
 | `interruptedBy(FlowNodes.Host) { it.boundary }` | leaves `Host` through one of its boundary events | the boundary event |
 | `throwingCompensation(boundary) { it.handler }` | records a compensation handler and stays on the current node | the handler |
+| `throughLink { it.catch }` | continues from a link throw event at its catch event | nothing, and takes the throw event out again |
 | `jumpTo(node)` | re-anchors to any node without a check | nothing |
 
 Gateways are passed at runtime, so walk them with `then`. A subprocess node is a bracket around its interior, not a point in the ordered flow: `onto` does not record it. Assert it separately if you need it.
@@ -141,6 +142,23 @@ assertThat(instance).hasPassedInOrder(*path.ids)
 - **The boundary event is left out by default.** Zeebe reports a compensation boundary event as a passed element, Camunda 7 and Operaton do not. A path without it holds on all three as long as the assertion accepts further elements in between. To record it as well, pass `includeBoundaryEvent = true`: `throwingCompensation(boundary, includeBoundaryEvent = true) { … }`.
 - A throw event without an `activityRef` triggers every handler in its scope in no defined order. Chain several `throwingCompensation` steps and assert the unordered set, or walk the handlers separately and unite them with `nodesOf`.
 
+## Walking through a link event
+
+A link throw event has no sequence flow to its catch event; both share a link name. `Next` of the throw event offers the catch events with the same link name in the same scope, and `throughLink` continues there:
+
+```kotlin
+val path = ProcessPath.from(FlowNodes.ServiceTaskCheckItemInStock)
+    .then { it.gatewayMoreItems }
+    .then { it.eventLoopForNextItem }
+    .throughLink { it.eventNextItemToProcess }
+    .then { it.gatewayNextItem }
+
+assertThat(instance).hasPassedInOrder(*path.ids)
+```
+
+- Only a link throw event offers a `LinkedCatchEvent`, so the step compiles nowhere else. Renaming the link or removing the catch event breaks the build.
+- **Both link events are left out by default.** Camunda 7 and Operaton do not report link events as passed, so `throughLink` also takes the throw event recorded by the step before out again. To record both, pass `includeLinkEvents = true`: `throughLink(includeLinkEvents = true) { … }`.
+
 ## From Java {#from-java}
 
 `PathWalk` offers the same steps as instance methods; each lambda receives the current node's `Next`:
@@ -162,6 +180,7 @@ Three differences from Kotlin:
 - **The last step is `end`.** An end event has no successors and cannot continue a chain. `end` returns a `Trail` with `getIds()`, `getDistinctIds()`, `getFlowIds()` and `getNodes()`.
 - **Subprocess steps name the subprocess**: `enter(FlowNodes.subProcessConcludeContract(), s -> s.startEventCustomerEligible())` and `inside(FlowNodes.subProcessConcludeContract(), s -> PathWalk.from(s.startEventCustomerEligible())…end(…))`, where the block returns the `Trail` of the interior.
 - **`throwingCompensation` is not restricted to compensation throw events**; the compiler cannot check that here. It also exists on `Trail`, for an end event that throws a compensation. To record the boundary event, pass `true` as second argument.
+- `throughLink(n -> n.eventNextItemToProcess())` continues at a link catch event; pass `true` as first argument to record both link events.
 
 ```java
 String[] ids = PathWalk.from(FlowNodes.startEventApplicationWithdrawn())
@@ -204,7 +223,7 @@ string[] ids = ProcessPath.From(Api.FlowNodes.StartEventLeasingRequestReceived)
 
 - **The last step is `End`**, as in Java. It returns a `PathEnd` that can still record a compensation or leave through a boundary event with `InterruptedBy`.
 - **`Onto` returns a path standing on the subprocess**: `Enter` descends into it, `Inside` walks its interior and continues after it. `Enter(Api.FlowNodes.SubProcessConcludeContract, s => s.StartEventCustomerEligible)` descends into a named subprocess from anywhere.
-- `ThrowingCompensation(Api.FlowNodes.BoundaryCompensateContract, n => n.ServiceTaskCancelContract, includeBoundaryEvent: true)`, `ThenMultipleTimes(3, n => n.X)` and `ProcessPath.NodesOf(a.Nodes, b.Nodes)` work as in Kotlin.
+- `ThrowingCompensation(Api.FlowNodes.BoundaryCompensateContract, n => n.ServiceTaskCancelContract, includeBoundaryEvent: true)`, `ThroughLink(n => n.EventNextItemToProcess, includeLinkEvents: true)`, `ThenMultipleTimes(3, n => n.X)` and `ProcessPath.NodesOf(a.Nodes, b.Nodes)` work as in Kotlin.
 - **`JumpTo` is marked `[Experimental("BPMNTOCODE001")]`**, so the compiler rejects it until you opt in with `#pragma warning disable BPMNTOCODE001`.
 - `Ids`, `DistinctIds` and `FlowIds` are `string[]`, `Nodes` and `Flows` the recorded elements and flows.
 - When several flows lead to the same element, step along one of them: `.Then(n => n.<Target>.Flows[1])` records that flow.
@@ -240,7 +259,7 @@ const path = ProcessPath.from(nodes.StartEventLeasingRequestReceived)
 expect(passedElementIds).toEqual(path.ids);
 ```
 
-- The steps are those of Kotlin: `then`, `thenMultipleTimes(3, (next) => …)`, `onto`, `enter`, `inside`, `interruptedBy(nodes.Host, (next) => next.boundary)` and `throwingCompensation(nodes.Boundary, (next) => next.handler, { includeBoundaryEvent: true })`. Entering a named subprocess from anywhere is `enter(nodes.SubProcessConcludeContract, (start) => start.startEventCustomerEligible)`.
-- The compiler checks what Kotlin checks: `then` only on an element with successors, `enter` and `inside` only on a subprocess, `throwingCompensation` only on an event that throws a compensation, and only a compensation handler as its handler.
+- The steps are those of Kotlin: `then`, `thenMultipleTimes(3, (next) => …)`, `onto`, `enter`, `inside`, `interruptedBy(nodes.Host, (next) => next.boundary)` and `throwingCompensation(nodes.Boundary, (next) => next.handler, { includeBoundaryEvent: true })` and `throughLink((next) => next.eventNextItemToProcess, { includeLinkEvents: true })`. Entering a named subprocess from anywhere is `enter(nodes.SubProcessConcludeContract, (start) => start.startEventCustomerEligible)`.
+- The compiler checks what Kotlin checks: `then` only on an element with successors, `enter` and `inside` only on a subprocess, `throwingCompensation` only on an event that throws a compensation, and only a compensation handler as its handler, `throughLink` only with a linked catch event.
 - The unchecked step needs an explicit opt-in, as in Kotlin: `jumpTo(RiskyNavigation, nodes.GatewayFork)`, with `RiskyNavigation` imported from the package.
 - `ids`, `distinctIds` and `flowIds` are `string[]`, `nodes` the recorded elements; `nodesOf(a.nodes, b.nodes)` unites parallel branches.

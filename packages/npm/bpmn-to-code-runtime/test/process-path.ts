@@ -1,4 +1,5 @@
 import { BikeLeasingProcessApi } from "./generated/zeebe-bike-leasing/process/BikeLeasingProcessApi.js";
+import { CheckBikeOrderItemsProcessApi } from "./generated/link-loop/process/CheckBikeOrderItemsProcessApi.js";
 import { nodesOf, ProcessPath, RiskyNavigation } from "@miragon/bpmn-to-code-runtime";
 
 const nodes = BikeLeasingProcessApi.FlowNodes;
@@ -99,6 +100,20 @@ expect("repeated distinct", repeated.distinctIds, ["gateway_fork", "serviceTask_
 
 const picked = ProcessPath.from(nodes.GatewayIsSolvent).then((next) => next.subProcessConcludeContract.flow);
 expect("picked flow", picked.flowIds, ["flow_isSolventToConcludeContract"]);
+
+const linkNodes = CheckBikeOrderItemsProcessApi.FlowNodes;
+
+const linkLoop = ProcessPath.from(linkNodes.ServiceTaskCheckItemInStock)
+  .then((next) => next.gatewayMoreItems)
+  .then((next) => next.eventLoopForNextItem)
+  .throughLink((next) => next.eventNextItemToProcess)
+  .then((next) => next.gatewayNextItem);
+expect("link loop", linkLoop.ids, ["serviceTask_checkItemInStock", "gateway_moreItems", "gateway_nextItem"]);
+
+const recordedLink = ProcessPath.from(linkNodes.GatewayMoreItems)
+  .then((next) => next.eventLoopForNextItem)
+  .throughLink((next) => next.eventNextItemToProcess, { includeLinkEvents: true });
+expect("recorded link", recordedLink.ids, ["gateway_moreItems", "event_loopForNextItem", "event_nextItemToProcess"]);
 
 console.log("all process path scenarios passed");
 

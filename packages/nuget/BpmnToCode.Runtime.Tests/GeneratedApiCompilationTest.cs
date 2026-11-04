@@ -47,6 +47,16 @@ public class GeneratedApiCompilationTest
     }
 
     [Fact]
+    public void GeneratedApiOfALinkLoopCompiles()
+    {
+        // when
+        var generated = GeneratedApi.Generate("ZEEBE", GeneratedApi.CoreModel("link-loop.bpmn"));
+
+        // then
+        AssertCompiles(generated.Values);
+    }
+
+    [Fact]
     public void GeneratedApisOfTwoProcessesSharingJobTypesAndMessagesCompile()
     {
         // given

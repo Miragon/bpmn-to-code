@@ -4,6 +4,7 @@ using Miragon.BpmnToCode.Runtime;
 using Xunit;
 using Api = MiraVelo.Process.BikeLeasingProcessApi;
 using ApprovalApi = MiraVelo.Approval.ApprovalProcessApi;
+using LinkApi = MiraVelo.Process.CheckBikeOrderItemsProcessApi;
 
 namespace BpmnToCode.Runtime.Tests;
 
@@ -164,6 +165,32 @@ public class ProcessPathTest
         Assert.Equal(
             new[] { "startEvent_applicationWithdrawn", "event_reverseApplication", "serviceTask_cancelPolicy", "serviceTask_sendCancellationConfirmation" },
             path.Ids);
+    }
+
+    [Fact]
+    public void ThroughLinkLeavesOutBothLinkEventsByDefault()
+    {
+        // when
+        var path = ProcessPath.From(LinkApi.FlowNodes.ServiceTaskCheckItemInStock)
+            .Then(n => n.GatewayMoreItems)
+            .Then(n => n.EventLoopForNextItem)
+            .ThroughLink(n => n.EventNextItemToProcess)
+            .Then(n => n.GatewayNextItem);
+
+        // then
+        Assert.Equal(new[] { "serviceTask_checkItemInStock", "gateway_moreItems", "gateway_nextItem" }, path.Ids);
+    }
+
+    [Fact]
+    public void ThroughLinkRecordsBothLinkEventsWhenAsked()
+    {
+        // when
+        var path = ProcessPath.From(LinkApi.FlowNodes.GatewayMoreItems)
+            .Then(n => n.EventLoopForNextItem)
+            .ThroughLink(n => n.EventNextItemToProcess, includeLinkEvents: true);
+
+        // then
+        Assert.Equal(new[] { "gateway_moreItems", "event_loopForNextItem", "event_nextItemToProcess" }, path.Ids);
     }
 
     [Fact]

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:zeebe="http://camunda.org/schema/zeebe/1.0"
+    xmlns:modeler="http://camunda.org/schema/modeler/1.0"
+    id="Definitions_LinkLoop" targetNamespace="http://bpmn.io/schema/bpmn"
+    modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.5.0">
+  <bpmn:process id="checkBikeOrderItems" name="Check bike order items" isExecutable="true">
+    <bpmn:startEvent id="startEvent_bikeOrderReceived" name="Bike order received">
+      <bpmn:outgoing>flow_orderReceivedToNextItem</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="gateway_nextItem">
+      <bpmn:incoming>flow_orderReceivedToNextItem</bpmn:incoming>
+      <bpmn:incoming>flow_nextItemToProcessToNextItem</bpmn:incoming>
+      <bpmn:outgoing>flow_nextItemToCheckItemInStock</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="serviceTask_checkItemInStock" name="Check item in stock">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="miravelo.checkItemInStock" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>flow_nextItemToCheckItemInStock</bpmn:incoming>
+      <bpmn:outgoing>flow_checkItemInStockToMoreItems</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="gateway_moreItems" name="More items?" default="flow_moreItemsToItemsChecked">
+      <bpmn:incoming>flow_checkItemInStockToMoreItems</bpmn:incoming>
+      <bpmn:outgoing>flow_moreItemsToLoopForNextItem</bpmn:outgoing>
+      <bpmn:outgoing>flow_moreItemsToItemsChecked</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="event_loopForNextItem" name="Loop for next item">
+      <bpmn:incoming>flow_moreItemsToLoopForNextItem</bpmn:incoming>
+      <bpmn:linkEventDefinition id="link_loopForNextItem" name="nextItem" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:intermediateCatchEvent id="event_nextItemToProcess" name="Next item to process">
+      <bpmn:outgoing>flow_nextItemToProcessToNextItem</bpmn:outgoing>
+      <bpmn:linkEventDefinition id="link_nextItemToProcess" name="nextItem" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="endEvent_itemsChecked" name="Items checked">
+      <bpmn:incoming>flow_moreItemsToItemsChecked</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_orderReceivedToNextItem" sourceRef="startEvent_bikeOrderReceived" targetRef="gateway_nextItem" />
+    <bpmn:sequenceFlow id="flow_nextItemToCheckItemInStock" sourceRef="gateway_nextItem" targetRef="serviceTask_checkItemInStock" />
+    <bpmn:sequenceFlow id="flow_checkItemInStockToMoreItems" sourceRef="serviceTask_checkItemInStock" targetRef="gateway_moreItems" />
+    <bpmn:sequenceFlow id="flow_moreItemsToLoopForNextItem" name="Yes" sourceRef="gateway_moreItems" targetRef="event_loopForNextItem">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=moreItems</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_moreItemsToItemsChecked" name="No" sourceRef="gateway_moreItems" targetRef="endEvent_itemsChecked" />
+    <bpmn:sequenceFlow id="flow_nextItemToProcessToNextItem" sourceRef="event_nextItemToProcess" targetRef="gateway_nextItem" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -6,6 +6,7 @@ import io.miragon.bpmn.runtime.CompensationThrowEvent
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.LinkedCatchEvent
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.SequenceFlows
 import io.miragon.bpmn.runtime.Successor
@@ -91,6 +92,18 @@ fun <N : CompensationThrowEvent, NEXT, H : FlowNode> ProcessPath<N>.throwingComp
 ): ProcessPath<N> = recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick(boundaryEvent.next))
 
 /**
+ * Continue from the current link throw event at its catch event, picked from the throw event's `Next`. Only a link
+ * throw event offers a [LinkedCatchEvent], so nothing else compiles.
+ *
+ * Both link events are left out, as Camunda 7 and Operaton do not report them as passed: the throw event recorded by
+ * the step before is taken out again. Pass `includeLinkEvents = true` to record both.
+ */
+fun <NEXT, M : FlowNode> ProcessPath<out HasSuccessors<NEXT>>.throughLink(
+    includeLinkEvents: Boolean = false,
+    pick: (NEXT) -> LinkedCatchEvent<M>,
+): ProcessPath<M> = recordLink(includeLinkEvents = includeLinkEvents, catchEvent = pick(current.next))
+
+/**
  * Walk the **current subprocess** node's interior in a scoped block, then continue **on the subprocess node
  * itself** — so the step after the block is a plain, typed [then] without naming the subprocess again. Only
  * callable on a subprocess node (reached via [onto]); the block opens with `enter { it.start }`, its walked
@@ -127,10 +140,15 @@ internal fun <N : FlowNode> ProcessPath<N>.recordCompensation(
     return moveTo(node = current, nodesToRecord = recordedBoundaryEvent + handler.target)
 }
 
+internal fun <M : FlowNode> ProcessPath<*>.recordLink(includeLinkEvents: Boolean, catchEvent: LinkedCatchEvent<M>): ProcessPath<M> {
+    if (includeLinkEvents) return traverse(catchEvent)
+    return withoutCurrentRecorded().moveTo(node = catchEvent.target, nodesToRecord = emptyList())
+}
+
 internal fun <M : FlowNode> ProcessPath<*>.traverse(successor: Successor<M>, repeatTimes: Int = 1): ProcessPath<M> = moveTo(node = successor.target, nodesToRecord = List(repeatTimes) { successor.target }, flowsToRecord = listOfNotNull(successor.takenFlow()))
 
 private fun Successor<*>.takenFlow(): SequenceFlow<*>? = when (this) {
     is SequenceFlow -> this
     is SequenceFlows -> flows.singleOrNull()
-    is AttachedBoundaryEvent, is AssociatedCompensationHandler -> null
+    is AttachedBoundaryEvent, is AssociatedCompensationHandler, is LinkedCatchEvent -> null
 }

@@ -23,8 +23,8 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
      * @property name the element's display name, or `null` when the model declares none.
      * @property eventType the event's `BpmnEventType` constant name; `null` for every non-event node.
      * @property isBoundaryEvent whether this node is a boundary event, reached from its host without a sequence flow.
-     * @property successors the reachable next elements — sequence-flow continuation, boundary edges and the
-     *   compensation handler of a compensation boundary event unified, each named after the element it points to.
+     * @property successors the reachable next elements — sequence-flow continuation, boundary edges, the
+     *   compensation handler of a compensation boundary event and the catch events of a link throw event unified, each named after the element it points to.
      * @property interiorStarts for a subprocess, the start events directly inside it; empty for every other node
      *   and for a subprocess without a start event.
      * @property facets the element's own data (job type, variables, timer, …), mirroring the BPMN subtype.
@@ -73,6 +73,11 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
          * The compensation handler a compensation boundary event is associated with; no sequence flow leads there.
          */
         data class AssociatedCompensationHandler(override val target: FlowEdge) : SuccessorEdge
+
+        /**
+         * A link catch event with the same link name in the scope of a link throw event; no sequence flow leads there.
+         */
+        data class LinkedCatchEvent(override val target: FlowEdge) : SuccessorEdge
     }
 
     /**
