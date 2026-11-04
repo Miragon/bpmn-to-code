@@ -24,7 +24,7 @@ import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
  * edge named after the element it points to and knowing how it gets there; no sequence flow is dropped.
  * Call activities stay opaque (no descent into the called process).
  */
-object FlowGraphFactory {
+internal object FlowGraphFactory {
 
     fun build(graph: ProcessGraph, definitions: RootElements): FlowGraph {
         val nodes = graph.allFlowNodes.mapNotNull { node -> node.id?.let { id -> FlowNodeWithId(id, node) } }

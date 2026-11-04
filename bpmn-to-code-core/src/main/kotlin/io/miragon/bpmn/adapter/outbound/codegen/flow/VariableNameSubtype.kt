@@ -6,7 +6,7 @@ import io.miragon.bpmn.domain.shared.VariableDirection
  * Nested subtype of the runtime `VariableName` sealed interface chosen per variable: `simpleName` is the nested
  * class name the generated code references.
  */
-enum class VariableNameSubtype(val simpleName: String) {
+internal enum class VariableNameSubtype(val simpleName: String) {
     INPUT("Input"),
     OUTPUT("Output"),
     IN_OUT("InOut"),

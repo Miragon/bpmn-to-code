@@ -11,7 +11,7 @@ import io.miragon.bpmn.domain.shared.TimerType
  * and a subprocess only points at its interior's start elements. Nodes reference each other by name
  * (not by object reference), which keeps the structure cycle-safe.
  */
-data class FlowGraph(val nodes: List<FlowGraphNode>) {
+internal data class FlowGraph(val nodes: List<FlowGraphNode>) {
 
     /**
      * A single element in the navigation graph.
