@@ -46,6 +46,9 @@ internal class FlowFacetsFactory(
             timer = event?.firstDefinition<EventDefinitionInstance.Timer>()?.toFacet(),
             multiInstance = (node as? FlowNodeDefinition.Activity)?.multiInstance?.let { MultiInstanceFacet.of(it) },
             message = node.messageReference()?.resolveName()?.sharedIn(definitions.messages),
+            correlationKey = node.messageReference()
+                ?.takeIf { node.correlatesToRunningInstance() }
+                ?.let { definitions.correlationKeyOf(it) },
             signal = event?.firstDefinition<EventDefinitionInstance.Signal>()?.resolveName()?.sharedIn(definitions.signals),
             error = event?.firstDefinition<EventDefinitionInstance.Error>()?.resolve()?.sharedIn(definitions.errors),
             escalation = event?.firstDefinition<EventDefinitionInstance.Escalation>()?.resolve()?.sharedIn(definitions.escalations),

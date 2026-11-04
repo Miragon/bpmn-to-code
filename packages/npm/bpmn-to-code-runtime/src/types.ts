@@ -105,6 +105,8 @@ export interface TimerEvent extends Event {
 
 export interface HasMessage extends FlowNode {
   readonly message: string;
+  /** The correlation-key expression as modelled, only on nodes where an instance waits for the message. */
+  readonly correlationKey?: string;
 }
 
 export interface SignalEvent extends Event {
