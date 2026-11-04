@@ -265,6 +265,7 @@ Each node extends `AbstractFlowNode` and implements one runtime interface per fa
 | `multiInstance`, `MultiInstanceActivity` | multi-instance activities | `BpmnMultiInstance` (`type`: `SEQUENTIAL`, `PARALLEL`; `inputCollection`, `inputElement`, `outputCollection`, `outputElement` as modelled, `null` where not declared; Camunda 7 and Operaton have no outputs) | `multiInstance` |
 | `timer`, `TimerEvent` | timer events | `BpmnTimer` (`type`: `DATE`, `DURATION`, `CYCLE`; `timerValue`) | `eventDefinitions[]` |
 | `message`, `HasMessage` | message events, send and receive tasks | `MessageName`, the `Messages` constant | `eventDefinitions[]`, `messageRef` |
+| `correlationKey` on `HasMessage` | nodes where an instance waits for a message with a correlation key (Zeebe only), not message start events of the process | `String`, the expression as modelled, e.g. `=applicationId`; `null` elsewhere, `undefined` in TypeScript; in C# read it through `IHasMessage` | `zeebe:subscription` of the referenced message |
 | `signal` / `error` / `escalation`; `SignalEvent` / `ErrorEvent` / `EscalationEvent` | events with that definition | the `Signals` / `Errors` / `Escalations` constant | `eventDefinitions[]` |
 | `CompensationThrowEvent` | intermediate throw and end events throwing a compensation | marker without members | `eventDefinitions[]` |
 | `attachedTo`, `BoundaryEvent<Host>` | boundary events | the host node | `attachedToRef` |

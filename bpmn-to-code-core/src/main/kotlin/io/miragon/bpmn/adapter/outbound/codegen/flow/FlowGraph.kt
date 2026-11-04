@@ -106,6 +106,7 @@ data class FlowGraph(val nodes: List<FlowGraphNode>) {
         val timer: TimerFacet? = null,
         val multiInstance: MultiInstanceFacet? = null,
         val message: SharedValue<String>? = null,
+        val correlationKey: String? = null,
         val signal: SharedValue<String>? = null,
         val error: SharedValue<Pair<String, String>>? = null,
         val escalation: SharedValue<Pair<String, String>>? = null,

@@ -70,6 +70,9 @@ public final class ${typeName} {
 <#if node.message??>
 <@sharedNameGetter type=types.MessageName name="getMessage" definition=node.message/>
 </#if>
+<#if node.correlationKey??>
+<@getter type=types.String name="getCorrelationKey" value=node.correlationKey/>
+</#if>
 <#if node.signal??>
 <@sharedNameGetter type=types.SignalName name="getSignal" definition=node.signal/>
 </#if>

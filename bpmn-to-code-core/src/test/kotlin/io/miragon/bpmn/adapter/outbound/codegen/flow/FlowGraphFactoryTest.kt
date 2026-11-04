@@ -5,6 +5,8 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedConstant
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SharedValue
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.TimerFacet
+import io.miragon.bpmn.adapter.outbound.engine.ProcessModelReader
+import io.miragon.bpmn.adapter.outbound.engine.dialect.ZeebeDialect
 import io.miragon.bpmn.domain.ProcessModel
 import io.miragon.bpmn.domain.jobWorkerTask
 import io.miragon.bpmn.domain.shared.CallActivityDefinition
@@ -12,9 +14,11 @@ import io.miragon.bpmn.domain.shared.EventDefinitionInstance
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.GatewayKind
+import io.miragon.bpmn.domain.shared.MessageReference
 import io.miragon.bpmn.domain.shared.RootElementDefinition
 import io.miragon.bpmn.domain.shared.SequenceFlowDefinition
 import io.miragon.bpmn.domain.shared.SubProcessKind
+import io.miragon.bpmn.domain.shared.TaskKind
 import io.miragon.bpmn.domain.shared.TimerType
 import io.miragon.bpmn.domain.shared.VariableDefinition
 import io.miragon.bpmn.domain.shared.VariableDirection
@@ -319,6 +323,117 @@ class FlowGraphFactoryTest {
             .isEqualTo(SharedValue("Signal_Activated", SharedConstant(name = "ACTIVATED")))
         assertThat(graph.node("onEscalation").facets.escalation)
             .isEqualTo(SharedValue("Escalation_Late" to "42", SharedConstant(name = "LATE")))
+    }
+
+    @Test
+    fun `catching message nodes carry the correlation key of their message, throwing ones do not`() {
+        val contractSigned = EventDefinitionInstance.Message(MessageReference(messageRef = "message_contractSigned"))
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Event(
+                    id = "eventContractSigned",
+                    shape = EventShape.INTERMEDIATE_CATCH_EVENT,
+                    eventDefinitions = listOf(contractSigned),
+                ),
+                FlowNodeDefinition.Event(
+                    id = "endContractSigned",
+                    shape = EventShape.END_EVENT,
+                    eventDefinitions = listOf(contractSigned),
+                ),
+                FlowNodeDefinition.Activity.Task(
+                    id = "receiveTaskContractSigned",
+                    kind = TaskKind.RECEIVE,
+                    message = contractSigned.reference,
+                ),
+                FlowNodeDefinition.Activity.Task(
+                    id = "sendTaskContractSigned",
+                    kind = TaskKind.SEND,
+                    message = contractSigned.reference,
+                ),
+            ),
+            messages = listOf(
+                RootElementDefinition.Message(
+                    id = "message_contractSigned",
+                    name = "miravelo.contractSigned",
+                    correlationKey = "=applicationId",
+                ),
+            ),
+        )
+
+        val graph = FlowGraphFactory.build(model)
+
+        assertThat(graph.node("eventContractSigned").facets.correlationKey).isEqualTo("=applicationId")
+        assertThat(graph.node("receiveTaskContractSigned").facets.correlationKey).isEqualTo("=applicationId")
+        assertThat(graph.node("endContractSigned").facets.correlationKey).isNull()
+        assertThat(graph.node("sendTaskContractSigned").facets.correlationKey).isNull()
+    }
+
+    @Test
+    fun `a message start of the process carries no correlation key, one of an event subprocess does`() {
+        val contractSigned = listOf(
+            EventDefinitionInstance.Message(MessageReference(messageRef = "message_contractSigned")),
+        )
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Event(
+                    id = "startEventContractSigned",
+                    shape = EventShape.START_EVENT,
+                    eventDefinitions = contractSigned,
+                ),
+                FlowNodeDefinition.Event(
+                    id = "startEventContractSignedLate",
+                    shape = EventShape.START_EVENT,
+                    eventDefinitions = contractSigned,
+                    interrupting = false,
+                ),
+            ),
+            messages = listOf(
+                RootElementDefinition.Message(
+                    id = "message_contractSigned",
+                    name = "miravelo.contractSigned",
+                    correlationKey = "=applicationId",
+                ),
+            ),
+        )
+
+        val graph = FlowGraphFactory.build(model)
+
+        assertThat(graph.node("startEventContractSigned").facets.correlationKey).isNull()
+        assertThat(graph.node("startEventContractSignedLate").facets.correlationKey).isEqualTo("=applicationId")
+    }
+
+    @Test
+    fun `receiving nodes of the zeebe model carry the correlation key of its subscription`() {
+        val bpmn = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn")).readBytes()
+        val graph = FlowGraphFactory.build(ProcessModelReader(ZeebeDialect()).read(bpmn))
+
+        assertThat(graph.node("eventContractSigned").facets.correlationKey).isEqualTo("=applicationId")
+        assertThat(graph.node("receiveTaskHandoverReported").facets.correlationKey).isEqualTo("=applicationId")
+        assertThat(graph.node("startEventApplicationWithdrawn").facets.correlationKey).isEqualTo("=applicationId")
+        assertThat(graph.node("startEventAddressChanged").facets.correlationKey).isEqualTo("=applicationId")
+        assertThat(graph.node("startEventLeasingRequestReceived").facets.correlationKey).isNull()
+    }
+
+    @Test
+    fun `catch event whose message declares no correlation key carries none`() {
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Event(
+                    id = "eventContractSigned",
+                    shape = EventShape.INTERMEDIATE_CATCH_EVENT,
+                    eventDefinitions = listOf(
+                        EventDefinitionInstance.Message(MessageReference(messageRef = "message_contractSigned")),
+                    ),
+                ),
+            ),
+            messages = listOf(
+                RootElementDefinition.Message(id = "message_contractSigned", name = "miravelo.contractSigned"),
+            ),
+        )
+
+        val graph = FlowGraphFactory.build(model)
+
+        assertThat(graph.node("eventContractSigned").facets.correlationKey).isNull()
     }
 
     @Test
