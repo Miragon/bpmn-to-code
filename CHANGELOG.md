@@ -3,6 +3,18 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [7.1.0](https://github.com/Miragon/bpmn-to-code/compare/v7.0.1...v7.1.0) (2026-11-05)
+
+
+### Features
+
+* **codegen:** expose multi-instance characteristics in the Process API ([#281](https://github.com/Miragon/bpmn-to-code/issues/281)) ([39b0d27](https://github.com/Miragon/bpmn-to-code/commit/39b0d27fabf0438625824c6f6fc6f3f8d5add14b))
+
+
+### Bug Fixes
+
+* **skills:** adapt bpmn-cli calls to 0.10 ([#271](https://github.com/Miragon/bpmn-to-code/issues/271)) ([6190f02](https://github.com/Miragon/bpmn-to-code/commit/6190f02655c252c19783d5a372c8e3d3be24bc1a))
+
 ## [7.0.1](https://github.com/Miragon/bpmn-to-code/compare/v7.0.0...v7.0.1) (2026-10-26)
 
 
