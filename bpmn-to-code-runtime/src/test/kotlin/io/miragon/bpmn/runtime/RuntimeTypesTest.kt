@@ -70,6 +70,21 @@ class RuntimeTypesTest {
     }
 
     @Test
+    fun `BpmnMultiInstance carries its bindings and defaults them to null`() {
+        val parallel = BpmnMultiInstance(MultiInstanceType.PARALLEL, "=bikeIds", "bikeId", "=results", "result")
+        assertThat(parallel.inputCollection).isEqualTo("=bikeIds")
+        assertThat(parallel.inputElement).isEqualTo("bikeId")
+        assertThat(parallel.outputCollection).isEqualTo("=results")
+        assertThat(parallel.outputElement).isEqualTo("result")
+
+        val unbound = BpmnMultiInstance(MultiInstanceType.SEQUENTIAL)
+        assertThat(unbound.inputCollection).isNull()
+        assertThat(unbound.inputElement).isNull()
+        assertThat(unbound.outputCollection).isNull()
+        assertThat(unbound.outputElement).isNull()
+    }
+
+    @Test
     fun `AbstractFlowNode derives identity and hash from the element id`() {
         val node = flowNode("approve-task")
         val same = flowNode("approve-task")
