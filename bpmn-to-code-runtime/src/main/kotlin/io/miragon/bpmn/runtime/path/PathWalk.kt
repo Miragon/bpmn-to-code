@@ -4,6 +4,7 @@ import io.miragon.bpmn.runtime.AssociatedCompensationHandler
 import io.miragon.bpmn.runtime.FlowNode
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.LinkedCatchEvent
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.Successor
 import java.util.function.Function
@@ -82,6 +83,16 @@ class PathWalk<N : HasSuccessors<NEXT>, NEXT> internal constructor(private val p
         includeBoundaryEvent: Boolean = false,
         pick: Function<C, out AssociatedCompensationHandler<H>>,
     ): PathWalk<N, NEXT> = PathWalk(path.recordCompensation(boundaryEvent = boundaryEvent, includeBoundaryEvent = includeBoundaryEvent, handler = pick.apply(boundaryEvent.next)))
+
+    /**
+     * Continues from the current link throw event at its catch event. Both link events are left out, as Camunda 7 and
+     * Operaton do not report them as passed; pass `includeLinkEvents = true` to record both.
+     */
+    @JvmOverloads
+    fun <M : HasSuccessors<MNEXT>, MNEXT> throughLink(
+        includeLinkEvents: Boolean = false,
+        pick: Function<NEXT, out LinkedCatchEvent<M>>,
+    ): PathWalk<M, MNEXT> = PathWalk(path.recordLink(includeLinkEvents = includeLinkEvents, catchEvent = pick.apply(path.current.next)))
 
     /**
      * Unchecked re-anchor to an arbitrary node — does not record. The escape hatch; prefer the checked steps.

@@ -4,6 +4,7 @@ import type {
   FlowNode,
   FlowScope,
   HasSuccessors,
+  LinkedCatchEvent,
   SequenceFlow,
   Successor,
 } from "./types.js";
@@ -111,6 +112,23 @@ export class ProcessPath<NODE extends FlowNode> {
     const handler = pick(boundaryEvent.next).target;
     const recorded = options.includeBoundaryEvent === true ? [boundaryEvent, handler] : [handler];
     return this.moveTo(this.current, recorded, []);
+  }
+
+  /**
+   * Continues from the current link throw event at its catch event. Camunda 7 and Operaton report neither link event
+   * as passed, so both are left out; pass includeLinkEvents to record them.
+   */
+  throughLink<NEXT, TARGET extends FlowNode>(
+    this: ProcessPath<HasSuccessors<NEXT>>,
+    pick: (next: NEXT) => LinkedCatchEvent<TARGET>,
+    options: { readonly includeLinkEvents?: boolean } = {},
+  ): ProcessPath<TARGET> {
+    const catchEvent = pick(this.current.next).target;
+    if (options.includeLinkEvents === true) {
+      return this.moveTo(catchEvent, [catchEvent], []);
+    }
+    const recorded = this.nodes.at(-1) === this.current ? this.nodes.slice(0, -1) : this.nodes;
+    return new ProcessPath(catchEvent, recorded, this.flows);
   }
 
   /**

@@ -453,6 +453,33 @@ class FlowGraphFactoryTest {
         assertThat(graph.node("lonely").facets.jobType?.value).isEqualTo("lonely.worker")
     }
 
+    @Test
+    fun `link throw event leads to the catch events with the same link name in its scope`() {
+        val model = testProcessModel(
+            flowNodes = listOf(
+                linkEvent(id = "event_loopForNextItem", shape = EventShape.INTERMEDIATE_THROW_EVENT, linkName = "nextItem"),
+                linkEvent(id = "event_nextItemToProcess", shape = EventShape.INTERMEDIATE_CATCH_EVENT, linkName = "nextItem"),
+                linkEvent(id = "event_otherLink", shape = EventShape.INTERMEDIATE_CATCH_EVENT, linkName = "otherItem"),
+                FlowNodeDefinition.Activity.SubProcess(
+                    id = "subProcess_inner",
+                    kind = SubProcessKind.PLAIN,
+                    flowNodes = listOf(linkEvent(id = "event_innerNextItem", shape = EventShape.INTERMEDIATE_CATCH_EVENT, linkName = "nextItem")),
+                ),
+            ),
+        )
+        val graph = FlowGraphFactory.build(model)
+
+        assertThat(graph.node("eventLoopForNextItem").successors)
+            .containsExactly(SuccessorEdge.LinkedCatchEvent(FlowGraph.FlowEdge("eventNextItemToProcess", "EventNextItemToProcess")))
+        assertThat(graph.node("eventNextItemToProcess").successors).isEmpty()
+    }
+
+    private fun linkEvent(id: String, shape: EventShape, linkName: String) = FlowNodeDefinition.Event(
+        id = id,
+        shape = shape,
+        eventDefinitions = listOf(EventDefinitionInstance.Link(linkName = linkName)),
+    )
+
     private fun startEvent(id: String, vararg definitions: EventDefinitionInstance) = FlowNodeDefinition.Event(
         id = id,
         shape = EventShape.START_EVENT,
