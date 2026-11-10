@@ -71,7 +71,13 @@ class RuntimeTypesTest {
 
     @Test
     fun `BpmnMultiInstance carries its bindings and defaults them to null`() {
-        val parallel = BpmnMultiInstance(MultiInstanceType.PARALLEL, "=bikeIds", "bikeId", "=results", "result")
+        val parallel = BpmnMultiInstance(
+            type = MultiInstanceType.PARALLEL,
+            inputCollection = "=bikeIds",
+            inputElement = "bikeId",
+            outputCollection = "=results",
+            outputElement = "result",
+        )
         assertThat(parallel.inputCollection).isEqualTo("=bikeIds")
         assertThat(parallel.inputElement).isEqualTo("bikeId")
         assertThat(parallel.outputCollection).isEqualTo("=results")
