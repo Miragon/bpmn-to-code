@@ -1,0 +1,28 @@
+{
+  "skillVersion": "1.29.0",
+  "products": [
+    {
+      "id": "bpmn-to-code-readme",
+      "target": "vscode",
+      "store": "readme",
+      "label": "bpmn-to-code",
+      "title": "Process API",
+      "claim": "Keep BPMN models and code in sync, checked by your compiler, your tests and your AI agents.",
+      "icon": "docs/public/logo/miragon-komet-blau.svg",
+      "out": "docs/public/shots/readme",
+      "vscode": {
+        "extension": "mathiasfrohlich.Kotlin",
+        "workspace": ".miragon/product-shots/miravelo-service",
+        "settings": {
+          "editor.minimap.enabled": false,
+          "editor.fontSize": 15
+        }
+      },
+      "recipe": ".miragon/product-shots/process-api-recipe.mjs",
+      "shots": {
+        "file": "src/main/kotlin/com/example/process/BikeLeasingProcessApi.kt",
+        "line": 625
+      }
+    }
+  ]
+}

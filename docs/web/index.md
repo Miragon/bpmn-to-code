@@ -41,6 +41,7 @@ Then open `http://localhost:8080`. The image is on [Docker Hub](https://hub.dock
 | `GET /api/config` | Legal links and version the UI displays |
 | `POST /api/generate` | Generates the Process API |
 | `GET /swagger` | Swagger UI for the routes above |
+| `GET /examples/<engine>-bike-leasing.bpmn` | Bundled example model (`zeebe`, `c7`, `operaton`) |
 
 ## Call the REST API
 

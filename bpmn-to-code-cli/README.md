@@ -1,24 +1,19 @@
-# bpmn-to-code-cli
+# bpmn-to-code CLI
 
-The command-line tool of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code): generates the Process API from BPMN files and validates them, without Gradle or Maven. It calls the same generator as the Gradle and Maven plugins, so the output is identical.
+[![GitHub release](https://img.shields.io/github/v/release/Miragon/bpmn-to-code?label=release&color=335DE5)](https://github.com/Miragon/bpmn-to-code/releases/latest)
 
-Experimental: commands, flags and exit codes may still change in a minor release.
+**Generate the typed Process API from your BPMN models without Gradle or Maven.**
+
+`bpmn-to-code` is the command-line tool of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code): it generates and validates with the same generator as the Gradle and Maven plugins, so the output is identical. It is experimental: commands, flags and exit codes may still change in a minor release.
 
 ## Install
 
-On macOS and Linux with [Homebrew](https://brew.sh):
+- **Homebrew** (macOS, Linux): `brew install miragon/tap/bpmn-to-code`
+- **Release zip:** every [GitHub release](https://github.com/Miragon/bpmn-to-code/releases) carries one zip for `linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64` and `win32-x64`, each with its own Java runtime.
+- **.NET tool:** `Miragon.BpmnToCode` as a local tool, which needs the .NET 10 SDK and Java 21 (not yet published, see [the tool on its own](https://miragon.github.io/bpmn-to-code/getting-started/dotnet#the-tool-on-its-own)).
+- **npm:** `@miragon/bpmn-to-code`, which needs Java 21 (not yet published, see the [TypeScript guide](https://miragon.github.io/bpmn-to-code/getting-started/typescript)).
 
-```bash
-brew install miragon/tap/bpmn-to-code
-```
-
-In a .NET project as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) (.NET SDK 10 or newer, Java 21 or newer):
-
-```bash
-dotnet tool install Miragon.BpmnToCode
-```
-
-Every [GitHub release](https://github.com/Miragon/bpmn-to-code/releases) also carries one zip per platform: `linux-x64`, `linux-arm64`, `darwin-arm64`, `darwin-x64` and `win32-x64`. Each contains its own Java runtime, so no Java installation is needed.
+From a zip:
 
 ```bash
 curl -fsSLO https://github.com/Miragon/bpmn-to-code/releases/download/v<version>/bpmn-to-code-<version>-linux-x64.zip
@@ -26,17 +21,9 @@ unzip bpmn-to-code-<version>-linux-x64.zip
 bpmn-to-code-<version>-linux-x64/bin/bpmn-to-code --version
 ```
 
-On Windows the command is `bin\bpmn-to-code.cmd`. The archives are not signed: macOS blocks a zip downloaded in a browser until you run `xattr -dr com.apple.quarantine bpmn-to-code-<version>-darwin-arm64`; Homebrew and `curl` do not set that flag. `gh attestation verify <zip> --repo Miragon/bpmn-to-code` checks that an archive was built by this repository's release workflow.
+Put the `bin` folder on your `PATH` to call `bpmn-to-code` directly; on Windows the command is `bin\bpmn-to-code.cmd`. The archives are not signed: macOS blocks a zip downloaded in a browser until you run `xattr -dr com.apple.quarantine bpmn-to-code-<version>-darwin-arm64`; Homebrew and `curl` do not set that flag. `gh attestation verify <zip> --repo Miragon/bpmn-to-code` checks that an archive was built by this repository's release workflow.
 
-## Build from source
-
-```bash
-./gradlew :bpmn-to-code-cli:cliArchive
-```
-
-This packs the tool with a runtime linked by `jlink` into `bpmn-to-code-cli/build/cli-archive/bpmn-to-code-<version>-<platform>.zip`, for the platform the build runs on. `./gradlew :bpmn-to-code-cli:installDist` builds it without a runtime into `build/install`; its scripts need Java 21 or newer.
-
-## Usage
+## Get started
 
 ```bash
 bpmn-to-code generate-api \
@@ -53,34 +40,42 @@ bpmn-to-code validate \
   --processEngine ZEEBE
 ```
 
-`bpmn-to-code --help` and `bpmn-to-code <command> --help` list the flags, `bpmn-to-code --version` prints the version.
+`bpmn-to-code --help` and `bpmn-to-code <command> --help` list the flags. The generated code compiles against the runtime package of its language: `io.miragon:bpmn-to-code-runtime` for Kotlin and Java, `Miragon.BpmnToCode.Runtime` for C#, `@miragon/bpmn-to-code-runtime` for TypeScript, in the same version as the tool.
 
-## Commands
+## Commands and flags
 
-| Command | Same as Gradle task | Same as Maven goal |
-|---|---|---|
-| `generate-api` | `generateBpmnModelApi` | `generate-bpmn-api` |
-| `validate` (experimental) | `validateBpmnModels` | `validate-bpmn` |
+| Command                   | Same as Gradle task    | Same as Maven goal  |
+| ------------------------- | ---------------------- | ------------------- |
+| `generate-api`            | `generateBpmnModelApi` | `generate-bpmn-api` |
+| `validate` (experimental) | `validateBpmnModels`   | `validate-bpmn`     |
 
-The flags carry the names of the plugin parameters, see [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration). Unlike in Maven, there are no defaults: every flag except `--failOnWarning` and `--disabledRules` is required. Relative paths resolve against the directory the tool is started in.
+The flags carry the names of the plugin parameters, see [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration). As in the Gradle and Maven plugins, every flag except `--failOnWarning` and `--disabledRules` is required. Relative paths resolve against the directory the tool is started in.
 
-| Flag | Commands | Value |
-|---|---|---|
-| `--baseDir` | both | Directory `--filePattern` is resolved against |
-| `--filePattern` | both | Glob of the BPMN files, relative to `--baseDir` |
-| `--processEngine` | both | `ZEEBE`, `CAMUNDA_7` or `OPERATON` |
-| `--outputLanguage` | `generate-api` | `KOTLIN`, `JAVA`, `CSHARP` (experimental) or `TYPESCRIPT` (experimental) |
-| `--outputFolderPath` | `generate-api` | Source root the code is written to |
-| `--packagePath` | `generate-api` | Package of the generated code, the namespace for C# |
-| `--failOnWarning` | `validate` | Treat warnings as failures |
-| `--disabledRules` | `validate` | Comma-separated ids of rules to skip |
+| Flag                 | Commands       | Value                                                                      |
+| -------------------- | -------------- | -------------------------------------------------------------------------- |
+| `--baseDir`          | both           | Directory `--filePattern` is resolved against                              |
+| `--filePattern`      | both           | Glob of the BPMN files, relative to `--baseDir`                            |
+| `--processEngine`    | both           | `ZEEBE`, `CAMUNDA_7` or `OPERATON`                                         |
+| `--outputLanguage`   | `generate-api` | `KOTLIN`, `JAVA`, `CSHARP` (experimental) or `TYPESCRIPT` (experimental)   |
+| `--outputFolderPath` | `generate-api` | Source root the code is written to                                         |
+| `--packagePath`      | `generate-api` | Package of the generated code, the namespace for C#                        |
+| `--failOnWarning`    | `validate`     | Treat warnings as failures                                                 |
+| `--disabledRules`    | `validate`     | Comma-separated ids of [rules](https://miragon.github.io/bpmn-to-code/validate/) to skip |
 
-## Exit codes
-
-| Code | Meaning |
-|---|---|
-| `0` | Success |
-| `1` | The models fail validation or cannot be read or generated |
-| `2` | Wrong call: unknown command, missing flag, unknown value |
+| Exit code | Meaning                                                   |
+| --------- | --------------------------------------------------------- |
+| `0`       | Success                                                   |
+| `1`       | The models fail validation or cannot be read or generated |
+| `2`       | Wrong call: unknown command, missing flag, unknown value  |
 
 Findings and errors go to standard error.
+
+## Help and feedback
+
+- **Documentation:** [miragon.github.io/bpmn-to-code](https://miragon.github.io/bpmn-to-code/)
+- **Bugs and ideas:** [open an issue](https://github.com/Miragon/bpmn-to-code/issues)
+- **Building the tool from source:** [CONTRIBUTING.md](../CONTRIBUTING.md#building-the-command-line-tool)
+
+## License
+
+[MIT](../LICENSE)

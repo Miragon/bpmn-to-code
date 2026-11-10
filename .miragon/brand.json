@@ -6,12 +6,5 @@
     "docs/public/bike-leasing.svg",
     "CHANGELOG.md"
   ],
-  "aus": [
-    "A1",
-    "A3",
-    "A4",
-    "A7",
-    "A11",
-    "C5"
-  ]
+  "aus": ["A1", "A3", "A4", "A7", "A11", "C5"]
 }
