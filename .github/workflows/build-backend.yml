@@ -66,6 +66,17 @@ jobs:
       - name: Run quality gate (ktlint + detekt)
         run: ./gradlew lintKotlin detektMain detektTest --continue
 
+  brand-assets:
+    name: Check brand asset copies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Verify checksums
+        run: sha256sum -c .miragon/brand-assets.sha256
+
   build:
     name: Build with Gradle
     needs: changes
