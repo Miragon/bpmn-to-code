@@ -3,20 +3,25 @@
   "products": [
     {
       "id": "bpmn-to-code-readme",
-      "target": "web",
+      "target": "vscode",
       "store": "readme",
       "label": "bpmn-to-code",
-      "title": "Typed Process API",
-      "claim": "Rename a task in the model, and your build shows the code that still uses it.",
+      "title": "Process API",
+      "claim": "Keep BPMN models and code in sync, checked by your compiler, your tests and your AI agents.",
       "icon": "docs/public/logo/miragon-komet-blau.svg",
       "out": "docs/public/shots/readme",
-      "web": {
-        "url": "https://bpmn-to-code.miragon.io/static/index.html"
-      },
-      "shots": {
-        "hero": {
-          "journey": ".miragon/product-shots/generate-bike-leasing.mjs"
+      "vscode": {
+        "extension": "mathiasfrohlich.Kotlin",
+        "workspace": ".miragon/product-shots/miravelo-service",
+        "settings": {
+          "editor.minimap.enabled": false,
+          "editor.fontSize": 15
         }
+      },
+      "recipe": ".miragon/product-shots/process-api-recipe.mjs",
+      "shots": {
+        "file": "src/main/kotlin/com/example/process/BikeLeasingProcessApi.kt",
+        "line": 625
       }
     }
   ]
