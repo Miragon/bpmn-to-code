@@ -6,9 +6,9 @@
 [![Docker Hub](https://img.shields.io/docker/v/miragon/bpmn-to-code-web?sort=semver&label=Docker%20Hub&color=335DE5)](https://hub.docker.com/r/miragon/bpmn-to-code-web)
 [![License: MIT](https://img.shields.io/github/license/Miragon/bpmn-to-code)](LICENSE)
 
-**Rename a task in the modeler, and your build tells you which code still uses the old name.**
+![bpmn-to-code: the typed Process API generated from a bike-leasing BPMN model, with the element id, name and job type of the Send contract task as constants](docs/public/shots/readme/cover.png)
 
-bpmn-to-code generates a typed Process API from your BPMN models, so workers, engine calls and tests use constants instead of strings for element ids, job types and message names.
+bpmn-to-code generates a typed Process API from your BPMN models, so workers, engine calls and tests use constants instead of strings for element ids, job types and message names. Rename a task in the modeler, and your build tells you which code still uses the old name.
 
 ## Why
 
