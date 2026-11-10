@@ -12,23 +12,31 @@ bpmn-to-code generates a typed Process API from your BPMN models, so workers, en
 
 ## Why
 
-A worker that carries its job type as a string keeps compiling when the model renames it, and the process instance just waits. With the generated constant, the build fails at the worker instead:
-
-```kotlin
-// before: copied from the modeler
-@JobWorker(type = "miravelo.sendContract")
-
-// after: generated from the model
-@JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
-```
+A BPMN model and the code around it drift apart quietly: someone renames a task in the modeler, and workers, engine calls and tests keep their old strings until a process instance gets stuck. bpmn-to-code turns the model into a typed API, so the drift shows up in your build.
 
 ## What you get
 
-- **One typed API per process.** Element ids, job types, messages, signals, errors and variables as constants, see [Generated API](https://miragon.github.io/bpmn-to-code/guide/generated-api).
-- **Process tests that fail at compile time.** [`ProcessPath`](https://miragon.github.io/bpmn-to-code/guide/process-path) builds the expected path from generated flow nodes, so a renamed element breaks the test before it runs.
-- **Models checked before code is generated.** Built-in rules stop the generation on a missing job type or message name, see [Validation](https://miragon.github.io/bpmn-to-code/validate/).
-- **Your modeling rules as tests.** On the JVM, `bpmn-to-code-testing` runs the built-in rules and your own in JUnit, see [Testing module](https://miragon.github.io/bpmn-to-code/validate/testing).
-- **No lock-in.** Plain constants and objects, independent of engine, worker library and test framework.
+**Constants instead of strings in your code.** Element ids, job types, messages, signals, errors and variables come from the model, see [Generated API](https://miragon.github.io/bpmn-to-code/guide/generated-api).
+
+```kotlin
+@JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
+fun sendContract() { ... }
+```
+
+**Process tests that follow the model.** [`ProcessPath`](https://miragon.github.io/bpmn-to-code/guide/process-path) walks the expected route through the generated flow nodes; a path the model no longer contains does not compile.
+
+```kotlin
+val path = ProcessPath.from(FlowNodes.StartEventLeasingRequestReceived)
+    .then { it.serviceTaskValidateApplication }
+    .then { it.businessRuleTaskCheckCreditRating }
+    .then { it.gatewayIsSolvent }
+
+assertThat(instance).hasPassedInOrder(*path.ids)
+```
+
+**Models checked before code is generated.** Built-in rules stop the generation on a missing job type or message name, and on the JVM `bpmn-to-code-testing` runs them and your own rules in JUnit, see [Validation](https://miragon.github.io/bpmn-to-code/validate/).
+
+**No lock-in.** The API is plain constants and objects, independent of engine, worker library and test framework.
 
 ## Supported engines and languages
 
