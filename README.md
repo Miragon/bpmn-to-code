@@ -32,105 +32,28 @@ A worker that carries its job type as a string keeps compiling when the model re
 
 ## Supported engines and languages
 
-| Engine            | `processEngine` |
-| ----------------- | --------------- |
-| Camunda 8 / Zeebe | `ZEEBE`         |
-| Camunda 7         | `CAMUNDA_7`     |
-| Operaton          | `OPERATON`      |
-
-| Language   | `outputLanguage` | Status       |
-| ---------- | ---------------- | ------------ |
-| Kotlin     | `KOTLIN`         | stable       |
-| Java       | `JAVA`           | stable       |
-| C#         | `CSHARP`         | experimental |
-| TypeScript | `TYPESCRIPT`     | experimental |
-
-C# and TypeScript come from the CLI, the web app and the build plugins; their NuGet and npm packages are not yet published, see [.NET](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) and [TypeScript](https://miragon.github.io/bpmn-to-code/getting-started/typescript).
+Works with **Camunda 8 (Zeebe)**, **Camunda 7** and **Operaton**. Generates **Kotlin** and **Java**, and as experimental output **C#** and **TypeScript**. All values are listed under [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration).
 
 ## Install
 
-Your project needs Java 21 or newer.
+Pick the client that fits your project; each one has its own setup guide.
 
-- **Gradle:** add the plugin; with the `java` plugin applied it also adds `bpmn-to-code-runtime`, the types the generated code imports.
-
-  <!-- x-release-please-start-version -->
-  ```kotlin
-  plugins {
-      id("io.miragon.bpmn-to-code-gradle") version "7.0.1"
-  }
-  ```
-  <!-- x-release-please-end -->
-
-- **Maven:** add the runtime and the plugin.
-
-  <!-- x-release-please-start-version -->
-  ```xml
-  <dependency>
-      <groupId>io.miragon</groupId>
-      <artifactId>bpmn-to-code-runtime</artifactId>
-      <version>7.0.1</version>
-  </dependency>
-
-  <plugin>
-      <groupId>io.miragon</groupId>
-      <artifactId>bpmn-to-code-maven</artifactId>
-      <version>7.0.1</version>
-  </plugin>
-  ```
-  <!-- x-release-please-end -->
-
-- **Command line:** `brew install miragon/tap/bpmn-to-code`, or a zip from the [latest release](https://github.com/Miragon/bpmn-to-code/releases/latest), see [bpmn-to-code-cli](bpmn-to-code-cli/README.md).
-- **Web app:** [in the browser](https://bpmn-to-code.miragon.io/static/index.html), or self-hosted from the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
+| Client              | For                                             | Setup                                                             |
+| ------------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| Gradle plugin       | Kotlin and Java projects with Gradle            | [bpmn-to-code-gradle](bpmn-to-code-gradle/README.md)              |
+| Maven plugin        | Java and Kotlin projects with Maven             | [bpmn-to-code-maven](bpmn-to-code-maven/README.md)                |
+| CLI                 | any build, CI scripts, Homebrew                 | [bpmn-to-code-cli](bpmn-to-code-cli/README.md)                    |
+| Web app             | trying it out, no build tool                    | [bpmn-to-code-web](bpmn-to-code-web/README.md)                    |
+| MSBuild / .NET tool | C# projects (experimental, unpublished)         | [BpmnToCode.MSBuild](packages/nuget/BpmnToCode.MSBuild/README.md) |
+| npm package         | TypeScript projects (experimental, unpublished) | [@miragon/bpmn-to-code](packages/npm/bpmn-to-code/README.md)      |
 
 ## Get started
 
-**Gradle with Kotlin**
+1. Set up the client for your build from the table above.
+2. Generate the API, for example with `./gradlew generateBpmnModelApi` or `mvn generate-sources`.
+3. Replace the strings in your workers, engine calls and tests with the generated constants.
 
-1. Point the generation task at your models in `build.gradle.kts`:
-
-   ```kotlin
-   import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
-   import io.miragon.bpmn.domain.shared.OutputLanguage
-   import io.miragon.bpmn.domain.shared.ProcessEngine
-
-   tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
-       baseDir = "."
-       filePattern = "src/main/resources/**/*.bpmn"
-       outputFolderPath = "src/main/kotlin"
-       packagePath = "com.example.process"
-       outputLanguage = OutputLanguage.KOTLIN
-       processEngine = ProcessEngine.ZEEBE
-   }
-   ```
-
-2. Run `./gradlew generateBpmnModelApi`. It is not part of `build` unless you [wire it in](https://miragon.github.io/bpmn-to-code/getting-started/gradle).
-3. Replace the strings in your workers and tests with the constants in `com.example.process`.
-
-**Maven with Java**
-
-1. Inside the plugin, bind the goal and point it at your models:
-
-   ```xml
-   <executions>
-       <execution>
-           <phase>generate-sources</phase>
-           <goals><goal>generate-bpmn-api</goal></goals>
-       </execution>
-   </executions>
-   <configuration>
-       <baseDir>${project.basedir}</baseDir>
-       <filePattern>src/main/resources/*.bpmn</filePattern>
-       <outputFolderPath>${project.basedir}/src/main/java</outputFolderPath>
-       <packagePath>com.example.process</packagePath>
-       <outputLanguage>JAVA</outputLanguage>
-       <processEngine>ZEEBE</processEngine>
-   </configuration>
-   ```
-
-2. Run `mvn generate-sources`.
-3. Replace the strings in your workers and tests with the constants in `com.example.process`.
-
-Every option is in [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration); to fail CI on a stale API, see [Verify in CI](https://miragon.github.io/bpmn-to-code/guide/verify-in-ci).
+To fail CI on a stale API, see [Verify in CI](https://miragon.github.io/bpmn-to-code/guide/verify-in-ci).
 
 ## With your AI assistant
 
