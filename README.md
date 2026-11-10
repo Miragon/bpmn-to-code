@@ -1,81 +1,72 @@
-[![Documentation](https://img.shields.io/badge/docs-bpmn--to--code-335DE5?style=flat-square)](https://miragon.github.io/bpmn-to-code/)
-[![Web App](https://img.shields.io/badge/web--app-try%20in%20browser-335DE5?style=flat-square)](https://bpmn-to-code.miragon.io/static/index.html)
-[![Maven Central](https://img.shields.io/maven-central/v/io.miragon/bpmn-to-code-maven?style=flat-square&label=maven&color=335DE5)](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven)
-[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.miragon.bpmn-to-code-gradle?style=flat-square&label=gradle&color=335DE5)](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle)
-
 # bpmn-to-code
 
-Type-safe constants from your BPMN model, for your compiler, your tests and your AI agents.
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.miragon.bpmn-to-code-gradle?label=Gradle%20Plugin%20Portal&color=335DE5)](https://plugins.gradle.org/plugin/io.miragon.bpmn-to-code-gradle)
+[![Maven Central](https://img.shields.io/maven-central/v/io.miragon/bpmn-to-code-maven?label=Maven%20Central&color=335DE5)](https://central.sonatype.com/artifact/io.miragon/bpmn-to-code-maven)
+[![GitHub release](https://img.shields.io/github/v/release/Miragon/bpmn-to-code?label=CLI&color=335DE5)](https://github.com/Miragon/bpmn-to-code/releases/latest)
+[![Docker Hub](https://img.shields.io/docker/v/miragon/bpmn-to-code-web?sort=semver&label=Docker%20Hub&color=335DE5)](https://hub.docker.com/r/miragon/bpmn-to-code-web)
+[![License: MIT](https://img.shields.io/github/license/Miragon/bpmn-to-code)](LICENSE)
 
-![bpmn-to-code preview](docs/public/preview.gif)
+![A BPMN model next to the Process API, the model test and the JSON that bpmn-to-code generates from it](docs/public/preview.gif)
 
-bpmn-to-code reads your BPMN files and generates a typed API from them. Element ids, message names and job types become constants, so renaming a task in the modeler is a compiler error instead of a silent runtime failure.
+**Rename a task in the modeler, and your build tells you which code still uses the old name.**
+
+bpmn-to-code generates a typed Process API from your BPMN models, so your workers, engine calls and tests reference element ids, job types and message names as constants instead of strings.
+
+## Why
+
+A worker with its job type as a string, like `@JobWorker(type = "miravelo.sendContract")`, keeps compiling when the model renames it, and the process instance just waits. With the generated constant, the build fails at the worker:
 
 ```kotlin
-// Before: copied from the modeler, no safety net
-@JobWorker(type = "miravelo.sendContract")
-fun send() { ... }
-
-// After: generated from the BPMN model
 @JobWorker(type = ServiceTasks.MIRAVELO_SEND_CONTRACT)
-fun send() { ... }
+fun sendContract() { ... }
 ```
 
-Around the generator:
+<img src="docs/public/drift-in-worker.gif" width="600" alt="A job type is renamed in the model; the worker with the string keeps waiting, the worker with the generated constant no longer compiles">
 
-- **[Validation](https://miragon.github.io/bpmn-to-code/validate/)**: built-in rules run before every generation, as a build task, or as tests with `bpmn-to-code-testing`, where you can add your own rules.
-- **[Agent Skills](https://miragon.github.io/bpmn-to-code/skills/)**: a Claude Code plugin that sets up the build plugin, migrates hardcoded strings, and writes and tests workers, process adapters and process tests against the generated API.
-- **[Command line](https://github.com/Miragon/bpmn-to-code/tree/main/bpmn-to-code-cli)**: generate and validate without Gradle or Maven, also as a [.NET tool](https://miragon.github.io/bpmn-to-code/getting-started/dotnet) and an [npm package](https://miragon.github.io/bpmn-to-code/getting-started/typescript) (both not yet published); the archives bring their own Java runtime, the .NET tool and the npm package need Java 21.
-- **[Web app](https://bpmn-to-code.miragon.io/static/index.html)**: try it in the browser, or self-host the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
+## What you get
 
-## What it helps with
+- **One typed API per process.** Signals, errors and variables too, see [Generated API](https://miragon.github.io/bpmn-to-code/guide/generated-api).
+- **Models checked before code is written.** Built-in rules stop the generation on a missing job type or message name, see [Validation](https://miragon.github.io/bpmn-to-code/validate/).
+- **Your own modeling rules as tests.** On the JVM, `bpmn-to-code-testing` runs the built-in rules and your own in JUnit, see [Testing module](https://miragon.github.io/bpmn-to-code/validate/testing).
+- **No lock-in.** Plain constants and objects, independent of engine, worker library and test framework.
+- **Process tests that stop compiling instead of failing at runtime.** [`ProcessPath`](https://miragon.github.io/bpmn-to-code/guide/process-path) builds the expected path from generated flow nodes.
 
-A BPMN model and the code around it drift apart quietly: someone changes a name in the modeler and nothing tells the code. With the generated API, that change shows up in your build after you regenerate.
+<img src="docs/public/process-path.gif" width="600" alt="A process test with hand-typed element ids fails only at runtime; built with ProcessPath from the generated flow nodes, it fails to compile">
 
-### In production code
+## Supported engines and languages
 
-A worker that carries its topic as a string keeps compiling when the topic changes in the model, and the instance just waits. With the generated constant, the build points at the worker.
+| Engine            | `processEngine` |
+| ----------------- | --------------- |
+| Camunda 8 / Zeebe | `ZEEBE`         |
+| Camunda 7         | `CAMUNDA_7`     |
+| Operaton          | `OPERATON`      |
 
-<img src="docs/public/drift-in-worker.gif" width="600" alt="A topic string in a worker drifts from the model and the instance waits; with the generated constant the build points at the worker">
+| Language                  | `outputLanguage` | Generated by                                                                     |
+| ------------------------- | ---------------- | -------------------------------------------------------------------------------- |
+| Kotlin                    | `KOTLIN`         | Gradle plugin, Maven plugin, CLI, web app                                        |
+| Java                      | `JAVA`           | Gradle plugin, Maven plugin, CLI, web app                                        |
+| C# (experimental)         | `CSHARP`         | [MSBuild during `dotnet build`](https://miragon.github.io/bpmn-to-code/getting-started/dotnet), CLI, web app, Gradle and Maven plugins |
+| TypeScript (experimental) | `TYPESCRIPT`     | [npm script](https://miragon.github.io/bpmn-to-code/getting-started/typescript), CLI, web app, Gradle and Maven plugins |
 
-### In process tests
+The NuGet and npm packages are not yet published; until then, use the CLI, the web app or the build plugins for C# and TypeScript.
 
-A test with hand-typed element ids only fails when it runs. Built from the generated flow nodes with [`ProcessPath`](https://miragon.github.io/bpmn-to-code/guide/process-path), it stops compiling instead.
+## Install
 
-<img src="docs/public/process-path.gif" width="600" alt="A process test with hand-typed element ids only fails when it runs; built from the generated flow nodes, it stops compiling instead">
+Your project needs Java 21 or newer, the target of the plugins and the runtime.
 
-### With any engine and any test framework
-
-The clips show Camunda 8 and Kotlin, but nothing depends on that. The generated API is plain constants and objects, without a dependency on an engine, a worker library or a test framework. A `ProcessPath` hands you plain element ids, so it fits whatever flow assertion your test library offers. It works the same for every [supported engine](#supported-engines) and [output language](#supported-output-languages).
-
-## Gradle
+**Gradle**
 
 <!-- x-release-please-start-version -->
 ```kotlin
-import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
-import io.miragon.bpmn.domain.shared.OutputLanguage
-import io.miragon.bpmn.domain.shared.ProcessEngine
-
 plugins {
     id("io.miragon.bpmn-to-code-gradle") version "7.0.1"
-}
-
-tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
-    baseDir = projectDir.toString()
-    filePattern = "src/main/resources/**/*.bpmn"
-    outputFolderPath = "$projectDir/src/main/kotlin"
-    packagePath = "com.example.process"
-    outputLanguage = OutputLanguage.KOTLIN
-    processEngine = ProcessEngine.ZEEBE
 }
 ```
 <!-- x-release-please-end -->
 
-Run it with `./gradlew generateBpmnModelApi`. The plugin adds the `bpmn-to-code-runtime` dependency by itself. Details: [Gradle guide](https://miragon.github.io/bpmn-to-code/getting-started/gradle).
+With the `java` plugin applied, it also adds `bpmn-to-code-runtime`, the types the generated code imports.
 
-## Maven
-
-The goals are not bound to a lifecycle phase by default, so bind the goal yourself, and add the runtime library the generated code refers to:
+**Maven**
 
 <!-- x-release-please-start-version -->
 ```xml
@@ -113,34 +104,58 @@ The goals are not bound to a lifecycle phase by default, so bind the goal yourse
 ```
 <!-- x-release-please-end -->
 
-Details: [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/maven). All parameters of both plugins: [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration).
+**Without Gradle or Maven**
 
-## Supported engines
+- **Command line:** `brew install miragon/tap/bpmn-to-code` or a release zip, see [bpmn-to-code-cli](bpmn-to-code-cli/README.md).
+- **Web app:** [in the browser](https://bpmn-to-code.miragon.io/static/index.html), or self-hosted from the [Docker image](https://hub.docker.com/r/miragon/bpmn-to-code-web).
 
-| Engine | `processEngine` |
-|---|---|
-| Camunda 8 / Zeebe | `ZEEBE` |
-| Camunda 7, CIB seven | `CAMUNDA_7` |
-| Operaton | `OPERATON` |
+## Get started
 
-## Supported output languages
+With Gradle and Kotlin:
 
-| Language | `outputLanguage` | Runtime types |
-|---|---|---|
-| Kotlin | `KOTLIN` | `io.miragon:bpmn-to-code-runtime` |
-| Java | `JAVA` | `io.miragon:bpmn-to-code-runtime` |
-| C# (experimental) | `CSHARP` | `Miragon.BpmnToCode.Runtime` (NuGet, not yet published) |
-| TypeScript (experimental) | `TYPESCRIPT` | `@miragon/bpmn-to-code-runtime` (npm, not yet published) |
+1. Point the generation task at your models in `build.gradle.kts`:
 
-C# and TypeScript output are experimental and may change in a minor release; their NuGet and npm packages are not published yet. C# and TypeScript output are available in the Gradle and Maven plugins, the command line and the web app; C# also during `dotnet build` through `Miragon.BpmnToCode.MSBuild`.
+   ```kotlin
+   import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
+   import io.miragon.bpmn.domain.shared.OutputLanguage
+   import io.miragon.bpmn.domain.shared.ProcessEngine
 
-## Links
+   tasks.named("generateBpmnModelApi", GenerateBpmnModelsTask::class) {
+       baseDir = "."
+       filePattern = "src/main/resources/**/*.bpmn"
+       outputFolderPath = "src/main/kotlin"
+       packagePath = "com.example.process"
+       outputLanguage = OutputLanguage.KOTLIN
+       processEngine = ProcessEngine.ZEEBE
+   }
+   ```
 
-- [Documentation](https://miragon.github.io/bpmn-to-code/)
-- [Why bpmn-to-code](https://miragon.github.io/bpmn-to-code/overview/why)
-- [Changelog and migration guides](https://miragon.github.io/bpmn-to-code/changelog/)
-- [Contributing](https://miragon.github.io/bpmn-to-code/contributing/)
+2. Run `./gradlew generateBpmnModelApi` after a model change; it is not part of `build` unless you [wire it in](https://miragon.github.io/bpmn-to-code/getting-started/gradle).
+3. Replace the strings in your workers and tests with the constants in `com.example.process`.
 
-Issues and discussions are welcome on [GitHub](https://github.com/Miragon/bpmn-to-code). We do not accept external pull requests.
+With Maven, run `mvn generate-sources` on the configuration above.
 
-bpmn-to-code is built and maintained by [Miragon](https://miragon.io).
+More in the [Gradle guide](https://miragon.github.io/bpmn-to-code/getting-started/gradle), the [Maven guide](https://miragon.github.io/bpmn-to-code/getting-started/maven), [Configuration](https://miragon.github.io/bpmn-to-code/guide/configuration) and [Verify in CI](https://miragon.github.io/bpmn-to-code/guide/verify-in-ci).
+
+## With your AI assistant
+
+For Kotlin and Java, the Claude Code plugin sets up the generator and writes workers, engine calls and tests against the Process API, see [Agent Skills](https://miragon.github.io/bpmn-to-code/skills/):
+
+```text
+/plugin marketplace add Miragon/bpmn-to-code
+/plugin install bpmn-to-code@bpmn-to-code
+```
+
+## Help and feedback
+
+- **Documentation:** every feature, option and limit at [miragon.github.io/bpmn-to-code](https://miragon.github.io/bpmn-to-code/).
+- **Upgrading:** release notes and migration guides in the [changelog](https://miragon.github.io/bpmn-to-code/changelog/).
+- **Bugs and ideas:** [open an issue](https://github.com/Miragon/bpmn-to-code/issues).
+
+## Contributing
+
+How to build, test and change the project is in [CONTRIBUTING.md](CONTRIBUTING.md). We do not accept external pull requests.
+
+## License
+
+[MIT](LICENSE) © Marco Schäck. Built and maintained by [Miragon](https://miragon.io).
