@@ -1,0 +1,27 @@
+{
+  "skillVersion": "1.29.0",
+  "products": [
+    {
+      "id": "bpmn-to-code-readme",
+      "target": "web",
+      "store": "readme",
+      "label": "Miragon",
+      "title": "bpmn-to-code",
+      "claim": "Rename a task in the model, and your build shows the code that still uses it.",
+      "icon": "docs/public/logo/miragon-komet-blau.svg",
+      "out": "docs/public/shots/readme",
+      "web": { "url": "https://bpmn-to-code.miragon.io/static/index.html" },
+      "shots": {
+        "hero": {
+          "journey": ".miragon/product-shots/generate-bike-leasing.mjs"
+        },
+        "gallery": [
+          {
+            "name": "generated-api",
+            "journey": ".miragon/product-shots/generate-bike-leasing.mjs"
+          }
+        ]
+      }
+    }
+  ]
+}
