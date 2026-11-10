@@ -1,10 +1,12 @@
 {
-  "_comment": "Activates brand-lint from the miragon-brand plugin (Claude Code hook and CI). The repo is English, so the German-only copy rules are off: du (A1), umlauts (A3), German passive (A4), German claim (A7), gender forms (A11) and C5 (one language per surface, German by default). Em dashes as connectors (A2), spellings (A10), the anti-slop patterns (S*), palette, token and dark-mode rules stay on. The docs kit in docs/.vitepress/miragon/ is linted at its source in Miragon/corporate-identity. Pictures a tool renders (docs/public/shots/, the bike-leasing model) keep the tool's colours.",
+  "_comment": "Activates brand-lint from the miragon-brand plugin (Claude Code hook and CI). The repo is English, so the German-only copy rules are off: du (A1), umlauts (A3), German passive (A4), German claim (A7), gender forms (A11) and C5 (one language per surface, German by default). Em dashes as connectors (A2), spellings (A10), the anti-slop patterns (S*), palette, token and dark-mode rules stay on. The docs kit in docs/.vitepress/miragon/ is linted at its source in Miragon/corporate-identity. Pictures a tool renders (docs/public/shots/, the bike-leasing model) keep the tool's colours. The web app's token copy and .miragon/brand-assets.* are written by brand-assets.mjs from the plugin.",
   "ignorieren": [
     "docs/.vitepress/miragon/",
     "docs/public/shots/",
     "docs/public/bike-leasing.svg",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "bpmn-to-code-web/src/main/resources/static/css/cd-tokens.generated.css",
+    ".miragon/brand-assets."
   ],
   "aus": [
     "A1",

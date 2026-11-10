@@ -17,3 +17,7 @@ bpmn-to-code-core/src/main/resources/io/miragon/bpmn/codegen/templates/** text e
 
 # Mark auto-generated documentation as generated
 bpmn-to-code-web/docs/index.html linguist-generated=true
+
+# Byte-identical copies from the miragon-brand plugin, checked in CI with sha256sum -c
+bpmn-to-code-web/src/main/resources/static/css/cd-tokens.generated.css -text linguist-generated=true
+.miragon/brand-assets.* -text linguist-generated=true

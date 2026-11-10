@@ -43,6 +43,18 @@ jobs:
             echo "backend=false" >> "$GITHUB_OUTPUT"
           fi
 
+  brand-assets:
+    name: Brand Asset Checksums
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      # The copies listed in .miragon/brand-assets.yaml come unchanged from the miragon-brand plugin
+      - name: Verify brand asset copies
+        run: sha256sum -c .miragon/brand-assets.sha256
+
   quality:
     name: Quality Gate (ktlint + detekt)
     needs: changes

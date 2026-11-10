@@ -126,7 +126,7 @@ npx vitepress dev             # local preview with hot reload
 
 The docs site and the web app follow the Miragon corporate design:
 
-- Colours, spacing and radii come from `cd-tokens.generated.css`: for the docs it ships with the kit, the web app keeps its own copy in `static/css/`. The file is generated from the Miragon design tokens. Replace it as a whole when the tokens change and never edit it by hand. Stylesheets use the `--cd-ui-*` roles instead of raw colour values.
+- Colours, spacing and radii come from `cd-tokens.generated.css`: for the docs it ships with the kit, the web app keeps its own copy in `static/css/`, listed in `.miragon/brand-assets.yaml`. The file is generated from the Miragon design tokens. Refresh it with `brand-assets.mjs` from the miragon-brand plugin when the tokens change and never edit it by hand; CI checks it with `sha256sum -c .miragon/brand-assets.sha256`. Stylesheets use the `--cd-ui-*` roles instead of raw colour values.
 - The typefaces are Geist and Geist Mono, shipped with the site and the app.
 - Text stays English, because bpmn-to-code is used internationally. Apart from that the Miragon writing rules apply: no dash as a connector between clauses, no emoji as decoration, concrete statements instead of adjectives.
 - One name per thing: "Agent Skills", "CIB seven", "Camunda 7", "Camunda 8".
