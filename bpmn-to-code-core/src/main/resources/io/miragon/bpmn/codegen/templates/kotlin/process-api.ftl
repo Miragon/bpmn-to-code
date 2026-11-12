@@ -67,6 +67,10 @@ object ${typeName} {
 <#if node.message??>
 <@sharedName property="message" type=types.MessageName definition=node.message/>
 </#if>
+<#if node.correlationKey??>
+
+      override val correlationKey: ${types.String} = ${node.correlationKey}
+</#if>
 <#if node.signal??>
 <@sharedName property="signal" type=types.SignalName definition=node.signal/>
 </#if>

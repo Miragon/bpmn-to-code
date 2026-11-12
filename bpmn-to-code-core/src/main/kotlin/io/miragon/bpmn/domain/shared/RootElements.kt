@@ -36,5 +36,11 @@ data class RootElements(
         escalations = escalations.sortedBy { it.getRawName() },
     )
 
+    fun correlationKeyOf(reference: MessageReference): String? {
+        val message = messages.firstOrNull { it.id == reference.messageRef }
+            ?: messages.firstOrNull { it.getRawName() == reference.messageName }
+        return message?.correlationKey?.ifBlank { null }
+    }
+
     private fun <T> List<T>.distinctById(): List<T> where T : VariableMapping<*>, T : RootElementDefinition = filter { it.getRawName().isNotEmpty() }.distinctBy { it.id ?: it.getRawName() }
 }
