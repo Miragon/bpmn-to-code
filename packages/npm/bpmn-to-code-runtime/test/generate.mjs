@@ -15,6 +15,7 @@ const cases = [
   { name: "operaton-bike-leasing", baseDir: join(sharedModels, "operaton"), filePattern: "bike-leasing.bpmn", engine: "OPERATON" },
   { name: "zeebe-membership", baseDir: join(sharedModels, "zeebe"), filePattern: "membership.bpmn", engine: "ZEEBE" },
   { name: "nested-subprocess", baseDir: coreModels, filePattern: "nested-subprocess.bpmn", engine: "ZEEBE" },
+  { name: "link-loop", baseDir: coreModels, filePattern: "link-loop.bpmn", engine: "ZEEBE" },
   {
     name: "bike-leasing-and-cancel-bike-order",
     baseDir: join(sharedModels, "zeebe"),

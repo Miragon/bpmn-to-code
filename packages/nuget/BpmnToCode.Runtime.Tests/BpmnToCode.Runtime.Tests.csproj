@@ -42,6 +42,7 @@
   <ItemGroup>
     <MiraVeloModel Include="$(RepositoryRoot)shared/bpmn/zeebe/bike-leasing.bpmn" />
     <MiraVeloModel Include="$(RepositoryRoot)bpmn-to-code-core/src/test/resources/bpmn/nested-subprocess.bpmn" />
+    <MiraVeloModel Include="$(RepositoryRoot)bpmn-to-code-core/src/test/resources/bpmn/link-loop.bpmn" />
     <ApprovalModel Include="Fixtures/approval.bpmn" />
     <None Include="Fixtures/*.bpmn" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

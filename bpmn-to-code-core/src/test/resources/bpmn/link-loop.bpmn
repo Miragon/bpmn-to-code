@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    xmlns:zeebe="http://camunda.org/schema/zeebe/1.0"
+    xmlns:modeler="http://camunda.org/schema/modeler/1.0"
+    id="Definitions_LinkLoop" targetNamespace="http://bpmn.io/schema/bpmn"
+    modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.5.0">
+  <bpmn:process id="checkBikeOrderItems" name="Check bike order items" isExecutable="true">
+    <bpmn:startEvent id="startEvent_bikeOrderReceived" name="Bike order received">
+      <bpmn:outgoing>flow_orderReceivedToNextItem</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="gateway_nextItem">
+      <bpmn:incoming>flow_orderReceivedToNextItem</bpmn:incoming>
+      <bpmn:incoming>flow_nextItemToProcessToNextItem</bpmn:incoming>
+      <bpmn:outgoing>flow_nextItemToCheckItemInStock</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="serviceTask_checkItemInStock" name="Check item in stock">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="miravelo.checkItemInStock" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>flow_nextItemToCheckItemInStock</bpmn:incoming>
+      <bpmn:outgoing>flow_checkItemInStockToMoreItems</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="gateway_moreItems" name="More items?" default="flow_moreItemsToItemsChecked">
+      <bpmn:incoming>flow_checkItemInStockToMoreItems</bpmn:incoming>
+      <bpmn:outgoing>flow_moreItemsToLoopForNextItem</bpmn:outgoing>
+      <bpmn:outgoing>flow_moreItemsToItemsChecked</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="event_loopForNextItem" name="Loop for next item">
+      <bpmn:incoming>flow_moreItemsToLoopForNextItem</bpmn:incoming>
+      <bpmn:linkEventDefinition id="link_loopForNextItem" name="nextItem" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:intermediateCatchEvent id="event_nextItemToProcess" name="Next item to process">
+      <bpmn:outgoing>flow_nextItemToProcessToNextItem</bpmn:outgoing>
+      <bpmn:linkEventDefinition id="link_nextItemToProcess" name="nextItem" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="endEvent_itemsChecked" name="Items checked">
+      <bpmn:incoming>flow_moreItemsToItemsChecked</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_orderReceivedToNextItem" sourceRef="startEvent_bikeOrderReceived" targetRef="gateway_nextItem" />
+    <bpmn:sequenceFlow id="flow_nextItemToCheckItemInStock" sourceRef="gateway_nextItem" targetRef="serviceTask_checkItemInStock" />
+    <bpmn:sequenceFlow id="flow_checkItemInStockToMoreItems" sourceRef="serviceTask_checkItemInStock" targetRef="gateway_moreItems" />
+    <bpmn:sequenceFlow id="flow_moreItemsToLoopForNextItem" name="Yes" sourceRef="gateway_moreItems" targetRef="event_loopForNextItem">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=moreItems</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_moreItemsToItemsChecked" name="No" sourceRef="gateway_moreItems" targetRef="endEvent_itemsChecked" />
+    <bpmn:sequenceFlow id="flow_nextItemToProcessToNextItem" sourceRef="event_nextItemToProcess" targetRef="gateway_nextItem" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_LinkLoop">
+    <bpmndi:BPMNPlane id="BPMNPlane_LinkLoop" bpmnElement="checkBikeOrderItems">
+      <bpmndi:BPMNShape id="startEvent_bikeOrderReceived_di" bpmnElement="startEvent_bikeOrderReceived">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_nextItem_di" bpmnElement="gateway_nextItem" isMarkerVisible="true">
+        <dc:Bounds x="245" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="serviceTask_checkItemInStock_di" bpmnElement="serviceTask_checkItemInStock">
+        <dc:Bounds x="350" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_moreItems_di" bpmnElement="gateway_moreItems" isMarkerVisible="true">
+        <dc:Bounds x="505" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_itemsChecked_di" bpmnElement="endEvent_itemsChecked">
+        <dc:Bounds x="612" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="event_loopForNextItem_di" bpmnElement="event_loopForNextItem">
+        <dc:Bounds x="512" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="event_nextItemToProcess_di" bpmnElement="event_nextItemToProcess">
+        <dc:Bounds x="252" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_orderReceivedToNextItem_di" bpmnElement="flow_orderReceivedToNextItem">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="245" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_nextItemToCheckItemInStock_di" bpmnElement="flow_nextItemToCheckItemInStock">
+        <di:waypoint x="295" y="120" />
+        <di:waypoint x="350" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_checkItemInStockToMoreItems_di" bpmnElement="flow_checkItemInStockToMoreItems">
+        <di:waypoint x="450" y="120" />
+        <di:waypoint x="505" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_moreItemsToItemsChecked_di" bpmnElement="flow_moreItemsToItemsChecked">
+        <di:waypoint x="555" y="120" />
+        <di:waypoint x="612" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_moreItemsToLoopForNextItem_di" bpmnElement="flow_moreItemsToLoopForNextItem">
+        <di:waypoint x="530" y="145" />
+        <di:waypoint x="530" y="212" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_nextItemToProcessToNextItem_di" bpmnElement="flow_nextItemToProcessToNextItem">
+        <di:waypoint x="270" y="212" />
+        <di:waypoint x="270" y="145" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
