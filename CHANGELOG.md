@@ -3,6 +3,20 @@
 All notable changes to this project are documented here.
 New entries are appended automatically by [release-please](https://github.com/googleapis/release-please).
 
+## [7.1.0](https://github.com/Miragon/bpmn-to-code/compare/v7.0.1...v7.1.0) (2026-11-12)
+
+
+### Features
+
+* **codegen:** expose multi-instance characteristics in the Process API ([#281](https://github.com/Miragon/bpmn-to-code/issues/281)) ([39b0d27](https://github.com/Miragon/bpmn-to-code/commit/39b0d27fabf0438625824c6f6fc6f3f8d5add14b))
+
+
+### Bug Fixes
+
+* **deps:** bump io.mockk:mockk ([e0a4f7d](https://github.com/Miragon/bpmn-to-code/commit/e0a4f7d381084bcd57b9f5a4862affb043ce883e))
+* **deps:** bump io.mockk:mockk from 1.14.11 to 1.14.12 in the gradle-minor-patch group ([#295](https://github.com/Miragon/bpmn-to-code/issues/295)) ([e0a4f7d](https://github.com/Miragon/bpmn-to-code/commit/e0a4f7d381084bcd57b9f5a4862affb043ce883e))
+* **skills:** adapt bpmn-cli calls to 0.10 ([#271](https://github.com/Miragon/bpmn-to-code/issues/271)) ([6190f02](https://github.com/Miragon/bpmn-to-code/commit/6190f02655c252c19783d5a372c8e3d3be24bc1a))
+
 ## [7.0.1](https://github.com/Miragon/bpmn-to-code/compare/v7.0.0...v7.0.1) (2026-10-26)
 
 
