@@ -16,7 +16,7 @@ Generated Kotlin and Java code needs `io.miragon:bpmn-to-code-runtime` in the sa
     <dependency>
         <groupId>io.miragon</groupId>
         <artifactId>bpmn-to-code-runtime</artifactId>
-        <version>7.0.1</version>
+        <version>7.1.0</version>
     </dependency>
 </dependencies>
 
@@ -25,7 +25,7 @@ Generated Kotlin and Java code needs `io.miragon:bpmn-to-code-runtime` in the sa
         <plugin>
             <groupId>io.miragon</groupId>
             <artifactId>bpmn-to-code-maven</artifactId>
-            <version>7.0.1</version>
+            <version>7.1.0</version>
             <executions>
                 <execution>
                     <phase>generate-sources</phase>
