@@ -12,7 +12,7 @@ updates:
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore"
+      prefix: "fix"
       include: "scope"
     rebase-strategy: "auto"
     open-pull-requests-limit: 10
@@ -42,7 +42,8 @@ updates:
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore"
+      prefix: "fix"
+      prefix-development: "chore"
       include: "scope"
     rebase-strategy: "auto"
     groups:
@@ -67,7 +68,7 @@ updates:
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore"
+      prefix: "fix"
       include: "scope"
     rebase-strategy: "auto"
     groups:
