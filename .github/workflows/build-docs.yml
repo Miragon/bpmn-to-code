@@ -64,12 +64,6 @@ jobs:
         run: npm ci
         working-directory: docs
 
-      # The kit in docs/.vitepress/miragon/ and the logos in docs/public/logo/ come unchanged
-      # from the corporate identity. Fails when someone edited them in this repo.
-      - name: Check the Miragon docs kit
-        run: node .vitepress/miragon/check.mjs
-        working-directory: docs
-
       - name: Build Documentation
         run: npm run build
         working-directory: docs

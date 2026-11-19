@@ -7,13 +7,11 @@
   "scripts": {
     "dev": "portless run sh -c '(open $PORTLESS_URL/) & vitepress dev --port $PORT --host 127.0.0.1'",
     "build": "vitepress build",
-    "preview": "vitepress preview",
-    "check:kit": "node .vitepress/miragon/check.mjs"
+    "preview": "vitepress preview"
   },
   "devDependencies": {
     "@braintree/sanitize-url": "7.1.2",
-    "@fontsource-variable/geist": "5.3.0",
-    "@fontsource-variable/geist-mono": "5.3.0",
+    "@miragon/docs-starter": "1.0.0",
     "cytoscape": "3.34.4",
     "cytoscape-cose-bilkent": "4.1.0",
     "dayjs": "1.11.23",
@@ -23,7 +21,7 @@
     "vitepress-plugin-mermaid": "2.0.17"
   },
   "overrides": {
-    "vite": "6.4.3",
+    "vite": "6.4.5",
     "vitepress-plugin-mermaid": {
       "mermaid": "$mermaid"
     }
