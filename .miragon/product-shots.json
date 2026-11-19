@@ -8,7 +8,7 @@
       "label": "bpmn-to-code",
       "title": "Process API",
       "claim": "Keep BPMN models and code in sync, checked by your compiler, your tests and your AI agents.",
-      "icon": "docs/public/logo/miragon-komet-blau.svg",
+      "icon": "docs/node_modules/@miragon/docs-starter/assets/logo/miragon-komet-blau.svg",
       "out": "docs/public/shots/readme",
       "vscode": {
         "extension": "mathiasfrohlich.Kotlin",

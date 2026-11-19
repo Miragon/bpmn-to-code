@@ -111,7 +111,7 @@ npm test --prefix packages/npm/bpmn-to-code-runtime
 
 ## Docs site
 
-The site is [VitePress](https://vitepress.dev/) in `docs/`, built with the Miragon docs kit in `docs/.vitepress/miragon/`. The kit is vendored unchanged from [Miragon/corporate-identity](https://github.com/Miragon/corporate-identity) (skill `docs-site`) and sets theme, colours in light and dark mode, anchors, Mermaid, search and the legal row; `node .vitepress/miragon/check.mjs` fails when it was edited here. The repo only owns `config.ts`, the landing page in `theme/` and the pages:
+The site is [VitePress](https://vitepress.dev/) in `docs/`, built with the Miragon docs kit, the npm package [`@miragon/docs-starter`](https://github.com/Miragon/brand-toolbox/tree/main/kits/docs/packages/docs-starter). The kit sets theme, colours in light and dark mode, anchors, Mermaid, search and the legal row. The repo only owns `config.ts`, the landing page in `theme/` and the pages:
 
 ```bash
 cd docs
