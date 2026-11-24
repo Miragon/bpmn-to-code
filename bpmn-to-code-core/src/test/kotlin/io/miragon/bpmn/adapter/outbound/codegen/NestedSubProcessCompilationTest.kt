@@ -32,6 +32,15 @@ class NestedSubProcessCompilationTest {
     }
 
     @Test
+    fun `generated java of a link loop compiles and leads from the throw to the catch event`() {
+        val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/link-loop.bpmn")).readText()
+        val generated = generate(listOf(bpmnXml))
+        val api = generated.single { it.fileName == "CheckBikeOrderItemsProcessApi.java" }
+        assertThat(api.content).contains("public LinkedCatchEvent<EventNextItemToProcess> eventNextItemToProcess()")
+        assertCompiles(generated)
+    }
+
+    @Test
     fun `generated java of two processes sharing job types and messages compiles`() {
         val bpmnXml = requireNotNull(javaClass.getResource("/bpmn/zeebe/bike-leasing.bpmn")).readText()
         val copy = bpmnXml.replace("id=\"bikeLeasing\"", "id=\"bikeLeasingCopy\"")

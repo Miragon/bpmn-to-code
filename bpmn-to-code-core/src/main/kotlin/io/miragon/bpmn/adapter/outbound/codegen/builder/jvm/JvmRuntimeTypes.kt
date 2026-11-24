@@ -11,6 +11,7 @@ internal object JvmRuntimeTypes {
     private val SIMPLE_NAMES = listOf(
         "AbstractFlowNode",
         "AssociatedCompensationHandler",
+        "LinkedCatchEvent",
         "AttachedBoundaryEvent",
         "BoundaryEvent",
         "BpmnElementType",

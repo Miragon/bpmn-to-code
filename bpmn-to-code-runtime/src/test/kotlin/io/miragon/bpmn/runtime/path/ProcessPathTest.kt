@@ -9,6 +9,7 @@ import io.miragon.bpmn.runtime.CompensationThrowEvent
 import io.miragon.bpmn.runtime.ElementId
 import io.miragon.bpmn.runtime.FlowScope
 import io.miragon.bpmn.runtime.HasSuccessors
+import io.miragon.bpmn.runtime.LinkedCatchEvent
 import io.miragon.bpmn.runtime.SequenceFlow
 import io.miragon.bpmn.runtime.SequenceFlows
 import org.assertj.core.api.Assertions.assertThat
@@ -183,6 +184,32 @@ class ProcessPathTest {
         assertThat(nodesOf(branchA, branchB).map { it.id.value }).containsExactly("Start", "Mid", "End")
     }
 
+    @Test
+    fun `throughLink continues at the catch event and leaves both link events out, as Camunda 7 and Operaton do`() {
+        val path = ProcessPath.from(Start).then { it.linkThrow }.throughLink { it.linkCatch }.then { it.end }
+
+        assertThat(path.ids).containsExactly("Start", "End")
+        assertThat(path.flowIds).containsExactly("flow_startToLinkThrow", "flow_linkCatchToEnd")
+        assertThat(path.current).isEqualTo(End)
+    }
+
+    @Test
+    fun `throughLink records both link events when asked to`() {
+        val path = ProcessPath.from(Start).then { it.linkThrow }.throughLink(includeLinkEvents = true) { it.linkCatch }
+
+        assertThat(path.ids).containsExactly("Start", "LinkThrow", "LinkCatch")
+        assertThat(path.current).isEqualTo(LinkCatch)
+    }
+
+    @Test
+    fun `path walk continues through a link like the extension step`() {
+        val leftOut = PathWalk.from(Start).then { it.linkThrow }.throughLink { it.linkCatch }.end { it.end }
+        val recorded = PathWalk.from(Start).then { it.linkThrow }.throughLink(includeLinkEvents = true) { it.linkCatch }
+
+        assertThat(leftOut.ids).containsExactly("Start", "End")
+        assertThat(recorded.ids).containsExactly("Start", "LinkThrow", "LinkCatch")
+    }
+
     @OptIn(RiskyNavigation::class)
     @Test
     fun `jumpTo re-anchors without recording`() {
@@ -199,6 +226,20 @@ class ProcessPathTest {
         override val next: Next get() = Next
         object Next {
             val end: SequenceFlows<End> get() = SequenceFlows.single(flowId = ElementId("flow_throwToEnd"), target = End)
+        }
+    }
+
+    private object LinkThrow : AbstractFlowNode(ElementId("LinkThrow"), BpmnElementType.INTERMEDIATE_THROW_EVENT), HasSuccessors<LinkThrow.Next> {
+        override val next: Next get() = Next
+        object Next {
+            val linkCatch: LinkedCatchEvent<LinkCatch> get() = LinkedCatchEvent(LinkCatch)
+        }
+    }
+
+    private object LinkCatch : AbstractFlowNode(ElementId("LinkCatch"), BpmnElementType.INTERMEDIATE_CATCH_EVENT), HasSuccessors<LinkCatch.Next> {
+        override val next: Next get() = Next
+        object Next {
+            val end: SequenceFlows<End> get() = SequenceFlows.single(flowId = ElementId("flow_linkCatchToEnd"), target = End)
         }
     }
 
@@ -227,6 +268,7 @@ class ProcessPathTest {
         object Next {
             val mid: SequenceFlows<Mid> get() = SequenceFlows.single(flowId = ElementId("flow_startToMid"), target = Mid)
             val sub: SequenceFlows<Sub> get() = SequenceFlows.single(flowId = ElementId("flow_startToSub"), target = Sub)
+            val linkThrow: SequenceFlows<LinkThrow> get() = SequenceFlows.single(flowId = ElementId("flow_startToLinkThrow"), target = LinkThrow)
         }
     }
 

@@ -57,6 +57,7 @@ object ProcessApiNames {
         "SequenceFlows",
         "AttachedBoundaryEvent",
         "AssociatedCompensationHandler",
+        "LinkedCatchEvent",
         "ISuccessor",
         "FlowNode",
         "AbstractFlowNode",

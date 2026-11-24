@@ -51,6 +51,11 @@ public abstract class RecordedPath
         };
     }
 
+    private protected static System.Collections.Generic.IReadOnlyList<IFlowNode> WithoutLast(System.Collections.Generic.IReadOnlyList<IFlowNode> recorded, IFlowNode node)
+    {
+        return recorded.Count > 0 && ReferenceEquals(recorded[recorded.Count - 1], node) ? System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Take(recorded, recorded.Count - 1)) : recorded;
+    }
+
     private protected static System.Collections.Generic.IReadOnlyList<T> Append<T>(System.Collections.Generic.IReadOnlyList<T> recorded, params T[] items)
     {
         return System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(recorded, items));
@@ -117,6 +122,14 @@ public class ProcessPath<TNext> : RecordedPath
         where THandler : IFlowNode
     {
         return new ProcessPath<TNext>(Current, next, WithCompensation(boundaryEvent, pick, includeBoundaryEvent), Flows);
+    }
+
+    /// <summary>Continues from the current link throw event at its catch event; both link events are left out, as Camunda 7 and Operaton do not report them as passed, unless includeLinkEvents records them.</summary>
+    public ProcessPath<TTargetNext> ThroughLink<TTargetNext>(System.Func<TNext, ILinkedCatchEvent<IHasSuccessors<TTargetNext>>> pick, bool includeLinkEvents = false)
+    {
+        var target = pick(next).Target;
+        var recorded = includeLinkEvents ? Append(Nodes, target) : WithoutLast(Nodes, Current);
+        return new ProcessPath<TTargetNext>(target, target.Next, recorded, Flows);
     }
 
     /// <summary>Re-anchors to any element without checking that it follows and without recording it.</summary>

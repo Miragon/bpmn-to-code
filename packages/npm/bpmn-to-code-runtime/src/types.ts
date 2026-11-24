@@ -243,11 +243,21 @@ export interface AssociatedCompensationHandler<TARGET extends FlowNode = FlowNod
   readonly target: TARGET;
 }
 
+/**
+ * A link catch event with the same link name as the current link throw event, in the same scope; no sequence flow
+ * leads there.
+ */
+export interface LinkedCatchEvent<TARGET extends FlowNode = FlowNode> {
+  readonly kind: "linkedCatchEvent";
+  readonly target: TARGET;
+}
+
 export type Successor<TARGET extends FlowNode = FlowNode> =
   | SequenceFlow<TARGET>
   | SequenceFlows<TARGET>
   | AttachedBoundaryEvent<TARGET>
-  | AssociatedCompensationHandler<TARGET>;
+  | AssociatedCompensationHandler<TARGET>
+  | LinkedCatchEvent<TARGET>;
 
 export interface FlowData {
   readonly id: string;
@@ -285,4 +295,8 @@ export function attachedBoundaryEvent<TARGET extends FlowNode>(target: TARGET): 
 
 export function associatedCompensationHandler<TARGET extends FlowNode>(target: TARGET): AssociatedCompensationHandler<TARGET> {
   return { kind: "associatedCompensationHandler", target };
+}
+
+export function linkedCatchEvent<TARGET extends FlowNode>(target: TARGET): LinkedCatchEvent<TARGET> {
+  return { kind: "linkedCatchEvent", target };
 }

@@ -60,6 +60,14 @@ class ProcessPath<N : FlowNode> internal constructor(
         flowsToRecord: List<SequenceFlow<*>> = emptyList(),
     ): ProcessPath<M> = ProcessPath(current = node, recorded = recorded + nodesToRecord, takenFlows = takenFlows + flowsToRecord)
 
+    /**
+     * Stays on the current node but takes it out of the recorded nodes again, when it was the last one recorded.
+     */
+    internal fun withoutCurrentRecorded(): ProcessPath<N> {
+        val remaining = if (recorded.lastOrNull() == current) recorded.dropLast(1) else recorded
+        return ProcessPath(current = current, recorded = remaining, takenFlows = takenFlows)
+    }
+
     companion object {
         /**
          * Starts a path at [start], recording it as the first node.

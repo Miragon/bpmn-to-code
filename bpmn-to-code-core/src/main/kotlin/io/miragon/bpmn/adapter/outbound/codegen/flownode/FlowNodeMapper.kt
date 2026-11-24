@@ -99,12 +99,14 @@ internal class FlowNodeMapper(private val syntax: FlowNodeSyntax) {
         is SuccessorEdge.ViaSequenceFlows -> "SequenceFlows"
         is SuccessorEdge.AttachedBoundaryEvent -> "AttachedBoundaryEvent"
         is SuccessorEdge.AssociatedCompensationHandler -> "AssociatedCompensationHandler"
+        is SuccessorEdge.LinkedCatchEvent -> "LinkedCatchEvent"
     }
 
     private fun sequenceFlowsOf(successor: SuccessorEdge): List<SequenceFlowEdge> = when (successor) {
         is SuccessorEdge.ViaSequenceFlows -> successor.flows
         is SuccessorEdge.AttachedBoundaryEvent -> emptyList()
         is SuccessorEdge.AssociatedCompensationHandler -> emptyList()
+        is SuccessorEdge.LinkedCatchEvent -> emptyList()
     }
 
     private fun flowOf(flow: SequenceFlowEdge): Flow = Flow(

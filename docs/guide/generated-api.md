@@ -361,6 +361,7 @@ When **several sequence flows lead to the same element**, the entry keeps its na
 | `SequenceFlows<Target>` | an element reached by one or more sequence flows |
 | `AttachedBoundaryEvent<Target>` | a boundary event attached to this node |
 | `AssociatedCompensationHandler<Target>` | the handler of a compensation boundary event, which BPMN connects by an association |
+| `LinkedCatchEvent<Target>` | a link catch event with the link name of this link throw event, in the same scope |
 
 ```kotlin
 object SubProcessConcludeContract : /* … */

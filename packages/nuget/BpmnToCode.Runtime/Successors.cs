@@ -19,7 +19,7 @@ public sealed record SequenceFlow<TTarget>(ElementId Id, string? Name, string? C
     IFlowNode ISequenceFlow.Target => Target;
 }
 
-/// <summary>What can follow a flow node in its Next: the SequenceFlows to an element, one SequenceFlow of them, an AttachedBoundaryEvent or an AssociatedCompensationHandler.</summary>
+/// <summary>What can follow a flow node in its Next: the SequenceFlows to an element, one SequenceFlow of them, an AttachedBoundaryEvent, an AssociatedCompensationHandler or a LinkedCatchEvent.</summary>
 public interface ISuccessor<out TTarget>
     where TTarget : IFlowNode
 {
@@ -55,4 +55,12 @@ public sealed record AttachedBoundaryEvent<TTarget>(TTarget Target) : ISuccessor
 
 /// <summary>The compensation handler associated with the current compensation boundary event: it runs when the event triggers, but no sequence flow leads there.</summary>
 public sealed record AssociatedCompensationHandler<TTarget>(TTarget Target) : ISuccessor<TTarget>
+    where TTarget : IFlowNode;
+
+/// <summary>A link catch event with the same link name as the current link throw event, in the same scope: the token continues there, but no sequence flow leads there.</summary>
+public interface ILinkedCatchEvent<out TTarget> : ISuccessor<TTarget>
+    where TTarget : IFlowNode;
+
+/// <summary>The link catch event a link throw event continues at.</summary>
+public sealed record LinkedCatchEvent<TTarget>(TTarget Target) : ILinkedCatchEvent<TTarget>
     where TTarget : IFlowNode;

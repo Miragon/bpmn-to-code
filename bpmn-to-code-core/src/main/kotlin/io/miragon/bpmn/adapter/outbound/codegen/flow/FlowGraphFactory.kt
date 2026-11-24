@@ -4,6 +4,8 @@ import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.FlowGraphNode
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SequenceFlowEdge
 import io.miragon.bpmn.adapter.outbound.codegen.flow.FlowGraph.SuccessorEdge
+import io.miragon.bpmn.domain.shared.EventDefinitionInstance
+import io.miragon.bpmn.domain.shared.EventDirection
 import io.miragon.bpmn.domain.shared.EventShape
 import io.miragon.bpmn.domain.shared.FlowNodeDefinition
 import io.miragon.bpmn.domain.shared.ProcessGraph
@@ -74,7 +76,7 @@ internal object FlowGraphFactory {
     }
 
     /**
-     * Unifies sequence-flow successors, boundary edges and the compensation handler into a single successor list.
+     * Unifies sequence-flow successors, boundary edges, the compensation handler and linked catch events into a single successor list.
      * A target reached in several ways is listed once: by its sequence flows first, as a boundary event second.
      */
     private fun buildSuccessors(
@@ -86,8 +88,26 @@ internal object FlowGraphFactory {
             .mapNotNull { targetId -> names[targetId] }.map { SuccessorEdge.AttachedBoundaryEvent(it) }
         val compensationHandler = listOfNotNull(graph.compensationHandlerOf(node))
             .mapNotNull { targetId -> names[targetId] }.map { SuccessorEdge.AssociatedCompensationHandler(it) }
-        val successors = buildSequenceFlowSuccessors(node = node, names = names, graph = graph) + boundaryEvents + compensationHandler
+        val linkedCatchEvents = linkedCatchEventsOf(node = node, graph = graph)
+            .mapNotNull { targetId -> names[targetId] }.map { SuccessorEdge.LinkedCatchEvent(it) }
+        val successors = buildSequenceFlowSuccessors(node = node, names = names, graph = graph) + boundaryEvents + compensationHandler + linkedCatchEvents
         return successors.distinctBy { it.target.objectName }.sortedBy { it.target.propertyName }
+    }
+
+    /**
+     * The link catch events a link throw event continues at: the ones with the same link name in the same scope.
+     */
+    private fun linkedCatchEventsOf(node: FlowNodeDefinition, graph: ProcessGraph): List<String> {
+        val linkName = node.linkName(EventDirection.THROW) ?: return emptyList()
+        val scope = graph.parentIdOf(node.id)
+        return graph.allFlowNodes
+            .filter { it.linkName(EventDirection.CATCH) == linkName && graph.parentIdOf(it.id) == scope }
+            .mapNotNull { it.id }
+    }
+
+    private fun FlowNodeDefinition.linkName(direction: EventDirection): String? {
+        if (this !is FlowNodeDefinition.Event || shape.direction != direction) return null
+        return eventDefinitions.filterIsInstance<EventDefinitionInstance.Link>().firstNotNullOfOrNull { it.linkName }
     }
 
     /**
