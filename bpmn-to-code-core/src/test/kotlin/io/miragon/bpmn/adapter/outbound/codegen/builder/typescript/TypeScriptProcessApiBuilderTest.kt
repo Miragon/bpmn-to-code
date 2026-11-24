@@ -201,4 +201,35 @@ class TypeScriptProcessApiBuilderTest {
             """.trimMargin(),
         )
     }
+
+    @Test
+    fun `receive task exposes the correlation key of its message as modelled, a send task does not`() {
+        val contractSigned = MessageReference(messageRef = "message_contractSigned")
+        val model = testProcessModel(
+            flowNodes = listOf(
+                FlowNodeDefinition.Activity.Task(
+                    id = "receiveTask_contractSigned",
+                    kind = TaskKind.RECEIVE,
+                    message = contractSigned,
+                ),
+                FlowNodeDefinition.Activity.Task(
+                    id = "sendTask_contractSigned",
+                    kind = TaskKind.SEND,
+                    message = contractSigned,
+                ),
+            ),
+            messages = listOf(
+                RootElementDefinition.Message(
+                    id = "message_contractSigned",
+                    name = "miravelo.contractSigned",
+                    correlationKey = "=applicationId",
+                ),
+            ),
+        )
+
+        val result = underTest.generateCode(typeScriptApi(model)).single()
+
+        assertThat(result.content).contains("readonly correlationKey = \"=applicationId\";")
+        assertThat(result.content.split("correlationKey")).hasSize(2)
+    }
 }

@@ -70,6 +70,11 @@ public interface ITimerEvent : IEvent
 public interface IHasMessage : IFlowNode
 {
     MessageName Message { get; }
+
+    /// <summary>
+    /// The correlation-key expression as modelled, only on nodes where an instance waits for the message.
+    /// </summary>
+    string? CorrelationKey => null;
 }
 
 /// <summary>An event that throws or catches the Signal.</summary>

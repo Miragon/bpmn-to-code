@@ -32,6 +32,9 @@ export class ${node.type} implements ${node.interfaces?join(", ")} {
 <#if node.message??>
   readonly message = ${node.message.reference!node.message.literal};
 </#if>
+<#if node.correlationKey??>
+  readonly correlationKey = ${node.correlationKey};
+</#if>
 <#if node.signal??>
   readonly signal = ${node.signal.reference!node.signal.literal};
 </#if>

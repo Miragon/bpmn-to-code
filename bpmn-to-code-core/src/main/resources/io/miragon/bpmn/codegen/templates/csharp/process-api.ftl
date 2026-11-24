@@ -42,6 +42,9 @@ public static class ${typeName}
 <#if node.message??>
             public ${runtime}.MessageName Message { get; } = new(${node.message.reference!node.message.literal});
 </#if>
+<#if node.correlationKey??>
+            public string CorrelationKey { get; } = ${node.correlationKey};
+</#if>
 <#if node.signal??>
             public ${runtime}.SignalName Signal { get; } = new(${node.signal.reference!node.signal.literal});
 </#if>

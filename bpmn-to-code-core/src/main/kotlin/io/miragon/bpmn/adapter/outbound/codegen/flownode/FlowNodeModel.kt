@@ -28,6 +28,7 @@ internal data class FlowNodeModel(
     val timer: Timer?,
     val multiInstance: MultiInstance?,
     val message: SharedName?,
+    val correlationKey: String?,
     val signal: SharedName?,
     val error: SharedNameAndCode?,
     val escalation: SharedNameAndCode?,

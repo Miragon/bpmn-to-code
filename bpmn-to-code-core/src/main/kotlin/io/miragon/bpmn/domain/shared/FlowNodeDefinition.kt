@@ -21,6 +21,8 @@ sealed interface FlowNodeDefinition {
     val extensions: List<EngineExtension>
     val engineAttributes: Map<String, Any?>
 
+    fun correlatesToRunningInstance(): Boolean = false
+
     data class Gateway(
         override val id: String?,
         val kind: GatewayKind,
@@ -62,6 +64,12 @@ sealed interface FlowNodeDefinition {
             val compensates = eventDefinitions.any { it is EventDefinitionInstance.Compensation }
             return compensates && shape.direction == EventDirection.THROW
         }
+
+        override fun correlatesToRunningInstance(): Boolean {
+            val hasMessage = eventDefinitions.any { it is EventDefinitionInstance.Message }
+            val startsProcess = shape == EventShape.START_EVENT && interrupting == null
+            return hasMessage && shape.direction == EventDirection.CATCH && !startsProcess
+        }
     }
 
     /**
@@ -96,7 +104,9 @@ sealed interface FlowNodeDefinition {
             override val variables: List<VariableDefinition> = emptyList(),
             override val extensions: List<EngineExtension> = emptyList(),
             override val engineAttributes: Map<String, Any?> = emptyMap(),
-        ) : Activity
+        ) : Activity {
+            override fun correlatesToRunningInstance(): Boolean = kind == TaskKind.RECEIVE
+        }
 
         /**
          * A sub-process, transaction or event sub-process. Owns its children **and its own sequence

@@ -34,6 +34,13 @@ class GeneratedApiEnumerationKotlinTest {
     }
 
     @Test
+    fun `message nodes of a model without correlation keys carry none`() {
+        val messageNodes = FlowNodes.all.filterIsInstance<HasMessage>()
+
+        assertThat(messageNodes).isNotEmpty.allSatisfy { assertThat(it.correlationKey).isNull() }
+    }
+
+    @Test
     fun `shared definitions list exactly their values in declaration order`() {
         assertThat(ServiceTasks.all).containsExactly(
             ServiceTasks.CANCEL_CONTRACT_DELEGATE,

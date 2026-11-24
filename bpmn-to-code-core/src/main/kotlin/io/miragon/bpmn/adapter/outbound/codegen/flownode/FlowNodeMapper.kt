@@ -44,6 +44,7 @@ internal class FlowNodeMapper(private val syntax: FlowNodeSyntax) {
             timer = facets.timer?.let { Timer(type = syntax.enumMember(it.type.name), expression = syntax.literal(it.expression)) },
             multiInstance = facets.multiInstance?.let { multiInstanceOf(it) },
             message = facets.message?.let { sharedName(MESSAGES, it) },
+            correlationKey = facets.correlationKey?.let { syntax.literal(it) },
             signal = facets.signal?.let { sharedName(SIGNALS, it) },
             error = facets.error?.let { syntax.sharedNameAndCode(ERRORS, it) },
             escalation = facets.escalation?.let { syntax.sharedNameAndCode(ESCALATIONS, it) },
