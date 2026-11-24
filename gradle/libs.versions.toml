@@ -11,7 +11,7 @@ junitPlatformLauncher = "6.1.3"
 mockk = "1.14.12"
 ktor = "3.6.1"
 kotlinxSerialization = "1.13.0"
-logback = "1.6.6"
+logback = "1.6.8"
 shadow = "9.6.1"
 slf4j = "2.0.20"
 kotlinLogging = "8.0.7"
@@ -23,11 +23,11 @@ pitest = "1.19.0"
 pitestCore = "1.19.4"
 pitestJunit5 = "1.2.3"
 jmh = "1.37"
-clikt = "5.1.0"
+clikt = "5.2.1"
 
 [libraries]
 # Plugin dependencies
-mavenPluginApi = { module = "org.apache.maven:maven-plugin-api", version = "3.10.1" }
+mavenPluginApi = { module = "org.apache.maven:maven-plugin-api", version = "3.10.2" }
 mavenPluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin-annotations", version = "3.16.0" }
 # Production dependencies
 freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
