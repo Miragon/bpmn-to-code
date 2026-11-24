@@ -11,7 +11,7 @@ The Gradle plugin of [bpmn-to-code](https://github.com/Miragon/bpmn-to-code) tur
 <!-- x-release-please-start-version -->
 ```kotlin
 plugins {
-    id("io.miragon.bpmn-to-code-gradle") version "7.0.1"
+    id("io.miragon.bpmn-to-code-gradle") version "7.1.0"
 }
 ```
 <!-- x-release-please-end -->
